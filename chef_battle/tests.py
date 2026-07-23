@@ -7182,3 +7182,278 @@ class RequestHashTests(TestCase):
         from .models import HASH_SCHEME_CURRENT
 
         self.assertEqual(BattleVote._meta.get_field("hash_scheme").default, HASH_SCHEME_CURRENT)
+
+
+class ArenaSeatingTests(TestCase):
+    """Stage 3C — real spectator seating.
+
+    The stands had a capacity but no memory: whoever was online was poured into
+    seats in heartbeat order, so a viewer's seat moved under them on every poll.
+    These pin the seat to the person, the person to one seat, and the filling
+    order to the front rail."""
+
+    def _viewer(self, tag, *, seen_secs_ago=5):
+        # The login name and the public slug are deliberately different, so the
+        # privacy test below actually tests something: a payload echoing the
+        # account username would otherwise be indistinguishable from one
+        # carrying nothing but the public profile slug.
+        User = get_user_model()
+        author = RecipeAuthor.objects.create(
+            user=User.objects.create_user(f"account-{tag}", password="pw"),
+            name=f"Seat {tag}", slug=f"seat-{tag}",
+        )
+        ChefBattleProfile.objects.update_or_create(author=author, defaults={
+            "last_seen_at": timezone.now() - timezone.timedelta(seconds=seen_secs_ago),
+        })
+        return author
+
+    # ---- topology --------------------------------------------------------
+
+    def test_capacity_is_the_geometry_not_a_constant(self):
+        """544 is a consequence of the eight declared spectator rings, so the
+        number is checked against the rings rather than typed twice."""
+        from .arena_seating import seat_map, seating_capacity
+        from .selectors import SPECTATOR_RING_SEGMENTS, get_arena_geometry
+
+        drawn = [r for r in get_arena_geometry()["rings"] if r["kind"] == "spectator"]
+        self.assertEqual(len(drawn), 8)
+        self.assertEqual(seating_capacity(), sum(SPECTATOR_RING_SEGMENTS))
+        self.assertEqual(seating_capacity(), 544)
+        self.assertEqual(len(set(seat_map())), 544)
+
+    def test_seat_order_runs_front_row_first(self):
+        """Front seats first is the allocation order, so it lives in the map:
+        every seat of row 1 before any seat of row 2, cells ascending."""
+        from .arena_seating import seat_map
+        seats = seat_map()
+        rows = [row for _ring, _cell, row in seats]
+        self.assertEqual(rows, sorted(rows))
+        self.assertEqual(rows[0], 1)
+        self.assertEqual([cell for _r, cell, _row in seats[:40]], list(range(40)))
+
+    # ---- allocation ------------------------------------------------------
+
+    def test_first_claim_takes_the_front_seat(self):
+        from .arena_seating import claim_seat, seat_map
+        seat = claim_seat(self._viewer("first"))
+        ring, cell, _row = seat_map()[0]
+        self.assertEqual((seat.ring_index, seat.seat_index), (ring, cell))
+
+    def test_claims_fill_forward_in_order(self):
+        from .arena_seating import claim_seat, seat_map
+        seats = [claim_seat(self._viewer(f"q{i}")) for i in range(5)]
+        expected = [(r, c) for r, c, _row in seat_map()[:5]]
+        self.assertEqual([(s.ring_index, s.seat_index) for s in seats], expected)
+
+    def test_repeated_claim_is_idempotent(self):
+        """The arena polls every twenty seconds. A claim that allocated again
+        would walk the viewer around the hall and eat 544 seats in a morning."""
+        from .arena_seating import claim_seat
+        from .models import ArenaSeat
+        viewer = self._viewer("repeat")
+        first = claim_seat(viewer)
+        again = claim_seat(viewer)
+        self.assertEqual(first.pk, again.pk)
+        self.assertEqual(
+            ArenaSeat.objects.filter(viewer=viewer, released_at__isnull=True).count(), 1,
+        )
+
+    def test_one_active_seat_per_viewer_is_enforced_by_the_database(self):
+        """A caller that skips the service must not be able to double-seat."""
+        from .arena_seating import claim_seat
+        from .models import ArenaSeat
+        viewer = self._viewer("dbl")
+        claim_seat(viewer)
+        with self.assertRaises(IntegrityError):
+            ArenaSeat.objects.create(viewer=viewer, ring_index=9, seat_index=39)
+
+    def test_one_active_occupant_per_seat_is_enforced_by_the_database(self):
+        from .arena_seating import claim_seat
+        from .models import ArenaSeat
+        seat = claim_seat(self._viewer("holder"))
+        other = self._viewer("intruder")
+        with self.assertRaises(IntegrityError):
+            ArenaSeat.objects.create(
+                viewer=other, ring_index=seat.ring_index, seat_index=seat.seat_index,
+            )
+
+    def test_released_seats_are_reusable(self):
+        """Release is explicit and the constraints are partial, so a freed seat
+        returns to the front of the map instead of being burned."""
+        from .arena_seating import claim_seat, release_seat
+        first = claim_seat(self._viewer("leaver"))
+        self.assertTrue(release_seat(first.viewer))
+        second = claim_seat(self._viewer("newcomer"))
+        self.assertEqual(
+            (second.ring_index, second.seat_index), (first.ring_index, first.seat_index),
+        )
+
+    def test_a_seat_lapses_with_the_arena_online_window(self):
+        """Liveness reuses the arena's existing 180s presence window rather than
+        adding a second expiry clock of its own."""
+        from .arena_seating import claim_seat
+        from .selectors import ARENA_ONLINE_THRESHOLD_SECONDS
+        gone = self._viewer("gone")
+        held = claim_seat(gone)
+        ChefBattleProfile.objects.filter(author=gone).update(
+            last_seen_at=timezone.now() - timezone.timedelta(
+                seconds=ARENA_ONLINE_THRESHOLD_SECONDS + 60),
+        )
+        replacement = claim_seat(self._viewer("arrival"))
+        self.assertEqual(
+            (replacement.ring_index, replacement.seat_index),
+            (held.ring_index, held.seat_index),
+        )
+        held.refresh_from_db()
+        self.assertIsNotNone(held.released_at)
+
+    def test_capacity_cannot_be_exceeded(self):
+        """Fill all 544 declared seats, then ask for one more."""
+        from .arena_seating import ArenaFull, claim_seat, seat_map, seating_capacity
+        from .models import ArenaSeat
+        User = get_user_model()
+        users = User.objects.bulk_create(
+            [User(username=f"crowd-{i}") for i in range(seating_capacity())]
+        )
+        authors = RecipeAuthor.objects.bulk_create(
+            [RecipeAuthor(user=u, name=f"Crowd {i}", slug=f"crowd-{i}")
+             for i, u in enumerate(users)]
+        )
+        ChefBattleProfile.objects.bulk_create([
+            ChefBattleProfile(author=a, last_seen_at=timezone.now()) for a in authors
+        ])
+        ArenaSeat.objects.bulk_create([
+            ArenaSeat(viewer=a, ring_index=r, seat_index=c)
+            for a, (r, c, _row) in zip(authors, seat_map())
+        ])
+        self.assertEqual(ArenaSeat.objects.filter(released_at__isnull=True).count(), 544)
+        with self.assertRaises(ArenaFull):
+            claim_seat(self._viewer("standing-room"))
+
+    # ---- no synthetic occupants -----------------------------------------
+
+    def test_a_seat_cannot_exist_without_a_real_viewer(self):
+        """The atmospheric crowd the renderer draws over empty seats is never
+        persisted: no code path here seats a made-up occupant."""
+        from .arena_seating import ArenaSeatingError, claim_seat
+        from .models import ArenaSeat
+        with self.assertRaises(ArenaSeatingError):
+            claim_seat(None)
+        with self.assertRaises(IntegrityError):
+            ArenaSeat.objects.create(viewer=None, ring_index=9, seat_index=0)
+
+    # ---- privacy ---------------------------------------------------------
+
+    def test_public_seat_carries_no_personal_data(self):
+        """Exactly the three public author fields the arena payload already
+        published for a spectator, plus where the person is sitting."""
+        from .arena_seating import claim_seat, public_seat
+        viewer = self._viewer("private")
+        payload = public_seat(claim_seat(viewer))
+        self.assertEqual(set(payload), {"ring", "cell", "row", "name", "slug", "avatar_url"})
+        blob = json.dumps(payload)
+        self.assertNotIn(viewer.user.username, blob)
+        self.assertNotIn("email", blob)
+        self.assertNotIn("session", blob)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class ArenaSeatEndpointTests(TestCase):
+    """The seating endpoint: authenticated real viewers only."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("seat-endpoint", password="pw")
+        self.author = RecipeAuthor.objects.create(
+            user=self.user, name="Endpoint Viewer", slug="endpoint-viewer",
+        )
+        self.url = reverse("chef_battle:arena_take_seat")
+
+    def test_authenticated_viewer_is_seated(self):
+        from .arena_seating import seat_map
+        self.client.login(username="seat-endpoint", password="pw")
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        ring, cell, _row = seat_map()[0]
+        self.assertTrue(body["ok"])
+        self.assertEqual((body["seat"]["ring"], body["seat"]["cell"]), (ring, cell))
+        self.assertEqual(body["seat"]["slug"], "endpoint-viewer")
+
+    def test_anonymous_request_is_rejected(self):
+        from .models import ArenaSeat
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 401)
+        self.assertFalse(ArenaSeat.objects.exists())
+
+    def test_repeated_post_returns_the_same_seat(self):
+        self.client.login(username="seat-endpoint", password="pw")
+        first = self.client.post(self.url).json()["seat"]
+        second = self.client.post(self.url).json()["seat"]
+        self.assertEqual(first, second)
+
+    def test_get_is_not_allowed(self):
+        self.client.login(username="seat-endpoint", password="pw")
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_dark_launch_hides_the_endpoint_from_ordinary_users(self):
+        """Pre-release access is staff/superuser only. The seat endpoint must
+        not become a way into the unreleased arena."""
+        self.client.login(username="seat-endpoint", password="pw")
+        self.assertEqual(self.client.post(self.url).status_code, 404)
+
+    def test_response_leaks_no_account_data(self):
+        self.client.login(username="seat-endpoint", password="pw")
+        body = self.client.post(self.url).content.decode()
+        self.assertNotIn(self.user.username, body)
+        self.assertNotIn("password", body)
+        self.assertNotIn("email", body)
+
+
+class ArenaSeatConcurrencyTests(TransactionTestCase):
+    """Two viewers claiming at the same instant must not land on one seat.
+
+    Real threads and real transactions: the guarantee is a database constraint
+    plus a retry, and neither is exercised by a serial test."""
+
+    def test_concurrent_claims_get_distinct_seats(self):
+        import threading
+        from django.db import connections
+        from .arena_seating import claim_seat
+        from .models import ArenaSeat
+
+        User = get_user_model()
+        viewers = []
+        for i in range(8):
+            user = User.objects.create_user(f"race-{i}", password="pw")
+            author = RecipeAuthor.objects.create(
+                user=user, name=f"Race {i}", slug=f"race-{i}")
+            ChefBattleProfile.objects.create(author=author, last_seen_at=timezone.now())
+            viewers.append(author)
+
+        start = threading.Barrier(len(viewers))
+        results, errors = [], []
+
+        def claim(author):
+            try:
+                start.wait(timeout=10)
+                results.append(claim_seat(author))
+            except Exception as exc:            # surfaced below, never swallowed
+                errors.append(exc)
+            finally:
+                connections.close_all()
+
+        threads = [threading.Thread(target=claim, args=(v,)) for v in viewers]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=30)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(len(results), len(viewers))
+        placed = {(s.ring_index, s.seat_index) for s in results}
+        self.assertEqual(len(placed), len(viewers))
+        self.assertEqual(
+            ArenaSeat.objects.filter(released_at__isnull=True).count(), len(viewers),
+        )

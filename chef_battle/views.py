@@ -1169,6 +1169,42 @@ def arena_ping(request):
 
 
 @require_POST
+@ratelimit(key="ip", rate="60/m", method="POST", block=False)
+def arena_take_seat(request):
+    """Seat the signed-in viewer in the stands and report where they sat.
+
+    Stage 3C: a seat belongs to a real person, so it is claimed by an account
+    and by nothing else. Anonymous callers are refused here rather than handed
+    a seat they could not keep, and there is no parameter naming whose seat to
+    take — the service seats the caller, front rows first.
+
+    The claim refreshes the caller's presence first: a seat granted to someone
+    already outside the online window would lapse on the next claim, so the
+    heartbeat and the seat are taken together.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if not request.user.is_authenticated:
+        return JsonResponse({"ok": False, "error": "authentication_required"}, status=401)
+
+    from .arena_seating import ArenaFull, claim_seat, public_seat
+    from .services import get_or_create_battle_profile
+
+    author = get_author_for_user(request.user)
+    if author is None:
+        return JsonResponse({"ok": False, "error": "author_profile_required"}, status=403)
+
+    profile = get_or_create_battle_profile(author)
+    ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
+
+    try:
+        seat = claim_seat(author)
+    except ArenaFull:
+        return JsonResponse({"ok": False, "error": "arena_full"}, status=409)
+    return JsonResponse({"ok": True, "seat": public_seat(seat)})
+
+
+@require_POST
 @ratelimit(key="ip", rate="120/m", method="POST", block=False)
 def arena_state(request):
     """Lightweight state poll — returns updated ring data for JS to refresh SVG."""
