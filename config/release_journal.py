@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.525",
+        "date": "2026-07-24",
+        "commit": "939bb9fa",
+        "title": "ArenaFront af53: denser stand gold rails",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: brighten ::before stand gold rails (82%). SVG centre mask held. Cache-bust af53. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.524",
         "date": "2026-07-24",
-        "commit": "d9ec25d6",
+        "commit": "3155f380",
         "title": "ArenaFront af52: stronger side green/red washes",
         "section": "Chef Battles / Deployment",
         "summary": "af50 LIVE (#2454 / 244b18c5 v2.5.522) + Owner 5-pack DONE: lift challenger/opponent side washes (green/red 46%). SVG centre mask held. Cache-bust af52. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
