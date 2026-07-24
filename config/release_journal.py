@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.482",
+        "date": "2026-07-24",
+        "commit": "6d1e8934",
+        "title": "ArenaFront af14: regenerated dark hall wall-wash asset",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle + af11/af12 live (#2250): regenerate hall-wall-wash-v1.png (gpt-image-1, single image) for darker cinematic hall + gold bloom; soft anonymous silhouettes only. Cache-bust af14. Files: static/img/arena/hall-wall-wash-v1.png, manifest.json, arena_atmosphere.css header, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.481",
         "date": "2026-07-24",
-        "commit": "7bee1283",
+        "commit": "b849492e",
         "title": "ArenaFront af13: cinematic corner vignettes",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle + af9/af10 live (#2241): add four-corner dark vignettes on .page--arena with --hall-dark-0 for mockup frame depth. Pending af11–af13. SVG centre mask held. Cache-bust af13. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
