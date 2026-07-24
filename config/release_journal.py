@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.495",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af25 wall-wash ceiling lift with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner GO + pair workflow: merge ArenaFront af25 (47b54358: lift hall-wall-wash toward ceiling gold bloom) onto live polish r10c + af5–af24. Load order: polish r10c → atmosphere af25. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.494",
+        "date": "2026-07-24",
+        "commit": "6c677452",
+        "title": "ArenaFront af25: lift wall-wash for cinematic ceiling",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner GO #2307 + pair workflow: raise hall-wall-wash placement (center 2%) so cinematic ceiling reads with gold bloom. Cursor merges pending tip. Cache-bust af25. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.494",
         "date": "2026-07-24",
         "commit": "0f0cc6cd",

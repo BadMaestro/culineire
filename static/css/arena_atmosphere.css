@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af24.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af25.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af15–af16 live. af17–af23 pending. af24: stronger outer stand haze rings.
+ * Pair FE with Cursor (composition). af25: lift wall-wash higher for cinematic ceiling.
  */
 
 .page--arena {
@@ -64,7 +64,7 @@
       color-mix(in srgb, var(--hall-dark-0, var(--ink)) 40%, transparent),
       transparent 68%
     ),
-    var(--arena-atm-wall) center 8% / cover no-repeat !important;
+    var(--arena-atm-wall) center 2% / cover no-repeat !important;
   background-color: var(--hall-dark-0, var(--ink));
   color: var(--ink);
 }
