@@ -2,8 +2,8 @@
   "id": "arena_3g_polish_runway",
   "agent": "Cursor",
   "tip_commit_expected": "pending",
-  "footer_version": "v2.5.437",
-  "css_cache": "20260724-r7c",
+  "footer_version": "v2.5.438",
+  "css_cache": "20260724-r7d",
   "ts_utc": "2026-07-24T12:05:58Z",
   "scope": "Continuous 3G part-graft polish on live Arena (site palette, no prototype merge)",
   "owned_files": [
