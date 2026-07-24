@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.471",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "ArenaFront af5: dark hall page fill after polish (Owner live Capture10)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner live screenshot showed parchment floor but missing mockup dark hall — root cause: polish loaded after atmosphere and filled .page--arena with a light wash. af5 loads arena_atmosphere.css AFTER polish, reclaims page-level hall fill with official --hall-dark-* + wall wash, keeps crowd-haze rings, does not restyle polish deck chrome/seats/confrontation. Files: static/css/arena_atmosphere.css, templates/chef_battle/arena.html (cascade order + af5 cache-bust), config/release_journal.py, recipes/views.py (3G). Fence held on arena_deck_polish.css contents. Not a public release. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.470",
         "date": "2026-07-24",
-        "commit": "8bbfa2c2",
+        "commit": "c03f9593",
         "title": "ArenaFront af4: mockup crowd-haze rings under live floor (non-interactive)",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle order: continuous atmosphere shipping. ArenaFront slice af4 adds concentric crowd-haze / stand underlay rings on .page--arena::after using official --hall-gold/--ink tokens only — atmospheric art matching the approved mockup stands, not fake interactive seats (D2). Cache-bust arena_atmosphere.css?v=20260724-af4. Files: static/css/arena_atmosphere.css, templates/chef_battle/arena.html (link only), config/release_journal.py, recipes/views.py (3G evidence). Fence held vs arena_deck_polish.css. Linode paced; work on local 8-core. Stage 3 remains IN PROGRESS; not a public Arena release. Rollback: revert this commit and redeploy. [Authored by ArenaFront.]",
