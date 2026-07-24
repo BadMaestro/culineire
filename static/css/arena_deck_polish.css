@@ -2186,3 +2186,28 @@
       );
   }
 }
+
+
+/* 3G — gift/ladder list density (show panels, not admin lists). */
+@media (min-width: 901px) {
+  .arena-command-deck__ladder ul,
+  .arena-command-deck__gifts ul {
+    gap: 0.28rem;
+  }
+  .arena-command-deck__ladder li,
+  .arena-command-deck__gifts li {
+    padding: 0.28rem 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    border-radius: 0.45rem;
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+  .arena-command-deck__metrics .arena-metric {
+    padding: 0.35rem 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+    border-radius: 0.45rem;
+    background: color-mix(in srgb, var(--ink) 10%, var(--surface));
+  }
+  .arena-command-deck__phase-card {
+    border-color: color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+  }
+}
