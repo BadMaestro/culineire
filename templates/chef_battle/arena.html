@@ -13,7 +13,7 @@
 <link href="{% static 'css/arena_effects.css' %}?v=20260724-r9c" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260724-r9c" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-m05" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-m09" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260724-no-bg-geom" rel="stylesheet">
 {% endblock %}
 
@@ -58,12 +58,19 @@
   <section class="arena-command-deck__phase-card" aria-label="Current arena state">
     <header class="arena-panel__title">
       <div>
-        <p class="arena-panel__kicker">Current phase</p>
+        <p class="arena-panel__kicker">Phase</p>
         <h2 id="arena-current-phase" class="arena-command-deck__phase-name arena-panel__heading">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</h2>
       </div>
       <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">00:30</strong>
     </header>
     <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge" style="width:100%"></span></div>
+    {% if arena_data.phase and arena_data.phase_rail %}
+      {% for rung in arena_data.phase_rail %}
+        {% if rung.step == arena_data.phase.step|add:1 %}
+          <p class="arena-phase-next" id="arena-phase-next">Next: <b>{{ rung.label }}</b></p>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
     <p id="arena-current-phase-copy" class="arena-command-deck__phase-copy">
       {% if active_battle %}The centre tile opens the live battle room, chat and public actions.{% else %}Choose a chef on the floor to inspect their profile or issue a challenge.{% endif %}
     </p>
