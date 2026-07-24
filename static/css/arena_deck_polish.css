@@ -2001,3 +2001,37 @@
     opacity: 0.85;
   }
 }
+
+
+/* 3G — atmospheric stand wash (decorative crowd, not fake users). */
+@media (min-width: 901px) {
+  .arena-command-deck__floor {
+    isolation: isolate;
+  }
+  .arena-command-deck__floor > .arena-floor-stage {
+    z-index: 1;
+  }
+  .arena-command-deck__floor > .arena-confrontation-band {
+    z-index: 6;
+  }
+  /* Soft stand silhouettes behind the floor — abstract wash only. */
+  .arena-floor-stage::after {
+    width: min(92%, 58rem);
+    top: 46%;
+    aspect-ratio: 2.1;
+    background:
+      radial-gradient(ellipse at 18% 40%, color-mix(in srgb, var(--ink) 42%, transparent), transparent 42%),
+      radial-gradient(ellipse at 82% 40%, color-mix(in srgb, var(--ink) 42%, transparent), transparent 42%),
+      radial-gradient(ellipse at 50% 18%, color-mix(in srgb, var(--accent-bronze) 22%, transparent), transparent 48%),
+      color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+    filter: blur(1.6rem);
+    opacity: 0.85;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header h1 {
+    text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 40%, transparent);
+  }
+  .arena-lower-broadcast .ce-nav__link--battle {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    box-shadow: 0 0 0.9rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+}
