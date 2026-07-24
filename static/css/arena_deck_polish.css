@@ -1521,8 +1521,8 @@
   }
   .arena-floor-stage .arena-render-container,
   .arena-floor-stage #arena-render {
-    transform: rotateX(28deg) scale(1.04);
-    transform-origin: 50% 58%;
+    /* Do not foreshorten here — fitScene + later unsquash own transform. */
+    transform: none;
     filter: drop-shadow(0 1.2rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent));
   }
   .arena-floor-stage::after {
@@ -1930,12 +1930,17 @@
   .arena-floor-stage {
     inset: 0;
   }
+  /* fitScene owns #arena-render transform — do not apply rotateX here. */
   .arena-floor-stage .arena-render-container,
   .arena-floor-stage #arena-render {
-    transform: rotateX(32deg) scale(1.06);
+    transform: none;
+  }
+  .arena-floor-stage #arena-render,
+  .page--arena .arena-floor-stage #arena-render {
+    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
-    transform: translate(-50%, -50%) rotateX(32deg) scale(1.08);
+    transform: translate(-50%, -50%);
   }
   .arena-command-deck__phase-card .arena-panel__heading,
   .arena-command-deck__metrics .arena-panel__heading,
@@ -2559,5 +2564,113 @@
     border-color: var(--accent-bronze);
     color: var(--ink);
     box-shadow: 0 0.35rem 0.9rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+}
+
+
+/* 3G — r10c: SCREENSHOT FIX — kill white crown card; make live SVG floor readable.
+   Owner capture 2026-07-24: cream confrontation panel covered the hall; atmosphere
+   art read as the floor while seat rings disappeared. */
+@media (min-width: 901px) {
+  /* No cream dashboard plate behind confrontation — only floating pieces. */
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 50%;
+    width: min(44rem, 72%);
+    gap: 0.85rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    grid-template-columns: minmax(0, 1fr) 7.4rem minmax(0, 1fr);
+  }
+  .arena-confrontation-band[data-centre-key^="crown-"],
+  .arena-confrontation-band[data-centre-key="empty"] {
+    width: min(36rem, 58%);
+  }
+  .arena-confrontation-band .arena-live-chef,
+  .arena-confrontation-band .arena-live-chef--crown {
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+    backdrop-filter: blur(8px) saturate(1.08);
+    -webkit-backdrop-filter: blur(8px) saturate(1.08);
+  }
+  .arena-confrontation-band .arena-live-awaiting {
+    color: color-mix(in srgb, var(--surface) 88%, var(--accent-bronze));
+    text-shadow: 0 1px 0.4rem color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+
+  /* Live SVG must read ABOVE atmosphere art — stronger seams + fills. */
+  .page--arena .arena-command-deck__floor > .arena-floor-stage {
+    z-index: 2;
+  }
+  .page--arena .arena-floor-stage .arena-render-container {
+    z-index: 2;
+    opacity: 1;
+  }
+  .page--arena .arena-floor-stage #arena-render {
+    z-index: 3;
+    opacity: 1;
+    filter: none;
+  }
+  .page--arena #arena-render .arena-cell {
+    stroke: color-mix(in srgb, var(--accent-bronze) 70%, var(--ink));
+    stroke-width: 1.15;
+  }
+  .page--arena #arena-render [data-ring-kind="rank"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--surface) 78%, var(--accent-bronze));
+  }
+  .page--arena #arena-render [data-ring="1"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 55%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring="2"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 42%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring="3"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 32%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--ink) 32%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    stroke-width: 1;
+  }
+  .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
+    fill: color-mix(in srgb, var(--ink) 58%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent-bronze) 65%, transparent);
+  }
+  .page--arena #arena-render .arena-rim,
+  .page--arena #arena-render .arena-rim--outer,
+  .page--arena #arena-render .arena-rim--inner {
+    stroke: color-mix(in srgb, var(--accent-bronze) 75%, transparent);
+    stroke-width: 1.4;
+  }
+
+  /* Spine: translucent so floor rings remain visible behind labels. */
+  .arena-rank-spine__step {
+    background: color-mix(in srgb, var(--surface) 42%, transparent);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .arena-command-deck__phase-card .arena-command-deck__phase-name,
+  .arena-command-deck__phase-card .arena-panel__heading {
+    color: var(--hall-green);
+    text-shadow: 0 0 0.7rem color-mix(in srgb, var(--hall-green) 35%, transparent);
+  }
+  .arena-command-deck__phase-deadline:not(.is-empty) {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    border-radius: 0.55rem;
+    padding: 0.45rem 0.55rem;
+    background: color-mix(in srgb, var(--ink) 22%, var(--surface));
+  }
+  .arena-command-deck__phase-deadline:not(.is-empty) > strong {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--accent-bronze);
+    font-size: clamp(1.15rem, 1.7vw, 1.55rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
   }
 }

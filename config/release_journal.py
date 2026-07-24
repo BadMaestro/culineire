@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.472",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "3G polish r10c: kill white crown card; restore live SVG floor readability",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner screenshot feedback: cream confrontation plate covered the hall and atmosphere art read as the floor while seat rings disappeared. Cursor r10c (arena_deck_polish.css ?v=20260724-r10c): confrontation band background/border/shadow removed (transparent — floating chef+centre only); live SVG z-index/opacity forced; stronger ring strokes and rank/spectator fills so the interactive octagon reads over atmosphere; translucent spine steps; removed leftover polish rotateX(32deg) on render. fitScene camera preserved. Journal+board same commit. Not a public Arena release. Rollback: revert this commit and redeploy.",
+    },
+    {
         "version": "2.5.471",
         "date": "2026-07-24",
         "commit": "706c5b42",
