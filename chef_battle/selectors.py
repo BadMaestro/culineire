@@ -1086,6 +1086,40 @@ def get_recent_battle_gifts(battle=None, limit: int = 6) -> list:
     ]
 
 
+def get_top_supporter(battle=None) -> dict | None:
+    """Highest token spender on the active battle's viewer gifts, or None.
+
+    Feeds the lower-broadcast 'Top Supporter' ticker (M15). Real aggregate only —
+    no synthetic names. Empty-safe when there is no battle or no gifts.
+    """
+    if battle is None:
+        return None
+    from django.db.models import Sum
+    from .models import RecipeAuthor, ViewerBattleGift
+
+    row = (
+        ViewerBattleGift.objects.filter(battle=battle, sender_id__isnull=False)
+        .values("sender_id")
+        .annotate(tokens=Sum("tokens_spent"))
+        .order_by("-tokens", "sender_id")
+        .first()
+    )
+    if not row:
+        return None
+    author = RecipeAuthor.objects.filter(user_id=row["sender_id"]).first()
+    if author is not None:
+        return {
+            "name": author.name,
+            "slug": author.slug,
+            "tokens": int(row["tokens"] or 0),
+        }
+    return {
+        "name": "Supporter",
+        "slug": "",
+        "tokens": int(row["tokens"] or 0),
+    }
+
+
 def get_crown_streak() -> int:
     """The current crown holder's win streak (0 if no active crown holder).
     Feeds the arena 'Crown Streak' metric."""

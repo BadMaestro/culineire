@@ -51,10 +51,10 @@
       "n": 4,
       "id": "M04",
       "title": "Spectator oval QA: L3/R3/T2/B2 packing density toward mockup crowd",
-      "status": "FE_READY",
+      "status": "LIVE",
       "owner": "arenafront",
+      "note": "v2.5.576",
       "be": "keep seat ids stable if packing constants change",
-      "note": "Tip: freeze 290 counts; denser pitch/gap/draw radius; await integrate",
       "files": ["static/js/arena_geometry.js", "chef_battle/selectors.py", "tests"]
     },
     {
@@ -145,9 +145,10 @@
       "n": 15,
       "id": "M15",
       "title": "Lower broadcast: Top Supporter ticker + Join the Crowd",
-      "status": "PARTIAL_LIVE",
+      "status": "FE_READY",
       "owner": "pair",
-      "be": "top_supporter field if missing"
+      "be": "top_supporter via get_top_supporter (ViewerBattleGift aggregate)",
+      "note": "Tip: ticker + seat CTA; await Cursor integrate"
     },
     {
       "n": 16,

@@ -112,6 +112,17 @@
     }
     if (Object.prototype.hasOwnProperty.call(data, 'crown_ladder')) { refreshCrownLadder(data.crown_ladder); }
     if (Object.prototype.hasOwnProperty.call(data, 'recent_gifts')) { refreshRecentGifts(data.recent_gifts); }
+    if (Object.prototype.hasOwnProperty.call(data, 'top_supporter')) { refreshTopSupporter(data.top_supporter); }
+  }
+
+  function refreshTopSupporter(top) {
+    var el = byId('arena-top-supporter');
+    if (!el) { return; }
+    if (top && top.name) {
+      el.textContent = 'Top Supporter: ' + top.name + ' ' + String(top.tokens || 0) + 'T';
+    } else {
+      el.textContent = 'Top Supporter: —';
+    }
   }
 
   /* ---- deadline countdown ---- */

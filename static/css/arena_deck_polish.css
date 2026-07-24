@@ -3387,3 +3387,56 @@
     box-shadow: 0 0.35rem 0.9rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
   }
 }
+
+
+/* ============================================================================
+ * MOCKUP M15 — lower broadcast: Top Supporter ticker + Join the Crowd CTA.
+ * ============================================================================ */
+@media (min-width: 901px) {
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1.1fr) minmax(0, 1.6fr) auto;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    padding: 0.55rem 1.05rem;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--ink) 42%, transparent),
+        color-mix(in srgb, var(--ink) 28%, transparent)
+      );
+  }
+
+  .arena-lower-broadcast .arena-activity-ticker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem 0.85rem;
+    min-width: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: color-mix(in srgb, var(--surface) 88%, var(--accent-bronze));
+  }
+
+  .arena-lower-broadcast #arena-top-supporter {
+    color: var(--accent-bronze);
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .arena-lower-broadcast .js-arena-join-crowd,
+  .arena-lower-broadcast .ce-nav__link--battle {
+    appearance: none;
+    cursor: pointer;
+    border: 1px solid var(--accent-bronze);
+    border-radius: 999px;
+    min-height: 2.45rem;
+    padding-inline: 1.15rem;
+    font: inherit;
+    text-decoration: none;
+  }
+}
