@@ -125,3 +125,26 @@
 @media (prefers-reduced-motion: reduce) {
   .arena-phase-step { transition:none; }
 }
+
+
+/* 3G R6 polish — phase cells read as one track inside the ribbon. */
+@media (min-width: 901px) {
+  .arena-broadcast-ribbon .arena-phase-step {
+    width: 100%;
+    justify-content: center;
+    border-radius: 0.45rem;
+    background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active {
+    transform: none;
+    scale: 1;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active::before {
+    display: none;
+  }
+  .arena-broadcast-ribbon .btn-secondary {
+    min-height: 2rem;
+    padding-inline: 0.7rem;
+    font-size: 0.68rem;
+  }
+}
