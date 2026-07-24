@@ -1897,3 +1897,63 @@
   }
 }
 
+
+
+/* 3G — stage gold frame + VS medallion weight (prototype show core). */
+@media (min-width: 901px) {
+  .page--arena .arena-command-deck {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent),
+      0 1.2rem 2.8rem color-mix(in srgb, var(--ink) 30%, transparent),
+      inset 0 0 4rem color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+  .arena-confrontation-band .arena-live-centre b {
+    font-size: clamp(1.55rem, 2.4vw, 2.05rem);
+    letter-spacing: 0.04em;
+  }
+  .arena-confrontation-band .arena-live-centre span,
+  .arena-confrontation-band .arena-live-centre em {
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .arena-confrontation-band .arena-live-chef strong {
+    font-size: clamp(0.82rem, 1.1vw, 1rem);
+  }
+  .arena-confrontation-band .arena-live-chef img {
+    width: 3.4rem;
+    height: 3.4rem;
+    border: 2px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    box-shadow: 0 0 0.7rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  }
+  .arena-floor-stage {
+    inset: 0;
+  }
+  .arena-floor-stage .arena-render-container,
+  .arena-floor-stage #arena-render {
+    transform: rotateX(32deg) scale(1.06);
+  }
+  .arena-floor-stage::before {
+    transform: translate(-50%, -50%) rotateX(32deg) scale(1.08);
+  }
+  .arena-command-deck__phase-card .arena-panel__heading,
+  .arena-command-deck__metrics .arena-panel__heading,
+  .arena-command-deck__ladder .arena-panel__heading,
+  .arena-command-deck__gifts .arena-panel__heading {
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+  }
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  .arena-floor-stage .arena-render-container,
+  .arena-floor-stage #arena-render,
+  .arena-floor-stage::before {
+    transform: translate(-50%, -50%);
+  }
+  .arena-floor-stage .arena-render-container,
+  .arena-floor-stage #arena-render {
+    transform: none;
+  }
+}
