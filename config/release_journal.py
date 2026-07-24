@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.547",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af77 crown gold with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af78 (9f6f7472) onto live polish r10c. Load order: polish r10c → atmosphere af78. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.550",
+        "date": "2026-07-24",
+        "commit": "b340d6ca",
+        "title": "ArenaFront af78: denser ::after stand haze rings",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: densify ::after repeating-radial stand rings (46% gold). SVG centre mask held. Cache-bust af78. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.549",
+        "date": "2026-07-24",
+        "commit": "e8160575",
+        "title": "ArenaFront af77: stronger top crown gold wash",
+        "section": "Chef Battles / Deployment",
+        "summary": "af75 LIVE (#2588 / 2b70fc19 v2.5.545): lift top crown gold (78%/40%). SVG centre mask held. Cache-bust af77. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.546",
         "date": "2026-07-24",
         "commit": "ffcd2b97",
