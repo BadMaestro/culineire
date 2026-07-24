@@ -1152,3 +1152,24 @@
     order: 2;
   }
 }
+
+
+/* 3G — keyboard focus rings on Arena controls. */
+.arena-rank-spine__step:focus-visible,
+.arena-live-centre:focus-visible,
+.arena-broadcast-ribbon .btn-secondary:focus-visible,
+.arena-command-deck__ladder .btn-secondary:focus-visible,
+.arena-command-deck__gifts .btn-primary:focus-visible,
+.arena-command-deck__gifts .btn-secondary:focus-visible,
+.arena-lower-broadcast .btn-secondary:focus-visible,
+.arena-lower-broadcast .ce-nav__link--battle:focus-visible,
+.arena-phase-step:focus-visible {
+  outline: 2px solid var(--accent-bronze-dark);
+  outline-offset: 2px;
+}
+.arena-ladder-list a:focus-visible,
+.arena-gift-list a:focus-visible {
+  outline: 2px solid var(--accent-bronze-dark);
+  outline-offset: 2px;
+  border-radius: 0.2rem;
+}
