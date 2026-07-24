@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af31.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af32.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af28 LIVE (v2.5.499). Pending af29–af30. af31: warmer ceiling gold bloom.
+ * af28 LIVE (v2.5.499). Pending af29–af31. af32: stronger side hall accents.
  */
 
 .page--arena {
@@ -26,12 +26,12 @@
     ),
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--hall-green) 28%, transparent),
-      color-mix(in srgb, var(--hall-green) 12%, transparent) 14%,
+      color-mix(in srgb, var(--hall-green) 34%, transparent),
+      color-mix(in srgb, var(--hall-green) 14%, transparent) 14%,
       transparent 26%,
       transparent 74%,
-      color-mix(in srgb, var(--hall-red) 12%, transparent) 86%,
-      color-mix(in srgb, var(--hall-red) 28%, transparent)
+      color-mix(in srgb, var(--hall-red) 14%, transparent) 86%,
+      color-mix(in srgb, var(--hall-red) 34%, transparent)
     ),
     linear-gradient(
       180deg,
