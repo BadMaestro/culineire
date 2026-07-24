@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.580",
         "date": "2026-07-24",
-        "commit": "PENDING",
+        "commit": "b89d4950",
         "title": "Owner phone — Arena octagon centre red (--hall-red)",
         "section": "Chef Battles / Deployment",
         "summary": "Owner Telegram task after CPU RECOVERED: paint #arena-render .arena-stage centre red via official --hall-red (all data-state variants). Cache-bust red-center. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
