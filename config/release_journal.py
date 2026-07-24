@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.485",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "e8dab4d3",
         "title": "Merge af15–af16 gold-dust + wall-wash read-through with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af15 (7285e0ac: soft gold-dust drift, reduced-motion off) and af16 (51181126: lighter dark overlays so af14 wall-wash reads through) onto live polish r10c + af5–af14. Load order: polish r10c → atmosphere af16. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
