@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.519",
+        "date": "2026-07-24",
+        "commit": "14bba86b",
+        "title": "ArenaFront af47: deeper corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af45 LIVE (#2428 / 0c4e2ee1 v2.5.517) + Owner 5-pack DONE: deepen four corner dark vignettes further. SVG centre mask held. Cache-bust af47. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.518",
         "date": "2026-07-24",
-        "commit": "dae38ce8",
+        "commit": "5360172d",
         "title": "ArenaFront af46: warmer gold dust tone",
         "section": "Chef Battles / Deployment",
         "summary": "af43+af44 LIVE (#2422 / 305657ee v2.5.516): raise --arena-atm-gold / gold-soft (76%/46%). SVG centre mask held. Cache-bust af46. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
