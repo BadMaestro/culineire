@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.517",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af45 gold rails with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af45 (d0343a1f) onto live polish r10c + af5–af44. Load order: polish r10c → atmosphere af45. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.517",
+        "date": "2026-07-24",
+        "commit": "db66ce93",
+        "title": "ArenaFront af45: denser stand gold rails",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: brighten ::before stand gold rails (76%). SVG centre mask held. Cache-bust af45. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.516",
         "date": "2026-07-24",
         "commit": "292c269b",
