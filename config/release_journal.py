@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.518",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "9141c34d",
         "title": "Merge af46 gold dust tone with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af46 (5360172d) onto live polish r10c + af5–af45. Load order: polish r10c → atmosphere af46. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
