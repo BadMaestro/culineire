@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.538",
+        "date": "2026-07-24",
+        "commit": "a72a68a6",
+        "title": "ArenaFront af66: warmer gold dust tone",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: raise --arena-atm-gold / gold-soft (84%/54%). SVG centre mask held. Cache-bust af66. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.537",
         "date": "2026-07-24",
-        "commit": "ca5b62c1",
+        "commit": "0b063286",
         "title": "ArenaFront af65: stronger ::before side darken",
         "section": "Chef Battles / Deployment",
         "summary": "af61+af62 LIVE (#2524 / e2a9757e v2.5.533): deepen ::before left/right side darken (88%/28%). SVG centre mask held. Cache-bust af65. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",

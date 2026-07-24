@@ -1,14 +1,14 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af65.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af66.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af61+af62 LIVE (v2.5.533 / e2a9757e). af65: stronger ::before side darken.
+ * Pair FE continue. af66: warmer gold dust tone.
  */
 
 .page--arena {
   --arena-atm-wall: url("/static/img/arena/hall-wall-wash-v1.png");
   --arena-atm-floor: url("/static/img/arena/floor-sheen-v1.png");
-  --arena-atm-gold: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 80%, transparent);
-  --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 50%, transparent);
+  --arena-atm-gold: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 84%, transparent);
+  --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 54%, transparent);
   position: relative;
   isolation: isolate;
   /* Page hall fill — must win over polish light .page--arena background. */
