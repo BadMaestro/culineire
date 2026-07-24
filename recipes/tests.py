@@ -4019,7 +4019,11 @@ class ArenaBuildPlanTests(TestCase):
 SHARE_TOKEN = "test-share-token-4Wg7pQ2xLm"
 
 
-@override_settings(SECURE_SSL_REDIRECT=False, ARENA_BUILD_PLAN_SHARE_TOKEN=SHARE_TOKEN)
+# CHEF_BATTLE_ENABLED pinned False so test_sharing_the_board_does_not_widen_arena_access
+# asserts the dark-launch 404 against a known flag state, not the workstation .env
+# (Cursor's finding, 2026-07-24).
+@override_settings(SECURE_SSL_REDIRECT=False, ARENA_BUILD_PLAN_SHARE_TOKEN=SHARE_TOKEN,
+                   CHEF_BATTLE_ENABLED=False)
 class ArenaBuildPlanShareLinkTests(TestCase):
     """The secret share link (owner request 2026-07-23).
 

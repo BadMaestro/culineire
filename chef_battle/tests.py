@@ -7342,7 +7342,13 @@ class ArenaRankColumnTests(TestCase):
 PREVIEW_TOKEN = "test-preview-token-9Kd3pR7xQn"
 
 
-@override_settings(SECURE_SSL_REDIRECT=False, ARENA_PREVIEW_SHARE_TOKEN=PREVIEW_TOKEN)
+# CHEF_BATTLE_ENABLED is pinned False so test_previews_do_not_widen_arena_access
+# asserts the dark-launch 404 against a known flag state. Without this the test
+# is environment-dependent: a workstation .env with CHEF_BATTLE_ENABLED=True makes
+# is_battle_visible() return True and the anonymous arena GET is 200, not 404
+# (Cursor's finding, 2026-07-24).
+@override_settings(SECURE_SSL_REDIRECT=False, ARENA_PREVIEW_SHARE_TOKEN=PREVIEW_TOKEN,
+                   CHEF_BATTLE_ENABLED=False)
 class ArenaPreviewShareLinkTests(TestCase):
     """The two token-gated Arena preview links (owner request 2026-07-23).
 
