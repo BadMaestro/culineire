@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af16.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af22.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af14–af15 pending merge. af16: let regenerated wall-wash read through (lighter dark overlays).
+ * af14 live. af15–af21 pending merger. af22: softer ceiling vignette blend with wall-wash.
  */
 
 .page--arena {
@@ -14,23 +14,24 @@
   /* Page hall fill — must win over polish light .page--arena background. */
   background:
     radial-gradient(
-      100% 42% at 50% -4%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 30%, transparent),
-      transparent 55%
+      100% 46% at 50% -2%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 38%, transparent),
+      color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 14%, transparent) 38%,
+      transparent 62%
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 55%, transparent) 0%,
-      transparent 28%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 42%, transparent) 0%,
+      transparent 34%
     ),
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--hall-green) 22%, transparent),
-      color-mix(in srgb, var(--hall-green) 8%, transparent) 12%,
-      transparent 22%,
-      transparent 78%,
-      color-mix(in srgb, var(--hall-red) 8%, transparent) 88%,
-      color-mix(in srgb, var(--hall-red) 22%, transparent)
+      color-mix(in srgb, var(--hall-green) 28%, transparent),
+      color-mix(in srgb, var(--hall-green) 12%, transparent) 14%,
+      transparent 26%,
+      transparent 74%,
+      color-mix(in srgb, var(--hall-red) 12%, transparent) 86%,
+      color-mix(in srgb, var(--hall-red) 28%, transparent)
     ),
     linear-gradient(
       180deg,
@@ -90,18 +91,18 @@
     radial-gradient(circle at 79% 20%, var(--arena-atm-gold) 0 0.1rem, transparent 0.17rem),
     linear-gradient(
       68deg,
-      transparent 45%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 36%, transparent) 46.2% 46.7%,
+      transparent 44.5%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 48%, transparent) 45.8% 46.5%,
       transparent 48%
     )
-      left bottom / 22% 100% no-repeat,
+      left bottom / 24% 100% no-repeat,
     linear-gradient(
       -68deg,
-      transparent 45%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 36%, transparent) 46.2% 46.7%,
+      transparent 44.5%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 48%, transparent) 45.8% 46.5%,
       transparent 48%
     )
-      right bottom / 22% 100% no-repeat,
+      right bottom / 24% 100% no-repeat,
     linear-gradient(
       90deg,
       color-mix(in srgb, var(--hall-dark-0, var(--ink)) 62%, transparent),
@@ -127,8 +128,8 @@
     3.6rem 3.6rem,
     5rem 5rem,
     5.4rem 5.4rem,
-    22% 100%,
-    22% 100%,
+    24% 100%,
+    24% 100%,
     auto,
     auto;
   opacity: 0.95;
@@ -181,6 +182,12 @@
       color-mix(in srgb, var(--hall-dark-0, var(--ink)) 18%, transparent) 72%,
       transparent 88%
     ),
+    radial-gradient(
+      ellipse 88% 58% at 50% 56%,
+      transparent 0 48%,
+      color-mix(in srgb, var(--surface, var(--surface-muted)) 22%, transparent) 64%,
+      transparent 82%
+    ),
     var(--arena-atm-floor) center / cover no-repeat;
   opacity: 0.3;
   mix-blend-mode: soft-light;
@@ -217,13 +224,23 @@
 
 @media (max-width: 900px) {
   .page--arena::before {
-    opacity: 0.85;
+    opacity: 0.92;
   }
 
   .page--arena::after {
     width: min(100vw, 42rem);
     height: min(62vh, 30rem);
-    opacity: 0.2;
+    opacity: 0.22;
+    -webkit-mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 42%,
+      #000 62% 100%
+    );
+    mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 42%,
+      #000 62% 100%
+    );
   }
 }
 
