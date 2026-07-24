@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.471",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "48b03481",
         "title": "ArenaFront af5: dark hall page fill after polish (Owner live Capture10)",
         "section": "Chef Battles / Deployment",
         "summary": "Owner live screenshot showed parchment floor but missing mockup dark hall — root cause: polish loaded after atmosphere and filled .page--arena with a light wash. af5 loads arena_atmosphere.css AFTER polish, reclaims page-level hall fill with official --hall-dark-* + wall wash, keeps crowd-haze rings, does not restyle polish deck chrome/seats/confrontation. Files: static/css/arena_atmosphere.css, templates/chef_battle/arena.html (cascade order + af5 cache-bust), config/release_journal.py, recipes/views.py (3G). Fence held on arena_deck_polish.css contents. Not a public release. Rollback: revert and redeploy. [Authored by ArenaFront.]",
