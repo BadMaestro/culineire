@@ -1130,3 +1130,25 @@
   font-weight: 750;
   text-align: right;
 }
+
+
+/* 3G — tablet lower bar: keep ticker readable. */
+@media (min-width: 901px) and (max-width: 1200px) {
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.65rem 0.85rem;
+  }
+  .arena-activity-ticker {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    order: 3;
+    padding-top: 0.15rem;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+  .arena-lower-broadcast .arena-crowd-rail__status {
+    order: 1;
+  }
+  .arena-lower-broadcast .arena-crowd-rail__actions {
+    order: 2;
+  }
+}
