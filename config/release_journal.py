@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.540",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af69 stand haze with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af69 (b376762e) onto live polish r10c. Load order: polish r10c → atmosphere af69. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.541",
+        "date": "2026-07-24",
+        "commit": "47e49ba6",
+        "title": "ArenaFront af69: denser ::after stand haze rings",
+        "section": "Chef Battles / Deployment",
+        "summary": "af65+af66 LIVE (#2541 / a94d23a4 v2.5.537): densify ::after repeating-radial stand rings (42% gold). SVG centre mask held. Cache-bust af69. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.539",
         "date": "2026-07-24",
         "commit": "0159281a",
