@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.477",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "848660d9",
         "title": "Merge af9–af10 outer haze + ceiling vignette with r10c stack",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af9 (85a32a20: outer stand haze) and af10 (e706aad6: ceiling vignette + wall-wash lift) onto live polish r10c + af5–af8. Load order: polish r10c → atmosphere af10. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
