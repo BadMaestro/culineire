@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.558",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "4c94204f",
         "title": "CF5 battle_detail a11y (FE+BE)",
         "section": "Chef Battles / Deployment",
         "summary": "Stage 2/3 CF5: battle_detail.html landmarks/aria/focus aligned with arena.html patterns. FE tip 83b202d9 adopts BE tip 1a52d7a7 plus main landmark and report-dialog labelling. BattleDetailA11yTests 2/2. Closes the LOW CF5 a11y gap. 3C remains PARKED. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert merge and redeploy.",
