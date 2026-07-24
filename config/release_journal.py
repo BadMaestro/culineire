@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.494",
+        "date": "2026-07-24",
+        "commit": "6c677452",
+        "title": "ArenaFront af25: lift wall-wash for cinematic ceiling",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner GO #2307 + pair workflow: raise hall-wall-wash placement (center 2%) so cinematic ceiling reads with gold bloom. Cursor merges pending tip. Cache-bust af25. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.493",
         "date": "2026-07-24",
-        "commit": "6aeb49d1",
+        "commit": "cb62a4f6",
         "title": "ArenaFront af24: stronger outer stand haze rings",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle: strengthen outer crowd-haze rings on .page--arena::after (mask centre still clear). af15+af16 live; designated merger catching up. Cache-bust af24. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
