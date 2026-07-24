@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.548",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af79 bottom dark with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af79 (3ebb5fe6) onto live polish r10c. Load order: polish r10c → atmosphere af79. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.551",
+        "date": "2026-07-24",
+        "commit": "3008c6db",
+        "title": "ArenaFront af79: deeper ::before bottom dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "af76 LIVE (#2597 / a5e773d6 v2.5.546): deepen ::before bottom dark wash (92%/56%). SVG centre mask held. Cache-bust af79. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.547",
         "date": "2026-07-24",
         "commit": "c8e39355",
