@@ -628,3 +628,19 @@
     min-height: 2.35rem;
   }
 }
+
+
+/* 3G — rank spine broadcast chips (stay readable on the floor photo). */
+@media (min-width: 901px) {
+  .arena-rank-spine__step {
+    border-width: 1.5px;
+    box-shadow:
+      0 0.25rem 0.7rem color-mix(in srgb, var(--ink) 40%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--surface) 80%, transparent);
+  }
+  .arena-rank-spine__step:hover,
+  .arena-rank-spine__step:focus-visible {
+    border-color: var(--accent-bronze-dark);
+    background: color-mix(in srgb, var(--surface) 92%, var(--accent-bronze));
+  }
+}
