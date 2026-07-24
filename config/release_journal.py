@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.473",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "c090665e",
         "title": "Merge af5 dark hall after polish with r10c SVG/confrontation fix",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af5 (48b03481: atmosphere AFTER polish; dark .page--arena hall fill for Owner Capture10) with Cursor r10c (547fa05a: transparent confrontation, live SVG ring contrast). Load order: hall → polish r10c → atmosphere af5. Also retains af4 crowd-haze rings. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
