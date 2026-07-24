@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af28.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af30.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af25 live. af26–af27 pending. af28: wider mobile SVG-clear mask + hall veil.
+ * Live through af27 (v2.5.498). Pending af28–af29. af30: denser mid-stand gold dust.
  */
 
 .page--arena {
@@ -83,12 +83,16 @@
     radial-gradient(circle at 15% 32%, var(--arena-atm-gold-soft) 0 0.11rem, transparent 0.19rem),
     radial-gradient(circle at 18% 54%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
     radial-gradient(circle at 21% 22%, var(--arena-atm-gold) 0 0.1rem, transparent 0.17rem),
+    radial-gradient(circle at 24% 44%, var(--arena-atm-gold-soft) 0 0.1rem, transparent 0.18rem),
+    radial-gradient(circle at 27% 58%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
     radial-gradient(circle at 94% 28%, var(--arena-atm-gold) 0 0.1rem, transparent 0.18rem),
     radial-gradient(circle at 91% 40%, var(--arena-atm-gold-soft) 0 0.12rem, transparent 0.2rem),
     radial-gradient(circle at 88% 50%, var(--arena-atm-gold) 0 0.09rem, transparent 0.16rem),
     radial-gradient(circle at 85% 34%, var(--arena-atm-gold-soft) 0 0.11rem, transparent 0.19rem),
     radial-gradient(circle at 82% 56%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
     radial-gradient(circle at 79% 20%, var(--arena-atm-gold) 0 0.1rem, transparent 0.17rem),
+    radial-gradient(circle at 76% 46%, var(--arena-atm-gold-soft) 0 0.1rem, transparent 0.18rem),
+    radial-gradient(circle at 73% 60%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
     linear-gradient(
       68deg,
       transparent 44.5%,
@@ -122,12 +126,16 @@
     3.6rem 3.6rem,
     5rem 5rem,
     5.4rem 5.4rem,
+    3.2rem 3.2rem,
+    4.6rem 4.6rem,
     2.8rem 2.8rem,
     3.4rem 3.4rem,
     4.2rem 4.2rem,
     3.6rem 3.6rem,
     5rem 5rem,
     5.4rem 5.4rem,
+    3.2rem 3.2rem,
+    4.6rem 4.6rem,
     24% 100%,
     24% 100%,
     auto,
@@ -138,14 +146,16 @@
 @keyframes arena-atm-gold-drift {
   0% {
     background-position:
-      0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
-      0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
+      0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
+      0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
       left bottom, right bottom, 0 0, 0 0;
   }
   100% {
     background-position:
       0 -1.2rem, 0.4rem -0.8rem, -0.3rem -1rem, 0.2rem -1.4rem, -0.5rem -0.6rem, 0.3rem -1.1rem,
+      -0.2rem -0.9rem, 0.35rem -1.2rem,
       0 -1.2rem, -0.4rem -0.8rem, 0.3rem -1rem, -0.2rem -1.4rem, 0.5rem -0.6rem, -0.3rem -1.1rem,
+      0.2rem -0.9rem, -0.35rem -1.2rem,
       left bottom, right bottom, 0 0, 0 0;
   }
 }
@@ -218,7 +228,18 @@
   }
 
   .page--arena::after {
-    opacity: 0.36;
+    /* af29: stronger outer stand haze on desktop; SVG centre mask still clear. */
+    opacity: 0.42;
+    -webkit-mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 38%,
+      #000 58% 100%
+    );
+    mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 38%,
+      #000 58% 100%
+    );
   }
 }
 

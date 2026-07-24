@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.501",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af29–af30 desktop haze + gold dust with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af29–af30 (83fb4031) onto live polish r10c + af5–af28. Load order: polish r10c → atmosphere af30. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.501",
+        "date": "2026-07-24",
+        "commit": "cd06056d",
+        "title": "ArenaFront af30: denser mid-stand gold dust",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: four extra mid-stand gold dust motes on ::before (left/right mid heights) + drift keyframes aligned. SVG centre mask held. Cache-bust af30. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.500",
+        "date": "2026-07-24",
+        "commit": "6bee2390",
+        "title": "ArenaFront af29: stronger desktop outer stand haze",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE + af26+af27 LIVE (#2329 / fb41148f v2.5.498): raise desktop ::after opacity to 0.42 and widen clear-mask hole slightly (38%) so outer haze reads without covering SVG seats. Cache-bust af29. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.499",
         "date": "2026-07-24",
         "commit": "42424943",
