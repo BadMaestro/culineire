@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af62.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af63.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af59 LIVE (v2.5.530 / 8deabda1). af62: stronger side green/red washes.
+ * Pair FE continue. af63: denser ::after stand haze rings.
  */
 
 .page--arena {
@@ -182,7 +182,7 @@
     repeating-radial-gradient(
       circle at 50% 52%,
       transparent 0 5.2%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 34%, transparent) 5.4% 5.85%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 38%, transparent) 5.4% 5.85%,
       transparent 6.0% 8.2%
     ),
     radial-gradient(
