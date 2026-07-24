@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.565",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "2fd6bc51",
         "title": "Arena visible refresh timer (mockup phase-timer)",
         "section": "Chef Battles / Deployment",
         "summary": "Owner: auto-refresh was invisible. Add mockup-style MM:SS countdown + gauge in Current phase panel; reload at 00:00 (30s). Official tokens. Mechanisms unchanged. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
