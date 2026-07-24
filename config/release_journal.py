@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.581",
+        "date": "2026-07-25",
+        "commit": "PENDING",
+        "title": "Owner phone — revert red octagon centre (visibility test)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner cancelled the temporary red centre (v2.5.580): it was only a visibility probe. Restored #arena-render .arena-stage to pre-red fills. Cache-bust revert-red. AF atmosphere STOPPED. Not a public Arena release. Rollback: n/a (restores prior).",
+    },
+    {
         "version": "2.5.580",
         "date": "2026-07-24",
         "commit": "b89d4950",

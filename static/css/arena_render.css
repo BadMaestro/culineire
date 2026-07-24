@@ -97,17 +97,16 @@
 }
 
 /* ---- centre stage ---- */
-/* Owner 2026-07-24 phone: octagon centre red (official --hall-red). */
 
 #arena-render .arena-stage {
-  fill: var(--hall-red);
-  stroke: color-mix(in srgb, var(--hall-red) 55%, var(--ink));
+  fill: var(--arena-stage-ink);
+  stroke: var(--brand-dark);
   stroke-width: 2;
 }
 
-#arena-render .arena-stage[data-state="crown"] { fill: var(--hall-red); }
-#arena-render .arena-stage[data-state="active_battle"] { fill: color-mix(in srgb, var(--hall-red) 82%, var(--ink)); }
-#arena-render .arena-stage[data-state="facing_pair"] { fill: color-mix(in srgb, var(--hall-red) 88%, var(--surface)); }
+#arena-render .arena-stage[data-state="crown"] { fill: var(--arena-accent); }
+#arena-render .arena-stage[data-state="active_battle"] { fill: var(--brand-dark); }
+#arena-render .arena-stage[data-state="facing_pair"] { fill: var(--brand); }
 
 /* ---- free seat, offered on hover only ---- */
 
@@ -450,7 +449,7 @@
 #arena-render .arena-stage[data-state="crown"],
 #arena-render .arena-stage[data-state="active_battle"],
 #arena-render .arena-stage[data-state="facing_pair"] {
-  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--hall-red) 70%, transparent));
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--arena-spot) 70%, transparent));
 }
 
 /* Mockup M07 — on-floor challenger/opponent hex portraits. */
