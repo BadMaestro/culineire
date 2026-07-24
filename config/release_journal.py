@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.552",
+        "date": "2026-07-24",
+        "commit": "ace659e4",
+        "title": "ArenaFront af80: brighter stand gold rails",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift ::before stand gold rails (94%). SVG centre mask held. Cache-bust af80. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.551",
         "date": "2026-07-24",
-        "commit": "3008c6db",
+        "commit": "3ebb5fe6",
         "title": "ArenaFront af79: deeper ::before bottom dark",
         "section": "Chef Battles / Deployment",
         "summary": "af76 LIVE (#2597 / a5e773d6 v2.5.546): deepen ::before bottom dark wash (92%/56%). SVG centre mask held. Cache-bust af79. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",

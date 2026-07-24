@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af79.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af80.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af76 LIVE (v2.5.546 / a5e773d6). af79: deeper ::before bottom dark.
+ * Pair FE continue. af80: brighter stand gold rails.
  */
 
 .page--arena {
@@ -96,14 +96,14 @@
     linear-gradient(
       68deg,
       transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 90%, transparent) 45.4% 46.9%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 94%, transparent) 45.4% 46.9%,
       transparent 48%
     )
       left bottom / 24% 100% no-repeat,
     linear-gradient(
       -68deg,
       transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 90%, transparent) 45.4% 46.9%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 94%, transparent) 45.4% 46.9%,
       transparent 48%
     )
       right bottom / 24% 100% no-repeat,
