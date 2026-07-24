@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.474",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "b68da937",
         "title": "Merge af6 SVG-clear floor-sheen with r10c+af5",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af6 (7a2e1d9d: dial down centre floor-sheen + mask so live SVG seats read) onto Cursor r10c + af5 dark hall cascade. Load order: polish r10c → atmosphere af6. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
