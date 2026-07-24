@@ -1473,3 +1473,41 @@
     top: 52%;
   }
 }
+
+
+/* 3G — hex chef rails (prototype chef-position, no layout break). */
+@media (min-width: 901px) {
+  .arena-confrontation-band .arena-live-chef--challenger,
+  .arena-confrontation-band .arena-live-chef--opponent {
+    clip-path: polygon(0.75rem 0, calc(100% - 0.75rem) 0, 100% 50%, calc(100% - 0.75rem) 100%, 0.75rem 100%, 0 50%);
+    border-radius: 0;
+    min-height: 5.1rem;
+    backdrop-filter: blur(8px) saturate(1.05);
+    -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  }
+  .arena-confrontation-band .arena-live-chef--challenger {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hall-green) 28%, var(--surface)),
+        color-mix(in srgb, var(--surface) 82%, transparent)
+      );
+  }
+  .arena-confrontation-band .arena-live-chef--opponent {
+    background:
+      linear-gradient(
+        -90deg,
+        color-mix(in srgb, var(--hall-red) 28%, var(--surface)),
+        color-mix(in srgb, var(--surface) 82%, transparent)
+      );
+  }
+  .arena-confrontation-band .arena-live-centre {
+    min-height: 6.2rem;
+  }
+  .arena-confrontation-band .arena-live-centre--crown,
+  .arena-confrontation-band .arena-live-centre--quiet {
+    width: 8.2rem;
+    height: 8.2rem;
+    border-width: 2px;
+  }
+}
