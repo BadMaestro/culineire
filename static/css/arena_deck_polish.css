@@ -800,3 +800,30 @@
       0 1px 0 color-mix(in srgb, var(--accent-bronze) 35%, transparent);
   }
 }
+
+
+/* 3G — panel kicker icons (prototype show-panel headers). */
+@media (min-width: 901px) {
+  .arena-command-deck__phase-card .arena-panel__kicker,
+  .arena-command-deck__ladder .arena-panel__kicker,
+  .arena-command-deck__metrics .arena-panel__kicker,
+  .arena-command-deck__gifts .arena-panel__kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .arena-command-deck__phase-card .arena-panel__kicker .arena-ico,
+  .arena-command-deck__ladder .arena-panel__kicker .arena-ico,
+  .arena-command-deck__metrics .arena-panel__kicker .arena-ico,
+  .arena-command-deck__gifts .arena-panel__kicker .arena-ico {
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: 0 0 auto;
+    padding: 0.22rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    border-radius: 50%;
+    color: var(--accent-bronze-dark);
+    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+    box-sizing: content-box;
+  }
+}
