@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.566",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "9d3bacaa",
         "title": "Fix Arena refresh timer CSP nonce",
         "section": "Chef Battles / Deployment",
         "summary": "Owner: timer visible but frozen at 00:30. Cause: inline extra_js lacked CSP nonce so the browser blocked the countdown script. Add request.csp_nonce + DOMContentLoaded boot. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
