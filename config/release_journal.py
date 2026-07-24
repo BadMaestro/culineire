@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.506",
+        "date": "2026-07-24",
+        "commit": "1868fb98",
+        "title": "ArenaFront af35: stronger veil side darken",
+        "section": "Chef Battles / Deployment",
+        "summary": "af31+af32 LIVE (#2369 / 2de1bcb0 v2.5.503): deepen ::before left/right side darken (72%/22%). SVG centre mask held. Cache-bust af35. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.505",
         "date": "2026-07-24",
-        "commit": "22cff8c7",
+        "commit": "c4a2b402",
         "title": "ArenaFront af34: stronger bottom floor dark wash",
         "section": "Chef Battles / Deployment",
         "summary": "Owner Telegram 5-pack (#2358) noted. Lift bottom page dark wash (82%/36%) for hall floor enclosure. SVG centre mask held. Cache-bust af34. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
