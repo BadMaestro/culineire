@@ -6314,7 +6314,11 @@ class LiveArenaPreviewTests(LiveArenaTrackerTests):
         self.assertEqual(c.get("/chef-battle/master/live-arena/preview/").status_code, 404)
 
 
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class BattleReactionTests(TestCase):
+    """arena_react is behind is_battle_visible — pin the public flag so endpoint
+    tests do not 404 under a dark-launch workstation .env (same class of flake
+    as the preview share-link tests fixed at 2d706cef)."""
     """Live-arena heart reactions: count, per-side split, anti-farm, endpoint."""
 
     def setUp(self):
