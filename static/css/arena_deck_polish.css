@@ -1511,3 +1511,48 @@
     border-width: 2px;
   }
 }
+
+
+/* 3G — isometric floor presence (prototype floor-glow, site tokens). */
+@media (min-width: 901px) {
+  .arena-floor-stage {
+    perspective: 56rem;
+    perspective-origin: 50% 42%;
+  }
+  .arena-floor-stage .arena-render-container,
+  .arena-floor-stage #arena-render {
+    transform: rotateX(28deg) scale(1.04);
+    transform-origin: 50% 58%;
+    filter: drop-shadow(0 1.2rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent));
+  }
+  .arena-floor-stage::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    top: 58%;
+    width: min(72%, 40rem);
+    aspect-ratio: 1.75;
+    border-radius: 50%;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+    filter: blur(2.4rem);
+    transform: translate(-50%, -50%);
+    opacity: 0.75;
+  }
+  .arena-floor-stage .arena-rank-spine {
+    transform: translateX(-50%);
+    /* keep spine upright above the tilted floor */
+  }
+  .arena-puzzle-label {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  .arena-floor-stage .arena-render-container,
+  .arena-floor-stage #arena-render {
+    transform: none;
+    filter: none;
+  }
+}
