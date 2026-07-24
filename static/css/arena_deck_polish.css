@@ -2674,3 +2674,30 @@
     letter-spacing: 0.03em;
   }
 }
+
+/* ============================================================================
+ * 3G R4 - Owner D1 Option B (2026-07-24): Ember prototype centred rank stack.
+ * Overturns GreenBear Option A (keep side column). Wins over earlier polish
+ * tops that pushed the spine down the floor; CSS owns desktop placement.
+ * ============================================================================ */
+@media (min-width: 901px) {
+  .arena-rank-spine {
+    top: 22%;
+    left: 50%;
+    width: min(11.5rem, 25%);
+    transform: translateX(-50%);
+    z-index: 7;
+  }
+  .arena-rank-spine__label {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-rank-spine__list {
+    gap: 0.15rem;
+  }
+  .arena-rank-spine__step {
+    justify-content: space-between;
+    backdrop-filter: blur(6px) saturate(1.05);
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+  }
+}

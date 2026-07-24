@@ -912,22 +912,18 @@
     placeRankSpine(svg);
   }
 
-  // The rank column lies ON the floor in the mockup, between its top edge and
-  // the crown - not floating above the scene as a separate list. Where that is
-  // depends on how large the floor came out, which only the renderer knows, so
-  // it is placed by measurement here rather than guessed at as a percentage in
-  // CSS.
+  // 3G R4 (Owner D1 Option B): desktop centred stack is CSS-owned
+  // (left:50% + translateX), matching Ember rank-progression composition.
+  // Below 768px the ladder is a wrapped flow row (Stage 3E). Tablet mid-band
+  // may still measure against the floor so the stack sits between the near
+  // edge and the crown without covering it.
   function placeRankSpine(svg) {
     var spine = document.querySelector('.arena-rank-spine');
     var container = svg.parentElement;
     if (!spine || !container) { return; }
 
-    // Stage 3E: below the deck's mobile breakpoint the ladder is no longer an
-    // overlay on the floor - it becomes a compact wrapped row in normal flow.
-    // A measured position would fight that, and an inline style beats the
-    // stylesheet, so the measurements are cleared here rather than recomputed.
-    // Desktop HUD (901px+) also clears: CSS owns the spine under the ribbon so
-    // it cannot cover the SVG crown the way measured placement did on empty floors.
+    // Clear inline geometry wherever CSS owns layout, so measured placement
+    // cannot fight the stylesheet (inline style beats CSS).
     if (window.matchMedia && (
       window.matchMedia('(max-width: 767px)').matches ||
       window.matchMedia('(min-width: 901px)').matches

@@ -90,11 +90,13 @@
     {
       "id": "R4",
       "title": "Rank column placement",
-      "status": "OWNER DECISION REQUIRED",
+      "status": "IN PROGRESS — Owner D1 Option B",
       "decision_ref": "D1",
-      "option_A": {"description": "Keep the existing side column.", "state": "Already in main at 2fd70161: contrast 14.30:1 recorded, mobile hide removed, 7 tests green.", "work": "none", "risk": "none"},
-      "option_B": {"description": "Adopt the prototype's centred stack.", "cost": "Rework of just-completed work, fresh contrast measurements, rewritten ArenaRankColumnTests.", "constraint": "Ember's own conflict_map.json instructs that Stage 3E acceptance tests must not be weakened."},
-      "greenbear_recommendation": "Option A, re-evaluated after R2-R3 if the column starts to fight the new composition. Reason: 3E is the only Stage 3 workstream one step from closing, and reworking finished work for aesthetics before any workstream closes is how Stage 3 has been standing still."
+      "option_A": {"description": "Keep the existing side column.", "state": "Superseded by Owner ruling 2026-07-24.", "work": "none", "risk": "none"},
+      "option_B": {"description": "Adopt the prototype's centred stack.", "cost": "Rework of 3E/3G polish placement toward Ember rank-progression composition; keep ArenaRankColumnTests semantics (8 ranks, ol, mobile visibility, token contrast).", "constraint": "Ember's own conflict_map.json instructs that Stage 3E acceptance tests must not be weakened."},
+      "owner_ruling_2026_07_24": "Option B — redo the GreenBear recommendation; centred stack from ops/prototypes/arena_visual_shell rank-progression.",
+      "greenbear_recommendation": "Option A (historical). Owner overturned: Option B.",
+      "fe_branch": "agent/arenafront/r4-rank-centred-stack"
     },
     {
       "id": "R5",
@@ -143,7 +145,7 @@
   },
 
   "open_decisions_blocking_progress": [
-    {"id": "D1", "question": "Rank column: keep the existing side column (A) or adopt the prototype's centred stack (B)?", "blocks": "R4", "blocks_start_of_work": false},
+    {"id": "D1", "question": "Rank column: keep the existing side column (A) or adopt the prototype's centred stack (B)?", "blocks": "R4", "blocks_start_of_work": false, "resolved": "Option B — Owner 2026-07-24 (redo plan recommendation; centred stack)."},
     {"id": "D2", "question": "Do the stands stay? 544 real seats plus non-impersonating atmosphere, or a clean floor with 3C removed from scope?", "blocks": "R5", "note": "Must be settled before R5 begins, or the frame is laid twice."},
     {"id": "D3", "question": "Country/flag data source - select or reject.", "blocks": "3D closure", "note": "RecipeAuthor has no approved country field. Pre-existing blocker, not introduced by 3G."},
     {"id": "D4", "question": "Distributed 8:6:1 gate: wake Bolt and Ember, or issue an explicit written exemption from AGENTS.md section 9 per slice?", "blocks": "every merge into main", "note": "This session reaches one machine and has no CoWork channel. Running the whole suite serially on one box and calling it a gate would be a constitution breach dressed as a green result."}
