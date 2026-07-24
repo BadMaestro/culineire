@@ -3006,3 +3006,100 @@
     transform: none;
   }
 }
+
+
+/* ============================================================================
+ * MOCKUP M12 — live metrics panel: Active Viewers / Votes / Gifts / Crown streak.
+ * Keep metric ids + payload; visual 2×2 gold grid like mockup / prototype.
+ * ============================================================================ */
+@media (min-width: 901px) {
+  .arena-command-deck__metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding: 0.85rem 0.95rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    border-radius: 0.85rem;
+    background:
+      linear-gradient(
+        165deg,
+        color-mix(in srgb, var(--surface) 94%, transparent),
+        color-mix(in srgb, var(--surface-soft) 82%, transparent)
+      );
+    box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+
+  .arena-command-deck__metrics > .arena-panel__title {
+    grid-column: 1 / -1;
+    margin: 0 0 0.55rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
+  }
+
+  .arena-command-deck__metrics .arena-panel__kicker {
+    margin: 0;
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
+    color: var(--accent-bronze-dark);
+  }
+
+  .arena-command-deck__metrics .arena-panel__heading {
+    margin: 0.12rem 0 0;
+    font-size: clamp(1.05rem, 1.45vw, 1.28rem);
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+
+  .arena-command-deck__metrics .arena-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-height: 3.35rem;
+    padding: 0.55rem 0.55rem 0.6rem;
+    border: 0;
+    border-radius: 0;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+    border-left: 1px solid color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .arena-command-deck__metrics .arena-metric:nth-child(2),
+  .arena-command-deck__metrics .arena-metric:nth-child(3) {
+    border-top: 0;
+  }
+
+  .arena-command-deck__metrics .arena-metric:nth-child(2),
+  .arena-command-deck__metrics .arena-metric:nth-child(4) {
+    border-left: 0;
+  }
+
+  .arena-command-deck__metrics .arena-metric span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .arena-command-deck__metrics .arena-metric .arena-ico {
+    width: 0.72rem;
+    height: 0.72rem;
+    color: var(--accent-bronze-dark);
+  }
+
+  .arena-command-deck__metrics .arena-metric strong {
+    margin: 0;
+    font-family: var(--font-serif, "Playfair Display", serif);
+    font-size: clamp(1.35rem, 2vw, 1.7rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    color: var(--accent-bronze);
+    text-shadow: 0 0 0.85rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+}
