@@ -9,10 +9,10 @@
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260722-stage3b" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r73" rel="stylesheet">
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r73" rel="stylesheet">
-<link href="{% static 'css/arena_effects.css' %}?v=20260724-r73" rel="stylesheet">
-<link href="{% static 'css/arena_hall.css' %}?v=20260724-r73" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r74" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r74" rel="stylesheet">
+<link href="{% static 'css/arena_effects.css' %}?v=20260724-r74" rel="stylesheet">
+<link href="{% static 'css/arena_hall.css' %}?v=20260724-r74" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -230,6 +230,11 @@
       {% else %}
         <span>The kitchen floor is open for the next challenge.</span>
       {% endif %}
+    </div>
+    <div class="arena-activity-ticker" aria-label="Arena activity">
+      <span>{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</span>
+      <span>{% if active_battle %}Live battle{% elif arena_data.center.type == 'crown' %}Crown centre{% else %}Floor open{% endif %}</span>
+      <span>{{ arena_data.metrics.active_viewers|default:0 }} watching</span>
     </div>
     <div class="arena-crowd-rail__actions">
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Browse rankings</a>
