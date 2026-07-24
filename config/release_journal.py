@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.472",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "7a2e1d9d",
         "title": "ArenaFront af6: dial down floor-sheen so live SVG seats read (Owner #2207)",
         "section": "Chef Battles / Deployment",
         "summary": "Owner live screenshot + CoWork #2207: painted floor-sheen dominated the hall centre and obscured interactive SVG seat rings. af6 lowers .page--arena::after opacity (~0.28–0.32), masks out the centre so SVG octagon stays clear, keeps wall wash / gold dust / dark hall page fill from af5. Cache-bust af6. Files: arena_atmosphere.css, arena.html link, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
