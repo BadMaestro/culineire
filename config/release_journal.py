@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.526",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af54 gold dust with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af54 (f16d2765) onto live polish r10c + af5–af53. Load order: polish r10c → atmosphere af54. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.526",
+        "date": "2026-07-24",
+        "commit": "923912f7",
+        "title": "ArenaFront af54: warmer gold dust tone",
+        "section": "Chef Battles / Deployment",
+        "summary": "af51 LIVE (#2462 / 728e6190 v2.5.523): raise --arena-atm-gold / gold-soft (80%/50%). SVG centre mask held. Cache-bust af54. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.525",
         "date": "2026-07-24",
         "commit": "33d84b87",
