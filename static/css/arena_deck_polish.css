@@ -277,3 +277,42 @@
     border-radius: 999px;
   }
 }
+
+
+/* 3G — ribbon identity + live marker (prototype masthead). */
+@media (min-width: 901px) {
+  .arena-broadcast-ribbon .arena-command-deck__eyebrow {
+    margin: 0;
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+    color: var(--accent-bronze-dark);
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header h1 {
+    margin: 0.12rem 0 0;
+    line-height: 1.05;
+    font-size: clamp(1.05rem, 1.55vw, 1.35rem);
+  }
+  .arena-broadcast-ribbon .arena-command-deck__live-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.28rem;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+  }
+  .arena-broadcast-ribbon .arena-command-deck__live-note::before {
+    content: "";
+    width: 0.38rem;
+    height: 0.38rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--hall-green) 55%, var(--muted));
+    box-shadow: 0 0 0.55rem color-mix(in srgb, var(--hall-green) 25%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-command-deck__live-note.is-live::before {
+    background: var(--hall-green);
+    box-shadow: 0 0 0.7rem color-mix(in srgb, var(--hall-green) 55%, transparent);
+  }
+}
