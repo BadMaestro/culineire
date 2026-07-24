@@ -648,3 +648,49 @@
     top: 13.5%;
   }
 }
+
+
+/* 3G — floor centre glow + rank count pills. */
+@media (min-width: 901px) {
+  .arena-floor-stage {
+    isolation: isolate;
+  }
+  .arena-floor-stage::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    top: 54%;
+    width: min(78%, 42rem);
+    aspect-ratio: 1.7;
+    border-radius: 50%;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    filter: blur(2.1rem);
+    transform: translate(-50%, -50%);
+    opacity: 0.7;
+  }
+  .arena-floor-stage .arena-puzzle-container,
+  .arena-floor-stage #arena-puzzle,
+  .arena-floor-stage .arena-render-container {
+    position: relative;
+    z-index: 1;
+  }
+  .arena-floor-stage .arena-rank-spine {
+    z-index: 2;
+  }
+  .arena-rank-spine__step b {
+    min-width: 1.15rem;
+    height: 1.15rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 40%, transparent);
+    color: var(--accent-bronze-dark);
+    background: color-mix(in srgb, var(--accent-bronze) 14%, var(--surface));
+  }
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  .arena-floor-stage::after {
+    filter: none;
+    opacity: 0.35;
+  }
+}
