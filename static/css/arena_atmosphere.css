@@ -1,14 +1,14 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af64.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af66.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af60 LIVE (v2.5.531 / 914309c1). af64: deeper corner vignettes.
+ * Pair FE continue. af66: warmer gold dust tone.
  */
 
 .page--arena {
   --arena-atm-wall: url("/static/img/arena/hall-wall-wash-v1.png");
   --arena-atm-floor: url("/static/img/arena/floor-sheen-v1.png");
-  --arena-atm-gold: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 80%, transparent);
-  --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 50%, transparent);
+  --arena-atm-gold: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 84%, transparent);
+  --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 54%, transparent);
   position: relative;
   isolation: isolate;
   /* Page hall fill — must win over polish light .page--arena background. */
@@ -109,10 +109,10 @@
       right bottom / 24% 100% no-repeat,
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 84%, transparent),
-      transparent 26%,
-      transparent 74%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 84%, transparent)
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 88%, transparent),
+      transparent 28%,
+      transparent 72%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 88%, transparent)
     ),
     linear-gradient(
       0deg,

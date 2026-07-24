@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.537",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af65+af66 side darken and gold dust with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af65+af66 (caf1cc08) onto live polish r10c + af5–af64. Load order: polish r10c → atmosphere af66. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.538",
+        "date": "2026-07-24",
+        "commit": "a72a68a6",
+        "title": "ArenaFront af66: warmer gold dust tone",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: raise --arena-atm-gold / gold-soft (84%/54%). SVG centre mask held. Cache-bust af66. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.537",
+        "date": "2026-07-24",
+        "commit": "0b063286",
+        "title": "ArenaFront af65: stronger ::before side darken",
+        "section": "Chef Battles / Deployment",
+        "summary": "af61+af62 LIVE (#2524 / e2a9757e v2.5.533): deepen ::before left/right side darken (88%/28%). SVG centre mask held. Cache-bust af65. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.536",
+        "date": "2026-07-24",
+        "commit": "dc0661ab",
+        "title": "ArenaFront af64: deeper corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af60 LIVE (#2517 / 914309c1 v2.5.531): deepen four corner dark vignettes further. SVG centre mask held. Cache-bust af64. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.535",
         "date": "2026-07-24",
         "commit": "87e3cf8e",
