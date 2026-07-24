@@ -1592,3 +1592,29 @@
     font-size: clamp(1.1rem, 1.6vw, 1.4rem);
   }
 }
+
+
+/* 3G — prototype rail widths (narrower show panels). */
+@media (min-width: 901px) {
+  .arena-command-deck__phase-card,
+  .arena-command-deck__ladder {
+    left: 1.2%;
+    width: min(15.5rem, 17.5%);
+  }
+  .arena-command-deck__metrics,
+  .arena-command-deck__gifts {
+    right: 1.2%;
+    width: min(15.5rem, 17.5%);
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics {
+    top: 14%;
+  }
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    bottom: 9%;
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    width: min(48rem, 70%);
+  }
+}
