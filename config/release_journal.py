@@ -1,11 +1,19 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.506",
+        "version": "2.5.508",
         "date": "2026-07-24",
-        "commit": "1868fb98",
-        "title": "ArenaFront af35: stronger veil side darken",
+        "commit": "f25bfb5d",
+        "title": "ArenaFront af36: denser stand gold rails",
         "section": "Chef Battles / Deployment",
-        "summary": "af31+af32 LIVE (#2369 / 2de1bcb0 v2.5.503): deepen ::before left/right side darken (72%/22%). SVG centre mask held. Cache-bust af35. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+        "summary": "af33+af34 LIVE (#2374 / 0accd4b6 v2.5.506): brighten ::before stand gold rails (68%). SVG centre mask held. Cache-bust af36. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.507",
+        "date": "2026-07-24",
+        "commit": "73e312ce",
+        "title": "ArenaFront af35: stronger veil side darken (renumbered)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Deepen ::before left/right side darken (72%/22%). Renumbered from 2.5.506 after Cursor claimed 506 for af33+af34 LIVE (#2374 / 0accd4b6). Cache-bust af35. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
         "version": "2.5.505",
@@ -13,7 +21,7 @@ RELEASE_JOURNAL = [
         "commit": "c4a2b402",
         "title": "ArenaFront af34: stronger bottom floor dark wash",
         "section": "Chef Battles / Deployment",
-        "summary": "Owner Telegram 5-pack (#2358) noted. Lift bottom page dark wash (82%/36%) for hall floor enclosure. SVG centre mask held. Cache-bust af34. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+        "summary": "Owner Telegram 5-pack (#2358) noted. Lift bottom page dark wash (82%/36%) for hall floor enclosure. Live as Cursor tip v2.5.506 / 0accd4b6 with af33 (#2374). Cache-bust af34. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
         "version": "2.5.504",
