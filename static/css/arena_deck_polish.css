@@ -2255,3 +2255,23 @@
     transition: none;
   }
 }
+
+
+/* 3G — challenger/opponent rail edge glow (hex cards). */
+@media (min-width: 901px) {
+  .arena-confrontation-band .arena-live-chef--challenger {
+    box-shadow:
+      0 0 1.2rem color-mix(in srgb, var(--hall-green) 35%, transparent),
+      0 0.35rem 0.8rem color-mix(in srgb, var(--ink) 18%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--opponent {
+    box-shadow:
+      0 0 1.2rem color-mix(in srgb, var(--hall-red) 35%, transparent),
+      0 0.35rem 0.8rem color-mix(in srgb, var(--ink) 18%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+    border-radius: 0.65rem;
+    background: color-mix(in srgb, var(--ink) 8%, var(--surface));
+  }
+}
