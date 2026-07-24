@@ -379,3 +379,51 @@
     z-index: 1;
   }
 }
+
+
+/* 3G — confrontation chef cards + VS focus energy. */
+@media (min-width: 901px) {
+  .arena-confrontation-band .arena-live-chef--challenger {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hall-green) 22%, var(--surface)),
+        color-mix(in srgb, var(--surface) 88%, transparent)
+      );
+    border: 1px solid color-mix(in srgb, var(--hall-green) 55%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--hall-green),
+      0 0 1.6rem color-mix(in srgb, var(--hall-green) 22%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--opponent {
+    background:
+      linear-gradient(
+        -90deg,
+        color-mix(in srgb, var(--hall-red) 22%, var(--surface)),
+        color-mix(in srgb, var(--surface) 88%, transparent)
+      );
+    border: 1px solid color-mix(in srgb, var(--hall-red) 55%, transparent);
+    box-shadow:
+      inset -3px 0 0 var(--hall-red),
+      0 0 1.6rem color-mix(in srgb, var(--hall-red) 22%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef span {
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    color: var(--accent-bronze-dark);
+  }
+  .arena-confrontation-band .arena-live-chef strong {
+    margin-top: 0.18rem;
+    font-size: clamp(0.92rem, 1.25vw, 1.12rem);
+    line-height: 1.05;
+  }
+  .arena-confrontation-band .arena-live-centre {
+    box-shadow:
+      0 0 1.4rem color-mix(in srgb, var(--accent-bronze) 28%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--surface) 80%, transparent);
+  }
+  .arena-confrontation-band .arena-live-centre b {
+    color: var(--accent-bronze-dark);
+    text-shadow: 0 0 0.85rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  }
+}
