@@ -170,3 +170,32 @@
     margin: 0.1rem 0 0.35rem;
   }
 }
+
+
+/* 3G — metric-grid rhythm (prototype Live signals module). */
+@media (min-width: 901px) {
+  .arena-command-deck__metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem 0.65rem;
+    align-content: start;
+  }
+  .arena-command-deck__metrics .arena-panel__kicker {
+    grid-column: 1 / -1;
+  }
+  .arena-command-deck__metrics .arena-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    padding: 0.35rem 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+    border-radius: 0.55rem;
+    background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
+  }
+  .arena-command-deck__metrics .arena-metric span {
+    font-size: 0.56rem;
+  }
+  .arena-command-deck__metrics .arena-metric strong {
+    font-size: 1.05rem;
+  }
+}
