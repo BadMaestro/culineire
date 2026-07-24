@@ -9,10 +9,10 @@
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260722-stage3b" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r6d" rel="stylesheet">
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r6d" rel="stylesheet">
-<link href="{% static 'css/arena_effects.css' %}?v=20260724-r6d" rel="stylesheet">
-<link href="{% static 'css/arena_hall.css' %}?v=20260724-r6d" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r6e" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r6e" rel="stylesheet">
+<link href="{% static 'css/arena_effects.css' %}?v=20260724-r6e" rel="stylesheet">
+<link href="{% static 'css/arena_hall.css' %}?v=20260724-r6e" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -78,6 +78,7 @@
 
   <div class="arena-interface-rail arena-interface-rail--right" role="group" aria-label="Arena broadcast rail">
   <section class="arena-command-deck__metrics" aria-label="Arena metrics">
+    <p class="arena-panel__kicker">Live signals</p>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong id="arena-metric-viewers">{{ arena_data.metrics.active_viewers }}</strong></div>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-vote"></use></svg>Public votes</span><strong id="arena-metric-votes">{{ arena_data.metrics.public_votes }}</strong></div>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>Battle gifts</span><strong id="arena-metric-gifts">{{ arena_data.metrics.battle_gifts }}</strong></div>

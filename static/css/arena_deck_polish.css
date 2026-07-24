@@ -148,3 +148,25 @@
     font-size: 0.68rem;
   }
 }
+
+
+/* 3G — show-panel header rhythm (prototype composition, official tokens). */
+@media (min-width: 901px) {
+  .arena-command-deck__phase-card .arena-panel__kicker,
+  .arena-command-deck__ladder .arena-panel__kicker,
+  .arena-command-deck__gifts .arena-panel__kicker,
+  .arena-command-deck__metrics .arena-panel__kicker {
+    margin-bottom: 0.55rem;
+    letter-spacing: 0.12em;
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts,
+  .arena-command-deck__metrics {
+    padding: 0.85rem 0.95rem;
+  }
+  .arena-command-deck__phase-name {
+    font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+    margin: 0.1rem 0 0.35rem;
+  }
+}
