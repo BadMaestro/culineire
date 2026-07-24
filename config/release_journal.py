@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.498",
+        "date": "2026-07-24",
+        "commit": "595a89ac",
+        "title": "ArenaFront af28: wider mobile SVG-clear mask",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE + af25 live (#2323): widen mobile ::after centre mask (transparent to 46%) so SVG seats stay clear; slight veil opacity tune. Cache-bust af28. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.497",
         "date": "2026-07-24",
-        "commit": "d8979993",
+        "commit": "86e299b6",
         "title": "ArenaFront af27: stronger stand gold rails",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: brighter left/right stand gold rails (--hall-gold 58%). af23+af24 live; af25–af27 pending designated merger. Cache-bust af27. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
