@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.476",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "5c499093",
         "title": "Merge af8 side gold dust with r10c+af5–af7",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af8 (a2e97a39: denser side gold dust + stand gold lines; af6 SVG centre mask held) onto live polish r10c + af5–af7 stack. Load order: polish r10c → atmosphere af8. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
