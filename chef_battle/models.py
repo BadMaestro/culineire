@@ -450,6 +450,65 @@ class BattleViewerPresence(models.Model):
         return f"Viewer {self.viewer_hash[:8]} on {surface}"
 
 
+class ArenaSeat(models.Model):
+    """One real viewer holding one real seat in the arena stands (Stage 3C).
+
+    BattleViewerPresence above answers "how many people are watching" from a
+    pseudonymised device hash and deliberately keeps no account linkage. That
+    is the right shape for a counter and the wrong shape for a seat: a seat
+    belongs to a named person, has to stay theirs across polls, and cannot be
+    held twice. So this is a second question about the same audience, not a
+    second presence system — the count still comes from BattleViewerPresence.
+
+    Only an authenticated viewer's own author record can occupy a row here.
+    There is no path that writes a synthetic occupant: the service takes an
+    author, and the atmospheric crowd the renderer draws over empty seats is
+    never persisted.
+
+    Seats are addressed by the authoritative arena geometry — ``ring_index``
+    is the ring's index in ``selectors.get_arena_geometry()`` and ``seat_index``
+    is the cell within it — so this table cannot drift into its own private
+    topology.
+
+    Release is explicit (``released_at``). A held seat additionally lapses when
+    its occupant falls outside the arena's existing online window
+    (``ARENA_ONLINE_THRESHOLD_SECONDS``, the same window that already decides
+    who is present in the hall); no new expiry clock is introduced here.
+    """
+
+    viewer = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="arena_seats",
+    )
+    ring_index = models.PositiveSmallIntegerField()
+    seat_index = models.PositiveSmallIntegerField()
+    claimed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    released_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        constraints = [
+            # The two integrity rules of a hall, enforced by the database so a
+            # caller that skips the service still cannot break them: one held
+            # seat per viewer, and one holder per seat. Both are partial —
+            # released rows are history and may repeat freely.
+            models.UniqueConstraint(
+                fields=["viewer"], condition=Q(released_at__isnull=True),
+                name="unique_active_arena_seat_per_viewer",
+            ),
+            models.UniqueConstraint(
+                fields=["ring_index", "seat_index"], condition=Q(released_at__isnull=True),
+                name="unique_active_occupant_per_arena_seat",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["released_at", "ring_index", "seat_index"],
+                         name="arena_seat_free_lookup_idx"),
+        ]
+
+    def __str__(self):
+        state = "released" if self.released_at else "held"
+        return f"Seat r{self.ring_index}c{self.seat_index} ({state})"
+
+
 class BattleEvent(models.Model):
     class EventType(models.TextChoices):
         CHALLENGE_CREATED = "challenge_created", "Challenge Created"

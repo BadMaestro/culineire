@@ -1,0 +1,84 @@
+{
+  "audit_id": "stage-3c-real-spectator-backend",
+  "workstream": "3C",
+  "title": "Real spectator seating - backend and domain foundation",
+  "recorded_by": "GreenBear",
+  "recorded_at": "2026-07-23",
+  "base_commit": "816213764ba3d620c14d734dc2eb851cbb0d1956",
+  "branch": "impl/arena-3c-spectator-backend",
+  "scope": {
+    "backend_only": true,
+    "presentation_files_touched": [],
+    "workstreams_untouched": ["3A", "3B", "3D", "3E", "CF5"],
+    "frontend_wiring": "NOT DONE - deliberately out of scope for this command"
+  },
+  "authoritative_discovery": {
+    "ring_topology_source": "chef_battle/selectors.py :: SPECTATOR_RING_SEGMENTS = (40, 48, 56, 64, 72, 80, 88, 96), exposed through get_arena_geometry()",
+    "capacity": 544,
+    "capacity_derivation": "sum(SPECTATOR_RING_SEGMENTS); not equal per ring - the front row holds 40 and the back row 96",
+    "seat_order_source": "get_arena_geometry() ring order (row 1 nearest the rail first), then cell index ascending within each ring - the same order the existing renderer already fills seats in (static/js/arena_render.js assignSpectators)",
+    "existing_presence_system": "chef_battle/models.py :: BattleViewerPresence (pseudonymised device hash, no account linkage) - kept as the audience counter, not extended into seating",
+    "existing_online_window": "selectors.ARENA_ONLINE_THRESHOLD_SECONDS = 180, already the arena's definition of who is present",
+    "prior_seating_behaviour": "views._get_spectators returned online authors ordered by -last_seen_at and the renderer poured them into seats in list order; no seat was owned, so a viewer's seat moved on every poll",
+    "conflicts_found": []
+  },
+  "implementation": {
+    "model": "chef_battle.models.ArenaSeat (viewer FK -> recipes.RecipeAuthor, ring_index, seat_index, claimed_at, released_at)",
+    "migration": "chef_battle/migrations/0084_arenaseat.py",
+    "service": "chef_battle/arena_seating.py (seat_map, seating_capacity, get_active_seat, claim_seat, release_seat, public_seat)",
+    "endpoint": "POST /chef-battle/arena/seat/ -> chef_battle:arena_take_seat (login required, dark-launch gated, rate limited 60/m per IP)",
+    "database_constraints": [
+      "unique_active_arena_seat_per_viewer - UNIQUE(viewer) WHERE released_at IS NULL",
+      "unique_active_occupant_per_arena_seat - UNIQUE(ring_index, seat_index) WHERE released_at IS NULL"
+    ],
+    "concurrency_strategy": "optimistic: read the free-seat map, insert, let the partial unique constraint reject the loser, retry against a refreshed map; retry budget is the whole hall",
+    "idempotency": "claim_seat returns the viewer's existing held seat; the IntegrityError path also re-checks for the caller's own seat before retrying",
+    "lifecycle": "explicit release, plus a lapse when the holder falls outside the existing 180s arena online window. No new TTL, heartbeat or expiry clock was invented.",
+    "synthetic_occupants": "impossible - viewer is a non-null FK to a real author and there is no factory, fixture, seeding command or service path that creates a seat for anything else"
+  },
+  "privacy": {
+    "public_seat_fields": ["ring", "cell", "row", "name", "slug", "avatar_url"],
+    "rationale": "identical to the three public author fields the arena payload has always carried for a spectator (views._get_spectators), plus the seat coordinates",
+    "excluded": ["email", "username", "account id", "session key", "IP", "user agent", "request fingerprint"]
+  },
+  "validation": {
+    "targeted_test_command": "python manage.py test chef_battle.tests.ArenaSeatingTests chef_battle.tests.ArenaSeatEndpointTests chef_battle.tests.ArenaSeatConcurrencyTests --keepdb",
+    "tests_found": 19,
+    "tests_passed": 19,
+    "tests_failed": 0,
+    "duration_seconds": 43.4,
+    "django_check": "PASS",
+    "makemigrations_check": "No changes detected",
+    "py_compile": "PASS",
+    "git_diff_check": "PASS",
+    "full_suite_run": false,
+    "distributed_run": false,
+    "coverage_map": {
+      "authenticated_viewer_can_request_a_seat": "ArenaSeatEndpointTests.test_authenticated_viewer_is_seated",
+      "unauthenticated_request_rejected": "ArenaSeatEndpointTests.test_anonymous_request_is_rejected",
+      "no_synthetic_occupant_path": "ArenaSeatingTests.test_a_seat_cannot_exist_without_a_real_viewer",
+      "one_active_seat_per_viewer": "ArenaSeatingTests.test_one_active_seat_per_viewer_is_enforced_by_the_database",
+      "one_active_occupant_per_seat": "ArenaSeatingTests.test_one_active_occupant_per_seat_is_enforced_by_the_database",
+      "idempotent_repeat": "ArenaSeatingTests.test_repeated_claim_is_idempotent, ArenaSeatEndpointTests.test_repeated_post_returns_the_same_seat",
+      "capacity_cannot_exceed_544": "ArenaSeatingTests.test_capacity_cannot_be_exceeded",
+      "front_first_ordering": "ArenaSeatingTests.test_seat_order_runs_front_row_first, test_first_claim_takes_the_front_seat, test_claims_fill_forward_in_order",
+      "concurrent_allocation_safe": "ArenaSeatConcurrencyTests.test_concurrent_claims_get_distinct_seats (8 real threads, TransactionTestCase)",
+      "no_personal_data_in_public_result": "ArenaSeatingTests.test_public_seat_carries_no_personal_data, ArenaSeatEndpointTests.test_response_leaks_no_account_data",
+      "dark_launch_access_gate": "ArenaSeatEndpointTests.test_dark_launch_hides_the_endpoint_from_ordinary_users"
+    }
+  },
+  "lifecycle": {
+    "pushed": false,
+    "merged": false,
+    "deployed": false,
+    "live_verified": false,
+    "board_updated": false,
+    "journal_updated": false
+  },
+  "remaining_work_for_owner_decision": [
+    "The renderer still seats spectators from the transient _get_spectators list; wiring the arena payload and arena_render.js to ArenaSeat is presentation work and was excluded from this command.",
+    "Whether a viewer may choose a specific free seat (the renderer already marks seats data-seatable) or only be assigned the front-most one. Only assignment is implemented.",
+    "Whether enrolled chefs, who sit in their rank ring rather than the stands, should also hold an ArenaSeat row.",
+    "A migration will run on production when this eventually deploys: one new table, no data migration, reversible."
+  ]
+}
