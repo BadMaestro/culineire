@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.568",
         "date": "2026-07-24",
-        "commit": "PENDING",
+        "commit": "942915ba",
         "title": "MOCKUP M05/M06 — floor rank titles + crown hub",
         "section": "Chef Battles / Deployment",
         "summary": "MOCKUP_20_STEP M01/M05/M06. FE tip 6bf5206b: desktop rank spine text-on-floor (column-reverse, Culinary Master near centre; DOM order preserved); crown hub shows holder name; plan JSON published. ArenaRankColumnTests held. M11 Emerald Hall Owner-gated. M02 §12 544→290 still Owner. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
