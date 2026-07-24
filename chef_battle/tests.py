@@ -7211,15 +7211,30 @@ class ArenaGeometryTests(TestCase):
                 if r["side"] == side:
                     self.assertEqual(r["rows_total"], rows)
 
-    def test_spectator_capacity_matches_the_drawn_seats(self):
-        """The query limit must not drift from the geometry: every seat the
-        renderer draws has to be fillable, and none beyond it fetched."""
-        from .selectors import get_arena_geometry, spectator_capacity
-        drawn = sum(r["segments"] for r in get_arena_geometry()["rings"]
-                    if r["kind"] == "spectator")
-        oval_cap = get_arena_geometry()["spectator_oval"]["capacity"]
-        self.assertEqual(spectator_capacity(), drawn)
-        self.assertEqual(spectator_capacity(), oval_cap)
+    def test_spectator_oval_counts_frozen_for_stable_ids(self):
+        """M04: packing may densify pitch/gap, but ring/cell capacity stays 290."""
+        from .selectors import (
+            SPECTATOR_OVAL_COUNTS,
+            SPECTATOR_OVAL_ROWS,
+            get_arena_geometry,
+            spectator_capacity,
+        )
+        total = sum(sum(v) for v in SPECTATOR_OVAL_COUNTS.values())
+        self.assertEqual(total, 290)
+        for side, rows in SPECTATOR_OVAL_ROWS.items():
+            self.assertEqual(len(SPECTATOR_OVAL_COUNTS[side]), rows)
+        oval = get_arena_geometry()["spectator_oval"]
+        self.assertEqual(oval["capacity"], 290)
+        self.assertEqual(spectator_capacity(), 290)
+        self.assertEqual(oval["counts_by_side"]["left"], [28, 29, 31])
+        # First seat on each frozen ring keeps cell 0.
+        by_ring = {}
+        for seat in oval["seats"]:
+            by_ring.setdefault(seat["ring"], []).append(seat["cell"])
+        for ring, cells in by_ring.items():
+            self.assertEqual(cells[0], 0)
+            self.assertEqual(cells, list(range(len(cells))))
+
 
     def test_get_spectators_respects_capacity_limit(self):
         from chef_battle.arena_seating import claim_seat, seat_map

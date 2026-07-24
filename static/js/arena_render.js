@@ -171,7 +171,14 @@
     var seats = oval.seats && oval.seats.length
       ? oval.seats
       : (global.ArenaGeometry.ovalSeats
-        ? global.ArenaGeometry.ovalSeats(0, 0, beFloor, rowsBySide).map(function (s) {
+        ? global.ArenaGeometry.ovalSeats(
+            0,
+            0,
+            beFloor,
+            rowsBySide,
+            null,
+            oval.counts_by_side || null
+          ).map(function (s) {
             return s;
           })
         : []);
@@ -180,8 +187,8 @@
       var planX = SVG_SIZE / 2 + seat.x * scale;
       var planY = SVG_SIZE / 2 + seat.y * scale;
       var pt = project({ x: planX, y: planY });
-      var pitch = Math.max(14, floorR * 0.055);
-      var r = Math.max(5, pitch * 0.42 * Math.min(1.15, scale));
+      var pitch = Math.max(11, floorR * 0.045);
+      var r = Math.max(4.2, pitch * 0.34 * Math.min(1.15, scale));
       var circle = el('circle', {
         cx: pt.x.toFixed(2),
         cy: pt.y.toFixed(2),

@@ -112,10 +112,17 @@
    *
    * `ring` is a synthetic index: 100 + side*10 + row (stable for ArenaSeat).
    */
-  function ovalSeats(centerX, centerY, floorOuterRadius, rowsBySide, seatPitch) {
+  function ovalSeats(centerX, centerY, floorOuterRadius, rowsBySide, seatPitch, countsBySide) {
     rowsBySide = rowsBySide || { top: 2, right: 3, bottom: 2, left: 3 };
-    seatPitch = seatPitch || Math.max(14, floorOuterRadius * 0.055);
-    var gap = floorOuterRadius * 0.08;
+    // M04: denser packing; counts frozen so ring/cell ids stay at capacity 290.
+    countsBySide = countsBySide || {
+      top: [28, 29],
+      right: [28, 29, 31],
+      bottom: [28, 29],
+      left: [28, 29, 31]
+    };
+    seatPitch = seatPitch || Math.max(11, floorOuterRadius * 0.045);
+    var gap = floorOuterRadius * 0.055;
     var sides = [
       { key: 'top', rows: rowsBySide.top || 0, a0: -Math.PI * 0.75, a1: -Math.PI * 0.25 },
       { key: 'right', rows: rowsBySide.right || 0, a0: -Math.PI * 0.25, a1: Math.PI * 0.25 },
@@ -125,14 +132,14 @@
     var sideIndex = { top: 0, right: 1, bottom: 2, left: 3 };
     var out = [];
     sides.forEach(function (side) {
+      var counts = countsBySide[side.key] || [];
       for (var row = 0; row < side.rows; row++) {
-        var radius = floorOuterRadius + gap + (row + 0.5) * seatPitch * 1.15;
+        var radius = floorOuterRadius + gap + (row + 0.5) * seatPitch * 1.02;
         // Ellipse: stretch X slightly so the stand reads as an oval, not a circle.
         var rx = radius * 1.08;
         var ry = radius * 0.92;
         var arc = side.a1 - side.a0;
-        var arcLen = Math.abs(arc) * ((rx + ry) / 2);
-        var count = Math.max(4, Math.round(arcLen / seatPitch));
+        var count = counts[row] != null ? counts[row] : Math.max(4, Math.round(Math.abs(arc) * ((rx + ry) / 2) / seatPitch));
         var ringId = 100 + sideIndex[side.key] * 10 + row;
         for (var cell = 0; cell < count; cell++) {
           var t = (cell + 0.5) / count;
@@ -144,7 +151,7 @@
             ring: ringId,
             x: centerX + rx * Math.cos(angle),
             y: centerY + ry * Math.sin(angle),
-            r: seatPitch * 0.42
+            r: seatPitch * 0.34
           });
         }
       }

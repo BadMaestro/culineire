@@ -51,9 +51,10 @@
       "n": 4,
       "id": "M04",
       "title": "Spectator oval QA: L3/R3/T2/B2 packing density toward mockup crowd",
-      "status": "NEXT",
+      "status": "FE_READY",
       "owner": "arenafront",
       "be": "keep seat ids stable if packing constants change",
+      "note": "Tip: freeze 290 counts; denser pitch/gap/draw radius; await integrate",
       "files": ["static/js/arena_geometry.js", "chef_battle/selectors.py", "tests"]
     },
     {
@@ -136,9 +137,9 @@
       "n": 14,
       "id": "M14",
       "title": "Recent Battle Gifts panel + Send a Gift CTA mockup parity",
-      "status": "FE_READY",
+      "status": "LIVE",
       "owner": "arenafront",
-      "note": "Tip: gifts feed + Send a Gift CTA; await Cursor integrate"
+      "note": "v2.5.575"
     },
     {
       "n": 15,

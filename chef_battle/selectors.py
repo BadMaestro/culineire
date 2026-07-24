@@ -1262,6 +1262,15 @@ RANK_RING_SEGMENTS = (9, 10, 15, 20, 25, 30, 35, 40)
 # Rows by side match the Owner mockup: 3 left/right, 2 top/bottom.
 SPECTATOR_OVAL_ROWS = {"top": 2, "right": 3, "bottom": 2, "left": 3}
 
+# M04: freeze per-row seat counts so ring/cell ids stay stable when packing
+# constants (pitch/gap) tighten toward the mockup crowd. Sum = 290.
+SPECTATOR_OVAL_COUNTS = {
+    "top": (28, 29),
+    "right": (28, 29, 31),
+    "bottom": (28, 29),
+    "left": (28, 29, 31),
+}
+
 # Legacy name kept as alias for imports; capacity now comes from oval packing.
 SPECTATOR_RING_SEGMENTS = ()  # empty — polar spectator rings removed
 
@@ -1272,11 +1281,14 @@ def _oval_seat_list(floor_outer_radius=220.0, seat_pitch=None):
     """Plan-space oval seats mirroring ArenaGeometry.ovalSeats (JS).
 
     Stable ids: ring = 100 + side_index*10 + row, cell = 0..n-1.
+    Counts come from SPECTATOR_OVAL_COUNTS (not derived from pitch) so denser
+    packing can tighten pitch/gap without reshuffling seat identities.
     """
     import math
 
-    pitch = seat_pitch if seat_pitch is not None else max(14.0, floor_outer_radius * 0.055)
-    gap = floor_outer_radius * 0.08
+    # Denser mockup packing: tighter pitch/gap than the initial oval ship.
+    pitch = seat_pitch if seat_pitch is not None else max(11.0, floor_outer_radius * 0.045)
+    gap = floor_outer_radius * 0.055
     sides = (
         ("top", SPECTATOR_OVAL_ROWS["top"], -math.pi * 0.75, -math.pi * 0.25),
         ("right", SPECTATOR_OVAL_ROWS["right"], -math.pi * 0.25, math.pi * 0.25),
@@ -1286,13 +1298,13 @@ def _oval_seat_list(floor_outer_radius=220.0, seat_pitch=None):
     side_index = {"top": 0, "right": 1, "bottom": 2, "left": 3}
     out = []
     for key, rows, a0, a1 in sides:
+        counts = SPECTATOR_OVAL_COUNTS[key]
         for row in range(rows):
-            radius = floor_outer_radius + gap + (row + 0.5) * pitch * 1.15
+            radius = floor_outer_radius + gap + (row + 0.5) * pitch * 1.02
             rx = radius * 1.08
             ry = radius * 0.92
             arc = a1 - a0
-            arc_len = abs(arc) * ((rx + ry) / 2)
-            count = max(4, round(arc_len / pitch))
+            count = counts[row]
             ring_id = _FIRST_SPECTATOR_RING + side_index[key] * 10 + row
             for cell in range(count):
                 t = (cell + 0.5) / count
@@ -1352,6 +1364,7 @@ def get_arena_geometry() -> dict:
         "rings": rings + [oval_rings[k] for k in sorted(oval_rings)],
         "spectator_oval": {
             "rows_by_side": dict(SPECTATOR_OVAL_ROWS),
+            "counts_by_side": {k: list(v) for k, v in SPECTATOR_OVAL_COUNTS.items()},
             "floor_outer_radius": floor_r,
             "capacity": len(oval),
             "seats": oval,
