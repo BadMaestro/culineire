@@ -13,7 +13,7 @@
 <link href="{% static 'css/arena_effects.css' %}?v=20260724-r9c" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260724-r9c" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-m13" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-m14" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260724-no-bg-geom" rel="stylesheet">
 {% endblock %}
 
@@ -131,7 +131,7 @@
   <aside class="arena-command-deck__gifts" aria-label="Recent battle gifts">
     <header class="arena-panel__title">
       <div>
-        <p class="arena-panel__kicker">Gift feed</p>
+        <p class="arena-panel__kicker">Recent gifts</p>
         <h2 class="arena-panel__heading">Battle gifts</h2>
       </div>
       <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
@@ -149,9 +149,9 @@
     </ul>
     <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks; nothing is created from this page.</p>
     {% if active_battle %}
-    <a class="btn-primary" href="#arena-puzzle">Open live battle</a>
+    <a class="btn-primary" href="{% url 'chef_battle:battle_detail' active_battle.pk %}#battle-gifts-title">Send a Gift</a>
     {% else %}
-    <a class="btn-secondary" href="{% url 'chef_battle:artifact_gallery' %}">Browse artifacts</a>
+    <a class="btn-primary" href="{% url 'chef_battle:appreciation_gallery' %}">Send a Gift</a>
     {% endif %}
   </aside>
   </div>
