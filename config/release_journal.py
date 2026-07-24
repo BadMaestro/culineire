@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.471",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "706c5b42",
         "title": "3G polish r10b: spine ladder, LIVE ribbon, chef portrait rings",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle continuous composition. Cursor polish r10b (arena_deck_polish.css ?v=20260724-r10b): rank spine denser gold ladder over centre; broadcast ribbon LIVE weight + active phase gold fill; circular chef portrait rings with hall-green/hall-red rims; lower Join CTA bronze weight. Official tokens only; fitScene unchanged. Journal+board same commit. Not a public Arena release. Rollback: revert this commit and redeploy.",
