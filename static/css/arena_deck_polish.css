@@ -2275,3 +2275,76 @@
     background: color-mix(in srgb, var(--ink) 8%, var(--surface));
   }
 }
+
+
+/* 3G — restore octagon/spectator visibility (undo tilt squash). */
+@media (min-width: 901px) {
+  /* arena_render.css + fitScene() own the camera. Do NOT replace #arena-render
+     transform with rotateX — that foreshortens the octagon and clips stands. */
+  .arena-floor-stage {
+    perspective: none;
+    overflow: visible;
+  }
+  .page--arena .arena-command-deck__floor {
+    overflow: visible;
+  }
+  .arena-floor-stage .arena-render-container,
+  .page--arena .arena-floor-stage .arena-render-container {
+    overflow: visible;
+    height: clamp(420px, 52vw, 86vh);
+    max-width: none;
+    width: 100%;
+    transform: none;
+    filter: none;
+  }
+  .arena-floor-stage #arena-render,
+  .page--arena .arena-floor-stage #arena-render {
+    /* Restore fitScene contract from arena_render.css */
+    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    filter: none;
+  }
+  /* Decorative parchment plate: flat underlay, no competing 3D tilt. */
+  .arena-floor-stage::before {
+    transform: translate(-50%, -50%);
+    opacity: 0.55;
+    width: min(88%, 54rem);
+  }
+  .arena-floor-stage::after {
+    opacity: 0.45;
+  }
+  /* Outer spectator stands must read as distinct rings, not mud. */
+  .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--ink) 18%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+    stroke-width: 0.85;
+  }
+  .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
+    fill: color-mix(in srgb, var(--ink) 48%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    stroke-width: 1;
+  }
+  .page--arena #arena-render .arena-cell {
+    stroke-width: 0.85;
+  }
+  .page--arena #arena-render [data-ring="1"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="2"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="3"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="4"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="5"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="6"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="7"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="8"][data-occupancy="empty"] {
+    stroke: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    stroke-width: 0.9;
+  }
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  .arena-floor-stage #arena-render,
+  .page--arena .arena-floor-stage #arena-render {
+    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+  }
+  .arena-floor-stage::before {
+    transform: translate(-50%, -50%);
+  }
+}
