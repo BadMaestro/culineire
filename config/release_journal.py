@@ -1,11 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.396",
+        "date": "2026-07-24",
+        "commit": "template hygiene fix on origin/main (rebased on 3G R1)",
+        "title": "Fix multi-line {# #} comments in arena.html (caught by the distributed gate)",
+        "section": "Chef Battles / Deployment",
+        "summary": "The distributed 8:6:1 gate (Cursor 8-core + GreenBear 6-core + Linode 1-core, run_id arena-stage3-close-b9b3e411) surfaced one real regression: config.tests.TemplateCommentHygieneTests.test_no_multiline_short_comments_in_templates failed because the Stage 3E edit added two multi-line {# ... #} comments to templates/chef_battle/arena.html. In this Django a {# #} comment must open and close on the same line; a multi-line one renders as visible page text. Both were converted to {% comment %}...{% endcomment %}. Verified: TemplateCommentHygieneTests + ArenaRankColumnTests 8/8 pass. Separately triaged the gate's other observation, a '200 != 404' seen under --parallel on Windows: NOT a regression — ArenaDarkLaunchTests + ArenaPreviewShareLinkTests + ValidShareTokenTests pass 23/23 serially and live prod confirms /chef-battle/arena/ is 404 for anonymous; it is a --parallel test-isolation artifact (CHEF_BATTLE_ENABLED override interleaving), and the Windows parallel runner additionally crashes on any failing test with 'cannot pickle traceback object', so shards are being re-run serially. This fix rebased cleanly on top of Cursor's 3G R1 (0fafb338); arena.html auto-merged (different regions). Changed file: templates/chef_battle/arena.html (+ this journal). No behaviour change beyond removing the stray comment text. Rollback: git revert this commit and redeploy.",
+    },
+    {
         "version": "2.5.395",
         "date": "2026-07-24",
         "commit": "pending",
         "title": "Stage 3G R1: Arena Hall tokens — challenger/opponent use official hall green/red",
         "section": "Chef Battles / Deployment",
-        "summary": "Owner-approved 3G R0 map; R1 applies site-palette side accents on the live Arena (dark launch, staff/superuser only). (1) Challenger/opponent glows and --ad-green/--ad-red now point at official --hall-green/--hall-red from base.css instead of --brand/--brand-dark (both bronze), restoring green-vs-red identity without inventing a parallel palette. (2) --arena-gold points at --accent-bronze. (3) H1 Emerald Hall renamed Arena Hall (mockup/prototype copy). (4) Rank column unchanged (Owner Option A). Files: arena_deck_polish.css, arena_effects.css, arena_command_deck.css, arena.html, tests, ops/audits maps. No migrations. Prototype branch not merged. Focused ArenaRankColumnTests + new R1 token/title tests; distributed 8:6:1 not claimed. Rollback: git revert; no migrations.",
+        "summary": "Owner-approved 3G R0 map; R1 applies site-palette side accents on the live Arena (dark launch, staff/superuser only). (1) Challenger/opponent glows and --ad-green/--ad-red now point at official --hall-green/--hall-red from base.css instead of --brand/--brand-dark (both bronze), restoring green-vs-red identity without inventing a parallel palette. (2) --arena-gold points at --accent-bronze. (3) H1 Emerald Hall renamed Arena Hall (mockup/prototype copy). (4) Rank column unchanged (Owner Option A). Files: arena_deck_polish.css, arena_effects.css, arena_command_deck.css, arena.html, tests, ops/audits maps. No migrations. Prototype branch not merged. Focused ArenaRankColumnTests + new R1 token/title tests; distributed 8:6:1 not claimed. Rollback: git revert; no migrations. [Authored by Cursor.]",
     },
     {
         "version": "2.5.394",
