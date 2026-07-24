@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.523",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af51 gold bloom with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af51 (d9b6d10b) onto live polish r10c + af5–af50. Load order: polish r10c → atmosphere af51. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.523",
+        "date": "2026-07-24",
+        "commit": "e366bf67",
+        "title": "ArenaFront af51: warmer mid-hall gold bloom",
+        "section": "Chef Battles / Deployment",
+        "summary": "af49 LIVE (#2447 / 92185bce v2.5.521): warm upper gold bloom further (64%/30%). SVG centre mask held. Cache-bust af51. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.522",
         "date": "2026-07-24",
         "commit": "e01bb58c",
