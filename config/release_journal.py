@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.557",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Hotfix: Arena widget fixed overlay + honest BG layers",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner-reported defect: .page--arena atmosphere demoted .site-battle-widget to position:relative (bottom-left). Keep widget position:fixed z-index 130; clear drag left/right quirks. Remove CSS-drawn rings/octagon/gold-dust from atmosphere ::before/::after — live geometry stays #arena-render SVG only; BG is wash/vignette. Source tip 190bd58b (agent/arenafront/fix-arena-widget-fixed). AF new art STOPPED. CF5/3C unchanged. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
         "version": "2.5.556",
         "date": "2026-07-24",
         "commit": "cdc25c7f",
