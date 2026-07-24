@@ -220,3 +220,18 @@
     border-radius: 999px;
   }
 }
+
+
+/* 3G — phase-card show stack (prototype status panel). */
+@media (min-width: 901px) {
+  .arena-command-deck__phase-card .arena-command-deck__phase-copy {
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+  .arena-command-deck__phase-deadline {
+    margin-top: 0.7rem;
+  }
+  .arena-command-deck__phase-deadline > strong {
+    font-size: 1.12rem;
+  }
+}
