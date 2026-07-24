@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.560",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Build Plan R4 centred rank stack (D1 Option B)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner D1 2026-07-24 Option B: overturn GreenBear side-column recommendation; adopt Ember prototype centred rank stack over the floor. FE tip 1925d6ad (agent/arenafront/r4-rank-centred-stack): left:50%+translateX, progression label, hex clip chips, official tokens only; mobile wrapped row retained (3E). ArenaRankColumnTests 10/10 (centred Option B assertion added). R5 still D2-gated. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
         "version": "2.5.559",
         "date": "2026-07-24",
         "commit": "e8407480",
