@@ -1004,3 +1004,44 @@
     background: color-mix(in srgb, var(--surface) 88%, transparent);
   }
 }
+
+
+/* 3G — centre floor caption (prototype arena-core heading). */
+@media (min-width: 901px) {
+  .arena-floor-caption {
+    position: absolute;
+    z-index: 3;
+    top: 8.2%;
+    left: 50%;
+    width: min(28rem, 48%);
+    margin: 0;
+    transform: translateX(-50%);
+    text-align: center;
+    pointer-events: none;
+  }
+  .arena-floor-caption span {
+    display: block;
+    color: var(--accent-bronze-dark);
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+  .arena-floor-caption strong {
+    display: block;
+    margin-top: 0.18rem;
+    color: var(--ink);
+    font: 700 clamp(0.95rem, 1.35vw, 1.2rem)/1.05 var(--font-serif, "Playfair Display", serif);
+    letter-spacing: 0.01em;
+    text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent);
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 16.5%;
+  }
+}
+
+@media (max-width: 900px) {
+  .arena-floor-caption {
+    display: none;
+  }
+}
