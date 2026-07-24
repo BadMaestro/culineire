@@ -69,7 +69,8 @@
   color: var(--ink);
 }
 
-/* Fixed cinematic veil: stand lines, gold dust, side darkening (prototype stage). */
+/* Soft side vignette only — no gold-dust grid, no diagonal stand rails.
+   Those read as a second drawn arena on the page background. */
 .page--arena::before {
   content: "";
   position: fixed;
@@ -77,97 +78,24 @@
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 6% 26%, var(--arena-atm-gold) 0 0.1rem, transparent 0.18rem),
-    radial-gradient(circle at 9% 38%, var(--arena-atm-gold-soft) 0 0.12rem, transparent 0.2rem),
-    radial-gradient(circle at 12% 48%, var(--arena-atm-gold) 0 0.09rem, transparent 0.16rem),
-    radial-gradient(circle at 15% 32%, var(--arena-atm-gold-soft) 0 0.11rem, transparent 0.19rem),
-    radial-gradient(circle at 18% 54%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
-    radial-gradient(circle at 21% 22%, var(--arena-atm-gold) 0 0.1rem, transparent 0.17rem),
-    radial-gradient(circle at 24% 44%, var(--arena-atm-gold-soft) 0 0.1rem, transparent 0.18rem),
-    radial-gradient(circle at 27% 58%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
-    radial-gradient(circle at 94% 28%, var(--arena-atm-gold) 0 0.1rem, transparent 0.18rem),
-    radial-gradient(circle at 91% 40%, var(--arena-atm-gold-soft) 0 0.12rem, transparent 0.2rem),
-    radial-gradient(circle at 88% 50%, var(--arena-atm-gold) 0 0.09rem, transparent 0.16rem),
-    radial-gradient(circle at 85% 34%, var(--arena-atm-gold-soft) 0 0.11rem, transparent 0.19rem),
-    radial-gradient(circle at 82% 56%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
-    radial-gradient(circle at 79% 20%, var(--arena-atm-gold) 0 0.1rem, transparent 0.17rem),
-    radial-gradient(circle at 76% 46%, var(--arena-atm-gold-soft) 0 0.1rem, transparent 0.18rem),
-    radial-gradient(circle at 73% 60%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
-    linear-gradient(
-      68deg,
-      transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 94%, transparent) 45.4% 46.9%,
-      transparent 48%
-    )
-      left bottom / 24% 100% no-repeat,
-    linear-gradient(
-      -68deg,
-      transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 94%, transparent) 45.4% 46.9%,
-      transparent 48%
-    )
-      right bottom / 24% 100% no-repeat,
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 90%, transparent),
-      transparent 30%,
-      transparent 70%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 90%, transparent)
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 88%, transparent),
+      transparent 28%,
+      transparent 72%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 88%, transparent)
     ),
     linear-gradient(
       0deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 92%, transparent),
-      transparent 56%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 86%, transparent),
+      transparent 52%
     );
-  background-size:
-    2.8rem 2.8rem,
-    3.4rem 3.4rem,
-    4.2rem 4.2rem,
-    3.6rem 3.6rem,
-    5rem 5rem,
-    5.4rem 5.4rem,
-    3.2rem 3.2rem,
-    4.6rem 4.6rem,
-    2.8rem 2.8rem,
-    3.4rem 3.4rem,
-    4.2rem 4.2rem,
-    3.6rem 3.6rem,
-    5rem 5rem,
-    5.4rem 5.4rem,
-    3.2rem 3.2rem,
-    4.6rem 4.6rem,
-    24% 100%,
-    24% 100%,
-    auto,
-    auto;
-  opacity: 0.95;
+  opacity: 0.85;
 }
 
-@keyframes arena-atm-gold-drift {
-  0% {
-    background-position:
-      0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
-      0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
-      left bottom, right bottom, 0 0, 0 0;
-  }
-  100% {
-    background-position:
-      0 -1.2rem, 0.4rem -0.8rem, -0.3rem -1rem, 0.2rem -1.4rem, -0.5rem -0.6rem, 0.3rem -1.1rem,
-      -0.2rem -0.9rem, 0.35rem -1.2rem,
-      0 -1.2rem, -0.4rem -0.8rem, 0.3rem -1rem, -0.2rem -1.4rem, 0.5rem -0.6rem, -0.3rem -1.1rem,
-      0.2rem -0.9rem, -0.35rem -1.2rem,
-      left bottom, right bottom, 0 0, 0 0;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .page--arena::before {
-    animation: arena-atm-gold-drift 48s linear infinite;
-  }
-}
-
-/* Floor-edge crowd haze only — center stays clear so live SVG seats read (Owner #2207).
-   floor-sheen PNG kept as a faint outer wash, not a centre plate. */
+/* Outer hall wash only — NO geometric rings/octagon on the page background.
+   Live seats and octagon belong to #arena-render SVG, not CSS chrome.
+   Owner 2026-07-24: fake background geometry reads as a broken second arena. */
 .page--arena::after {
   content: "";
   position: fixed;
@@ -179,37 +107,24 @@
   pointer-events: none;
   transform: translate(-50%, -50%);
   background:
-    repeating-radial-gradient(
-      circle at 50% 52%,
-      transparent 0 5.2%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 46%, transparent) 5.4% 5.85%,
-      transparent 6.0% 8.2%
-    ),
     radial-gradient(
       ellipse 82% 54% at 50% 56%,
-      transparent 0 40%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 22%, transparent) 54%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 26%, transparent) 72%,
-      transparent 88%
-    ),
-    radial-gradient(
-      ellipse 88% 58% at 50% 56%,
       transparent 0 48%,
-      color-mix(in srgb, var(--surface, var(--surface-muted)) 30%, transparent) 64%,
-      transparent 82%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 22%, transparent) 72%,
+      transparent 90%
     ),
     var(--arena-atm-floor) center / cover no-repeat;
-  opacity: 0.36;
+  opacity: 0.18;
   mix-blend-mode: soft-light;
   -webkit-mask-image: radial-gradient(
     circle at 50% 52%,
-    transparent 0 36%,
-    #000 56% 100%
+    transparent 0 42%,
+    #000 68% 100%
   );
   mask-image: radial-gradient(
     circle at 50% 52%,
-    transparent 0 36%,
-    #000 56% 100%
+    transparent 0 42%,
+    #000 68% 100%
   );
 }
 
@@ -235,17 +150,16 @@
   }
 
   .page--arena::after {
-    /* af29: stronger outer stand haze on desktop; SVG centre mask still clear. */
-    opacity: 0.42;
+    opacity: 0.16;
     -webkit-mask-image: radial-gradient(
       circle at 50% 52%,
-      transparent 0 38%,
-      #000 58% 100%
+      transparent 0 44%,
+      #000 70% 100%
     );
     mask-image: radial-gradient(
       circle at 50% 52%,
-      transparent 0 38%,
-      #000 58% 100%
+      transparent 0 44%,
+      #000 70% 100%
     );
   }
 }
