@@ -1,8 +1,8 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af8.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af9.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af5–af7: dark hall + SVG-clear floor + token-only deepen.
- * af8: denser side gold dust + stand gold lines (mockup cinematic), centre mask held.
+ * af6 live on prod (Cursor #2221). af7–af8 pending merge.
+ * af9: soft outer stand haze strengthen; SVG centre mask held; journal renumber.
  */
 
 .page--arena {
@@ -118,28 +118,29 @@
   background:
     repeating-radial-gradient(
       circle at 50% 52%,
-      transparent 0 7.4%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 12%, transparent) 7.55% 7.7%,
-      transparent 7.85% 11%
+      transparent 0 7.2%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 16%, transparent) 7.4% 7.65%,
+      transparent 7.8% 10.6%
     ),
     radial-gradient(
-      ellipse 78% 50% at 50% 56%,
-      transparent 0 38%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 10%, transparent) 52%,
-      transparent 74%
+      ellipse 82% 54% at 50% 56%,
+      transparent 0 40%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 14%, transparent) 54%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 18%, transparent) 72%,
+      transparent 88%
     ),
     var(--arena-atm-floor) center / cover no-repeat;
-  opacity: 0.28;
+  opacity: 0.3;
   mix-blend-mode: soft-light;
   -webkit-mask-image: radial-gradient(
     circle at 50% 52%,
-    transparent 0 34%,
-    #000 52% 100%
+    transparent 0 36%,
+    #000 56% 100%
   );
   mask-image: radial-gradient(
     circle at 50% 52%,
-    transparent 0 34%,
-    #000 52% 100%
+    transparent 0 36%,
+    #000 56% 100%
   );
 }
 
@@ -158,7 +159,7 @@
   }
 
   .page--arena::after {
-    opacity: 0.32;
+    opacity: 0.34;
   }
 }
 
