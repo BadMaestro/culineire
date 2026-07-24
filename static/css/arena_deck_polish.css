@@ -1427,3 +1427,49 @@
     z-index: 5;
   }
 }
+
+
+/* 3G — rank spine as prototype vertical progression above crown. */
+@media (min-width: 901px) {
+  .arena-rank-spine {
+    top: 22%;
+    bottom: auto;
+    left: 50%;
+    width: min(11.5rem, 20%);
+    transform: translateX(-50%);
+    z-index: 5;
+  }
+  .arena-rank-spine__list {
+    display: grid;
+    gap: 0.18rem;
+  }
+  .arena-rank-spine__item {
+    flex: none;
+    min-width: 0;
+  }
+  .arena-rank-spine__step {
+    width: 100%;
+    min-height: 1.15rem;
+    justify-content: space-between;
+    padding: 0.14rem 0.4rem;
+    font-size: clamp(0.45rem, 0.62vw, 0.62rem);
+    clip-path: polygon(0.55rem 0, calc(100% - 0.55rem) 0, 100% 50%, calc(100% - 0.55rem) 100%, 0.55rem 100%, 0 50%);
+    border-radius: 0;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)),
+        color-mix(in srgb, var(--surface-soft) 88%, var(--ink))
+      );
+  }
+  .arena-rank-spine::before {
+    display: none;
+  }
+  /* Caption sits above the progression; confrontation stays at floor centre. */
+  .arena-floor-caption {
+    top: 9.5%;
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 52%;
+  }
+}
