@@ -1,0 +1,36 @@
+{
+  "record": "ARENA_VISUAL_INTEGRATION_MAP",
+  "version": 1,
+  "workstream": "3G",
+  "slice": "R0",
+  "status": "OWNER_APPROVED",
+  "approved_at": "2026-07-24",
+  "approved_by": "CulinEire Product Owner",
+  "recorded_by": "Cursor",
+  "recorded_at": "2026-07-24",
+  "authorised_direction": "Owner 2026-07-24: slow part-graft from prototype onto live arena; site colours not prototype dark-green; WOW goal; dark-launch only Owner sees prod. Owner replied 'да' to approve map + start R1; rank column keep side (A); rename Emerald Hall.",
+  "plan_ref": "ops/audits/arena_visual_integration_plan.json",
+  "r1_follow_on": "ops/audits/arena_3g_r1_tokens.json",
+  "prototype": {
+    "path": "ops/prototypes/arena_visual_shell/",
+    "role": "COMPOSITION_REFERENCE_ONLY"
+  },
+  "production_arena": {
+    "template": "templates/chef_battle/arena.html",
+    "stylesheets_loaded": [
+      "static/css/chef_battle.css",
+      "static/css/arena.css",
+      "static/css/arena_command_deck.css",
+      "static/css/arena_deck_polish.css",
+      "static/css/arena_effects.css",
+      "static/css/arena_hall.css"
+    ]
+  },
+  "official_tokens": {
+    "source": "static/css/base.css :root",
+    "brand": ["--bg", "--surface", "--surface-soft", "--surface-muted", "--ink", "--ink-soft", "--muted", "--brand", "--brand-dark", "--accent-bronze", "--accent-bronze-dark"],
+    "hall_sides": ["--hall-green", "--hall-red", "--hall-gold", "--hall-dark-0", "--hall-dark-1", "--hall-dark-2", "--hall-text", "--hall-muted"]
+  },
+  "blocks_summary": "R0 correspondence approved. R1 implements challenger/opponent hall tokens + Arena Hall title. R2+ next.",
+  "gate": "R0 approved. R1 on branch impl/arena-3g-r1-tokens."
+}

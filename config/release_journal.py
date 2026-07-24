@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.395",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Stage 3G R1: Arena Hall tokens — challenger/opponent use official hall green/red",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner-approved 3G R0 map; R1 applies site-palette side accents on the live Arena (dark launch, staff/superuser only). (1) Challenger/opponent glows and --ad-green/--ad-red now point at official --hall-green/--hall-red from base.css instead of --brand/--brand-dark (both bronze), restoring green-vs-red identity without inventing a parallel palette. (2) --arena-gold points at --accent-bronze. (3) H1 Emerald Hall renamed Arena Hall (mockup/prototype copy). (4) Rank column unchanged (Owner Option A). Files: arena_deck_polish.css, arena_effects.css, arena_command_deck.css, arena.html, tests, ops/audits maps. No migrations. Prototype branch not merged. Focused ArenaRankColumnTests + new R1 token/title tests; distributed 8:6:1 not claimed. Rollback: git revert; no migrations.",
+    },
+    {
         "version": "2.5.394",
         "date": "2026-07-23",
         "commit": "consolidation on origin/main 5f497d3b",

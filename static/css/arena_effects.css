@@ -56,8 +56,8 @@
 /* live battle: charged split of challenger-green / opponent-red */
 .arena-command-deck__live-stage[data-centre-key^="battle-"]::after {
   background:
-    radial-gradient(60% 80% at 18% 50%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 62%),
-    radial-gradient(60% 80% at 82% 50%, color-mix(in srgb, var(--brand-dark) 22%, transparent), transparent 62%);
+    radial-gradient(60% 80% at 18% 50%, color-mix(in srgb, var(--hall-green) 22%, transparent), transparent 62%),
+    radial-gradient(60% 80% at 82% 50%, color-mix(in srgb, var(--hall-red) 22%, transparent), transparent 62%);
   animation: ad-stage-pulse 3.4s ease-in-out infinite;
 }
 /* crown holder: steady gold nimbus */
@@ -75,8 +75,8 @@
 }
 
 /* ── D. Live combatants: edge glow by role ── */
-.arena-live-chef--challenger { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand) 28%, transparent)); }
-.arena-live-chef--opponent   { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--brand-dark) 28%, transparent)); }
+.arena-live-chef--challenger { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hall-green) 28%, transparent)); }
+.arena-live-chef--opponent   { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hall-red) 28%, transparent)); }
 .arena-live-chef--crown      { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent-bronze) 40%, transparent)); }
 
 /* the centre link gets a subtle inviting lift on hover (no layout shift) */

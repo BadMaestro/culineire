@@ -1,0 +1,35 @@
+{
+  "record": "ARENA_3G_R1_TOKENS",
+  "version": 1,
+  "workstream": "3G",
+  "slice": "R1",
+  "recorded_by": "Cursor",
+  "recorded_at": "2026-07-24",
+  "depends_on": ["R0 OWNER_APPROVED"],
+  "intent": "Wire challenger/opponent to official --hall-green/--hall-red; keep parchment/bronze site language; rename Emerald Hall → Arena Hall. No prototype CSS merge.",
+  "files_changed": [
+    "static/css/arena_deck_polish.css",
+    "static/css/arena_effects.css",
+    "static/css/arena_command_deck.css",
+    "templates/chef_battle/arena.html",
+    "chef_battle/tests.py",
+    "ops/audits/arena_visual_integration_map.json",
+    "ops/audits/arena_3g_r1_tokens.json"
+  ],
+  "token_wiring": {
+    "--ad-green": "var(--hall-green)",
+    "--ad-red": "var(--hall-red)",
+    "--ad-gold": "var(--accent-bronze)",
+    "--arena-gold": "var(--accent-bronze)",
+    "challenger_glows": "var(--hall-green) / var(--ad-green)",
+    "opponent_glows": "var(--hall-red) / var(--ad-red)"
+  },
+  "regression_fixed": "Prior polish mapped --ad-green/--ad-red to --brand/--brand-dark (both bronze), so sides lost green/red identity.",
+  "copy": {"old": "Emerald Hall", "new": "Arena Hall"},
+  "rank_column": "unchanged — Owner/GB Option A (side spine)",
+  "not_verified": [
+    "Distributed 8:6:1 full suite",
+    "Authenticated browser QA at 1920/768/390 (Owner-only dark launch — Owner to glance)"
+  ],
+  "rollback": "git revert of the R1 commit; no migrations"
+}

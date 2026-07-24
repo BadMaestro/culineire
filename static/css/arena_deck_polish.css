@@ -9,9 +9,9 @@
      --surface-muted/--ink/--ink-soft/--muted byte-for-byte — a second copy of
      a brand colour, which is how palettes drift once one of the two is edited
      and the other is forgotten. gold now resolves to the official bronze token for the same
-     reason. green/red/gold-d have no existing token to point at: no green or
-     red exists anywhere in :root (checked, see MANIFEST_DELTA.md), and gold-d
-     is a shade darker than any declared gold. Those three stay local. */
+     reason. Challenger/opponent accents use the official Arena hall tokens
+     (--hall-green / --hall-red), not brand bronze — sides must read green vs
+     red, not two shades of brown. */
   --ad-s0: var(--ce-card-bg);
   --ad-s1: var(--surface);
   --ad-s2: var(--surface-soft);
@@ -19,10 +19,11 @@
   --ad-ink: var(--ink);
   --ad-ink2: var(--ink-soft);
   --ad-mut: var(--muted);
-  --ad-green:var(--brand); --ad-red:var(--brand-dark);
+  --ad-green: var(--hall-green);
+  --ad-red: var(--hall-red);
   --ad-gold: var(--accent-bronze);
-  --ad-gold-d:var(--accent-bronze-dark);
-  --ad-line:color-mix(in srgb, var(--ink) 12%, transparent);
+  --ad-gold-d: var(--accent-bronze-dark);
+  --ad-line: color-mix(in srgb, var(--ink) 12%, transparent);
 }
 /* shared panel look */
 .arena-command-deck__phase-card,
@@ -100,8 +101,8 @@
   background:var(--ad-s1); border:1px solid var(--ad-line); border-radius:14px;
   padding:12px 14px; min-width:150px; text-align:center;
 }
-.arena-live-chef--challenger { box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--brand) 50%, transparent), 0 0 20px color-mix(in srgb, var(--brand) 8%, transparent); }
-.arena-live-chef--opponent   { box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--brand-dark) 50%, transparent), 0 0 20px color-mix(in srgb, var(--brand-dark) 8%, transparent); }
+.arena-live-chef--challenger { box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--ad-green) 50%, transparent), 0 0 20px color-mix(in srgb, var(--ad-green) 8%, transparent); }
+.arena-live-chef--opponent   { box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--ad-red) 50%, transparent), 0 0 20px color-mix(in srgb, var(--ad-red) 8%, transparent); }
 .arena-live-centre {
   display:inline-flex; flex-direction:column; align-items:center; justify-content:center;
   text-decoration:none; color:var(--ad-gold-d); font-weight:800; letter-spacing:.04em;

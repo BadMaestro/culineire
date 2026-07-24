@@ -7309,6 +7309,35 @@ class ArenaRankColumnTests(TestCase):
             self.assertNotRegex(body, r"#[0-9a-fA-F]{3,8}\b")
             self.assertNotRegex(body, r"\brgba?\(")
 
+    def test_challenger_opponent_use_official_hall_side_tokens(self):
+        """Stage 3G R1 — challenger/opponent must be green/red hall tokens,
+        not brand bronze (which made both sides the same brown family)."""
+        polish = (
+            Path(settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+        ).read_text(encoding="utf-8")
+        effects = (
+            Path(settings.BASE_DIR) / "static" / "css" / "arena_effects.css"
+        ).read_text(encoding="utf-8")
+        self.assertIn("--ad-green: var(--hall-green)", polish)
+        self.assertIn("--ad-red: var(--hall-red)", polish)
+        self.assertIn("var(--ad-green)", polish)
+        self.assertIn("var(--ad-red)", polish)
+        self.assertIn("var(--hall-green)", effects)
+        self.assertIn("var(--hall-red)", effects)
+        # Guard the regression that wired both sides to bronze.
+        challenger_block = polish.split(".arena-live-chef--challenger", 1)[1].split("}", 1)[0]
+        opponent_block = polish.split(".arena-live-chef--opponent", 1)[1].split("}", 1)[0]
+        self.assertNotIn("var(--brand)", challenger_block)
+        self.assertNotIn("var(--brand-dark)", opponent_block)
+
+    def test_arena_hall_title_is_not_emerald(self):
+        """Emerald Hall was prototype/mockup copy; public arena uses Arena Hall."""
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn("Arena Hall", html)
+        self.assertNotIn("Emerald Hall", html)
+
 
 PREVIEW_TOKEN = "test-preview-token-9Kd3pR7xQn"
 
