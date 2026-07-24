@@ -7,35 +7,35 @@
 {% block content %}
 
 {# ── Hero: VS comparison (all statuses) ── #}
-<section class="battle-room-hero battle-hero--has-panel">
+<section class="battle-room-hero battle-hero--has-panel" aria-labelledby="battle-room-title">
   <div class="container">
 
     {# Phase kicker — colour-coded per status #}
     {% if battle.status == "scheduled" %}
-    <p class="battle-kicker battle-kicker--scheduled">Antechamber &middot; Awaiting Readiness</p>
+    <p class="battle-kicker battle-kicker--scheduled" role="status">Antechamber &middot; Awaiting Readiness</p>
     {% elif battle.status == "menu_locked" %}
-    <p class="battle-kicker battle-kicker--menu-locked">Ingredient Declaration &middot; Both Chefs Ready</p>
+    <p class="battle-kicker battle-kicker--menu-locked" role="status">Ingredient Declaration &middot; Both Chefs Ready</p>
     {% elif battle.status == "active" %}
-    <p class="battle-kicker battle-kicker--active">&#x2694;&#xFE0F; Combat &middot; Battle in Progress</p>
+    <p class="battle-kicker battle-kicker--active" role="status">&#x2694;&#xFE0F; Combat &middot; Battle in Progress</p>
     {% elif battle.status == "ingredient_penalty" %}
-    <p class="battle-kicker battle-kicker--biathlon">&#x1F3AF; Biathlon &middot; Ingredient Challenge</p>
+    <p class="battle-kicker battle-kicker--biathlon" role="status">&#x1F3AF; Biathlon &middot; Ingredient Challenge</p>
     {% elif battle.status == "cooking" %}
-    <p class="battle-kicker battle-kicker--cooking">&#x1F373; Cooking Phase</p>
+    <p class="battle-kicker battle-kicker--cooking" role="status">&#x1F373; Cooking Phase</p>
     {% elif battle.status == "presentation" %}
-    <p class="battle-kicker battle-kicker--presentation">&#x1F441; Entries Revealed</p>
+    <p class="battle-kicker battle-kicker--presentation" role="status">&#x1F441; Entries Revealed</p>
     {% elif battle.status == "voting" %}
-    <p class="battle-kicker battle-kicker--voting">&#x1F5F3; Voting Open &middot; Cast Your Vote</p>
+    <p class="battle-kicker battle-kicker--voting" role="status">&#x1F5F3; Voting Open &middot; Cast Your Vote</p>
     {% elif battle.status == "completed" %}
-    <p class="battle-kicker battle-kicker--completed">&#x1F3C6; Battle Complete</p>
+    <p class="battle-kicker battle-kicker--completed" role="status">&#x1F3C6; Battle Complete</p>
     {% elif battle.status == "cancelled" %}
-    <p class="battle-kicker battle-kicker--cancelled">Battle Cancelled</p>
+    <p class="battle-kicker battle-kicker--cancelled" role="status">Battle Cancelled</p>
     {% elif battle.status == "disputed" %}
-    <p class="battle-kicker battle-kicker--disputed">&#x26A0;&#xFE0F; Under Review</p>
+    <p class="battle-kicker battle-kicker--disputed" role="status">&#x26A0;&#xFE0F; Under Review</p>
     {% else %}
-    <p class="battle-kicker">Chef Battle &middot; {{ battle.get_status_display }}</p>
+    <p class="battle-kicker" role="status">Chef Battle &middot; {{ battle.get_status_display }}</p>
     {% endif %}
 
-    <h1>{{ battle.theme }}</h1>
+    <h1 id="battle-room-title">{{ battle.theme }}</h1>
 
     {% if central_sponsor %}
     <p class="battle-sponsor">
@@ -45,39 +45,39 @@
     {% endif %}
 
     {# VS comparison cards #}
-    <div class="antechamber-compare">
-      <div class="antechamber-card">
-        <img class="antechamber-card__avatar" src="{{ battle.challenger.display_avatar_url }}" alt="{{ battle.challenger.name }}" width="64" height="64">
+    <div class="antechamber-compare" role="group" aria-label="Chef matchup">
+      <div class="antechamber-card" aria-label="{{ battle.challenger.name }}, challenger">
+        <img class="antechamber-card__avatar" src="{{ battle.challenger.display_avatar_url }}" alt="" width="64" height="64" aria-hidden="true">
         <div class="antechamber-card__body">
           <a class="antechamber-card__name" href="{% url 'chef_battle:chef_profile' slug=battle.challenger.slug %}">
-            {% if battle.challenger.battle_profile.has_crown %}&#x1F451; {% endif %}{% if battle.challenger.battle_profile.is_founding_chef %}&#x2B50; {% endif %}{{ battle.challenger.name }}{% executive_badge battle.challenger %}
+            {% if battle.challenger.battle_profile.has_crown %}<span aria-hidden="true">&#x1F451; </span>{% endif %}{% if battle.challenger.battle_profile.is_founding_chef %}<span aria-hidden="true">&#x2B50; </span>{% endif %}{{ battle.challenger.name }}{% executive_badge battle.challenger %}
           </a>
           <span class="antechamber-card__rank">{{ challenger_profile.get_rank_display }}</span>
-          <div class="antechamber-card__stats">
+          <div class="antechamber-card__stats" aria-label="{{ battle.challenger.name }} record">
             <span>{{ challenger_profile.wins }}W&nbsp;/&nbsp;{{ challenger_profile.losses }}L</span>
-            <span class="antechamber-card__sep">&middot;</span>
+            <span class="antechamber-card__sep" aria-hidden="true">&middot;</span>
             <span>{{ challenger_profile.rating }}&nbsp;pts</span>
-            {% if challenger_profile.win_streak > 0 %}<span class="antechamber-card__sep">&middot;</span><span>{{ challenger_profile.win_streak }} streak</span>{% endif %}
+            {% if challenger_profile.win_streak > 0 %}<span class="antechamber-card__sep" aria-hidden="true">&middot;</span><span>{{ challenger_profile.win_streak }} streak</span>{% endif %}
           </div>
         </div>
       </div>
 
-      <div class="antechamber-vs">
+      <div class="antechamber-vs" aria-hidden="true">
         {% if battle.status == "completed" and battle.winner %}&#x1F3C6;{% else %}VS{% endif %}
       </div>
 
-      <div class="antechamber-card antechamber-card--right">
-        <img class="antechamber-card__avatar" src="{{ battle.opponent.display_avatar_url }}" alt="{{ battle.opponent.name }}" width="64" height="64">
+      <div class="antechamber-card antechamber-card--right" aria-label="{{ battle.opponent.name }}, opponent">
+        <img class="antechamber-card__avatar" src="{{ battle.opponent.display_avatar_url }}" alt="" width="64" height="64" aria-hidden="true">
         <div class="antechamber-card__body antechamber-card__body--right">
           <a class="antechamber-card__name" href="{% url 'chef_battle:chef_profile' slug=battle.opponent.slug %}">
-            {% if battle.opponent.battle_profile.has_crown %}&#x1F451; {% endif %}{% if battle.opponent.battle_profile.is_founding_chef %}&#x2B50; {% endif %}{{ battle.opponent.name }}{% executive_badge battle.opponent %}
+            {% if battle.opponent.battle_profile.has_crown %}<span aria-hidden="true">&#x1F451; </span>{% endif %}{% if battle.opponent.battle_profile.is_founding_chef %}<span aria-hidden="true">&#x2B50; </span>{% endif %}{{ battle.opponent.name }}{% executive_badge battle.opponent %}
           </a>
           <span class="antechamber-card__rank">{{ opponent_profile.get_rank_display }}</span>
-          <div class="antechamber-card__stats">
+          <div class="antechamber-card__stats" aria-label="{{ battle.opponent.name }} record">
             <span>{{ opponent_profile.wins }}W&nbsp;/&nbsp;{{ opponent_profile.losses }}L</span>
-            <span class="antechamber-card__sep">&middot;</span>
+            <span class="antechamber-card__sep" aria-hidden="true">&middot;</span>
             <span>{{ opponent_profile.rating }}&nbsp;pts</span>
-            {% if opponent_profile.win_streak > 0 %}<span class="antechamber-card__sep">&middot;</span><span>{{ opponent_profile.win_streak }} streak</span>{% endif %}
+            {% if opponent_profile.win_streak > 0 %}<span class="antechamber-card__sep" aria-hidden="true">&middot;</span><span>{{ opponent_profile.win_streak }} streak</span>{% endif %}
           </div>
         </div>
       </div>
@@ -85,8 +85,8 @@
 
     {# SCHEDULED: readiness gate #}
     {% if battle.status == "scheduled" %}
-    <div class="antechamber-ready">
-      <div class="antechamber-ready__indicators">
+    <div class="antechamber-ready" role="group" aria-label="Readiness">
+      <div class="antechamber-ready__indicators" role="status" aria-live="polite">
         <span class="antechamber-ready__chip {% if battle.challenger_ready %}antechamber-ready__chip--on{% endif %}">
           {{ battle.challenger.name }}&nbsp;{% if battle.challenger_ready %}&#x2705; Ready{% else %}&#x23F3; Waiting{% endif %}
         </span>
@@ -112,7 +112,7 @@
     {% endif %}
 
     {# Dates row #}
-    <div class="battle-room-meta">
+    <div class="battle-room-meta" aria-label="Battle schedule">
       <span>Start {{ battle.start_time|date:"j M Y H:i" }}</span>
       <span>Submit by {{ battle.submission_deadline|date:"j M Y" }}</span>
       {% if battle.voting_deadline %}<span>Vote by {{ battle.voting_deadline|date:"j M Y" }}</span>{% endif %}
@@ -122,23 +122,23 @@
   </div>
 </section>
 
-<section class="page-section">
+<section class="page-section" aria-label="Battle room">
   <div class="container battle-layout">
     <div class="battle-main">
 
       {% comment %} Phase action panels — one per status {% endcomment %}
 
       {% if battle.status == "scheduled" %}
-      <div class="bd-phase-panel bd-phase-panel--scheduled">
-        <p class="bd-phase-panel__icon">&#x23F3;</p>
-        <h2 class="bd-phase-panel__title">Waiting for Both Chefs</h2>
+      <section class="bd-phase-panel bd-phase-panel--scheduled" aria-labelledby="bd-phase-title">
+        <p class="bd-phase-panel__icon" aria-hidden="true">&#x23F3;</p>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">Waiting for Both Chefs</h2>
         <p class="bd-phase-panel__body">Once both chefs press <strong>I'm Ready</strong>, the battle moves to the ingredient declaration phase.</p>
-      </div>
+      </section>
 
       {% elif battle.status == "menu_locked" %}
-      <div class="bd-phase-panel bd-phase-panel--menu-locked">
-        <p class="bd-phase-panel__icon">&#x1F4CB;</p>
-        <h2 class="bd-phase-panel__title">Declare Your Recipe</h2>
+      <section class="bd-phase-panel bd-phase-panel--menu-locked" aria-labelledby="bd-phase-title">
+        <p class="bd-phase-panel__icon" aria-hidden="true">&#x1F4CB;</p>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">Declare Your Recipe</h2>
         {% if is_participant %}
           {% if viewer_entry %}
           <p class="bd-phase-panel__body">&#x2705; Recipe submitted. Waiting for your opponent.</p>
@@ -150,36 +150,36 @@
         {% else %}
         <p class="bd-phase-panel__body">The chefs are declaring their recipes. The battle begins soon.</p>
         {% endif %}
-      </div>
+      </section>
 
       {% elif battle.status == "active" %}
-      <div class="bd-phase-panel bd-phase-panel--active">
-        <p class="bd-phase-panel__icon">&#x2694;&#xFE0F;</p>
-        <h2 class="bd-phase-panel__title">Combat is Live</h2>
+      <section class="bd-phase-panel bd-phase-panel--active" aria-labelledby="bd-phase-title">
+        <p class="bd-phase-panel__icon" aria-hidden="true">&#x2694;&#xFE0F;</p>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">Combat is Live</h2>
         {% if is_participant %}
         <p class="bd-phase-panel__body">Use the combat panel on the right to make your move. Each round both chefs choose Attack or Defend.</p>
         {% else %}
         <p class="bd-phase-panel__body">The chefs are locked in combat. Watch the Arena for live updates.</p>
         <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:arena' %}">Watch in Arena &rarr;</a>
         {% endif %}
-      </div>
+      </section>
 
       {% elif battle.status == "ingredient_penalty" %}
-      <div class="bd-phase-panel bd-phase-panel--biathlon">
-        <p class="bd-phase-panel__icon">&#x1F3AF;</p>
-        <h2 class="bd-phase-panel__title">Biathlon Phase</h2>
+      <section class="bd-phase-panel bd-phase-panel--biathlon" aria-labelledby="bd-phase-title">
+        <p class="bd-phase-panel__icon" aria-hidden="true">&#x1F3AF;</p>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">Biathlon Phase</h2>
         {% if is_participant %}
         <p class="bd-phase-panel__body">Biathlon time: the combat <strong>winner fires shots</strong> at the loser's ingredients, and the <strong>loser locks 2</strong> to protect them. Head to the Biathlon Arena to take your move.</p>
         <a class="btn-primary bd-phase-panel__cta battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:biathlon' battle.pk %}">Go to Biathlon &rarr;</a>
         {% else %}
         <p class="bd-phase-panel__body">The combat winner is firing shots at the loser's ingredients.</p>
         {% endif %}
-      </div>
+      </section>
 
       {% elif battle.status == "cooking" %}
-      <div class="bd-phase-panel bd-phase-panel--cooking">
-        <p class="bd-phase-panel__icon">&#x1F373;</p>
-        <h2 class="bd-phase-panel__title">Cooking Phase</h2>
+      <section class="bd-phase-panel bd-phase-panel--cooking" aria-labelledby="bd-phase-title">
+        <p class="bd-phase-panel__icon" aria-hidden="true">&#x1F373;</p>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">Cooking Phase</h2>
         {% if is_participant and not viewer_entry.cooked_photo %}
         <p class="bd-phase-panel__body">Cook your dish and submit a real photograph as evidence. Your photo will be reviewed before the reveal.</p>
         <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:cooking_submit' battle.pk %}">Submit Photo &rarr;</a>
@@ -188,33 +188,33 @@
         {% else %}
         <p class="bd-phase-panel__body">The chefs are in the kitchen. Results reveal after moderator review.</p>
         {% endif %}
-      </div>
+      </section>
 
       {% elif battle.status == "presentation" %}
-      <div class="bd-phase-panel bd-phase-panel--presentation">
-        <p class="bd-phase-panel__icon">&#x1F441;</p>
-        <h2 class="bd-phase-panel__title">The Dishes Are Revealed</h2>
+      <section class="bd-phase-panel bd-phase-panel--presentation" aria-labelledby="bd-phase-title">
+        <p class="bd-phase-panel__icon" aria-hidden="true">&#x1F441;</p>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">The Dishes Are Revealed</h2>
         <p class="bd-phase-panel__body">Both entries are now visible. Voting opens shortly — the audience decides the winner.</p>
-      </div>
+      </section>
 
       {% elif battle.status == "voting" %}
-      <div class="bd-phase-panel bd-phase-panel--voting">
-        <p class="bd-phase-panel__icon">&#x1F5F3;</p>
+      <section class="bd-phase-panel bd-phase-panel--voting" aria-labelledby="bd-phase-title">
+        <p class="bd-phase-panel__icon" aria-hidden="true">&#x1F5F3;</p>
         {% if is_participant %}
-        <h2 class="bd-phase-panel__title">Voting is Open</h2>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">Voting is Open</h2>
         <p class="bd-phase-panel__body">The public are voting. Voting closes {{ battle.voting_deadline|date:"j M Y" }}. Participants cannot vote in their own battle.</p>
         {% else %}
-        <h2 class="bd-phase-panel__title">Vote for Your Favourite Chef</h2>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">Vote for Your Favourite Chef</h2>
         <p class="bd-phase-panel__body">One vote per person. Voting closes {{ battle.voting_deadline|date:"j M Y" }}. The audience decides the winner.</p>
         <a class="btn-primary bd-phase-panel__cta" href="#battle-entries">Cast your vote &darr;</a>
         {% endif %}
-      </div>
+      </section>
 
       {% elif battle.status == "completed" %}
       {% if battle.winner %}
-      <div class="bd-winner-banner">
-        <div class="bd-winner-banner__trophy">&#x1F3C6;</div>
-        <h2 class="bd-winner-banner__name">{{ battle.winner.name }}</h2>
+      <section class="bd-winner-banner" aria-labelledby="bd-winner-name" role="status">
+        <div class="bd-winner-banner__trophy" aria-hidden="true">&#x1F3C6;</div>
+        <h2 class="bd-winner-banner__name" id="bd-winner-name">{{ battle.winner.name }}</h2>
         <p class="bd-winner-banner__label">Winner of this battle</p>
         {% if battle.result_reason %}<p class="bd-winner-banner__reason">{{ battle.result_reason }}</p>{% endif %}
         <div class="bd-winner-banner__scores">
@@ -230,11 +230,11 @@
             <span class="bd-winner-banner__score-label">votes</span>
           </div>
         </div>
-      </div>
+      </section>
       {% else %}
-      <div class="bd-winner-banner bd-winner-banner--draw">
-        <div class="bd-winner-banner__trophy">&#x1F91D;</div>
-        <h2 class="bd-winner-banner__name">Draw</h2>
+      <section class="bd-winner-banner bd-winner-banner--draw" aria-labelledby="bd-winner-name" role="status">
+        <div class="bd-winner-banner__trophy" aria-hidden="true">&#x1F91D;</div>
+        <h2 class="bd-winner-banner__name" id="bd-winner-name">Draw</h2>
         <p class="bd-winner-banner__label">{{ battle.result_reason|default:"The battle ended in a draw." }}</p>
         <div class="bd-winner-banner__scores">
           <div class="bd-winner-banner__score">
@@ -249,38 +249,38 @@
             <span class="bd-winner-banner__score-label">votes</span>
           </div>
         </div>
-      </div>
+      </section>
       {% endif %}
 
       {% elif battle.status == "cancelled" %}
-      <div class="bd-phase-panel bd-phase-panel--cancelled">
-        <p class="bd-phase-panel__icon">&#x274C;</p>
-        <h2 class="bd-phase-panel__title">Battle Cancelled</h2>
+      <section class="bd-phase-panel bd-phase-panel--cancelled" aria-labelledby="bd-phase-title">
+        <p class="bd-phase-panel__icon" aria-hidden="true">&#x274C;</p>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">Battle Cancelled</h2>
         <p class="bd-phase-panel__body">{{ battle.result_reason|default:"This battle was cancelled." }}</p>
-      </div>
+      </section>
 
       {% elif battle.status == "disputed" %}
-      <div class="bd-phase-panel bd-phase-panel--disputed">
-        <p class="bd-phase-panel__icon">&#x26A0;&#xFE0F;</p>
-        <h2 class="bd-phase-panel__title">Under Review</h2>
+      <section class="bd-phase-panel bd-phase-panel--disputed" aria-labelledby="bd-phase-title">
+        <p class="bd-phase-panel__icon" aria-hidden="true">&#x26A0;&#xFE0F;</p>
+        <h2 class="bd-phase-panel__title" id="bd-phase-title">Under Review</h2>
         <p class="bd-phase-panel__body">This battle is under moderator review. The result will be confirmed shortly.</p>
-      </div>
+      </section>
       {% endif %}
 
       {% comment %} Entries (visible from MENU_LOCKED onward, except CANCELLED) {% endcomment %}
 
       {% if battle.status != "scheduled" and battle.status != "cancelled" %}
-      <div class="battle-section-header battle-section-header--spaced">
-        <h2>Entries</h2>
+      <div class="battle-section-header battle-section-header--spaced" id="battle-entries-heading">
+        <h2 id="battle-entries-title">Entries</h2>
         {% if can_submit %}
         <a class="btn-primary" href="{% url 'chef_battle:battle_entry_submit' battle.pk %}">Submit Entry</a>
         {% endif %}
       </div>
 
       {% if entries %}
-      <div class="battle-entry-grid" id="battle-entries">
+      <div class="battle-entry-grid" id="battle-entries" role="list" aria-labelledby="battle-entries-title">
         {% for entry in entries %}
-        <article class="battle-entry">
+        <article class="battle-entry" role="listitem" aria-label="Entry by {{ entry.author.name }}">
           <p class="battle-card__status">{{ entry.author.name }}</p>
           {% if entry.is_revealed or battle.status == "completed" or battle.status == "presentation" or battle.status == "voting" %}
             {% if entry.recipe %}
@@ -328,19 +328,19 @@
           <input class="battle-chat__name-input" type="text" name="display_name" placeholder="Your name" maxlength="60" aria-label="Display name">
           {% endif %}
           <input class="battle-chat__input" type="text" name="body" placeholder="Cheer on your chef…" maxlength="300" autocomplete="off" required aria-label="Chat message">
-          <button class="battle-chat__send" type="submit">Send</button>
+          <button class="battle-chat__send" type="submit" aria-label="Send chat message">Send</button>
         </form>
       </section>
       {% endif %}
 
     </div>{# /battle-main #}
 
-    <aside class="battle-side">
+    <aside class="battle-side" aria-label="Battle sidebar">
 
       {# ── Vote counts — voting, presentation, completed ── #}
       {% if battle.status == "voting" or battle.status == "completed" or battle.status == "presentation" %}
-      <section class="battle-panel battle-panel--votes">
-        <h2 class="battle-panel__title">&#x1F4CA; Votes</h2>
+      <section class="battle-panel battle-panel--votes" aria-labelledby="battle-votes-title">
+        <h2 class="battle-panel__title" id="battle-votes-title">&#x1F4CA; Votes</h2>
         <div class="battle-score-row">
           <span>{{ battle.challenger.name }}</span>
           <strong>{{ votes_for_challenger }}</strong>
@@ -354,8 +354,8 @@
 
       {# ── Appreciation Gifts ── #}
       {% if request.user.is_authenticated and appreciation_gifts and battle.status in active_statuses %}
-      <section class="battle-panel battle-gifts">
-        <h2 class="battle-panel__title">&#x1F381; Send a Gift</h2>
+      <section class="battle-panel battle-gifts" aria-labelledby="battle-gifts-title">
+        <h2 class="battle-panel__title" id="battle-gifts-title">&#x1F381; Send a Gift</h2>
         <p class="battle-gifts__balance">Balance: <strong>{{ viewer_token_balance }}T</strong></p>
         {% for chef in battle_participants %}
         <div class="battle-gifts__chef">
@@ -366,8 +366,8 @@
               {% csrf_token %}
               <input type="hidden" name="recipient_slug" value="{{ chef.slug }}">
               <input type="hidden" name="gift_type" value="{{ gift.type }}">
-              <button type="submit" class="battle-gift-btn" {% if viewer_token_balance < gift.cost %}disabled title="Not enough tokens"{% endif %}>
-                {{ gift.emoji }} {{ gift.label }}<span class="battle-gift-btn__cost">{{ gift.cost }}T</span>
+              <button type="submit" class="battle-gift-btn" aria-label="Send {{ gift.label }} to {{ chef.name }} ({{ gift.cost }} tokens)" {% if viewer_token_balance < gift.cost %}disabled title="Not enough tokens"{% endif %}>
+                <span aria-hidden="true">{{ gift.emoji }}</span> {{ gift.label }}<span class="battle-gift-btn__cost">{{ gift.cost }}T</span>
               </button>
             </form>
             {% endfor %}
@@ -380,8 +380,8 @@
 
       {# ── Battle Artifact Gifts ── #}
       {% if request.user.is_authenticated and giftable_artifacts and battle.status in active_statuses %}
-      <section class="battle-panel battle-gifts battle-gifts--artifacts">
-        <h2 class="battle-panel__title">&#x2694; Send a Battle Artifact</h2>
+      <section class="battle-panel battle-gifts battle-gifts--artifacts" aria-labelledby="battle-artifacts-title">
+        <h2 class="battle-panel__title" id="battle-artifacts-title">&#x2694; Send a Battle Artifact</h2>
         <p class="battle-gifts__balance">Balance: <strong>{{ viewer_token_balance }}T</strong></p>
         <p class="battle-gifts__note" style="margin-block-end:0.75rem;">Choose the exact non-legendary artifact. Price shown includes instant delivery; legendary artifacts are prize-only.</p>
         {% for chef in battle_participants %}
@@ -408,38 +408,39 @@
       {# ── Combat panel — participants, ACTIVE only ── #}
       {% if is_participant and battle.status == "active" %}
       <section class="battle-panel battle-combat" id="battle-combat-panel"
+               aria-labelledby="combat-round-heading"
                data-combat-url="{% url 'chef_battle:battle_combat_action' battle.pk %}"
                data-moves="{{ user_battle_moves }}">
 
         <div class="battle-combat__header">
-          <h2 class="battle-panel__title">Round <span id="combat-round-num">{{ combat_state.current_round }}</span></h2>
-          <span class="battle-combat__energy">&#x26A1; <strong id="combat-moves-left">{{ user_battle_moves }}</strong> energy</span>
+          <h2 class="battle-panel__title" id="combat-round-heading">Round <span id="combat-round-num">{{ combat_state.current_round }}</span></h2>
+          <span class="battle-combat__energy" aria-live="polite">&#x26A1; <strong id="combat-moves-left">{{ user_battle_moves }}</strong> energy</span>
         </div>
 
-        <p class="battle-combat__turn {% if viewer_has_moved %}battle-combat__turn--waiting{% else %}battle-combat__turn--yours{% endif %}" id="combat-turn-indicator">
+        <p class="battle-combat__turn {% if viewer_has_moved %}battle-combat__turn--waiting{% else %}battle-combat__turn--yours{% endif %}" id="combat-turn-indicator" role="status" aria-live="polite">
           {% if viewer_has_moved %}&#x23F3; Waiting for opponent&hellip;{% else %}&#x1F525; Your move!{% endif %}
         </p>
 
         <form class="battle-combat__form" id="combat-action-form" {% if viewer_has_moved %}hidden{% endif %}>
           {% csrf_token %}
-          <div class="battle-combat__actions">
+          <div class="battle-combat__actions" role="radiogroup" aria-label="Combat action">
             <label class="battle-combat__action-btn" id="combat-btn-attack">
               <input type="radio" name="action_type" value="attack" checked hidden>
-              <span>&#x2694;&#xFE0F;</span> Attack
+              <span aria-hidden="true">&#x2694;&#xFE0F;</span> Attack
             </label>
             <label class="battle-combat__action-btn" id="combat-btn-defend">
               <input type="radio" name="action_type" value="defend" hidden>
-              <span>&#x1F6E1;&#xFE0F;</span> Defend
+              <span aria-hidden="true">&#x1F6E1;&#xFE0F;</span> Defend
             </label>
           </div>
           <div class="battle-combat__invest">
-            <label class="battle-muted">Energy to invest</label>
-            <input class="battle-form__input" type="number" name="moves_invested" value="1" min="1" max="3">
+            <label class="battle-muted" for="combat-moves-invested">Energy to invest</label>
+            <input class="battle-form__input" id="combat-moves-invested" type="number" name="moves_invested" value="1" min="1" max="3">
           </div>
           {% if user_available_artifacts %}
           <div class="battle-combat__artifacts">
-            <label class="battle-muted">Activate artifact (optional, one-use)</label>
-            <select name="artifact_id" class="battle-form__input">
+            <label class="battle-muted" for="combat-artifact-select">Activate artifact (optional, one-use)</label>
+            <select name="artifact_id" id="combat-artifact-select" class="battle-form__input">
               <option value="">&#x2014; None &#x2014;</option>
               {% for ca in user_available_artifacts %}
               <option value="{{ ca.pk }}">{{ ca.artifact.name }} (+{{ ca.artifact.effect_value }} {{ ca.artifact.get_effect_type_display|default:ca.artifact.effect_type }})</option>
@@ -449,7 +450,7 @@
           {% endif %}
           {% if opponent_active_ingredients %}
           <div class="battle-combat__target" id="combat-target-row">
-            <label class="battle-muted">Target ingredient (attack only)</label>
+            <label class="battle-muted" for="combat-target-select">Target ingredient (attack only)</label>
             <select name="target_ingredient_id" class="battle-form__input" id="combat-target-select">
               <option value="">&#x2014; Random &#x2014;</option>
               {% for ing in opponent_active_ingredients %}
@@ -459,16 +460,16 @@
           </div>
           {% endif %}
           <button class="btn-primary battle-combat__submit battle-cursor-target js-battle-cursor-target" type="submit" id="combat-submit-btn">Make Move</button>
-          <p class="battle-form__error" id="combat-error" hidden></p>
-          <p class="battle-combat__success" id="combat-success" hidden></p>
+          <p class="battle-form__error" id="combat-error" role="alert" hidden></p>
+          <p class="battle-combat__success" id="combat-success" role="status" hidden></p>
         </form>
       </section>
       {% endif %}
 
       {# ── Combat results ── #}
       {% if combat_state.rounds %}
-      <section class="battle-panel battle-combat-results" id="combat-results-panel">
-        <h2 class="battle-panel__title">&#x2694; Combat</h2>
+      <section class="battle-panel battle-combat-results" id="combat-results-panel" aria-labelledby="combat-results-title">
+        <h2 class="battle-panel__title" id="combat-results-title">&#x2694; Combat</h2>
         <div class="battle-combat-results__scoreboard" id="combat-scoreboard">
           <div class="battle-combat-results__score-col">
             <span class="battle-combat-results__score-name">{{ battle.challenger.name }}</span>
@@ -514,7 +515,7 @@
       {% endif %}
 
       {# ── Battle Log ── #}
-      <section class="battle-panel">
+      <section class="battle-panel" aria-label="Battle log">
         <details class="battle-combat-results__log">
           <summary class="battle-panel__title battle-combat-results__log-toggle battle-combat-results__log-toggle--title">&#x1F4DC; Battle Log{% if events %} ({{ events|length }}){% endif %}</summary>
           {% if events %}
