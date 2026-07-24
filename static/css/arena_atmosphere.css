@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af64.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af65.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af60 LIVE (v2.5.531 / 914309c1). af64: deeper corner vignettes.
+ * af61+af62 LIVE (v2.5.533 / e2a9757e). af65: stronger ::before side darken.
  */
 
 .page--arena {
@@ -109,10 +109,10 @@
       right bottom / 24% 100% no-repeat,
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 84%, transparent),
-      transparent 26%,
-      transparent 74%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 84%, transparent)
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 88%, transparent),
+      transparent 28%,
+      transparent 72%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 88%, transparent)
     ),
     linear-gradient(
       0deg,
