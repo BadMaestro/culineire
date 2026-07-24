@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af39.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af40.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af35 LIVE (v2.5.507). Pending af36–af38. af39: stronger ::after parchment wash.
+ * af36+af37 LIVE (v2.5.509). Pending af38–af39. af40: deeper top ceiling darken.
  */
 
 .page--arena {
@@ -21,8 +21,8 @@
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 42%, transparent) 0%,
-      transparent 34%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 54%, transparent) 0%,
+      transparent 38%
     ),
     linear-gradient(
       90deg,

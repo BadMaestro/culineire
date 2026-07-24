@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.512",
+        "date": "2026-07-24",
+        "commit": "ae1d2e3e",
+        "title": "ArenaFront af40: deeper top ceiling darken",
+        "section": "Chef Battles / Deployment",
+        "summary": "af36+af37 LIVE (#2393 / 2c11ebb5 v2.5.509): deepen upper page ceiling dark wash (54%/38%) for cinematic hall top. SVG centre mask held. Cache-bust af40. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.511",
         "date": "2026-07-24",
-        "commit": "9088062f",
+        "commit": "c3c9041b",
         "title": "ArenaFront af39: stronger ::after parchment wash",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: lift outer parchment surface wash (30%) and base ::after opacity to 0.36; desktop mask still clear. Cache-bust af39. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
