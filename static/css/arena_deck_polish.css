@@ -2845,3 +2845,59 @@
     font-weight: 700;
   }
 }
+
+
+/* ============================================================================
+ * MOCKUP M08 — confrontation band: hex-clipped portraits + mockup weight.
+ * ============================================================================ */
+@media (min-width: 901px) {
+  .arena-confrontation-band .arena-live-chef {
+    padding: 0.65rem 0.85rem;
+    gap: 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 92%, transparent),
+        color-mix(in srgb, var(--surface-soft) 78%, transparent)
+      );
+    box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--challenger {
+    border-color: color-mix(in srgb, var(--hall-green) 55%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--hall-green),
+      0 0 1.4rem color-mix(in srgb, var(--hall-green) 22%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--opponent {
+    border-color: color-mix(in srgb, var(--hall-red) 55%, transparent);
+    box-shadow:
+      inset -3px 0 0 var(--hall-red),
+      0 0 1.4rem color-mix(in srgb, var(--hall-red) 22%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef img {
+    width: 4.6rem;
+    height: 4.6rem;
+    border-radius: 0;
+    border-width: 2.5px;
+    /* Flat-top hex like mockup / on-floor M07 tiles */
+    clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0% 50%);
+  }
+  .arena-confrontation-band .arena-live-chef strong {
+    font-size: clamp(1.05rem, 1.45vw, 1.35rem);
+    letter-spacing: 0.01em;
+  }
+  .arena-confrontation-band .arena-live-centre:not(.arena-live-centre--crown):not(.arena-live-centre--quiet) {
+    min-width: 6.5rem;
+    min-height: 5.6rem;
+    border-width: 2px;
+    border-color: var(--accent-bronze);
+    box-shadow:
+      0 0 1.6rem color-mix(in srgb, var(--accent-bronze) 32%, transparent),
+      inset 0 0 1rem color-mix(in srgb, var(--accent-bronze) 14%, transparent);
+  }
+  .arena-confrontation-band .arena-live-centre b {
+    font-size: clamp(1.7rem, 2.6vw, 2.2rem);
+    letter-spacing: 0.06em;
+  }
+}

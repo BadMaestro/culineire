@@ -60,9 +60,9 @@
       "n": 5,
       "id": "M05",
       "title": "Rank titles ON floor axis (Kitchen Porter outer → Culinary Master inner)",
-      "status": "FE_TIP",
+      "status": "LIVE",
       "owner": "arenafront",
-      "note": "Mockup writes ranks on the octagon spine; desktop column-reverse + text-on-floor (DOM order preserved for tests)",
+      "note": "v2.5.568",
       "files": ["templates/chef_battle/arena.html", "static/css/arena_*.css", "static/js/arena_render.js"],
       "constraint": "ArenaRankColumnTests semantics must not weaken"
     },
@@ -70,25 +70,25 @@
       "n": 6,
       "id": "M06",
       "title": "Centre crown pedestal: CROWN HOLDER stamp + gold hub (mockup)",
-      "status": "FE_TIP",
+      "status": "LIVE",
       "owner": "arenafront",
-      "be": "confirm center payload fields only",
+      "note": "v2.5.568",
       "files": ["static/js/arena_render.js", "static/css/arena_render.css", "arena_deck_polish.css"]
     },
     {
       "n": 7,
       "id": "M07",
       "title": "On-floor large challenger/opponent hex portraits (green left / red right)",
-      "status": "FE_TIP",
+      "status": "LIVE",
       "owner": "pair",
-      "note": "stampFloorCentre in arena_render.js from existing center.challenger/opponent",
+      "note": "v2.5.569 stampFloorCentre",
       "files": ["static/js/arena_render.js", "templates/chef_battle/arena.html", "CSS"]
     },
     {
       "n": 8,
       "id": "M08",
       "title": "Confrontation band polish to match mockup weight (names, hex clip, glow)",
-      "status": "PARTIAL_LIVE",
+      "status": "FE_TIP",
       "owner": "arenafront",
       "depends_on": ["M07"]
     },
@@ -96,9 +96,9 @@
       "n": 9,
       "id": "M09",
       "title": "Phase card: large PHASE + COOKING + MM:SS + Next line (mockup)",
-      "status": "FE_TIP",
+      "status": "LIVE",
       "owner": "arenafront",
-      "note": "Timer already live; raised visual weight + Next from phase_rail"
+      "note": "v2.5.570"
     },
     {
       "n": 10,
