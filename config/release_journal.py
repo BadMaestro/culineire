@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.542",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "852b295a",
         "title": "Merge af72 side washes with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af72 (fbea8a80) onto live polish r10c. Load order: polish r10c → atmosphere af72. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
