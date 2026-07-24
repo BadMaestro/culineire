@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af15.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af16.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af6–af13 live. af14 pending auto-merge. af15: soft gold-dust drift (reduced-motion safe).
+ * af14–af15 pending merge. af16: let regenerated wall-wash read through (lighter dark overlays).
  */
 
 .page--arena {
@@ -34,9 +34,9 @@
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--hall-dark-1, var(--ink)) 88%, var(--surface-muted)),
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 76%, var(--surface-muted)) 55%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 84%, var(--surface-muted))
+      color-mix(in srgb, var(--hall-dark-1, var(--ink)) 72%, var(--surface-muted)),
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 58%, var(--surface-muted)) 55%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 70%, var(--surface-muted))
     ),
     linear-gradient(
       0deg,

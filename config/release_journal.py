@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.484",
+        "date": "2026-07-24",
+        "commit": "9fc36fe1",
+        "title": "ArenaFront af16: wall-wash read-through (lighter dark overlays)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle: lighten page dark overlays so af14 regenerated hall-wall-wash reads through. Dual-cursor caution (#2260) noted — no merge pings. SVG centre mask held. Cache-bust af16. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.483",
         "date": "2026-07-24",
-        "commit": "df3e50ad",
+        "commit": "7285e0ac",
         "title": "ArenaFront af15: soft gold-dust drift (reduced-motion safe)",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle + af13 live (#2254/#2255): slow gold-dust drift on .page--arena::before (48s), disabled under prefers-reduced-motion. Cursor auto-merge rule noted. SVG centre mask held. Cache-bust af15. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
