@@ -860,3 +860,41 @@
     text-align: right;
   }
 }
+
+
+/* 3G — dual-line panel titles (prototype show-panel headers). */
+@media (min-width: 901px) {
+  .arena-panel__title {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 0.55rem;
+  }
+  .arena-panel__title > div {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .arena-panel__title .arena-panel__kicker {
+    margin: 0;
+  }
+  .arena-panel__heading,
+  .arena-panel__title .arena-command-deck__phase-name {
+    margin: 0.12rem 0 0;
+    color: var(--ink);
+    font: 700 clamp(0.95rem, 1.2vw, 1.1rem)/1.05 var(--font-serif, "Playfair Display", serif);
+  }
+  .arena-panel__title > .arena-ico {
+    width: 1.45rem;
+    height: 1.45rem;
+    flex: 0 0 auto;
+    padding: 0.28rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    border-radius: 50%;
+    color: var(--accent-bronze-dark);
+    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+    box-sizing: content-box;
+  }
+  .arena-command-deck__metrics > .arena-panel__title {
+    grid-column: 1 / -1;
+  }
+}
