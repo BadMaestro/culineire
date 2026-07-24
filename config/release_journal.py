@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.530",
+        "date": "2026-07-24",
+        "commit": "96676458",
+        "title": "ArenaFront af58: stronger bottom floor dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "af54 LIVE (#2484 / c4408806 v2.5.526): lift bottom page dark wash (92%/42%). SVG centre mask held. Cache-bust af58. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.529",
         "date": "2026-07-24",
-        "commit": "a334c150",
+        "commit": "a5c8ce67",
         "title": "ArenaFront af57: denser stand haze rings",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: densify ::after repeating-radial stand rings further (34% gold). SVG centre mask held. Cache-bust af57. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
