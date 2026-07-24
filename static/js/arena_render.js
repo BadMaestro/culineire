@@ -291,12 +291,41 @@
     });
 
     var spectators = payload.spectators || [];
-    var index = 0;
+    var placed = {};
+    var queue = [];
+
+    // Prefer explicit seat coordinates when BE provides them (ArenaSeat /
+    // public_seat). Fall back to front-row list order for payloads that still
+    // ship a plain spectator list without ring/cell.
+    spectators.forEach(function (spectator) {
+      if (!spectator) { return; }
+      var hasSeat = spectator.ring !== undefined && spectator.ring !== null
+        && spectator.cell !== undefined && spectator.cell !== null
+        && spectator.ring !== '' && spectator.cell !== '';
+      if (hasSeat) {
+        var ringNo = Number(spectator.ring);
+        var cellNo = Number(spectator.cell);
+        var key = ringNo + ':' + cellNo;
+        if (!isFinite(ringNo) || !isFinite(cellNo) || placed[key]) { return; }
+        placed[key] = true;
+        assignments.push({
+          ring: ringNo, cell: cellNo, entity: spectator,
+          occupancy: 'spectator', state: 'watching'
+        });
+        return;
+      }
+      queue.push(spectator);
+    });
+
     geometry.rings.forEach(function (ring) {
       if (ring.kind !== 'spectator') { return; }
-      for (var cell = 0; cell < ring.segments && index < spectators.length; cell++) {
+      for (var cell = 0; cell < ring.segments && queue.length; cell++) {
+        var key = ring.index + ':' + cell;
+        if (placed[key]) { continue; }
+        var spectator = queue.shift();
+        placed[key] = true;
         assignments.push({
-          ring: ring.index, cell: cell, entity: spectators[index++],
+          ring: ring.index, cell: cell, entity: spectator,
           occupancy: 'spectator', state: 'watching'
         });
       }
@@ -450,22 +479,21 @@
     layer.appendChild(figure);
   }
 
+  // Build Plan 3C: interactive spectator seats are REAL viewers only.
+  // Atmospheric packed-hall presentation lives outside these polygons (hall
+  // image / arena_atmosphere haze) and must not impersonate registered or
+  // online users. Default-avatar stand-ins therefore must never be drawn into
+  // empty interactive seats — leave them empty so front-row-first self-seating
+  // and live payload.spectators remain honest.
+  //
+  // crowdFaceFor / seatHash / appendCrowdFigure stay in-tree as unused helpers
+  // (constitution: do not delete suspected legacy during first 2D work). They
+  // are no longer called from bind().
   function fillCrowd(svg, geometry, assignments) {
     var layer = svg.querySelector('[data-arena-layer="crowd"]');
     if (!layer) { return; }
     while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-
-    var taken = {};
-    assignments.forEach(function (a) { taken[a.ring + ':' + a.cell] = true; });
-
-    var radius = floorRadius(svg, geometry);
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind !== 'spectator') { return; }
-      for (var cell = 0; cell < ring.segments; cell++) {
-        if (taken[ring.index + ':' + cell]) { continue; }
-        appendCrowdFigure(svg, layer, ring.index, cell, geometry, radius);
-      }
-    });
+    // Intentionally empty: no synthetic occupants in interactive seats.
   }
 
   function initialOf(entity) {
