@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.518",
+        "date": "2026-07-24",
+        "commit": "dae38ce8",
+        "title": "ArenaFront af46: warmer gold dust tone",
+        "section": "Chef Battles / Deployment",
+        "summary": "af43+af44 LIVE (#2422 / 305657ee v2.5.516): raise --arena-atm-gold / gold-soft (76%/46%). SVG centre mask held. Cache-bust af46. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.517",
         "date": "2026-07-24",
-        "commit": "db66ce93",
+        "commit": "d0343a1f",
         "title": "ArenaFront af45: denser stand gold rails",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: brighten ::before stand gold rails (76%). SVG centre mask held. Cache-bust af45. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
