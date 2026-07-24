@@ -329,8 +329,11 @@
 @media (min-width: 901px) {
   .arena-command-deck {
     display: block;
-    height: calc(100svh - var(--arena-header-h, 146px));
-    min-height: 30rem;
+    /* Oval stands (Owner mockup) need more vertical room than the old polar
+       rings — grow the stage past one viewport so fitScene can keep the full
+       octagon + oval readable; the page scrolls rather than clipping. */
+    height: calc((100svh - var(--arena-header-h, 146px)) * 1.28);
+    min-height: 42rem;
     overflow: hidden;
     color: var(--ink);
   }

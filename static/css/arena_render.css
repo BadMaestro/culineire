@@ -379,7 +379,7 @@
   position: relative;
   width: 100%;
   max-width: none;
-  height: clamp(360px, 44vw, 80vh);
+  height: clamp(420px, 52vw, 92vh);
   padding: 0;
   border: 0;
   border-radius: 1rem;
@@ -425,7 +425,7 @@
    query for the container sizing (unrelated to billboarding). */
 @media (max-width: 900px) {
   .page--arena .arena-render-container {
-    height: clamp(320px, 62vw, 72vh);
+    height: clamp(380px, 72vw, 82vh);
   }
 
   .page--arena #arena-render {
@@ -436,7 +436,7 @@
 
 @media (max-width: 640px) {
   .page--arena .arena-render-container {
-    height: clamp(300px, 88vw, 70vh);
+    height: clamp(360px, 96vw, 78vh);
   }
 
   .page--arena #arena-render {

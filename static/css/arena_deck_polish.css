@@ -1212,8 +1212,19 @@
   .page--arena .arena-command-deck {
     width: min(100% - 1.5rem, 1720px);
     margin-top: 0.85rem;
-    margin-bottom: 1.75rem;
+    margin-bottom: 2.25rem;
     margin-inline: auto;
+  }
+}
+
+/* Owner 2026-07-24: taller stage for oval — allow the page to scroll. */
+@media (min-width: 901px) {
+  .page--arena {
+    overflow-x: clip;
+    overflow-y: auto;
+  }
+  .page--arena #main-content {
+    overflow: visible;
   }
 }
 
