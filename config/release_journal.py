@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.563",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Arena auto-refresh every 30s (Owner)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner request: full page reload of /chef-battle/arena/ every 30 seconds to support live geometry/design iteration. Template-only (arena.html extra_js). Mechanisms unchanged. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.562",
         "date": "2026-07-24",
         "commit": "913c1a78",

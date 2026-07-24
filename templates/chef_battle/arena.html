@@ -294,3 +294,14 @@
   </footer>
 </main>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  /* Owner 2026-07-24: Arena page auto-refresh every 30s (design/geometry iteration). */
+  window.setTimeout(function () {
+    window.location.reload();
+  }, 30000);
+})();
+</script>
+{% endblock %}
