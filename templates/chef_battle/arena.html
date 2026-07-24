@@ -9,10 +9,10 @@
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260722-stage3b" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r7f" rel="stylesheet">
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r7f" rel="stylesheet">
-<link href="{% static 'css/arena_effects.css' %}?v=20260724-r7f" rel="stylesheet">
-<link href="{% static 'css/arena_hall.css' %}?v=20260724-r7f" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r80" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r80" rel="stylesheet">
+<link href="{% static 'css/arena_effects.css' %}?v=20260724-r80" rel="stylesheet">
+<link href="{% static 'css/arena_hall.css' %}?v=20260724-r80" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -144,6 +144,7 @@
     <p class="arena-floor-caption">
       <span>The kitchen floor</span>
       <strong>{% if active_battle %}Live cooking in progress{% elif arena_data.center.type == 'crown' %}Crown holds the centre{% else %}The floor holds the show{% endif %}</strong>
+      <em>{% if active_battle %}One scene · live hierarchy · real chefs{% else %}One scene · one hierarchy · neutral structure{% endif %}</em>
     </p>
     <section id="arena-live-stage" class="arena-command-deck__live-stage arena-confrontation-band" aria-label="Arena centre" data-centre-key="{% if active_battle %}battle-{{ active_battle.pk }}{% elif arena_data.center.type == 'crown' %}crown-{{ arena_data.center.name }}{% else %}empty{% endif %}">
     {% if active_battle %}

@@ -1,9 +1,9 @@
 {
   "id": "arena_3g_polish_runway",
   "agent": "Cursor",
-  "tip_commit_expected": "5ba88202+",
-  "footer_version": "v2.5.440",
-  "css_cache": "20260724-r7f",
+  "tip_commit_expected": "6a87d68d+",
+  "footer_version": "v2.5.441",
+  "css_cache": "20260724-r80",
   "ts_utc": "2026-07-24T12:05:58Z",
   "scope": "Continuous 3G part-graft polish on live Arena (site palette, no prototype merge)",
   "owned_files": [
@@ -20,7 +20,8 @@
     "centre floor caption + stack alignment",
     "mobile/tablet safety + focus rings",
     "bronze stage frame + outer show glow",
-    "framed Arena breathing room"
+    "framed Arena breathing room",
+    "floor caption supporting line"
   ],
   "constraints_honored": [
     "official tokens only",

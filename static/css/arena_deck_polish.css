@@ -1215,3 +1215,18 @@
     margin-bottom: 2.5rem;
   }
 }
+
+
+/* 3G — floor caption supporting line (prototype arena-core). */
+@media (min-width: 901px) {
+  .arena-floor-caption em {
+    display: block;
+    margin-top: 0.22rem;
+    color: var(--muted);
+    font-size: 0.5rem;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
