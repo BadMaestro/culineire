@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.550",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af82 corner vignettes with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af82 (c1c520ce) onto live polish r10c. Load order: polish r10c → atmosphere af82. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.554",
+        "date": "2026-07-24",
+        "commit": "4b29151e",
+        "title": "ArenaFront af82: deeper corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af79 LIVE (#2609 / ab80891c v2.5.548): deepen four corner dark vignettes further. SVG centre mask held. Cache-bust af82. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.549",
         "date": "2026-07-24",
         "commit": "910b3da0",
