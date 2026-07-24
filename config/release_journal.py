@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.564",
+        "version": "2.5.565",
         "date": "2026-07-24",
         "commit": "pending",
+        "title": "Arena visible refresh timer (mockup phase-timer)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner: auto-refresh was invisible. Add mockup-style MM:SS countdown + gauge in Current phase panel; reload at 00:00 (30s). Official tokens. Mechanisms unchanged. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
+        "version": "2.5.564",
+        "date": "2026-07-24",
+        "commit": "61f0fafb",
         "title": "MOCKUP_OCTAGON_OVAL chef rings + spectator oval",
         "section": "Chef Battles / Deployment",
         "summary": "Owner geometry redesign: chef octagon rank rings 9/10/15/20/25/30/35/40 (uneven-per-side OK); spectators SPECIAL OVAL L3/R3/T2/B2 capacity 290 (was polar 544 — honesty recorded; product-contract §12 amend still Owner). FE tip ff141240 adapts existing renderer — movement/appear/seat/poll mechanisms preserved. ArenaGeometry+Seating+Rank 27/27. Auto-refresh 30s kept. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",

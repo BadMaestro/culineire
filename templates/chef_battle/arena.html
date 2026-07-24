@@ -9,7 +9,7 @@
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260722-stage3b" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r4" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-refresh-timer" rel="stylesheet">
 <link href="{% static 'css/arena_effects.css' %}?v=20260724-r9c" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260724-r9c" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
@@ -61,8 +61,9 @@
         <p class="arena-panel__kicker">Current phase</p>
         <h2 id="arena-current-phase" class="arena-command-deck__phase-name arena-panel__heading">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</h2>
       </div>
-      <svg class="arena-ico" aria-hidden="true"><use href="#ad-toque"></use></svg>
+      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">00:30</strong>
     </header>
+    <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge" style="width:100%"></span></div>
     <p id="arena-current-phase-copy" class="arena-command-deck__phase-copy">
       {% if active_battle %}The centre tile opens the live battle room, chat and public actions.{% else %}Choose a chef on the floor to inspect their profile or issue a challenge.{% endif %}
     </p>
@@ -298,10 +299,32 @@
 {% block extra_js %}
 <script>
 (function () {
-  /* Owner 2026-07-24: Arena page auto-refresh every 30s (design/geometry iteration). */
-  window.setTimeout(function () {
-    window.location.reload();
-  }, 30000);
+  /* Owner 2026-07-24: visible mockup-style countdown + Arena full reload. */
+  var TOTAL = 30;
+  var left = TOTAL;
+  var timerEl = document.getElementById('arena-refresh-timer');
+  var gaugeEl = document.getElementById('arena-refresh-gauge');
+
+  function fmt(sec) {
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function paint() {
+    if (timerEl) timerEl.textContent = fmt(left);
+    if (gaugeEl) gaugeEl.style.width = Math.max(0, (left / TOTAL) * 100) + '%';
+  }
+
+  paint();
+  window.setInterval(function () {
+    left -= 1;
+    if (left <= 0) {
+      window.location.reload();
+      return;
+    }
+    paint();
+  }, 1000);
 })();
 </script>
 {% endblock %}
