@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.489",
+        "date": "2026-07-24",
+        "commit": "41b6ec44",
+        "title": "ArenaFront af21: stronger green/red side atmosphere",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle: deepen challenger green / opponent red side washes with --hall-green/--hall-red. Dual-cursor standby respected. SVG centre mask held. Cache-bust af21. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.488",
         "date": "2026-07-24",
-        "commit": "915bbfb2",
+        "commit": "0012d7f5",
         "title": "ArenaFront af20: soft parchment warm rim (outer only)",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle: add outer parchment warm rim on .page--arena::after using --surface tokens; centre mask still clears SVG seats. Dual-cursor standby respected. Cache-bust af20. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
