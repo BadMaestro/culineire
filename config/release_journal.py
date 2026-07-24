@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.509",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af36–af37 gold rails + dust tokens with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af36–af37 (64ede02d) onto live polish r10c + af5–af35. Load order: polish r10c → atmosphere af37. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.509",
+        "date": "2026-07-24",
+        "commit": "b1a8bca5",
+        "title": "ArenaFront af37: warmer gold dust tone",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: raise --arena-atm-gold / gold-soft mixes (70%/40%) so dust motes read warmer against wall-wash. SVG centre mask held. Cache-bust af37. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.508",
+        "date": "2026-07-24",
+        "commit": "8416f074",
+        "title": "ArenaFront af36: denser stand gold rails",
+        "section": "Chef Battles / Deployment",
+        "summary": "af33+af34 LIVE (#2374 / 0accd4b6 v2.5.506): brighten ::before stand gold rails (68%). SVG centre mask held. Cache-bust af36. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.507",
         "date": "2026-07-24",
         "commit": "584f4c02",
