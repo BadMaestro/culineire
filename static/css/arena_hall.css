@@ -32,6 +32,22 @@
   box-shadow: var(--shadow-sm);
 }
 
+
+/* 3G R2: rail brackets + lower broadcast share official bronze line language. */
+.page--arena .arena-interface-rail::after {
+  border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+}
+
+.page--arena .arena-lower-broadcast {
+  border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--surface) 92%, transparent),
+      color-mix(in srgb, var(--surface-soft) 88%, transparent),
+      color-mix(in srgb, var(--surface) 92%, transparent)
+    );
+}
 .page--arena .arena-command-deck__floor {
   border: 1px solid var(--line-strong);
   background: var(--surface);
