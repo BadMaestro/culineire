@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af44.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af45.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af41 LIVE (v2.5.513). Pending af42–af43. af44: stronger side green/red washes.
+ * af41 LIVE (v2.5.513). Pending af42–af44. af45: denser stand gold rails.
  */
 
 .page--arena {
@@ -96,14 +96,14 @@
     linear-gradient(
       68deg,
       transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 68%, transparent) 45.6% 46.7%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 76%, transparent) 45.5% 46.8%,
       transparent 48%
     )
       left bottom / 24% 100% no-repeat,
     linear-gradient(
       -68deg,
       transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 68%, transparent) 45.6% 46.7%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 76%, transparent) 45.5% 46.8%,
       transparent 48%
     )
       right bottom / 24% 100% no-repeat,
