@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.491",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "089bf606",
         "title": "Merge af17–af22 atmosphere stack with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af17–af22 (gold bloom, stand gold, mobile mask, parchment rim, side washes, softer ceiling vignette) onto live polish r10c + af5–af16. Load order: polish r10c → atmosphere af22. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
