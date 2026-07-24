@@ -1618,3 +1618,33 @@
     width: min(48rem, 70%);
   }
 }
+
+
+/* 3G — hall side walls + lower dock frame (prototype stage edges). */
+@media (min-width: 901px) {
+  .arena-command-deck__floor::before {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--ink) 38%, transparent),
+        transparent 18% 82%,
+        color-mix(in srgb, var(--ink) 38%, transparent)
+      ),
+      radial-gradient(circle at 10% 28%, color-mix(in srgb, var(--accent-bronze) 40%, transparent) 0 0.08rem, transparent 0.16rem),
+      radial-gradient(circle at 90% 28%, color-mix(in srgb, var(--accent-bronze) 40%, transparent) 0 0.08rem, transparent 0.16rem),
+      radial-gradient(90% 55% at 50% 0%, color-mix(in srgb, var(--accent-bronze) 14%, transparent), transparent 58%),
+      radial-gradient(70% 50% at 50% 100%, color-mix(in srgb, var(--ink) 26%, transparent), transparent 65%);
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    min-height: 3.35rem;
+    z-index: 9;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 62%, transparent);
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hall-green) 10%, var(--surface)),
+        color-mix(in srgb, var(--surface) 90%, transparent) 42%,
+        color-mix(in srgb, var(--hall-red) 10%, var(--surface))
+      );
+  }
+}
