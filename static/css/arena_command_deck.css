@@ -573,3 +573,37 @@
     opacity: 0.9;
   }
 }
+
+
+/* 3G — VS / crown focus pill (prototype crown-focus energy, official tokens). */
+@media (min-width: 901px) {
+  .arena-confrontation-band .arena-live-centre {
+    position: relative;
+    isolation: isolate;
+  }
+  .arena-confrontation-band .arena-live-centre::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -0.35rem;
+    border-radius: 1.15rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 40%, transparent);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  .arena-confrontation-band .arena-live-chef {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .arena-confrontation-band .arena-live-chef--challenger {
+    box-shadow:
+      inset 3px 0 0 var(--hall-green),
+      0 0.55rem 1.2rem color-mix(in srgb, var(--hall-green) 12%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--opponent {
+    box-shadow:
+      inset -3px 0 0 var(--hall-red),
+      0 0.55rem 1.2rem color-mix(in srgb, var(--hall-red) 12%, transparent);
+  }
+}
