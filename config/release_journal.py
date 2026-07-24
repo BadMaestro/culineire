@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.506",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "aca1ec40",
         "title": "Merge af33–af34 corner vignettes + floor dark with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af33–af34 (c4a2b402) onto live polish r10c + af5–af32. Load order: polish r10c → atmosphere af34. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
