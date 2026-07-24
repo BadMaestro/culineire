@@ -162,8 +162,8 @@
       "n": 17,
       "id": "M17",
       "title": "Atmospheric packed-crowd art UNDER interactive oval (non-impersonating)",
-      "status": "FE_READY",
-      "note": "Owner lift #2947; tip: stand-annulus packed haze under #arena-render; tokens only; no synthetic seats",
+      "status": "LIVE",
+      "note": "v2.5.582 / tip 701900d8; stand-annulus packed haze under #arena-render; tokens only; no synthetic seats",
       "owner": "Product Owner + ArenaFront"
     },
     {
