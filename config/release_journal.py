@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.505",
+        "date": "2026-07-24",
+        "commit": "22cff8c7",
+        "title": "ArenaFront af34: stronger bottom floor dark wash",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner Telegram 5-pack (#2358) noted. Lift bottom page dark wash (82%/36%) for hall floor enclosure. SVG centre mask held. Cache-bust af34. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.504",
         "date": "2026-07-24",
-        "commit": "cab8379d",
+        "commit": "666f1b28",
         "title": "ArenaFront af33: deeper corner vignettes",
         "section": "Chef Battles / Deployment",
         "summary": "af29+af30 LIVE (#2351 / 477eb2b3 v2.5.501): deepen four corner dark vignettes on page fill for hall enclosure. SVG centre mask held. Cache-bust af33. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
