@@ -600,3 +600,51 @@
     z-index: 1;
   }
 }
+
+
+/* 3G — ribbon exit chip + panel action pills. */
+@media (min-width: 901px) {
+  .arena-broadcast-ribbon .arena-command-deck__header > .btn-secondary {
+    justify-self: end;
+    align-self: center;
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: 999px;
+    border-color: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    color: var(--ink-soft);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+    box-shadow: none;
+  }
+  .arena-command-deck__ladder .btn-secondary,
+  .arena-command-deck__gifts .btn-primary,
+  .arena-command-deck__gifts .btn-secondary {
+    width: 100%;
+    justify-content: center;
+    min-height: 2rem;
+    border-radius: 999px;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+  .arena-command-deck__ladder .btn-secondary,
+  .arena-command-deck__gifts .btn-secondary {
+    border-color: color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    color: var(--ink-soft);
+    background: color-mix(in srgb, var(--accent-bronze) 14%, var(--surface));
+  }
+  .arena-command-deck__gifts .btn-primary {
+    border-color: var(--accent-bronze-dark);
+    color: var(--brand-dark);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent-bronze) 55%, var(--surface)),
+      color-mix(in srgb, var(--accent-bronze) 28%, var(--surface))
+    );
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 13.5%;
+  }
+}
