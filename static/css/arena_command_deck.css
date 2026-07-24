@@ -127,21 +127,19 @@
 .arena-floor-stage::before { content: ""; position: absolute; z-index: -1; inset: 0; background: var(--surface-soft) url('/static/images/chef_battle/arena/arena-floor-plate-v1.png') center / cover no-repeat; }
 .arena-floor-stage .arena-puzzle-container { position: relative; z-index: 1; }
 .arena-floor-stage #arena-puzzle { position: relative; z-index: 1; }
-/* The rank column. Position and width are set from arena_render.js against the
-   measured floor - the band between its near edge and the crown - because only
-   the renderer knows how big the floor came out. Everything visual stays here,
-   and this is the only file that describes this column at all: it used to be
-   restated in arena_deck_polish.css and again in arena_hall.css, three rules
-   for one element in three files. */
-.arena-rank-spine { position: absolute; z-index: 2; top: 8.5%; left: 50%; width: min(10.75rem, 22%); transform: translateX(-50%); pointer-events: none; }
+/* 3G R4 (Owner D1 Option B): centred rank stack over the floor — composition
+   from Ember's rank-progression prototype, official tokens only. Desktop
+   placement is CSS-owned (left 50% + translateX); tablet may still measure via
+   placeRankSpine(); mobile stays a wrapped flow row (Stage 3E). */
+.arena-rank-spine { position: absolute; z-index: 2; top: 13%; left: 50%; width: min(11.5rem, 25%); transform: translateX(-50%); pointer-events: none; }
+.arena-rank-spine__label { margin: 0 0 .28rem; color: var(--accent-bronze-dark); font-size: .43rem; font-weight: 800; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
 /* The steps became <li> under an <ol> so the ladder is an ordered progression
    in the markup too; the stacking that used to live on the <nav> moves to the
    list, and the list's own marker/indent is removed. */
-.arena-rank-spine__list { display: grid; gap: .16rem; margin: 0; padding: 0; list-style: none; }
+.arena-rank-spine__list { display: grid; gap: .15rem; margin: 0; padding: 0; list-style: none; }
 .arena-rank-spine__item { display: block; min-width: 0; }
-/* Dark pills on a light floor, as in the mockup - the pale-on-pale version
-   read as a stack of blank strips with only the counts visible. */
-.arena-rank-spine__step { min-height: 1.18rem; display: flex; align-items: center; justify-content: space-between; gap: .32rem; padding: .13rem .42rem; border: 1px solid var(--accent-bronze); border-radius: 999px; color: var(--ink); font-size: clamp(.5rem, .72vw, .74rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: var(--surface); box-shadow: 0 .2rem .5rem color-mix(in srgb, var(--ink) 35%, transparent); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
+/* Prototype hex chips, parchment tokens (contrast pinned by ArenaRankColumnTests). */
+.arena-rank-spine__step { min-height: 1.05rem; display: flex; align-items: center; justify-content: space-between; gap: .28rem; padding: .11rem .4rem; border: 1px solid var(--accent-bronze); border-radius: 999px; clip-path: polygon(0.55rem 0, calc(100% - 0.55rem) 0, 100% 50%, calc(100% - 0.55rem) 100%, 0.55rem 100%, 0 50%); color: var(--ink); font-size: clamp(.43rem, .54vw, .56rem); font-weight: 800; letter-spacing: .035em; line-height: 1; text-decoration: none; text-transform: uppercase; background: var(--surface); box-shadow: 0 .18rem .45rem color-mix(in srgb, var(--ink) 28%, transparent); pointer-events: auto; transition: background .18s ease, border-color .18s ease, color .18s ease; }
 /* The count uses the official ink token for reliable contrast; bronze measured
    below the 7:1 the column is held to. Measured against the shipped tokens:
    --ink #1f2c25 on --surface #fffdf9 = 14.30:1 (label), and on --surface-soft
@@ -210,9 +208,10 @@
      the page sideways. placeRankSpine() clears its measured inline top/left/
      width at this width so the stylesheet, not the renderer, owns the layout. */
   .arena-rank-spine { position: static; width: 100%; margin: .15rem 0 .4rem; transform: none; }
+  .arena-rank-spine__label { text-align: left; margin-bottom: .2rem; }
   .arena-rank-spine__list { display: flex; flex-wrap: wrap; gap: .25rem; }
   .arena-rank-spine__item { flex: 1 1 auto; }
-  .arena-rank-spine__step { min-height: 1.5rem; padding: .2rem .5rem; font-size: .58rem; }
+  .arena-rank-spine__step { min-height: 1.5rem; padding: .2rem .5rem; font-size: .58rem; clip-path: none; }
   .arena-crowd-rail__actions { width: 100%; }
   .arena-crowd-rail__actions > * { flex: 1 1 0; text-align: center; justify-content: center; }
 }

@@ -7386,8 +7386,19 @@ class ArenaRankColumnTests(TestCase):
     def test_ladder_is_marked_up_as_an_ordered_progression(self):
         response = self.client.get(reverse("chef_battle:arena"))
         spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</nav>", 1)[0]
+        self.assertIn('class="arena-rank-spine__label"', spine)
+        self.assertIn("Kitchen rank progression", spine)
         self.assertIn('<ol class="arena-rank-spine__list">', spine)
         self.assertEqual(spine.count('class="arena-rank-spine__item"'), len(ChefBattleProfile.Rank.choices))
+
+    def test_desktop_rank_stack_is_centred_option_b(self):
+        """Owner D1 Option B (2026-07-24): Ember prototype centred stack, not a side column."""
+        css = self.CSS_DECK.read_text(encoding="utf-8")
+        # Base rule (first .arena-rank-spine block) must centre over the floor.
+        base = css.split(".arena-rank-spine {", 1)[1].split("}", 1)[0]
+        self.assertIn("left: 50%", base)
+        self.assertIn("translateX(-50%)", base)
+        self.assertNotIn("left: 0", base)
 
     def test_each_step_is_screen_reader_readable(self):
         """The count renders as a bare numeral. Without a label a screen reader

@@ -9,11 +9,11 @@
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260722-stage3b" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-3r6" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r4" rel="stylesheet">
 <link href="{% static 'css/arena_effects.css' %}?v=20260724-r9c" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260724-r9c" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r10c" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r4" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260724-no-bg-geom" rel="stylesheet">
 {% endblock %}
 
@@ -238,12 +238,12 @@
     </div>
     <div class="arena-floor-stage">
       {% comment %}
-        Stage 3E: the ladder is an ordered progression, so it is marked up as
-        one. The order carries meaning (lowest rank first, as declared on
-        ChefBattleProfile.Rank), which an <ol> conveys to assistive tech
-        instead of leaving it to visual stacking alone.
+        Stage 3E + 3G R4 (Owner D1 Option B): ordered progression stays an <ol>
+        (model rank order). Composition is the Ember prototype centred stack —
+        not a side column — over the floor centre under the confrontation band.
       {% endcomment %}
       <nav class="arena-rank-spine" aria-label="Kitchen rank ladder">
+        <p class="arena-rank-spine__label">Kitchen rank progression</p>
         <ol class="arena-rank-spine__list">
           {% for rank, chefs in rank_groups %}
             <li class="arena-rank-spine__item">
