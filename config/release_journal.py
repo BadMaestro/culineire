@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.550",
+        "date": "2026-07-24",
+        "commit": "b340d6ca",
+        "title": "ArenaFront af78: denser ::after stand haze rings",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: densify ::after repeating-radial stand rings (46% gold). SVG centre mask held. Cache-bust af78. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.549",
         "date": "2026-07-24",
-        "commit": "56411390",
+        "commit": "e8160575",
         "title": "ArenaFront af77: stronger top crown gold wash",
         "section": "Chef Battles / Deployment",
         "summary": "af75 LIVE (#2588 / 2b70fc19 v2.5.545): lift top crown gold (78%/40%). SVG centre mask held. Cache-bust af77. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",

@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af77.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af78.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af75 LIVE (v2.5.545 / 2b70fc19). af77: stronger top crown gold wash.
+ * Pair FE continue. af78: denser ::after stand haze rings.
  */
 
 .page--arena {
@@ -182,7 +182,7 @@
     repeating-radial-gradient(
       circle at 50% 52%,
       transparent 0 5.2%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 42%, transparent) 5.4% 5.85%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 46%, transparent) 5.4% 5.85%,
       transparent 6.0% 8.2%
     ),
     radial-gradient(
