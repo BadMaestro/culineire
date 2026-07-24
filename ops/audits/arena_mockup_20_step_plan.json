@@ -96,9 +96,9 @@
       "n": 9,
       "id": "M09",
       "title": "Phase card: large PHASE + COOKING + MM:SS + Next line (mockup)",
-      "status": "PARTIAL_LIVE",
+      "status": "FE_TIP",
       "owner": "arenafront",
-      "note": "Timer v2.5.565/566 live; raise visual weight to mockup"
+      "note": "Timer already live; raised visual weight + Next from phase_rail"
     },
     {
       "n": 10,
