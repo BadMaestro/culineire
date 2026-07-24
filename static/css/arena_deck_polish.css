@@ -1843,3 +1843,57 @@
     opacity: 0.96;
   }
 }
+
+
+/* 3G — atmospheric crowd wash + panel night glass (no fake seats). */
+@media (min-width: 901px) {
+  .arena-command-deck__floor {
+    background:
+      radial-gradient(60% 28% at 50% 8%, color-mix(in srgb, var(--ink) 35%, transparent), transparent 70%),
+      radial-gradient(80% 40% at 50% 100%, color-mix(in srgb, var(--ink) 28%, transparent), transparent 65%);
+  }
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__gifts {
+    background: color-mix(in srgb, var(--ink) 18%, var(--surface)) !important;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+    box-shadow:
+      0 0.45rem 1.2rem color-mix(in srgb, var(--ink) 28%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--surface) 35%, transparent);
+  }
+  .arena-panel__kicker,
+  .arena-command-deck__eyebrow {
+    color: var(--accent-bronze);
+    letter-spacing: 0.1em;
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    min-height: 3.6rem;
+    box-shadow: 0 -0.6rem 1.4rem color-mix(in srgb, var(--ink) 22%, transparent);
+  }
+  .arena-activity-ticker {
+    color: color-mix(in srgb, var(--ink) 80%, var(--surface));
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 0.52rem;
+  }
+  .arena-floor-caption em {
+    display: block;
+    margin-top: 0.15rem;
+    color: color-mix(in srgb, var(--ink-soft) 85%, transparent);
+    font-size: 0.58rem;
+    font-style: normal;
+    letter-spacing: 0.04em;
+  }
+  .arena-broadcast-ribbon {
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--ink) 16%, var(--surface)),
+        color-mix(in srgb, var(--surface) 88%, transparent)
+      );
+  }
+}
+
