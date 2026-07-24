@@ -1210,9 +1210,27 @@
 /* 3G — framed Arena breathing room on desktop. */
 @media (min-width: 901px) {
   .page--arena .arena-command-deck {
-    width: min(100% - 2.5rem, 1480px);
-    margin-top: 1.1rem;
-    margin-bottom: 2.5rem;
+    width: min(100% - 1.5rem, 1720px);
+    margin-top: 0.85rem;
+    margin-bottom: 1.75rem;
+    margin-inline: auto;
+  }
+}
+
+
+/* 3G — CENTER the stage: Stage-1 set margin:0; constrained width must auto-center. */
+@media (min-width: 901px) {
+  .arena-command-deck {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .page--arena #main-content {
+    display: block;
+    width: 100%;
+  }
+  /* Fixed battle widget stays overlay; do not leave a dead cream column. */
+  .page--arena .site-battle-widget {
+    z-index: 130;
   }
 }
 
