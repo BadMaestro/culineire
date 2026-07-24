@@ -120,16 +120,17 @@
       "n": 12,
       "id": "M12",
       "title": "Live metrics panel: Active Viewers / Votes / Gifts / Crown streak layout",
-      "status": "FE_READY",
+      "status": "LIVE",
       "owner": "arenafront",
-      "note": "Tip: 2×2 gold metric grid; await Cursor integrate"
+      "note": "v2.5.573"
     },
     {
       "n": 13,
       "id": "M13",
       "title": "Today's Crown Ladder panel mockup parity",
-      "status": "PARTIAL_LIVE",
-      "owner": "arenafront"
+      "status": "FE_READY",
+      "owner": "arenafront",
+      "note": "Tip: ranked gold ladder rows; await Cursor integrate"
     },
     {
       "n": 14,
