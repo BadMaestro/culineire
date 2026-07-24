@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.475",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af7 token hall deepen with r10c+af5+af6",
+        "section": "Chef Battles / Deployment",
+        "summary": "Merge ArenaFront af7 (dab856e0: token-only hall deepen, drop raw HEX fallback, stronger gold/side washes; af6 SVG centre mask kept) onto live r10c+af5+af6 stack. Load order: polish r10c → atmosphere af7. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
         "version": "2.5.474",
         "date": "2026-07-24",
         "commit": "b68da937",
@@ -10,13 +18,21 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.473",
         "date": "2026-07-24",
+        "commit": "dab856e0",
+        "title": "ArenaFront af7: token-only hall deepen + no raw HEX (Cursor #2214)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Follow-up to af5 deploy note (#2214): drop raw HEX fallback on .page--arena background-color; use var(--hall-dark-0, var(--ink)) only. Deepen upper gold bloom and green/red side washes with official --hall-* tokens; SVG centre mask from af6 unchanged. Cache-bust af7. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.472",
+        "date": "2026-07-24",
         "commit": "c090665e",
         "title": "Merge af5 dark hall after polish with r10c SVG/confrontation fix",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af5 (48b03481: atmosphere AFTER polish; dark .page--arena hall fill for Owner Capture10) with Cursor r10c (547fa05a: transparent confrontation, live SVG ring contrast). Load order: hall → polish r10c → atmosphere af5. Also retains af4 crowd-haze rings. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
     },
     {
-        "version": "2.5.472",
+        "version": "2.5.471",
         "date": "2026-07-24",
         "commit": "7a2e1d9d",
         "title": "ArenaFront af6: dial down floor-sheen so live SVG seats read (Owner #2207)",
@@ -24,7 +40,7 @@ RELEASE_JOURNAL = [
         "summary": "Owner live screenshot + CoWork #2207: painted floor-sheen dominated the hall centre and obscured interactive SVG seat rings. af6 lowers .page--arena::after opacity (~0.28–0.32), masks out the centre so SVG octagon stays clear, keeps wall wash / gold dust / dark hall page fill from af5. Cache-bust af6. Files: arena_atmosphere.css, arena.html link, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
-        "version": "2.5.471",
+        "version": "2.5.470",
         "date": "2026-07-24",
         "commit": "547fa05a",
         "title": "3G polish r10c: kill white crown card; restore live SVG floor readability",
