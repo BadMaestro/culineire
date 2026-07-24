@@ -968,3 +968,39 @@
     margin-top: 0.4rem;
   }
 }
+
+
+/* 3G — rank spine under confrontation with spine rail. */
+@media (min-width: 901px) {
+  .arena-rank-spine {
+    top: 28%;
+    width: min(11.5rem, 20%);
+  }
+  .arena-rank-spine::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 2px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--accent-bronze) 55%, transparent),
+      transparent
+    );
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  .arena-rank-spine__list {
+    gap: 0.28rem;
+  }
+  .arena-rank-spine__step {
+    backdrop-filter: blur(6px) saturate(1.05);
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+  }
+}
