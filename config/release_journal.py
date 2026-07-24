@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.478",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "2a90d400",
         "title": "Merge af11–af12 side washes + bottom depth with r10c stack",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af11 (5b5b7421: green/red side washes) and af12 (c7940285: bottom hall depth vignette) onto live polish r10c + af5–af10. Load order: polish r10c → atmosphere af12. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
