@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.516",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "292c269b",
         "title": "Merge af43–af44 outer haze + side washes with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af43–af44 (0cfe66fd) onto live polish r10c + af5–af42. Load order: polish r10c → atmosphere af44. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
