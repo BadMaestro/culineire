@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af25.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af27.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * Pair FE with Cursor (composition). af25: lift wall-wash higher for cinematic ceiling.
+ * af23+af24 live. af25–af26 pending. af27: stronger stand gold rails.
  */
 
 .page--arena {
@@ -14,10 +14,10 @@
   /* Page hall fill — must win over polish light .page--arena background. */
   background:
     radial-gradient(
-      100% 46% at 50% -2%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 38%, transparent),
-      color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 14%, transparent) 38%,
-      transparent 62%
+      100% 48% at 50% -4%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 44%, transparent),
+      color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 18%, transparent) 40%,
+      transparent 64%
     ),
     linear-gradient(
       180deg,
@@ -92,14 +92,14 @@
     linear-gradient(
       68deg,
       transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 48%, transparent) 45.8% 46.5%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 58%, transparent) 45.8% 46.5%,
       transparent 48%
     )
       left bottom / 24% 100% no-repeat,
     linear-gradient(
       -68deg,
       transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 48%, transparent) 45.8% 46.5%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 58%, transparent) 45.8% 46.5%,
       transparent 48%
     )
       right bottom / 24% 100% no-repeat,
