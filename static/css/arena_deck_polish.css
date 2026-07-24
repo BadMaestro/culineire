@@ -2232,3 +2232,26 @@
       0 0 1.1rem color-mix(in srgb, var(--accent-bronze) 18%, transparent);
   }
 }
+
+
+/* 3G — spine step active sheen + quiet centre focus ring. */
+@media (min-width: 901px) {
+  .arena-rank-spine__step {
+    transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  }
+  .arena-confrontation-band .arena-live-centre--quiet,
+  .arena-confrontation-band .arena-live-centre--crown {
+    outline: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    outline-offset: 0.2rem;
+  }
+  .arena-command-deck__gift-copy {
+    color: color-mix(in srgb, var(--ink-soft) 80%, transparent);
+    font-size: 0.58rem;
+  }
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  .arena-rank-spine__step {
+    transition: none;
+  }
+}
