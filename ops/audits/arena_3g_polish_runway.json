@@ -1,0 +1,29 @@
+{
+  "id": "arena_3g_polish_runway",
+  "agent": "Cursor",
+  "tip_commit_expected": "pending",
+  "footer_version": "v2.5.437",
+  "css_cache": "20260724-r7c",
+  "ts_utc": "2026-07-24T12:05:58Z",
+  "scope": "Continuous 3G part-graft polish on live Arena (site palette, no prototype merge)",
+  "owned_files": [
+    "templates/chef_battle/arena.html",
+    "static/css/arena_deck_polish.css",
+    "templates/base.html"
+  ],
+  "visible_slices": [
+    "broadcast ribbon + phase pills + live marker",
+    "confrontation band + chef cards + circular crown focus",
+    "show-panel titles/icons/compact facts",
+    "lower dock + activity ticker",
+    "hall depth/sparkles/floor glow/spine rail",
+    "centre floor caption + stack alignment",
+    "mobile/tablet safety + focus rings"
+  ],
+  "constraints_honored": [
+    "official tokens only",
+    "no arena_render.js changes",
+    "no Master Console shared ring fragment edits",
+    "panel ids/hrefs preserved"
+  ]
+}
