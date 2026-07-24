@@ -735,3 +735,40 @@
     filter: brightness(1.04);
   }
 }
+
+
+/* 3G — stronger rail ticks + chef portrait rings. */
+@media (min-width: 901px) {
+  .arena-command-deck__phase-card::after,
+  .arena-command-deck__ladder::after,
+  .arena-command-deck__metrics::after,
+  .arena-command-deck__gifts::after {
+    width: 1.35rem;
+    opacity: 0.92;
+    border-color: color-mix(in srgb, var(--accent-bronze) 72%, transparent);
+    box-shadow: 0 0 0.85rem color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+  }
+  .arena-command-deck__phase-card::after,
+  .arena-command-deck__ladder::after {
+    right: -1.35rem;
+  }
+  .arena-command-deck__metrics::after,
+  .arena-command-deck__gifts::after {
+    left: -1.35rem;
+  }
+  .arena-confrontation-band .arena-live-chef img {
+    box-shadow:
+      0 0 0 0.22rem color-mix(in srgb, var(--surface) 80%, transparent),
+      0 0 0.9rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--challenger img {
+    box-shadow:
+      0 0 0 0.22rem color-mix(in srgb, var(--surface) 80%, transparent),
+      0 0 1rem color-mix(in srgb, var(--hall-green) 35%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--opponent img {
+    box-shadow:
+      0 0 0 0.22rem color-mix(in srgb, var(--surface) 80%, transparent),
+      0 0 1rem color-mix(in srgb, var(--hall-red) 35%, transparent);
+  }
+}
