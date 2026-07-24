@@ -6,7 +6,7 @@
   "authorised_by": "CulinEire Product Owner",
   "reference_image": "Owner mockup photo_2026-07-18 (Chef Battles Arena Emerald Hall)",
   "prod_base_at_plan": "origin/main taller page v2.5.567 / a81e062f",
-  "working_principle": "One step, one branch, one gate, one journal. Mechanisms preserved (Owner #2780). No second engine. AF atmosphere STOPPED until Owner lifts. Pair FE+BE.",
+  "working_principle": "One step, one branch, one gate, one journal. Mechanisms preserved (Owner #2780). No second engine. AF atmosphere STOPPED lifted for M17 WP (Owner #2947). Pair FE+BE.",
   "mockup_zones": [
     "site chrome / welcome",
     "broadcast ribbon + phase stepper",
@@ -162,8 +162,8 @@
       "n": 17,
       "id": "M17",
       "title": "Atmospheric packed-crowd art UNDER interactive oval (non-impersonating)",
-      "status": "OWNER_GATE",
-      "note": "AF atmosphere STOPPED; needs Owner lift. 3C real seats stay honest",
+      "status": "FE_READY",
+      "note": "Owner lift #2947; tip: stand-annulus packed haze under #arena-render; tokens only; no synthetic seats",
       "owner": "Product Owner + ArenaFront"
     },
     {
@@ -195,7 +195,7 @@
   "execute_now": {
     "immediate": ["M01", "M05", "M06"],
     "parallel_be": ["ACK plan", "M02 escalate", "standby for M04 packing if constants change", "integrate FE tips"],
-    "blocked": ["M16", "M17", "M02"]
+    "blocked": ["M16", "M02"]
   },
   "explicit_non_goals": [
     "No merge of design/arena-visual-shell-prototype",

@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af82.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) M17.
  *
- * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af79 LIVE (v2.5.548 / ab80891c). af82: deeper corner vignettes.
+ * Cascade: loads AFTER polish; page fill + under-oval packed-crowd haze.
+ * M17: stand-annulus mass under #arena-render; no synthetic seats.
  */
 
 .page--arena {
@@ -189,6 +189,92 @@
 @media (prefers-reduced-motion: reduce) {
   .page--arena::before,
   .page--arena::after {
+    transition: none;
+    filter: none;
+    animation: none;
+  }
+}
+
+
+/* ============================================================================
+ * MOCKUP M17 — packed-crowd atmosphere UNDER the interactive oval.
+ * Soft stand-band mass only (official tokens). Not seats, not faces,
+ * not photographic hall-bg, not a second octagon. pointer-events: none.
+ * Real interactive rings stay on #arena-render above this layer.
+ * ============================================================================ */
+.page--arena .arena-render-container {
+  --arena-atm-crowd-ink: color-mix(in srgb, var(--hall-dark-0, var(--ink)) 72%, transparent);
+  --arena-atm-crowd-warm: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 28%, transparent);
+  --arena-atm-crowd-soft: color-mix(in srgb, var(--hall-dark-1, var(--ink)) 42%, transparent);
+}
+
+.page--arena .arena-render-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  /* Dense soft “gallery mass” in the stand annulus; stage centre stays clear. */
+  background:
+    radial-gradient(circle at 12% 28%, var(--arena-atm-crowd-warm) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(circle at 18% 46%, var(--arena-atm-crowd-ink) 0 0.12rem, transparent 0.24rem),
+    radial-gradient(circle at 24% 22%, var(--arena-atm-crowd-soft) 0 0.1rem, transparent 0.22rem),
+    radial-gradient(circle at 30% 58%, var(--arena-atm-crowd-ink) 0 0.11rem, transparent 0.23rem),
+    radial-gradient(circle at 36% 34%, var(--arena-atm-crowd-warm) 0 0.08rem, transparent 0.19rem),
+    radial-gradient(circle at 42% 64%, var(--arena-atm-crowd-soft) 0 0.13rem, transparent 0.25rem),
+    radial-gradient(circle at 48% 18%, var(--arena-atm-crowd-ink) 0 0.1rem, transparent 0.21rem),
+    radial-gradient(circle at 54% 70%, var(--arena-atm-crowd-warm) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(circle at 60% 40%, var(--arena-atm-crowd-ink) 0 0.12rem, transparent 0.24rem),
+    radial-gradient(circle at 66% 56%, var(--arena-atm-crowd-soft) 0 0.11rem, transparent 0.22rem),
+    radial-gradient(circle at 72% 26%, var(--arena-atm-crowd-warm) 0 0.1rem, transparent 0.21rem),
+    radial-gradient(circle at 78% 48%, var(--arena-atm-crowd-ink) 0 0.13rem, transparent 0.25rem),
+    radial-gradient(circle at 84% 36%, var(--arena-atm-crowd-soft) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(circle at 88% 62%, var(--arena-atm-crowd-warm) 0 0.11rem, transparent 0.23rem),
+    radial-gradient(
+      ellipse 78% 74% at 50% 52%,
+      transparent 0 34%,
+      var(--arena-atm-crowd-soft) 52%,
+      var(--arena-atm-crowd-ink) 78%,
+      transparent 92%
+    );
+  background-size:
+    2.8rem 2.8rem, 3.4rem 3.4rem, 4.1rem 4.1rem, 3.1rem 3.1rem,
+    3.7rem 3.7rem, 4.4rem 4.4rem, 2.9rem 2.9rem, 3.6rem 3.6rem,
+    4.2rem 4.2rem, 3.3rem 3.3rem, 3.9rem 3.9rem, 4.5rem 4.5rem,
+    3.2rem 3.2rem, 3.8rem 3.8rem, auto;
+  opacity: 0.55;
+  mix-blend-mode: soft-light;
+  -webkit-mask-image: radial-gradient(
+    ellipse 76% 76% at 50% 50%,
+    transparent 0 30%,
+    #000 40% 78%,
+    transparent 92%
+  );
+  mask-image: radial-gradient(
+    ellipse 76% 76% at 50% 50%,
+    transparent 0 30%,
+    #000 40% 78%,
+    transparent 92%
+  );
+}
+
+.page--arena .arena-render-container > #arena-render {
+  z-index: 1;
+}
+
+.page--arena .arena-render-container > .arena-puzzle-label {
+  z-index: 2;
+}
+
+@media (max-width: 900px) {
+  .page--arena .arena-render-container::before {
+    opacity: 0.42;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page--arena .arena-render-container::before {
     transition: none;
     filter: none;
     animation: none;
