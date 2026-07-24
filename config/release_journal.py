@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.507",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "584f4c02",
         "title": "Merge af35 veil side darken with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af35 (73e312ce) onto live polish r10c + af5–af34. Load order: polish r10c → atmosphere af35. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
