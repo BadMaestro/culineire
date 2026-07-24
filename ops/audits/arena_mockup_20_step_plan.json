@@ -104,8 +104,9 @@
       "n": 10,
       "id": "M10",
       "title": "Broadcast ribbon stepper: Challenge…Crown active COOKING style",
-      "status": "PARTIAL_LIVE",
-      "owner": "arenafront"
+      "status": "FE_READY",
+      "owner": "arenafront",
+      "note": "Tip: gold COOKING-weight active cell + track; await Cursor integrate"
     },
     {
       "n": 11,
