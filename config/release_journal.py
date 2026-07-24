@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.522",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af50 floor dark with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af50 (bc40cad7) onto live polish r10c + af5–af49. Load order: polish r10c → atmosphere af50. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.522",
+        "date": "2026-07-24",
+        "commit": "61081c20",
+        "title": "ArenaFront af50: stronger bottom floor dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift bottom page dark wash (88%/40%) for hall floor enclosure. SVG centre mask held. Cache-bust af50. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.521",
         "date": "2026-07-24",
         "commit": "25203847",
