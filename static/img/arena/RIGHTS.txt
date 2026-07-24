@@ -1,0 +1,3 @@
+AI-generated Arena atmosphere textures (gpt-image-1).
+Atmospheric art only — silhouettes are not real registered or online users.
+See manifest.json for per-file notes.
