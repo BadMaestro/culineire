@@ -145,3 +145,26 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* 3G — glass panels win on desktop; parchment cards remain on small screens. */
+@media (min-width: 901px) {
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__gifts,
+  .page--arena .arena-command-deck__crowd-rail {
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
+    border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    box-shadow: 0 0.8rem 2rem color-mix(in srgb, var(--ink) 36%, transparent);
+  }
+  .page--arena .arena-broadcast-ribbon {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--surface) 90%, transparent),
+        color-mix(in srgb, var(--surface-soft) 84%, transparent),
+        color-mix(in srgb, var(--surface) 90%, transparent)
+      );
+  }
+}
