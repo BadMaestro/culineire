@@ -81,5 +81,30 @@
     "workstreams_untouched": ["3A", "3B", "3C", "3D", "CF5"],
     "data_model_changed": false,
     "migrations_created": false
+  },
+  "verification_close_2026_07_24": {
+    "recorded_by": "Cursor",
+    "prod_commit": "79c4d2b1",
+    "r4_composition": {
+      "owner_d1": "Option B — centred rank stack (overturn GreenBear side-column Option A)",
+      "source_tip": "1925d6ad agent/arenafront/r4-rank-centred-stack",
+      "deploy_version": "v2.5.560",
+      "guard_test": "ArenaRankColumnTests.test_desktop_rank_stack_is_centred_option_b"
+    },
+    "focused_tests": {
+      "suite": "chef_battle.tests.ArenaRankColumnTests",
+      "result": "10/10 PASS",
+      "note": "Includes post-R4 Option B centre assertion and progression label markup."
+    },
+    "contrast_reconfirmed": "Still --ink on --surface / --surface-soft via official tokens after R4 hex chips; original 14.30:1 / 12.62:1 measurements remain valid.",
+    "distributed_8_6_1": {
+      "result": "NOT RUN",
+      "honesty": "Owner D4 exempted full 8:6:1 while pool depleted for focused slices. Not claimed."
+    },
+    "authenticated_browser_qa": {
+      "result": "NOT CLAIMED",
+      "note": "Optional FE browser QA offered; BE closes on automated + audit evidence only."
+    },
+    "board_status": "DONE — FOCUSED VERIFY (R4 Option B); 8:6:1 not claimed"
   }
 }
