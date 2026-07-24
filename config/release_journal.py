@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.579",
+        "date": "2026-07-24",
+        "commit": "34ff6326",
+        "title": "MOCKUP M19 — responsive parity 1920/768/390",
+        "section": "Chef Battles / Deployment",
+        "summary": "MOCKUP_20_STEP M19. FE tip fe9c17fa: overflow-x clip, tablet/phone broadcast+phase rail layout, focus-visible + reduced-motion. Cache-bust m19. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.578",
         "date": "2026-07-24",
         "commit": "572e7d9c",
