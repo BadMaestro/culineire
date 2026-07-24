@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.514",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "b5e1055c",
         "title": "Merge af42 bottom dark with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af42 (1fbb5de7) onto live polish r10c + af5–af41. Load order: polish r10c → atmosphere af42. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
