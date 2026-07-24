@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.582",
+        "date": "2026-07-25",
+        "commit": "pending",
+        "title": "MOCKUP M17 — packed-crowd atmosphere under oval",
+        "section": "Chef Battles / Deployment",
+        "summary": "MOCKUP_20_STEP M17. FE tip 701900d8: token-only stand-annulus haze beneath #arena-render (packed hall, no synthetic interactive seats). Cache-bust 20260725-m17. Owner CONTINUE after poller restart. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.581",
         "date": "2026-07-25",
         "commit": "7dbe94f7",
