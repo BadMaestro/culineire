@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.509",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "dfd92e3f",
         "title": "Merge af36–af37 gold rails + dust tokens with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af36–af37 (64ede02d) onto live polish r10c + af5–af35. Load order: polish r10c → atmosphere af37. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
