@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af19.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af20.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af14 live. af15–af18 pending. af19: mobile hall readability + wider SVG-clear mask.
+ * af14 live. af15–af19 pending merger. af20: soft parchment warm rim (outer only).
  */
 
 .page--arena {
@@ -181,6 +181,12 @@
       color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 14%, transparent) 54%,
       color-mix(in srgb, var(--hall-dark-0, var(--ink)) 18%, transparent) 72%,
       transparent 88%
+    ),
+    radial-gradient(
+      ellipse 88% 58% at 50% 56%,
+      transparent 0 48%,
+      color-mix(in srgb, var(--surface, var(--surface-muted)) 22%, transparent) 64%,
+      transparent 82%
     ),
     var(--arena-atm-floor) center / cover no-repeat;
   opacity: 0.3;

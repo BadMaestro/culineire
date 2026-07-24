@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.488",
+        "date": "2026-07-24",
+        "commit": "915bbfb2",
+        "title": "ArenaFront af20: soft parchment warm rim (outer only)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle: add outer parchment warm rim on .page--arena::after using --surface tokens; centre mask still clears SVG seats. Dual-cursor standby respected. Cache-bust af20. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.487",
         "date": "2026-07-24",
-        "commit": "b393f1bf",
+        "commit": "ef756fe8",
         "title": "ArenaFront af19: mobile hall readability + wider SVG-clear mask",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle: on <=900px raise ::before opacity and widen ::after centre mask so live SVG seats stay clear on mobile while hall atmosphere still reads. Dual-cursor standby respected. Cache-bust af19. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
