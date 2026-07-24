@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.573",
+        "date": "2026-07-24",
+        "commit": "PENDING",
+        "title": "MOCKUP M12 — live metrics 2x2 gold grid",
+        "section": "Chef Battles / Deployment",
+        "summary": "MOCKUP_20_STEP M12. FE tip 26bd001e: live metrics panel Active Viewers/Votes/Gifts/Crown streak as 2x2 gold grid; cache-bust m12. Integrate/deploy only. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.572",
         "date": "2026-07-24",
         "commit": "d6431bbf",
