@@ -9,10 +9,10 @@
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260722-stage3b" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260716a" rel="stylesheet">
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r1" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r2" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r2" rel="stylesheet">
 <link href="{% static 'css/arena_effects.css' %}?v=20260724-r1" rel="stylesheet">
-<link href="{% static 'css/arena_hall.css' %}?v=20260720g-nofunnel" rel="stylesheet">
+<link href="{% static 'css/arena_hall.css' %}?v=20260724-r2" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -39,6 +39,11 @@
     <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 7 %} is-active{% endif %}" data-phase-step="7">7 <b>Crown</b></span>
   </section>
 
+  {% comment %}
+    3G R2: wrappers only — same panels, ids, links and handlers. Rails attach
+    the side UI to the stage frame instead of floating as detached cards.
+  {% endcomment %}
+  <div class="arena-interface-rail arena-interface-rail--left" role="group" aria-label="Arena status rail">
   <section class="arena-command-deck__phase-card" aria-label="Current arena state">
     <p class="arena-panel__kicker">Current phase</p>
     <p id="arena-current-phase" class="arena-command-deck__phase-name">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</p>
@@ -51,12 +56,52 @@
     </p>
   </section>
 
+  <aside class="arena-command-deck__ladder" aria-label="Today's crown ladder">
+    <p class="arena-panel__kicker">Today's crown ladder</p>
+    <ol id="arena-crown-ladder" class="arena-ladder-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
+      {% for chef in crown_ladder %}
+        <li>
+          <span>{{ forloop.counter }}</span>
+          <a href="{% url 'chef_battle:chef_profile' slug=chef.slug %}">{{ chef.name }}</a>
+          <em>{{ chef.crowns }} crown{{ chef.crowns|pluralize }}</em>
+        </li>
+      {% empty %}
+        <li class="arena-panel__empty">No crowns have been awarded today.</li>
+      {% endfor %}
+    </ol>
+    <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View rankings</a>
+  </aside>
+  </div>
+
+  <div class="arena-interface-rail arena-interface-rail--right" role="group" aria-label="Arena broadcast rail">
   <section class="arena-command-deck__metrics" aria-label="Arena metrics">
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong id="arena-metric-viewers">{{ arena_data.metrics.active_viewers }}</strong></div>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-vote"></use></svg>Public votes</span><strong id="arena-metric-votes">{{ arena_data.metrics.public_votes }}</strong></div>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>Battle gifts</span><strong id="arena-metric-gifts">{{ arena_data.metrics.battle_gifts }}</strong></div>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong id="arena-crown-streak">{{ crown_streak|default:0 }}</strong></div>
   </section>
+
+  <aside class="arena-command-deck__gifts" aria-label="Recent battle gifts">
+    <p class="arena-panel__kicker">Recent battle gifts</p>
+    <ul id="arena-recent-gifts" class="arena-gift-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
+      {% for gift in recent_gifts %}
+        <li>
+          <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+          <span><a href="{% url 'chef_battle:chef_profile' slug=gift.recipient_slug %}">{{ gift.recipient }}</a><b>{{ gift.item }}</b></span>
+          <em>{{ gift.tokens }}T</em>
+        </li>
+      {% empty %}
+        <li class="arena-panel__empty">No battle gifts have been delivered yet.</li>
+      {% endfor %}
+    </ul>
+    <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks; nothing is created from this page.</p>
+    {% if active_battle %}
+    <a class="btn-primary" href="#arena-puzzle">Open live battle</a>
+    {% else %}
+    <a class="btn-secondary" href="{% url 'chef_battle:artifact_gallery' %}">Browse artifacts</a>
+    {% endif %}
+  </aside>
+  </div>
 
   <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
     <section id="arena-live-stage" class="arena-command-deck__live-stage" aria-label="Arena centre" data-centre-key="{% if active_battle %}battle-{{ active_battle.pk }}{% elif arena_data.center.type == 'crown' %}crown-{{ arena_data.center.name }}{% else %}empty{% endif %}">
@@ -138,44 +183,7 @@
     </div>
   </section>
 
-  <aside class="arena-command-deck__ladder" aria-label="Today's crown ladder">
-    <p class="arena-panel__kicker">Today's crown ladder</p>
-    <ol id="arena-crown-ladder" class="arena-ladder-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
-      {% for chef in crown_ladder %}
-        <li>
-          <span>{{ forloop.counter }}</span>
-          <a href="{% url 'chef_battle:chef_profile' slug=chef.slug %}">{{ chef.name }}</a>
-          <em>{{ chef.crowns }} crown{{ chef.crowns|pluralize }}</em>
-        </li>
-      {% empty %}
-        <li class="arena-panel__empty">No crowns have been awarded today.</li>
-      {% endfor %}
-    </ol>
-    <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View rankings</a>
-  </aside>
-
-  <aside class="arena-command-deck__gifts" aria-label="Recent battle gifts">
-    <p class="arena-panel__kicker">Recent battle gifts</p>
-    <ul id="arena-recent-gifts" class="arena-gift-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
-      {% for gift in recent_gifts %}
-        <li>
-          <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
-          <span><a href="{% url 'chef_battle:chef_profile' slug=gift.recipient_slug %}">{{ gift.recipient }}</a><b>{{ gift.item }}</b></span>
-          <em>{{ gift.tokens }}T</em>
-        </li>
-      {% empty %}
-        <li class="arena-panel__empty">No battle gifts have been delivered yet.</li>
-      {% endfor %}
-    </ul>
-    <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks; nothing is created from this page.</p>
-    {% if active_battle %}
-    <a class="btn-primary" href="#arena-puzzle">Open live battle</a>
-    {% else %}
-    <a class="btn-secondary" href="{% url 'chef_battle:artifact_gallery' %}">Browse artifacts</a>
-    {% endif %}
-  </aside>
-
-  <footer class="arena-command-deck__crowd-rail" aria-label="Arena actions">
+  <footer class="arena-command-deck__crowd-rail arena-lower-broadcast" aria-label="Arena actions">
     <div class="arena-crowd-rail__status" role="status">
       <svg class="arena-ico" aria-hidden="true"><use href="#ad-toque"></use></svg>
       {% if active_battle %}

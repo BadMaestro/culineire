@@ -1,0 +1,8 @@
+﻿{
+  "record": "ARENA_3G_R2_STAGE_FRAME",
+  "slice": "R2",
+  "recorded_by": "Cursor",
+  "recorded_at": "2026-07-24",
+  "files": ["templates/chef_battle/arena.html", "static/css/arena_command_deck.css", "static/css/arena_hall.css", "templates/base.html"],
+  "change": "Left/right interface rails + edge-to-edge lower broadcast; wrappers only; official tokens."
+}
