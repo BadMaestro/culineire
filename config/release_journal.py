@@ -2,10 +2,18 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.499",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "42424943",
         "title": "Merge af28 atmosphere with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af28 (6cd5ef36) onto live polish r10c + af5–af27. Load order: polish r10c → atmosphere af28. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.498",
+        "date": "2026-07-24",
+        "commit": "6cd5ef36",
+        "title": "ArenaFront af28: wider mobile SVG-clear mask",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE + af25 live (#2323): widen mobile ::after centre mask (transparent to 46%) so SVG seats stay clear; slight veil opacity tune. Cache-bust af28. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
         "version": "2.5.498",
