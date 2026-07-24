@@ -3440,3 +3440,155 @@
     text-decoration: none;
   }
 }
+
+
+/* ============================================================================
+ * MOCKUP M19 — responsive parity 1920 / 768 / 390.
+ * Gate: no horizontal overflow; keyboard focus; reduced-motion calm.
+ * ============================================================================ */
+.page--arena {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+.page--arena .arena-command-deck,
+.page--arena .arena-command-deck__floor,
+.page--arena .arena-floor-stage,
+.page--arena .arena-render-container {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.page--arena .arena-command-deck__phase-rail,
+.page--arena .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+  min-width: 0;
+}
+
+.page--arena .arena-phase-step,
+.page--arena .arena-metric,
+.page--arena .arena-crowd-rail__status,
+.page--arena .arena-activity-ticker {
+  min-width: 0;
+}
+
+.page--arena .arena-phase-step:focus-visible,
+.page--arena .arena-rank-spine__step:focus-visible,
+.page--arena .btn-secondary:focus-visible,
+.page--arena .btn-primary:focus-visible,
+.page--arena .ce-nav__link--battle:focus-visible,
+.page--arena .js-arena-join-crowd:focus-visible,
+.page--arena #arena-render .arena-cell:focus-visible {
+  outline: 2px solid var(--accent-bronze);
+  outline-offset: 2px;
+}
+
+/* Tablet ~768: keep overlay panels from forcing sideways scroll. */
+@media (max-width: 900px) and (min-width: 768px) {
+  .page--arena .arena-command-deck {
+    width: min(100% - 1.25rem, 100%);
+    margin-inline: auto;
+  }
+
+  .page--arena .arena-command-deck__phase-rail {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.28rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.15rem;
+  }
+
+  .page--arena .arena-command-deck__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page--arena .arena-lower-broadcast {
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .page--arena .arena-crowd-rail__actions {
+    width: 100%;
+  }
+}
+
+/* Phone ~390: stack, clip, no page-level sideways scroll. */
+@media (max-width: 767px) {
+  .page--arena .arena-command-deck {
+    width: min(100% - 0.75rem, 100%);
+    margin-inline: auto;
+    gap: 0.55rem;
+  }
+
+  .page--arena .arena-command-deck__phase-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(4.6rem, 1fr);
+    grid-template-columns: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .page--arena .arena-phase-step b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .page--arena .arena-command-deck__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .page--arena .arena-metric {
+    border-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    text-align: left;
+  }
+
+  .page--arena .arena-metric:nth-child(-n+3) {
+    border-top: 0;
+  }
+
+  .page--arena .arena-lower-broadcast {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+  }
+
+  .page--arena .arena-activity-ticker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.55rem;
+    white-space: normal;
+  }
+
+  .page--arena .arena-crowd-rail__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .page--arena .arena-crowd-rail__actions > * {
+    width: 100%;
+  }
+
+  .page--arena .arena-confrontation-band {
+    gap: 0.45rem;
+  }
+
+  .page--arena .arena-live-chef {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page--arena .arena-command-deck__floor,
+  .page--arena .arena-phase-step.is-active,
+  .page--arena .arena-broadcast-ribbon .arena-phase-step.is-active {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
