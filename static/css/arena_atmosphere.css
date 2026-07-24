@@ -1,14 +1,14 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af36.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af37.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af33+af34 LIVE (v2.5.506). af35→507. af36: denser stand gold rails.
+ * af33+af34 LIVE (v2.5.506). Pending af35–af36. af37: warmer gold dust tone.
  */
 
 .page--arena {
   --arena-atm-wall: url("/static/img/arena/hall-wall-wash-v1.png");
   --arena-atm-floor: url("/static/img/arena/floor-sheen-v1.png");
-  --arena-atm-gold: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 62%, transparent);
-  --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 34%, transparent);
+  --arena-atm-gold: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 70%, transparent);
+  --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 40%, transparent);
   position: relative;
   isolation: isolate;
   /* Page hall fill — must win over polish light .page--arena background. */
