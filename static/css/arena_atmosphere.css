@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af21.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af22.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af14 live. af15–af20 pending merger. af21: stronger green/red side atmosphere.
+ * af14 live. af15–af21 pending merger. af22: softer ceiling vignette blend with wall-wash.
  */
 
 .page--arena {
@@ -21,8 +21,8 @@
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 55%, transparent) 0%,
-      transparent 28%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 42%, transparent) 0%,
+      transparent 34%
     ),
     linear-gradient(
       90deg,

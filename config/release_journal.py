@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.490",
+        "date": "2026-07-24",
+        "commit": "670f2c03",
+        "title": "ArenaFront af22: softer ceiling vignette for wall-wash blend",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle: lighten top ceiling vignette so af14 wall-wash gold bloom blends more cleanly. Dual-cursor standby respected. SVG centre mask held. Cache-bust af22. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.489",
         "date": "2026-07-24",
-        "commit": "41b6ec44",
+        "commit": "600cc819",
         "title": "ArenaFront af21: stronger green/red side atmosphere",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle: deepen challenger green / opponent red side washes with --hall-green/--hall-red. Dual-cursor standby respected. SVG centre mask held. Cache-bust af21. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
