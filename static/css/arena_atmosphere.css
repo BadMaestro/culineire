@@ -216,10 +216,17 @@
 .page--arena #main-content,
 .page--arena .arena-command-deck,
 .page--arena .site-header,
-.page--arena .site-footer,
-.page--arena .site-battle-widget {
+.page--arena .site-footer {
   position: relative;
   z-index: 1;
+}
+
+/* Keep the sitewide battle widget position:fixed. Demoting it to relative
+   (with the hall stacking group above) dropped it into document flow and
+   pinned it to the bottom-left of the Arena page. Overlay only needs z-index. */
+.page--arena .site-battle-widget {
+  position: fixed;
+  z-index: 130;
 }
 
 @media (min-width: 901px) {

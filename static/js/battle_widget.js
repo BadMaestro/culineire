@@ -27,6 +27,9 @@
   function applyTop(top) {
     widget.style.top = clampTop(top) + 'px';
     widget.style.bottom = 'auto';
+    // Never let a drag/page quirk pin the card to the left edge — CSS owns right:0.
+    widget.style.left = '';
+    widget.style.right = '';
   }
 
   var saved = parseFloat(window.localStorage.getItem(STORE_KEY));
