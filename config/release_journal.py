@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.551",
+        "date": "2026-07-24",
+        "commit": "3008c6db",
+        "title": "ArenaFront af79: deeper ::before bottom dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "af76 LIVE (#2597 / a5e773d6 v2.5.546): deepen ::before bottom dark wash (92%/56%). SVG centre mask held. Cache-bust af79. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.550",
         "date": "2026-07-24",
-        "commit": "b340d6ca",
+        "commit": "9f6f7472",
         "title": "ArenaFront af78: denser ::after stand haze rings",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: densify ::after repeating-radial stand rings (46% gold). SVG centre mask held. Cache-bust af78. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
