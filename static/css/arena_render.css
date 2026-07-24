@@ -452,6 +452,33 @@
   filter: drop-shadow(0 0 9px color-mix(in srgb, var(--arena-spot) 70%, transparent));
 }
 
+/* Mockup M07 — on-floor challenger/opponent hex portraits. */
+#arena-render .arena-floor-fighter__tile {
+  fill: color-mix(in srgb, var(--surface) 55%, transparent);
+  stroke-width: 2.2;
+}
+#arena-render .arena-floor-fighter--challenger .arena-floor-fighter__tile {
+  stroke: var(--hall-green);
+  fill: color-mix(in srgb, var(--hall-green) 18%, var(--surface));
+}
+#arena-render .arena-floor-fighter--opponent .arena-floor-fighter__tile {
+  stroke: var(--hall-red);
+  fill: color-mix(in srgb, var(--hall-red) 18%, var(--surface));
+}
+#arena-render .arena-floor-fighter--crown .arena-floor-fighter__tile {
+  stroke: var(--accent-bronze);
+  fill: color-mix(in srgb, var(--accent-bronze) 22%, var(--surface));
+}
+#arena-render .arena-floor-fighter__name {
+  fill: var(--ink);
+  font-family: var(--font-serif, "Playfair Display", serif);
+  font-size: 11px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--surface) 70%, transparent);
+  stroke-width: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   #arena-render { filter: none; }
 }

@@ -711,6 +711,90 @@
     centreKey = key;
     stage.setAttribute('data-centre-key', key);
     if (arrived) { flashTeleport(svg); }
+    stampFloorCentre(svg, center);
+  }
+
+  // Mockup M07: large challenger/opponent hex tiles ON the floor (green left /
+  // red right), not only the HTML confrontation band. Uses existing
+  // center.challenger / center.opponent fighter contract — no new payload.
+  function hexPoints(cx, cy, r) {
+    var pts = [];
+    for (var i = 0; i < 6; i++) {
+      var a = (Math.PI / 180) * (60 * i - 30);
+      pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+    }
+    return pts;
+  }
+
+  function stampFloorCentre(svg, center) {
+    var layer = svg.querySelector('[data-arena-layer="centre"]');
+    if (!layer) { return; }
+    while (layer.firstChild) { layer.removeChild(layer.firstChild); }
+    if (!center || !center.type) { return; }
+
+    var project = projector();
+    var cx = SVG_SIZE / 2;
+    var cy = SVG_SIZE / 2;
+    var type = center.type;
+
+    if (type === 'active_battle' || type === 'facing_pair') {
+      var offset = STAGE_RADIUS * 2.35;
+      var size = STAGE_RADIUS * 1.55;
+      drawFloorFighter(svg, layer, center.challenger, project({ x: cx - offset, y: cy }), size, 'challenger');
+      drawFloorFighter(svg, layer, center.opponent, project({ x: cx + offset, y: cy }), size, 'opponent');
+    }
+  }
+
+  function drawFloorFighter(svg, layer, fighter, centre, radius, side) {
+    if (!fighter || !centre) { return; }
+    var pts = hexPoints(centre.x, centre.y, radius);
+    var points = pts.map(pointString).join(' ');
+    var clipId = 'arena-floor-clip-' + side;
+    var defs = svg.querySelector('defs');
+    if (defs) {
+      var old = svg.querySelector('#' + clipId);
+      if (old) { old.parentNode.removeChild(old); }
+      var clip = el('clipPath', { id: clipId });
+      clip.appendChild(el('polygon', { points: points }));
+      defs.appendChild(clip);
+    }
+
+    var group = el('g', {
+      class: 'arena-floor-fighter arena-floor-fighter--' + side,
+      'data-floor-side': side,
+      'data-entity-slug': fighter.slug || '',
+      'pointer-events': 'none'
+    });
+    group.appendChild(el('polygon', {
+      points: points,
+      class: 'arena-floor-fighter__tile',
+      'vector-effect': 'non-scaling-stroke'
+    }));
+    if (fighter.avatar_url) {
+      var size = radius * 1.72;
+      group.appendChild(el('image', {
+        href: fighter.avatar_url,
+        x: (centre.x - size / 2).toFixed(2),
+        y: (centre.y - size / 2).toFixed(2),
+        width: size.toFixed(2),
+        height: size.toFixed(2),
+        preserveAspectRatio: 'xMidYMid slice',
+        'clip-path': 'url(#' + clipId + ')',
+        class: 'arena-floor-fighter__avatar'
+      }));
+    }
+    if (fighter.name) {
+      var label = el('text', {
+        x: centre.x.toFixed(2),
+        y: (centre.y + radius + 18).toFixed(2),
+        'text-anchor': 'middle',
+        'dominant-baseline': 'hanging',
+        class: 'arena-floor-fighter__name'
+      });
+      label.textContent = fighter.name;
+      group.appendChild(label);
+    }
+    layer.appendChild(group);
   }
 
   /**

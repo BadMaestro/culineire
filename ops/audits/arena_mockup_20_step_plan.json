@@ -79,9 +79,9 @@
       "n": 7,
       "id": "M07",
       "title": "On-floor large challenger/opponent hex portraits (green left / red right)",
-      "status": "NEXT",
+      "status": "FE_TIP",
       "owner": "pair",
-      "note": "Mockup places big chef tiles ON the floor, not only the upper confrontation band",
+      "note": "stampFloorCentre in arena_render.js from existing center.challenger/opponent",
       "files": ["static/js/arena_render.js", "templates/chef_battle/arena.html", "CSS"]
     },
     {
