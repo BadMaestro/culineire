@@ -559,3 +559,17 @@
       );
   }
 }
+
+
+/* 3G R3 empty/crown: keep the band as one row, quiet copy under the focus. */
+@media (min-width: 901px) {
+  .arena-confrontation-band[data-centre-key="empty"],
+  .arena-confrontation-band[data-centre-key^="crown-"] {
+    grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.8fr) minmax(0, 1fr);
+  }
+  .arena-confrontation-band[data-centre-key="empty"] .arena-live-awaiting:first-of-type,
+  .arena-confrontation-band[data-centre-key^="crown-"] .arena-live-awaiting {
+    font-size: 0.7rem;
+    opacity: 0.9;
+  }
+}
