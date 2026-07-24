@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.502",
+        "date": "2026-07-24",
+        "commit": "2385f8f3",
+        "title": "ArenaFront af31: warmer ceiling gold bloom",
+        "section": "Chef Battles / Deployment",
+        "summary": "af28 LIVE (#2339 / c8c6d88f v2.5.499): warm upper page gold bloom (52%/22%) to match wall-wash cinematic ceiling. SVG centre mask held. Cache-bust af31. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.501",
         "date": "2026-07-24",
-        "commit": "cd06056d",
+        "commit": "83fb4031",
         "title": "ArenaFront af30: denser mid-stand gold dust",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: four extra mid-stand gold dust motes on ::before (left/right mid heights) + drift keyframes aligned. SVG centre mask held. Cache-bust af30. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
