@@ -106,8 +106,9 @@
   opacity: 0.82;
 }
 
-/* Parchment floor sheen + soft gold floor glow (prototype .floor-glow intent,
-   without round-floor geometry — glow is elliptical wash only). */
+/* Parchment floor sheen + soft gold floor glow + atmospheric crowd rings.
+   Mockup stands/crowd as non-interactive haze only (D2: real seats stay in polish/SVG).
+   No round-floor geometry — elliptical wash + dotted rings only. */
 .page--arena::after {
   content: "";
   position: fixed;
@@ -119,6 +120,25 @@
   pointer-events: none;
   transform: translate(-50%, -50%);
   background:
+    /* Outer crowd haze rings (mockup spectator stands — atmospheric art only) */
+    repeating-radial-gradient(
+      circle at 50% 52%,
+      transparent 0 6.2%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 14%, transparent) 6.35% 6.55%,
+      transparent 6.7% 9.8%
+    ),
+    repeating-radial-gradient(
+      circle at 50% 52%,
+      transparent 0 3.1%,
+      color-mix(in srgb, var(--ink) 18%, transparent) 3.2% 3.35%,
+      transparent 3.5% 5.4%
+    ),
+    radial-gradient(
+      ellipse 78% 48% at 50% 56%,
+      transparent 42%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 22%, transparent) 68%,
+      transparent 78%
+    ),
     radial-gradient(
       ellipse 70% 42% at 50% 58%,
       color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 26%, transparent),
@@ -130,7 +150,7 @@
       transparent 74%
     ),
     var(--arena-atm-floor) center / cover no-repeat;
-  opacity: 0.46;
+  opacity: 0.5;
   mix-blend-mode: soft-light;
 }
 

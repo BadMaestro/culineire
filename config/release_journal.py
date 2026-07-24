@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.470",
+        "date": "2026-07-24",
+        "commit": "8bbfa2c2",
+        "title": "ArenaFront af4: mockup crowd-haze rings under live floor (non-interactive)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle order: continuous atmosphere shipping. ArenaFront slice af4 adds concentric crowd-haze / stand underlay rings on .page--arena::after using official --hall-gold/--ink tokens only — atmospheric art matching the approved mockup stands, not fake interactive seats (D2). Cache-bust arena_atmosphere.css?v=20260724-af4. Files: static/css/arena_atmosphere.css, templates/chef_battle/arena.html (link only), config/release_journal.py, recipes/views.py (3G evidence). Fence held vs arena_deck_polish.css. Linode paced; work on local 8-core. Stage 3 remains IN PROGRESS; not a public Arena release. Rollback: revert this commit and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.469",
         "date": "2026-07-24",
         "commit": "8cb3d854",
