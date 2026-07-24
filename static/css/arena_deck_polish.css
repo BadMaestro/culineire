@@ -2211,3 +2211,24 @@
     border-color: color-mix(in srgb, var(--accent-bronze) 42%, transparent);
   }
 }
+
+
+/* 3G — lower dock CTA weight + ticker bronze rule. */
+@media (min-width: 901px) {
+  .arena-lower-broadcast .arena-activity-ticker {
+    border-inline: 1px solid color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+    padding-inline: 0.55rem;
+  }
+  .arena-lower-broadcast .ce-nav__link--battle .chef-battle-cta__label {
+    letter-spacing: 0.04em;
+  }
+  .arena-lower-broadcast .btn-secondary {
+    min-height: 2.2rem;
+    border-color: color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+  }
+  .arena-floor-caption strong {
+    text-shadow:
+      0 1px 0 color-mix(in srgb, var(--surface) 75%, transparent),
+      0 0 1.1rem color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+  }
+}
