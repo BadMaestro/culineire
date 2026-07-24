@@ -1,9 +1,10 @@
 [
   {
     "file": "hall-wall-wash-v1.png",
-    "bytes": 1338856,
+    "bytes": 1358206,
     "model": "gpt-image-1",
     "quality": "medium",
+    "regen": "af14-dark-hall-v2-prompt",
     "rights_note": "AI-generated atmospheric Arena texture via gpt-image-1. Not a depiction of real registered users."
   },
   {

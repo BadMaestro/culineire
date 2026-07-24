@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.480",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af14 wall-wash refresh with r10c+af5–af13",
+        "section": "Chef Battles / Deployment",
+        "summary": "Merge ArenaFront af14 (82f8728e: regenerated hall-wall-wash-v1.png for darker cinematic depth; single image regen; cache-bust af14). Load order: polish r10c → atmosphere af14. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
         "version": "2.5.479",
         "date": "2026-07-24",
         "commit": "324a2ef4",
