@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.535",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af63+af64 haze and corner vignettes with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af63+af64 (dc0661ab) onto live polish r10c + af5–af62. Load order: polish r10c → atmosphere af64. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.536",
+        "date": "2026-07-24",
+        "commit": "48748189",
+        "title": "ArenaFront af64: deeper corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af60 LIVE (#2517 / 914309c1 v2.5.531): deepen four corner dark vignettes further. SVG centre mask held. Cache-bust af64. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.535",
+        "date": "2026-07-24",
+        "commit": "b4835640",
+        "title": "ArenaFront af63: denser ::after stand haze rings",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: densify ::after repeating-radial stand rings (38% gold). SVG centre mask held. Cache-bust af63. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.534",
+        "date": "2026-07-24",
+        "commit": "9f2b9daa",
+        "title": "ArenaFront af62: stronger side green/red washes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af59 LIVE (#2508 / 8deabda1 v2.5.530): lift page side green/red washes (50%/20%). SVG centre mask held. Cache-bust af62. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.533",
         "date": "2026-07-24",
         "commit": "33331ddc",

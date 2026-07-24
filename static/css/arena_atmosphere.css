@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af62.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af64.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af59 LIVE (v2.5.530 / 8deabda1). af62: stronger side green/red washes.
+ * af60 LIVE (v2.5.531 / 914309c1). af64: deeper corner vignettes.
  */
 
 .page--arena {
@@ -45,24 +45,24 @@
       transparent 42%
     ),
     radial-gradient(
-      40% 36% at 0% 0%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 66%, transparent),
+      42% 38% at 0% 0%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 70%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      42% 38% at 100% 0%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 70%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      40% 36% at 0% 100%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 62%, transparent),
       transparent 70%
     ),
     radial-gradient(
-      40% 36% at 100% 0%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 66%, transparent),
+      40% 36% at 100% 100%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 62%, transparent),
       transparent 70%
-    ),
-    radial-gradient(
-      38% 34% at 0% 100%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 58%, transparent),
-      transparent 68%
-    ),
-    radial-gradient(
-      38% 34% at 100% 100%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 58%, transparent),
-      transparent 68%
     ),
     var(--arena-atm-wall) center 2% / cover no-repeat !important;
   background-color: var(--hall-dark-0, var(--ink));
@@ -182,7 +182,7 @@
     repeating-radial-gradient(
       circle at 50% 52%,
       transparent 0 5.2%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 34%, transparent) 5.4% 5.85%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 38%, transparent) 5.4% 5.85%,
       transparent 6.0% 8.2%
     ),
     radial-gradient(
