@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.481",
+        "date": "2026-07-24",
+        "commit": "7bee1283",
+        "title": "ArenaFront af13: cinematic corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle + af9/af10 live (#2241): add four-corner dark vignettes on .page--arena with --hall-dark-0 for mockup frame depth. Pending af11–af13. SVG centre mask held. Cache-bust af13. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.480",
         "date": "2026-07-24",
-        "commit": "59909029",
+        "commit": "c7940285",
         "title": "ArenaFront af12: bottom hall depth vignette",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle: add bottom stand depth vignette on .page--arena with --hall-dark-0 only. Pending merge stack af9–af12. SVG centre mask held. Cache-bust af12. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
