@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.570",
+        "date": "2026-07-24",
+        "commit": "PENDING",
+        "title": "MOCKUP M09 — phase card mockup weight",
+        "section": "Chef Battles / Deployment",
+        "summary": "MOCKUP_20_STEP M09. FE tip bd6b4a33: Phase kicker, larger phase name + timer, Next rung from existing phase_rail; cache-bust m09. Integrate/deploy only — no payload change. Timer CSP retained. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.569",
         "date": "2026-07-24",
         "commit": "77190829",
