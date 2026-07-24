@@ -71,6 +71,15 @@
 .arena-live-chef { display: flex; align-items: center; gap: .6rem; min-width: 0; }
 .arena-live-chef--opponent { justify-content: flex-end; text-align: right; }
 .arena-live-chef--crown { justify-content: flex-end; }
+.arena-live-chef__profile {
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.arena-live-chef--opponent .arena-live-chef__profile { justify-content: flex-end; text-align: right; }
 .arena-live-chef img { width: 3.35rem; height: 3.35rem; border-radius: 50%; object-fit: cover; border: 2px solid var(--arena-gold); background: var(--arena-cream); }
 .arena-live-chef span, .arena-live-centre span { display: block; color: var(--arena-muted); font-size: .62rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 .arena-live-chef strong { display: block; margin-top: .16rem; color: var(--arena-ink); font: 700 1rem/1.1 var(--font-serif); overflow-wrap: anywhere; }

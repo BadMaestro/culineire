@@ -229,7 +229,11 @@
     var copy = document.createElement('div');
     var role = document.createElement('span');
     var name = document.createElement('strong');
+    var media = null;
     card.className = 'arena-live-chef' + (modifier ? ' ' + modifier : '');
+    if (chef.side) {
+      card.setAttribute('data-side', String(chef.side));
+    }
     image.src = chef.avatar_url || '';
     image.alt = chef.name || 'Chef';
     image.width = 72;
@@ -238,8 +242,21 @@
     name.textContent = chef.name || 'Chef';
     copy.appendChild(role);
     copy.appendChild(name);
-    card.appendChild(image);
-    card.appendChild(copy);
+    if (chef.profile_url) {
+      media = document.createElement('a');
+      media.className = 'arena-live-chef__profile';
+      media.href = chef.profile_url;
+      media.setAttribute('aria-label', (chef.name || 'Chef') + ' profile');
+      if (chef.slug) {
+        media.setAttribute('data-chef-slug', String(chef.slug));
+      }
+      media.appendChild(image);
+      media.appendChild(copy);
+      card.appendChild(media);
+    } else {
+      card.appendChild(image);
+      card.appendChild(copy);
+    }
     stage.appendChild(card);
   }
 

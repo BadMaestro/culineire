@@ -148,18 +148,50 @@
       <strong>{% if active_battle %}Live cooking in progress{% elif arena_data.center.type == 'crown' %}Crown holds the centre{% else %}The floor holds the show{% endif %}</strong>
       <em>{% if active_battle %}One scene · live hierarchy · real chefs{% else %}One scene · one hierarchy · neutral structure{% endif %}</em>
     </p>
-    <section id="arena-live-stage" class="arena-command-deck__live-stage arena-confrontation-band" aria-label="Arena centre" data-centre-key="{% if active_battle %}battle-{{ active_battle.pk }}{% elif arena_data.center.type == 'crown' %}crown-{{ arena_data.center.name }}{% else %}empty{% endif %}">
-    {% if active_battle %}
-      <article class="arena-live-chef arena-live-chef--challenger">
-        <img src="{{ active_battle.challenger.display_avatar_url }}" alt="{{ active_battle.challenger.name }}" width="72" height="72">
-        <div><span>Challenger</span><strong>{{ active_battle.challenger.name }}</strong></div>
+    <section id="arena-live-stage" class="arena-command-deck__live-stage arena-confrontation-band" aria-label="Arena centre" data-centre-key="{% if arena_data.center.type == 'active_battle' or arena_data.center.type == 'facing_pair' %}battle-{{ arena_data.center.battle_id }}{% elif active_battle %}battle-{{ active_battle.pk }}{% elif arena_data.center.type == 'crown' %}crown-{{ arena_data.center.name }}{% else %}empty{% endif %}">
+    {% if arena_data.center.type == 'active_battle' or arena_data.center.type == 'facing_pair' %}
+      {% with ch=arena_data.center.challenger op=arena_data.center.opponent %}
+      <article class="arena-live-chef arena-live-chef--challenger" data-side="{{ ch.side|default:'challenger' }}">
+        {% if ch.profile_url %}
+        <a class="arena-live-chef__profile" href="{{ ch.profile_url }}" aria-label="{{ ch.name }} profile"{% if ch.slug %} data-chef-slug="{{ ch.slug }}"{% endif %}>
+          <img src="{{ ch.avatar_url }}" alt="{{ ch.name }}" width="72" height="72">
+          <div><span>Challenger</span><strong>{{ ch.name }}</strong></div>
+        </a>
+        {% else %}
+        <img src="{{ ch.avatar_url }}" alt="{{ ch.name }}" width="72" height="72">
+        <div><span>Challenger</span><strong>{{ ch.name }}</strong></div>
+        {% endif %}
+      </article>
+      <a class="arena-live-centre battle-cursor-target js-battle-cursor-target" href="{{ arena_data.center.battle_url }}" aria-label="Open the live battle room">
+        <span>{{ arena_data.center.status_display }}</span><b>VS</b><em>{{ arena_data.center.theme }}</em>
+      </a>
+      <article class="arena-live-chef arena-live-chef--opponent" data-side="{{ op.side|default:'opponent' }}">
+        {% if op.profile_url %}
+        <a class="arena-live-chef__profile" href="{{ op.profile_url }}" aria-label="{{ op.name }} profile"{% if op.slug %} data-chef-slug="{{ op.slug }}"{% endif %}>
+          <img src="{{ op.avatar_url }}" alt="{{ op.name }}" width="72" height="72">
+          <div><span>Opponent</span><strong>{{ op.name }}</strong></div>
+        </a>
+        {% else %}
+        <div><span>Opponent</span><strong>{{ op.name }}</strong></div>
+        <img src="{{ op.avatar_url }}" alt="{{ op.name }}" width="72" height="72">
+        {% endif %}
+      </article>
+      {% endwith %}
+    {% elif active_battle %}
+      <article class="arena-live-chef arena-live-chef--challenger" data-side="challenger">
+        <a class="arena-live-chef__profile" href="{{ active_battle.challenger.get_absolute_url }}" aria-label="{{ active_battle.challenger.name }} profile" data-chef-slug="{{ active_battle.challenger.slug }}">
+          <img src="{{ active_battle.challenger.display_avatar_url }}" alt="{{ active_battle.challenger.name }}" width="72" height="72">
+          <div><span>Challenger</span><strong>{{ active_battle.challenger.name }}</strong></div>
+        </a>
       </article>
       <a class="arena-live-centre battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:battle_detail' active_battle.pk %}" aria-label="Open the live battle room">
         <span>{{ active_battle.get_status_display }}</span><b>VS</b><em>{{ active_battle.theme }}</em>
       </a>
-      <article class="arena-live-chef arena-live-chef--opponent">
-        <div><span>Opponent</span><strong>{{ active_battle.opponent.name }}</strong></div>
-        <img src="{{ active_battle.opponent.display_avatar_url }}" alt="{{ active_battle.opponent.name }}" width="72" height="72">
+      <article class="arena-live-chef arena-live-chef--opponent" data-side="opponent">
+        <a class="arena-live-chef__profile" href="{{ active_battle.opponent.get_absolute_url }}" aria-label="{{ active_battle.opponent.name }} profile" data-chef-slug="{{ active_battle.opponent.slug }}">
+          <img src="{{ active_battle.opponent.display_avatar_url }}" alt="{{ active_battle.opponent.name }}" width="72" height="72">
+          <div><span>Opponent</span><strong>{{ active_battle.opponent.name }}</strong></div>
+        </a>
       </article>
     {% elif arena_data.center.type == 'crown' %}
       <article class="arena-live-chef arena-live-chef--crown">
