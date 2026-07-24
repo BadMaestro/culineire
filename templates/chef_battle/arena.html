@@ -9,7 +9,7 @@
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260722-stage3b" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-3r3" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-3r6" rel="stylesheet">
 <link href="{% static 'css/arena_effects.css' %}?v=20260724-r9c" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260724-r9c" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
@@ -33,14 +33,20 @@
     <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Back to Chef Battles</a>
   </header>
 
-  <section id="arena-phase-rail" class="arena-command-deck__phase-rail" aria-label="Battle lifecycle" data-phase-key="{{ arena_data.phase.key|default:'' }}">
-    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 1 %} is-active{% endif %}" data-phase-step="1">1 <b>Challenge</b></span>
-    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 2 %} is-active{% endif %}" data-phase-step="2">2 <b>Combat</b></span>
-    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 3 %} is-active{% endif %}" data-phase-step="3">3 <b>Biathlon</b></span>
-    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 4 %} is-active{% endif %}" data-phase-step="4">4 <b>Cooking</b></span>
-    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 5 %} is-active{% endif %}" data-phase-step="5">5 <b>Review</b></span>
-    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 6 %} is-active{% endif %}" data-phase-step="6">6 <b>Voting</b></span>
-    <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 7 %} is-active{% endif %}" data-phase-step="7">7 <b>Crown</b></span>
+  <section id="arena-phase-rail" class="arena-command-deck__phase-rail{% if not arena_data.phase %} is-open{% endif %}" aria-label="Battle lifecycle" data-phase-key="{{ arena_data.phase.key|default:'' }}">
+    {% if arena_data.phase_rail %}
+      {% for rung in arena_data.phase_rail %}
+        <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == rung.step %} is-active{% elif arena_data.phase and arena_data.phase.step > rung.step %} is-complete{% endif %}" data-phase-step="{{ rung.step }}" data-phase-key="{{ rung.key }}"{% if arena_data.phase and arena_data.phase.step == rung.step %} aria-current="step"{% endif %}><span class="arena-phase-step__index" aria-hidden="true">{{ rung.step }}</span> <b>{{ rung.label }}</b></span>
+      {% endfor %}
+    {% else %}
+      <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 1 %} is-active{% endif %}" data-phase-step="1" data-phase-key="challenge">1 <b>Challenge</b></span>
+      <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 2 %} is-active{% endif %}" data-phase-step="2" data-phase-key="combat">2 <b>Combat</b></span>
+      <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 3 %} is-active{% endif %}" data-phase-step="3" data-phase-key="biathlon">3 <b>Biathlon</b></span>
+      <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 4 %} is-active{% endif %}" data-phase-step="4" data-phase-key="cooking">4 <b>Cooking</b></span>
+      <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 5 %} is-active{% endif %}" data-phase-step="5" data-phase-key="mod_review">5 <b>Review</b></span>
+      <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 6 %} is-active{% endif %}" data-phase-step="6" data-phase-key="voting">6 <b>Voting</b></span>
+      <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 7 %} is-active{% endif %}" data-phase-step="7" data-phase-key="crown">7 <b>Crown</b></span>
+    {% endif %}
   </section>
   </section>
 

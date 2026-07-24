@@ -49,9 +49,38 @@
 .arena-command-deck__live-note, .arena-command-deck__floor-copy, .arena-command-deck__phase-copy, .arena-command-deck__gift-copy { margin: .35rem 0 0; color: var(--arena-muted); font-size: .82rem; line-height: 1.5; }
 
 .arena-command-deck__phase-rail { grid-area: phase-rail; border-radius: 1rem; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: .45rem; gap: .35rem; }
+.arena-command-deck__phase-rail.is-open .arena-phase-step { opacity: .82; }
 .arena-phase-step { border-radius: .65rem; border: 1px solid transparent; color: var(--arena-muted); display: flex; align-items: center; justify-content: center; gap: .32rem; min-height: 2.3rem; font-size: .68rem; white-space: nowrap; }
+.arena-phase-step__index {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  color: var(--arena-muted);
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+}
 .arena-phase-step b { font-weight: 750; }
+.arena-phase-step.is-complete {
+  color: var(--arena-ink);
+  border-color: color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
+}
+.arena-phase-step.is-complete .arena-phase-step__index {
+  color: var(--arena-cappuccino);
+  border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  background: color-mix(in srgb, var(--accent-bronze) 16%, var(--surface));
+}
 .arena-phase-step.is-active { color: var(--arena-ink); border-color: color-mix(in srgb, var(--ink-soft) 45%, transparent); background: var(--arena-cream); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface) 90%, transparent); }
+.arena-phase-step.is-active .arena-phase-step__index {
+  color: var(--arena-cappuccino);
+  border-color: var(--arena-gold);
+  background: color-mix(in srgb, var(--accent-bronze) 22%, var(--surface));
+}
 
 .arena-command-deck__phase-card { grid-area: phase; align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__phase-name { margin: .55rem 0 .1rem; color: var(--arena-forest); font: 700 1.15rem/1.1 var(--font-serif); }
@@ -375,6 +404,17 @@
     justify-content: center;
     border-radius: 0.55rem;
     font-size: 0.62rem;
+    gap: 0.28rem;
+  }
+
+  .arena-broadcast-ribbon .arena-phase-step__index {
+    min-width: 0.95rem;
+    height: 0.95rem;
+    font-size: 0.54rem;
+  }
+
+  .arena-broadcast-ribbon .arena-phase-step.is-complete {
+    opacity: 0.95;
   }
 
   .arena-command-deck__phase-card { left: 1.5%; top: 14%; width: 20%; }

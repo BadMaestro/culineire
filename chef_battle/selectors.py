@@ -1131,8 +1131,9 @@ def get_arena_metrics(battle=None) -> dict:
 
 
 # 7-step public phase rail for the arena rebuild. Maps a live Battle.status to
-# one visible rung: Challenge -> Combat -> Biathlon -> Cooking -> Mod Review ->
-# Voting -> Crown. Keys/labels/steps are the front-end contract (Ember #159).
+# one visible rung: Challenge -> Combat -> Biathlon -> Cooking -> Review ->
+# Voting -> Crown. Keys/labels/steps are the front-end contract (Ember #159;
+# Build Plan 3R6 uses the public label "Review" for step 5).
 _ARENA_PHASE_RAIL = {
     "scheduled": ("challenge", "Challenge", 1),
     # Still on the opening rung: the arena is waiting for the second chef.
@@ -1147,11 +1148,27 @@ _ARENA_PHASE_RAIL = {
     "awaiting_submissions": ("cooking", "Cooking", 4),
     "revealed": ("cooking", "Cooking", 4),
     "cooking": ("cooking", "Cooking", 4),
-    "presentation": ("mod_review", "Mod Review", 5),
-    "disputed": ("mod_review", "Mod Review", 5),
+    "presentation": ("mod_review", "Review", 5),
+    "disputed": ("mod_review", "Review", 5),
     "voting": ("voting", "Voting", 6),
     "completed": ("crown", "Crown", 7),
 }
+
+# Canonical ordered rungs for Build Plan 3R6 stepper (SSR + poll).
+_ARENA_PHASE_RAIL_STEPS = (
+    {"key": "challenge", "label": "Challenge", "step": 1},
+    {"key": "combat", "label": "Combat", "step": 2},
+    {"key": "biathlon", "label": "Biathlon", "step": 3},
+    {"key": "cooking", "label": "Cooking", "step": 4},
+    {"key": "mod_review", "label": "Review", "step": 5},
+    {"key": "voting", "label": "Voting", "step": 6},
+    {"key": "crown", "label": "Crown", "step": 7},
+)
+
+
+def get_arena_phase_rail() -> list[dict]:
+    """Ordered 7-step public phase rail for the confrontation-era stepper."""
+    return [dict(step) for step in _ARENA_PHASE_RAIL_STEPS]
 
 
 def get_arena_phase(battle=None) -> dict | None:

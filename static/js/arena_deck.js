@@ -191,25 +191,77 @@
     }
 
     var phase = data.arena_phase || data.phase;
+    var phaseRail = data.phase_rail || data.arena_phase_rail;
     var rail = byId('arena-phase-rail');
     if (!rail) { return; }
     var phaseName = byId('arena-current-phase');
     var phaseCopy = byId('arena-current-phase-copy');
+    var activeStep = phase && phase.step ? Number(phase.step) : 0;
+
+    if (Array.isArray(phaseRail) && phaseRail.length) {
+      ensurePhaseRailSteps(rail, phaseRail);
+    }
     var steps = rail.querySelectorAll('[data-phase-step]');
 
-    if (!phase || !phase.step) {
-      Array.prototype.forEach.call(steps, function (step) { step.classList.remove('is-active'); });
+    if (!activeStep) {
+      Array.prototype.forEach.call(steps, function (step) {
+        step.classList.remove('is-active', 'is-complete');
+        step.removeAttribute('aria-current');
+      });
+      rail.classList.add('is-open');
       rail.setAttribute('data-phase-key', '');
       if (phaseName) { phaseName.textContent = 'Open floor'; }
       if (phaseCopy) { phaseCopy.textContent = 'Choose a chef on the floor to inspect their profile or issue a challenge.'; }
       return;
     }
+    rail.classList.remove('is-open');
     Array.prototype.forEach.call(steps, function (step) {
-      step.classList.toggle('is-active', Number(step.getAttribute('data-phase-step')) === Number(phase.step));
+      var stepNo = Number(step.getAttribute('data-phase-step'));
+      var isActive = stepNo === activeStep;
+      step.classList.toggle('is-active', isActive);
+      step.classList.toggle('is-complete', stepNo > 0 && stepNo < activeStep);
+      if (isActive) { step.setAttribute('aria-current', 'step'); }
+      else { step.removeAttribute('aria-current'); }
     });
     rail.setAttribute('data-phase-key', phase.key || '');
     if (phaseName) { phaseName.textContent = phase.label || 'Battle in progress'; }
     if (phaseCopy) { phaseCopy.textContent = 'The centre tile opens the live battle room, chat and public actions.'; }
+  }
+
+  function ensurePhaseRailSteps(rail, phaseRail) {
+    var existing = rail.querySelectorAll('[data-phase-step]');
+    var needsRebuild = existing.length !== phaseRail.length;
+    if (!needsRebuild) {
+      Array.prototype.forEach.call(existing, function (el, idx) {
+        var rung = phaseRail[idx];
+        if (!rung) { needsRebuild = true; return; }
+        if (Number(el.getAttribute('data-phase-step')) !== Number(rung.step)) { needsRebuild = true; }
+        if ((el.getAttribute('data-phase-key') || '') !== String(rung.key || '')) { needsRebuild = true; }
+        var label = el.querySelector('b');
+        if (label && rung.label && label.textContent !== String(rung.label)) {
+          label.textContent = String(rung.label);
+        }
+      });
+    }
+    if (!needsRebuild) { return; }
+    rail.textContent = '';
+    phaseRail.forEach(function (rung) {
+      if (!rung || !rung.step) { return; }
+      var step = document.createElement('span');
+      step.className = 'arena-phase-step';
+      step.setAttribute('data-phase-step', String(rung.step));
+      if (rung.key) { step.setAttribute('data-phase-key', String(rung.key)); }
+      var index = document.createElement('span');
+      index.className = 'arena-phase-step__index';
+      index.setAttribute('aria-hidden', 'true');
+      index.textContent = String(rung.step);
+      var label = document.createElement('b');
+      label.textContent = String(rung.label || '');
+      step.appendChild(index);
+      step.appendChild(document.createTextNode(' '));
+      step.appendChild(label);
+      rail.appendChild(step);
+    });
   }
 
   /* ---- centre live stage ---- */

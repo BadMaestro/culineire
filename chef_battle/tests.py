@@ -2634,7 +2634,7 @@ class ArenaMasterStateTests(TestCase):
         self.assertEqual(set(data.keys()),
                          {"rings", "spectators", "center", "latest_result",
                           "crown_streak", "crown_ladder", "recent_gifts", "metrics",
-                          "phase", "deadline", "server_time", "geometry"})
+                          "phase", "phase_rail", "deadline", "server_time", "geometry"})
 
     def test_operator_fields_do_not_leak_into_public_arena(self):
         self._battle(Battle.Status.VOTING)
@@ -4232,7 +4232,7 @@ class ViewerPresenceTests(TestCase):
         self.assertEqual(set(resp.json().keys()),
                          {"rings", "spectators", "center", "latest_result",
                           "crown_streak", "crown_ladder", "recent_gifts", "metrics",
-                          "phase", "deadline", "server_time", "geometry"})
+                          "phase", "phase_rail", "deadline", "server_time", "geometry"})
 
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
@@ -6648,6 +6648,8 @@ class ArenaPayloadWiringTests(TestCase):
         self.assertIn("recent_gifts", p)
         self.assertIn("metrics", p)
         self.assertIn("phase", p)
+        self.assertIn("phase_rail", p)
+        self.assertEqual(len(p["phase_rail"]), 7)
         self.assertIn("deadline", p)
         self.assertIn("server_time", p)
         self.assertIn("geometry", p)
@@ -6876,6 +6878,33 @@ class ArenaPhaseTests(TestCase):
         ph = get_arena_phase(self._battle(Battle.Status.PAUSED, paused_from="voting"))
         self.assertEqual(ph["key"], "voting")
         self.assertEqual(ph["step"], 6)
+
+
+class ArenaPhaseRailContractTests(TestCase):
+    """Build Plan 3R6: ordered 7-step phase_rail for SSR + poll."""
+
+    def test_phase_rail_is_seven_ordered_public_steps(self):
+        from .selectors import get_arena_phase_rail
+
+        rail = get_arena_phase_rail()
+        self.assertEqual(len(rail), 7)
+        self.assertEqual([s["step"] for s in rail], [1, 2, 3, 4, 5, 6, 7])
+        self.assertEqual(
+            [s["label"] for s in rail],
+            ["Challenge", "Combat", "Biathlon", "Cooking", "Review", "Voting", "Crown"],
+        )
+        self.assertEqual(
+            [s["key"] for s in rail],
+            ["challenge", "combat", "biathlon", "cooking", "mod_review", "voting", "crown"],
+        )
+
+    def test_payload_includes_phase_rail(self):
+        from chef_battle.views import _build_arena_payload
+
+        payload = _build_arena_payload()
+        self.assertIn("phase_rail", payload)
+        self.assertEqual(len(payload["phase_rail"]), 7)
+        self.assertIsNone(payload["phase"])
 
 
 class ArenaDeadlineTests(TestCase):
