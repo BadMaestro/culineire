@@ -934,3 +934,37 @@
     display: none;
   }
 }
+
+
+/* 3G — denser panel rhythm after title stacks + ticker. */
+@media (min-width: 901px) {
+  .arena-command-deck__phase-card,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts,
+  .arena-command-deck__metrics {
+    padding: 0.72rem 0.82rem;
+  }
+  .arena-panel__title {
+    margin-bottom: 0.4rem;
+  }
+  .arena-command-deck__phase-card {
+    top: 15%;
+  }
+  .arena-command-deck__metrics {
+    top: 15%;
+  }
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    bottom: 9.5%;
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 14.5%;
+  }
+  .arena-command-deck__phase-card .arena-command-deck__phase-copy {
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+  }
+  .arena-compact-facts {
+    margin-top: 0.4rem;
+  }
+}
