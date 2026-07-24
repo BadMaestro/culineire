@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af60.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af62.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af57+af58 LIVE (v2.5.529 / d61b1cb1). af60: deeper ::before bottom dark.
+ * af59 LIVE (v2.5.530 / 8deabda1). af62: stronger side green/red washes.
  */
 
 .page--arena {
@@ -26,12 +26,12 @@
     ),
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--hall-green) 46%, transparent),
-      color-mix(in srgb, var(--hall-green) 18%, transparent) 14%,
+      color-mix(in srgb, var(--hall-green) 50%, transparent),
+      color-mix(in srgb, var(--hall-green) 20%, transparent) 14%,
       transparent 26%,
       transparent 74%,
-      color-mix(in srgb, var(--hall-red) 18%, transparent) 86%,
-      color-mix(in srgb, var(--hall-red) 46%, transparent)
+      color-mix(in srgb, var(--hall-red) 20%, transparent) 86%,
+      color-mix(in srgb, var(--hall-red) 50%, transparent)
     ),
     linear-gradient(
       180deg,
@@ -96,14 +96,14 @@
     linear-gradient(
       68deg,
       transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 82%, transparent) 45.4% 46.9%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 86%, transparent) 45.4% 46.9%,
       transparent 48%
     )
       left bottom / 24% 100% no-repeat,
     linear-gradient(
       -68deg,
       transparent 44.5%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 82%, transparent) 45.4% 46.9%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 86%, transparent) 45.4% 46.9%,
       transparent 48%
     )
       right bottom / 24% 100% no-repeat,

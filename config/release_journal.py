@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.533",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af61+af62 gold rails and side washes with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af61+af62 (9f2b9daa) onto live polish r10c + af5–af60. Load order: polish r10c → atmosphere af62. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.534",
+        "date": "2026-07-24",
+        "commit": "79487c3e",
+        "title": "ArenaFront af62: stronger side green/red washes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af59 LIVE (#2508 / 8deabda1 v2.5.530): lift page side green/red washes (50%/20%). SVG centre mask held. Cache-bust af62. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.533",
+        "date": "2026-07-24",
+        "commit": "d9c017d3",
+        "title": "ArenaFront af61: brighter stand gold rails",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift ::before stand gold rails (86%). SVG centre mask held. Cache-bust af61. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.532",
+        "date": "2026-07-24",
+        "commit": "0aef1742",
+        "title": "ArenaFront af60: deeper ::before bottom dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "af57+af58 LIVE (#2497 / d61b1cb1 v2.5.529): deepen ::before bottom dark wash (88%/52%). SVG centre mask held. Cache-bust af60. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.531",
         "date": "2026-07-24",
         "commit": "33a6bf33",
