@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af69.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af70.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af65+af66 LIVE (v2.5.537 / a94d23a4). af69: denser ::after stand haze rings.
+ * af67+af68 LIVE (v2.5.539 / 834687bf). af70: deeper ::before bottom dark.
  */
 
 .page--arena {
@@ -116,8 +116,8 @@
     ),
     linear-gradient(
       0deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 88%, transparent),
-      transparent 52%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 90%, transparent),
+      transparent 54%
     );
   background-size:
     2.8rem 2.8rem,
