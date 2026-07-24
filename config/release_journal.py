@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.513",
+        "date": "2026-07-24",
+        "commit": "585448f5",
+        "title": "ArenaFront af41: stronger mid hall gold bloom",
+        "section": "Chef Battles / Deployment",
+        "summary": "af38 LIVE (#2398 / edf71833 v2.5.510): warm upper gold bloom further (58%/26%) for wall-wash match. SVG centre mask held. Cache-bust af41. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.512",
         "date": "2026-07-24",
-        "commit": "ae1d2e3e",
+        "commit": "3908c734",
         "title": "ArenaFront af40: deeper top ceiling darken",
         "section": "Chef Battles / Deployment",
         "summary": "af36+af37 LIVE (#2393 / 2c11ebb5 v2.5.509): deepen upper page ceiling dark wash (54%/38%) for cinematic hall top. SVG centre mask held. Cache-bust af40. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
