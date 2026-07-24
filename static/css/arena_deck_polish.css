@@ -1045,3 +1045,27 @@
     display: none;
   }
 }
+
+
+/* 3G — vertical stack alignment after caption graft. */
+@media (min-width: 901px) {
+  .arena-floor-caption {
+    top: 7.8%;
+    width: min(26rem, 42%);
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 17.5%;
+    width: min(70%, 50rem);
+  }
+  .arena-rank-spine {
+    top: 38%;
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics {
+    top: 16%;
+  }
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    bottom: 10%;
+  }
+}
