@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.525",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "33d84b87",
         "title": "Merge af53 gold rails with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af53 (3cb1f74d) onto live polish r10c + af5–af52. Load order: polish r10c → atmosphere af53. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
