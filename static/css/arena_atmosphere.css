@@ -94,7 +94,8 @@
   opacity: 0.95;
 }
 
-/* Floor pool + crowd-haze rings — parchment stays in the centre, stands around it. */
+/* Floor-edge crowd haze only — center stays clear so live SVG seats read (Owner #2207).
+   floor-sheen PNG kept as a faint outer wash, not a centre plate. */
 .page--arena::after {
   content: "";
   position: fixed;
@@ -108,25 +109,29 @@
   background:
     repeating-radial-gradient(
       circle at 50% 52%,
-      transparent 0 6.2%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 18%, transparent) 6.35% 6.55%,
-      transparent 6.7% 9.8%
-    ),
-    repeating-radial-gradient(
-      circle at 50% 52%,
-      transparent 0 3.1%,
-      color-mix(in srgb, var(--ink) 22%, transparent) 3.2% 3.35%,
-      transparent 3.5% 5.4%
+      transparent 0 7.4%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 12%, transparent) 7.55% 7.7%,
+      transparent 7.85% 11%
     ),
     radial-gradient(
-      ellipse 72% 44% at 50% 56%,
-      color-mix(in srgb, var(--surface) 88%, transparent) 0 28%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 20%, transparent) 42%,
-      transparent 72%
+      ellipse 78% 50% at 50% 56%,
+      transparent 0 38%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 10%, transparent) 52%,
+      transparent 74%
     ),
     var(--arena-atm-floor) center / cover no-repeat;
-  opacity: 0.58;
+  opacity: 0.28;
   mix-blend-mode: soft-light;
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 52%,
+    transparent 0 34%,
+    #000 52% 100%
+  );
+  mask-image: radial-gradient(
+    circle at 50% 52%,
+    transparent 0 34%,
+    #000 52% 100%
+  );
 }
 
 .page--arena #main-content,
@@ -144,7 +149,7 @@
   }
 
   .page--arena::after {
-    opacity: 0.64;
+    opacity: 0.32;
   }
 }
 
@@ -156,7 +161,7 @@
   .page--arena::after {
     width: min(100vw, 42rem);
     height: min(62vh, 30rem);
-    opacity: 0.4;
+    opacity: 0.2;
   }
 }
 
