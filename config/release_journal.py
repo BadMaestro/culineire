@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.547",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "c8e39355",
         "title": "Merge af77 crown gold with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af78 (9f6f7472) onto live polish r10c. Load order: polish r10c → atmosphere af78. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
