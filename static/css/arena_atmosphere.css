@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af67.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af68.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af63+af64 LIVE (v2.5.535 / 81d505ee). af67: stronger bottom page dark wash.
+ * Pair FE continue. af68: stronger top crown gold wash.
  */
 
 .page--arena {
@@ -15,9 +15,9 @@
   background:
     radial-gradient(
       100% 48% at 50% -4%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 70%, transparent),
-      color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 34%, transparent) 36%,
-      transparent 66%
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 74%, transparent),
+      color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 38%, transparent) 38%,
+      transparent 68%
     ),
     linear-gradient(
       180deg,
