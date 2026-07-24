@@ -1648,3 +1648,59 @@
       );
   }
 }
+
+
+/* 3G — parchment floor plate under live SVG (prototype floor, official tokens). */
+@media (min-width: 901px) {
+  .arena-floor-stage {
+    perspective: 58rem;
+  }
+  .arena-floor-stage::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    top: 52%;
+    width: min(72%, 46rem);
+    aspect-ratio: 1;
+    pointer-events: none;
+    transform: translate(-50%, -50%) rotateX(28deg) scale(1.05);
+    transform-origin: 50% 58%;
+    clip-path: polygon(29.3% 0, 70.7% 0, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0 70.7%, 0 29.3%);
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    background:
+      radial-gradient(
+        circle at 50% 50%,
+        color-mix(in srgb, var(--surface) 96%, var(--accent-bronze)) 0 16%,
+        transparent 16.4%
+      ),
+      repeating-radial-gradient(
+        circle at 50% 50%,
+        transparent 0 7.5%,
+        color-mix(in srgb, var(--accent-bronze) 42%, transparent) 7.6% 7.9%,
+        transparent 8.1% 12.5%
+      ),
+      conic-gradient(
+        from 22.5deg at 50% 50%,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 0 12.4%,
+        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 12.5% 24.9%,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 25% 37.4%,
+        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 37.5% 49.9%,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 50% 62.4%,
+        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 62.5% 74.9%,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 75% 87.4%,
+        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 87.5% 100%
+      );
+    box-shadow:
+      inset 0 0 0 0.35rem color-mix(in srgb, var(--accent-bronze) 48%, transparent),
+      inset 0 0 2.4rem color-mix(in srgb, var(--surface) 70%, transparent),
+      0 1.6rem 2.8rem color-mix(in srgb, var(--ink) 28%, transparent);
+    opacity: 0.92;
+  }
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  .arena-floor-stage::before {
+    transform: translate(-50%, -50%);
+  }
+}
