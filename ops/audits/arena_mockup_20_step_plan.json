@@ -128,16 +128,17 @@
       "n": 13,
       "id": "M13",
       "title": "Today's Crown Ladder panel mockup parity",
-      "status": "FE_READY",
+      "status": "LIVE",
       "owner": "arenafront",
-      "note": "Tip: ranked gold ladder rows; await Cursor integrate"
+      "note": "v2.5.574"
     },
     {
       "n": 14,
       "id": "M14",
       "title": "Recent Battle Gifts panel + Send a Gift CTA mockup parity",
-      "status": "PARTIAL_LIVE",
-      "owner": "arenafront"
+      "status": "FE_READY",
+      "owner": "arenafront",
+      "note": "Tip: gifts feed + Send a Gift CTA; await Cursor integrate"
     },
     {
       "n": 15,

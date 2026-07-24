@@ -3236,3 +3236,154 @@
     text-transform: uppercase;
   }
 }
+
+
+/* ============================================================================
+ * MOCKUP M14 — Recent Battle Gifts panel + Send a Gift CTA.
+ * Reuses battle_detail / appreciation_gallery gift flows; no new shop path.
+ * ============================================================================ */
+@media (min-width: 901px) {
+  .arena-command-deck__gifts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.85rem 0.95rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    border-radius: 0.85rem;
+    background:
+      linear-gradient(
+        165deg,
+        color-mix(in srgb, var(--surface) 94%, transparent),
+        color-mix(in srgb, var(--surface-soft) 82%, transparent)
+      );
+    box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+
+  .arena-command-deck__gifts > .arena-panel__title {
+    margin: 0;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
+  }
+
+  .arena-command-deck__gifts .arena-panel__kicker {
+    margin: 0;
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
+    color: var(--accent-bronze-dark);
+  }
+
+  .arena-command-deck__gifts .arena-panel__heading {
+    margin: 0.12rem 0 0;
+    font-size: clamp(1.05rem, 1.45vw, 1.28rem);
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+
+  .arena-command-deck__gifts .arena-gift-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0;
+  }
+
+  .arena-command-deck__gifts .arena-gift-list li {
+    display: grid;
+    grid-template-columns: 1.15rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.2rem;
+    padding: 0.42rem 0.1rem;
+    border: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 26%, transparent);
+    border-radius: 0;
+    background: transparent;
+    font-size: 0.7rem;
+  }
+
+  .arena-command-deck__gifts .arena-gift-list li:last-child {
+    border-bottom: 0;
+  }
+
+  .arena-command-deck__gifts .arena-gift-list li.arena-panel__empty {
+    display: block;
+    color: var(--muted);
+    font-size: 0.68rem;
+  }
+
+  .arena-command-deck__gifts .arena-gift-list .arena-ico {
+    width: 0.85rem;
+    height: 0.85rem;
+    color: var(--accent-bronze);
+  }
+
+  .arena-command-deck__gifts .arena-gift-list li > span {
+    display: grid;
+    gap: 0.08rem;
+    min-width: 0;
+  }
+
+  .arena-command-deck__gifts .arena-gift-list a {
+    overflow: hidden;
+    color: var(--ink);
+    font-weight: 700;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .arena-command-deck__gifts .arena-gift-list a:hover,
+  .arena-command-deck__gifts .arena-gift-list a:focus-visible {
+    color: var(--accent-bronze-dark);
+  }
+
+  .arena-command-deck__gifts .arena-gift-list b {
+    display: block;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 0.58rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .arena-command-deck__gifts .arena-gift-list em {
+    color: var(--accent-bronze);
+    font-style: normal;
+    font-size: 0.68rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+  }
+
+  .arena-command-deck__gifts .arena-command-deck__gift-copy {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.62rem;
+    line-height: 1.35;
+  }
+
+  .arena-command-deck__gifts > .btn-primary,
+  .arena-command-deck__gifts > .btn-secondary {
+    align-self: stretch;
+    justify-content: center;
+    min-height: 2.25rem;
+    margin-top: 0.1rem;
+    border-radius: 999px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .arena-command-deck__gifts > .btn-primary {
+    border-color: var(--accent-bronze);
+    color: var(--ink);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent-bronze) 72%, var(--surface)),
+        color-mix(in srgb, var(--accent-bronze) 42%, var(--surface))
+      );
+    box-shadow: 0 0.35rem 0.9rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+}
