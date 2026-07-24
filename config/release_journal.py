@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.515",
+        "date": "2026-07-24",
+        "commit": "a74dc55f",
+        "title": "ArenaFront af43: denser outer gold haze ellipse",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift ::after outer gold/dark ellipse mixes (22%/26%). SVG centre mask held. Cache-bust af43. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.514",
         "date": "2026-07-24",
-        "commit": "166145f0",
+        "commit": "1fbb5de7",
         "title": "ArenaFront af42: stronger ::before bottom dark",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: deepen ::before bottom dark wash (84%/50%) for hall floor enclosure. SVG centre mask held. Cache-bust af42. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",

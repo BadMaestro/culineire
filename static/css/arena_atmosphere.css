@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af42.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af43.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af38 LIVE (v2.5.510). Pending af39–af41. af42: stronger ::before bottom dark.
+ * af38 LIVE (v2.5.510). Pending af39–af42. af43: denser outer gold haze ellipse.
  */
 
 .page--arena {
@@ -188,8 +188,8 @@
     radial-gradient(
       ellipse 82% 54% at 50% 56%,
       transparent 0 40%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 16%, transparent) 54%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 20%, transparent) 72%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 22%, transparent) 54%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 26%, transparent) 72%,
       transparent 88%
     ),
     radial-gradient(
