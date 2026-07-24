@@ -427,3 +427,44 @@
     text-shadow: 0 0 0.85rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
   }
 }
+
+
+/* 3G — empty/crown centre as circular focus (prototype crown-focus). */
+@media (min-width: 901px) {
+  .arena-confrontation-band .arena-live-centre--crown,
+  .arena-confrontation-band .arena-live-centre--quiet {
+    width: 7.2rem;
+    height: 7.2rem;
+    min-height: 0;
+    margin-inline: auto;
+    border-radius: 50%;
+    border-color: var(--accent-bronze);
+    background:
+      radial-gradient(
+        circle at 50% 40%,
+        color-mix(in srgb, var(--accent-bronze) 18%, var(--surface)),
+        color-mix(in srgb, var(--surface-soft) 92%, transparent) 68%
+      );
+    box-shadow:
+      inset 0 0 1.1rem color-mix(in srgb, var(--accent-bronze) 22%, transparent),
+      0 0 1.6rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+  .arena-confrontation-band .arena-live-centre--crown b,
+  .arena-confrontation-band .arena-live-centre--quiet b {
+    font-size: clamp(1.45rem, 2.2vw, 1.9rem);
+    color: var(--accent-bronze-dark);
+  }
+  .arena-confrontation-band .arena-live-centre--crown span,
+  .arena-confrontation-band .arena-live-centre--quiet span,
+  .arena-confrontation-band .arena-live-centre--crown em,
+  .arena-confrontation-band .arena-live-centre--quiet em {
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+  }
+  .arena-confrontation-band .arena-live-centre--crown::before,
+  .arena-confrontation-band .arena-live-centre--quiet::before {
+    inset: -0.42rem;
+    border-radius: 50%;
+    border-color: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+  }
+}
