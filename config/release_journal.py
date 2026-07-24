@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.475",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "f6eeb715",
         "title": "Merge af7 token hall deepen with r10c+af5+af6",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af7 (dab856e0: token-only hall deepen, drop raw HEX fallback, stronger gold/side washes; af6 SVG centre mask kept) onto live r10c+af5+af6 stack. Load order: polish r10c → atmosphere af7. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
