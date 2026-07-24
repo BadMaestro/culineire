@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.544",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "d1b9963a",
         "title": "Merge af73+af74 corners and side darken with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af74 (d1690be8) onto live polish r10c. Load order: polish r10c → atmosphere af74. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
