@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.513",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af40–af41 ceiling dark + gold bloom with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af40–af41 (afdf1784) onto live polish r10c + af5–af39. Load order: polish r10c → atmosphere af41. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.513",
+        "date": "2026-07-24",
+        "commit": "585448f5",
+        "title": "ArenaFront af41: stronger mid hall gold bloom",
+        "section": "Chef Battles / Deployment",
+        "summary": "af38 LIVE (#2398 / edf71833 v2.5.510): warm upper gold bloom further (58%/26%) for wall-wash match. SVG centre mask held. Cache-bust af41. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.512",
+        "date": "2026-07-24",
+        "commit": "3908c734",
+        "title": "ArenaFront af40: deeper top ceiling darken",
+        "section": "Chef Battles / Deployment",
+        "summary": "af36+af37 LIVE (#2393 / 2c11ebb5 v2.5.509): deepen upper page ceiling dark wash (54%/38%) for cinematic hall top. SVG centre mask held. Cache-bust af40. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.511",
         "date": "2026-07-24",
         "commit": "a0cd1960",
