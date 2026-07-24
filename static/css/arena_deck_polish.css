@@ -3103,3 +3103,136 @@
     text-shadow: 0 0 0.85rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
   }
 }
+
+
+/* ============================================================================
+ * MOCKUP M13 — Today's Crown Ladder panel: ranked rows + gold indices.
+ * Keep ladder ids / profile links; visual parity only.
+ * ============================================================================ */
+@media (min-width: 901px) {
+  .arena-command-deck__ladder {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.85rem 0.95rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    border-radius: 0.85rem;
+    background:
+      linear-gradient(
+        165deg,
+        color-mix(in srgb, var(--surface) 94%, transparent),
+        color-mix(in srgb, var(--surface-soft) 82%, transparent)
+      );
+    box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+
+  .arena-command-deck__ladder > .arena-panel__title {
+    margin: 0;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
+  }
+
+  .arena-command-deck__ladder .arena-panel__kicker {
+    margin: 0;
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
+    color: var(--accent-bronze-dark);
+  }
+
+  .arena-command-deck__ladder .arena-panel__heading {
+    margin: 0.12rem 0 0;
+    font-size: clamp(1.05rem, 1.45vw, 1.28rem);
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+
+  .arena-command-deck__ladder .arena-ladder-list {
+    margin: 0;
+    gap: 0;
+  }
+
+  .arena-command-deck__ladder .arena-ladder-list li {
+    display: grid;
+    grid-template-columns: 1.55rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.15rem;
+    padding: 0.42rem 0.15rem;
+    border: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 26%, transparent);
+    border-radius: 0;
+    background: transparent;
+    font-size: 0.72rem;
+  }
+
+  .arena-command-deck__ladder .arena-ladder-list li:last-child {
+    border-bottom: 0;
+  }
+
+  .arena-command-deck__ladder .arena-ladder-list li.arena-panel__empty {
+    display: block;
+    color: var(--muted);
+    font-size: 0.68rem;
+  }
+
+  .arena-command-deck__ladder .arena-ladder-list li > span {
+    display: grid;
+    place-items: center;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--ink) 18%, var(--surface));
+    color: var(--accent-bronze);
+    font-size: 0.58rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .arena-command-deck__ladder .arena-ladder-list li:nth-child(-n+3) > span {
+    border-color: var(--accent-bronze);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent-bronze) 55%, var(--surface)),
+        color-mix(in srgb, var(--accent-bronze) 28%, var(--surface))
+      );
+    color: var(--ink);
+    box-shadow: 0 0 0.45rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  }
+
+  .arena-command-deck__ladder .arena-ladder-list li > a {
+    overflow: hidden;
+    color: var(--ink);
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .arena-command-deck__ladder .arena-ladder-list li > a:hover,
+  .arena-command-deck__ladder .arena-ladder-list li > a:focus-visible {
+    color: var(--accent-bronze-dark);
+  }
+
+  .arena-command-deck__ladder .arena-ladder-list li > em {
+    color: var(--accent-bronze);
+    font-style: normal;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .arena-command-deck__ladder > .btn-secondary {
+    align-self: stretch;
+    justify-content: center;
+    min-height: 2.15rem;
+    margin-top: 0.15rem;
+    border-color: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    font-weight: 750;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}
