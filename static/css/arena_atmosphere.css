@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af18.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af19.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af14 live. af15–af17 pending. af18: brighter stand gold lines (mockup rails).
+ * af14 live. af15–af18 pending. af19: mobile hall readability + wider SVG-clear mask.
  */
 
 .page--arena {
@@ -218,13 +218,23 @@
 
 @media (max-width: 900px) {
   .page--arena::before {
-    opacity: 0.85;
+    opacity: 0.92;
   }
 
   .page--arena::after {
     width: min(100vw, 42rem);
     height: min(62vh, 30rem);
-    opacity: 0.2;
+    opacity: 0.22;
+    -webkit-mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 42%,
+      #000 62% 100%
+    );
+    mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 42%,
+      #000 62% 100%
+    );
   }
 }
 

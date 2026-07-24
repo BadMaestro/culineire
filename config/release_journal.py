@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.487",
+        "date": "2026-07-24",
+        "commit": "b393f1bf",
+        "title": "ArenaFront af19: mobile hall readability + wider SVG-clear mask",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle: on <=900px raise ::before opacity and widen ::after centre mask so live SVG seats stay clear on mobile while hall atmosphere still reads. Dual-cursor standby respected. Cache-bust af19. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.486",
         "date": "2026-07-24",
-        "commit": "587fd4df",
+        "commit": "806f13aa",
         "title": "ArenaFront af18: brighter stand gold lines",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle: brighter left/right stand gold rails in .page--arena::before with --hall-gold. Dual-cursor standby respected (no merge pings). SVG centre mask held. Cache-bust af18. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
