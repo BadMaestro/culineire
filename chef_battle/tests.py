@@ -7561,3 +7561,41 @@ class ValidShareTokenTests(TestCase):
         self.assertFalse(valid_share_token("s3cre", "s3cret"))
         self.assertFalse(valid_share_token("s3cretx", "s3cret"))
         self.assertFalse(valid_share_token("S3cret", "s3cret"))
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class BattleDetailA11yTests(TestCase):
+    """CF5: battle_detail a11y floor — close the gap vs arena.html coverage."""
+
+    def setUp(self):
+        User = get_user_model()
+        ua = User.objects.create_superuser("cf5-a", "cf5a@example.com", "pw")
+        ub = User.objects.create_user("cf5-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="CF5 Chef A", slug="cf5-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="CF5 Chef B", slug="cf5-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="CF5 A11y Duel", status=Battle.Status.ACTIVE,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        self.client.login(username="cf5-a", password="pw")
+        self.url = reverse("chef_battle:battle_detail", kwargs={"pk": self.battle.pk})
+
+    def test_landmarks_and_matchup_are_labelled(self):
+        html = self.client.get(self.url).content.decode()
+        self.assertIn('aria-labelledby="battle-room-title"', html)
+        self.assertIn('id="battle-room-title"', html)
+        self.assertIn('aria-label="Chef matchup"', html)
+        self.assertIn('aria-label="Battle room"', html)
+        self.assertIn('aria-label="Battle sidebar"', html)
+        self.assertIn('aria-label="Battle schedule"', html)
+        self.assertGreaterEqual(html.count("aria-label"), 8)
+        self.assertGreaterEqual(html.count("role="), 3)
+
+    def test_phase_kicker_exposes_status(self):
+        html = self.client.get(self.url).content.decode()
+        self.assertIn('class="battle-kicker battle-kicker--active" role="status"', html)
