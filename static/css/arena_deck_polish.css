@@ -2458,3 +2458,106 @@
     filter: blur(1.45rem);
   }
 }
+
+
+/* 3G — r10b: spine ladder over centre + ribbon LIVE weight (mockup #1). */
+@media (min-width: 901px) {
+  .arena-rank-spine {
+    top: 12%;
+    width: min(12.5rem, 20%);
+    gap: 0.22rem;
+    z-index: 5;
+  }
+  .arena-rank-spine::before {
+    margin-bottom: 0.35rem;
+    color: var(--accent-bronze);
+    font-size: 0.48rem;
+    letter-spacing: 0.14em;
+    text-shadow: 0 0 0.6rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  }
+  .arena-rank-spine__step {
+    min-height: 1.15rem;
+    border-radius: 0.35rem;
+    font-size: 0.52rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-color: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent-bronze) 16%, var(--surface)),
+        color-mix(in srgb, var(--ink) 32%, var(--surface))
+      );
+  }
+  .arena-rank-spine__step b {
+    color: var(--accent-bronze);
+    border-color: color-mix(in srgb, var(--accent-bronze) 65%, transparent);
+    background: color-mix(in srgb, var(--ink) 35%, var(--surface));
+    box-shadow: 0 0 0.35rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+  .arena-rank-spine__step:nth-child(1),
+  .arena-rank-spine__step:nth-child(2) {
+    border-color: var(--accent-bronze);
+    box-shadow: 0 0 0.55rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  }
+
+  .arena-broadcast-ribbon {
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--ink) 55%, transparent),
+        color-mix(in srgb, var(--ink) 28%, transparent)
+      );
+  }
+  .arena-broadcast-ribbon .arena-command-deck__live-note.is-live {
+    color: var(--accent-bronze);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active {
+    color: var(--ink);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent-bronze) 72%, var(--surface)),
+        color-mix(in srgb, var(--accent-bronze) 48%, var(--surface))
+      );
+  }
+
+  .arena-confrontation-band .arena-live-chef img {
+    width: 4.1rem;
+    height: 4.1rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid color-mix(in srgb, var(--accent-bronze) 70%, transparent);
+    box-shadow: 0 0 0.85rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--challenger img {
+    border-color: color-mix(in srgb, var(--hall-green) 75%, var(--accent-bronze));
+    box-shadow: 0 0 0.95rem color-mix(in srgb, var(--hall-green) 45%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--opponent img {
+    border-color: color-mix(in srgb, var(--hall-red) 75%, var(--accent-bronze));
+    box-shadow: 0 0 0.95rem color-mix(in srgb, var(--hall-red) 45%, transparent);
+  }
+
+  .arena-lower-broadcast .ce-nav__link--battle {
+    min-height: 2.45rem;
+    padding-inline: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent-bronze) 55%, var(--surface)),
+        color-mix(in srgb, var(--accent-bronze) 32%, var(--surface))
+      );
+    border-color: var(--accent-bronze);
+    color: var(--ink);
+    box-shadow: 0 0.35rem 0.9rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+}
