@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.569",
+        "date": "2026-07-24",
+        "commit": "PENDING",
+        "title": "MOCKUP M07 — on-floor chef hex portraits",
+        "section": "Chef Battles / Deployment",
+        "summary": "MOCKUP_20_STEP M07. FE tip 957e0115: stampFloorCentre large hex portraits (challenger green left / opponent red right) from existing payload.center fighter contract; crown hub unchanged. No BE payload change; bind/stampStage path preserved. Cache-bust m07. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.568",
         "date": "2026-07-24",
         "commit": "942915ba",
