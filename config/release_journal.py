@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.559",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "e8407480",
         "title": "Build Plan 3C real spectator seats (FE+BE)",
         "section": "Chef Battles / Deployment",
         "summary": "Stage 3C: interactive 544 seats are real viewers only. FE tip c809cdfa stops synthetic crowd faces in interactive polygons and honors ring/cell. BE tip e318a76d adds ArenaSeat (migration 0084), front-first claim, payload ring/cell/row/is_self, POST /chef-battle/arena/seat/, auto-claim on ping/state. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert merge and redeploy (migration reverse).",
