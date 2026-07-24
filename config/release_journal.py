@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.494",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "0f0cc6cd",
         "title": "Merge af23–af24 gold dust + outer haze with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Owner GO (STOP lifted): merge ArenaFront af23 (3ef8977f denser gold dust + journal renumber) and af24 (cb62a4f6 stronger outer stand haze) onto live polish r10c + af5–af22. Load order: polish r10c → atmosphere af24. Pair workflow active. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
