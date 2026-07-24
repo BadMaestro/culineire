@@ -781,6 +781,21 @@ def battle_home(request):
 _ARENA_ONLINE_THRESHOLD = 180  # seconds — chef counts as online if seen within 3 min
 
 
+def _arena_fighter_payload(author, side):
+    """Build Plan 3R3 fighter contract for the confrontation band.
+
+    Keys: name, avatar_url, slug, profile_url, side.
+    Country/flag intentionally omitted until Owner decision D3.
+    """
+    return {
+        "name": author.name,
+        "avatar_url": author.display_avatar_url,
+        "slug": author.slug,
+        "profile_url": author.get_absolute_url(),
+        "side": side,
+    }
+
+
 def _arena_center(active_battle):
     """Centre-cell payload: active battle takes priority, then the current
     Crown holder (if any), else empty. Shared by arena() and arena_state()."""
@@ -797,14 +812,8 @@ def _arena_center(active_battle):
             "theme": active_battle.theme,
             "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
             "popup_url": reverse("chef_battle:arena_battle_popup"),
-            "challenger": {
-                "name": active_battle.challenger.name,
-                "avatar_url": active_battle.challenger.display_avatar_url,
-            },
-            "opponent": {
-                "name": active_battle.opponent.name,
-                "avatar_url": active_battle.opponent.display_avatar_url,
-            },
+            "challenger": _arena_fighter_payload(active_battle.challenger, "challenger"),
+            "opponent": _arena_fighter_payload(active_battle.opponent, "opponent"),
         }
 
     crown_holder = (
@@ -1104,14 +1113,8 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
             arena_data["center"] = {
                 "type": "active_battle",
                 "battle_url": "#",
-                "challenger": {
-                    "name": demo_pair[0].author.name,
-                    "avatar_url": demo_pair[0].author.display_avatar_url,
-                },
-                "opponent": {
-                    "name": demo_pair[1].author.name,
-                    "avatar_url": demo_pair[1].author.display_avatar_url,
-                },
+                "challenger": _arena_fighter_payload(demo_pair[0].author, "challenger"),
+                "opponent": _arena_fighter_payload(demo_pair[1].author, "opponent"),
             }
 
     rank_groups = [

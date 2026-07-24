@@ -6750,6 +6750,89 @@ class ArenaCenterMetaTests(TestCase):
         self.assertEqual(c["type"], "active_battle")
 
 
+class ArenaCenterConfrontationContractTests(TestCase):
+    """Build Plan 3R3: confrontation-band fighter contract (no country/flag)."""
+
+    FIGHTER_KEYS = {"name", "avatar_url", "slug", "profile_url", "side"}
+
+    def _pair(self):
+        U = get_user_model()
+        a = RecipeAuthor.objects.create(
+            user=U.objects.create_user("r3-a", password="pw"), name="R3 Challenger", slug="r3-challenger"
+        )
+        b = RecipeAuthor.objects.create(
+            user=U.objects.create_user("r3-b", password="pw"), name="R3 Opponent", slug="r3-opponent"
+        )
+        return a, b
+
+    def _assert_fighter(self, fighter, *, author, side):
+        self.assertEqual(set(fighter.keys()), self.FIGHTER_KEYS)
+        self.assertEqual(fighter["name"], author.name)
+        self.assertEqual(fighter["avatar_url"], author.display_avatar_url)
+        self.assertEqual(fighter["slug"], author.slug)
+        self.assertEqual(fighter["profile_url"], author.get_absolute_url())
+        self.assertEqual(fighter["side"], side)
+        self.assertNotIn("country", fighter)
+        self.assertNotIn("flag", fighter)
+        self.assertNotIn("flag_url", fighter)
+        self.assertNotIn("country_code", fighter)
+
+    def test_active_battle_fighters_match_3r3_contract(self):
+        from chef_battle.views import _arena_center
+        from .models import Battle
+
+        a, b = self._pair()
+        battle = Battle.objects.create(
+            challenger=a,
+            opponent=b,
+            theme="3R3 Band",
+            status=Battle.Status.COOKING,
+            submission_deadline=timezone.now(),
+            end_time=timezone.now(),
+        )
+        c = _arena_center(battle)
+        self.assertEqual(c["type"], "active_battle")
+        self._assert_fighter(c["challenger"], author=a, side="challenger")
+        self._assert_fighter(c["opponent"], author=b, side="opponent")
+
+    def test_facing_pair_fighters_match_3r3_contract(self):
+        from chef_battle.views import _arena_center
+        from .models import Battle
+
+        a, b = self._pair()
+        battle = Battle.objects.create(
+            challenger=a,
+            opponent=b,
+            theme="3R3 Facing",
+            status=Battle.Status.SCHEDULED,
+            submission_deadline=timezone.now(),
+            end_time=timezone.now(),
+        )
+        c = _arena_center(battle)
+        self.assertEqual(c["type"], "facing_pair")
+        self._assert_fighter(c["challenger"], author=a, side="challenger")
+        self._assert_fighter(c["opponent"], author=b, side="opponent")
+
+    def test_empty_and_crown_states_still_valid(self):
+        from chef_battle.views import _arena_center
+        from .models import ChefBattleProfile
+
+        self.assertEqual(_arena_center(None), {"type": "empty"})
+
+        a, _b = self._pair()
+        ChefBattleProfile.objects.create(
+            author=a,
+            crown_until=timezone.now() + timezone.timedelta(hours=1),
+        )
+        crown = _arena_center(None)
+        self.assertEqual(crown["type"], "crown")
+        self.assertEqual(crown["name"], a.name)
+        self.assertEqual(crown["avatar_url"], a.display_avatar_url)
+        self.assertEqual(crown["profile_url"], a.get_absolute_url())
+        self.assertNotIn("country", crown)
+        self.assertNotIn("flag", crown)
+
+
 class ArenaPhaseTests(TestCase):
     """get_arena_phase: 7-step public phase rail mapping (Ember #159)."""
 

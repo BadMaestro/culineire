@@ -3047,7 +3047,7 @@ ARENA_RELEASE_STAGES = [
              "requirements": ["Follow the approved mockup composition: challenger in the green left panel and opponent in the red right panel, integrated around the central Crown Holder focal area.",
                               "Display each participant's real photo and name.",
                               "Display a flag only after an approved country-data source exists."],
-             "evidence": "3R3 pair START (Owner lift of STOP for this item only). Contract: center.challenger/opponent → name, avatar_url, slug, profile_url, side; no flag. FE: arena.html + arena_deck.js binding + command_deck profile link styles. BE dependency: _arena_center fields. AF atmosphere slices remain STOPPED."},
+             "evidence": "3R3 pair INTEGRATING. Contract locked. FE: arena.html + arena_deck.js + command_deck profile styles. BE: _arena_fighter_payload (name/avatar_url/slug/profile_url/side) from Cursor WIP applied. Joint branch agent/arenafront/3r3-confrontation. AF atmosphere STOPPED. Flag OUT (D3)."},
             {"id": "3E", "title": "Rank floor column", "owner": "GreenBear + Cursor (Ember's suspended VERIFY_AND_CLOSE_STAGE_3E is now ours)",
              "status": "CODE DEPLOYED — VERIFICATION PENDING",
              "requirements": ["Display KITCHEN PORTER through CULINARY MASTER over the floor.",
