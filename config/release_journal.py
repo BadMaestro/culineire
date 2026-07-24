@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.554",
+        "date": "2026-07-24",
+        "commit": "4b29151e",
+        "title": "ArenaFront af82: deeper corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af79 LIVE (#2609 / ab80891c v2.5.548): deepen four corner dark vignettes further. SVG centre mask held. Cache-bust af82. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.553",
         "date": "2026-07-24",
-        "commit": "84505d76",
+        "commit": "0e373d1e",
         "title": "ArenaFront af81: stronger side green/red washes",
         "section": "Chef Battles / Deployment",
         "summary": "af77+af78 LIVE (#2604 / 6d8e2673 v2.5.547): lift page side green/red washes (58%/24%). SVG centre mask held. Cache-bust af81. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
