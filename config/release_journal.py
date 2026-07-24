@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.540",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "5b6e21a4",
         "title": "Merge af69 stand haze with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af69 (b376762e) onto live polish r10c. Load order: polish r10c → atmosphere af69. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
