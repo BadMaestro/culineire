@@ -949,28 +949,69 @@ def _arena_latest_result():
     }
 
 
-def _get_spectators(online_cutoff, limit=None):
-    """Registered viewers currently present in the arena: authors with a battle
-    profile who are NOT enrolled chefs and whose last_seen_at is inside the
-    online window. A logged-in visitor simply occupies a free spectator-ring
-    cell, exactly as an enrolled chef occupies a cell in their rank ring.
+def _get_spectators(online_cutoff, limit=None, *, viewer_author=None):
+    """Real seated viewers currently present in the arena stands (Stage 3C).
 
-    The default limit is the arena's own seat count, so widening the stands in
-    get_arena_geometry fills the new rows instead of leaving them empty."""
+    Interactive seats come only from ``ArenaSeat`` rows held by online,
+    non-enrolled authors. Empty seats stay empty in the payload — atmospheric
+    fillers are a renderer concern and must never appear here as people.
+    """
+    from .arena_seating import public_seat, release_lapsed_seats
+    from .models import ArenaSeat
+
+    release_lapsed_seats()
+
     if limit is None:
         limit = spectator_capacity()
-    profiles = (
-        ChefBattleProfile.objects
-        .select_related("author")
-        .filter(enrolled_at__isnull=True, is_suspended=False,
-                last_seen_at__isnull=False, last_seen_at__gte=online_cutoff)
-        .order_by("-last_seen_at")[:limit]
+
+    seats = (
+        ArenaSeat.objects
+        .filter(released_at__isnull=True)
+        .select_related("viewer")
+        .order_by("ring_index", "seat_index")
     )
-    return [{
-        "name": p.author.name,
-        "slug": p.author.slug,
-        "avatar_url": p.author.display_avatar_url,
-    } for p in profiles]
+
+    online_non_chef_ids = set(
+        ChefBattleProfile.objects
+        .filter(
+            enrolled_at__isnull=True,
+            is_suspended=False,
+            last_seen_at__isnull=False,
+            last_seen_at__gte=online_cutoff,
+        )
+        .values_list("author_id", flat=True)
+    )
+
+    viewer_id = getattr(viewer_author, "pk", None)
+    out = []
+    for seat in seats:
+        if seat.viewer_id not in online_non_chef_ids:
+            continue
+        row = public_seat(seat)
+        row["is_self"] = bool(viewer_id and seat.viewer_id == viewer_id)
+        out.append(row)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _ensure_spectator_seat(author):
+    """Claim a stable stand seat for a logged-in non-chef viewer.
+
+    Enrolled chefs occupy rank rings, not spectator seats. Full halls are
+    silent here — the poll still works; the viewer simply has nowhere to sit.
+    """
+    if author is None:
+        return None
+    from .arena_seating import ArenaFull, claim_seat
+
+    profile = ChefBattleProfile.objects.filter(author=author).first()
+    if profile is not None and profile.enrolled_at is not None:
+        return None
+    try:
+        return claim_seat(author)
+    except ArenaFull:
+        return None
 
 
 def arena_blast(request):
@@ -984,7 +1025,7 @@ def arena_blast(request):
     })
 
 
-def _build_arena_payload():
+def _build_arena_payload(*, viewer_author=None):
     """Shared arena ring assembly used by arena(), arena_state() and the
     Arena Master Console (P02 dedup — the two views previously duplicated
     these queries line for line). Output keys are part of the frozen public
@@ -1059,7 +1100,7 @@ def _build_arena_payload():
             rank.value: [c for c in chefs_by_rank[rank.value] if c["is_online"]]
             for rank in ChefBattleProfile.Rank
         },
-        "spectators": _get_spectators(online_cutoff),
+        "spectators": _get_spectators(online_cutoff, viewer_author=viewer_author),
         "center": _arena_center(active_battle),
         "latest_result": _arena_latest_result(),
         "crown_streak": get_crown_streak(),
@@ -1084,7 +1125,7 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
     truth for what the page shows. Only arena() does the presence writes; the
     preview passes viewer_author=None, user_enrolled=False and allow_demo=False.
     """
-    payload = _build_arena_payload()
+    payload = _build_arena_payload(viewer_author=viewer_author)
     active_battle = payload["active_battle"]
     enrolled = payload["enrolled"]
     chefs_by_rank = payload["chefs_by_rank"]
@@ -1164,6 +1205,7 @@ def arena(request):
             profile = get_or_create_battle_profile(viewer_author)
             ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
             user_enrolled = bool(profile.enrolled_at)
+            _ensure_spectator_seat(viewer_author)
 
     context = _arena_page_context(
         request, viewer_author=viewer_author, user_enrolled=user_enrolled, allow_demo=True,
@@ -1257,7 +1299,46 @@ def arena_ping(request):
         from .services import get_or_create_battle_profile
         profile = get_or_create_battle_profile(author)
         ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
+        _ensure_spectator_seat(author)
     return JsonResponse({"ok": True})
+
+
+@require_POST
+@ratelimit(key="ip", rate="60/m", method="POST", block=False)
+def arena_take_seat(request):
+    """Seat the signed-in viewer in the stands and report where they sat.
+
+    Stage 3C: a seat belongs to a real person, so it is claimed by an account
+    and by nothing else. Anonymous callers are refused here rather than handed
+    a seat they could not keep, and there is no parameter naming whose seat to
+    take — the service seats the caller, front rows first.
+
+    The claim refreshes the caller's presence first: a seat granted to someone
+    already outside the online window would lapse on the next claim, so the
+    heartbeat and the seat are taken together.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if not request.user.is_authenticated:
+        return JsonResponse({"ok": False, "error": "authentication_required"}, status=401)
+
+    from .arena_seating import ArenaFull, claim_seat, public_seat
+    from .services import get_or_create_battle_profile
+
+    author = get_author_for_user(request.user)
+    if author is None:
+        return JsonResponse({"ok": False, "error": "author_profile_required"}, status=403)
+
+    profile = get_or_create_battle_profile(author)
+    ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
+    if profile.enrolled_at is not None:
+        return JsonResponse({"ok": False, "error": "enrolled_chefs_use_rank_rings"}, status=409)
+
+    try:
+        seat = claim_seat(author)
+    except ArenaFull:
+        return JsonResponse({"ok": False, "error": "arena_full"}, status=409)
+    return JsonResponse({"ok": True, "seat": public_seat(seat)})
 
 
 @require_POST
@@ -1277,14 +1358,16 @@ def arena_state(request):
     # the arena stays online (and visible in their cell) without relying solely
     # on the slower 60s ping heartbeat. Enrolled chefs sit in their rank ring,
     # everyone else in a spectator ring.
+    viewer_author = None
     if request.user.is_authenticated:
         viewer_author = get_author_for_user(request.user)
         if viewer_author:
             from .services import get_or_create_battle_profile
             profile = get_or_create_battle_profile(viewer_author)
             ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
+            _ensure_spectator_seat(viewer_author)
 
-    payload = _build_arena_payload()
+    payload = _build_arena_payload(viewer_author=viewer_author)
     return JsonResponse({
         "rings": payload["rings"],
         "spectators": payload["spectators"],
@@ -2831,7 +2914,7 @@ def master_console(request):
     from .selectors import get_master_state
 
     author = get_author_for_user(request.user)
-    payload = _build_arena_payload()
+    payload = _build_arena_payload(viewer_author=author)
     state = get_master_state()
     return render(request, "chef_battle/arena_master_console.html", {
         "operator_author": author,

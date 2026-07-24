@@ -291,15 +291,21 @@
     });
 
     var spectators = payload.spectators || [];
-    var index = 0;
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind !== 'spectator') { return; }
-      for (var cell = 0; cell < ring.segments && index < spectators.length; cell++) {
-        assignments.push({
-          ring: ring.index, cell: cell, entity: spectators[index++],
-          occupancy: 'spectator', state: 'watching'
-        });
+    spectators.forEach(function (spectator) {
+      if (!spectator) { return; }
+      // Stage 3C: interactive seats are addressed by the server. A spectator
+      // without ring/cell coordinates is presence-only and must not be poured
+      // into the next empty cell — that was the old shimmer bug.
+      if (typeof spectator.ring !== 'number' || typeof spectator.cell !== 'number') {
+        return;
       }
+      assignments.push({
+        ring: spectator.ring,
+        cell: spectator.cell,
+        entity: spectator,
+        occupancy: 'spectator',
+        state: spectator.is_self ? 'self' : 'watching'
+      });
     });
 
     return assignments;
@@ -451,21 +457,12 @@
   }
 
   function fillCrowd(svg, geometry, assignments) {
+    // Stage 3C: the 544 interactive spectator seats are real viewers only.
+    // Atmospheric crowd may exist as a non-interactive layer elsewhere, but it
+    // must never be drawn into interactive seat polygons as fake occupants.
     var layer = svg.querySelector('[data-arena-layer="crowd"]');
     if (!layer) { return; }
     while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-
-    var taken = {};
-    assignments.forEach(function (a) { taken[a.ring + ':' + a.cell] = true; });
-
-    var radius = floorRadius(svg, geometry);
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind !== 'spectator') { return; }
-      for (var cell = 0; cell < ring.segments; cell++) {
-        if (taken[ring.index + ':' + cell]) { continue; }
-        appendCrowdFigure(svg, layer, ring.index, cell, geometry, radius);
-      }
-    });
   }
 
   function initialOf(entity) {
