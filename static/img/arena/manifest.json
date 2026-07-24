@@ -1,0 +1,17 @@
+[
+  {
+    "file": "hall-wall-wash-v1.png",
+    "bytes": 1338856,
+    "model": "gpt-image-1",
+    "quality": "medium",
+    "rights_note": "AI-generated atmospheric Arena texture via gpt-image-1. Not a depiction of real registered users."
+  },
+  {
+    "file": "floor-sheen-v1.png",
+    "bytes": 1331113,
+    "model": "gpt-image-1",
+    "quality": "medium",
+    "rights_note": "AI-generated atmospheric Arena texture via gpt-image-1. Not a depiction of real registered users.",
+    "regen": "parchment-light-v2-prompt"
+  }
+]

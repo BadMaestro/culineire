@@ -1,0 +1,104 @@
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE).
+ *
+ * Image underlays for the live Arena hall only.
+ * Loads AFTER arena_hall.css. Does NOT restyle polish-owned panel chrome,
+ * seat rings, or confrontation composition — only page/floor atmospheric wash.
+ *
+ * Owns: static/img/arena/** textures referenced below.
+ * Fence: do not edit arena_deck_polish.css / arena_command_deck.css / arena_render.js.
+ *
+ * Rights: textures are AI-generated atmospheric art (see static/img/arena/manifest.json).
+ * Crowd silhouettes are not real registered or online users.
+ */
+
+.page--arena {
+  --arena-atm-wall: url("/static/img/arena/hall-wall-wash-v1.png");
+  --arena-atm-floor: url("/static/img/arena/floor-sheen-v1.png");
+  position: relative;
+  isolation: isolate;
+}
+
+/* Dark hall wall wash sits behind the whole page; official token gradients
+   keep brand colour authority over the photographic/illustrated texture. */
+.page--arena::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      90% 55% at 50% 0%,
+      color-mix(in srgb, var(--accent-bronze) 16%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      80% 70% at 50% 100%,
+      color-mix(in srgb, var(--ink) 34%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--ink) 55%, transparent),
+      color-mix(in srgb, var(--ink) 28%, transparent) 45%,
+      color-mix(in srgb, var(--ink) 42%, transparent)
+    ),
+    var(--arena-atm-wall) center 28% / cover no-repeat;
+  opacity: 0.55;
+}
+
+/* Soft parchment sheen pooled under the command deck — around the floor, not
+   fighting polish ::before/::after on .arena-floor-stage. */
+.page--arena::after {
+  content: "";
+  position: fixed;
+  left: 50%;
+  top: 52%;
+  z-index: -1;
+  width: min(92vw, 68rem);
+  height: min(78vh, 52rem);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(
+      closest-side at 50% 55%,
+      color-mix(in srgb, var(--surface) 70%, transparent),
+      transparent 72%
+    ),
+    var(--arena-atm-floor) center / cover no-repeat;
+  opacity: 0.28;
+  mix-blend-mode: soft-light;
+}
+
+@media (min-width: 901px) {
+  .page--arena::before {
+    opacity: 0.72;
+  }
+
+  .page--arena::after {
+    width: min(88vw, 74rem);
+    height: min(82vh, 56rem);
+    opacity: 0.36;
+    filter: saturate(0.85) brightness(1.08);
+  }
+}
+
+@media (max-width: 900px) {
+  .page--arena::before {
+    opacity: 0.4;
+    background-position: center 18%;
+  }
+
+  .page--arena::after {
+    width: min(100vw, 40rem);
+    height: min(60vh, 28rem);
+    opacity: 0.18;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page--arena::before,
+  .page--arena::after {
+    transition: none;
+  }
+}
