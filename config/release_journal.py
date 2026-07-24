@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.498",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "efbc8b07",
         "title": "Merge af26–af27 gold bloom + stand rails with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af26 (17c973d5 warmer gold bloom + journal renumber) and af27 (86e299b6 stronger stand gold rails) onto live polish r10c + af5–af25. Load order: polish r10c → atmosphere af27. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
