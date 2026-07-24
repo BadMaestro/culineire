@@ -297,34 +297,44 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
-  /* Owner 2026-07-24: visible mockup-style countdown + Arena full reload. */
-  var TOTAL = 30;
-  var left = TOTAL;
-  var timerEl = document.getElementById('arena-refresh-timer');
-  var gaugeEl = document.getElementById('arena-refresh-gauge');
+  /* Owner 2026-07-24: visible mockup-style countdown + Arena full reload.
+     Must carry CSP nonce — bare <script> is blocked and the timer freezes at 00:30. */
+  function boot() {
+    var TOTAL = 30;
+    var left = TOTAL;
+    var timerEl = document.getElementById('arena-refresh-timer');
+    var gaugeEl = document.getElementById('arena-refresh-gauge');
+    if (!timerEl) { return; }
 
-  function fmt(sec) {
-    var m = Math.floor(sec / 60);
-    var s = sec % 60;
-    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-  }
-
-  function paint() {
-    if (timerEl) timerEl.textContent = fmt(left);
-    if (gaugeEl) gaugeEl.style.width = Math.max(0, (left / TOTAL) * 100) + '%';
-  }
-
-  paint();
-  window.setInterval(function () {
-    left -= 1;
-    if (left <= 0) {
-      window.location.reload();
-      return;
+    function fmt(sec) {
+      var m = Math.floor(sec / 60);
+      var s = sec % 60;
+      return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
     }
+
+    function paint() {
+      timerEl.textContent = fmt(left);
+      if (gaugeEl) gaugeEl.style.width = Math.max(0, (left / TOTAL) * 100) + '%';
+    }
+
     paint();
-  }, 1000);
+    window.setInterval(function () {
+      left -= 1;
+      if (left <= 0) {
+        window.location.reload();
+        return;
+      }
+      paint();
+    }, 1000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
 </script>
 {% endblock %}
