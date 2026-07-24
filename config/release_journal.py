@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.528",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af55+af56 vignettes and side darken with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af55+af56 (39d75b63) onto live polish r10c + af5–af54. Load order: polish r10c → atmosphere af56. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.528",
+        "date": "2026-07-24",
+        "commit": "5aeb0d75",
+        "title": "ArenaFront af56: stronger ::before side darken",
+        "section": "Chef Battles / Deployment",
+        "summary": "af53 LIVE (#2473 / 7c02642e v2.5.525): deepen ::before left/right side darken (84%/26%). SVG centre mask held. Cache-bust af56. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.527",
+        "date": "2026-07-24",
+        "commit": "14576868",
+        "title": "ArenaFront af55: deeper corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af52 LIVE (#2467 / v2.5.524): deepen four corner dark vignettes further. SVG centre mask held. Cache-bust af55. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.526",
         "date": "2026-07-24",
         "commit": "6d1e9889",
