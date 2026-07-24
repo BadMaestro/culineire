@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.561",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "f1133d75",
         "title": "Build Plan 3E focused verify close (post-R4)",
         "section": "Chef Battles / Deployment",
         "summary": "Stage 3E verification close after R4 Option B centred stack. ArenaRankColumnTests 10/10 PASS on main 79c4d2b1. Audit ops/audits/stage_3e_rank_column.json gains verification_close_2026_07_24. Board 3E → DONE focused verify; contrast 14.30:1/12.62:1 reconfirmed; 8:6:1 NOT RUN (Owner D4 honesty); browser QA not claimed. No Arena runtime behaviour change beyond board/journal/audit. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
