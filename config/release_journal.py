@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.511",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "a0cd1960",
         "title": "Merge af39 parchment wash with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af39 (c3c9041b) onto live polish r10c + af5–af38. Load order: polish r10c → atmosphere af39. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
