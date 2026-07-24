@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.479",
+        "date": "2026-07-24",
+        "commit": "aa01b9a1",
+        "title": "ArenaFront af11: stronger green/red side washes",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle + af8 live (#2234): deepen challenger green / opponent red side washes on .page--arena with official --hall-green/--hall-red tokens. Ceiling vignette and SVG centre mask held. Cache-bust af11. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.478",
         "date": "2026-07-24",
-        "commit": "b73ee1ee",
+        "commit": "e706aad6",
         "title": "ArenaFront af10: ceiling vignette + wall-wash lift",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle: cinematic top vignette and stronger upper gold bloom; lift hall-wall-wash toward ceiling (center 8%). af7 live as Cursor v2.5.475. SVG centre mask from af6 held. Cache-bust af10. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
