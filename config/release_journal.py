@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.529",
+        "date": "2026-07-24",
+        "commit": "a334c150",
+        "title": "ArenaFront af57: denser stand haze rings",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: densify ::after repeating-radial stand rings further (34% gold). SVG centre mask held. Cache-bust af57. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.528",
         "date": "2026-07-24",
-        "commit": "5aeb0d75",
+        "commit": "39d75b63",
         "title": "ArenaFront af56: stronger ::before side darken",
         "section": "Chef Battles / Deployment",
         "summary": "af53 LIVE (#2473 / 7c02642e v2.5.525): deepen ::before left/right side darken (84%/26%). SVG centre mask held. Cache-bust af56. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
