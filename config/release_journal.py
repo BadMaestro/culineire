@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.549",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af80 gold rails with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af81 (0e373d1e) onto live polish r10c. Load order: polish r10c → atmosphere af81. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.553",
+        "date": "2026-07-24",
+        "commit": "84505d76",
+        "title": "ArenaFront af81: stronger side green/red washes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af77+af78 LIVE (#2604 / 6d8e2673 v2.5.547): lift page side green/red washes (58%/24%). SVG centre mask held. Cache-bust af81. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.552",
+        "date": "2026-07-24",
+        "commit": "48b618b8",
+        "title": "ArenaFront af80: brighter stand gold rails",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift ::before stand gold rails (94%). SVG centre mask held. Cache-bust af80. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.548",
         "date": "2026-07-24",
         "commit": "75091469",
