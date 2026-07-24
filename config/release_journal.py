@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.479",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af13 corner vignettes with r10c+af5–af12",
+        "section": "Chef Battles / Deployment",
+        "summary": "Merge ArenaFront af13 (b849492e: cinematic corner vignettes; SVG centre mask held) onto live polish r10c + af5–af12. Load order: polish r10c → atmosphere af13. Journal+board updated. Owner no-idle auto-merge continues unless Owner says HOLD. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
         "version": "2.5.478",
         "date": "2026-07-24",
         "commit": "2a90d400",

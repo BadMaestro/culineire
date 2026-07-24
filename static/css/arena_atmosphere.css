@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af12.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af13.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af6–af8 live. af9–af11 pending. af12: bottom hall depth vignette (mockup stands).
+ * af6–af10 live path. af11–af12 pending. af13: corner vignettes (cinematic frame).
  */
 
 .page--arena {
@@ -42,6 +42,26 @@
       0deg,
       color-mix(in srgb, var(--hall-dark-0, var(--ink)) 72%, transparent) 0%,
       transparent 32%
+    ),
+    radial-gradient(
+      40% 36% at 0% 0%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 45%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40% 36% at 100% 0%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 45%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      38% 34% at 0% 100%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 40%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      38% 34% at 100% 100%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 40%, transparent),
+      transparent 68%
     ),
     var(--arena-atm-wall) center 8% / cover no-repeat !important;
   background-color: var(--hall-dark-0, var(--ink));
