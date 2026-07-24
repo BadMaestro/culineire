@@ -348,3 +348,34 @@
     border-color: color-mix(in srgb, var(--accent-bronze) 45%, transparent);
   }
 }
+
+
+/* 3G — show-panel inner gold frame (prototype inset border). */
+@media (min-width: 901px) {
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    position: absolute;
+    overflow: hidden;
+  }
+  .arena-command-deck__phase-card::before,
+  .arena-command-deck__metrics::before,
+  .arena-command-deck__ladder::before,
+  .arena-command-deck__gifts::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: 0.28rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+    border-radius: 0.45rem;
+    pointer-events: none;
+  }
+  .arena-command-deck__phase-card > *,
+  .arena-command-deck__metrics > *,
+  .arena-command-deck__ladder > *,
+  .arena-command-deck__gifts > * {
+    position: relative;
+    z-index: 1;
+  }
+}
