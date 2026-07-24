@@ -248,10 +248,8 @@
   background-color: var(--surface-muted);
 }
 
-/* 3G R2 — stage frame: side rails + lower broadcast bar.
-   Below 901px rails unwrap (display:contents) so existing grid areas on
-   children keep working. Above 901px rails become architectural columns
-   attached to the hall, not four free-floating cards. */
+/* 3G R2 — wrappers are display:contents (no layout change). Only the lower
+   broadcast bar is restyled so the frame closes edge-to-edge. */
 .arena-interface-rail {
   display: contents;
 }
@@ -259,80 +257,28 @@
 @media (min-width: 901px) {
   .arena-command-deck {
     display: block;
-
-    /* The site header is sticky and 146px tall, so a 100vh deck starts below
-       it and runs 146px past the bottom of the window: the floor sat that far
-       below centre and the supporter ticker fell off the screen entirely.
-       The arena gets the window minus the header. */
     height: calc(100svh - var(--arena-header-h, 146px));
     min-height: 30rem;
     overflow: hidden;
     color: var(--ink);
   }
 
-  /* The floor fills the screen; everything else sits over it. */
   .arena-command-deck__floor {
     position: absolute;
     inset: 0;
     display: block;
+    z-index: 1;
   }
 
   .arena-command-deck__floor-head { display: none; }
 
-  .arena-interface-rail {
-    position: absolute;
-    z-index: 4;
-    top: 12%;
-    bottom: 9%;
-    width: clamp(11.2rem, 18vw, 14.8rem);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 0.75rem;
-    pointer-events: none;
-  }
-
-  .arena-interface-rail > * {
-    pointer-events: auto;
-  }
-
-  .arena-interface-rail--left { left: 1.35rem; }
-  .arena-interface-rail--right { right: 1.35rem; }
-
-  /* Architectural bracket tying the rail to the stage (composition from the
-     prototype; colours from official tokens only). */
-  .arena-interface-rail::after {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: 1.6rem;
-    bottom: 1.6rem;
-    width: 2.6rem;
-    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    opacity: 0.78;
-    pointer-events: none;
-  }
-
-  .arena-interface-rail--left::after {
-    right: -2.55rem;
-    border-right: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    border-radius: 0 0.85rem 0.85rem 0;
-  }
-
-  .arena-interface-rail--right::after {
-    left: -2.55rem;
-    border-left: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    border-radius: 0.85rem 0 0 0.85rem;
-  }
-
-  /* Panels: glass over the hall, bronze edge — now owned by the rail column. */
   .arena-command-deck__header,
   .arena-command-deck__phase-card,
   .arena-command-deck__metrics,
   .arena-command-deck__ladder,
   .arena-command-deck__gifts,
-  .arena-command-deck__phase-rail {
+  .arena-command-deck__phase-rail,
+  .arena-command-deck__crowd-rail {
     position: absolute;
     z-index: 3;
     margin: 0;
@@ -345,54 +291,29 @@
     color: var(--ink);
   }
 
-  .arena-interface-rail .arena-command-deck__phase-card,
-  .arena-interface-rail .arena-command-deck__metrics,
-  .arena-interface-rail .arena-command-deck__ladder,
-  .arena-interface-rail .arena-command-deck__gifts {
-    position: relative;
-    left: auto;
-    right: auto;
-    top: auto;
-    bottom: auto;
-    width: 100%;
-    flex: 0 1 auto;
-  }
-
-  .arena-command-deck__header  { left: 1.35rem;  top: 2.4%;  width: clamp(11.2rem, 18vw, 14.8rem); }
-  .arena-command-deck__phase-rail { left: 50%; top: 2.2%; transform: translateX(-50%);
-                                    width: min(52%, 40rem); display: flex; justify-content: center;
+  .arena-command-deck__header  { left: 2%;  top: 8%;  width: 21%; }
+  .arena-command-deck__phase-card { left: 2%; top: 25%; width: 21%; }
+  .arena-command-deck__phase-rail { left: 50%; top: 3%; transform: translateX(-50%);
+                                    width: 44%; display: flex; justify-content: center;
                                     flex-wrap: nowrap; gap: .3rem; }
+  .arena-command-deck__metrics { right: 2%; top: 8%; width: 21%; }
+  .arena-command-deck__ladder  { left: 2%;  bottom: 8%; width: 21%; }
+  .arena-command-deck__gifts   { right: 2%; bottom: 8%; width: 21%; }
 
-  /* Lower broadcast bar closes the frame edge-to-edge (not a floating pill). */
+  /* R2: lower bar closes the frame full-width (visible, safe change). */
   .arena-command-deck__crowd-rail.arena-lower-broadcast {
-    position: absolute;
-    z-index: 5;
     left: 0;
     right: 0;
     bottom: 0;
     width: 100%;
     transform: none;
-    min-height: 3.35rem;
-    margin: 0;
-    padding: 0.5rem clamp(1rem, 3vw, 1.6rem);
-    border: 0;
-    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
     border-radius: 0;
-    background:
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--surface) 88%, transparent),
-        color-mix(in srgb, var(--surface-soft) 82%, transparent),
-        color-mix(in srgb, var(--surface) 88%, transparent)
-      );
-    backdrop-filter: blur(10px) saturate(1.08);
-    -webkit-backdrop-filter: blur(10px) saturate(1.08);
-    box-shadow: 0 -0.75rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent);
-    color: var(--ink);
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    z-index: 5;
   }
 
-  /* Panel text was written for a light card; on glass it needs the hall's own
-     foreground or it disappears. */
   .arena-command-deck__header *,
   .arena-command-deck__phase-card *,
   .arena-command-deck__metrics *,
