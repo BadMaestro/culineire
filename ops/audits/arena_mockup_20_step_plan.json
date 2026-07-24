@@ -179,10 +179,10 @@
       "n": 19,
       "id": "M19",
       "title": "Responsive mockup parity pass 1920 / 768 / 390",
-      "status": "FE_READY",
+      "status": "LIVE",
       "owner": "pair",
       "gate": "no horizontal overflow; a11y keyboard/focus/reduced-motion",
-      "note": "Tip: overflow-x clip + tablet/phone stacks + focus rings; await integrate"
+      "note": "v2.5.579 deploy 483f2b64 tip fe9c17fa"
     },
     {
       "n": 20,
