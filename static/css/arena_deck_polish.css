@@ -235,3 +235,21 @@
     font-size: 1.12rem;
   }
 }
+
+
+/* 3G — ribbon active gold fill (broadcast phase track). */
+@media (min-width: 901px) {
+  .arena-broadcast-ribbon .arena-phase-step.is-active {
+    color: var(--brand-dark);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent-bronze) 55%, var(--surface)),
+      color-mix(in srgb, var(--accent-bronze) 28%, var(--surface))
+    );
+    border-color: var(--accent-bronze-dark);
+    box-shadow: 0 0.25rem 0.7rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active b {
+    color: var(--brand-dark);
+  }
+}
