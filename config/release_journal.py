@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.532",
+        "date": "2026-07-24",
+        "commit": "8e614f61",
+        "title": "ArenaFront af60: deeper ::before bottom dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "af57+af58 LIVE (#2497 / d61b1cb1 v2.5.529): deepen ::before bottom dark wash (88%/52%). SVG centre mask held. Cache-bust af60. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.531",
         "date": "2026-07-24",
-        "commit": "895390c4",
+        "commit": "179aa12b",
         "title": "ArenaFront af59: stronger top crown gold wash",
         "section": "Chef Battles / Deployment",
         "summary": "af55+af56 LIVE (#2490 / 777a17de v2.5.528): lift top crown gold (70%/36%). SVG centre mask held. Cache-bust af59. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
