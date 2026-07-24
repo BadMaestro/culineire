@@ -1957,3 +1957,47 @@
     transform: none;
   }
 }
+
+
+/* 3G — parchment seat rings (live SVG cells, official tokens). */
+@media (min-width: 901px) {
+  .page--arena .arena-render-container {
+    --arena-seat: color-mix(in srgb, var(--surface) 88%, var(--accent-bronze));
+  }
+  .page--arena #arena-render .arena-cell {
+    stroke: color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+    stroke-width: 0.6;
+  }
+  .page--arena #arena-render [data-ring="8"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring="7"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 18%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring="6"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 24%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring="5"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 30%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring="4"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 36%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring="3"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 44%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring="2"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 52%, var(--surface));
+  }
+  .page--arena #arena-render [data-ring="1"][data-occupancy="empty"] {
+    fill: color-mix(in srgb, var(--accent-bronze) 62%, var(--surface));
+  }
+  .page--arena #arena-render .arena-cell[data-occupancy="chef"] {
+    stroke: color-mix(in srgb, var(--accent-bronze-dark) 70%, transparent);
+    stroke-width: 1;
+  }
+  .page--arena #arena-render .arena-walkway {
+    stroke: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    opacity: 0.85;
+  }
+}
