@@ -490,3 +490,79 @@
   opacity: 0.55;
   filter: saturate(0.5) brightness(0.72) sepia(0.28);
 }
+
+
+/* ============================================================================
+ * MOCKUP M18 — floor material: parchment/marble + bronze seams.
+ * Official tokens only (--surface / --surface-soft / --accent-bronze).
+ * ============================================================================ */
+.arena-render-container {
+  --arena-seat: color-mix(in srgb, var(--surface-soft) 88%, var(--accent-bronze));
+  --arena-seam: color-mix(in srgb, var(--accent-bronze) 42%, var(--brand-dark));
+  --arena-marble-hi: color-mix(in srgb, var(--surface) 92%, var(--accent-bronze));
+  --arena-marble-lo: color-mix(in srgb, var(--surface-soft) 82%, var(--brand));
+}
+
+#arena-render .arena-cell[data-ring-kind="rank"],
+#arena-render .arena-cell[data-ring-kind="stage"] {
+  stroke: var(--arena-seam);
+  stroke-width: 0.85;
+}
+
+/* Parchment marble reads warmer and slightly veined via ring depth mixes. */
+#arena-render [data-ring="8"][data-occupancy="empty"] {
+  fill: color-mix(in srgb, var(--arena-marble-hi) 78%, var(--brand));
+}
+#arena-render [data-ring="7"][data-occupancy="empty"] {
+  fill: color-mix(in srgb, var(--arena-marble-hi) 70%, var(--brand));
+}
+#arena-render [data-ring="6"][data-occupancy="empty"] {
+  fill: color-mix(in srgb, var(--arena-marble-lo) 68%, var(--brand));
+}
+#arena-render [data-ring="5"][data-occupancy="empty"] {
+  fill: color-mix(in srgb, var(--arena-marble-lo) 58%, var(--brand));
+}
+#arena-render [data-ring="4"][data-occupancy="empty"] {
+  fill: color-mix(in srgb, var(--arena-marble-lo) 48%, var(--brand));
+}
+#arena-render [data-ring="3"][data-occupancy="empty"] {
+  fill: color-mix(in srgb, var(--brand) 52%, var(--surface));
+}
+#arena-render [data-ring="2"][data-occupancy="empty"] {
+  fill: color-mix(in srgb, var(--brand) 64%, var(--surface));
+}
+#arena-render [data-ring="1"][data-occupancy="empty"] {
+  fill: color-mix(in srgb, var(--brand) 76%, var(--surface-soft));
+}
+
+#arena-render .arena-walkway {
+  stroke: color-mix(in srgb, var(--surface) 55%, var(--muted));
+  opacity: 0.9;
+}
+
+#arena-render .arena-rim {
+  stroke: var(--accent-bronze);
+}
+
+#arena-render .arena-rim--inner {
+  stroke-width: 1.85;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent-bronze) 65%, transparent));
+}
+
+#arena-render .arena-rim--outer {
+  stroke-width: 1.25;
+  opacity: 0.62;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent-bronze) 40%, transparent));
+}
+
+#arena-render {
+  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--accent-bronze) 28%, transparent));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-rim--inner,
+  #arena-render .arena-rim--outer {
+    filter: none;
+  }
+}
