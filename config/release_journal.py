@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.567",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "a81e062f",
         "title": "ARENA_TALLER_PAGE — vertical room for oval",
         "section": "Chef Battles / Deployment",
         "summary": "Owner/FE: expand Arena page top-to-bottom so octagon+oval fit. FE tip 27cbed23: desktop deck height (100svh-header)*1.28, page overflow-y auto, raised mobile floor clamps, cache-bust taller. Mechanisms untouched. Timer CSP fix retained. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
