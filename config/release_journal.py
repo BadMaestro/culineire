@@ -1,11 +1,19 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.494",
+        "version": "2.5.496",
         "date": "2026-07-24",
-        "commit": "6c677452",
-        "title": "ArenaFront af25: lift wall-wash for cinematic ceiling",
+        "commit": "038d8075",
+        "title": "ArenaFront af26: warmer gold bloom after af23+24 live",
         "section": "Chef Battles / Deployment",
-        "summary": "Owner GO #2307 + pair workflow: raise hall-wall-wash placement (center 2%) so cinematic ceiling reads with gold bloom. Cursor merges pending tip. Cache-bust af25. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+        "summary": "CoWork #2314: af23+af24 live as Cursor v2.5.494 / 8ec7ef94. Renumber AF af25→495 (Cursor owns 494). af26 warms upper gold bloom for wall-wash match. Cache-bust af26. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Pair FE. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.495",
+        "date": "2026-07-24",
+        "commit": "47b54358",
+        "title": "ArenaFront af25: lift wall-wash for cinematic ceiling (renumbered)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner GO #2307 + pair workflow: raise hall-wall-wash placement (center 2%) so cinematic ceiling reads with gold bloom. Renumbered from 2.5.494 after Cursor claimed 494 for af23+af24 live (#2314). Cache-bust af25. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
         "version": "2.5.493",
