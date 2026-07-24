@@ -1193,3 +1193,15 @@
     border-bottom-right-radius: 0.85rem;
   }
 }
+
+
+/* 3G — outer show glow on the framed Arena. */
+@media (min-width: 901px) {
+  .page--arena .arena-command-deck {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent-bronze) 28%, transparent),
+      0 1.4rem 3.2rem color-mix(in srgb, var(--ink) 26%, transparent),
+      0 0 2.4rem color-mix(in srgb, var(--accent-bronze) 16%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+}
