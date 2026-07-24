@@ -1,11 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.478",
+        "date": "2026-07-24",
+        "commit": "b73ee1ee",
+        "title": "ArenaFront af10: ceiling vignette + wall-wash lift",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle: cinematic top vignette and stronger upper gold bloom; lift hall-wall-wash toward ceiling (center 8%). af7 live as Cursor v2.5.475. SVG centre mask from af6 held. Cache-bust af10. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.477",
         "date": "2026-07-24",
-        "commit": "0d4d3826",
+        "commit": "85a32a20",
         "title": "ArenaFront af9: journal renumber + outer stand haze (af6 live)",
         "section": "Chef Battles / Deployment",
-        "summary": "CoWork #2221: af6 live on main/prod as Cursor v2.5.474 / b68da937. Renumber branch journal so af7=2.5.476 and af8=2.5.477 (was colliding with Cursor 474). af9 softens outer stand crowd-haze rings only (mask centre still clear). Cache-bust af9. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+        "summary": "CoWork #2221: af6 live on main/prod as Cursor v2.5.474 / b68da937. Renumber branch journal (af7=2.5.475, af8=2.5.476, af9=2.5.477) after Cursor claimed 474 for af6. af9 softens outer stand crowd-haze rings only (mask centre still clear). Cache-bust af9. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
         "version": "2.5.476",
