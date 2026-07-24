@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.577",
         "date": "2026-07-24",
-        "commit": "PENDING",
+        "commit": "55f095c0",
         "title": "MOCKUP M15 — Top Supporter ticker + Join the Crowd",
         "section": "Chef Battles / Deployment",
         "summary": "MOCKUP_20_STEP M15. FE tip b35e024c: get_top_supporter aggregate + lower-broadcast ticker; Join the Crowd → arena_take_seat. Cache-bust m15. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
