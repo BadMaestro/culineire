@@ -9,10 +9,10 @@
 {% block extra_head %}
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260722-stage3b" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r2b" rel="stylesheet">
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r2b" rel="stylesheet">
-<link href="{% static 'css/arena_effects.css' %}?v=20260724-r1" rel="stylesheet">
-<link href="{% static 'css/arena_hall.css' %}?v=20260724-r2b" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260724-r3a" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-r3a" rel="stylesheet">
+<link href="{% static 'css/arena_effects.css' %}?v=20260724-r3a" rel="stylesheet">
+<link href="{% static 'css/arena_hall.css' %}?v=20260724-r3a" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -104,7 +104,7 @@
   </div>
 
   <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
-    <section id="arena-live-stage" class="arena-command-deck__live-stage" aria-label="Arena centre" data-centre-key="{% if active_battle %}battle-{{ active_battle.pk }}{% elif arena_data.center.type == 'crown' %}crown-{{ arena_data.center.name }}{% else %}empty{% endif %}">
+    <section id="arena-live-stage" class="arena-command-deck__live-stage arena-confrontation-band" aria-label="Arena centre" data-centre-key="{% if active_battle %}battle-{{ active_battle.pk }}{% elif arena_data.center.type == 'crown' %}crown-{{ arena_data.center.name }}{% else %}empty{% endif %}">
     {% if active_battle %}
       <article class="arena-live-chef arena-live-chef--challenger">
         <img src="{{ active_battle.challenger.display_avatar_url }}" alt="{{ active_battle.challenger.name }}" width="72" height="72">

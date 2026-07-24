@@ -1,0 +1,13 @@
+{
+  "record": "ARENA_3G_R3_CONFRONTATION_BAND",
+  "slice": "R3",
+  "recorded_by": "Cursor",
+  "recorded_at": "2026-07-24",
+  "files": [
+    "templates/chef_battle/arena.html",
+    "static/css/arena_command_deck.css",
+    "templates/base.html"
+  ],
+  "change": "Live-stage restyled as connected confrontation band over the floor using existing challenger/opponent/crown bindings. Flag out (D3). R2 v2 adds bronze rail ticks only — panel absolute positions unchanged.",
+  "constraint": "No new event listeners; ids and hrefs unchanged."
+}

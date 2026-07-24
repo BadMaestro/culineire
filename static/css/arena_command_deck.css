@@ -326,3 +326,114 @@
 
   .arena-command-deck__metrics strong { color: var(--accent-bronze); }
 }
+
+/* 3G R3 — confrontation band (composition from prototype, live data only).
+   Positions the existing live-stage as one connected challenger | focus | opponent
+   band over the floor. No new DOM targets; no flag (D3). */
+@media (min-width: 901px) {
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    top: 7.5%;
+    transform: translateX(-50%);
+    width: min(74%, 54rem);
+    margin: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(7.5rem, 0.7fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    border-radius: 1.1rem;
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hall-green) 14%, var(--surface)),
+        color-mix(in srgb, var(--surface) 88%, transparent) 36%,
+        color-mix(in srgb, var(--surface) 88%, transparent) 64%,
+        color-mix(in srgb, var(--hall-red) 14%, var(--surface))
+      );
+    box-shadow:
+      0 0.9rem 2.2rem color-mix(in srgb, var(--ink) 28%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent);
+    backdrop-filter: blur(8px) saturate(1.05);
+    -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  }
+
+  .arena-confrontation-band .arena-live-chef {
+    min-width: 0;
+    padding: 0.55rem 0.65rem;
+    border-radius: 0.85rem;
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+  }
+
+  .arena-confrontation-band .arena-live-chef img {
+    width: 3.9rem;
+    height: 3.9rem;
+    border-width: 2.5px;
+  }
+
+  .arena-confrontation-band .arena-live-chef--challenger img {
+    border-color: var(--hall-green);
+  }
+
+  .arena-confrontation-band .arena-live-chef--opponent img {
+    border-color: var(--hall-red);
+  }
+
+  .arena-confrontation-band .arena-live-chef strong {
+    font-size: clamp(0.95rem, 1.3vw, 1.2rem);
+  }
+
+  .arena-confrontation-band .arena-live-centre {
+    min-height: 5rem;
+    border-radius: 1rem;
+    border-width: 1.5px;
+    background:
+      radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--accent-bronze) 22%, transparent), transparent 62%),
+      var(--surface);
+  }
+
+  .arena-confrontation-band .arena-live-centre b {
+    font-size: clamp(1.35rem, 2vw, 1.85rem);
+  }
+
+  .arena-confrontation-band .arena-live-awaiting {
+    grid-column: 1 / -1;
+    text-align: center;
+    margin: 0;
+  }
+}
+
+/* 3G R2 v2 — architectural rail ticks only (panels stay where they are). */
+@media (min-width: 901px) {
+  .arena-command-deck__phase-card::after,
+  .arena-command-deck__ladder::after,
+  .arena-command-deck__metrics::after,
+  .arena-command-deck__gifts::after {
+    content: "";
+    position: absolute;
+    top: 18%;
+    bottom: 18%;
+    width: 1.15rem;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .arena-command-deck__phase-card::after,
+  .arena-command-deck__ladder::after {
+    right: -1.15rem;
+    border-right: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-radius: 0 0.7rem 0.7rem 0;
+  }
+
+  .arena-command-deck__metrics::after,
+  .arena-command-deck__gifts::after {
+    left: -1.15rem;
+    border-left: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-radius: 0.7rem 0 0 0.7rem;
+  }
+}
