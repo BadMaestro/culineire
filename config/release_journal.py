@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.495",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "efbc8b07",
         "title": "Merge af25 wall-wash ceiling lift with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Owner GO + pair workflow: merge ArenaFront af25 (47b54358: lift hall-wall-wash toward ceiling gold bloom) onto live polish r10c + af5–af24. Load order: polish r10c → atmosphere af25. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
