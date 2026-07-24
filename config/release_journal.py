@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.511",
+        "date": "2026-07-24",
+        "commit": "9088062f",
+        "title": "ArenaFront af39: stronger ::after parchment wash",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift outer parchment surface wash (30%) and base ::after opacity to 0.36; desktop mask still clear. Cache-bust af39. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.510",
         "date": "2026-07-24",
-        "commit": "9478a621",
+        "commit": "f56471c8",
         "title": "ArenaFront af38: denser repeating stand haze rings",
         "section": "Chef Battles / Deployment",
         "summary": "af35 LIVE (#2385 / a9bab78b v2.5.507) + Owner 5-pack DONE: densify ::after repeating-radial stand rings (tighter spacing, 26% gold). SVG centre mask held. Cache-bust af38. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
