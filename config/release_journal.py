@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.541",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af70 bottom dark with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af71 (012ca224) onto live polish r10c. Load order: polish r10c → atmosphere af71. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.543",
+        "date": "2026-07-24",
+        "commit": "0f83ef52",
+        "title": "ArenaFront af71: brighter stand gold rails",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift ::before stand gold rails (90%). SVG centre mask held. Cache-bust af71. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.542",
+        "date": "2026-07-24",
+        "commit": "c4049d58",
+        "title": "ArenaFront af70: deeper ::before bottom dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "af67+af68 LIVE (#2546 / 834687bf v2.5.539): deepen ::before bottom dark wash (90%/54%). SVG centre mask held. Cache-bust af70. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.540",
         "date": "2026-07-24",
         "commit": "5b6e21a4",
