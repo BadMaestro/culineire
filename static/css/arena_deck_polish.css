@@ -199,3 +199,24 @@
     font-size: 1.05rem;
   }
 }
+
+
+/* 3G — neutral-ladder denser rows (prototype broadcast modules). */
+@media (min-width: 901px) {
+  .arena-ladder-list li,
+  .arena-gift-list li {
+    padding: 0.42rem 0.1rem;
+    gap: 0.45rem;
+  }
+  .arena-ladder-list li span {
+    font-variant-numeric: tabular-nums;
+    min-width: 1.2rem;
+  }
+  .arena-command-deck__ladder .btn-secondary,
+  .arena-command-deck__gifts .btn-primary,
+  .arena-command-deck__gifts .btn-secondary {
+    margin-top: 0.35rem;
+    min-height: 2.15rem;
+    border-radius: 999px;
+  }
+}
