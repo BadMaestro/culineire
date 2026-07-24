@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.578",
+        "date": "2026-07-24",
+        "commit": "PENDING",
+        "title": "MOCKUP M18 — parchment marble floor + bronze seams",
+        "section": "Chef Battles / Deployment",
+        "summary": "MOCKUP_20_STEP M18. FE tip 98b2497c: warmer parchment marble rank fills + bronze seams via official token color-mix only (no raw HEX). Cache-bust m18. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.577",
         "date": "2026-07-24",
         "commit": "55f095c0",
