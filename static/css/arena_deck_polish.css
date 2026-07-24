@@ -1386,3 +1386,44 @@
     top: 10.5%;
   }
 }
+
+
+/* 3G — confrontation at floor centre (prototype confrontation-zone). */
+@media (min-width: 901px) {
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 46%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(52rem, 78%);
+    z-index: 6;
+  }
+  .arena-floor-caption {
+    top: 11%;
+    z-index: 7;
+  }
+  /* Crown / empty: one focal medallion in the middle column. */
+  .arena-confrontation-band[data-centre-key="empty"],
+  .arena-confrontation-band[data-centre-key^="crown-"] {
+    grid-template-columns: minmax(0, 1.1fr) minmax(8rem, 0.9fr) minmax(0, 1.1fr);
+  }
+  .arena-confrontation-band[data-centre-key="empty"] .arena-live-awaiting,
+  .arena-confrontation-band[data-centre-key^="crown-"] .arena-live-awaiting {
+    align-self: center;
+    font-size: 0.62rem;
+    opacity: 0.85;
+  }
+  .arena-confrontation-band .arena-live-chef--crown {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--accent-bronze) 18%, var(--surface)),
+        color-mix(in srgb, var(--surface) 88%, transparent)
+      );
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 50%, transparent);
+    box-shadow: 0 0 1.4rem color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  }
+  .arena-rank-spine {
+    bottom: 10%;
+    z-index: 5;
+  }
+}
