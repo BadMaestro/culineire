@@ -898,10 +898,16 @@
     // overlay on the floor - it becomes a compact wrapped row in normal flow.
     // A measured position would fight that, and an inline style beats the
     // stylesheet, so the measurements are cleared here rather than recomputed.
-    if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
+    // Desktop HUD (901px+) also clears: CSS owns the spine under the ribbon so
+    // it cannot cover the SVG crown the way measured placement did on empty floors.
+    if (window.matchMedia && (
+      window.matchMedia('(max-width: 767px)').matches ||
+      window.matchMedia('(min-width: 901px)').matches
+    )) {
       spine.style.top = '';
       spine.style.left = '';
       spine.style.width = '';
+      spine.style.transform = '';
       return;
     }
 

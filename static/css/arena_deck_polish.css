@@ -1230,3 +1230,80 @@
     text-transform: uppercase;
   }
 }
+
+
+/* 3G — COMPOSITION RESET: hall stage, not parchment dashboard. */
+@media (min-width: 901px) {
+  /* Floor is the stage plane — kill the cream card chrome. */
+  .page--arena .arena-command-deck__floor,
+  .arena-command-deck__floor {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .page--arena .arena-floor-stage,
+  .page--arena .arena-render-container {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Ribbon must be the first readable show strip. */
+  .arena-broadcast-ribbon {
+    z-index: 8;
+    min-height: 4.4rem;
+    padding: 0.55rem 1.15rem 0.65rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 96%, transparent),
+        color-mix(in srgb, var(--surface-soft) 92%, transparent)
+      ) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 65%, transparent);
+    box-shadow: 0 0.75rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header h1 {
+    font-size: clamp(1.25rem, 1.9vw, 1.65rem);
+    color: var(--ink);
+  }
+
+  /* Confrontation sits under ribbon, above the rings. */
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    z-index: 6;
+    top: 15.5%;
+    width: min(68%, 48rem);
+  }
+  .arena-floor-caption {
+    z-index: 7;
+    top: 9.2%;
+  }
+
+  /* Spine is a side legend, not a sticker on the crown. */
+  .arena-rank-spine {
+    top: auto;
+    bottom: 14%;
+    left: 50%;
+    width: min(11rem, 18%);
+    transform: translateX(-50%);
+    z-index: 4;
+  }
+
+  /* Side panels: glass over the floor, not opaque admin cards. */
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__gifts {
+    z-index: 5;
+    background: color-mix(in srgb, var(--surface) 72%, transparent) !important;
+    backdrop-filter: blur(10px) saturate(1.08);
+    -webkit-backdrop-filter: blur(10px) saturate(1.08);
+  }
+
+  /* Empty centre must read as the focus, not a bare SVG disc. */
+  .arena-confrontation-band[data-centre-key="empty"] .arena-live-centre--quiet,
+  .arena-confrontation-band[data-centre-key^="crown-"] .arena-live-centre--crown {
+    width: 7.8rem;
+    height: 7.8rem;
+  }
+}
