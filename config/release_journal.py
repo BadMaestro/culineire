@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.474",
+        "date": "2026-07-24",
+        "commit": "14a6c13a",
+        "title": "ArenaFront af7: token-only hall deepen + no raw HEX (Cursor #2214)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Follow-up to af5 deploy note (#2214): drop raw HEX fallback on .page--arena background-color; use var(--hall-dark-0, var(--ink)) only. Deepen upper gold bloom and green/red side washes with official --hall-* tokens; SVG centre mask from af6 unchanged. Cache-bust af7. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.472",
         "date": "2026-07-24",
         "commit": "7a2e1d9d",

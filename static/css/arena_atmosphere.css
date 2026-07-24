@@ -1,11 +1,9 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af5.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af7.
  *
- * Live feedback (Owner Capture10): parchment floor reads, but dark cinematic hall
- * from the approved mockup did not — polish loaded last and filled .page--arena
- * with a light wash. This file now loads AFTER polish and reclaims the PAGE fill
- * only; it still does not restyle polish deck chrome, seat rings, or confrontation.
- *
- * Visual targets: Owner mockup + prototype stage techniques, official tokens only.
+ * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
+ * af5: dark hall reclaim. af6: SVG-clear floor mask (Owner #2207).
+ * af7: remove raw HEX fallback (Cursor #2214); deepen upper gold bloom + side
+ *       vignettes with official --hall-* tokens only; centre mask unchanged.
  */
 
 .page--arena {
@@ -18,25 +16,25 @@
   /* Page hall fill — must win over polish light .page--arena background. */
   background:
     radial-gradient(
-      90% 50% at 50% 0%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 18%, transparent),
-      transparent 52%
+      95% 48% at 50% 0%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 26%, transparent),
+      transparent 58%
     ),
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--hall-green) 10%, transparent),
-      transparent 16%,
-      transparent 84%,
-      color-mix(in srgb, var(--hall-red) 10%, transparent)
+      color-mix(in srgb, var(--hall-green) 14%, transparent),
+      transparent 18%,
+      transparent 82%,
+      color-mix(in srgb, var(--hall-red) 14%, transparent)
     ),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--hall-dark-1, var(--ink)) 82%, var(--surface-muted)),
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 70%, var(--surface-muted)) 55%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 78%, var(--surface-muted))
+      color-mix(in srgb, var(--hall-dark-1, var(--ink)) 88%, var(--surface-muted)),
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 76%, var(--surface-muted)) 55%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 84%, var(--surface-muted))
     ),
     var(--arena-atm-wall) center 18% / cover no-repeat !important;
-  background-color: var(--hall-dark-0, #07090a);
+  background-color: var(--hall-dark-0, var(--ink));
   color: var(--ink);
 }
 
@@ -70,15 +68,15 @@
       right bottom / 20% 100% no-repeat,
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 55%, transparent),
-      transparent 18%,
-      transparent 82%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 55%, transparent)
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 62%, transparent),
+      transparent 20%,
+      transparent 80%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 62%, transparent)
     ),
     linear-gradient(
       0deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 70%, transparent),
-      transparent 42%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 74%, transparent),
+      transparent 46%
     );
   background-size:
     3.1rem 3.1rem,
