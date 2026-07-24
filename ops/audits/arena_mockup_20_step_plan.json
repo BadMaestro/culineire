@@ -145,10 +145,10 @@
       "n": 15,
       "id": "M15",
       "title": "Lower broadcast: Top Supporter ticker + Join the Crowd",
-      "status": "FE_READY",
+      "status": "LIVE",
       "owner": "pair",
-      "be": "top_supporter via get_top_supporter (ViewerBattleGift aggregate)",
-      "note": "Tip: ticker + seat CTA; await Cursor integrate"
+      "note": "v2.5.577",
+      "be": "top_supporter via get_top_supporter (ViewerBattleGift aggregate)"
     },
     {
       "n": 16,
