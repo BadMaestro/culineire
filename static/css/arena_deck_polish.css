@@ -316,3 +316,35 @@
     box-shadow: 0 0 0.7rem color-mix(in srgb, var(--hall-green) 55%, transparent);
   }
 }
+
+
+/* 3G — lower broadcast bar as show dock (prototype lower ribbon). */
+@media (min-width: 901px) {
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 58%, transparent);
+    box-shadow:
+      0 -0.75rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent);
+    padding-inline: 1.25rem;
+  }
+  .arena-lower-broadcast .arena-crowd-rail__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 650;
+    color: var(--ink-soft);
+  }
+  .arena-lower-broadcast .arena-crowd-rail__status b {
+    color: var(--ink);
+    font-weight: 800;
+  }
+  .arena-lower-broadcast .arena-crowd-rail__status .arena-ico {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-lower-broadcast .arena-crowd-rail__actions .btn-secondary {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-bronze) 14%, var(--surface));
+    border-color: color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+  }
+}
