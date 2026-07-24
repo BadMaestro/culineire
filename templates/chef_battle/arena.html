@@ -13,7 +13,7 @@
 <link href="{% static 'css/arena_effects.css' %}?v=20260724-r9c" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260724-r9c" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-taller" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-m05" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260724-no-bg-geom" rel="stylesheet">
 {% endblock %}
 
@@ -27,7 +27,7 @@
       <p class="arena-command-deck__eyebrow">Chef Battles Arena</p>
       <h1 id="arena-command-title">Arena Hall</h1>
       <p class="arena-command-deck__live-note{% if active_battle %} is-live{% endif %}">
-        {% if active_battle %}A live battle is holding the centre.{% else %}The ranked kitchen floor is open for the next challenge.{% endif %}
+        {% if active_battle %}Live now · a battle holds the centre{% else %}The ranked kitchen floor is open for the next challenge{% endif %}
       </p>
     </div>
     <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Back to Chef Battles</a>
@@ -205,8 +205,8 @@
         <img src="{{ arena_data.center.avatar_url }}" alt="{{ arena_data.center.name }}" width="72" height="72">
         <div><span>Crown holder</span><strong>{{ arena_data.center.name }}</strong></div>
       </article>
-      <a class="arena-live-centre arena-live-centre--crown" href="{{ arena_data.center.profile_url }}" aria-label="View crown holder profile">
-        <span>Current holder</span><b>♛</b><em>View profile</em>
+      <a class="arena-live-centre arena-live-centre--crown" href="{{ arena_data.center.profile_url }}" aria-label="View crown holder {{ arena_data.center.name }}">
+        <span>Crown holder</span><b>♛</b><em>{{ arena_data.center.name }}</em>
       </a>
       <p class="arena-live-awaiting">The centre awaits the next challenge.</p>
     {% else %}

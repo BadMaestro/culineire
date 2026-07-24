@@ -1,0 +1,198 @@
+{
+  "record": "ARENA_MOCKUP_20_STEP_PLAN",
+  "version": 1,
+  "created_at": "2026-07-24",
+  "created_by": "arenafront",
+  "authorised_by": "CulinEire Product Owner",
+  "reference_image": "Owner mockup photo_2026-07-18 (Chef Battles Arena Emerald Hall)",
+  "prod_base_at_plan": "origin/main taller page v2.5.567 / a81e062f",
+  "working_principle": "One step, one branch, one gate, one journal. Mechanisms preserved (Owner #2780). No second engine. AF atmosphere STOPPED until Owner lifts. Pair FE+BE.",
+  "mockup_zones": [
+    "site chrome / welcome",
+    "broadcast ribbon + phase stepper",
+    "phase card + countdown",
+    "live metrics",
+    "confrontation: challenger | crown | opponent",
+    "chef octagon rank rings + cell grid",
+    "rank titles on floor axis",
+    "spectator oval stands",
+    "crown ladder",
+    "recent gifts",
+    "lower broadcast + Join the Crowd"
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "id": "M01",
+      "title": "Publish zone map: mockup block → live component",
+      "status": "DONE",
+      "owner": "arenafront",
+      "be": "ACK map",
+      "deliverable": "ops/audits/arena_mockup_20_step_plan.json (this file)",
+      "gate": "Cursor ACK; Owner may amend order"
+    },
+    {
+      "n": 2,
+      "id": "M02",
+      "title": "Owner amend product-contract §12 capacity 544→290 (oval honesty)",
+      "status": "OWNER_GATE",
+      "owner": "Product Owner",
+      "note": "Live geometry already 290; constitution text still says 544"
+    },
+    {
+      "n": 3,
+      "id": "M03",
+      "title": "Chef octagon QA: rings 1+9+10+15+20+25+30+35+40 vs mockup counts",
+      "status": "LIVE_GEOMETRY",
+      "owner": "pair",
+      "note": "Shipped v2.5.564; verify hard-refresh visual parity"
+    },
+    {
+      "n": 4,
+      "id": "M04",
+      "title": "Spectator oval QA: L3/R3/T2/B2 packing density toward mockup crowd",
+      "status": "NEXT",
+      "owner": "arenafront",
+      "be": "keep seat ids stable if packing constants change",
+      "files": ["static/js/arena_geometry.js", "chef_battle/selectors.py", "tests"]
+    },
+    {
+      "n": 5,
+      "id": "M05",
+      "title": "Rank titles ON floor axis (Kitchen Porter outer → Culinary Master inner)",
+      "status": "FE_TIP",
+      "owner": "arenafront",
+      "note": "Mockup writes ranks on the octagon spine; desktop column-reverse + text-on-floor (DOM order preserved for tests)",
+      "files": ["templates/chef_battle/arena.html", "static/css/arena_*.css", "static/js/arena_render.js"],
+      "constraint": "ArenaRankColumnTests semantics must not weaken"
+    },
+    {
+      "n": 6,
+      "id": "M06",
+      "title": "Centre crown pedestal: CROWN HOLDER stamp + gold hub (mockup)",
+      "status": "FE_TIP",
+      "owner": "arenafront",
+      "be": "confirm center payload fields only",
+      "files": ["static/js/arena_render.js", "static/css/arena_render.css", "arena_deck_polish.css"]
+    },
+    {
+      "n": 7,
+      "id": "M07",
+      "title": "On-floor large challenger/opponent hex portraits (green left / red right)",
+      "status": "NEXT",
+      "owner": "pair",
+      "note": "Mockup places big chef tiles ON the floor, not only the upper confrontation band",
+      "files": ["static/js/arena_render.js", "templates/chef_battle/arena.html", "CSS"]
+    },
+    {
+      "n": 8,
+      "id": "M08",
+      "title": "Confrontation band polish to match mockup weight (names, hex clip, glow)",
+      "status": "PARTIAL_LIVE",
+      "owner": "arenafront",
+      "depends_on": ["M07"]
+    },
+    {
+      "n": 9,
+      "id": "M09",
+      "title": "Phase card: large PHASE + COOKING + MM:SS + Next line (mockup)",
+      "status": "PARTIAL_LIVE",
+      "owner": "arenafront",
+      "note": "Timer v2.5.565/566 live; raise visual weight to mockup"
+    },
+    {
+      "n": 10,
+      "id": "M10",
+      "title": "Broadcast ribbon stepper: Challenge…Crown active COOKING style",
+      "status": "PARTIAL_LIVE",
+      "owner": "arenafront"
+    },
+    {
+      "n": 11,
+      "id": "M11",
+      "title": "Hall identity line (mockup says Emerald Hall)",
+      "status": "OWNER_GATE",
+      "owner": "Product Owner",
+      "note": "Tests pin public title to 'Arena Hall' (test_arena_hall_title_is_not_emerald). Need Owner overturn before Emerald Hall copy."
+    },
+    {
+      "n": 12,
+      "id": "M12",
+      "title": "Live metrics panel: Active Viewers / Votes / Gifts / Crown streak layout",
+      "status": "PARTIAL_LIVE",
+      "owner": "arenafront"
+    },
+    {
+      "n": 13,
+      "id": "M13",
+      "title": "Today's Crown Ladder panel mockup parity",
+      "status": "PARTIAL_LIVE",
+      "owner": "arenafront"
+    },
+    {
+      "n": 14,
+      "id": "M14",
+      "title": "Recent Battle Gifts panel + Send a Gift CTA mockup parity",
+      "status": "PARTIAL_LIVE",
+      "owner": "arenafront"
+    },
+    {
+      "n": 15,
+      "id": "M15",
+      "title": "Lower broadcast: Top Supporter ticker + Join the Crowd",
+      "status": "PARTIAL_LIVE",
+      "owner": "pair",
+      "be": "top_supporter field if missing"
+    },
+    {
+      "n": 16,
+      "id": "M16",
+      "title": "Chef country flags on confrontation / floor tiles",
+      "status": "OWNER_GATE",
+      "decision": "D3",
+      "owner": "Product Owner"
+    },
+    {
+      "n": 17,
+      "id": "M17",
+      "title": "Atmospheric packed-crowd art UNDER interactive oval (non-impersonating)",
+      "status": "OWNER_GATE",
+      "note": "AF atmosphere STOPPED; needs Owner lift. 3C real seats stay honest",
+      "owner": "Product Owner + ArenaFront"
+    },
+    {
+      "n": 18,
+      "id": "M18",
+      "title": "Floor material: parchment/marble + bronze seams (official tokens only)",
+      "status": "NEXT",
+      "owner": "arenafront",
+      "constraint": "No raw HEX scatter; no parallel palette"
+    },
+    {
+      "n": 19,
+      "id": "M19",
+      "title": "Responsive mockup parity pass 1920 / 768 / 390",
+      "status": "NEXT",
+      "owner": "pair",
+      "gate": "no horizontal overflow; a11y keyboard/focus/reduced-motion"
+    },
+    {
+      "n": 20,
+      "id": "M20",
+      "title": "Owner visual acceptance + journal/board honesty close",
+      "status": "PENDING",
+      "owner": "Product Owner + Cursor journal"
+    }
+  ],
+  "execute_now": {
+    "immediate": ["M01", "M05", "M06"],
+    "parallel_be": ["ACK plan", "M02 escalate", "standby for M04 packing if constants change", "integrate FE tips"],
+    "blocked": ["M16", "M17", "M02"]
+  },
+  "explicit_non_goals": [
+    "No merge of design/arena-visual-shell-prototype",
+    "No second arena renderer",
+    "No widening Arena access",
+    "No mechanism rewrite (movement, seating claim, poll bind)"
+  ]
+}
