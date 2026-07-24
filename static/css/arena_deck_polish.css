@@ -468,3 +468,54 @@
     border-color: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
   }
 }
+
+
+/* 3G — ladder gold ranks + deadline timer (prototype modules). */
+@media (min-width: 901px) {
+  .arena-ladder-list li span {
+    display: grid;
+    place-items: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    color: var(--accent-bronze-dark);
+    font-size: 0.62rem;
+    font-weight: 800;
+    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+  }
+  .arena-ladder-list li a {
+    color: var(--ink);
+    font-weight: 650;
+    text-decoration: none;
+  }
+  .arena-ladder-list li a:hover,
+  .arena-ladder-list li a:focus-visible {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-ladder-list li em {
+    color: var(--muted);
+    font-style: normal;
+    font-size: 0.62rem;
+  }
+  .arena-command-deck__phase-deadline > strong {
+    color: var(--accent-bronze-dark);
+    font-family: var(--font-serif, "Playfair Display", serif);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+  .arena-command-deck__phase-deadline:not(.is-empty)::after {
+    content: "";
+    display: block;
+    height: 0.22rem;
+    margin-top: 0.55rem;
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hall-green) 70%, var(--accent-bronze)),
+        var(--accent-bronze)
+      );
+    box-shadow: 0 0 0.65rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  }
+}
