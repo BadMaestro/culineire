@@ -126,7 +126,19 @@
 
   function radiusStepFor(geometry) {
     var usable = (SVG_SIZE / 2) - OUTER_MARGIN - STAGE_RADIUS;
-    return usable / Math.max(1, geometry.rings.length - 1);
+    var floorRings = (geometry.rings || []).filter(function (ring) {
+      return ring.kind === 'stage' || ring.kind === 'rank';
+    });
+    // Chef floor depth only — oval stands sit outside and must not shrink the octagon.
+    return usable / Math.max(1, Math.max(floorRings.length, 9) - 1);
+  }
+
+  function floorOuterRadius(geometry, step) {
+    var lastRank = 0;
+    (geometry.rings || []).forEach(function (ring) {
+      if (ring.kind === 'rank' && ring.index > lastRank) { lastRank = ring.index; }
+    });
+    return STAGE_RADIUS + lastRank * step;
   }
 
   /* ---------------------------------------------------------------- */
@@ -142,6 +154,59 @@
       points.push(project(global.ArenaGeometry.polar(SVG_SIZE / 2, SVG_SIZE / 2, radius, angle)));
     }
     return points.map(pointString).join(' ');
+  }
+
+  // Owner 2026-07-24: spectators sit in an oval around the chef octagon
+  // (3 rows L/R, 2 rows T/B) — not in floor cells.
+  // Prefer BE spectator_oval.seats (centre-relative) so ring/cell ids match
+  // ArenaSeat; scale them onto the drawn floor outer radius.
+  function drawSpectatorOval(svg, geometry, step, defs) {
+    var project = projector();
+    var layer = el('g', { 'data-arena-layer': 'spectator-oval' });
+    var floorR = floorOuterRadius(geometry, step);
+    var oval = geometry.spectator_oval || {};
+    var rowsBySide = oval.rows_by_side || { top: 2, right: 3, bottom: 2, left: 3 };
+    var beFloor = oval.floor_outer_radius || 220;
+    var scale = floorR / beFloor;
+    var seats = oval.seats && oval.seats.length
+      ? oval.seats
+      : (global.ArenaGeometry.ovalSeats
+        ? global.ArenaGeometry.ovalSeats(0, 0, beFloor, rowsBySide).map(function (s) {
+            return s;
+          })
+        : []);
+
+    seats.forEach(function (seat) {
+      var planX = SVG_SIZE / 2 + seat.x * scale;
+      var planY = SVG_SIZE / 2 + seat.y * scale;
+      var pt = project({ x: planX, y: planY });
+      var pitch = Math.max(14, floorR * 0.055);
+      var r = Math.max(5, pitch * 0.42 * Math.min(1.15, scale));
+      var circle = el('circle', {
+        cx: pt.x.toFixed(2),
+        cy: pt.y.toFixed(2),
+        r: r.toFixed(2),
+        'data-ring': String(seat.ring),
+        'data-ring-key': 'oval_' + (seat.side || 'x') + '_' + (seat.row || 0),
+        'data-ring-kind': 'spectator',
+        'data-cell': String(seat.cell),
+        'data-side': seat.side || '',
+        'data-row': String(seat.row != null ? seat.row : ''),
+        'data-centroid-x': pt.x.toFixed(2),
+        'data-centroid-y': pt.y.toFixed(2),
+        'data-occupancy': 'empty',
+        'data-state': 'idle',
+        'vector-effect': 'non-scaling-stroke',
+        class: 'arena-cell arena-cell--oval-seat'
+      });
+      layer.appendChild(circle);
+      var clip = el('clipPath', { id: 'arena-clip-' + seat.ring + '-' + seat.cell });
+      clip.appendChild(el('circle', {
+        cx: pt.x.toFixed(2), cy: pt.y.toFixed(2), r: r.toFixed(2)
+      }));
+      defs.appendChild(clip);
+    });
+    svg.appendChild(layer);
   }
 
   // The walkway, and the light along its edges.
@@ -186,13 +251,19 @@
     var defs = el('defs', {});
     var cells = el('g', { 'data-arena-layer': 'cells' });
     var stageRing = geometry.rings[0];
+    // Chef floor only (stage + rank). Spectator oval is drawn separately —
+    // Owner 2026-07-24: viewers do not sit in octagon cells.
+    var floorRings = geometry.rings.filter(function (ring) {
+      return ring.kind === 'stage' || ring.kind === 'rank';
+    });
+    var floorRingCount = floorRings.length;
 
-    geometry.rings.forEach(function (ring) {
+    floorRings.forEach(function (ring) {
       if (ring.index === 0) { return; }
       for (var segment = 0; segment < ring.segments; segment++) {
         var vertices = global.ArenaGeometry.cellVertices(
           SVG_SIZE / 2, SVG_SIZE / 2, ring.index, segment,
-          geometry.rings.length, ring.segments, step, geometry.sides, STAGE_RADIUS
+          floorRingCount, ring.segments, step, geometry.sides, STAGE_RADIUS
         );
         var centroid = global.ArenaGeometry.cellCentroid(vertices);
         // Project after the plan-space maths, never before: the geometry
@@ -232,6 +303,7 @@
     svg.appendChild(defs);
     svg.appendChild(cells);
     drawWalkway(svg, geometry, step);
+    drawSpectatorOval(svg, geometry, step, defs);
     svg.appendChild(el('circle', {
       cx: SVG_SIZE / 2, cy: SVG_SIZE / 2, r: STAGE_RADIUS,
       'data-ring': String(stageRing.index),
@@ -435,7 +507,7 @@
     geometry.rings.forEach(function (ring) {
       if (ring.kind !== 'spectator') { return; }
       var light = (1 - FACE_DIM * rowDepth(geometry, ring.index)).toFixed(3);
-      var seats = svg.querySelectorAll('polygon[data-ring="' + ring.index + '"]');
+      var seats = svg.querySelectorAll('.arena-cell[data-ring="' + ring.index + '"]');
       Array.prototype.forEach.call(seats, function (seat) {
         seat.style.setProperty('--row-light', light);
       });
@@ -452,7 +524,7 @@
   function appendCrowdFigure(svg, layer, ring, cell, geometry, radius) {
     var href = crowdFaceFor(ring, cell);
     if (!href) { return; }
-    var polygon = svg.querySelector('polygon[data-ring="' + ring + '"][data-cell="' + cell + '"]');
+    var polygon = svg.querySelector('.arena-cell[data-ring="' + ring + '"][data-cell="' + cell + '"]');
     if (!polygon) { return; }
     var box = polygon.getBBox();
     var jitter = seatJitter(ring, cell);
@@ -508,11 +580,11 @@
 
   function appendOccupant(svg, layer, assignment) {
     var entity = assignment.entity || {};
-    var selector = '[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]';
-    var polygon = svg.querySelector('polygon' + selector);
-    if (!polygon) { return; }
+    var selector = '.arena-cell[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]';
+    var seat = svg.querySelector(selector);
+    if (!seat) { return; }
 
-    var box = polygon.getBBox();
+    var box = seat.getBBox();
     var size = Math.max(box.width, box.height);
     var group = el('g', {
       'clip-path': 'url(#arena-clip-' + assignment.ring + '-' + assignment.cell + ')',
@@ -555,11 +627,11 @@
     // Clear every transient attribute first: a poll may free a cell, and a
     // stale occupancy left on it would outlive its occupant.
     seatedRing = null;
-    Array.prototype.forEach.call(svg.querySelectorAll('polygon[data-ring]'), function (polygon) {
-      polygon.setAttribute('data-occupancy', 'empty');
-      polygon.setAttribute('data-state', 'idle');
-      polygon.removeAttribute('data-entity-slug');
-      polygon.chefRecord = null;
+    Array.prototype.forEach.call(svg.querySelectorAll('.arena-cell[data-ring]'), function (seat) {
+      seat.setAttribute('data-occupancy', 'empty');
+      seat.setAttribute('data-state', 'idle');
+      seat.removeAttribute('data-entity-slug');
+      seat.chefRecord = null;
     });
 
     lightRows(svg, geometry);
@@ -568,13 +640,15 @@
     fillCrowd(svg, geometry, assignments);
 
     assignments.forEach(function (assignment) {
-      var polygon = svg.querySelector('polygon[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]');
-      if (!polygon) { return; }
+      var seat = svg.querySelector(
+        '.arena-cell[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]'
+      );
+      if (!seat) { return; }
       var entity = assignment.entity;
-      polygon.setAttribute('data-occupancy', assignment.occupancy);
-      polygon.setAttribute('data-state', assignment.state);
-      polygon.setAttribute('data-entity-slug', entity.slug || '');
-      polygon.chefRecord = assignment.occupancy === 'spectator' ? asSpectator(entity) : entity;
+      seat.setAttribute('data-occupancy', assignment.occupancy);
+      seat.setAttribute('data-state', assignment.state);
+      seat.setAttribute('data-entity-slug', entity.slug || '');
+      seat.chefRecord = assignment.occupancy === 'spectator' ? asSpectator(entity) : entity;
       if (entity.slug && entity.slug === viewerSlug()) { seatedRing = assignment.ring; }
 
       appendOccupant(svg, occupants, assignment);
@@ -598,15 +672,14 @@
     var kindByRing = {};
     geometry.rings.forEach(function (ring) { kindByRing[ring.index] = ring.kind; });
 
-    Array.prototype.forEach.call(svg.querySelectorAll('polygon[data-ring]'), function (polygon) {
+    Array.prototype.forEach.call(svg.querySelectorAll('.arena-cell[data-ring]'), function (polygon) {
       var ring = Number(polygon.getAttribute('data-ring'));
       var seatable = false;
       if (viewerSlug() && polygon.getAttribute('data-occupancy') === 'empty') {
         if (seatedRing !== null) {
           seatable = kindByRing[seatedRing] === 'rank'
             ? ring === seatedRing
-            : kindByRing[ring] === 'spectator';
-        } else {
+            : kindByRing[ring] === 'spectator';        } else {
           // Not on the floor yet: a chef's rank ring is unknown until the
           // payload seats them, so only the galleries can be offered.
           seatable = kindByRing[ring] === 'spectator';
@@ -774,8 +847,8 @@
 
   function attachEvents(svg) {
     svg.addEventListener('mouseover', function (event) {
-      var polygon = event.target.closest && event.target.closest('polygon[data-seatable]');
-      if (polygon) { showSeatLabel(svg, polygon); } else { hideSeatLabel(svg); }
+      var seat = event.target.closest && event.target.closest('.arena-cell[data-seatable]');
+      if (seat) { showSeatLabel(svg, seat); } else { hideSeatLabel(svg); }
     });
     svg.addEventListener('mouseleave', function () { hideSeatLabel(svg); });
 
@@ -789,11 +862,11 @@
         global.ArenaBattleRoom.open(stageCentre.popup_url, stageCentre.battle_url);
         return;
       }
-      var polygon = event.target.closest && event.target.closest('polygon[data-ring]');
-      if (!polygon || !polygon.chefRecord) { hideTooltip(); return; }
+      var seat = event.target.closest && event.target.closest('.arena-cell[data-ring]');
+      if (!seat || !seat.chefRecord) { hideTooltip(); return; }
       event.stopPropagation();
       fireRipple(svg, event);
-      showTooltip(polygon.chefRecord, polygon);
+      showTooltip(seat.chefRecord, seat);
     });
     document.addEventListener('click', function (event) {
       var tip = tooltipEl();

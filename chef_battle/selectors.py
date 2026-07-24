@@ -1253,57 +1253,110 @@ def get_starting_battle_blast() -> dict | None:
     }
 
 
-# Spectator seating, outermost part of the bowl. Ring 9 is the front row
-# (closest to the chefs), each ring further out adds one octant's worth of
-# seats. Four rings gave a shallow rim; the measured mockup puts the stands
-# at ~1.6x the floor radius, which needs real depth behind the front row —
-# hence eight rings. Ordered front-to-back so the renderer can scale and
-# brighten by position in this list without knowing the absolute indices.
-SPECTATOR_RING_SEGMENTS = (40, 48, 56, 64, 72, 80, 88, 96)
+# Owner 2026-07-24 mockup redesign: chef octagon cell counts from centre out
+# (stage=1 separate; these eight are Culinary Master → Kitchen Porter).
+# Uneven-per-side is allowed — no longer forced multiples of 8.
+RANK_RING_SEGMENTS = (9, 10, 15, 20, 25, 30, 35, 40)
 
-_FIRST_SPECTATOR_RING = 9
+# Spectators sit in an oval around the octagon (NOT in chef cells).
+# Rows by side match the Owner mockup: 3 left/right, 2 top/bottom.
+SPECTATOR_OVAL_ROWS = {"top": 2, "right": 3, "bottom": 2, "left": 3}
+
+# Legacy name kept as alias for imports; capacity now comes from oval packing.
+SPECTATOR_RING_SEGMENTS = ()  # empty — polar spectator rings removed
+
+_FIRST_SPECTATOR_RING = 100  # synthetic oval ring ids start at 100+
+
+
+def _oval_seat_list(floor_outer_radius=220.0, seat_pitch=None):
+    """Plan-space oval seats mirroring ArenaGeometry.ovalSeats (JS).
+
+    Stable ids: ring = 100 + side_index*10 + row, cell = 0..n-1.
+    """
+    import math
+
+    pitch = seat_pitch if seat_pitch is not None else max(14.0, floor_outer_radius * 0.055)
+    gap = floor_outer_radius * 0.08
+    sides = (
+        ("top", SPECTATOR_OVAL_ROWS["top"], -math.pi * 0.75, -math.pi * 0.25),
+        ("right", SPECTATOR_OVAL_ROWS["right"], -math.pi * 0.25, math.pi * 0.25),
+        ("bottom", SPECTATOR_OVAL_ROWS["bottom"], math.pi * 0.25, math.pi * 0.75),
+        ("left", SPECTATOR_OVAL_ROWS["left"], math.pi * 0.75, math.pi * 1.25),
+    )
+    side_index = {"top": 0, "right": 1, "bottom": 2, "left": 3}
+    out = []
+    for key, rows, a0, a1 in sides:
+        for row in range(rows):
+            radius = floor_outer_radius + gap + (row + 0.5) * pitch * 1.15
+            rx = radius * 1.08
+            ry = radius * 0.92
+            arc = a1 - a0
+            arc_len = abs(arc) * ((rx + ry) / 2)
+            count = max(4, round(arc_len / pitch))
+            ring_id = _FIRST_SPECTATOR_RING + side_index[key] * 10 + row
+            for cell in range(count):
+                t = (cell + 0.5) / count
+                angle = a0 + arc * t
+                out.append({
+                    "side": key,
+                    "row": row,
+                    "cell": cell,
+                    "ring": ring_id,
+                    "x": rx * math.cos(angle),
+                    "y": ry * math.sin(angle),
+                })
+    return out
 
 
 def spectator_capacity() -> int:
-    """Total spectator seats the arena can draw — the sum of the seating
-    rings. Callers must derive their query limit from this instead of
-    hardcoding a number, so adding a ring never leaves seats unfillable."""
-    return sum(SPECTATOR_RING_SEGMENTS)
+    """Total interactive spectator seats on the oval stands."""
+    return len(_oval_seat_list())
 
 
 def get_arena_geometry() -> dict:
     """Declarative arena structure for the procedural (SVG/Canvas) renderer.
-    The frontend must not hardcode ring/rank counts — this is the single
-    source of truth it derives the polar grid from. Purely structural (no
-    per-request queries): ring 0 is the centre stage, rings 1..8 are chef
-    ranks from highest (innermost) to lowest, and the rings after those are
-    spectator seating (see SPECTATOR_RING_SEGMENTS)."""
+
+    Owner 2026-07-24: chef octagon uses RANK_RING_SEGMENTS; spectators are an
+    oval around the floor (spectator_oval), not polar rings on the same grid.
+    """
     from .models import ChefBattleProfile
-    # Seat capacity per ring. Derived from the legacy circular layout's
-    # RING_COUNTS (arena_puzzle.js) rounded to the nearest multiple of 8 so
-    # every octant of the flat-sided octagon holds a whole number of cells
-    # (max drift ±2 seats per ring vs the legacy grid).
-    segments = {1: 8, 2: 8, 3: 16, 4: 16, 5: 24, 6: 24, 7: 32, 8: 32}
     rings = [{"index": 0, "kind": "stage", "key": "stage", "label": "Centre Stage", "segments": 1}]
-    # Rank choices are declared lowest-first in the model; the arena places
-    # the highest rank closest to the stage, so walk them reversed.
     for i, (value, label) in enumerate(reversed(ChefBattleProfile.Rank.choices), start=1):
-        rings.append({"index": i, "kind": "rank", "key": value, "label": label, "segments": segments[i]})
-    for row, seats in enumerate(SPECTATOR_RING_SEGMENTS, start=1):
-        index = _FIRST_SPECTATOR_RING + row - 1
         rings.append({
-            "index": index,
-            "kind": "spectator",
-            "key": f"spectator_{row}",
-            "label": "Spectators",
-            "segments": seats,
-            # 1 = front row nearest the chefs, counting outwards. The renderer
-            # sizes and lights faces by this instead of by absolute index, so
-            # inserting a ring does not silently reshade every row behind it.
-            "row": row,
-            "rows_total": len(SPECTATOR_RING_SEGMENTS),
+            "index": i,
+            "kind": "rank",
+            "key": value,
+            "label": label,
+            "segments": RANK_RING_SEGMENTS[i - 1],
         })
-    return {"sides": 8, "rings": rings}
+    oval = _oval_seat_list()
+    # Compact ring descriptors for oval rows (for seat maps / tests).
+    oval_rings = {}
+    for seat in oval:
+        rid = seat["ring"]
+        if rid not in oval_rings:
+            oval_rings[rid] = {
+                "index": rid,
+                "kind": "spectator",
+                "key": f"oval_{seat['side']}_{seat['row']}",
+                "label": "Spectators",
+                "segments": 0,
+                "side": seat["side"],
+                "row": seat["row"] + 1,
+                "rows_total": SPECTATOR_OVAL_ROWS[seat["side"]],
+            }
+        oval_rings[rid]["segments"] += 1
+    floor_r = 220.0
+    return {
+        "sides": 8,
+        "rings": rings + [oval_rings[k] for k in sorted(oval_rings)],
+        "spectator_oval": {
+            "rows_by_side": dict(SPECTATOR_OVAL_ROWS),
+            "floor_outer_radius": floor_r,
+            "capacity": len(oval),
+            "seats": oval,
+        },
+    }
 
 
 # A recipe entered in a battle is frozen for the battle's duration: the biathlon

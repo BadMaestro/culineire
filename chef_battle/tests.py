@@ -7154,52 +7154,62 @@ class ArenaGeometryTests(TestCase):
 
     def test_structure(self):
         from .models import ChefBattleProfile
-        from .selectors import get_arena_geometry
+        from .selectors import get_arena_geometry, SPECTATOR_OVAL_ROWS
         g = get_arena_geometry()
         self.assertEqual(g["sides"], 8)
         rings = g["rings"]
-        from .selectors import SPECTATOR_RING_SEGMENTS
-        # 1 stage + 8 ranks + the spectator rings, contiguous from 0
-        total = 9 + len(SPECTATOR_RING_SEGMENTS)
-        self.assertEqual(len(rings), total)
-        self.assertEqual([r["index"] for r in rings], list(range(total)))
+        floor = [r for r in rings if r["kind"] in ("stage", "rank")]
+        spectators = [r for r in rings if r["kind"] == "spectator"]
+        # 1 stage + 8 ranks; oval rows are synthetic ring ids 100+
+        self.assertEqual(len(floor), 9)
+        self.assertEqual([r["index"] for r in floor], list(range(9)))
         self.assertEqual(rings[0]["kind"], "stage")
-        # rank rings walk the real model choices, highest rank innermost
         self.assertEqual(rings[1]["key"], ChefBattleProfile.Rank.CULINARY_MASTER)
         self.assertEqual(rings[8]["key"], ChefBattleProfile.Rank.KITCHEN_PORTER)
         for r in rings[1:9]:
             self.assertEqual(r["kind"], "rank")
             self.assertTrue(r["label"])
-        for r in rings[9:]:
+        for r in spectators:
             self.assertEqual(r["kind"], "spectator")
-        # every rank choice appears exactly once
+            self.assertGreaterEqual(r["index"], 100)
         self.assertEqual(
             {r["key"] for r in rings[1:9]},
             {c for c, _ in ChefBattleProfile.Rank.choices},
         )
+        oval = g["spectator_oval"]
+        self.assertEqual(oval["rows_by_side"], SPECTATOR_OVAL_ROWS)
+        self.assertEqual(
+            sum(SPECTATOR_OVAL_ROWS.values()),
+            len(spectators),
+        )
 
-    def test_segments_octant_divisible_and_monotonic(self):
-        from .selectors import get_arena_geometry
+    def test_rank_segments_match_mockup_and_grow_outward(self):
+        from .selectors import get_arena_geometry, RANK_RING_SEGMENTS
         g = get_arena_geometry()
-        rings = g["rings"]
-        self.assertEqual(rings[0]["segments"], 1)  # stage is a single cell
-        seat_rings = rings[1:]
-        for r in seat_rings:
-            # whole number of cells per octant on the flat-sided octagon
-            self.assertEqual(r["segments"] % g["sides"], 0, r)
-        counts = [r["segments"] for r in seat_rings]
-        self.assertEqual(counts, sorted(counts))  # capacity never shrinks outward
+        ranks = [r for r in g["rings"] if r["kind"] == "rank"]
+        self.assertEqual(g["rings"][0]["segments"], 1)  # stage
+        counts = [r["segments"] for r in ranks]
+        self.assertEqual(counts, list(RANK_RING_SEGMENTS))
+        self.assertEqual(counts, sorted(counts))
+        # Owner mockup counts need not be multiples of 8 (uneven per side).
 
-    def test_spectator_rows_are_numbered_front_to_back(self):
-        from .selectors import get_arena_geometry, SPECTATOR_RING_SEGMENTS
-        rings = [r for r in get_arena_geometry()["rings"] if r["kind"] == "spectator"]
-        self.assertEqual(len(rings), len(SPECTATOR_RING_SEGMENTS))
-        # row 1 is the front row nearest the chefs and holds the fewest seats
-        self.assertEqual([r["row"] for r in rings],
-                         list(range(1, len(SPECTATOR_RING_SEGMENTS) + 1)))
-        self.assertEqual(rings[0]["segments"], min(SPECTATOR_RING_SEGMENTS))
+    def test_spectator_oval_rows_match_mockup(self):
+        from .selectors import get_arena_geometry, SPECTATOR_OVAL_ROWS
+        g = get_arena_geometry()
+        oval = g["spectator_oval"]
+        self.assertEqual(oval["rows_by_side"]["left"], 3)
+        self.assertEqual(oval["rows_by_side"]["right"], 3)
+        self.assertEqual(oval["rows_by_side"]["top"], 2)
+        self.assertEqual(oval["rows_by_side"]["bottom"], 2)
+        rings = [r for r in g["rings"] if r["kind"] == "spectator"]
+        by_side = {}
         for r in rings:
-            self.assertEqual(r["rows_total"], len(SPECTATOR_RING_SEGMENTS))
+            by_side.setdefault(r["side"], []).append(r["row"])
+        for side, rows in SPECTATOR_OVAL_ROWS.items():
+            self.assertEqual(sorted(by_side[side]), list(range(1, rows + 1)))
+            for r in rings:
+                if r["side"] == side:
+                    self.assertEqual(r["rows_total"], rows)
 
     def test_spectator_capacity_matches_the_drawn_seats(self):
         """The query limit must not drift from the geometry: every seat the
@@ -7207,7 +7217,9 @@ class ArenaGeometryTests(TestCase):
         from .selectors import get_arena_geometry, spectator_capacity
         drawn = sum(r["segments"] for r in get_arena_geometry()["rings"]
                     if r["kind"] == "spectator")
+        oval_cap = get_arena_geometry()["spectator_oval"]["capacity"]
         self.assertEqual(spectator_capacity(), drawn)
+        self.assertEqual(spectator_capacity(), oval_cap)
 
     def test_get_spectators_respects_capacity_limit(self):
         from chef_battle.arena_seating import claim_seat, seat_map
@@ -7226,7 +7238,8 @@ class ArenaGeometryTests(TestCase):
         self.assertEqual(len(_get_spectators(cutoff, limit=2)), 2)
         self.assertEqual(len(_get_spectators(cutoff)), 3)
         self.assertEqual(spectator_capacity(), len(seat_map()))
-        self.assertEqual(spectator_capacity(), 544)
+        # Owner oval packing — not the legacy polar 544.
+        self.assertEqual(spectator_capacity(), 290)
 
 class VoteIntegrityConstraintTests(TransactionTestCase):
     """The self-vote ban has to survive a caller that skips the service layer.
@@ -7663,26 +7676,35 @@ class ArenaSeatingTests(TestCase):
     # ---- topology --------------------------------------------------------
 
     def test_capacity_is_the_geometry_not_a_constant(self):
-        """544 is a consequence of the eight declared spectator rings, so the
-        number is checked against the rings rather than typed twice."""
+        """Capacity follows spectator_oval packing, not a hard-coded 544."""
         from .arena_seating import seat_map, seating_capacity
-        from .selectors import SPECTATOR_RING_SEGMENTS, get_arena_geometry
+        from .selectors import get_arena_geometry, spectator_capacity
 
-        drawn = [r for r in get_arena_geometry()["rings"] if r["kind"] == "spectator"]
-        self.assertEqual(len(drawn), 8)
-        self.assertEqual(seating_capacity(), sum(SPECTATOR_RING_SEGMENTS))
-        self.assertEqual(seating_capacity(), 544)
-        self.assertEqual(len(set(seat_map())), 544)
+        oval = get_arena_geometry()["spectator_oval"]
+        drawn = sum(
+            r["segments"] for r in get_arena_geometry()["rings"] if r["kind"] == "spectator"
+        )
+        self.assertEqual(seating_capacity(), oval["capacity"])
+        self.assertEqual(seating_capacity(), drawn)
+        self.assertEqual(seating_capacity(), spectator_capacity())
+        self.assertEqual(len(set(seat_map())), seating_capacity())
+        self.assertEqual(seating_capacity(), 290)
 
     def test_seat_order_runs_front_row_first(self):
         """Front seats first is the allocation order, so it lives in the map:
-        every seat of row 1 before any seat of row 2, cells ascending."""
+        every seat of row 1 before any seat of row 2, cells ascending per ring."""
         from .arena_seating import seat_map
         seats = seat_map()
         rows = [row for _ring, _cell, row in seats]
         self.assertEqual(rows, sorted(rows))
         self.assertEqual(rows[0], 1)
-        self.assertEqual([cell for _r, cell, _row in seats[:40]], list(range(40)))
+        front = [(r, c) for r, c, row in seats if row == 1]
+        # Cells restart per oval ring; within one ring they ascend.
+        by_ring = {}
+        for ring, cell in front:
+            by_ring.setdefault(ring, []).append(cell)
+        for cells in by_ring.values():
+            self.assertEqual(cells, list(range(len(cells))))
 
     # ---- allocation ------------------------------------------------------
 
@@ -7700,7 +7722,7 @@ class ArenaSeatingTests(TestCase):
 
     def test_repeated_claim_is_idempotent(self):
         """The arena polls every twenty seconds. A claim that allocated again
-        would walk the viewer around the hall and eat 544 seats in a morning."""
+        would walk the viewer around the hall and eat the whole oval in a morning."""
         from .arena_seating import claim_seat
         from .models import ArenaSeat
         viewer = self._viewer("repeat")
@@ -7718,7 +7740,7 @@ class ArenaSeatingTests(TestCase):
         viewer = self._viewer("dbl")
         claim_seat(viewer)
         with self.assertRaises(IntegrityError):
-            ArenaSeat.objects.create(viewer=viewer, ring_index=9, seat_index=39)
+            ArenaSeat.objects.create(viewer=viewer, ring_index=100, seat_index=0)
 
     def test_one_active_occupant_per_seat_is_enforced_by_the_database(self):
         from .arena_seating import claim_seat
@@ -7761,12 +7783,13 @@ class ArenaSeatingTests(TestCase):
         self.assertIsNotNone(held.released_at)
 
     def test_capacity_cannot_be_exceeded(self):
-        """Fill all 544 declared seats, then ask for one more."""
+        """Fill every declared oval seat, then ask for one more."""
         from .arena_seating import ArenaFull, claim_seat, seat_map, seating_capacity
         from .models import ArenaSeat
         User = get_user_model()
+        capacity = seating_capacity()
         users = User.objects.bulk_create(
-            [User(username=f"crowd-{i}") for i in range(seating_capacity())]
+            [User(username=f"crowd-{i}") for i in range(capacity)]
         )
         authors = RecipeAuthor.objects.bulk_create(
             [RecipeAuthor(user=u, name=f"Crowd {i}", slug=f"crowd-{i}")
@@ -7779,7 +7802,9 @@ class ArenaSeatingTests(TestCase):
             ArenaSeat(viewer=a, ring_index=r, seat_index=c)
             for a, (r, c, _row) in zip(authors, seat_map())
         ])
-        self.assertEqual(ArenaSeat.objects.filter(released_at__isnull=True).count(), 544)
+        self.assertEqual(
+            ArenaSeat.objects.filter(released_at__isnull=True).count(), capacity
+        )
         with self.assertRaises(ArenaFull):
             claim_seat(self._viewer("standing-room"))
 

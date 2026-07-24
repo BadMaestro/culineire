@@ -1,22 +1,9 @@
-"""Real spectator seating for the Arena stands (Stage 3C backend foundation).
+"""Real spectator seating for the Arena oval stands (Owner mockup redesign).
 
-The stands already had a shape and a capacity — ``selectors.get_arena_geometry``
-declares eight spectator rings of 40, 48, 56, 64, 72, 80, 88 and 96 seats, 544
-in total — but no memory: ``views._get_spectators`` returned whoever was online
-ordered by ``-last_seen_at`` and the renderer poured that list into seats in
-order, so a viewer's seat moved every time somebody else's heartbeat landed.
-This module gives a claimed seat an owner and keeps it.
-
-Three rules do the work:
-
-* the seat map comes from ``get_arena_geometry()``, never from a constant here;
-* a claim is idempotent — the same viewer asking again gets the seat they
-  already hold, not a second one;
-* front rows fill first, so the hall fills from the rail outwards.
-
-Liveness reuses the arena's existing online window rather than adding a clock:
-a held seat lapses once its occupant drops out of the same 180-second window
-that already decides who is standing in the hall at all.
+Chef ranks sit on the octagon floor cells. Spectators sit in an oval around
+that floor (``get_arena_geometry()["spectator_oval"]``), not in chef cells.
+Capacity is derived from the oval seat list — journal honesty if it differs
+from the legacy 544 polar-ring figure.
 """
 from __future__ import annotations
 
@@ -38,12 +25,23 @@ class ArenaFull(ArenaSeatingError):
 def seat_map() -> list[tuple[int, int, int]]:
     """The authoritative seat order, front row first.
 
-    Each entry is ``(ring_index, seat_index, row)`` where ring_index is the
-    ring's own index in the arena geometry and row is 1 at the rail. Allocation
-    walks this list in order, which is what "front seats first" means in code.
+    Each entry is ``(ring_index, seat_index, row)``. Oval geometry prefers the
+    explicit ``spectator_oval.seats`` list when present; otherwise falls back
+    to polar spectator rings (legacy).
     """
+    geometry = get_arena_geometry()
+    oval = geometry.get("spectator_oval") or {}
+    seats_spec = oval.get("seats")
+    if seats_spec:
+        # Front = lowest row number per side, then ring id, then cell.
+        ordered = sorted(
+            seats_spec,
+            key=lambda s: (s["row"], s["ring"], s["cell"]),
+        )
+        return [(s["ring"], s["cell"], s["row"] + 1) for s in ordered]
+
     seats: list[tuple[int, int, int]] = []
-    for ring in get_arena_geometry()["rings"]:
+    for ring in geometry["rings"]:
         if ring["kind"] != "spectator":
             continue
         for cell in range(ring["segments"]):
