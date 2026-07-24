@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.550",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "f3c20210",
         "title": "Merge af82 corner vignettes with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af82 (c1c520ce) onto live polish r10c. Load order: polish r10c → atmosphere af82. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
