@@ -522,3 +522,40 @@
     display: contents;
   }
 }
+
+
+/* 3G atmosphere — hall depth without a second palette. */
+@media (min-width: 901px) {
+  .arena-command-deck__floor::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(90% 55% at 50% 0%, color-mix(in srgb, var(--accent-bronze) 12%, transparent), transparent 58%),
+      radial-gradient(70% 50% at 50% 100%, color-mix(in srgb, var(--ink) 18%, transparent), transparent 65%);
+  }
+
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    border-color: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
+    box-shadow:
+      0 0.9rem 2rem color-mix(in srgb, var(--ink) 36%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--surface) 75%, transparent);
+  }
+
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    min-height: 3.55rem;
+    padding-block: 0.55rem;
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hall-green) 8%, var(--surface)),
+        color-mix(in srgb, var(--surface-soft) 86%, transparent) 40%,
+        color-mix(in srgb, var(--hall-red) 8%, var(--surface))
+      );
+  }
+}
