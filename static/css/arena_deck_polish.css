@@ -253,3 +253,27 @@
     color: var(--brand-dark);
   }
 }
+
+
+/* 3G — phase-track pills + quiet inactive (prototype track). */
+@media (min-width: 901px) {
+  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    padding: 0.28rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
+    background: color-mix(in srgb, var(--ink) 6%, var(--surface-soft));
+  }
+  .arena-broadcast-ribbon .arena-phase-step {
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    color: color-mix(in srgb, var(--ink-soft) 82%, transparent);
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-phase-step:not(.is-active) b {
+    color: inherit;
+    font-weight: 650;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active {
+    border-radius: 999px;
+  }
+}
