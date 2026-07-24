@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.497",
+        "date": "2026-07-24",
+        "commit": "d8979993",
+        "title": "ArenaFront af27: stronger stand gold rails",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: brighter left/right stand gold rails (--hall-gold 58%). af23+af24 live; af25–af27 pending designated merger. Cache-bust af27. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.496",
         "date": "2026-07-24",
-        "commit": "038d8075",
+        "commit": "17c973d5",
         "title": "ArenaFront af26: warmer gold bloom after af23+24 live",
         "section": "Chef Battles / Deployment",
         "summary": "CoWork #2314: af23+af24 live as Cursor v2.5.494 / 8ec7ef94. Renumber AF af25→495 (Cursor owns 494). af26 warms upper gold bloom for wall-wash match. Cache-bust af26. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Pair FE. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
