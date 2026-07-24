@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.544",
+        "date": "2026-07-24",
+        "commit": "ac9e7af5",
+        "title": "ArenaFront af72: stronger side green/red washes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af69 LIVE (#2558 / 4e1e44e9 v2.5.540): lift page side green/red washes (54%/22%). SVG centre mask held. Cache-bust af72. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.543",
         "date": "2026-07-24",
-        "commit": "0f83ef52",
+        "commit": "012ca224",
         "title": "ArenaFront af71: brighter stand gold rails",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: lift ::before stand gold rails (90%). SVG centre mask held. Cache-bust af71. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
