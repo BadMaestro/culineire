@@ -1,0 +1,8 @@
+{
+  "record": "ARENA_3G_R6_BROADCAST_RIBBON",
+  "slice": "R6",
+  "recorded_by": "Cursor",
+  "recorded_at": "2026-07-24",
+  "files": ["templates/chef_battle/arena.html", "static/css/arena_command_deck.css", "templates/base.html"],
+  "change": "Header + phase track merged into one full-width broadcast ribbon (prototype composition). Panel ids unchanged. Confrontation band lowered under ribbon."
+}
