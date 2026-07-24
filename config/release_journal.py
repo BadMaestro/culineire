@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.551",
         "date": "2026-07-24",
-        "commit": "606705ef",
+        "commit": "72a9c136",
         "title": "Build Plan 3R3 confrontation band (FE+BE)",
         "section": "Chef Battles / Deployment",
         "summary": "Owner Build Plan item 3R3 (Stage 3G runway R3): confrontation band FE+BE pair. Challenger left / crown centre / opponent right with real name+photo; fighter contract keys name, avatar_url, slug, profile_url, side; flag OUT (D3). Source tip e22acd33 (agent/arenafront/3r3-confrontation). Closes compositional half of 3D; 3D stays OPEN until country/flag decision. AF atmosphere pipeline remains STOPPED. Not a public Arena release. Rollback: revert merge and redeploy.",
