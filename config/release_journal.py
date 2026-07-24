@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.480",
+        "date": "2026-07-24",
+        "commit": "59909029",
+        "title": "ArenaFront af12: bottom hall depth vignette",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle: add bottom stand depth vignette on .page--arena with --hall-dark-0 only. Pending merge stack af9–af12. SVG centre mask held. Cache-bust af12. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.479",
         "date": "2026-07-24",
-        "commit": "aa01b9a1",
+        "commit": "5b5b7421",
         "title": "ArenaFront af11: stronger green/red side washes",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle + af8 live (#2234): deepen challenger green / opponent red side washes on .page--arena with official --hall-green/--hall-red tokens. Ceiling vignette and SVG centre mask held. Cache-bust af11. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
