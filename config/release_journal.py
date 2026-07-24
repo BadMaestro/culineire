@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.483",
+        "date": "2026-07-24",
+        "commit": "df3e50ad",
+        "title": "ArenaFront af15: soft gold-dust drift (reduced-motion safe)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle + af13 live (#2254/#2255): slow gold-dust drift on .page--arena::before (48s), disabled under prefers-reduced-motion. Cursor auto-merge rule noted. SVG centre mask held. Cache-bust af15. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.482",
         "date": "2026-07-24",
-        "commit": "6d1e8934",
+        "commit": "82f8728e",
         "title": "ArenaFront af14: regenerated dark hall wall-wash asset",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle + af11/af12 live (#2250): regenerate hall-wall-wash-v1.png (gpt-image-1, single image) for darker cinematic hall + gold bloom; soft anonymous silhouettes only. Cache-bust af14. Files: static/img/arena/hall-wall-wash-v1.png, manifest.json, arena_atmosphere.css header, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",

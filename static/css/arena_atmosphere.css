@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af14.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af15.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af6–af12 live path. af13 pending. af14: regenerated dark hall wall-wash asset.
+ * af6–af13 live. af14 pending auto-merge. af15: soft gold-dust drift (reduced-motion safe).
  */
 
 .page--arena {
@@ -134,6 +134,27 @@
   opacity: 0.95;
 }
 
+@keyframes arena-atm-gold-drift {
+  0% {
+    background-position:
+      0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
+      0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
+      left bottom, right bottom, 0 0, 0 0;
+  }
+  100% {
+    background-position:
+      0 -1.2rem, 0.4rem -0.8rem, -0.3rem -1rem, 0.2rem -1.4rem, -0.5rem -0.6rem, 0.3rem -1.1rem,
+      0 -1.2rem, -0.4rem -0.8rem, 0.3rem -1rem, -0.2rem -1.4rem, 0.5rem -0.6rem, -0.3rem -1.1rem,
+      left bottom, right bottom, 0 0, 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page--arena::before {
+    animation: arena-atm-gold-drift 48s linear infinite;
+  }
+}
+
 /* Floor-edge crowd haze only — center stays clear so live SVG seats read (Owner #2207).
    floor-sheen PNG kept as a faint outer wash, not a centre plate. */
 .page--arena::after {
@@ -211,5 +232,6 @@
   .page--arena::after {
     transition: none;
     filter: none;
+    animation: none;
   }
 }
