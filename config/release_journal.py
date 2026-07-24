@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.486",
+        "date": "2026-07-24",
+        "commit": "587fd4df",
+        "title": "ArenaFront af18: brighter stand gold lines",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle: brighter left/right stand gold rails in .page--arena::before with --hall-gold. Dual-cursor standby respected (no merge pings). SVG centre mask held. Cache-bust af18. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.485",
         "date": "2026-07-24",
-        "commit": "b6691104",
+        "commit": "a1362608",
         "title": "ArenaFront af17: warmer gold bloom for wall-wash match",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle + af14 live (#2266): warmer upper gold bloom using --hall-gold/--hall-gold-light to match regenerated wall-wash. Dual-cursor standby respected. SVG centre mask held. Cache-bust af17. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",

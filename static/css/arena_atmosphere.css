@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af17.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af18.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af14 live. af15–af16 pending. af17: warmer gold bloom to match new wall-wash.
+ * af14 live. af15–af17 pending. af18: brighter stand gold lines (mockup rails).
  */
 
 .page--arena {
@@ -91,18 +91,18 @@
     radial-gradient(circle at 79% 20%, var(--arena-atm-gold) 0 0.1rem, transparent 0.17rem),
     linear-gradient(
       68deg,
-      transparent 45%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 36%, transparent) 46.2% 46.7%,
+      transparent 44.5%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 48%, transparent) 45.8% 46.5%,
       transparent 48%
     )
-      left bottom / 22% 100% no-repeat,
+      left bottom / 24% 100% no-repeat,
     linear-gradient(
       -68deg,
-      transparent 45%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 36%, transparent) 46.2% 46.7%,
+      transparent 44.5%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 48%, transparent) 45.8% 46.5%,
       transparent 48%
     )
-      right bottom / 22% 100% no-repeat,
+      right bottom / 24% 100% no-repeat,
     linear-gradient(
       90deg,
       color-mix(in srgb, var(--hall-dark-0, var(--ink)) 62%, transparent),
@@ -128,8 +128,8 @@
     3.6rem 3.6rem,
     5rem 5rem,
     5.4rem 5.4rem,
-    22% 100%,
-    22% 100%,
+    24% 100%,
+    24% 100%,
     auto,
     auto;
   opacity: 0.95;
