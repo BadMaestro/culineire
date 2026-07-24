@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.531",
+        "date": "2026-07-24",
+        "commit": "895390c4",
+        "title": "ArenaFront af59: stronger top crown gold wash",
+        "section": "Chef Battles / Deployment",
+        "summary": "af55+af56 LIVE (#2490 / 777a17de v2.5.528): lift top crown gold (70%/36%). SVG centre mask held. Cache-bust af59. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.530",
         "date": "2026-07-24",
-        "commit": "96676458",
+        "commit": "9f39352b",
         "title": "ArenaFront af58: stronger bottom floor dark",
         "section": "Chef Battles / Deployment",
         "summary": "af54 LIVE (#2484 / c4408806 v2.5.526): lift bottom page dark wash (92%/42%). SVG centre mask held. Cache-bust af58. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
