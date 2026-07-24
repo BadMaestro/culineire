@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.469",
+        "date": "2026-07-24",
+        "commit": "8cb3d854",
+        "title": "3G composition catch-up: unsquash rings + atmosphere mockup-align under polish",
+        "section": "Chef Battles / Deployment",
+        "summary": "Catch-up journal entry after Owner required Arena Build Plan visibility for both agents. Live tip 8cb3d854 (v2.5.469): merge of ArenaFront atmosphere mockup-align (af3 / 23542486) under Cursor polish-last load order; prior slice 369965be removed polish rotateX(32deg) that overrode fitScene()/arena_render transform — restored translate(-50%,-50%) scale(var(--arena-fit)) so octagon rings and spectator stands are no longer squashed. Cursor owns arena_deck_polish.css; ArenaFront owns arena_atmosphere.css + static/img/arena/**; shared arena.html coordinated (polish link last). Board 3G updated same commit. Not a public Arena release — staff/superuser gate unchanged. Rollback: revert 8cb3d854 then 369965be and redeploy.",
+    },
+    {
         "version": "2.5.396",
         "date": "2026-07-24",
         "commit": "template hygiene fix on origin/main (rebased on 3G R1)",
