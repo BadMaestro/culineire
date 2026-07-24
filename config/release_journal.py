@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.470",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "7d4a6573",
         "title": "3G polish r10a: gold hex centre, bright parchment plate, ring hierarchy",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle continuous composition. Cursor-only polish slice (arena_deck_polish.css ?v=20260724-r10a): confrontation VS/crown centre as gold hex badge with bronze bloom; brighter flat parchment floor plate (light-floor rule, no rotateX); inner rings 1–3 brighter parchment strokes, outer 6–8 darker bowl; side show panels night-glass lift; amplify existing floor-stage glow without redefining ::after geometry. fitScene camera unchanged. Journal+board updated same commit. Not a public Arena release. Rollback: revert this commit and redeploy.",
