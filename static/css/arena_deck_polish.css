@@ -694,3 +694,44 @@
     opacity: 0.35;
   }
 }
+
+
+/* 3G — phase title, empty states, lower primary CTA. */
+@media (min-width: 901px) {
+  .arena-command-deck__phase-name {
+    color: var(--ink);
+    font-size: clamp(1.2rem, 1.7vw, 1.5rem);
+    letter-spacing: -0.01em;
+  }
+  .arena-panel__empty {
+    color: var(--muted);
+    font-size: 0.64rem;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .arena-confrontation-band .arena-live-awaiting {
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    color: color-mix(in srgb, var(--ink-soft) 78%, transparent);
+  }
+  .arena-lower-broadcast .ce-nav__link--battle {
+    min-height: 2.35rem;
+    padding-inline: 0.95rem;
+    border-radius: 999px;
+    border: 1px solid var(--accent-bronze-dark);
+    color: var(--brand-dark);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent-bronze) 55%, var(--surface)),
+      color-mix(in srgb, var(--accent-bronze) 28%, var(--surface))
+    );
+    box-shadow: 0 0.35rem 0.85rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+  .arena-lower-broadcast .ce-nav__link--battle:hover,
+  .arena-lower-broadcast .ce-nav__link--battle:focus-visible {
+    filter: brightness(1.04);
+  }
+}
