@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af28.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af29.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af25 live. af26–af27 pending. af28: wider mobile SVG-clear mask + hall veil.
+ * af26+af27 live (Cursor v2.5.498). af28 mobile mask (journal→499). af29: desktop outer haze.
  */
 
 .page--arena {
@@ -218,7 +218,18 @@
   }
 
   .page--arena::after {
-    opacity: 0.36;
+    /* af29: stronger outer stand haze on desktop; SVG centre mask still clear. */
+    opacity: 0.42;
+    -webkit-mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 38%,
+      #000 58% 100%
+    );
+    mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 38%,
+      #000 58% 100%
+    );
   }
 }
 

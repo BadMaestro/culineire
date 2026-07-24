@@ -1,11 +1,19 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.498",
+        "version": "2.5.500",
         "date": "2026-07-24",
-        "commit": "595a89ac",
-        "title": "ArenaFront af28: wider mobile SVG-clear mask",
+        "commit": "f5eaebeb",
+        "title": "ArenaFront af29: stronger desktop outer stand haze",
         "section": "Chef Battles / Deployment",
-        "summary": "Pair FE + af25 live (#2323): widen mobile ::after centre mask (transparent to 46%) so SVG seats stay clear; slight veil opacity tune. Cache-bust af28. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+        "summary": "Pair FE + af26+af27 LIVE (#2329 / fb41148f v2.5.498): raise desktop ::after opacity to 0.42 and widen clear-mask hole slightly (38%) so outer haze reads without covering SVG seats. Cache-bust af29. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.499",
+        "date": "2026-07-24",
+        "commit": "6cd5ef36",
+        "title": "ArenaFront af28: wider mobile SVG-clear mask (renumbered)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Widen mobile ::after centre mask (transparent to 46%) so SVG seats stay clear. Renumbered from 2.5.498 after Cursor claimed 498 for af26+af27 LIVE (#2329 / fb41148f). Cache-bust af28. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
         "version": "2.5.497",
@@ -13,7 +21,7 @@ RELEASE_JOURNAL = [
         "commit": "86e299b6",
         "title": "ArenaFront af27: stronger stand gold rails",
         "section": "Chef Battles / Deployment",
-        "summary": "Pair FE continue: brighter left/right stand gold rails (--hall-gold 58%). af23+af24 live; af25–af27 pending designated merger. Cache-bust af27. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+        "summary": "Pair FE continue: brighter left/right stand gold rails (--hall-gold 58%). Live as Cursor tip v2.5.498 / fb41148f with af26 (#2329). Cache-bust af27. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
         "version": "2.5.496",
@@ -21,7 +29,7 @@ RELEASE_JOURNAL = [
         "commit": "17c973d5",
         "title": "ArenaFront af26: warmer gold bloom after af23+24 live",
         "section": "Chef Battles / Deployment",
-        "summary": "CoWork #2314: af23+af24 live as Cursor v2.5.494 / 8ec7ef94. Renumber AF af25→495 (Cursor owns 494). af26 warms upper gold bloom for wall-wash match. Cache-bust af26. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Pair FE. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+        "summary": "CoWork #2314: af23+af24 live as Cursor v2.5.494 / 8ec7ef94. Renumber AF af25→495 (Cursor owns 494). af26 warms upper gold bloom for wall-wash match. Live with af27 as Cursor v2.5.498 / fb41148f (#2329). Cache-bust af26. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Pair FE. Fence: polish untouched; SVG centre mask held. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
         "version": "2.5.495",
