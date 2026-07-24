@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.555",
+        "date": "2026-07-24",
+        "commit": "859d5fb5",
+        "title": "ArenaFront af83: stronger ::before side darken",
+        "section": "Chef Battles / Deployment",
+        "summary": "af80+af81 LIVE (#2619 / 14072cdb v2.5.549): deepen ::before left/right side darken (92%/32%). SVG centre mask held. Cache-bust af83. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.554",
         "date": "2026-07-24",
-        "commit": "4b29151e",
+        "commit": "c1c520ce",
         "title": "ArenaFront af82: deeper corner vignettes",
         "section": "Chef Battles / Deployment",
         "summary": "af79 LIVE (#2609 / ab80891c v2.5.548): deepen four corner dark vignettes further. SVG centre mask held. Cache-bust af82. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
