@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.524",
+        "date": "2026-07-24",
+        "commit": "d9ec25d6",
+        "title": "ArenaFront af52: stronger side green/red washes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af50 LIVE (#2454 / 244b18c5 v2.5.522) + Owner 5-pack DONE: lift challenger/opponent side washes (green/red 46%). SVG centre mask held. Cache-bust af52. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.523",
         "date": "2026-07-24",
-        "commit": "e366bf67",
+        "commit": "d9b6d10b",
         "title": "ArenaFront af51: warmer mid-hall gold bloom",
         "section": "Chef Battles / Deployment",
         "summary": "af49 LIVE (#2447 / 92185bce v2.5.521): warm upper gold bloom further (64%/30%). SVG centre mask held. Cache-bust af51. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
