@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.574",
+        "date": "2026-07-24",
+        "commit": "PENDING",
+        "title": "MOCKUP M13 — Crown Ladder ranked rows",
+        "section": "Chef Battles / Deployment",
+        "summary": "MOCKUP_20_STEP M13. FE tip 56730507: Today's Crown Ladder panel mockup ranked rows; cache-bust m13. Integrate/deploy only. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.573",
         "date": "2026-07-24",
         "commit": "65d4d667",
