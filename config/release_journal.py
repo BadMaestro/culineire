@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.542",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af72 side washes with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af72 (fbea8a80) onto live polish r10c. Load order: polish r10c → atmosphere af72. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.544",
+        "date": "2026-07-24",
+        "commit": "ac9e7af5",
+        "title": "ArenaFront af72: stronger side green/red washes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af69 LIVE (#2558 / 4e1e44e9 v2.5.540): lift page side green/red washes (54%/22%). SVG centre mask held. Cache-bust af72. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.541",
         "date": "2026-07-24",
         "commit": "730d024d",
