@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.544",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af73+af74 corners and side darken with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af74 (d1690be8) onto live polish r10c. Load order: polish r10c → atmosphere af74. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.546",
+        "date": "2026-07-24",
+        "commit": "f5295519",
+        "title": "ArenaFront af74: stronger ::before side darken",
+        "section": "Chef Battles / Deployment",
+        "summary": "af70+af71 LIVE (#2565 / 27643611 v2.5.541): deepen ::before left/right side darken (90%/30%). SVG centre mask held. Cache-bust af74. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.545",
+        "date": "2026-07-24",
+        "commit": "53c7dcba",
+        "title": "ArenaFront af73: deeper corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: deepen four corner dark vignettes further. SVG centre mask held. Cache-bust af73. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.542",
         "date": "2026-07-24",
         "commit": "852b295a",
