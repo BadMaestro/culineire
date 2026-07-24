@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.493",
+        "date": "2026-07-24",
+        "commit": "6aeb49d1",
+        "title": "ArenaFront af24: stronger outer stand haze rings",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle: strengthen outer crowd-haze rings on .page--arena::after (mask centre still clear). af15+af16 live; designated merger catching up. Cache-bust af24. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.492",
         "date": "2026-07-24",
-        "commit": "edde6ef2",
+        "commit": "3ef8977f",
         "title": "ArenaFront af23: journal renumber + denser gold dust",
         "section": "Chef Battles / Deployment",
         "summary": "CoWork #2287: af15+af16 live as Cursor v2.5.485 / 861775b0. Renumber branch af17–af22 to 486–491 (Cursor takes 485). af23 densifies side gold dust slightly. Cache-bust af23. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
