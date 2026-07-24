@@ -1937,7 +1937,7 @@
   }
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
     transform: translate(-50%, -50%);
@@ -2282,30 +2282,34 @@
 }
 
 
-/* 3G — restore octagon/spectator visibility (undo tilt squash). */
+/* 3G — keep full octagon inside the floor frame (Owner clip hotfix). */
 @media (min-width: 901px) {
   /* arena_render.css + fitScene() own the camera. Do NOT replace #arena-render
-     transform with rotateX — that foreshortens the octagon and clips stands. */
+     transform with rotateX — that foreshortens the octagon and clips stands.
+     overflow MUST stay hidden: fitScene sizes the full scene into the frame;
+     visible overflow was clipping under ribbon/footer (Owner 2026-07-24). */
   .arena-floor-stage {
     perspective: none;
-    overflow: visible;
+    overflow: hidden;
   }
   .page--arena .arena-command-deck__floor {
-    overflow: visible;
+    overflow: hidden;
   }
   .arena-floor-stage .arena-render-container,
   .page--arena .arena-floor-stage .arena-render-container {
-    overflow: visible;
-    height: clamp(420px, 52vw, 86vh);
+    /* Fill absolute inset:0 from command_deck — do NOT set height:clamp here;
+       that fought inset and left the SVG frame off-centre. */
+    overflow: hidden;
+    height: auto;
     max-width: none;
-    width: 100%;
+    width: auto;
     transform: none;
     filter: none;
   }
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
     /* Restore fitScene contract from arena_render.css */
-    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
     filter: none;
   }
   /* Decorative parchment plate: flat underlay, no competing 3D tilt. */
@@ -2347,7 +2351,7 @@
 @media (min-width: 901px) and (prefers-reduced-motion: reduce) {
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform: translate(-50%, -50%) translateY(var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
     transform: translate(-50%, -50%);

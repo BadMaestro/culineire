@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.562",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Hotfix: Arena octagon fit/centre (Owner clip)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner screenshot: octagon off-centre and clipped by ribbon/footer. Root cause: fitScene sized RANK cells only (0.66 width) while spectator/walkway rings extended past the frame; polish overflow:visible + height:clamp fought absolute inset:0. Fix: fitScene measures full scene, centres X+Y, SCENE_SHARE 0.90; restore overflow:hidden; drop competing height clamp; --arena-shift-x. Cache-bust octfit. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.561",
         "date": "2026-07-24",
         "commit": "f1133d75",

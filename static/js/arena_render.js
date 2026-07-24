@@ -81,7 +81,12 @@
   // there is no tilt and no convergence at all. The projection below is kept
   // whole rather than deleted - put a number back in here and the camera
   // returns without rewriting anything.
-  var FLOOR_SHARE = 0.66;
+  // Share of the frame taken by the FULL illustrated octagon (rank + spectator
+  // rings + walkway). Historically this was 0.66 of WIDTH measured on RANK
+  // cells only — that left the outer rings larger than the frame, and with
+  // overflow:visible they clipped under the ribbon and lower broadcast
+  // (Owner screenshot 2026-07-24). Fit the whole visible scene instead.
+  var SCENE_SHARE = 0.90;
 
   var CONVERGENCE = 0;
   // Neither number is the measurement itself. CONVERGENCE describes the whole
@@ -847,65 +852,47 @@
     if (!container) { return; }
 
     for (var pass = 0; pass < 2; pass++) {
-      // The RANK cells, not every cell. FLOOR_SHARE is stated as a share of
-      // the frame taken by the floor, but this measured the whole disc -
-      // spectator rings included, hidden or not - so the floor itself came out
-      // at 0.28 of the frame instead of 0.66. Two things followed: the arena
-      // looked small, and the backdrop, which is sized off the floor, ended up
-      // narrower than the window with dark bars down both sides.
-      var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
-      if (!cells.length) { return; }
+      // Fit the FULL visible octagon (rank + spectator + walkway + stage).
+      // Measuring RANK alone under-scaled relative to the outer rings, so the
+      // stands clipped under the ribbon/footer (Owner 2026-07-24). Skip zero
+      // rects — hidden cells report 0 at the origin and collapse the fit.
+      var parts = svg.querySelectorAll(
+        '.arena-cell, .arena-walkway, .arena-rim, .arena-stage'
+      );
+      if (!parts.length) { return; }
 
       var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-      for (var i = 0; i < cells.length; i++) {
-        var box = cells[i].getBoundingClientRect();
-        // A hidden cell reports a zero rect at the origin. Counting those
-        // dragged the measured floor up to the top-left corner of the window
-        // and the fit collapsed the arena to a twenty-pixel smudge — which is
-        // exactly what shipped for one release once the stands were hidden
-        // under the backdrop.
+      for (var i = 0; i < parts.length; i++) {
+        var box = parts[i].getBoundingClientRect();
         if (!box.width || !box.height) { continue; }
         if (box.left < left) { left = box.left; }
         if (box.right > right) { right = box.right; }
         if (box.top < top) { top = box.top; }
         if (box.bottom > bottom) { bottom = box.bottom; }
       }
-      if (!(right > left)) { return; }
+      if (!(right > left) || !(bottom > top)) { return; }
 
       var frame = container.getBoundingClientRect();
       var width = right - left, height = bottom - top;
       if (!(width > 0) || !(height > 0)) { return; }
+      if (!(frame.width > 0) || !(frame.height > 0)) { return; }
 
-      // How much of the frame the FLOOR is allowed to take. It used to be 0.98
-      // — a hairline off filling the container — and the result read as
-      // looking down a hatch: the floor pressed against the edges and the hall
-      // behind it survived only as thin strips. The mockup gives the floor
-      // about two thirds of the width and spends the rest on the hall and on
-      // room for the panels.
-      //
-      // The whole illustrated scene is fitted by this one number. No transform
-      // scale is applied outside the SVG, so hit testing remains aligned with
-      // the tile that is drawn.
-      // The share is of the frame's WIDTH — that is how the mockup states it.
-      // Taking min() of both axes first let the shorter one decide, and on a
-      // 1123x845 frame that produced 0.494 of the width instead of the 0.66
-      // asked for. Height still gets a say, but only as a limit: the floor may
-      // not grow past the frame it sits in.
-      var byWidth = frame.width * FLOOR_SHARE / width;
-      var byHeight = frame.height * 0.98 / height;
+      // Uniform scale: keep the whole scene inside the frame on BOTH axes with
+      // a small margin (panels/ribbon still readable around it).
+      var byWidth = frame.width * SCENE_SHARE / width;
+      var byHeight = frame.height * SCENE_SHARE / height;
       var factor = Math.min(byWidth, byHeight);
       var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
       svg.style.setProperty('--arena-fit', (current * factor).toFixed(4));
 
-      // Fitting is not centring. perspective-origin sits at 30% height, which
-      // lifts the far side rather than dropping the near one — so the tilted
-      // octagon settles low in the frame and its bottom row is cut while the
-      // top of the frame stands empty. Measured at 1920 before this: 63px cut
-      // off the bottom with 189px spare above. Nudge the whole scene by the
-      // difference between the two centres, in screen space.
-      var drift = (frame.top + frame.bottom) / 2 - (top + bottom) / 2;
-      var shift = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
-      svg.style.setProperty('--arena-shift-y', (shift + drift).toFixed(2) + 'px');
+      // Centre in screen space on BOTH axes (Owner: octagon sat left/high and
+      // clipped). Previously only Y was corrected.
+      var driftY = (frame.top + frame.bottom) / 2 - (top + bottom) / 2;
+      var driftX = (frame.left + frame.right) / 2 - (left + right) / 2;
+      var shiftY = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
+      var shiftX = parseFloat(svg.style.getPropertyValue('--arena-shift-x')) || 0;
+      svg.style.setProperty('--arena-shift-y', (shiftY + driftY).toFixed(2) + 'px');
+      svg.style.setProperty('--arena-shift-x', (shiftX + driftX).toFixed(2) + 'px');
     }
 
     billboardFaces(svg);
