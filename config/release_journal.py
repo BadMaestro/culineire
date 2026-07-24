@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.506",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af33–af34 corner vignettes + floor dark with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af33–af34 (c4a2b402) onto live polish r10c + af5–af32. Load order: polish r10c → atmosphere af34. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.505",
+        "date": "2026-07-24",
+        "commit": "22cff8c7",
+        "title": "ArenaFront af34: stronger bottom floor dark wash",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner Telegram 5-pack (#2358) noted. Lift bottom page dark wash (82%/36%) for hall floor enclosure. SVG centre mask held. Cache-bust af34. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.504",
+        "date": "2026-07-24",
+        "commit": "666f1b28",
+        "title": "ArenaFront af33: deeper corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af29+af30 LIVE (#2351 / 477eb2b3 v2.5.501): deepen four corner dark vignettes on page fill for hall enclosure. SVG centre mask held. Cache-bust af33. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.503",
         "date": "2026-07-24",
         "commit": "10cdd95f",
