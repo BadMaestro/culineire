@@ -1,9 +1,8 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af7.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af8.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af5: dark hall reclaim. af6: SVG-clear floor mask (Owner #2207).
- * af7: remove raw HEX fallback (Cursor #2214); deepen upper gold bloom + side
- *       vignettes with official --hall-* tokens only; centre mask unchanged.
+ * af5–af7: dark hall + SVG-clear floor + token-only deepen.
+ * af8: denser side gold dust + stand gold lines (mockup cinematic), centre mask held.
  */
 
 .page--arena {
@@ -46,26 +45,32 @@
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 8% 30%, var(--arena-atm-gold) 0 0.1rem, transparent 0.18rem),
-    radial-gradient(circle at 14% 44%, var(--arena-atm-gold-soft) 0 0.14rem, transparent 0.22rem),
-    radial-gradient(circle at 19% 22%, var(--arena-atm-gold) 0 0.09rem, transparent 0.16rem),
-    radial-gradient(circle at 91% 28%, var(--arena-atm-gold) 0 0.1rem, transparent 0.18rem),
-    radial-gradient(circle at 86% 46%, var(--arena-atm-gold-soft) 0 0.14rem, transparent 0.22rem),
-    radial-gradient(circle at 81% 20%, var(--arena-atm-gold) 0 0.09rem, transparent 0.16rem),
+    radial-gradient(circle at 6% 26%, var(--arena-atm-gold) 0 0.1rem, transparent 0.18rem),
+    radial-gradient(circle at 9% 38%, var(--arena-atm-gold-soft) 0 0.12rem, transparent 0.2rem),
+    radial-gradient(circle at 12% 48%, var(--arena-atm-gold) 0 0.09rem, transparent 0.16rem),
+    radial-gradient(circle at 15% 32%, var(--arena-atm-gold-soft) 0 0.11rem, transparent 0.19rem),
+    radial-gradient(circle at 18% 54%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
+    radial-gradient(circle at 21% 22%, var(--arena-atm-gold) 0 0.1rem, transparent 0.17rem),
+    radial-gradient(circle at 94% 28%, var(--arena-atm-gold) 0 0.1rem, transparent 0.18rem),
+    radial-gradient(circle at 91% 40%, var(--arena-atm-gold-soft) 0 0.12rem, transparent 0.2rem),
+    radial-gradient(circle at 88% 50%, var(--arena-atm-gold) 0 0.09rem, transparent 0.16rem),
+    radial-gradient(circle at 85% 34%, var(--arena-atm-gold-soft) 0 0.11rem, transparent 0.19rem),
+    radial-gradient(circle at 82% 56%, var(--arena-atm-gold) 0 0.08rem, transparent 0.15rem),
+    radial-gradient(circle at 79% 20%, var(--arena-atm-gold) 0 0.1rem, transparent 0.17rem),
     linear-gradient(
       68deg,
-      transparent 46%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 28%, transparent) 47% 47.35%,
-      transparent 48.2%
+      transparent 45%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 36%, transparent) 46.2% 46.7%,
+      transparent 48%
     )
-      left bottom / 20% 100% no-repeat,
+      left bottom / 22% 100% no-repeat,
     linear-gradient(
       -68deg,
-      transparent 46%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 28%, transparent) 47% 47.35%,
-      transparent 48.2%
+      transparent 45%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 36%, transparent) 46.2% 46.7%,
+      transparent 48%
     )
-      right bottom / 20% 100% no-repeat,
+      right bottom / 22% 100% no-repeat,
     linear-gradient(
       90deg,
       color-mix(in srgb, var(--hall-dark-0, var(--ink)) 62%, transparent),
@@ -79,14 +84,20 @@
       transparent 46%
     );
   background-size:
-    3.1rem 3.1rem,
-    4.6rem 4.6rem,
-    5.7rem 5.7rem,
-    3.1rem 3.1rem,
-    4.6rem 4.6rem,
-    5.7rem 5.7rem,
-    20% 100%,
-    20% 100%,
+    2.8rem 2.8rem,
+    3.4rem 3.4rem,
+    4.2rem 4.2rem,
+    3.6rem 3.6rem,
+    5rem 5rem,
+    5.4rem 5.4rem,
+    2.8rem 2.8rem,
+    3.4rem 3.4rem,
+    4.2rem 4.2rem,
+    3.6rem 3.6rem,
+    5rem 5rem,
+    5.4rem 5.4rem,
+    22% 100%,
+    22% 100%,
     auto,
     auto;
   opacity: 0.95;

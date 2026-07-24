@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.476",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af8 side gold dust with r10c+af5–af7",
+        "section": "Chef Battles / Deployment",
+        "summary": "Merge ArenaFront af8 (a2e97a39: denser side gold dust + stand gold lines; af6 SVG centre mask held) onto live polish r10c + af5–af7 stack. Load order: polish r10c → atmosphere af8. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
         "version": "2.5.475",
         "date": "2026-07-24",
         "commit": "f6eeb715",
@@ -10,13 +18,21 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.474",
         "date": "2026-07-24",
+        "commit": "a2e97a39",
+        "title": "ArenaFront af8: denser side gold dust + stand gold lines",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle (#2201): denser cinematic gold dust on left/right stands and brighter stand gold lines in .page--arena::before using official --hall-gold tokens only. af6 SVG centre mask and af7 token-only page fill unchanged. Cache-bust af8. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.473",
+        "date": "2026-07-24",
         "commit": "b68da937",
         "title": "Merge af6 SVG-clear floor-sheen with r10c+af5",
         "section": "Chef Battles / Deployment",
         "summary": "Merge ArenaFront af6 (7a2e1d9d: dial down centre floor-sheen + mask so live SVG seats read) onto Cursor r10c + af5 dark hall cascade. Load order: polish r10c → atmosphere af6. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
     },
     {
-        "version": "2.5.473",
+        "version": "2.5.472",
         "date": "2026-07-24",
         "commit": "dab856e0",
         "title": "ArenaFront af7: token-only hall deepen + no raw HEX (Cursor #2214)",
@@ -24,7 +40,7 @@ RELEASE_JOURNAL = [
         "summary": "Follow-up to af5 deploy note (#2214): drop raw HEX fallback on .page--arena background-color; use var(--hall-dark-0, var(--ink)) only. Deepen upper gold bloom and green/red side washes with official --hall-* tokens; SVG centre mask from af6 unchanged. Cache-bust af7. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
-        "version": "2.5.472",
+        "version": "2.5.471",
         "date": "2026-07-24",
         "commit": "c090665e",
         "title": "Merge af5 dark hall after polish with r10c SVG/confrontation fix",
@@ -32,7 +48,7 @@ RELEASE_JOURNAL = [
         "summary": "Merge ArenaFront af5 (48b03481: atmosphere AFTER polish; dark .page--arena hall fill for Owner Capture10) with Cursor r10c (547fa05a: transparent confrontation, live SVG ring contrast). Load order: hall → polish r10c → atmosphere af5. Also retains af4 crowd-haze rings. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
     },
     {
-        "version": "2.5.471",
+        "version": "2.5.470",
         "date": "2026-07-24",
         "commit": "7a2e1d9d",
         "title": "ArenaFront af6: dial down floor-sheen so live SVG seats read (Owner #2207)",
@@ -40,7 +56,7 @@ RELEASE_JOURNAL = [
         "summary": "Owner live screenshot + CoWork #2207: painted floor-sheen dominated the hall centre and obscured interactive SVG seat rings. af6 lowers .page--arena::after opacity (~0.28–0.32), masks out the centre so SVG octagon stays clear, keeps wall wash / gold dust / dark hall page fill from af5. Cache-bust af6. Files: arena_atmosphere.css, arena.html link, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
-        "version": "2.5.470",
+        "version": "2.5.469",
         "date": "2026-07-24",
         "commit": "547fa05a",
         "title": "3G polish r10c: kill white crown card; restore live SVG floor readability",
@@ -48,7 +64,7 @@ RELEASE_JOURNAL = [
         "summary": "Owner screenshot feedback: cream confrontation plate covered the hall and atmosphere art read as the floor while seat rings disappeared. Cursor r10c (arena_deck_polish.css ?v=20260724-r10c): confrontation band background/border/shadow removed (transparent — floating chef+centre only); live SVG z-index/opacity forced; stronger ring strokes and rank/spectator fills so the interactive octagon reads over atmosphere; translucent spine steps; removed leftover polish rotateX(32deg) on render. fitScene camera preserved. Journal+board same commit. Not a public Arena release. Rollback: revert this commit and redeploy.",
     },
     {
-        "version": "2.5.470",
+        "version": "2.5.468",
         "date": "2026-07-24",
         "commit": "48b03481",
         "title": "ArenaFront af5: dark hall page fill after polish (Owner live Capture10)",
@@ -56,7 +72,7 @@ RELEASE_JOURNAL = [
         "summary": "Owner live screenshot showed parchment floor but missing mockup dark hall — root cause: polish loaded after atmosphere and filled .page--arena with a light wash. af5 loads arena_atmosphere.css AFTER polish, reclaims page-level hall fill with official --hall-dark-* + wall wash, keeps crowd-haze rings, does not restyle polish deck chrome/seats/confrontation. Files: static/css/arena_atmosphere.css, templates/chef_battle/arena.html (cascade order + af5 cache-bust), config/release_journal.py, recipes/views.py (3G). Fence held on arena_deck_polish.css contents. Not a public release. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
-        "version": "2.5.469",
+        "version": "2.5.467",
         "date": "2026-07-24",
         "commit": "706c5b42",
         "title": "3G polish r10b: spine ladder, LIVE ribbon, chef portrait rings",
@@ -64,7 +80,7 @@ RELEASE_JOURNAL = [
         "summary": "Owner no-idle continuous composition. Cursor polish r10b (arena_deck_polish.css ?v=20260724-r10b): rank spine denser gold ladder over centre; broadcast ribbon LIVE weight + active phase gold fill; circular chef portrait rings with hall-green/hall-red rims; lower Join CTA bronze weight. Official tokens only; fitScene unchanged. Journal+board same commit. Not a public Arena release. Rollback: revert this commit and redeploy.",
     },
     {
-        "version": "2.5.468",
+        "version": "2.5.466",
         "date": "2026-07-24",
         "commit": "c03f9593",
         "title": "ArenaFront af4: mockup crowd-haze rings under live floor (non-interactive)",
