@@ -519,3 +519,49 @@
     box-shadow: 0 0 0.65rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
   }
 }
+
+
+/* 3G — gifts + signals broadcast modules (prototype activity/metrics). */
+@media (min-width: 901px) {
+  .arena-gift-list li .arena-ico {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-gift-list a {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .arena-gift-list a:hover,
+  .arena-gift-list a:focus-visible {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-gift-list b {
+    color: var(--muted);
+    font-size: 0.58rem;
+  }
+  .arena-gift-list em {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.4rem;
+    padding: 0.18rem 0.4rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+    color: var(--accent-bronze-dark);
+    font-size: 0.58rem;
+    font-weight: 800;
+    font-style: normal;
+    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+  }
+  .arena-command-deck__gift-copy {
+    font-size: 0.62rem;
+    line-height: 1.35;
+    color: var(--muted);
+  }
+  .arena-command-deck__metrics .arena-metric strong {
+    color: var(--accent-bronze-dark);
+    font-family: var(--font-serif, "Playfair Display", serif);
+    font-weight: 800;
+  }
+  .arena-command-deck__metrics .arena-metric .arena-ico {
+    color: var(--accent-bronze-dark);
+  }
+}
