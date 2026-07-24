@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.572",
         "date": "2026-07-24",
-        "commit": "PENDING",
+        "commit": "d6431bbf",
         "title": "MOCKUP M10 — ribbon stepper COOKING weight",
         "section": "Chef Battles / Deployment",
         "summary": "MOCKUP_20_STEP M10. FE tip 7c54ff77: broadcast ribbon Challenge…Crown active COOKING-style weight; cache-bust m10. Integrate/deploy only. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
