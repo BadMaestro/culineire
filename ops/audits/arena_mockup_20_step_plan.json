@@ -188,8 +188,9 @@
       "n": 20,
       "id": "M20",
       "title": "Owner visual acceptance + journal/board honesty close",
-      "status": "PENDING",
-      "owner": "Product Owner + Cursor journal"
+      "status": "AWAITING_OWNER",
+      "owner": "Product Owner + Cursor journal",
+      "note": "Owner «Дальше» after M19 v2.5.579; AF standby"
     }
   ],
   "execute_now": {
