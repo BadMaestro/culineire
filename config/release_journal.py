@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.529",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af57 stand haze with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af57 (9f39352b) onto live polish r10c + af5–af56. Load order: polish r10c → atmosphere af58. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.530",
+        "date": "2026-07-24",
+        "commit": "96676458",
+        "title": "ArenaFront af58: stronger bottom floor dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "af54 LIVE (#2484 / c4408806 v2.5.526): lift bottom page dark wash (92%/42%). SVG centre mask held. Cache-bust af58. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.529",
+        "date": "2026-07-24",
+        "commit": "a5c8ce67",
+        "title": "ArenaFront af57: denser stand haze rings",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: densify ::after repeating-radial stand rings further (34% gold). SVG centre mask held. Cache-bust af57. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.528",
         "date": "2026-07-24",
         "commit": "a1e84af7",
