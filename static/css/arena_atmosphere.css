@@ -1,17 +1,11 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE).
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af5.
  *
- * Visual targets:
- * - Owner mockup: dark cinematic hall, gold bloom, parchment floor, green/red sides
- * - Prototype (ops/prototypes/arena_visual_shell): stage depth, stand lines, gold dust,
- *   floor glow — re-expressed with official CulinEire tokens only
+ * Live feedback (Owner Capture10): parchment floor reads, but dark cinematic hall
+ * from the approved mockup did not — polish loaded last and filled .page--arena
+ * with a light wash. This file now loads AFTER polish and reclaims the PAGE fill
+ * only; it still does not restyle polish deck chrome, seat rings, or confrontation.
  *
- * Loads AFTER arena_hall.css. Does NOT restyle polish-owned panel chrome,
- * seat rings, confrontation, or floor-stage geometry.
- *
- * Owns: static/img/arena/** + this file.
- * Fence: do not edit arena_deck_polish.css / arena_command_deck.css / arena_render.js.
- *
- * Crowd haze is atmospheric art only — never fake interactive/registered users.
+ * Visual targets: Owner mockup + prototype stage techniques, official tokens only.
  */
 
 .page--arena {
@@ -21,10 +15,32 @@
   --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 28%, transparent);
   position: relative;
   isolation: isolate;
+  /* Page hall fill — must win over polish light .page--arena background. */
+  background:
+    radial-gradient(
+      90% 50% at 50% 0%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 18%, transparent),
+      transparent 52%
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--hall-green) 10%, transparent),
+      transparent 16%,
+      transparent 84%,
+      color-mix(in srgb, var(--hall-red) 10%, transparent)
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--hall-dark-1, var(--ink)) 82%, var(--surface-muted)),
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 70%, var(--surface-muted)) 55%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 78%, var(--surface-muted))
+    ),
+    var(--arena-atm-wall) center 18% / cover no-repeat !important;
+  background-color: var(--hall-dark-0, #07090a);
+  color: var(--ink);
 }
 
-/* Full-hall underlay: wall wash + dark depth + side stands + gold ambient dust.
-   Mirrors prototype .arena-stage / ::before / __atmosphere without private palette. */
+/* Fixed cinematic veil: stand lines, gold dust, side darkening (prototype stage). */
 .page--arena::before {
   content: "";
   position: fixed;
@@ -32,62 +48,38 @@
   z-index: 0;
   pointer-events: none;
   background:
-    /* Gold dust / bloom (prototype .arena-stage__atmosphere) */
     radial-gradient(circle at 8% 30%, var(--arena-atm-gold) 0 0.1rem, transparent 0.18rem),
     radial-gradient(circle at 14% 44%, var(--arena-atm-gold-soft) 0 0.14rem, transparent 0.22rem),
     radial-gradient(circle at 19% 22%, var(--arena-atm-gold) 0 0.09rem, transparent 0.16rem),
     radial-gradient(circle at 91% 28%, var(--arena-atm-gold) 0 0.1rem, transparent 0.18rem),
     radial-gradient(circle at 86% 46%, var(--arena-atm-gold-soft) 0 0.14rem, transparent 0.22rem),
     radial-gradient(circle at 81% 20%, var(--arena-atm-gold) 0 0.09rem, transparent 0.16rem),
-    /* Angled stand gold lines (prototype .arena-stage::before) */
     linear-gradient(
       68deg,
       transparent 46%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 22%, transparent) 47% 47.35%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 28%, transparent) 47% 47.35%,
       transparent 48.2%
     )
-      left bottom / 18% 100% no-repeat,
+      left bottom / 20% 100% no-repeat,
     linear-gradient(
       -68deg,
       transparent 46%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 22%, transparent) 47% 47.35%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 28%, transparent) 47% 47.35%,
       transparent 48.2%
     )
-      right bottom / 18% 100% no-repeat,
-    /* Challenger / opponent side washes from mockup (atmospheric only) */
+      right bottom / 20% 100% no-repeat,
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--hall-green) 16%, transparent),
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 55%, transparent),
       transparent 18%,
       transparent 82%,
-      color-mix(in srgb, var(--hall-red) 16%, transparent)
-    ),
-    /* Side hall darkening (prototype stage edge fade) */
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 72%, transparent),
-      transparent 14%,
-      transparent 86%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 72%, transparent)
-    ),
-    /* Top gold pool + bottom vignette */
-    radial-gradient(
-      90% 55% at 50% 0%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 20%, transparent),
-      transparent 55%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 55%, transparent)
     ),
     linear-gradient(
       0deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 78%, transparent),
-      transparent 38%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--hall-dark-1, var(--ink)) 55%, transparent),
-      color-mix(in srgb, var(--ink) 28%, transparent) 42%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 52%, transparent)
-    ),
-    var(--arena-atm-wall) center 20% / cover no-repeat;
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 70%, transparent),
+      transparent 42%
+    );
   background-size:
     3.1rem 3.1rem,
     4.6rem 4.6rem,
@@ -95,46 +87,48 @@
     3.1rem 3.1rem,
     4.6rem 4.6rem,
     5.7rem 5.7rem,
-    18% 100%,
-    18% 100%,
+    20% 100%,
+    20% 100%,
     auto,
-    auto,
-    auto,
-    auto,
-    auto,
-    cover;
-  opacity: 0.82;
+    auto;
+  opacity: 0.95;
 }
 
-/* Parchment floor sheen + soft gold floor glow (prototype .floor-glow intent,
-   without round-floor geometry — glow is elliptical wash only). */
+/* Floor pool + crowd-haze rings — parchment stays in the centre, stands around it. */
 .page--arena::after {
   content: "";
   position: fixed;
   left: 50%;
   top: 52%;
   z-index: 0;
-  width: min(92vw, 68rem);
-  height: min(78vh, 52rem);
+  width: min(94vw, 72rem);
+  height: min(84vh, 58rem);
   pointer-events: none;
   transform: translate(-50%, -50%);
   background:
-    radial-gradient(
-      ellipse 70% 42% at 50% 58%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 26%, transparent),
-      transparent 70%
+    repeating-radial-gradient(
+      circle at 50% 52%,
+      transparent 0 6.2%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 18%, transparent) 6.35% 6.55%,
+      transparent 6.7% 9.8%
+    ),
+    repeating-radial-gradient(
+      circle at 50% 52%,
+      transparent 0 3.1%,
+      color-mix(in srgb, var(--ink) 22%, transparent) 3.2% 3.35%,
+      transparent 3.5% 5.4%
     ),
     radial-gradient(
-      closest-side at 50% 55%,
-      color-mix(in srgb, var(--surface) 82%, transparent),
-      transparent 74%
+      ellipse 72% 44% at 50% 56%,
+      color-mix(in srgb, var(--surface) 88%, transparent) 0 28%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 20%, transparent) 42%,
+      transparent 72%
     ),
     var(--arena-atm-floor) center / cover no-repeat;
-  opacity: 0.46;
+  opacity: 0.58;
   mix-blend-mode: soft-light;
 }
 
-/* Deck content above fixed atmosphere layers. */
 .page--arena #main-content,
 .page--arena .arena-command-deck,
 .page--arena .site-header,
@@ -146,27 +140,23 @@
 
 @media (min-width: 901px) {
   .page--arena::before {
-    opacity: 0.92;
+    opacity: 1;
   }
 
   .page--arena::after {
-    width: min(88vw, 74rem);
-    height: min(82vh, 56rem);
-    opacity: 0.52;
-    filter: saturate(0.92) brightness(1.05);
+    opacity: 0.64;
   }
 }
 
 @media (max-width: 900px) {
   .page--arena::before {
-    opacity: 0.64;
-    background-position: center 12%;
+    opacity: 0.85;
   }
 
   .page--arena::after {
-    width: min(100vw, 40rem);
-    height: min(60vh, 28rem);
-    opacity: 0.3;
+    width: min(100vw, 42rem);
+    height: min(62vh, 30rem);
+    opacity: 0.4;
   }
 }
 

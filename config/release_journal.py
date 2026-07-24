@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.473",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af5 dark hall after polish with r10c SVG/confrontation fix",
+        "section": "Chef Battles / Deployment",
+        "summary": "Merge ArenaFront af5 (48b03481: atmosphere AFTER polish; dark .page--arena hall fill for Owner Capture10) with Cursor r10c (547fa05a: transparent confrontation, live SVG ring contrast). Load order: hall → polish r10c → atmosphere af5. Also retains af4 crowd-haze rings. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
         "version": "2.5.472",
         "date": "2026-07-24",
         "commit": "547fa05a",
@@ -10,13 +18,29 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.471",
         "date": "2026-07-24",
+        "commit": "48b03481",
+        "title": "ArenaFront af5: dark hall page fill after polish (Owner live Capture10)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner live screenshot showed parchment floor but missing mockup dark hall — root cause: polish loaded after atmosphere and filled .page--arena with a light wash. af5 loads arena_atmosphere.css AFTER polish, reclaims page-level hall fill with official --hall-dark-* + wall wash, keeps crowd-haze rings, does not restyle polish deck chrome/seats/confrontation. Files: static/css/arena_atmosphere.css, templates/chef_battle/arena.html (cascade order + af5 cache-bust), config/release_journal.py, recipes/views.py (3G). Fence held on arena_deck_polish.css contents. Not a public release. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.470",
+        "date": "2026-07-24",
         "commit": "706c5b42",
         "title": "3G polish r10b: spine ladder, LIVE ribbon, chef portrait rings",
         "section": "Chef Battles / Deployment",
         "summary": "Owner no-idle continuous composition. Cursor polish r10b (arena_deck_polish.css ?v=20260724-r10b): rank spine denser gold ladder over centre; broadcast ribbon LIVE weight + active phase gold fill; circular chef portrait rings with hall-green/hall-red rims; lower Join CTA bronze weight. Official tokens only; fitScene unchanged. Journal+board same commit. Not a public Arena release. Rollback: revert this commit and redeploy.",
     },
     {
-        "version": "2.5.470",
+        "version": "2.5.469",
+        "date": "2026-07-24",
+        "commit": "c03f9593",
+        "title": "ArenaFront af4: mockup crowd-haze rings under live floor (non-interactive)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner no-idle order: continuous atmosphere shipping. ArenaFront slice af4 adds concentric crowd-haze / stand underlay rings on .page--arena::after using official --hall-gold/--ink tokens only — atmospheric art matching the approved mockup stands, not fake interactive seats (D2). Cache-bust arena_atmosphere.css?v=20260724-af4. Files: static/css/arena_atmosphere.css, templates/chef_battle/arena.html (link only), config/release_journal.py, recipes/views.py (3G evidence). Fence held vs arena_deck_polish.css. Linode paced; work on local 8-core. Stage 3 remains IN PROGRESS; not a public Arena release. Rollback: revert this commit and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.468",
         "date": "2026-07-24",
         "commit": "7d4a6573",
         "title": "3G polish r10a: gold hex centre, bright parchment plate, ring hierarchy",
@@ -24,7 +48,7 @@ RELEASE_JOURNAL = [
         "summary": "Owner no-idle continuous composition. Cursor-only polish slice (arena_deck_polish.css ?v=20260724-r10a): confrontation VS/crown centre as gold hex badge with bronze bloom; brighter flat parchment floor plate (light-floor rule, no rotateX); inner rings 1–3 brighter parchment strokes, outer 6–8 darker bowl; side show panels night-glass lift; amplify existing floor-stage glow without redefining ::after geometry. fitScene camera unchanged. Journal+board updated same commit. Not a public Arena release. Rollback: revert this commit and redeploy.",
     },
     {
-        "version": "2.5.469",
+        "version": "2.5.467",
         "date": "2026-07-24",
         "commit": "8cb3d854",
         "title": "3G composition catch-up: unsquash rings + atmosphere mockup-align under polish",
