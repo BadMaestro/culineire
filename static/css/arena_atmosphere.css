@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af38.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af39.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af35 LIVE (v2.5.507). Pending af36–af37. af38: denser repeating stand haze rings.
+ * af35 LIVE (v2.5.507). Pending af36–af38. af39: stronger ::after parchment wash.
  */
 
 .page--arena {
@@ -195,11 +195,11 @@
     radial-gradient(
       ellipse 88% 58% at 50% 56%,
       transparent 0 48%,
-      color-mix(in srgb, var(--surface, var(--surface-muted)) 22%, transparent) 64%,
+      color-mix(in srgb, var(--surface, var(--surface-muted)) 30%, transparent) 64%,
       transparent 82%
     ),
     var(--arena-atm-floor) center / cover no-repeat;
-  opacity: 0.32;
+  opacity: 0.36;
   mix-blend-mode: soft-light;
   -webkit-mask-image: radial-gradient(
     circle at 50% 52%,

@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.511",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af39 parchment wash with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af39 (c3c9041b) onto live polish r10c + af5–af38. Load order: polish r10c → atmosphere af39. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.511",
+        "date": "2026-07-24",
+        "commit": "9088062f",
+        "title": "ArenaFront af39: stronger ::after parchment wash",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift outer parchment surface wash (30%) and base ::after opacity to 0.36; desktop mask still clear. Cache-bust af39. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.510",
         "date": "2026-07-24",
         "commit": "06e578ec",
