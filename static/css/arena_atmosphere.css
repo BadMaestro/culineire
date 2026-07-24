@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af49.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af50.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af46 LIVE (v2.5.518). Pending af47–af48. af49: denser stand haze rings.
+ * af46 LIVE (v2.5.518). Pending af47–af49. af50: stronger bottom floor dark.
  */
 
 .page--arena {
@@ -41,8 +41,8 @@
     ),
     linear-gradient(
       0deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 82%, transparent) 0%,
-      transparent 36%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 88%, transparent) 0%,
+      transparent 40%
     ),
     radial-gradient(
       40% 36% at 0% 0%,
