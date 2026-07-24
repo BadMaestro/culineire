@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af63.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af64.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * Pair FE continue. af63: denser ::after stand haze rings.
+ * af60 LIVE (v2.5.531 / 914309c1). af64: deeper corner vignettes.
  */
 
 .page--arena {
@@ -45,24 +45,24 @@
       transparent 42%
     ),
     radial-gradient(
-      40% 36% at 0% 0%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 66%, transparent),
+      42% 38% at 0% 0%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 70%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      42% 38% at 100% 0%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 70%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      40% 36% at 0% 100%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 62%, transparent),
       transparent 70%
     ),
     radial-gradient(
-      40% 36% at 100% 0%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 66%, transparent),
+      40% 36% at 100% 100%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 62%, transparent),
       transparent 70%
-    ),
-    radial-gradient(
-      38% 34% at 0% 100%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 58%, transparent),
-      transparent 68%
-    ),
-    radial-gradient(
-      38% 34% at 100% 100%,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 58%, transparent),
-      transparent 68%
     ),
     var(--arena-atm-wall) center 2% / cover no-repeat !important;
   background-color: var(--hall-dark-0, var(--ink));

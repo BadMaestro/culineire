@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.536",
+        "date": "2026-07-24",
+        "commit": "48748189",
+        "title": "ArenaFront af64: deeper corner vignettes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af60 LIVE (#2517 / 914309c1 v2.5.531): deepen four corner dark vignettes further. SVG centre mask held. Cache-bust af64. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.535",
         "date": "2026-07-24",
-        "commit": "70ac0d2f",
+        "commit": "b4835640",
         "title": "ArenaFront af63: denser ::after stand haze rings",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: densify ::after repeating-radial stand rings (38% gold). SVG centre mask held. Cache-bust af63. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
