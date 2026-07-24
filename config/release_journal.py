@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.503",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af31–af32 gold bloom + side washes with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af31–af32 (5131cb27) onto live polish r10c + af5–af30. Load order: polish r10c → atmosphere af32. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.503",
+        "date": "2026-07-24",
+        "commit": "b10204bf",
+        "title": "ArenaFront af32: stronger side hall green/red accents",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift challenger/opponent side washes on page fill (green/red 34%). SVG centre mask held. Cache-bust af32. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.502",
+        "date": "2026-07-24",
+        "commit": "b3deb46e",
+        "title": "ArenaFront af31: warmer ceiling gold bloom",
+        "section": "Chef Battles / Deployment",
+        "summary": "af28 LIVE (#2339 / c8c6d88f v2.5.499): warm upper page gold bloom (52%/22%) to match wall-wash cinematic ceiling. SVG centre mask held. Cache-bust af31. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.501",
         "date": "2026-07-24",
         "commit": "3e4131c6",
