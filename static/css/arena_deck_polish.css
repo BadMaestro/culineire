@@ -2126,3 +2126,25 @@
     animation: none;
   }
 }
+
+
+/* 3G — floor stage inset frame (keeps SVG readable over atmosphere). */
+@media (min-width: 901px) {
+  .arena-floor-stage .arena-render-container {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 40%, transparent);
+    border-radius: 1.1rem;
+    background: color-mix(in srgb, var(--surface) 22%, transparent);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent),
+      0 0.8rem 1.8rem color-mix(in srgb, var(--ink) 24%, transparent);
+  }
+  .arena-floor-stage #arena-render {
+    filter: drop-shadow(0 1rem 1.4rem color-mix(in srgb, var(--ink) 30%, transparent));
+  }
+  .arena-confrontation-band .arena-live-centre span {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-lower-broadcast .arena-crowd-rail__actions {
+    gap: 0.45rem;
+  }
+}
