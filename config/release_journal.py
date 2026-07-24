@@ -1218,7 +1218,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.395",
         "date": "2026-07-24",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Stage 3G R1: Arena Hall tokens — challenger/opponent use official hall green/red",
         "section": "Chef Battles / Deployment",
         "summary": "Owner-approved 3G R0 map; R1 applies site-palette side accents on the live Arena (dark launch, staff/superuser only). (1) Challenger/opponent glows and --ad-green/--ad-red now point at official --hall-green/--hall-red from base.css instead of --brand/--brand-dark (both bronze), restoring green-vs-red identity without inventing a parallel palette. (2) --arena-gold points at --accent-bronze. (3) H1 Emerald Hall renamed Arena Hall (mockup/prototype copy). (4) Rank column unchanged (Owner Option A). Files: arena_deck_polish.css, arena_effects.css, arena_command_deck.css, arena.html, tests, ops/audits maps. No migrations. Prototype branch not merged. Focused ArenaRankColumnTests + new R1 token/title tests; distributed 8:6:1 not claimed. Rollback: git revert; no migrations. [Authored by Cursor.]",
@@ -1282,7 +1282,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.387",
         "date": "2026-07-22",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Server health mirror, and the protection layer behind it",
         "section": "Moderation / Deployment",
         "summary": "Context first, because the feature only makes sense with it: at 03:20 UTC the daily backup wrote its 1.6 GB into the last free space on the 25 GB disk, PostgreSQL PANICked four minutes later with no space left on device, and every page returned HTTP 500 until 11:09 -- seven hours and forty-five minutes. The same fault had already occurred on 07-19 and self-healed unnoticed. Nothing was watching, so nothing was known; the outage was found by accident while checking preconditions for an unrelated task. sar confirms the machine sat at 100% CPU (user 43 / sys 43 / iowait 11) for the whole window and fell to 5% the moment space was freed. Recovery needed only a journald vacuum and an apt cache clean; no backup, database file or product file was touched. This release adds the missing eyes. New moderator-only page at /monitoring/server/ mirrors the Linode panel (CPU, disk I/O, swap rate, network in and out over 24h) and adds the readings Linode does not show at all: disk, memory, swap and load average, which are the numbers that actually predicted the failure. Three deliberate omissions, each a decision rather than an oversight: no database table, because Linode already retains 24h and copying it would add write load to a 1 GB single-core box that is already using swap, so the data is cached for five minutes instead; no charting library, because the project has none and adding one for four sparklines would introduce a second design language, so the charts are server-rendered SVG polylines that work without JavaScript; and no emergency controls, because an endpoint that restarts production services needs its own review of authorisation, CSRF, rate limiting and audit logging rather than being attached to a dashboard. The page degrades honestly: without LINODE_API_TOKEN the host readings still render and the page states what is missing, and API failures are caught, because a health page that returns 500 during an incident is worse than none. Both behaviours are covered by tests. Disk thresholds (85% warning, 92% critical) are copied from watchdog.sh so the page and the alarm cannot disagree, and every colour is an existing base.css token per the design constitution. Alongside this, server-side only and outside the repository: backup.sh gained a preflight space guard that aborts without writing when the result would not fit, verified against the historical 320 MB condition where it would have prevented the outage entirely; retention was split by cost and rate of change (database 30 days, env 7 days, media 1 copy), cutting the backup directory from 15 GB to 1.7 GB; a watchdog runs every five minutes checking disk, PostgreSQL, HTTP and sustained CPU, alerting to the owner private Telegram with ten repeats for critical faults and a thirty-minute re-nag while unresolved; a 1 GB ballast file can be released automatically to keep PostgreSQL writable; journald is capped at 200 MB. The unused mediamtx streaming service was stopped and disabled (zero sessions in seven days, no references in application code, Live Video disabled by contract), freeing about 20 MB of RAM. Changed release files: monitoring/server_metrics.py (new), monitoring/views.py, monitoring/urls.py, monitoring/tests.py, templates/monitoring/server_metrics.html. No migrations. Tests: 9 new, 39 in the monitoring app, all passing. Note on numbering: this entry was renumbered from 2.5.386 to 2.5.387 because a concurrent deploy claimed 386 while this work was in progress -- the collision was caught before push, not after. Rollback: revert this commit on main, push the revert, rerun /srv/culineire/scripts/deploy.sh and the restricted Unit restart.",
@@ -1338,7 +1338,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.380",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Any registered author can visit the arena",
         "section": "Chef Battles",
         "summary": "is_battle_visible() required staff, superuser, or bearseeker privileges during dark launch, so a plain author got 404 -- exactly why three test accounts needed a staff grant just to be seen in the stands. Owner's rule: any registered author may visit and watch, chef enrollment is never a condition for visibility, only for participation. has_bearseeker_privileges is itself a RecipeAuthor field and added nothing once 'any author' is the rule, so it was dropped rather than kept as a no-op check.",
@@ -1346,7 +1346,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.379",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Real spectators stop being stretched into ghosts",
         "section": "Chef Battles",
         "summary": "The 3D camera was retired days ago, but a leftover scaleY(1.79/1.27/1.11) billboard rule kept stretching every real occupant photo vertically. Caught live: three real test spectators (julija-golovina, culin-eire, denis-golovin) rendered as tall thin rectangles instead of square portraits. Rule removed entirely -- a flat camera needs no un-squashing.",
@@ -1354,7 +1354,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.378",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Self-vote blocked at the database, arena tokens, manifest in the repo",
         "section": "Chef Battles",
         "summary": "BattleVote.clean() blocked a chef voting for themselves, but Django never calls clean() from save() - a CheckConstraint now enforces it directly, backed by a denormalised voter_author field (the constraint cannot join voter's User row to voted_for's RecipeAuthor row). Request fingerprint hashes moved from bare SHA-256 to HMAC keyed on SECRET_KEY. The arena build board is rewritten: 13 finished stages collapse into one archive line, the 7 live stages each carry a written acceptance criterion instead of none, and two of them (fullbleed, hud) turned out to already be built and working once measured rather than eyeballed. 89 live raw hex colours across the arena stylesheets (183 minus comment-only matches) are down to 35, mostly documented exceptions where no green/red/blue token exists anywhere in the scheme. The owner's product manifest and co-developer protocol now live in docs/agents/, with a delta document recording where they're stale against shipped code.",
@@ -1362,7 +1362,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.377",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Full-bleed reaches the phone too",
         "section": "Chef Battles",
         "summary": "The arena filling the screen was gated at 901px, so a phone kept the old boxed floor with a border and a light card background while desktop was already edge to edge. Floor sizing and the hall's colour now apply at every width; only the panel overlay stays desktop-only, since below 900px there is no room beside the floor to float them over it.",
@@ -1370,7 +1370,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.376",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The last of the 3D leaves the arena",
         "section": "Chef Battles",
         "summary": "The camera was retired days ago and the projection already draws flat, but the 3D context it needed was still declared - costing nothing to look at while quietly inviting the next person to turn depth back on.",
@@ -1378,7 +1378,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.375",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Everything the agents work from is in the repository",
         "section": "Site",
         "summary": "The rules, the reference notes, the session history and the agent settings lived on one machine, in one private folder. Losing that folder lost the project's working memory, and the other agent could not read any of it. All 108 notes are in docs/agents/memory now, the settings in docs/agents/claude-config, and the local test panel is tracked. Secrets stay out: the copied files name environment variables, they never carry values, and .env and its backups remain untracked.",
@@ -1386,7 +1386,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.374",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The rules the agents work by now live in the repository",
         "section": "Site",
         "summary": "The working rules existed only inside one agent's private memory folder: a lost folder or a new session would have taken them, and the other agent could not read them at all. They are in docs/agents/ now. GOLDEN_RULES.md carries the three-week analysis behind them - 727 commits in main of which one in three undoes the last, 39 collided version numbers - and the rules written against each pattern.",
@@ -1394,7 +1394,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.372",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The demo battle becomes a command instead of a script on the server",
         "section": "Chef Battles",
         "summary": "Every HUD panel in the reference carries battle content - phase, countdown, two chefs, votes, gifts - and with nothing running the layout was being positioned against empty boxes. demo_battle creates one through the real path, a challenge then accept_challenge, so what appears is a battle the site itself would have made. It ships through git rather than being copied onto the server as a throwaway. Dry run by default, --run to create, --end to close it, and it refuses to start a second while one is live.",
@@ -1402,7 +1402,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.371",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The floor takes the room it was promised",
         "section": "Chef Battles",
         "summary": "The arena was being sized by the whole seating disc rather than the floor, so the floor came out less than half the size it was set to and the hall behind it stopped short of the screen edges. The rank pills go dark on the pale floor, the way the mockup has them, instead of pale on pale.",
@@ -1410,7 +1410,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.370",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The rank ladder lies on the floor it describes",
         "section": "Chef Battles",
         "summary": "The list of kitchen ranks floated above the arena as a separate column, reading bottom rank last. It now lies on the floor between its near edge and the crown, in the order the mockup shows, and it is described in one stylesheet instead of three.",
@@ -1418,7 +1418,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.369",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The board admits the hall is finished, and the session table is swept",
         "section": "Moderation",
         "summary": "The backdrop stage was still open on the board while the hall has been live in production for hours, with our octagon landing within 2% of the painted one. It is closed, and its note now records what the frames actually cost: 4 of the 12 the owner allowed, of which two were drawn under a camera tilt he later retired. Separately, 63 rows left the session table - 43 expired and 20 belonging to accounts that no longer exist. Live sessions of real people were left alone; signing the owner out of his own tabs to tidy a table would be the worse outcome.",
@@ -1426,7 +1426,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.368",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arrival announcement belongs to GreenBear again",
         "section": "Site",
         "summary": "Announcing an arrival to the whole site is the owner's own privilege and always has been. It had been widened to fire for staff, superusers and bearseekers as well, so a bearseeker signing in raised the same popup - from the outside indistinguishable from someone signing in as the owner, which is exactly how he read it. Only the owner fires it now. The module had no tests at all, which is how the rule drifted unnoticed; it has six.",
@@ -1434,7 +1434,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.368",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena sits in the window it was given",
         "section": "Chef Battles",
         "summary": "The arena was told to be as tall as the window, but it starts below a sticky header - so it ran that far past the bottom, the floor sat low and the supporter ticker fell off the screen. It now takes the window minus the header, and the page stopped scrolling sideways.",
@@ -1442,7 +1442,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.367",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "One arena, described in one place",
         "section": "Chef Battles",
         "summary": "Two stylesheets had been setting the same widths and padding for the same arena, each unaware of the other, and whichever loaded last decided what you saw - which is how the octagon ended up off the side of the screen. Layout now lives in one file and the other paints.",
@@ -1450,7 +1450,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.366",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The bronze funnel on the floor goes back out",
         "section": "Chef Battles",
         "summary": "A widened bronze gradient had been added to the floor, running from almost-black at the centre out to parchment at the rim. It came from the first arena, which the owner had shown while asking about colour - not from the reference being built to, where the floor is even cream and rank is read from the pills. It was drift, and it goes out the same evening it went in. The walkway is kept: the reference has it, and its colour is the coolest token the scheme holds.",
@@ -1458,7 +1458,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.365",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The panels move onto the hall",
         "section": "Chef Battles",
         "summary": "The arena had panels standing beside it in a grid, on a page of light parchment - a dashboard about an arena. They now float on the hall itself as dark glass with a bronze edge, placed where the mockup puts them. Phones keep the stacked layout.",
@@ -1466,7 +1466,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.364",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "An address can be freed for good",
         "section": "Accounts",
         "summary": "Registering an address that had been deleted was refused as already taken: the login row survived while its author profile was gone, so nothing on the site could see the account, and the only thing it still did was block its own address. purge_account removes both halves and the author's content in one transaction, by address or as a sweep of every profile-less login row. It prints what it will remove and refuses a superuser without --force, so clearing a stale signup is not one typo away from deleting the owner.",
@@ -1474,7 +1474,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.363",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Rank becomes readable again",
         "section": "Chef Battles",
         "summary": "The first arena said rank without a word: the floor ran from deep bronze at the centre out to almost-white at the rim. Painting the hall dark took that contrast with it - the eight steps survived but sat between 0.90 and 0.65 in brightness, which is nothing on a lit floor, so rank stopped being visible. The steps are widened, not re-hued, and the floor stays light. The walkway between the floor and the crowd is pushed to the coolest colour the scheme actually has rather than the blue it once was: the scheme has no blue, and inventing one is how the arena grew its own palette last time.",
@@ -1482,7 +1482,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.362",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "A black square stops lying across the hall",
         "section": "Chef Battles",
         "summary": "Going full-bleed exposed the scene's old dark plate - a flat fill and a floor texture, drawn to give the arena a surface back when the page around it was light parchment. Inside the old 960px card its edges were never visible; across a full-screen hall it read as a black square over the middle of the room, which is how the owner photographed it on a phone. The hall image is the surface now, so the plate is cleared on this page and kept for the Master Console, which has no backdrop behind it.",
@@ -1490,7 +1490,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.361",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena stops being a box on a page",
         "section": "Chef Battles",
         "summary": "The widest gap to the reference was never the camera or the palette. The hall was a 1520px card with rounded corners holding a 960px picture in the middle of an ordinary page, while the reference is a room you stand in. The deck is released from its width and the scene from the 960px cap and its card treatment. Nothing is restructured - the grid columns are what put the side panels around the floor. Height is 100svh rather than 100vh so a phone does not gain a scrollbar when the browser chrome slides away.",
@@ -1498,7 +1498,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.361",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena stops being a box on a page",
         "section": "Chef Battles",
         "summary": "The widest gap to the reference was never the camera or the palette. The hall was a 1520px card with rounded corners holding a 960px picture, sitting in the middle of an ordinary page, while the reference is a room you stand in. The deck is released from its width and the scene from its 960px cap and its card treatment; nothing is restructured, because the grid columns are what put the panels around the floor. Height is 100svh rather than 100vh so a phone does not gain a scrollbar when the browser chrome slides away.",
@@ -1506,7 +1506,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.360",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Two releases were both called 2.5.356",
         "section": "Site",
         "summary": "A rebase took a version number the other agent had already used, so the journal carried the same release twice and listed the one after it out of order. The superseded entry described a deploy that was stopped and redone, and is gone; the recent block is back in order. Only the recent block was touched - older entries carry historical version strings that are not numbers, and sorting the whole list would have scrambled them.",
@@ -1514,7 +1514,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.359",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "A real viewer can be seen in the stands again",
         "section": "Chef Battles",
         "summary": "Hiding the painted-over seats hid live people with them: an avatar is cut to the shape of its seat, and a hidden seat has no shape, so anyone watching rendered at nothing at all. Seats are now clear rather than absent, and a live viewer carries a bronze edge against the painted crowd.",
@@ -1522,7 +1522,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.358",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The board stops issuing orders against numbers that no longer exist",
         "section": "Moderation",
         "summary": "Pressing START on the spectator stage sent both agents a brief describing 208 seats across four rings - a contract that had been replaced three days earlier by 544 across eight. The stage now describes what is actually there, and carries the hole that pressing START exposed: switching the SVG stands off under the backdrop took the real viewers with them, so a logged-in visitor currently cannot see themselves in the arena at all.",
@@ -1530,7 +1530,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.357",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The camera steps back and the hall comes into view",
         "section": "Chef Battles",
         "summary": "The floor was pressed against the edges of its frame and the hall behind it survived as thin strips - it read as looking down a hatch. The floor now takes about two thirds of the width, which leaves the hall visible and room beside it for the panels.",
@@ -1538,7 +1538,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.356",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The panels become glass, and the last raw colours leave the arena",
         "section": "Chef Battles",
         "summary": "The deck's panels were flat cards on a hall. They are dark glass now, with a bronze edge lit along the top and shadowed along the bottom, and the crown medallion throws a glow behind itself. The edge is stacked inset shadows, not a gradient border-image, which would have looked identical and silently switched border-radius off. The scheme's accent bronze was only declared inside the About component, so the arena kept its own copy of the hex; it is a root token now and the copy is gone, and shadows are mixed from the ink instead of plain black, which read cold against a warm scheme.",
@@ -1546,7 +1546,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.355",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The crown holder stops being a white card in a dark hall",
         "section": "Chef Battles",
         "summary": "The owner's own name sat in near-invisible light type on a white panel - the one place on the arena that shows his avatar. The card was not the bug: the deck's polish layer declares a second palette and paints a dozen components from it, while the hall only re-pointed the first, so every one of those panels was a white block waiting to be noticed. Re-pointing that palette fixes them together instead of one at a time.",
@@ -1554,7 +1554,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.354",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The hall is drawn properly now",
         "section": "Chef Battles",
         "summary": "The backdrop was a cheap draft standing in for the real thing. Redrawn at full quality from the same description: the crowd reads as people rather than dots, and the floor came out a truer octagon - its eight edges spread 6.9% where the draft spread 23.2%.",
@@ -1562,7 +1562,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.353",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "A hall drawn from the same place the arena is looked at",
         "section": "Chef Battles",
         "summary": "The backdrop is redrawn from directly overhead, so its floor is a regular octagon like ours instead of a shape no projection could match. Measured at 0.409 mean edge against the ideal 0.414, and square to within 0.4%.",
@@ -1570,7 +1570,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.352",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena is looked at from straight above",
         "section": "Chef Battles",
         "summary": "The owner settled the camera: no tilt at all. The floor is a plan view again, which makes the grid and any top-down artwork line up exactly and puts every click where the tile is drawn. The projection stays in the code, switched off by a single number.",
@@ -1578,7 +1578,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.351",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The floor lands on the hall it is standing in",
         "section": "Chef Battles",
         "summary": "The projection was solved against the two measurements taken off the backdrop at once - how far the octagon narrows into the distance and how tall it stands - because fixing either one alone kept pushing the other out.",
@@ -1586,7 +1586,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.350",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The build board catches up with the change of approach",
         "section": "Moderation",
         "summary": "The board still described an arena drawn entirely in code, which stopped being the plan when the owner ruled that the hall becomes a picture. Three stages are added: the backdrop and the switching-off of the SVG stands under it, the floor's true perspective (it never had any - both edges were the same length while the mockup converges to 0.51), and the mobile arena as its own scene, where tapping a ring opens that rank's chefs. The mobile stage carries the number that forced it: at 390px an outer tile is about 34px wide and 8px tall, which no finger can hit.",
@@ -1594,7 +1594,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.349",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The floor gets a camera instead of a tilt",
         "section": "Chef Battles",
         "summary": "The arena was a flat octagon leaned back, which shortens it but leaves the far edge as wide as the near one. Measured against the hall photograph: ours 1.000, the picture 0.51. The floor is now drawn through a real projection with the convergence as its one number.",
@@ -1602,7 +1602,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.348",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The hall becomes a photograph, the floor stays code",
         "section": "Chef Battles",
         "summary": "Eight releases went into drawing a bowl, tiers and a crowd that never change. They are now one still image behind the arena, and the floor - where every tile is a chef with a state and a click - stays as the SVG on top of it. Alignment test, measured on production.",
@@ -1610,7 +1610,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.347",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "A developer note stops printing itself under the footer",
         "section": "Site",
         "summary": "Three lines about the battle-start banner were rendering as visible text at the bottom of every page that could see Chef Battles - the owner found it browsing on a phone. Django's short comment {# #} closes at the end of its own line, so a multi-line one is not a comment at all and every line reaches the page. Two more were leaking the same way, in the recipe generator and the Pinch card. All three are now {% comment %} blocks, and a test walks the template tree so the next one fails in CI instead of on the site.",
@@ -1618,7 +1618,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.346",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The crowd got its faces back",
         "section": "Chef Battles",
         "summary": "Cutting the studio background away ate the heads with it — hair and shoulders went, leaving pale scraps in the seats — and because the cut was taken from the dark originals it silently undid an earlier brightening. The cut is now tight enough to keep the head, and the lift is applied after it rather than before.",
@@ -1626,7 +1626,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.345",
         "date": "2026-07-20",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "A walkway and a bronze rim between the floor and the crowd",
         "section": "Chef Battles",
         "summary": "The parchment ran straight into the stands with nothing between them, so the arena read as one slab. The mockup's grey walkway now circles the floor with a bronze rim light along each edge, and the seats fade into the dark on the same curve as the faces sitting in them.",
@@ -1634,7 +1634,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.344",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The rank ladder stops sitting on the crown holder",
         "section": "Chef Battles",
         "summary": "The eight rank pills ran straight across the centre of the arena. Measured on the live page: the stage begins 32.2% down the floor container and the ladder ran from 8.5% to 44.8%, so it covered the crown holder. It was not merely anchored too low - at 36.3% tall it did not fit in the space above the stage at all. The steps are compacted and the anchor raised, in proportions of the container rather than pixels, so the clearance survives the scene being refitted. Verified at 1280 and 1920: no overlap.",
@@ -1642,7 +1642,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.343",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The crowd stopped sitting like eggs in a carton",
         "section": "Chef Battles",
         "summary": "Every stand-in face carried the studio background it was photographed on and landed dead centre of its seat, on a fixed stride that repeated the same head every third chair. The backgrounds are cut away and the hall is dealt by a hash, so no row repeats.",
@@ -1650,7 +1650,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.342",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena scene loses its invented green",
         "section": "Chef Battles",
         "summary": "The bowl, its rim and the spotlight were still #0e1a12 / #05100a / #d9a441 - an emerald-and-yellow-gold pair that appears nowhere in the CulinEire scheme, whose brand core is parchment, ink and muted bronze. They now derive from the hall tokens. The per-ring brightness list in CSS is gone too: it was written for four spectator rings, silently covered none of the four added when the stands went eight deep, and is replaced by the row/rows_total fall-off the faces already use.",
@@ -1658,7 +1658,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.341",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The back rows step back into the dark",
         "section": "Chef Battles",
         "summary": "Every face in the stands burned at the same brightness, so the far rows shone as hard as the front and the perspective read flat. Brightness and colour now fall away row by row, using the row number the server already publishes.",
@@ -1666,7 +1666,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.340",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The stand-in crowd can be seen in the dark",
         "section": "Chef Battles",
         "summary": "The three default faces filling empty seats were made for a light page and sank into the dark stands. They are regenerated brighter and more contrasted, so a face six pixels wide still reads as a person.",
@@ -1674,7 +1674,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.339",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena hall is painted in the site's own colours",
         "section": "Chef Battles",
         "summary": "The hall had been painted in an invented emerald-and-gold pair (#0d1a12, #16241a, #d9a441) that appears nowhere in the CulinEire scheme, whose brand core is warm parchment, ink and muted bronze. Every colour now derives from the design tokens: the room is mixed down from --ink, the accents are the site's own bronze, and the text is --surface-soft. Text contrast measured at 14:1.",
@@ -1682,7 +1682,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.338",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The crowd became faces instead of cropped slices",
         "section": "Chef Battles",
         "summary": "Every spectator portrait was scaled to its seat and cut to the seat's shape, so the stands read as a mosaic of half-heads. Portraits are now round, sized to the measured mockup, and each one is straightened by its own measurement rather than a single constant.",
@@ -1690,7 +1690,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.337",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Moderators can open the arena build board, and the stands gained depth",
         "section": "Moderation",
         "summary": "The build board is a moderation tool, but it was gated on the privilege-granting check, which only superusers pass — every bearseeker moderator got a 404 on a page built for them. It now uses the same moderator gate as the rest of the moderation panel; the Master Console stays where it was. Separately the arena's seating went from four rings to eight, so the stands have real depth behind the front row, and the spectator query limit is derived from that instead of a hardcoded 208.",
@@ -1698,7 +1698,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.336",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena stopped cutting its own floor off",
         "section": "Chef Battles",
         "summary": "The tilted arena was sized off the container's height alone, so on a wide screen it ran 202px past each side and 216px past the bottom and the frame cut the floor off. It is now sized off whichever axis runs out first, and the octagon fits whole at every width.",
@@ -1706,7 +1706,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.335",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The Arena Build board is reachable from the moderation panel",
         "section": "Moderation",
         "summary": "The build board shipped without a way in: it had a page but no link. It now sits in the moderation panel next to Arena Console Plan.",
@@ -1714,7 +1714,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.334",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Build board: mark the camera stage green, un-pin the version",
         "section": "Moderation",
         "summary": "The camera/perspective stage is live on production, so it now shows green on the Arena Build board (7 of 11 stages complete). The board's production-version label was hard-coded and had gone stale several releases behind; it now reads the latest release automatically so it can never drift again.",
@@ -1722,7 +1722,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.333",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena page becomes the hall",
         "section": "Chef Battles / Arena",
         "summary": "The arena was a tilted picture squeezed inside a white card on a light page - nothing like the design, which is a dark broadcast hall with the arena filling the room. The whole arena page is now that hall: deep green-black room with warm gold light, every panel around the arena turned to dark glass, and the arena itself sized to fill the scene instead of sitting in a square box with dead bands above and below. Faces in the crowd now stand upright and round instead of lying flattened on the tilted floor - people in a hall look at the camera. The Master Console keeps its flat overhead view on purpose: it is an operations tool, and a map is the right view for operating on seats.",
@@ -1730,7 +1730,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.332",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Build board + coworking card fix",
         "section": "Moderation",
         "summary": "A new owner-only Arena Build board at /recipes/moderation/arena-build-plan/ lays every arena stage oldest-first in two lanes -- backend (Bolt) on the left, frontend (GB) on the right -- with each stage's dependency and a green done/100% badge once it is in production. Each unfinished stage carries a big red START button that fires a live coworking message to both agents to get to work; pressing it again re-sends. Also fixes the coworking dashboard, where an agent card that stored a plain string in a list field rendered one letter per line -- the model now coerces such a value into a list.",
@@ -1738,7 +1738,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.331",
         "date": "2026-07-19",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena is seen from the stands, not from above",
         "section": "Chef Battles / Arena",
         "summary": "The arena was drawn straight down onto a flat plan, which is why it never looked like the hall in the design. It is now seen from a raised seat looking across the floor, the way the design shows it, so the arena reads as a room with depth: the far side sits back, the near side comes forward, and the crowd wraps around a lit floor. Nothing about the seating changed - the same rings, the same seats, the same places - only the point of view. On phones the view stands up closer to overhead, so seats in the far rows stay large enough to tap.",
@@ -1746,7 +1746,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.330",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena stands fill with faces",
         "section": "Chef Battles / Arena",
         "summary": "Seats nobody has taken yet are filled with the site's own default avatars - the same faces a member has before uploading their own photo - so the arena reads as a full house instead of empty stone. They sit in shadow, dimmed and warmed by the stage light, so a real spectator appears as a lit face among the crowd. This is a preview of a full hall: as members arrive they replace these seats with their own avatars.",
@@ -1754,7 +1754,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.329",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Remove the placeholder crowd from the arena stands",
         "section": "Chef Battles / Arena",
         "summary": "The figures used to fill the empty spectator seats were crude shapes that spilled past their seats and looked nothing like a crowd. They are removed while a properly drawn crowd is prepared using the site's own illustration pipeline.",
@@ -1762,7 +1762,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.327",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena tiles get dark mortar, so the floor stops reading as white brickwork",
         "section": "Chef Battles / Arena",
         "summary": "On a phone the arena floor looked like flat white brickwork no matter how the rank colours were set. The outline around each tile was almost white and kept a fixed thickness however far the arena was scaled down, so on a small screen it covered much of every tile and drowned out the colour underneath. The seams are now dark mortar and thinner, which lets each ring show its own depth again - the rank ladder had been correct all along and simply could not be seen.",
@@ -1770,7 +1770,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.326",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena crowd becomes the dark stands around the floor",
         "section": "Chef Battles / Arena",
         "summary": "The first pass at the darkened hall put the dark behind the arena, which left it visible only in the corners around the eight-sided floor - a black box rather than an amphitheatre. The dark now belongs to the crowd itself: the four spectator rings are the stands, deepening ring by ring as they fall away from the stage, with a taken seat lit like a face catching the stage light. The floor keeps its warm parchment, and its rank steps were deepened so the ranks read clearly instead of washing out to white.",
@@ -1778,7 +1778,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.325",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The arena now sits in a dark bowl, lit from above",
         "section": "Chef Battles / Arena",
         "summary": "The arena floor keeps its warm parchment, and the darkness moves where it belongs: the hall around the floor. The playing floor now sits inside a deep green-black bowl with a gold rim, with a warm spotlight pooling over the centre and the outer edge falling into shadow, so the arena reads as a lit stage in an amphitheatre rather than a flat panel. Nothing about the floor palette changed - ranks still read as depth from the innermost ring outward.",
@@ -1786,7 +1786,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.324",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Revert the dark arena floor - the floor stays light parchment",
         "section": "Chef Battles / Arena",
         "summary": "The previous skin pass darkened the arena floor, but the owner's decision is that the floor is a light warm parchment - the dark belongs to the amphitheatre around it, not the playing floor. This reverts the floor to its light palette. The darker surround treatment is being built separately as part of the arena visual work.",
@@ -1794,7 +1794,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.323",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "A published recipe is rewarded once, not once per re-approval",
         "section": "Chef Battles",
         "summary": "Publishing a recipe, article or pinch grants battle-move energy and a season contribution to the author's faction and clan. Because editing an approved recipe sends it back for moderation, a chef could edit and have the same recipe re-approved repeatedly, and each re-approval paid the reward again - including the uncapped clan/faction season points, a way to farm a clan's standing. The reward is now paid once per object; likes are unaffected, keeping their own separate per-source daily limit.",
@@ -1802,7 +1802,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.322",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena gets its dark amphitheatre skin (phase A of the mockup pass)",
         "section": "Chef Battles / Arena",
         "summary": "First visual pass toward the design mockup, still fully procedural. The arena floor was a flat warm parchment; it now reads as a lit, dark-stone amphitheatre. The change is a palette swap scoped to the arena container (the site-wide brand tokens are untouched) plus a warm gold spotlight over the stage, an edge vignette that sinks the floor into a bowl, and a bloom on the crown. No sprites, no images: colour, SVG gradients and a filter only.",
@@ -1810,7 +1810,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.321",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "One arena: the procedural build is now the only one, plus a challenge button on recipes",
         "section": "Chef Battles / Arena",
         "summary": "The arena no longer forks. The procedural, code-drawn arena is now what everyone sees at /chef-battle/arena/ - the old ?proto=1 switch is gone, and a plain visit no longer shows the previous build. The Master Console renders the same procedural arena, so its data now carries the full arena payload it needs. The retired renderer and its unreachable prototype sandbox have been removed. Recipe pages also gain an Issue a Challenge button that starts a battle from that recipe, shown only where the challenge would actually work.",
@@ -1818,7 +1818,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.320",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Battle integrity hardening: frozen recipes, single scoring, artifacts returned",
         "section": "Chef Battles",
         "summary": "Three integrity fixes found in a battle-engine sweep. A recipe entered in a live battle is now locked from editing until the battle is over, so its ingredient lines cannot be reshuffled out from under the biathlon and it cannot be flipped out of published mid-vote. Scoring a battle now runs under a row lock and re-checks the status, so an overlapping cron run and operator click can no longer both award the same win and double a chef's rating and crown. And a decisive win now returns each chef's unused reserved artifacts to their chest, the same way a draw already did, instead of leaving them pinned to the finished battle forever.",
@@ -1826,7 +1826,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.319",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Agent message subjects can be longer",
         "section": "Coworking",
         "summary": "The subject line on an agent-to-agent coworking message was capped at 200 characters, which truncated or rejected the longer, more descriptive subjects the agents use to summarise a handoff at a glance. The cap is now 1000 characters.",
@@ -1834,7 +1834,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.318",
         "date": "2026-07-18",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Staff reach the arena they can already see, and battle buttons match the gate",
         "section": "Chef Battles / Arena",
         "summary": "During dark launch, staff were shown the arena panels but the battle views themselves turned them away with a not-found page, because the view gate omitted staff while the panel-preview flag included them. The view gate now lets staff in too, matching what they already see; the Arena Master Console stays superuser-only, so this does not open the console to staff. Templates also gain a battle_visible flag computed from that same view gate, so any button linking into a battle view is shown exactly when the view will accept it. Also clarifies the challenge recipe help text, which described only what the field is not.",
@@ -1842,7 +1842,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.317",
         "date": "2026-07-17",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Only a published recipe can carry a battle, and a recipe can now start one",
         "section": "Chef Battles",
         "summary": "A chef could issue a challenge with a recipe that was still a draft, or one moderation had already rejected, and accepting that challenge turned it into a battle entry anyway. The audience would then have been asked to vote on a recipe it could not open. Every recipe chooser in a battle now offers approved recipes only, and the status is checked again at the moment the battle is created, because a challenge stands for forty-eight hours and moderation can withdraw a recipe inside that window. A challenge can also now be started from a published recipe: that recipe names the chef being challenged and suggests the theme, while the challenger still brings a dish of their own.",
@@ -1850,7 +1850,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.316",
         "date": "2026-07-17",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Moderation headings get the brand typeface back",
         "section": "Moderation",
         "summary": "Headings on the automation and sponsor review screens were quietly rendering in the body typeface instead of the brand serif. They referenced a font variable that was never declared anywhere, so the rule was discarded and the heading simply inherited the surrounding text. They now use the same brand serif as the rest of the site, which is what they were always meant to be.",
@@ -1858,7 +1858,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.315",
         "date": "2026-07-17",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "A battle about to start calls the whole site to its seats",
         "section": "Chef Battles / Arena",
         "summary": "Five minutes before a scheduled battle begins, every page of the site now carries a small corner banner naming the theme, both chefs and the real countdown, inviting members to take their seat and guests to register for one. It never blocks the page, so nobody is held hostage mid-recipe, and it dismisses per battle rather than forever: the next battle calls again. The teleport flash on the arena floor was also fixed — it had been firing every twenty seconds at nobody.",
@@ -1866,7 +1866,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.314",
         "date": "2026-07-17",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The countdown says what it is ending",
         "section": "Chef Battles / Arena",
         "summary": "The arena countdown now names the thing it is counting down to — dish submission, public voting, or the battle itself — instead of the generic 'Live deadline'. The wording is re-read on every refresh, because the phase can change while the clock is running.",
@@ -1874,7 +1874,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.313",
         "date": "2026-07-17",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "The battle start ritual",
         "section": "Chef Battles / Arena",
         "summary": "A scheduled battle now resolves on its own start timer, which is a hard deadline: both chefs ready starts it early, and when the clock runs out the arena acts on who actually turned up. One chef present means a short wait for the other, then a walkover to the chef who came — the absentee forfeits. If neither appears the battle is void and both are penalised. The sitewide blast now also carries the battle about to start, so visitors on any page are invited to take a seat with the real countdown.",
@@ -1882,7 +1882,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.312",
         "date": "2026-07-17",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Cancel Battle erases a test battle and returns its artifacts",
         "section": "Chef Battles / Arena",
         "summary": "While Chef Battles is in test mode, the operator Cancel Battle control now erases an unscored battle completely — the battle, its linked challenge and every related record — leaving no trace anywhere, and returns every artifact the battle reserved, consumed or locked back to the owning chef's chest. A scored battle, or any battle once Chef Battles is public, still follows the safe mark-cancelled path.",
@@ -1890,7 +1890,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.311",
         "date": "2026-07-17",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Voting is for registered members only",
         "section": "Chef Battles / Voting",
         "summary": "Anonymous visitors can no longer vote in a battle: a passer-by is invited to sign in instead, and only a signed-in account can cast a ballot. The per-device anonymous constraint is retired while the connection fingerprints are kept, so duplicate-account abuse from one device is still caught. Historical anonymous ballots are removed by migration.",
@@ -1898,7 +1898,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.310",
         "date": "2026-07-17",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Align the purchases & VAT page with real chef payouts",
         "section": "Legal",
         "summary": "The purchases and VAT page now matches what the platform actually does: purchased tokens stay closed-loop and are never bought back, while a Chef may request a discretionary real-money buy-back of approved reward tokens. A new Chef Payouts section covers the Chef Reward Agreement, a rate locked at request time, Stripe Connect with identity verification, DAC7 reporting under EU Directive 2021/514, and the Chef's own tax responsibility.",
@@ -1906,7 +1906,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.309",
         "date": "2026-07-17",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Offer a free arena seat on hover",
         "section": "Chef Battles / Arena",
         "summary": "Hovering a free arena cell now offers a single \"Sit here\" label that follows the cursor, shown only where the viewer could actually sit (a chef over their own rank ring, a spectator over the stands). The static cache version was also bumped so returning visitors receive the current renderer instead of a stale cached copy.",
@@ -1914,7 +1914,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.308",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena spectators are the people actually watching",
         "section": "Chef Battles / Arena",
         "summary": "Any logged-in visitor now takes a seat in the arena: enrolled chefs sit in their rank ring and every other signed-in author sits in a spectator ring, shown with their own avatar while their presence is fresh. The spectator list is drawn from live arena presence rather than token balance, so the outer rings fill with the real audience.",
@@ -1922,7 +1922,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.307",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Restore the free-seat plus on the Arena floor",
         "section": "Chef Battles / Arena",
         "summary": "The procedural arena preview again marks every free seat with a plus, drawn once with the grid and toggled in place by the live poll, so an open floor reads as an invitation rather than a dead grid. Owner-requested; matches the legacy floor behaviour.",
@@ -1930,7 +1930,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.306",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena occupants fall back to an initial",
         "section": "Chef Battles / Arena",
         "summary": "In the procedural arena preview an occupied tile whose chef has no avatar now renders the chef's initial instead of appearing empty, so a taken seat never reads as free.",
@@ -1938,7 +1938,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.305",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Unified procedural Arena renderer behind ?proto=1",
         "section": "Chef Battles / Arena",
         "summary": "The ?proto=1 preview now runs a unified renderer that draws the procedural octagon and fills each tile with its chef, clipped to the cell outline, alongside the ported live command deck, battle-room popup, blast and ripple, and the effects layer on the unified floor. The default arena is unchanged.",
@@ -1946,7 +1946,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.304",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Dark-launch the procedural Arena preview",
         "section": "Chef Battles / Arena",
         "summary": "The Arena page now carries a gated procedural preview: with ?proto=1 the polar-geometry renderer draws the full octagonal grid from the live read-model and refreshes the roster on a ten-second poll, while the default page remains exactly as before. Also hardened agent discovery: the identity endpoint is read-only and markdown negotiation now varies caches by Accept header.",
@@ -1954,7 +1954,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.303",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Keep internal traffic out of visitor statistics",
         "section": "Monitoring",
         "summary": "Monitoring no longer records the team's own traffic: any machine seen with a staff login is remembered for a week and its page views, including anonymous fetches such as manifest requests and diagnostic curls, stay out of the statistics. Fixed internal addresses (the production host itself) can be listed via a new setting. Genuinely suspicious probes are still recorded regardless of source.",
@@ -1962,7 +1962,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.302",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Add seat capacity to the Arena geometry contract",
         "section": "Chef Battles / Arena",
         "summary": "Each ring in the declarative Arena geometry now carries its seat capacity, derived from the live arena's existing ring counts and aligned to the eight-sided symmetry so every octant holds a whole number of cells. The procedural renderer reads cell density from the contract instead of hardcoding it.",
@@ -1970,7 +1970,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.301",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Add declarative Arena geometry read-model",
         "section": "Chef Battles / Arena",
         "summary": "The public Arena read-model now publishes the arena's structural geometry: an eight-sided radial grid of thirteen rings (centre stage, eight chef-rank rings from Culinary Master innermost to Kitchen Porter outermost, and four spectator rings) derived from the real rank model. The procedural renderer draws the polar grid from this single source of truth instead of hardcoding ring or rank counts.",
@@ -1978,7 +1978,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.299",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Add the Arena floor environment plate",
         "section": "Chef Battles / Arena",
         "summary": "Introduced the first production Arena environment plate: a clean cinematic octagonal kitchen floor behind the existing live SVG cells. Real chefs, ranks, tooltip, popup and interaction layers remain above the image and unchanged.",
@@ -1986,7 +1986,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.298",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Label the Arena deadline countdown",
         "section": "Chef Battles / Arena",
         "summary": "The public Arena deadline contract now carries a kind and human label derived from the same real per-phase deadline source, so the command deck can say what the countdown means (dish submission closes, public voting closes, or battle closes) instead of a generic deadline. It stays null when no deadline is set.",
@@ -1994,7 +1994,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.296",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Anchor the Arena deadline to server time",
         "section": "Chef Battles / Arena",
         "summary": "The live Arena deadline now ticks smoothly between state polls using the authoritative deadline and server_time pair supplied by the public read-model. Each poll resynchronises the display; it stops cleanly when no active deadline exists.",
@@ -2002,7 +2002,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.295",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Add authoritative Arena server time",
         "section": "Chef Battles / Arena",
         "summary": "The public Arena read-model now stamps an authoritative server_time ISO timestamp at payload build alongside the deadline and phase, so clients can reconcile their own clock drift against the countdown. It rides the same Arena poll payload and is always present.",
@@ -2010,7 +2010,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.294",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Format the Arena Crown holding window reliably",
         "section": "Chef Battles / Arena",
         "summary": "Corrected Crown expiry formatting: the public ISO timestamp is now formatted by the existing Arena read-model on initial load and poll refresh, avoiding an empty server-side date while preserving the no-expiry fallback.",
@@ -2018,7 +2018,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.293",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Show the real Crown holding window",
         "section": "Chef Battles / Arena",
         "summary": "The Arena centre now states the Crown holding window when the public crown expiry exists, both on first render and after a centre refresh. When no expiry is supplied it retains the existing honest awaiting-challenge message.",
@@ -2026,7 +2026,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.292",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Correct the Arena phase rail",
         "section": "Chef Battles / Arena",
         "summary": "Removed a duplicate Biathlon step from the public Arena lifecycle rail, restoring the intended seven distinct real phases.",
@@ -2034,7 +2034,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.291",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Show the real Arena battle deadline",
         "section": "Chef Battles / Arena",
         "summary": "The Current phase card now shows a compact, tabular countdown sourced only from the public Arena deadline contract. It updates with the existing state poll and shows an honest no-deadline state when there is no current battle deadline; no client-side clock is invented.",
@@ -2042,7 +2042,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.290",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Add Arena deadline countdown read-model",
         "section": "Chef Battles / Arena",
         "summary": "The public Arena read-model now surfaces the active battle's real countdown as {deadline_iso, seconds_remaining}, reusing the existing per-phase deadline logic and clamping remaining seconds at zero. It rides the same Arena poll payload as the metrics and phase rail and returns nothing when no battle is live, so no timer is invented.",
@@ -2050,7 +2050,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.289",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Bind the public Arena phase rail",
         "section": "Chef Battles / Arena",
         "summary": "The Arena phase rail and its current-phase card now render the public key, label and step supplied by the battle read-model, then clear safely to the real open-floor state when no battle is present. Existing polling updates the same elements in place without inventing a timer or phase.",
@@ -2058,7 +2058,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.288",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Add Arena phase rail read-model",
         "section": "Chef Battles / Arena",
         "summary": "The public Arena read-model now exposes a phase rail entry (key, label, step 1..7) mapping the live battle state across Challenge, Combat, Biathlon, Cooking, Mod Review, Voting and Crown. It rides the same Arena poll payload as the top-bar metrics, resolves a paused battle to the phase it was paused from, and returns nothing when no battle is live.",
@@ -2066,7 +2066,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.286",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Make the Arena centre stage live",
         "section": "Chef Battles / Arena",
         "summary": "The centre-stage context now presents only the real current state: a live challenger/opponent pair, the actual Crown Holder, or an explicit open-centre state. It refreshes when the centre occupant changes during the existing Arena poll while retaining the active battle link and the SVG arena as source of truth.",
@@ -2074,7 +2074,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.285",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Add Arena rank spine and action rail",
         "section": "Chef Battles / Arena",
         "summary": "Added a compact desktop rank spine drawn from the existing rank groups and a responsive action rail that presents the live kitchen state alongside genuine Rankings, enrolment, challenge or sign-in routes. Both components retain the site button interactions and hide safely on narrow screens where the floor needs priority.",
@@ -2082,7 +2082,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.284",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Connect live Arena crown and gift panels",
         "section": "Chef Battles / Arena",
         "summary": "The public Arena now renders its crown streak, today's crown ladder and recent battle gifts from the real read-model, with profile links, honest empty states and safe in-place refreshes on the existing Arena polling cycle.",
@@ -2090,7 +2090,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.282",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Integrate Arena command-deck icon sprite",
         "section": "Chef Battles / Arena",
         "summary": "Integrated the coordinated CulinEire-owned Arena SVG sprite into the public command deck, starting with clear viewers and rank-tier metric icons while preserving existing interactions and the SVG battle floor.",
@@ -2098,7 +2098,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.280",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Add live Arena chef focus stage",
         "section": "Chef Battles / Arena",
         "summary": "When a real battle is active, the Arena now presents its challenger and opponent in a compact central VS stage with the true theme and status, while retaining the existing SVG centre and battle-room entry point.",
@@ -2106,7 +2106,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.279",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Bind Arena phase rail and spectator generator",
         "section": "Chef Battles / Arena",
         "summary": "The Arena lifecycle rail now reflects the real Battle.status, and spectator cells are generated by a pure polar-coordinate slot generator that distributes real presence records over rings 9–12 without creating fake identities or counts.",
@@ -2114,7 +2114,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.278",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Correct Arena command-deck density",
         "section": "Chef Battles / Arena",
         "summary": "Corrected the first Arena command-deck responsive pass: metrics now remain readable in the side rail and the complete rank legend wraps inside its allocated floor header instead of clipping.",
@@ -2122,7 +2122,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.277",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Start the Arena mosaic rebuild",
         "section": "Chef Battles / Arena",
         "summary": "Introduced the first responsive command-deck layer around the existing live SVG arena: lifecycle rail, real-data metrics, phase, ladder and gift panels, while retaining arena polling, chef cells, battle popup and legal gift controls. Added the reference mosaic and incremental assembly plan for the complete rebuild.",
@@ -2130,7 +2130,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.276",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Align the four arena action buttons",
         "section": "Chef Battles / Navigation",
         "summary": "All four lower widget actions now share a left-aligned one-centimetre inset and identical vertical rhythm. Enter Arena uses the established Issue a Challenge CTA treatment and matching cutlery artwork.",
@@ -2138,7 +2138,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.275",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Tighten arena menu spacing",
         "section": "Chef Battles / Navigation",
         "summary": "Centred Arena Menu and standardised its internal gaps to one compact spacing unit, further reducing the widget width and row density.",
@@ -2146,7 +2146,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.274",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Fix arena widget disclosure marker",
         "section": "Chef Battles / Navigation",
         "summary": "The header now uses an explicit up triangle while open and down triangle while closed, instead of relying on a CSS rotation state.",
@@ -2154,7 +2154,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.273",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Compact Chef Battles widget rhythm",
         "section": "Chef Battles / Navigation",
         "summary": "Reduced widget width, internal spacing, icon scale and row heights while preserving the two-column menu and comfortable clickable targets.",
@@ -2162,7 +2162,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.272",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Use the CulinEire mark in arena widget",
         "section": "Chef Battles / Navigation",
         "summary": "Replaced the generic crossed-tools glyph beside Chef Battles Arena with the existing compact CulinEire logo mark.",
@@ -2170,7 +2170,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.271",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Correct Enter Arena interaction states",
         "section": "Chef Battles / Navigation",
         "summary": "Enter Arena now brightens from a muted surface on hover, while its separate click ripple uses a visible dark-bronze wave.",
@@ -2178,7 +2178,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.270",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Wire widget buttons to existing click effects",
         "section": "Chef Battles / Navigation",
         "summary": "Widget menu and toggle now use the existing header floating ripple, while its large action buttons use the existing internal Hero-button ripple. The widget title now has dark bronze contrast on its light header.",
@@ -2186,7 +2186,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.269",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Match arena widget interaction standards",
         "section": "Chef Battles / Navigation",
         "summary": "Arena-menu links now use the primary-header interaction timing, while its large action buttons use the Hero pill transition; no new animation language was introduced.",
@@ -2194,7 +2194,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.268",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Generated Chef Battles navigation assets",
         "section": "Chef Battles / Navigation",
         "summary": "Replaced line-art widget symbols with nine generated culinary game icon assets, cropped to transparent PNGs and applied the site parchment, cappuccino, bronze and culinary-green palette to the navigation shell.",
@@ -2202,7 +2202,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.267",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Align recipe Hero with homepage standard",
         "section": "Recipes / Hero",
         "summary": "Recipe Hero now uses the homepage height, type scale, spacing, action gap, and photo-control offset while keeping staff actions on one desktop row.",
@@ -2210,7 +2210,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.266",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles widget icon system",
         "section": "Chef Battles / Navigation",
         "summary": "Replaced generic widget icons with purpose-drawn kitchen and battle SVGs using only CulinEire brand colours.",
@@ -2218,7 +2218,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.265",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Keep recipe hero actions on one desktop row",
         "section": "Recipes / Hero",
         "summary": "Expanded the recipe hero action measure to the approved 900px desktop width so staff and navigation actions stay on one row.",
@@ -2226,7 +2226,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.264",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Standardise recipe detail presentation",
         "section": "Recipes / Detail page",
         "summary": "Recipe pages now reuse the canonical hero-actions include and present their content in the site-standard warm document frame.",
@@ -2234,7 +2234,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.263",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Move recipe staff actions into hero",
         "section": "Recipe details / Hero",
         "summary": "Removed the standalone staff toolbar and placed its edit, delete, and Pinch actions inside the recipe hero.",
@@ -2242,7 +2242,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.262",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Restore staff action contrast",
         "section": "Recipe details / Staff tools",
         "summary": "Made edit, delete, and Pinch actions readable against the dark staff toolbar on recipe detail pages.",
@@ -2250,7 +2250,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.261",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Remove leaked Pinch template comment",
         "section": "Pinch / Mobile navigation",
         "summary": "Removed a multiline template comment that was rendered as visible text on the Pinch page.",
@@ -2258,7 +2258,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.260",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Unified list filter backgrounds",
         "section": "Recipes / Articles / Pinch",
         "summary": "Category filters on all three collection pages now use the surrounding page background instead of a white card surface.",
@@ -2266,7 +2266,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.259",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Compact recipe category filter",
         "section": "Recipes / Navigation",
         "summary": "Removed an oversized page-section gap between the recipe category row and its View All control.",
@@ -2274,7 +2274,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.258",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Challenges command label",
         "section": "Chef Battles / Navigation",
         "summary": "Simplified the command deck label from My Challenges to Challenges.",
@@ -2282,7 +2282,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.257",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles command deck hover correction",
         "section": "Chef Battles / Navigation",
         "summary": "Removed a stale dark hover state from the command deck controls; hover states now remain within the CulinEire cappuccino, blue, green, and bronze palette.",
@@ -2290,7 +2290,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.256",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "CulinEire palette arena command deck",
         "section": "Chef Battles / Navigation",
         "summary": "The command deck now follows the CulinEire colour and font scheme: cappuccino surfaces, warm bronze, restrained blue and green accents, and no decorative layer outside its boundary.",
@@ -2298,7 +2298,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.255",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Compact, closed arena command deck",
         "section": "Chef Battles / Navigation",
         "summary": "The command deck is now compact and visually closed with a dedicated lower metal cap; controls retain their touch-safe interactive size.",
@@ -2306,7 +2306,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.254",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Generated arena command deck frame",
         "section": "Chef Battles / Navigation",
         "summary": "A CulinEire-generated metallic cyan-and-amber frame now powers the Chef Battles command deck while the controls remain real, accessible HTML links.",
@@ -2314,7 +2314,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.253",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles command deck visual reference",
         "section": "Chef Battles / Navigation",
         "summary": "The command deck adopts the approved metallic kitchen-battle reference: cyan and amber energy rails, illustrated control hierarchy, and a prominent arena launch control.",
@@ -2322,7 +2322,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.252",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Live Arena token alignment",
         "section": "Chef Battles / Navigation",
         "summary": "The Chef Battles command deck now directly uses the Live Arena broadcast colour tokens, surfaces, borders, and green primary action treatment.",
@@ -2330,7 +2330,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.251",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles arena command deck",
         "section": "Chef Battles / Navigation",
         "summary": "The floating arena widget now uses an opaque dark broadcast command-deck design with structured controls, strong hierarchy, and owned SVG icons.",
@@ -2338,7 +2338,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.250",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Header sign-in popover",
         "section": "Accounts / Navigation",
         "summary": "Desktop visitors can sign in from a compact form beside the Sign In link, without leaving the page they are reading.",
@@ -2346,7 +2346,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.249",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles: Knife Roll widget label",
         "section": "Chef Battles / Navigation",
         "summary": "The Chef Battles widget now calls the chef's artifact collection Knife Roll.",
@@ -2354,7 +2354,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.247",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles: interactive knife and tool roll",
         "section": "Chef Battles / Knife and tool roll",
         "summary": (
@@ -2366,7 +2366,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.246",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles: knife roll follows CulinEire page standards",
         "section": "Chef Battles / Knife and tool roll",
         "summary": (
@@ -2378,7 +2378,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.245",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles: visible artifact Move effects",
         "section": "Chef Battles / Knife and tool roll",
         "summary": (
@@ -2389,7 +2389,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.244",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles: named spectator artifact delivery",
         "section": "Chef Battles / Live gifts",
         "summary": (
@@ -2401,7 +2401,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.243",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles: finite attack and defence loadouts",
         "section": "Chef Battles / Combat",
         "summary": (
@@ -2413,7 +2413,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.242",
         "date": "2026-07-16",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles: artifact power decides every combat round",
         "section": "Chef Battles / Combat",
         "summary": (
@@ -2426,7 +2426,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.241",
         "date": "2026-07-15",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Road: combat-to-biathlon and draw payout continuity",
         "section": "Chef Battles / Core journey",
         "summary": (
@@ -2439,7 +2439,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.239",
         "date": "2026-07-15",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Road: recipe lifecycle and source-index biathlon",
         "section": "Chef Battles / Core journey",
         "summary": (
@@ -2453,7 +2453,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.235",
         "date": "2026-07-15",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Road: block dish submit in pre-combat phases (lifecycle guard)",
         "section": "Chef Battles / Lifecycle",
         "summary": (
@@ -2467,7 +2467,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.233",
         "date": "2026-07-15",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Fix battle_set_ready 500 (Chef's Road lifecycle blocker #1)",
         "section": "Chef Battles / Lifecycle",
         "summary": (
@@ -2483,7 +2483,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.232",
         "date": "2026-07-15",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Master Console: safely delete unscored test battles",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -2497,7 +2497,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.230",
         "date": "2026-07-15",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Live arena: add CSP nonce to inline script (fixes video/polling/reactions)",
         "section": "Chef Battles / Live Arena",
         "summary": (
@@ -2512,7 +2512,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.229",
         "date": "2026-07-15",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Live arena preview: fix leaked comment + collapsed video stage",
         "section": "Chef Battles / Live Arena",
         "summary": (
@@ -2529,7 +2529,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.227",
         "date": "2026-07-15",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Live arena: fix video playback (self-host hls.js + CSP media blob)",
         "section": "Chef Battles / Live Arena",
         "summary": (
@@ -2545,7 +2545,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.223",
         "date": "2026-07-14",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Live Arena Phase 1: snapshot envelope + polling endpoint",
         "section": "Chef Battles / Live Arena",
         "summary": (
@@ -2564,7 +2564,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.222",
         "date": "2026-07-14",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Live Arena Phase 1: heart reactions backend",
         "section": "Chef Battles / Live Arena",
         "summary": (
@@ -2581,7 +2581,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.218",
         "date": "2026-07-14",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Live Arena broadcast preview page (owner build canvas)",
         "section": "Chef Battles / Live Arena",
         "summary": (
@@ -2598,7 +2598,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.217",
         "date": "2026-07-14",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Live Arena build tracker in the Master Console",
         "section": "Chef Battles / Live Arena",
         "summary": (
@@ -2616,7 +2616,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.215",
         "date": "2026-07-14",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Observer prize backend (Season Champion Recognition)",
         "section": "Chef Battles / Clans",
         "summary": (
@@ -2638,7 +2638,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.213",
         "date": "2026-07-14",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "CoWork owner paste-box: route any-length text to an agent",
         "section": "Coworking",
         "summary": (
@@ -2653,7 +2653,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.212",
         "date": "2026-07-14",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battle 'almost here' announcement image + newsfeed post",
         "section": "Newsfeed / Chef Battles",
         "summary": (
@@ -2668,7 +2668,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.209",
         "date": "2026-07-14",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Clans backend: models, ledger scoring, winner/champion selectors",
         "section": "Chef Battles / Clans",
         "summary": (
@@ -2692,7 +2692,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.208",
         "date": "2026-07-14",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena rules: Clans, Alliances & Season Champion Reward sections",
         "section": "Chef Battles / Rules",
         "summary": (
@@ -2720,7 +2720,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.153",
         "date": "2026-07-08",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles UI overhaul: nav merge, hero cleanup, widget links",
         "section": "Chef Battles / UI",
         "summary": (
@@ -2755,7 +2755,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.151",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Remove Moderation panel link from messages inbox side nav",
         "section": "UI",
         "summary": (
@@ -2768,7 +2768,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.150",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Messages inbox rebuilt on the legal-hub shell layout",
         "section": "UI",
         "summary": (
@@ -2787,7 +2787,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.149",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Messages inbox H1 reworded to a single warm two-line title",
         "section": "UI",
         "summary": (
@@ -2802,7 +2802,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.148",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Messages inbox hero standardised to the golden standard",
         "section": "UI",
         "summary": (
@@ -2821,7 +2821,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.147",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena presence: appear immediately, refresh every 10s",
         "section": "Chef Battles / UI",
         "summary": (
@@ -2841,7 +2841,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.146",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena ring cells show only online chefs",
         "section": "Chef Battles / UI",
         "summary": (
@@ -2860,7 +2860,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.145",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Master Console link in the sitewide Chef Battles widget",
         "section": "Chef Battles / UI",
         "summary": (
@@ -2878,7 +2878,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.144",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Fix stuck drag on the sitewide Chef Battles widget",
         "section": "Chef Battles / UI",
         "summary": (
@@ -2901,7 +2901,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.143",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Revert v2.5.142 sweep — restore functional page hero buttons",
         "section": "UI",
         "summary": (
@@ -2920,7 +2920,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.142",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Roll the shared hero action row across all non-battle pages",
         "section": "UI",
         "summary": (
@@ -2938,7 +2938,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.141",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Hero action rows use the homepage's exact class set (golden standard)",
         "section": "UI",
         "summary": (
@@ -2956,7 +2956,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.140",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Last two non-Chef-Battle heroes standardised",
         "section": "UI",
         "summary": (
@@ -2972,7 +2972,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.139",
         "date": "2026-07-07",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Non-Chef-Battle pages brought to the golden hero standard",
         "section": "UI",
         "summary": (
@@ -2990,7 +2990,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.138",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Move Delete Profile from the author dashboard to the profile edit page",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3008,7 +3008,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.137",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Author profile edit hero brought to the Author Studio standard",
         "section": "UI",
         "summary": (
@@ -3024,7 +3024,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.136",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Halve the collapsed Content Dashboard box height",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3042,7 +3042,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.135",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Updated author hero background image",
         "section": "UI",
         "summary": (
@@ -3056,7 +3056,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.134",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Drop redundant dashboard group headers (cards are the toggle now)",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3075,7 +3075,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.133",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "My Collection card expands inline with nested saved sub-sections",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3095,7 +3095,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.132",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Hotfix: stray template comment rendered as text on author page",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3111,7 +3111,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.131",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Author dashboard: count cards toggle their content section",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3132,7 +3132,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.130",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Author dashboard: centre Battle History, spacing, collapsible content groups",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3153,7 +3153,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.129",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Fix cramped spacing above Chef Battles Arena section on author page",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3172,7 +3172,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.128",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Restore centered GreenBear/author hero (drop stale hero--has-battle)",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3196,7 +3196,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.127",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles Arena block moved directly under the hero",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3211,7 +3211,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.126",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "GreenBear hero H1 shows his name in every view (golden standard)",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3228,7 +3228,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.125",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Revert author-hero name experiment; GreenBear page untouched",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3245,7 +3245,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.123",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Floating battle widget draggable with the mouse too",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3262,7 +3262,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.122",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Floating widget Arena Menu centred; merged section titles aligned",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3276,7 +3276,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.121",
         "date": "2026-07-06",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef profile merged into author page; hero battle panel removed",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3297,7 +3297,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.120",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef profile page rebuilt on the canonical corporate hero",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3327,7 +3327,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.119",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef profile page brought to the classic template look",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3360,7 +3360,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.118",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "One-click full battle emulation",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3384,7 +3384,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.117",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Battle emulation: full lifecycle test battles from the console",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3416,7 +3416,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.116",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Chef Battles corner widget: site design language + finger drag",
         "section": "Chef Battles / UI",
         "summary": (
@@ -3446,7 +3446,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.115",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Drawer: Sign Out back at the bottom",
         "section": "UI / Mobile",
         "summary": (
@@ -3464,7 +3464,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.114",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Mobile drawer layout per owner annotations; hero battle panel hidden on mobile",
         "section": "UI / Mobile",
         "summary": (
@@ -3488,7 +3488,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.113",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Drawer: exactly one Sign Out button",
         "section": "UI / Mobile",
         "summary": (
@@ -3508,7 +3508,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.112",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Mobile fixes: drawer author block, Sign Out, GreenBear bubble clamped",
         "section": "UI / Mobile",
         "summary": (
@@ -3538,7 +3538,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.111",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Hero battle panel deduplicated against the corner widget",
         "section": "Chef Battles",
         "summary": (
@@ -3561,7 +3561,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.110",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Master Console button on the challenges page",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3579,7 +3579,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.109",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Owner briefing on the challenges page: AMC report, manual, test-battle guide",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3609,7 +3609,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.108",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Real viewer presence for the Arena Master Console (DG-04 resolved)",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3640,7 +3640,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.107",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P09: final hardening and release readiness",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3671,7 +3671,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.106",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P08: rewards governance, payouts and battle reports",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3703,7 +3703,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.105",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P07: economy, gifts and artifacts panel (read-only)",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3733,7 +3733,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.104",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P06: voting integrity and audience analytics",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3763,7 +3763,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.103",
         "date": "2026-07-05",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console: post-audit corrections for P03-P05",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3796,7 +3796,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.102",
         "date": "2026-07-04",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P05: moderation, safety and live-stream panel",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3824,7 +3824,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.101",
         "date": "2026-07-04",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P04: live battle monitor + combat engine panels",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3849,7 +3849,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.100",
         "date": "2026-07-04",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P03: owner battle-flow controls + Emergency Stop",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3882,7 +3882,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.99",
         "date": "2026-07-04",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P02: live read-only data + embedded arena ring",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3914,7 +3914,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.98",
         "date": "2026-07-04",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console: owner always sees the console (flag = operator kill switch)",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3936,7 +3936,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.97",
         "date": "2026-07-04",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P01: visual shell + DG-01 access gate (dark)",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -3969,7 +3969,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.96",
         "date": "2026-07-04",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Master Console P00 complete: discovery, baselines, frozen contracts",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -4108,7 +4108,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.82",
         "date": "2026-07-03",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Pinch: collapsible header drawer — full-screen cards by default",
         "section": "Pinch / Mobile TikTok feed",
         "summary": (
@@ -4146,7 +4146,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.78",
         "date": "2026-07-03",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Pinch: root snap scroller (real Safari address-bar collapse) + filter self-heal",
         "section": "Pinch / Mobile TikTok feed",
         "summary": (
@@ -4192,7 +4192,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.77",
         "date": "2026-07-03",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Pinch footer — shimmer on arrow colour, lower swipe threshold",
         "section": "Pinch / Mobile TikTok feed",
         "summary": (
@@ -4206,7 +4206,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.76",
         "date": "2026-07-03",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Pinch footer — Pointer Events drag + tricolour shimmer",
         "section": "Pinch / Mobile TikTok feed",
         "summary": (
@@ -4222,7 +4222,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.74",
         "date": "2026-07-03",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Pinch: swipe footer gesture, Safari address-bar collapse, card → recipe link",
         "section": "Pinch / Mobile TikTok feed",
         "summary": (
@@ -4249,7 +4249,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.73",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Stage E3 — Ready button + readiness gate",
         "section": "Chef Battles / Arena (Phase FE-3)",
         "summary": (
@@ -4279,7 +4279,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.72",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Pinch filter centering hotfix — transform race in visibility math",
         "section": "Pinch / Mobile TikTok feed",
         "summary": (
@@ -4305,7 +4305,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.71",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Pinch filter — resting centering + tighter dot separators",
         "section": "Pinch / Mobile TikTok feed",
         "summary": (
@@ -4336,7 +4336,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.70",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Pinch filter — whole-item visibility + unreachable-left scroll fix",
         "section": "Pinch / Mobile TikTok feed",
         "summary": (
@@ -4367,7 +4367,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.69",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Pinch mobile snap — filter row, true full-bleed, handle rides the sheet",
         "section": "Pinch / Mobile TikTok feed",
         "summary": (
@@ -4404,7 +4404,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.68",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Stage D1 — Battle Room page becomes the antechamber",
         "section": "Chef Battles / Arena (Phase FE-3)",
         "summary": (
@@ -4432,7 +4432,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.67",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Stage B2+B4 — Facing pair (pre-combat) + completion return",
         "section": "Chef Battles / Arena (Phase FE-3)",
         "summary": (
@@ -4460,7 +4460,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.66",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Stage C — Battle Room popup embedded on the arena",
         "section": "Chef Battles / Arena (Phase FE-3)",
         "summary": (
@@ -4498,7 +4498,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.65",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Stage B1+B3 — Battle context in payload + ring cell vacated during VS",
         "section": "Chef Battles / Arena (Phase FE-3)",
         "summary": (
@@ -4523,7 +4523,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.64",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Arena Stage A — Chef Popup + Blue Spectator Cells",
         "section": "Chef Battles / Frontend (Arena As The Hall, Phase FE-3)",
         "summary": (
@@ -4557,7 +4557,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.60",
         "date": "2026-07-02",
-        "commit": "77190829",
+        "commit": "pending",
         "title": "Gold Accent Pass + Artifact Catalogue Sync (owner-approved)",
         "section": "Chef Battles / Frontend + Content",
         "summary": (
