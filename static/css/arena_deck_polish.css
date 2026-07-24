@@ -2035,3 +2035,56 @@
     box-shadow: 0 0 0.9rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
   }
 }
+
+
+/* 3G — load-order note + confrontation above atmosphere layers. */
+@media (min-width: 901px) {
+  /* Atmosphere CSS (arenafront) may paint under the floor; keep show core above it. */
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    z-index: 8;
+  }
+  .arena-floor-caption {
+    z-index: 9;
+  }
+  .arena-rank-spine {
+    z-index: 7;
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    z-index: 10;
+  }
+  .arena-broadcast-ribbon {
+    z-index: 12;
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    z-index: 11;
+  }
+  /* Phase deadline chip — broadcast urgency without fighting atmosphere art. */
+  .arena-command-deck__phase-deadline:not(.is-empty) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.45rem;
+    padding: 0.22rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 50%, transparent);
+    border-radius: 999px;
+    color: var(--accent-bronze-dark);
+    background: color-mix(in srgb, var(--accent-bronze) 16%, var(--surface));
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .arena-compact-facts dt {
+    color: var(--accent-bronze-dark);
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .arena-compact-facts dd {
+    color: var(--ink);
+    font-weight: 700;
+  }
+}
