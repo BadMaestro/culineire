@@ -56,7 +56,6 @@ RELEASE_JOURNAL = [
         "summary": "Owner no-idle + af14 live (#2266): warmer upper gold bloom using --hall-gold/--hall-gold-light to match regenerated wall-wash. Dual-cursor standby respected. SVG centre mask held. Cache-bust af17. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
     },
     {
-    {
         "version": "2.5.485",
         "date": "2026-07-24",
         "commit": "e8dab4d3",
