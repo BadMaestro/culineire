@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.556",
+        "date": "2026-07-24",
+        "commit": "PENDING",
+        "title": "Build Plan 3R6 phase stepper (FE+BE)",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner Build Plan item 3R6 (Stage 3G runway R6): public phase stepper Challenge→Combat→Biathlon→Cooking→Review→Voting→Crown. BE exposes arena_data.phase_rail; FE SSR+poll bind labels/active/complete/open states. Source tip e5a5097a. R4/R5 still owner-gated. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
         "version": "2.5.551",
         "date": "2026-07-24",
         "commit": "72a9c136",
