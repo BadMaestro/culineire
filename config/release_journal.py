@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.531",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af60 bottom dark with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af60 (0aef1742) onto live polish r10c + af5–af59. Load order: polish r10c → atmosphere af60. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.532",
+        "date": "2026-07-24",
+        "commit": "8e614f61",
+        "title": "ArenaFront af60: deeper ::before bottom dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "af57+af58 LIVE (#2497 / d61b1cb1 v2.5.529): deepen ::before bottom dark wash (88%/52%). SVG centre mask held. Cache-bust af60. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.531",
+        "date": "2026-07-24",
+        "commit": "179aa12b",
+        "title": "ArenaFront af59: stronger top crown gold wash",
+        "section": "Chef Battles / Deployment",
+        "summary": "af55+af56 LIVE (#2490 / 777a17de v2.5.528): lift top crown gold (70%/36%). SVG centre mask held. Cache-bust af59. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.530",
         "date": "2026-07-24",
         "commit": "d87696a5",
