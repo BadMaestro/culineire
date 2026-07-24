@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.547",
+        "date": "2026-07-24",
+        "commit": "7304b7f6",
+        "title": "ArenaFront af75: warmer gold dust tone",
+        "section": "Chef Battles / Deployment",
+        "summary": "af72 LIVE (#2573 / 442e3e35 v2.5.542): raise --arena-atm-gold / gold-soft (88%/58%). SVG centre mask held. Cache-bust af75. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.546",
         "date": "2026-07-24",
-        "commit": "f5295519",
+        "commit": "d1690be8",
         "title": "ArenaFront af74: stronger ::before side darken",
         "section": "Chef Battles / Deployment",
         "summary": "af70+af71 LIVE (#2565 / 27643611 v2.5.541): deepen ::before left/right side darken (90%/30%). SVG centre mask held. Cache-bust af74. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
