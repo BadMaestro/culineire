@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.510",
+        "date": "2026-07-24",
+        "commit": "9478a621",
+        "title": "ArenaFront af38: denser repeating stand haze rings",
+        "section": "Chef Battles / Deployment",
+        "summary": "af35 LIVE (#2385 / a9bab78b v2.5.507) + Owner 5-pack DONE: densify ::after repeating-radial stand rings (tighter spacing, 26% gold). SVG centre mask held. Cache-bust af38. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.509",
         "date": "2026-07-24",
-        "commit": "b1a8bca5",
+        "commit": "64ede02d",
         "title": "ArenaFront af37: warmer gold dust tone",
         "section": "Chef Battles / Deployment",
         "summary": "Pair FE continue: raise --arena-atm-gold / gold-soft mixes (70%/40%) so dust motes read warmer against wall-wash. SVG centre mask held. Cache-bust af37. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
