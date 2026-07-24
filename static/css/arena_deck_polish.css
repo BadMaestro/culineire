@@ -772,3 +772,31 @@
       0 0 1rem color-mix(in srgb, var(--hall-red) 35%, transparent);
   }
 }
+
+
+/* 3G — soft hall sparkles (prototype stage atmosphere dots). */
+@media (min-width: 901px) {
+  .arena-command-deck__floor::before {
+    background:
+      radial-gradient(circle at 8% 28%, color-mix(in srgb, var(--accent-bronze) 55%, transparent) 0 0.09rem, transparent 0.18rem),
+      radial-gradient(circle at 12% 40%, color-mix(in srgb, var(--accent-bronze) 35%, transparent) 0 0.13rem, transparent 0.22rem),
+      radial-gradient(circle at 17% 20%, color-mix(in srgb, var(--accent-bronze) 45%, transparent) 0 0.08rem, transparent 0.16rem),
+      radial-gradient(circle at 92% 28%, color-mix(in srgb, var(--accent-bronze) 55%, transparent) 0 0.09rem, transparent 0.18rem),
+      radial-gradient(circle at 88% 40%, color-mix(in srgb, var(--accent-bronze) 35%, transparent) 0 0.13rem, transparent 0.22rem),
+      radial-gradient(circle at 83% 20%, color-mix(in srgb, var(--accent-bronze) 45%, transparent) 0 0.08rem, transparent 0.16rem),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--ink) 28%, transparent),
+        transparent 14% 86%,
+        color-mix(in srgb, var(--ink) 28%, transparent)
+      ),
+      radial-gradient(90% 55% at 50% 0%, color-mix(in srgb, var(--accent-bronze) 16%, transparent), transparent 58%),
+      radial-gradient(70% 50% at 50% 100%, color-mix(in srgb, var(--ink) 24%, transparent), transparent 65%);
+    opacity: 0.95;
+  }
+  .arena-broadcast-ribbon {
+    box-shadow:
+      0 0.65rem 1.6rem color-mix(in srgb, var(--ink) 22%, transparent),
+      0 1px 0 color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  }
+}
