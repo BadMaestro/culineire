@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.535",
         "date": "2026-07-24",
-        "commit": "pending",
+        "commit": "87e3cf8e",
         "title": "Merge af63+af64 haze and corner vignettes with r10c",
         "section": "Chef Battles / Deployment",
         "summary": "Pair workflow: merge ArenaFront af63+af64 (dc0661ab) onto live polish r10c + af5–af62. Load order: polish r10c → atmosphere af64. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
