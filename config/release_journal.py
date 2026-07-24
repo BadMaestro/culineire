@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.514",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af42 bottom dark with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af42 (1fbb5de7) onto live polish r10c + af5–af41. Load order: polish r10c → atmosphere af42. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.514",
+        "date": "2026-07-24",
+        "commit": "166145f0",
+        "title": "ArenaFront af42: stronger ::before bottom dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: deepen ::before bottom dark wash (84%/50%) for hall floor enclosure. SVG centre mask held. Cache-bust af42. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.513",
         "date": "2026-07-24",
         "commit": "7f5f7480",
