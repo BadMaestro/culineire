@@ -1556,3 +1556,39 @@
     filter: none;
   }
 }
+
+
+/* 3G — denser broadcast ribbon phase track (prototype masthead). */
+@media (min-width: 901px) {
+  .arena-broadcast-ribbon {
+    grid-template-columns: minmax(14rem, 1fr) minmax(0, 2.6fr) auto;
+    align-items: center;
+    gap: 0.7rem 1rem;
+    min-height: 3.55rem;
+    padding: 0.38rem 1.2rem 0.45rem;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.1rem 0;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header > div {
+    min-width: 0;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    gap: 0.26rem;
+    padding: 0.16rem;
+  }
+  .arena-broadcast-ribbon .arena-phase-step {
+    min-height: 1.8rem;
+    font-size: 0.56rem;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__live-note {
+    font-size: 0.52rem;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header h1 {
+    font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+  }
+}
