@@ -3964,16 +3964,18 @@ class ArenaBuildPlanTests(TestCase):
         resp = self.client.get(reverse("recipes:arena_build_plan"))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Arena Build Plan")
+        self.assertContains(resp, "Current Arena Release Plan")
         self.assertContains(resp, "Backend")
         self.assertContains(resp, "Frontend")
-        self.assertContains(resp, "готово 100%")
-        self.assertContains(resp, "START")
-        self.assertContains(resp, "Зависимость")
+        # Release board uses English status chips (DONE / IN PROGRESS / …);
+        # legacy milestones still expose Backend/Frontend lanes.
+        self.assertContains(resp, "DONE")
+        self.assertContains(resp, "Dependency")
 
     def test_start_signals_both_agents(self):
         from coworking.models import CoworkingMessage
-        from recipes.views import ARENA_BUILD_STAGES
-        stage = next(s for s in ARENA_BUILD_STAGES if s["id"] == "fullbleed")
+        from recipes.views import ARENA_LEGACY_BUILD_STAGES
+        stage = next(s for s in ARENA_LEGACY_BUILD_STAGES if s["id"] == "fullbleed")
         self.client.login(username="abp-boss", password="pw")
         resp = self.client.post(reverse("recipes:arena_build_start"), {"stage": "fullbleed"})
         self.assertEqual(resp.status_code, 200)
@@ -3999,7 +4001,8 @@ class ArenaBuildPlanTests(TestCase):
         self.client.login(username="abp-boss", password="pw")
         resp = self.client.get(reverse("recipes:arena_build_plan"))
         self.assertContains(resp, "Foundation of the arena")
-        self.assertContains(resp, "заморожено")
+        self.assertContains(resp, "FROZEN")
+        self.assertContains(resp, "OUT OF CURRENT RELEASE SCOPE")
 
 
     def test_moderation_panel_links_to_the_board(self):
