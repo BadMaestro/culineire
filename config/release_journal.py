@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.516",
+        "date": "2026-07-24",
+        "commit": "pending",
+        "title": "Merge af43–af44 outer haze + side washes with r10c",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair workflow: merge ArenaFront af43–af44 (0cfe66fd) onto live polish r10c + af5–af42. Load order: polish r10c → atmosphere af44. SVG centre mask held. Journal+board updated. Not a public Arena release. Rollback: revert merge and redeploy.",
+    },
+    {
+        "version": "2.5.516",
+        "date": "2026-07-24",
+        "commit": "269bda27",
+        "title": "ArenaFront af44: stronger side green/red washes",
+        "section": "Chef Battles / Deployment",
+        "summary": "af40+af41 LIVE (#2411 / 9a1082c5 v2.5.513): lift challenger/opponent side washes (green/red 40%). SVG centre mask held. Cache-bust af44. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
+        "version": "2.5.515",
+        "date": "2026-07-24",
+        "commit": "31a013ed",
+        "title": "ArenaFront af43: denser outer gold haze ellipse",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: lift ::after outer gold/dark ellipse mixes (22%/26%). SVG centre mask held. Cache-bust af43. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.514",
         "date": "2026-07-24",
         "commit": "b5e1055c",
