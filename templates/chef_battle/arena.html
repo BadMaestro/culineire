@@ -13,7 +13,7 @@
 <link href="{% static 'css/arena_effects.css' %}?v=20260724-r9c" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260724-r9c" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-m14" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260724-m15" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260724-no-bg-geom" rel="stylesheet">
 {% endblock %}
 
@@ -284,19 +284,19 @@
         <span>The kitchen floor is open for the next challenge.</span>
       {% endif %}
     </div>
-    <div class="arena-activity-ticker" aria-label="Arena activity">
+    <div class="arena-activity-ticker" aria-label="Arena activity" id="arena-activity-ticker">
       <span>{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</span>
-      <span>{% if active_battle %}Live battle{% elif arena_data.center.type == 'crown' %}Crown centre{% else %}Floor open{% endif %}</span>
+      <span id="arena-top-supporter">{% if arena_data.top_supporter %}Top Supporter: {{ arena_data.top_supporter.name }} {{ arena_data.top_supporter.tokens }}T{% else %}Top Supporter: —{% endif %}</span>
       <span>{{ arena_data.metrics.active_viewers|default:0 }} watching</span>
     </div>
     <div class="arena-crowd-rail__actions">
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Browse rankings</a>
-      {% if viewer_author and not user_enrolled %}
-        <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:chef_enroll' %}"><span class="chef-battle-cta__label">Join Chef Battles</span></a>
-      {% elif viewer_author %}
+      {% if user_enrolled %}
         <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}"><span class="chef-battle-cta__label">Issue a Challenge</span></a>
+      {% elif request.user.is_authenticated %}
+        <button type="button" class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}"><span class="chef-battle-cta__label">Join the Crowd</span></button>
       {% else %}
-        <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}"><span class="chef-battle-cta__label">Sign in to join</span></a>
+        <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}"><span class="chef-battle-cta__label">Join the Crowd</span></a>
       {% endif %}
     </div>
   </footer>
@@ -337,10 +337,52 @@
     }, 1000);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
+  function csrfToken() {
+    var match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+  }
+
+  function bindJoinCrowd() {
+    var btn = document.querySelector('.js-arena-join-crowd');
+    if (!btn) { return; }
+    btn.addEventListener('click', function () {
+      var url = btn.getAttribute('data-seat-url');
+      if (!url || btn.disabled) { return; }
+      btn.disabled = true;
+      fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': csrfToken() }
+      }).then(function (response) {
+        return response.json().then(function (body) {
+          return { ok: response.ok, body: body };
+        });
+      }).then(function (result) {
+        if (result.ok && result.body && result.body.ok) {
+          btn.querySelector('.chef-battle-cta__label').textContent = 'Seated';
+          return;
+        }
+        var err = result.body && result.body.error;
+        if (err === 'arena_full') {
+          btn.querySelector('.chef-battle-cta__label').textContent = 'Arena full';
+        } else {
+          btn.disabled = false;
+        }
+      }).catch(function () {
+        btn.disabled = false;
+      });
+    });
+  }
+
+  function start() {
     boot();
+    bindJoinCrowd();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
   }
 })();
 </script>

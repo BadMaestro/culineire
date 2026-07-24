@@ -6617,6 +6617,20 @@ class ArenaDataSelectorsTests(TestCase):
         self.assertEqual(rows[0]["tokens"], 120)
         self.assertEqual(get_recent_battle_gifts(), rows)  # global recent also works
 
+    def test_top_supporter(self):
+        from .models import Artifact, ViewerBattleGift
+        from .selectors import get_top_supporter
+        battle = self._battle()
+        self.assertIsNone(get_top_supporter(None))
+        self.assertIsNone(get_top_supporter(battle))
+        art = Artifact.objects.create(name="Champagne")
+        ViewerBattleGift.objects.create(
+            battle=battle, recipient=self.a, sender=self.sender_user, artifact=art, tokens_spent=350
+        )
+        top = get_top_supporter(battle)
+        self.assertEqual(top["tokens"], 350)
+        self.assertTrue(top["name"])
+
     def test_crown_streak(self):
         from .models import ChefBattleProfile
         from .selectors import get_crown_streak
@@ -6646,6 +6660,7 @@ class ArenaPayloadWiringTests(TestCase):
         self.assertIn("crown_streak", p)
         self.assertIn("crown_ladder", p)
         self.assertIn("recent_gifts", p)
+        self.assertIn("top_supporter", p)
         self.assertIn("metrics", p)
         self.assertIn("phase", p)
         self.assertIn("phase_rail", p)
