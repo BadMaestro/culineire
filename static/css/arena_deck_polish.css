@@ -1325,3 +1325,64 @@
     height: 7.8rem;
   }
 }
+
+
+/* 3G — prototype hall depth + rank strip (site tokens). */
+@media (min-width: 901px) {
+  /* Hall atmosphere: deeper stage well, still official CulinEire tokens. */
+  .page--arena {
+    background:
+      radial-gradient(90% 55% at 50% 0%, color-mix(in srgb, var(--accent-bronze) 14%, transparent), transparent 55%),
+      radial-gradient(80% 70% at 50% 100%, color-mix(in srgb, var(--ink) 22%, transparent), transparent 60%),
+      linear-gradient(180deg, color-mix(in srgb, var(--ink) 10%, var(--surface-muted)), var(--surface-muted));
+  }
+  .page--arena .arena-command-deck {
+    background:
+      radial-gradient(70% 50% at 50% 42%, color-mix(in srgb, var(--accent-bronze) 10%, transparent), transparent 58%),
+      color-mix(in srgb, var(--ink) 8%, var(--surface-soft));
+    overflow: hidden;
+  }
+
+  /* Rank ladder as a bottom strip (prototype rank-progression), not a sticker on the crown. */
+  .arena-rank-spine {
+    top: auto;
+    bottom: 11%;
+    left: 50%;
+    width: min(46rem, 72%);
+    transform: translateX(-50%);
+  }
+  .arena-rank-spine__list {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0.28rem;
+  }
+  .arena-rank-spine__item {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .arena-rank-spine__step {
+    width: 100%;
+    min-height: 1.55rem;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.2rem 0.28rem;
+    font-size: clamp(0.42rem, 0.55vw, 0.58rem);
+  }
+  .arena-rank-spine__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arena-rank-spine::before {
+    display: none;
+  }
+
+  /* Keep confrontation above the strip, clearer empty/crown focus. */
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 18%;
+  }
+  .arena-floor-caption {
+    top: 10.5%;
+  }
+}
