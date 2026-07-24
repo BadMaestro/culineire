@@ -1,7 +1,7 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af41.
+/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) af42.
  *
  * Cascade: loads AFTER polish; page fill only — no polish deck chrome / seats.
- * af38 LIVE (v2.5.510). Pending af39–af40. af41: stronger mid hall gold bloom.
+ * af38 LIVE (v2.5.510). Pending af39–af41. af42: stronger ::before bottom dark.
  */
 
 .page--arena {
@@ -116,8 +116,8 @@
     ),
     linear-gradient(
       0deg,
-      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 74%, transparent),
-      transparent 46%
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 84%, transparent),
+      transparent 50%
     );
   background-size:
     2.8rem 2.8rem,

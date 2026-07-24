@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.514",
+        "date": "2026-07-24",
+        "commit": "166145f0",
+        "title": "ArenaFront af42: stronger ::before bottom dark",
+        "section": "Chef Battles / Deployment",
+        "summary": "Pair FE continue: deepen ::before bottom dark wash (84%/50%) for hall floor enclosure. SVG centre mask held. Cache-bust af42. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
+    },
+    {
         "version": "2.5.513",
         "date": "2026-07-24",
-        "commit": "585448f5",
+        "commit": "afdf1784",
         "title": "ArenaFront af41: stronger mid hall gold bloom",
         "section": "Chef Battles / Deployment",
         "summary": "af38 LIVE (#2398 / edf71833 v2.5.510): warm upper gold bloom further (58%/26%) for wall-wash match. SVG centre mask held. Cache-bust af41. Files: arena_atmosphere.css, arena.html, release_journal, 3G board. Fence: polish untouched. Rollback: revert and redeploy. [Authored by ArenaFront.]",
