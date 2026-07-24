@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.576",
         "date": "2026-07-24",
-        "commit": "PENDING",
+        "commit": "b2b3c06c",
         "title": "MOCKUP M04 — denser oval packing, stable seat ids",
         "section": "Chef Battles / Deployment",
         "summary": "MOCKUP_20_STEP M04. FE tip 57987c4c: SPECTATOR_OVAL_COUNTS freeze (290 capacity, stable ring/cell ids); denser pitch/gap + drawn seat radius toward mockup crowd. Geometry+seating tests. Cache-bust m04. AF atmosphere STOPPED. Not a public Arena release. Rollback: revert and redeploy.",
