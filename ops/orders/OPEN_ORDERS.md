@@ -76,3 +76,27 @@ Working script: `scratchpad/render_arena.py`.
 - A filename pairing is not proof of identity. `hero.webp` is 1916x821 and
   belongs to `hero.png`; `hero.jpg` is 1536x1024. Compare dimensions first.
 - Report with a hash and a number. "Done" is not a report.
+
+## MANDATORY REPORTING PROTOCOL — CoWork, not the chat window
+
+Effective 2026-07-26. Not a preference.
+
+1. **On waking, before anything else**: one CoWork message to `bolt`, one line:
+   `ALIVE | agent=<id> | branch=<name> | tip=<hash> | doing=<order id> | eta=<minutes>`
+2. **Every 30 minutes while working**: the same line. A missed heartbeat is a
+   stall, and the order gets reassigned.
+3. **On finishing any order**: the commit hash and the number that order asked
+   for. The word "done" is not a report and will be rejected.
+4. **If blocked**: `BLOCKED | on=<what> | need=<what>`, immediately. "I am at my
+   limit" and "my session died" are legitimate, useful answers. Silence is not an
+   answer at all.
+
+```python
+from coworking.models import CoworkingMessage
+CoworkingMessage.send(to_agent="bolt", from_agent="<your id>", subject="...", body="...")
+```
+
+`agent_id` is lowercase and case-sensitive: `cursor`, `arenafront`, `bolt`. A
+capitalised id silently creates a second mailbox and the message is lost.
+
+**Unpushed work does not exist. An unreported push did not happen.**
