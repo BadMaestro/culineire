@@ -7525,13 +7525,12 @@ class ArenaRankColumnTests(TestCase):
         self.assertNotIn("var(--brand)", challenger_block)
         self.assertNotIn("var(--brand-dark)", opponent_block)
 
-    def test_arena_hall_title_is_not_emerald(self):
-        """Emerald Hall was prototype/mockup copy; public arena uses Arena Hall."""
+    def test_arena_hall_title_is_emerald(self):
+        """Owner M11 lift 2026-07-25: mockup Emerald Hall copy authorised."""
         response = self.client.get(reverse("chef_battle:arena"))
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
-        self.assertIn("Arena Hall", html)
-        self.assertNotIn("Emerald Hall", html)
+        self.assertIn("Emerald Hall", html)
 
 
 PREVIEW_TOKEN = "test-preview-token-9Kd3pR7xQn"

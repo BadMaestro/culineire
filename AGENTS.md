@@ -343,7 +343,7 @@ to one of the five active documents.
   site palette outside the Arena remains unchanged.
 - Atmospheric crowd presentation may match the approved mockup but must not
   impersonate real, authenticated, registered, or online users. The eight
-  interactive rings retain 544 real-viewer-only seats, filled front rows first,
+  interactive rings retain 290 real-viewer-only seats, filled front rows first,
   with logged-in self-seating and no synthetic interactive occupants.
 - Typography: existing Playfair Display and Inter usage.
 - Accessibility, responsive behaviour, keyboard operation, reduced motion, and readable contrast are acceptance requirements, not optional polish.

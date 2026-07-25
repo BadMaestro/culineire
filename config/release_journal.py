@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.588",
+        "date": "2026-07-25",
+        "commit": "pending",
+        "title": "Owner all-clear — crown wrap + hall wash + Emerald Hall + M02",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner all-clear: (1) remove polish light page--arena wash so atmosphere dark bowl wins; (2) crown holder name nowrap/ellipsis; (3) M11 Emerald Hall + test flip; (4) product-contract and AGENTS 544 to 290. AF still densifies packed stands. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.587",
         "date": "2026-07-25",
         "commit": "b57d5ea3",

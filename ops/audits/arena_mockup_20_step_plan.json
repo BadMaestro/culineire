@@ -6,7 +6,7 @@
   "authorised_by": "CulinEire Product Owner",
   "reference_image": "Owner mockup photo_2026-07-18 (Chef Battles Arena Emerald Hall)",
   "prod_base_at_plan": "origin/main taller page v2.5.567 / a81e062f",
-  "working_principle": "One step, one branch, one gate, one journal. Mechanisms preserved (Owner #2780). No second engine. AF atmosphere STOPPED lifted for M17 WP (Owner #2947). Pair FE+BE.",
+  "working_principle": "One step, one branch, one gate, one journal. Mechanisms preserved (Owner #2780). No second engine. Owner all-clear 2026-07-25 lifted M02/M11/M16/M20 for punch-list. Pair FE+BE.",
   "mockup_zones": [
     "site chrome / welcome",
     "broadcast ribbon + phase stepper",
@@ -35,9 +35,9 @@
       "n": 2,
       "id": "M02",
       "title": "Owner amend product-contract §12 capacity 544→290 (oval honesty)",
-      "status": "OWNER_GATE",
+      "status": "DONE",
       "owner": "Product Owner",
-      "note": "Live geometry already 290; constitution text still says 544"
+      "note": "Owner all-clear 2026-07-25: product-contract §12 544→290"
     },
     {
       "n": 3,
@@ -55,7 +55,11 @@
       "owner": "arenafront",
       "note": "v2.5.576",
       "be": "keep seat ids stable if packing constants change",
-      "files": ["static/js/arena_geometry.js", "chef_battle/selectors.py", "tests"]
+      "files": [
+        "static/js/arena_geometry.js",
+        "chef_battle/selectors.py",
+        "tests"
+      ]
     },
     {
       "n": 5,
@@ -64,7 +68,11 @@
       "status": "LIVE",
       "owner": "arenafront",
       "note": "v2.5.568",
-      "files": ["templates/chef_battle/arena.html", "static/css/arena_*.css", "static/js/arena_render.js"],
+      "files": [
+        "templates/chef_battle/arena.html",
+        "static/css/arena_*.css",
+        "static/js/arena_render.js"
+      ],
       "constraint": "ArenaRankColumnTests semantics must not weaken"
     },
     {
@@ -74,7 +82,11 @@
       "status": "LIVE",
       "owner": "arenafront",
       "note": "v2.5.568",
-      "files": ["static/js/arena_render.js", "static/css/arena_render.css", "arena_deck_polish.css"]
+      "files": [
+        "static/js/arena_render.js",
+        "static/css/arena_render.css",
+        "arena_deck_polish.css"
+      ]
     },
     {
       "n": 7,
@@ -83,7 +95,11 @@
       "status": "LIVE",
       "owner": "pair",
       "note": "v2.5.569 stampFloorCentre",
-      "files": ["static/js/arena_render.js", "templates/chef_battle/arena.html", "CSS"]
+      "files": [
+        "static/js/arena_render.js",
+        "templates/chef_battle/arena.html",
+        "CSS"
+      ]
     },
     {
       "n": 8,
@@ -91,7 +107,9 @@
       "title": "Confrontation band polish to match mockup weight (names, hex clip, glow)",
       "status": "LIVE",
       "owner": "arenafront",
-      "depends_on": ["M07"],
+      "depends_on": [
+        "M07"
+      ],
       "note": "v2.5.583 / tip c8fa4cb5; hex rails + name weight + side glow"
     },
     {
@@ -114,9 +132,9 @@
       "n": 11,
       "id": "M11",
       "title": "Hall identity line (mockup says Emerald Hall)",
-      "status": "OWNER_GATE",
+      "status": "LIVE",
       "owner": "Product Owner",
-      "note": "Tests pin public title to 'Arena Hall' (test_arena_hall_title_is_not_emerald). Need Owner overturn before Emerald Hall copy."
+      "note": "Owner all-clear 2026-07-25: Emerald Hall copy authorised"
     },
     {
       "n": 12,
@@ -155,9 +173,10 @@
       "n": 16,
       "id": "M16",
       "title": "Chef country flags on confrontation / floor tiles",
-      "status": "OWNER_GATE",
+      "status": "OPEN",
       "decision": "D3",
-      "owner": "Product Owner"
+      "owner": "Product Owner",
+      "note": "Owner lifted gate; blocked on country-data source (no author.country yet)"
     },
     {
       "n": 17,
@@ -194,9 +213,21 @@
     }
   ],
   "execute_now": {
-    "immediate": ["M01", "M05", "M06"],
-    "parallel_be": ["ACK plan", "M02 escalate", "standby for M04 packing if constants change", "integrate FE tips"],
-    "blocked": ["M16", "M02"]
+    "immediate": [
+      "M01",
+      "M05",
+      "M06"
+    ],
+    "parallel_be": [
+      "ACK plan",
+      "M02 escalate",
+      "standby for M04 packing if constants change",
+      "integrate FE tips"
+    ],
+    "blocked": [
+      "M16",
+      "M02"
+    ]
   },
   "explicit_non_goals": [
     "No merge of design/arena-visual-shell-prototype",

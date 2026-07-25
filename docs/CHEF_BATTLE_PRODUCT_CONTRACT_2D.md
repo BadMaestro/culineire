@@ -321,8 +321,9 @@ The public Arena must:
   only after the Product Owner approves a country-data source;
 - keep atmospheric crowd presentation separate from interactive viewer seating:
   atmospheric figures may match the mockup but may not impersonate real users,
-  while the eight interactive rings retain 544 real-viewer seats, assign front
-  rows first, and let a logged-in viewer see themselves seated;
+  while the spectator oval retains 290 real-viewer seats (Owner M02 2026-07-25;
+  was 544 polar rings), assign front rows first, and let a logged-in viewer see
+  themselves seated;
 - display the rank column from KITCHEN PORTER through CULINARY MASTER and retain
   recorded numeric contrast evidence of at least 7:1;
 - preserve backend payload and action contracts;
@@ -332,7 +333,7 @@ The public Arena must not be defined by:
 
 - a true 3D rendering engine or an interactive camera;
 - synthetic occupants presented as registered, online, or otherwise real users
-  in the 544 interactive viewer seats;
+  in the 290 interactive viewer seats;
 - an independent visual system detached from the approved mockup and official
   named Arena tokens;
 - scattered raw colour literals instead of those tokens;
