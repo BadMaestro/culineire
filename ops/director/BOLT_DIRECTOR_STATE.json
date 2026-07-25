@@ -4,7 +4,7 @@
     "status": "LIVE_OPERATIONAL_STATE",
     "canonical_path": "/ops/director/BOLT_DIRECTOR_STATE.json",
     "purpose": "Bolt's compaction survival file. Read this FIRST on any cold start, resume or post-compaction turn. It is newer than any conversation summary. Rewritten at the end of every stage.",
-    "last_updated": "2026-07-25T23:20Z"
+    "last_updated": "2026-07-25T22:45Z Dublin"
   },
   "role": {
     "agent": "bolt",
@@ -264,8 +264,8 @@
     "Stray tracked file C:UsersgolovDesktopweekly_pricing.patch removed at 3ec49096 on the Owner's word, after proving every change in it already shipped."
   ],
   "PRODUCTION_STATE": {
-    "live_version": "v2.5.595 — verified live: / /recipes/ /articles/ /about/ /manifest.json all 200, manifest icon 128,071 B, CSS serves hero-battle.webp, zero root-owned.",
-    "main_tip": "6db8f5a3 perf+test(images): guard scans Python, splits payload from fallbacks",
+    "live_version": "v2.5.596 — arena phase name no longer splits mid-word.",
+    "main_tip": "a2204d9e fix(arena): the phase name no longer splits mid-word",
     "chain_today": {
       "ee88e451": "emergency load purge, ~5.35 MB off the Arena. ACCEPTED.",
       "bece0e19": "Bolt incident record",
@@ -363,5 +363,27 @@
     "W9_cursor": "DONE BY BOLT at 6db8f5a3.",
     "W10_cursor": "DONE BY BOLT — see IMAGE_WEIGHT_PASS_DONE.hero_measurement_W10_DONE."
   },
-  "PWA_ICON_DEFECT": "config/pwa_views.py declared images/pwa-icon-512.png as 512x512 to every installer while the file was 1254x1254 and 865,457 B. Replaced with a true 512x512 at 128,071 B (-85%), 256-colour palette where the source has only 2,505 colours, compared side by side with no banding. Kept as PNG: the manifest says image/png and installability is not worth a format experiment. Source file untouched."
+  "PWA_ICON_DEFECT": "config/pwa_views.py declared images/pwa-icon-512.png as 512x512 to every installer while the file was 1254x1254 and 865,457 B. Replaced with a true 512x512 at 128,071 B (-85%), 256-colour palette where the source has only 2,505 colours, compared side by side with no banding. Kept as PNG: the manifest says image/png and installability is not worth a format experiment. Source file untouched.",
+  "CLOCK": "All times reported to the Owner are DUBLIN time. Server is UTC, Dublin = UTC+1. Bolt mixed the two in reports today and was corrected.",
+  "ARENA_TRUTH_2026_07_25_NIGHT": {
+    "the_honest_verdict": "The Arena has NOT moved today. The screen at 09:00 and the screen at 22:45 are the same. Owner said so and he is right. Everything else today was repairing our own damage (load purge, amputated widget) and paying down weight debt. Necessary, not progress.",
+    "bolt_failure_named": "I carried Cursor's report of G6-FIX/G11/G12 as DONE for seven hours. Verified only when the Owner asked for a screenshot: NONE of those commits is pushed anywhere. His branch impl/arena-g2-camera has not moved since 15:12 Dublin. Accepting a report as an artifact is the Director's failure, not the agent's.",
+    "how_the_screenshot_was_taken": "Rendered /chef-battle/arena/ server-side via RequestFactory with a staff user — NO login, NO session, read-only — rewrote /static/ to absolute prod URLs, served the HTML locally on 127.0.0.1:8791, opened it in headless Chrome at 1280x720. This is the repeatable way to see the Arena without ever logging in as a privileged user. Script: scratchpad/render_arena.py. NOTE: the first is_staff user happens to be GreenBear, so his name appears in the header; nothing was done under his account.",
+    "defects_visible_on_the_live_arena": [
+      "FIXED at a2204d9e: phase name split mid-word ('OPEN FLOO / R'). Cause: font-size from the VIEWPORT (2.4vw -> 30.72px at 1280) inside a fixed 218px card whose heading box is only 101px because the timer shares the row, plus inherited overflow-wrap: break-word. Measured ALL EIGHT phase names: seven of eight overflowed. Now sized from the card (13.4cqi) with the title row wrapping below 320px, and word-breaking off.",
+      "OPEN: interface panels (phase card, crown ladder, battle gifts, the site widget) sit ON TOP of the ring and hide it. The Arena does not read as a stage.",
+      "OPEN: the crown-holder card is drawn twice at the centre, one copy clipped.",
+      "EXPECTED: seats are grey dots, no faces — the crowd work is not merged."
+    ],
+    "why_the_branch_was_not_merged": "origin/impl/arena-g2-camera is 27 commits BEHIND main and carries G6-G10 plus 288 tier images. It does NOT contain the fixes that would make it presentable. Merging it tonight would publish exactly the state I refused at 14:46 — faces scattered on the floor instead of the stands, 208 seats against a backend that serves 290, and the parchment plate still drawn. A merge would be visible motion and a real regression.",
+    "remaining_arena_work_precise": [
+      "G6-FIX: each portrait must be a child of the SAME element as its seat so it inherits the seat's transform. Proof: move the camera; seat and face move together.",
+      "G11: restore 290 seats. The client draws 208 while the backend serves 290. 290 is the Owner's capacity decision and a product contract; mis-mapping clicks on opening day is the real risk.",
+      "G12: delete .arena-floor-stage::before, the parchment plate. Delete the rule, do not resize it.",
+      "RETARGET: wire round/ (96 files, 400 KB), not tiers/ (288 files, 1,124 KB). Near/mid/far is brightness and blur, free in CSS.",
+      "W7 LOAD BUDGET before any of it ships: requests, bytes and time-to-last-face with the crowd on versus off.",
+      "THEN the layout defects above: panels off the ring, one crown card."
+    ],
+    "director_decision": "If Cursor does not surface, Bolt takes the branch and does G6-FIX/G11/G12 himself, judged by code and by a fresh screenshot, not by anyone's report. Work does not get to live in an agent's pocket. Started tonight would mean deep geometry surgery at 22:45 on a thin context — which is precisely how today's damage was made — so it starts on a fresh context, not now."
+  }
 }
