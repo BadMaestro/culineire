@@ -61,29 +61,29 @@
       <div class="site-battle-widget__section site-battle-widget__section--menu">
         <p class="site-battle-widget__section-title">Arena Menu</p>
         <div class="site-battle-widget__menu">
-          <a href="{% url 'chef_battle:challenge_list' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/challenges.png' %}" alt="" aria-hidden="true">Challenges</a>
-          <a href="{% url 'chef_battle:season_leaderboard' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/season.png' %}" alt="" aria-hidden="true">Season</a>
-          <a href="{% url 'chef_battle:rankings' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/rankings.png' %}" alt="" aria-hidden="true">Rankings</a>
-          <a href="{% url 'chef_battle:token_shop' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/treasury.png' %}" alt="" aria-hidden="true">Treasury</a>
-          <a href="{% url 'chef_battle:appreciation_gallery' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/gifts.png' %}" alt="" aria-hidden="true">Gifts</a>
-          <a href="{% url 'chef_battle:artifact_gallery' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/artifacts.png' %}" alt="" aria-hidden="true">Artifacts</a>
+          <a href="{% url 'chef_battle:challenge_list' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/challenges.webp' %}" alt="" aria-hidden="true">Challenges</a>
+          <a href="{% url 'chef_battle:season_leaderboard' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/season.webp' %}" alt="" aria-hidden="true">Season</a>
+          <a href="{% url 'chef_battle:rankings' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/rankings.webp' %}" alt="" aria-hidden="true">Rankings</a>
+          <a href="{% url 'chef_battle:token_shop' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/treasury.webp' %}" alt="" aria-hidden="true">Treasury</a>
+          <a href="{% url 'chef_battle:appreciation_gallery' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/gifts.webp' %}" alt="" aria-hidden="true">Gifts</a>
+          <a href="{% url 'chef_battle:artifact_gallery' %}"><img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/artifacts.webp' %}" alt="" aria-hidden="true">Artifacts</a>
         </div>
       </div>
 
       {% if can_access_arena_console %}
       <a class="site-battle-widget__console-link site-battle-widget__console-link--console" href="{% url 'chef_battle:master_console' %}">
-        <img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/console.png' %}" alt="" aria-hidden="true"> Master Console
+        <img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/console.webp' %}" alt="" aria-hidden="true"> Master Console
       </a>
       {% endif %}
       <a class="site-battle-widget__console-link site-battle-widget__console-link--roll" href="{% url 'chef_battle:battle_chest' %}">
-        <img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/knife-roll.png' %}" alt="" aria-hidden="true"> Knife Roll
+        <img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/knife-roll.webp' %}" alt="" aria-hidden="true"> Knife Roll
       </a>
       <a class="site-battle-widget__console-link site-battle-widget__console-link--room" href="{% url 'chef_battle:changing_room' %}">
-        <img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/changing-room.png' %}" alt="" aria-hidden="true"> Changing Room
+        <img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/changing-room.webp' %}" alt="" aria-hidden="true"> Changing Room
       </a>
 
       <a class="site-battle-widget__console-link site-battle-widget__enter-link ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:arena' %}">
-        <img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/challenges.png' %}" alt="" aria-hidden="true"><span class="chef-battle-cta__label">Enter Arena</span>
+        <img class="site-battle-widget__icon" src="{% static 'images/chef_battle/widget/challenges.webp' %}" alt="" aria-hidden="true"><span class="chef-battle-cta__label">Enter Arena</span>
       </a>
 
     </div>
