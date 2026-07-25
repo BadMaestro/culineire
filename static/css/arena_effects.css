@@ -130,3 +130,18 @@
     animation: none;
   }
 }
+
+/* GRAPHICS WP - stronger overhead lamp + bowl warmth (tokens only). */
+.page--arena .arena-command-deck::before {
+  background:
+    radial-gradient(120% 70% at 50% -8%, color-mix(in srgb, var(--accent-bronze) 22%, transparent), transparent 58%),
+    radial-gradient(95% 62% at 50% 110%, color-mix(in srgb, var(--ink) 11%, transparent), transparent 56%);
+}
+.page--arena .arena-command-deck__live-stage[data-centre-key^="battle-"]::after {
+  background:
+    radial-gradient(60% 80% at 18% 50%, color-mix(in srgb, var(--hall-green) 30%, transparent), transparent 62%),
+    radial-gradient(60% 80% at 82% 50%, color-mix(in srgb, var(--hall-red) 30%, transparent), transparent 62%);
+}
+.page--arena .arena-command-deck__live-stage[data-centre-key^="crown-"]::after {
+  background: radial-gradient(70% 80% at 50% 42%, color-mix(in srgb, var(--accent-bronze) 34%, transparent), transparent 64%);
+}

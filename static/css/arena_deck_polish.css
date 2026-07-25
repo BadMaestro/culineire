@@ -3672,3 +3672,46 @@
     transform: none !important;
   }
 }
+
+/* GRAPHICS WP (Owner 2026-07-25) - deck chrome WOW toward mockup show-panels:
+   bronze rails + parchment depth. Official tokens only. AF owns atmosphere;
+   Cursor owns polish. */
+@media (min-width: 901px) {
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__gifts {
+    background: linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--surface) 92%, var(--accent-bronze) 8%),
+      color-mix(in srgb, var(--surface-soft) 90%, transparent)
+    );
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--surface) 72%, transparent) inset,
+      0 0 0 1px color-mix(in srgb, var(--ink) 5%, transparent) inset,
+      0 10px 28px color-mix(in srgb, var(--ink) 14%, transparent),
+      0 0 22px color-mix(in srgb, var(--accent-bronze) 9%, transparent);
+  }
+
+  .page--arena .arena-broadcast-ribbon {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+    background: color-mix(in srgb, var(--surface-soft) 84%, var(--ink) 5%);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+
+  .page--arena .arena-lower-broadcast,
+  .page--arena .arena-command-deck__crowd-rail {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 92%, transparent),
+      color-mix(in srgb, var(--surface-muted) 88%, transparent)
+    );
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+
+  .page--arena .arena-panel__kicker {
+    color: var(--accent-bronze-dark);
+  }
+}
