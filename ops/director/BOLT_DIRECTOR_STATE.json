@@ -4,7 +4,7 @@
     "status": "LIVE_OPERATIONAL_STATE",
     "canonical_path": "/ops/director/BOLT_DIRECTOR_STATE.json",
     "purpose": "Bolt's compaction survival file. Read this FIRST on any cold start, resume or post-compaction turn. It is newer than any conversation summary. Rewritten at the end of every stage.",
-    "last_updated": "2026-07-25T16:00Z"
+    "last_updated": "2026-07-25T18:30Z"
   },
   "role": {
     "agent": "bolt",
@@ -290,5 +290,22 @@
     "wire": "Cursor wired tiers into seats at d1994fb8: ARENA_CROWD_FACES = tiers/face-NN-round-mid.webp x96, crowdFaceFor swaps near/mid/far by rowDepth. Remeasure pending - his local harness on :8765 was down.",
     "BUDGET_OVERRUN_REPORTED_TO_OWNER": "5 extra paid generations. face-97..face-101 were drawn before the cap order #3098 landed, then deleted; the kept set is exactly 96. Total paid is therefore about 101 against a cap of 96. Reported to the Owner as a LOWER BOUND, not an exact figure, because the generator keeps no API call counter. ArenaFront volunteered the overrun before being caught.",
     "A4_judgement": "Grid effect reduced but 24 of the 96 are still dead-on frontal - those are the Owner-approved A2 originals."
+  },
+  "LOAD_INCIDENT_2026_07_25": {
+    "what_happened": "The Owner reported the Arena critically slow and half-loading. Both agents fixed it without waiting, correctly. Purge commit ee88e451 (live) removed about 5.35 MB from the page: arena-floor-plate-v1.png 2,658,581 B, hall-wall-wash-v1.png 1,358,206 B, floor-sheen-v1.png 1,331,113 B, plus the hall-bg v1/v2/v3 set. Prod verified by Bolt: main=ee88e451, site 200 on / /recipes/ /articles/, collectstatic clean at 14:30 after the 14:28 commit, all deploy-owned, zero root-owned.",
+    "cursor_finding_worth_keeping": "HIDE IS NOT DISCONNECT. arena_command_deck.css had the floor-plate url() early in the cascade; later rules hid ::before but the download had already been triggered. Any future load work must remove the url(), not the visibility.",
+    "the_breakage": "The widget was NOT broken by a defect - it was AMPUTATED. base.html line 358 gained `request.resolver_match.url_name != 'arena'`, removing the whole widget from the Arena page to dodge 1.5 MB of icons.",
+    "bolt_verification_of_the_widget": "Rendered _widget.html against a real staff request via RequestFactory (no force-login, read-only): 3,299 bytes of correct markup, site-battle-widget present, both stylesheets resolve, url_name 'arena' unique to chef-battle/arena/. The widget is healthy. It is simply absent from that page.",
+    "root_cause_of_the_1_5MB": "Nine SIDEBAR icons under static/images/chef_battle/widget/ averaging 166 KB each: artifacts 170381, challenges 122077, changing-room 177124, console 164961, gifts 177372, knife-roll 147291, rankings 184195, season 185744, treasury 187700. All nine referenced by _widget.html. The fix was never to delete the widget; it was to make an icon weigh what an icon weighs.",
+    "orders_issued": {
+      "W1_arenafront_3122": "Convert all nine icons to WebP at RENDERED size (measure the CSS box first, 2x for retina, no larger). Target under 8 KB each, 72 KB for the set. Any icon that cannot reach it gets reported with a number, not shipped heavy. Keep PNG sources on disk. Deliver a before/after byte table.",
+      "W2_cursor_3121": "Revert the url_name != 'arena' condition AFTER W1 lands, so the widget never returns at 1.5 MB. Retarget _widget.html to WebP. Bump the footer version - ee88e451 changed prod template and CSS while the footer still reads v2.5.590.",
+      "W3_cursor_3121": "THE GUARD. A test walking every template, collecting every {% static %} image reference, FAILING if any exceeds a byte cap, naming cap and file. Opening cap 150 KB, per-directory caps acceptable if each number is justified. MUST fail on the current tree and pass after W1 - both runs shown. This is the mechanism behind the Owner's 'never again'; a promise is not a mechanism.",
+      "W4_cursor_3121": "HOLD the crowd. G6-FIX/G11/G12 report PASS on the harness (faces nested, 290 seats, 0 loose, plate dead, M1 0.5592, M3 1.60) but must NOT merge to prod: 290 seats painting individual faces is a request storm on the page just rescued. Load budget first, crowd second."
+    },
+    "STANDING_RULE_NEW": "An emergency load fix may DISCONNECT any asset from CSS or a template. It may NOT DELETE an asset the Owner paid for or approved, and it may NOT DELETE a working UI element. Disconnecting is one line and reversible; deleting sends the next person through branch archaeology. Triggered by ee88e451 deleting static/images/crowd/face-01..24.webp - 84 KB, 1.6% of the purge, bought nothing, and they are the Owner's paid approved crowd canon and the input to the open gate. Recoverable from bd0bbdf2 and origin/agent/arenafront/a3-crowd-faces-96, so nothing was lost, but it should never have needed recovering.",
+    "reporting_discipline_failure": "AF reported 'face-01..24.webp kept' in the same hour Cursor's commit deleted them. Two agents, opposite facts about the same 24 files, neither had read the other's diff. Ordered: read the other's diff before reporting.",
+    "bolts_own_share": "Nothing in the repository was watching page weight. Two multi-megabyte assets reached production wired into CSS on a page nobody weighed, and the only detector was the Owner noticing the site was slow. That absence is the real failure and it is the Director's, not the agents'. W3 closes it.",
+    "crowd_set_decision": "When the crowd finally ships, wire round/ - 96 files, 400 KB. NOT tiers/ - 288 files, 1,124 KB - for a near/mid/far difference that is brightness and blur, both free in CSS on one image set. Measured on origin/agent/arenafront/a3-crowd-faces-96. Reversible only by a measurement showing what CSS cannot do. Contact sheets (a3 531 KB, a2 255 KB) move to ops/audits/; static/ ships them to every visitor."
   }
 }
