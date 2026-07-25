@@ -1525,9 +1525,8 @@
     perspective: 56rem;
     perspective-origin: 50% 42%;
   }
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render {
-    /* Do not foreshorten here — fitScene + later unsquash own transform. */
+  .arena-floor-stage .arena-render-container {
+    /* Container stays flat; #arena-render carries the G2 camera transform. */
     transform: none;
     filter: drop-shadow(0 1.2rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent));
   }
@@ -1556,10 +1555,19 @@
 }
 
 @media (min-width: 901px) and (prefers-reduced-motion: reduce) {
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render {
+  .arena-floor-stage .arena-render-container {
     transform: none;
     filter: none;
+  }
+  /* Keep G2 camera — mockup tilt is composition, not decorative motion. */
+  .arena-floor-stage #arena-render {
+    filter: none;
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
   }
 }
 
@@ -1936,17 +1944,23 @@
   .arena-floor-stage {
     inset: 0;
   }
-  /* fitScene owns #arena-render transform — do not apply rotateX here. */
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render {
+  /* G2 camera: one rotateX(56deg) over the scene — see arena_mockup_spec.json.
+     Earlier "do not apply rotateX" notes contradicted AGENTS.md s11. */
+  .arena-floor-stage .arena-render-container {
     transform: none;
   }
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
-    transform: translate(-50%, -50%);
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
   }
   .arena-command-deck__phase-card .arena-panel__heading,
   .arena-command-deck__metrics .arena-panel__heading,
@@ -1958,14 +1972,20 @@
 }
 
 @media (min-width: 901px) and (prefers-reduced-motion: reduce) {
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render,
-  .arena-floor-stage::before {
-    transform: translate(-50%, -50%);
-  }
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render {
+  .arena-floor-stage .arena-render-container {
     transform: none;
+  }
+  .arena-floor-stage #arena-render {
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
+  }
+  .arena-floor-stage::before {
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
   }
 }
 
@@ -2288,38 +2308,44 @@
 }
 
 
-/* 3G / G1 — keep arena inside the floor frame.
-   G1 proportions (floor 0.63 W, stands 1.60 R) live in arena_render.js fitScene.
-   Do NOT add rotateX here — G2 owns the camera. overflow stays hidden: with
-   stands diameter ≈ frame width the outer seats sit on the edge, not past it. */
+/* G2 camera — docs/chef_battle/arena_mockup_spec.json
+   G1 proportions (floor 0.63 W, stands 1.60 R) + rotateX(56deg) one scene transform.
+   overflow:visible — overflow:hidden on a plan-sized box clipped the stands. */
 @media (min-width: 901px) {
   .arena-floor-stage {
-    perspective: none;
-    overflow: hidden;
+    perspective: 1500px;
+    perspective-origin: 50% 42%;
+    overflow: visible;
+    transform-style: preserve-3d;
   }
   .page--arena .arena-command-deck__floor {
-    overflow: hidden;
+    overflow: visible;
   }
   .arena-floor-stage .arena-render-container,
   .page--arena .arena-floor-stage .arena-render-container {
-    /* Fill absolute inset:0 from command_deck — do NOT set height:clamp here;
-       that fought inset and left the SVG frame off-centre. */
-    overflow: hidden;
+    overflow: visible;
     height: auto;
     max-width: none;
     width: auto;
     transform: none;
     filter: none;
+    perspective: none; /* perspective lives on .arena-floor-stage */
+    transform-style: preserve-3d;
   }
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    /* Restore fitScene contract from arena_render.css */
-    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
     filter: none;
   }
-  /* Decorative parchment plate tracks the G1 floor span (~0.63 of frame). */
+  /* Decorative parchment plate tracks the floor and shares the camera tilt. */
   .arena-floor-stage::before {
-    transform: translate(-50%, -50%);
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
     opacity: 0.55;
     width: min(63%, 42rem);
   }
@@ -2354,18 +2380,25 @@
 }
 
 @media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  /* Camera stays — mockup composition is the acceptance target (AGENTS s11). */
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
-    transform: translate(-50%, -50%);
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
   }
 }
 
 
 /* 3G — mockup centre gold core + bright parchment plate + ring hierarchy.
-   Keeps fitScene camera (no rotateX). Official tokens only. */
+   Camera tilt is G2 (rotateX 56deg); this block is palette only. */
 @media (min-width: 901px) {
   /* Bright parchment underlay — light floor rule; flat (no squash tilt). */
   .arena-floor-stage::before {
@@ -3740,5 +3773,35 @@
   .page--arena .arena-lower-broadcast .js-arena-join-crowd,
   .page--arena .arena-lower-broadcast a[href*="login"] .chef-battle-cta__label {
     font-weight: 800;
+  }
+}
+
+/* =============================================================================
+   G2 CAMERA (Bolt production order) — cascade winner
+   Source: docs/chef_battle/arena_mockup_spec.json
+   Permitted by AGENTS.md s11 (perspective + rotateX for fixed cinematic composition).
+   ============================================================================= */
+@media (min-width: 901px) {
+  .page--arena .arena-command-deck__floor,
+  .page--arena .arena-floor-stage,
+  .page--arena .arena-floor-stage .arena-render-container {
+    overflow: visible !important;
+  }
+  .page--arena .arena-floor-stage {
+    perspective: 1500px;
+    perspective-origin: 50% 42%;
+    transform-style: preserve-3d;
+  }
+  .page--arena .arena-floor-stage #arena-render {
+    transform-origin: 50% 62% !important;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1)) !important;
+  }
+  .page--arena .arena-floor-stage::before {
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
   }
 }

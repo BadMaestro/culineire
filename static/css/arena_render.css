@@ -332,50 +332,19 @@
 }
 
 /* ----------------------------------------------------------------------------
- * Camera.
+ * Camera (G2 — docs/chef_battle/arena_mockup_spec.json).
  *
- * The measured gap between the mockup and this renderer was never colour: the
- * mockup is drawn in perspective and we were drawing a plan view. Its floor
- * octagon measures 800 x 450 px, a vertical compression of 0.56 — and
- * cos(56deg) = 0.56, so the picture is taken from about 34deg above the floor
- * plane (docs/chef_battle/arena_mockup_spec.md, section 1).
+ * Mockup floor 800 x 450 px => vertical compression 0.56 = cos(56deg).
+ * One CSS transform over the WHOLE scene: perspective + rotateX(56deg).
+ * get_arena_geometry and plan-space ring maths stay untouched (G1 proportions).
+ * fitScene() measures PROJECTED bounds via getBoundingClientRect and writes
+ * --arena-fit so FLOOR_SHARE 0.63 applies after projection, not before.
  *
- * This is a projection, not a geometry change: get_arena_geometry still owns
- * the rings and segments, arena_geometry.js still lays them out flat, and the
- * whole scene is then tilted as one plane. Hit testing follows the transform,
- * so seats stay clickable where they are drawn.
- *
- * The scale compensates the height the tilt costs, keeping the arena the same
- * size in the frame; the origin sits below centre so the far side lifts away
- * from the viewer rather than the near side dropping out of the container.
+ * overflow must NOT be hidden on the plan-sized box — that is what clipped
+ * the stands on the last tilt attempt. Size for projected bounds; hall-edge
+ * vignette (not overflow:hidden) softens anything past the frame.
  * -------------------------------------------------------------------------- */
-/* The camera is scoped to the arena page. The Master Console keeps the plan
-   view on purpose: it is an operational tool, and a straight-down map is the
-   right projection for operating on seats.
-
-   Sizing: a square SVG tilted by draws only cos(56) = 0.56 of
-   its height, so a square layout box leaves dead bands above and below the
-   scene — the "squeezed in its container" look.
-
-   Sizing the SVG off the container's HEIGHT alone (height:172%) makes its
-   width 1.72x the container's height and never looks at the container's own
-   width: at 1920 the octagon ran 202px past each side and 216px past the
-   bottom, and overflow:hidden cut the FLOOR off, not the stands the older
-   comment here promised. Sizing off a measured width/height constant instead
-   (v2.5.336) overshot by 251px a side, because perspective is not a constant
-   scale — a taller element is magnified more, so the octagon's share of its
-   own box changes with its size and no constant is right twice.
-
-   The height below is only a starting size. The final fit is measured on the
-   live page by fitScene() in arena_render.js, which reads the octagon's real
-   on-screen box and writes --arena-fit. Nothing here needs re-measuring when
-   the tilt or the ring count changes; the fit follows. */
 .page--arena .arena-render-container {
-  /* No perspective. The camera was retired by the owner - the arena is looked
-     at from straight above - and CONVERGENCE=0 already flattens the projection
-     numerically. Leaving the 3D context behind it cost nothing visually but
-     kept every child on its own compositing layer and invited the next reader
-     to "just raise the perspective a bit" for depth that is not coming back. */
   position: relative;
   width: 100%;
   max-width: none;
@@ -383,7 +352,10 @@
   padding: 0;
   border: 0;
   border-radius: 1rem;
-  overflow: hidden;
+  overflow: visible;
+  perspective: 1500px;
+  perspective-origin: 50% 42%;
+  transform-style: preserve-3d;
 }
 
 .page--arena #arena-render {
@@ -393,11 +365,14 @@
   width: auto;
   height: 172%;
   aspect-ratio: 1;
-  /* No rotateX any more. A tilt foreshortens the plane but leaves the far edge
-     as wide as the near one — measured 1.000 against the photograph's 0.51.
-     The camera now lives in projector() in arena_render.js, which converges
-     the floor properly. This rule only scales and centres what it draws. */
-  transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+  transform-style: preserve-3d;
+  /* Origin below centre: far side lifts away; near side stays in frame. */
+  transform-origin: 50% 62%;
+  transform:
+    translate(-50%, -50%)
+    translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+    rotateX(56deg)
+    scale(var(--arena-fit, 1));
 }
 
 .page--arena .arena-puzzle-label {
@@ -409,17 +384,10 @@
   text-align: center;
 }
 
-/* Billboarding is retired with the tilt. It existed to un-squash faces that a
-   3D camera laid flat on the floor plane — with CONVERGENCE=0 the camera is a
-   strict top-down plan view, so nothing is squashed and nothing needs
-   stretching back. This rule was left in place after perspective.css:373 was
-   deleted and it silently stretched every REAL occupant photo (chefs and
-   spectators alike, not just the crowd filler) by 1.79x vertically: three real
-   test spectators measured 87x155 / 81x144 / 78x139 on screen against a square
-   49.11x49.11 SVG box. billboardFaces() in arena_render.js is unaffected — it
-   only touches .arena-crowd-figure and self-corrects to whatever box it
-   actually measures, so it already converges to 1 with a flat camera; nothing
-   there needed changing. */
+/* Billboarding: CSS rotateX(56deg) squashes faces on the floor plane.
+   billboardFaces() in arena_render.js measures each .arena-crowd-figure and
+   un-squashes it; do not add a global scaleY here (that over-corrected real
+   chef/spectator photos historically). */
 
 /* Below the desktop breakpoint the arena is already small; kept as its own
    query for the container sizing (unrelated to billboarding). */
@@ -430,7 +398,12 @@
 
   .page--arena #arena-render {
     height: 127%;
-    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
   }
 }
 
@@ -441,7 +414,12 @@
 
   .page--arena #arena-render {
     height: 111%;
-    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
   }
 }
 

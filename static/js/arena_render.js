@@ -37,6 +37,8 @@
   var STAGE_RATIO = 0.13;
   var COMPOSITION_CX = 0.50;
   var COMPOSITION_CY = 0.51;
+  // G2 acceptance: projected floor height/width ≈ cos(56deg).
+  var VERTICAL_COMPRESSION = 0.56;
 
   var pollTimer = null;
   var pingTimer = null;
@@ -1056,9 +1058,9 @@
     if (!container) { return; }
 
     for (var pass = 0; pass < 2; pass++) {
-      // G1: measure the RANK floor only. FLOOR_SHARE is the floor span / frame
-      // WIDTH (0.63). Stands sit at 1.60 x R_floor so their diameter fills ~1.0
-      // of the frame. Fitting the full scene to 0.90 inverted the mockup.
+      // G1+G2: measure the RANK floor AFTER CSS projection (getBoundingClientRect
+      // includes rotateX(56deg)). FLOOR_SHARE 0.63 is the projected floor span /
+      // frame WIDTH from the mockup. Do not fit plan-space bounds.
       var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
       if (!cells.length) { return; }
 
