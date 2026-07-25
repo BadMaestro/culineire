@@ -9,7 +9,7 @@
          src="{{ item.card_image.url }}"
          loading="{% if detail %}eager{% else %}lazy{% endif %}">
     {% else %}
-    <img alt="{{ item.title }}" class="ab-card__img" src="{% static 'images/hero.jpg' %}" loading="lazy">
+    <img alt="{{ item.title }}" class="ab-card__img" src="{% static 'images/hero-default.webp' %}" loading="lazy">
     {% endif %}
 
     {# Full-card cover link — goes straight to the linked recipe if one exists #}

@@ -80,7 +80,7 @@
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                             {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
-                            {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
+                            {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
                         </a>
                         <div class="recipe-card__body">
                             <div class="recipe-card__content">
@@ -146,7 +146,7 @@
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                         {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async">
-                        {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="eager" decoding="async">{% endif %}
+                        {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async">{% endif %}
                     </a>
                     <div class="recipe-card__body">
                         <div class="recipe-card__content">
@@ -197,7 +197,7 @@
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                         {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async">
-                        {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="eager" decoding="async">{% endif %}
+                        {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async">{% endif %}
                     </a>
                     <div class="recipe-card__body">
                         <div class="recipe-card__content">
@@ -269,7 +269,7 @@
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                             {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
-                            {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
+                            {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
                         </a>
                         <div class="recipe-card__body">
                             <div class="recipe-card__content">
@@ -332,7 +332,7 @@
                     <div class="category-tile__copy"><h3 class="category-tile__title">{{ category.label }}</h3></div>
                     <div class="category-tile__media">
                         {% if category.image_url %}<img alt="{{ category.label }}" src="{{ category.image_url }}">
-                        {% else %}<img alt="{{ category.label }}" src="{% static 'images/hero.jpg' %}">{% endif %}
+                        {% else %}<img alt="{{ category.label }}" src="{% static 'images/hero-default.webp' %}">{% endif %}
                     </div>
                 </a>
                 {% endfor %}
@@ -352,7 +352,7 @@
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                             {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
-                            {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
+                            {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
                         </a>
                         <div class="recipe-card__body">
                             <div class="recipe-card__content">
@@ -407,7 +407,7 @@
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                             {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
-                            {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
+                            {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
                         </a>
                         <div class="recipe-card__body">
                             <div class="recipe-card__content">

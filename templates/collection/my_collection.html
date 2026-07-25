@@ -64,7 +64,7 @@
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                         {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="lazy">
-                        {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
+                        {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="lazy">{% endif %}
                     </a>
                     <div class="recipe-card__body">
                         <div class="recipe-card__content">
@@ -96,7 +96,7 @@
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ article.get_absolute_url }}">
                         {% if article.card_image %}<img alt="{{ article.title }}" src="{{ article.card_image.url }}" loading="lazy">
-                        {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
+                        {% else %}<img alt="{{ article.title }}" src="{% static 'images/hero-default.webp' %}" loading="lazy">{% endif %}
                     </a>
                     <div class="recipe-card__body">
                         <div class="recipe-card__content">
@@ -128,7 +128,7 @@
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ item.get_absolute_url }}">
                         {% if item.card_image %}<img alt="{{ item.title }}" src="{{ item.card_image.url }}" loading="lazy">
-                        {% else %}<img alt="{{ item.title }}" src="{% static 'images/hero.jpg' %}" loading="lazy">{% endif %}
+                        {% else %}<img alt="{{ item.title }}" src="{% static 'images/hero-default.webp' %}" loading="lazy">{% endif %}
                     </a>
                     <div class="recipe-card__body">
                         <div class="recipe-card__content">
