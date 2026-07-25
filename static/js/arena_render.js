@@ -29,11 +29,14 @@
   // visual rhythm as the outer ones.
   var CELL_INSET = 0.94;
 
-  // G1 — docs/chef_battle/arena_mockup_spec.json proportions (NO tilt in this slice).
-  // Floor spans 0.63 of frame width; stands outer = 1.60 × floor outer;
-  // centre stage = 0.13 × floor outer; composition centre at 0.50 W / 0.51 H.
+  // G1/G5 — docs/chef_battle/arena_mockup_spec.json proportions (NO tilt in this slice).
+  // Mockup stands_outer 1.60 R_floor is the OUTERMOST VISIBLE EXTENT (bbox), not
+  // seat centres. G4 measured bbox M3=1.7541 with centres at 1.60; G5 shrinks
+  // construction so projected bbox lands on 1.60 (1.60²/1.7541 ≈ 1.4594).
+  // Floor span 0.63 is an OUTPUT after fit-by-stands; stage = 0.13 × floor;
+  // composition centre at 0.50 W / 0.51 H.
   var FLOOR_SHARE = 0.63;
-  var STANDS_RATIO = 1.60;
+  var STANDS_RATIO = 1.60 * 1.60 / 1.7541;
   var STAGE_RATIO = 0.13;
   var COMPOSITION_CX = 0.50;
   var COMPOSITION_CY = 0.51;
@@ -211,8 +214,8 @@
         : []);
 
     // BE oval seats currently land at ~1.28 R_floor. Remap radial depth so the
-    // outermost seat sits at STANDS_RATIO (1.60) without touching get_arena_geometry
-    // ring/cell ids. Angle (and therefore side packing) is preserved.
+    // outermost seat CENTRE sits at STANDS_RATIO (G5: ~1.46 so bbox ≈ 1.60)
+    // without touching get_arena_geometry ring/cell ids. Angle preserved.
     var maxBe = beFloor;
     seats.forEach(function (seat) {
       var rb = Math.hypot(seat.x || 0, seat.y || 0);
