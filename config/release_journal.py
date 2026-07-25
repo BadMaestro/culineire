@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.585",
         "date": "2026-07-25",
-        "commit": "pending",
+        "commit": "5ee281ff",
         "title": "GRAPHICS — AF atmosphere depth + packed-crowd mass",
         "section": "Chef Battles / Deployment",
         "summary": "Owner both-agents graphics. FE tip 96f6ac2f: deepen hall atmosphere + packed-crowd stand mass (arena_atmosphere.css ?v=20260725-atm-depth). Merged onto Cursor deck WOW v2.5.584. Not a public Arena release. Rollback: revert and redeploy.",
