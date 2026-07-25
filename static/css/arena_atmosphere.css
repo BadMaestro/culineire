@@ -570,3 +570,143 @@
     background-blend-mode: normal;
   }
 }
+
+/* ============================================================================
+ * GRAPHICS P0 HALL BOWL + PACKED STANDS - Owner all-clear (#3006).
+ * Fence: arena_atmosphere.css only.
+ * Dark hall bowl around parchment floor; denser packed-stand mass.
+ * Palette: --hall-* / bronze / parchment. No fake seats. No fake octagon.
+ * ============================================================================ */
+
+/* Stronger dark bowl around the parchment stage (centre stays open). */
+.page--arena::before {
+  opacity: 0.94;
+  background:
+    radial-gradient(
+      ellipse 72% 58% at 50% 48%,
+      transparent 0 34%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 42%, transparent) 62%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 78%, transparent) 100%
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 94%, transparent),
+      transparent 22%,
+      transparent 78%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 94%, transparent)
+    ),
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 92%, transparent),
+      transparent 48%
+    );
+}
+
+/* Keep floor sheen in the apron only; do not bleach the dark bowl. */
+.page--arena::after {
+  opacity: 0.26;
+  mix-blend-mode: soft-light;
+}
+
+/* Packed stands: denser annulus mass under the interactive oval. */
+.page--arena .arena-render-container {
+  --arena-atm-crowd-ink: color-mix(in srgb, var(--hall-dark-0, var(--ink)) 86%, transparent);
+  --arena-atm-crowd-warm: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 42%, transparent);
+  --arena-atm-crowd-soft: color-mix(in srgb, var(--hall-dark-1, var(--ink)) 56%, transparent);
+  --arena-atm-crowd-green: color-mix(in srgb, var(--hall-green) 28%, transparent);
+  --arena-atm-crowd-red: color-mix(in srgb, var(--hall-red) 28%, transparent);
+}
+
+.page--arena .arena-render-container::before {
+  opacity: 0.82;
+  background:
+    radial-gradient(circle at 6% 28%, var(--arena-atm-crowd-warm) 0 0.07rem, transparent 0.16rem),
+    radial-gradient(circle at 9% 48%, var(--arena-atm-crowd-ink) 0 0.1rem, transparent 0.2rem),
+    radial-gradient(circle at 12% 68%, var(--arena-atm-crowd-soft) 0 0.09rem, transparent 0.19rem),
+    radial-gradient(circle at 15% 22%, var(--arena-atm-crowd-ink) 0 0.11rem, transparent 0.22rem),
+    radial-gradient(circle at 18% 54%, var(--arena-atm-crowd-warm) 0 0.08rem, transparent 0.18rem),
+    radial-gradient(circle at 22% 36%, var(--arena-atm-crowd-soft) 0 0.1rem, transparent 0.21rem),
+    radial-gradient(circle at 25% 72%, var(--arena-atm-crowd-ink) 0 0.12rem, transparent 0.23rem),
+    radial-gradient(circle at 30% 18%, var(--arena-atm-crowd-warm) 0 0.07rem, transparent 0.17rem),
+    radial-gradient(circle at 34% 46%, var(--arena-atm-crowd-ink) 0 0.11rem, transparent 0.22rem),
+    radial-gradient(circle at 38% 64%, var(--arena-atm-crowd-soft) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(circle at 42% 30%, var(--arena-atm-crowd-warm) 0 0.08rem, transparent 0.18rem),
+    radial-gradient(circle at 46% 76%, var(--arena-atm-crowd-ink) 0 0.12rem, transparent 0.24rem),
+    radial-gradient(circle at 50% 14%, var(--arena-atm-crowd-soft) 0 0.1rem, transparent 0.21rem),
+    radial-gradient(circle at 54% 52%, var(--arena-atm-crowd-warm) 0 0.08rem, transparent 0.19rem),
+    radial-gradient(circle at 58% 70%, var(--arena-atm-crowd-ink) 0 0.11rem, transparent 0.22rem),
+    radial-gradient(circle at 62% 26%, var(--arena-atm-crowd-soft) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(circle at 66% 58%, var(--arena-atm-crowd-warm) 0 0.08rem, transparent 0.18rem),
+    radial-gradient(circle at 70% 40%, var(--arena-atm-crowd-ink) 0 0.12rem, transparent 0.23rem),
+    radial-gradient(circle at 74% 74%, var(--arena-atm-crowd-soft) 0 0.1rem, transparent 0.21rem),
+    radial-gradient(circle at 78% 20%, var(--arena-atm-crowd-warm) 0 0.07rem, transparent 0.17rem),
+    radial-gradient(circle at 82% 48%, var(--arena-atm-crowd-ink) 0 0.11rem, transparent 0.22rem),
+    radial-gradient(circle at 86% 66%, var(--arena-atm-crowd-soft) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(circle at 90% 34%, var(--arena-atm-crowd-warm) 0 0.08rem, transparent 0.18rem),
+    radial-gradient(circle at 94% 56%, var(--arena-atm-crowd-ink) 0 0.1rem, transparent 0.21rem),
+    radial-gradient(
+      ellipse 44% 72% at 10% 50%,
+      var(--arena-atm-crowd-green),
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 44% 72% at 90% 50%,
+      var(--arena-atm-crowd-red),
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 84% 80% at 50% 52%,
+      transparent 0 28%,
+      var(--arena-atm-crowd-soft) 46%,
+      var(--arena-atm-crowd-ink) 72%,
+      transparent 90%
+    );
+  background-size:
+    2.1rem 2.1rem, 2.5rem 2.5rem, 2.9rem 2.9rem, 2.3rem 2.3rem,
+    2.7rem 2.7rem, 3.1rem 3.1rem, 2.4rem 2.4rem, 2.8rem 2.8rem,
+    3.2rem 3.2rem, 2.2rem 2.2rem, 2.6rem 2.6rem, 3.0rem 3.0rem,
+    2.4rem 2.4rem, 2.8rem 2.8rem, 3.3rem 3.3rem, 2.5rem 2.5rem,
+    2.9rem 2.9rem, 3.4rem 3.4rem, 2.3rem 2.3rem, 2.7rem 2.7rem,
+    3.1rem 3.1rem, 2.5rem 2.5rem, 2.9rem 2.9rem, 3.2rem 3.2rem,
+    auto, auto, auto;
+  -webkit-mask-image: radial-gradient(
+    ellipse 82% 82% at 50% 50%,
+    transparent 0 30%,
+    #000 42% 86%,
+    transparent 96%
+  );
+  mask-image: radial-gradient(
+    ellipse 82% 82% at 50% 50%,
+    transparent 0 30%,
+    #000 42% 86%,
+    transparent 96%
+  );
+}
+
+.page--arena .arena-render-container::after {
+  opacity: 0.42;
+}
+
+@media (min-width: 901px) {
+  .page--arena::before {
+    opacity: 1;
+  }
+
+  .page--arena::after {
+    opacity: 0.24;
+  }
+}
+
+@media (max-width: 900px) {
+  .page--arena::before {
+    opacity: 0.9;
+  }
+
+  .page--arena .arena-render-container::before {
+    opacity: 0.62;
+  }
+
+  .page--arena .arena-render-container::after {
+    opacity: 0.28;
+  }
+}
