@@ -3071,6 +3071,27 @@ ARENA_RELEASE_STAGES = [
              "blockers": ["D2 stands: Owner chose oval stands (cap 290) — atmosphere still STOPPED; confirm product-contract §12 amend 544→290.",
                           "D3 country/flag data source (blocks flag in confrontation band only).",
                           "D4: Owner exempted full 8:6:1 while pool depleted for focused slices — still record honesty when a full gate is skipped."]},
+            # 3H exists because 3G could not close the resemblance gap and nobody
+            # could see why. The cause was not effort: the four Owner-approved
+            # mockups had never been committed to git, and the measured spec was
+            # archived, where section 10 makes it historical evidence that cannot
+            # define design. Agents were matching a target they could not open, so
+            # colour was the only dimension left to iterate. About 127 releases,
+            # v2.5.462 to v2.5.589, cycled the same seven atmosphere slices while
+            # every geometry gap stayed open. Both causes were fixed in d7b9a4af.
+            {"id": "3H", "title": "Geometry: proportions and camera (G1/G2/G3)", "owner": "Cursor (implementation); Bolt (Production Director, acceptance)",
+             "status": "IN PROGRESS — G1+G2 code ACCEPTED and verified against diff; G3 browser verification running",
+             "requirements": ["Proportions before camera. Tilting a floor that fills the canvas must clip the stands; that is why the previous rotateX attempt was reverted and four prohibition comments were left behind in the CSS.",
+                              "Floor spans 0.63 of frame width; stands outer = 1.60 x floor outer; centre stage = 0.13 x floor outer; composition centre 0.50 W / 0.51 H.",
+                              "Camera is ONE rotateX(56deg) over the whole scene. cos(56) = 0.559 matches the mockup's measured 0.56 vertical compression.",
+                              "get_arena_geometry must not change. Ring counts and segments are a contract; this is projection and sizing only.",
+                              "Acceptance is measured, never eyeballed. Arithmetic is not evidence: every ratio must be confirmed in a browser at 1280, 1920 and 390 px.",
+                              "Hit testing must survive the transform: a seat click still resolves to the seat clicked.",
+                              "Floor stays LIGHT warm parchment. There is no dark floor theme.",
+                              "One combined deploy for the whole geometry track. No micro-releases."],
+             "evidence": "G1 impl/arena-g1-proportions @ a81af083: floor_outer 296.25, stands_outer 474.0, ratio 1.5999, stage 0.13, FLOOR_SHARE 0.63. Verified by Bolt against the diff rather than the report: selectors.py diff empty, no rotateX added, 3 files. G2 impl/arena-g2-camera @ e181e1a4, stacked on G1 and not on main: rotateX(56deg), perspective 1500px, overflow switched to visible so the stands stop clipping, and all four stale prohibitions deleted (perspective:none, 'do not apply rotateX here', 'Keeps fitScene camera (no rotateX)', 'No rotateX any more'). 4 files, +194/-95, so the CSS got smaller. selectors.py still untouched across both slices. Canon restored in d7b9a4af: mockups committed with sha256 provenance, measurements restored as docs/chef_battle/arena_mockup_spec.json marked AUTHORITATIVE, and the archived 'do not implement perspective' banner recorded as superseded by AGENTS.md section 11 v1.3.0, which permits css perspective and rotateX explicitly.",
+             "blockers": ["G3 browser verification outstanding. Cursor reported every acceptance item as BROWSER_PENDING, honestly, so nothing here is claimed as visually proven. Twelve measurements are owed: the three ratios at each of three widths, plus worst-case clipping margin, hit testing, and the screenshot beside 01_arena_hall_crowd.png.",
+                          "Deploy requires explicit Owner approval. G1, G2 and this board go out together as one deploy."]},
         ],
     },
     {
@@ -3086,7 +3107,15 @@ ARENA_RELEASE_STAGES = [
     {
         "n": 5, "id": "verification", "title": "Distributed Verification", "status": "BLOCKED",
         "purpose": "Verify the integration commit across the available proper test machines.",
-        "owners": "Bolt (8-core), GreenBear (6-core)",
+        # Corrected 2026-07-25 on direct Owner statement: "у нас нету других машин".
+        # This line used to read "Bolt (8-core), GreenBear (6-core)", which described
+        # a two-machine pool that does not exist. Every agent runs on the SAME box;
+        # Cursor and ArenaFront are two windows of one agent on that same box. The
+        # 8:6:1 split in AGENTS.md section 9 is therefore unrunnable as written, and
+        # leaving the old line here invited an agent to assemble a "distributed" gate
+        # that would report FULL_SUITE_PASS while running entirely on one machine.
+        # Recorded rather than silently deleted, so the discrepancy stays visible.
+        "owners": "One machine only. Historical 8:6:1 pool does not exist (Owner, 2026-07-25).",
         "criteria": ["One run_id and one explicit test manifest.", "Non-overlapping test shards.",
                      "Bolt and GreenBear machines used efficiently; Linode 1-core excluded from application/project suites.",
                      "All results aggregated with zero unexplained failures.",
