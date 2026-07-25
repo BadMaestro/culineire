@@ -159,7 +159,8 @@
 .arena-command-deck__floor .arena-puzzle-container { gap: .35rem; }
 .arena-command-deck__floor .arena-puzzle-label { order: 2; margin: 0; font-size: .72rem; }
 .arena-floor-stage { position: relative; isolation: isolate; overflow: hidden; border-radius: 1.1rem; background: var(--surface-soft); }
-.arena-floor-stage::before { content: ""; position: absolute; z-index: -1; inset: 0; background: var(--surface-soft) url('/static/images/chef_battle/arena/arena-floor-plate-v1.png') center / cover no-repeat; }
+/* OWNER CRITICAL 2026-07-25: disconnected 2.6MB floor-plate PNG */
+.arena-floor-stage::before { content: none !important; display: none !important; background: none !important; }
 .arena-floor-stage .arena-puzzle-container { position: relative; z-index: 1; }
 .arena-floor-stage #arena-puzzle { position: relative; z-index: 1; }
 /* 3G R4 (Owner D1 Option B): centred rank stack over the floor — composition

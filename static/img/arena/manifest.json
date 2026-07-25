@@ -1,17 +1,19 @@
 [
   {
-    "file": "hall-wall-wash-v1.png",
-    "bytes": 1358206,
+    "file": "hall-wall-wash-v1.webp",
+    "bytes": 6472,
+    "source_png_bytes": 1358206,
     "model": "gpt-image-1",
-    "quality": "medium",
+    "encode": "webp q50 max_edge=1280",
     "regen": "af14-dark-hall-v2-prompt",
     "rights_note": "AI-generated atmospheric Arena texture via gpt-image-1. Not a depiction of real registered users."
   },
   {
-    "file": "floor-sheen-v1.png",
-    "bytes": 1331113,
+    "file": "floor-sheen-v1.webp",
+    "bytes": 3196,
+    "source_png_bytes": 1331113,
     "model": "gpt-image-1",
-    "quality": "medium",
+    "encode": "webp q50 max_edge=1280",
     "rights_note": "AI-generated atmospheric Arena texture via gpt-image-1. Not a depiction of real registered users.",
     "regen": "parchment-light-v2-prompt"
   }

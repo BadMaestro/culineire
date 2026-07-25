@@ -3801,3 +3801,16 @@
     transform: translate(-50%, -50%) rotateX(56deg);
   }
 }
+
+/* OWNER CRITICAL 2026-07-25 — kill decorative floor plate (G12). */
+.arena-floor-stage::before,
+.page--arena .arena-floor-stage::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+}

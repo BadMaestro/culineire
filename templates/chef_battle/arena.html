@@ -7,14 +7,14 @@
 {% block meta_description %}Step into the Chef Battles Arena. See every chef ranked by tier around the ring, and watch the active battle at the centre.{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/chef_battle.css' %}?v=20260725-hard" rel="stylesheet">
-<link href="{% static 'css/arena.css' %}?v=20260725-hard" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260725-hard" rel="stylesheet">
-<link href="{% static 'css/arena_effects.css' %}?v=20260725-allclear" rel="stylesheet">
-<link href="{% static 'css/arena_hall.css' %}?v=20260725-hard" rel="stylesheet">
+<!-- duplicate chef_battle.css removed 2026-07-25 load purge -->
+<link href="{% static 'css/arena.css' %}?v=20260725-loadpurge" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260725-loadpurge" rel="stylesheet">
+<link href="{% static 'css/arena_effects.css' %}?v=20260725-loadpurge" rel="stylesheet">
+<link href="{% static 'css/arena_hall.css' %}?v=20260725-loadpurge" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260725-allclear" rel="stylesheet">
-<link href="{% static 'css/arena_atmosphere.css' %}?v=20260725-p0-bowl" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260725-loadpurge" rel="stylesheet">
+<link href="{% static 'css/arena_atmosphere.css' %}?v=20260725-load-slim" rel="stylesheet">
 {% endblock %}
 
 {% block content %}

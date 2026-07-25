@@ -355,7 +355,7 @@
     {% block content %}{% endblock %}
 </main>
 
-{% if chef_battle_enabled %}{% include 'chef_battle/_widget.html' %}{% endif %}
+{% if chef_battle_enabled %}{% if request.resolver_match and request.resolver_match.url_name != 'arena' %}{% include 'chef_battle/_widget.html' %}{% endif %}{% endif %}
 
 <footer class="site-footer">
 
