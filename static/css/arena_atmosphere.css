@@ -280,3 +280,192 @@
     animation: none;
   }
 }
+
+
+/* ============================================================================
+ * GRAPHICS ATM DEPTH — Owner «оба делайте графику» (#2976).
+ * Fence: arena_atmosphere.css only. Deepen hall + packed-crowd mass.
+ * No fake octagon geometry, no synthetic seats, parchment floor stays.
+ * ============================================================================ */
+
+/* Richer hall bowl: stronger crown gold + side challenger/opponent washes. */
+.page--arena {
+  background:
+    radial-gradient(
+      100% 52% at 50% -6%,
+      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 86%, transparent),
+      color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 48%, transparent) 38%,
+      transparent 72%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 58%, transparent) 0%,
+      transparent 40%
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--hall-green) 64%, transparent),
+      color-mix(in srgb, var(--hall-green) 28%, transparent) 12%,
+      transparent 24%,
+      transparent 76%,
+      color-mix(in srgb, var(--hall-red) 28%, transparent) 88%,
+      color-mix(in srgb, var(--hall-red) 64%, transparent)
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--hall-dark-1, var(--ink)) 74%, var(--surface-muted)),
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 60%, var(--surface-muted)) 55%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 72%, var(--surface-muted))
+    ),
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 96%, transparent) 0%,
+      transparent 46%
+    ),
+    radial-gradient(
+      48% 44% at 0% 0%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 82%, transparent),
+      transparent 78%
+    ),
+    radial-gradient(
+      48% 44% at 100% 0%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 82%, transparent),
+      transparent 78%
+    ),
+    radial-gradient(
+      46% 42% at 0% 100%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 74%, transparent),
+      transparent 76%
+    ),
+    radial-gradient(
+      46% 42% at 100% 100%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 74%, transparent),
+      transparent 76%
+    ),
+    var(--arena-atm-wall) center 2% / cover no-repeat !important;
+}
+
+.page--arena::before {
+  opacity: 0.92;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 92%, transparent),
+      transparent 26%,
+      transparent 74%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 92%, transparent)
+    ),
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 90%, transparent),
+      transparent 50%
+    );
+}
+
+.page--arena::after {
+  opacity: 0.24;
+  mix-blend-mode: soft-light;
+}
+
+/* Densify packed-crowd annulus: more stand mass, soft green/red side tint. */
+.page--arena .arena-render-container {
+  --arena-atm-crowd-ink: color-mix(in srgb, var(--hall-dark-0, var(--ink)) 78%, transparent);
+  --arena-atm-crowd-warm: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 36%, transparent);
+  --arena-atm-crowd-soft: color-mix(in srgb, var(--hall-dark-1, var(--ink)) 48%, transparent);
+  --arena-atm-crowd-green: color-mix(in srgb, var(--hall-green) 22%, transparent);
+  --arena-atm-crowd-red: color-mix(in srgb, var(--hall-red) 22%, transparent);
+}
+
+.page--arena .arena-render-container::before {
+  background:
+    radial-gradient(circle at 8% 32%, var(--arena-atm-crowd-warm) 0 0.08rem, transparent 0.18rem),
+    radial-gradient(circle at 11% 52%, var(--arena-atm-crowd-ink) 0 0.11rem, transparent 0.22rem),
+    radial-gradient(circle at 14% 24%, var(--arena-atm-crowd-soft) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(circle at 17% 64%, var(--arena-atm-crowd-ink) 0 0.12rem, transparent 0.24rem),
+    radial-gradient(circle at 21% 40%, var(--arena-atm-crowd-warm) 0 0.08rem, transparent 0.19rem),
+    radial-gradient(circle at 26% 58%, var(--arena-atm-crowd-soft) 0 0.12rem, transparent 0.23rem),
+    radial-gradient(circle at 32% 20%, var(--arena-atm-crowd-ink) 0 0.1rem, transparent 0.21rem),
+    radial-gradient(circle at 38% 68%, var(--arena-atm-crowd-warm) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(circle at 44% 36%, var(--arena-atm-crowd-ink) 0 0.11rem, transparent 0.22rem),
+    radial-gradient(circle at 50% 72%, var(--arena-atm-crowd-soft) 0 0.13rem, transparent 0.25rem),
+    radial-gradient(circle at 56% 28%, var(--arena-atm-crowd-warm) 0 0.08rem, transparent 0.19rem),
+    radial-gradient(circle at 62% 54%, var(--arena-atm-crowd-ink) 0 0.12rem, transparent 0.24rem),
+    radial-gradient(circle at 68% 22%, var(--arena-atm-crowd-soft) 0 0.1rem, transparent 0.21rem),
+    radial-gradient(circle at 74% 60%, var(--arena-atm-crowd-warm) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(circle at 80% 34%, var(--arena-atm-crowd-ink) 0 0.11rem, transparent 0.23rem),
+    radial-gradient(circle at 86% 50%, var(--arena-atm-crowd-soft) 0 0.12rem, transparent 0.24rem),
+    radial-gradient(circle at 90% 66%, var(--arena-atm-crowd-warm) 0 0.1rem, transparent 0.21rem),
+    radial-gradient(circle at 93% 38%, var(--arena-atm-crowd-ink) 0 0.09rem, transparent 0.2rem),
+    radial-gradient(
+      ellipse 42% 70% at 12% 50%,
+      var(--arena-atm-crowd-green),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 42% 70% at 88% 50%,
+      var(--arena-atm-crowd-red),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 80% 76% at 50% 52%,
+      transparent 0 32%,
+      var(--arena-atm-crowd-soft) 50%,
+      var(--arena-atm-crowd-ink) 76%,
+      transparent 92%
+    );
+  background-size:
+    2.4rem 2.4rem, 2.9rem 2.9rem, 3.3rem 3.3rem, 2.7rem 2.7rem,
+    3.1rem 3.1rem, 3.6rem 3.6rem, 2.5rem 2.5rem, 3.0rem 3.0rem,
+    3.4rem 3.4rem, 2.8rem 2.8rem, 3.2rem 3.2rem, 3.7rem 3.7rem,
+    2.6rem 2.6rem, 3.1rem 3.1rem, 3.5rem 3.5rem, 2.9rem 2.9rem,
+    3.3rem 3.3rem, 2.7rem 2.7rem, auto, auto, auto;
+  opacity: 0.68;
+}
+
+/* Soft gold sparkle in the outer stand band only (prototype atmosphere dots → tokens). */
+.page--arena .arena-render-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.35;
+  mix-blend-mode: soft-light;
+  background:
+    radial-gradient(circle at 16% 30%, var(--arena-atm-gold-soft) 0 0.07rem, transparent 0.16rem),
+    radial-gradient(circle at 28% 62%, var(--arena-atm-gold) 0 0.06rem, transparent 0.14rem),
+    radial-gradient(circle at 72% 28%, var(--arena-atm-gold-soft) 0 0.07rem, transparent 0.16rem),
+    radial-gradient(circle at 84% 58%, var(--arena-atm-gold) 0 0.06rem, transparent 0.14rem);
+  background-size: 3.2rem 3.2rem, 4.1rem 4.1rem, 3.5rem 3.5rem, 4.4rem 4.4rem;
+  -webkit-mask-image: radial-gradient(
+    ellipse 78% 78% at 50% 50%,
+    transparent 0 36%,
+    #000 48% 82%,
+    transparent 94%
+  );
+  mask-image: radial-gradient(
+    ellipse 78% 78% at 50% 50%,
+    transparent 0 36%,
+    #000 48% 82%,
+    transparent 94%
+  );
+}
+
+@media (max-width: 900px) {
+  .page--arena .arena-render-container::before {
+    opacity: 0.5;
+  }
+
+  .page--arena .arena-render-container::after {
+    opacity: 0.22;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page--arena .arena-render-container::after {
+    transition: none;
+    filter: none;
+    animation: none;
+  }
+}
