@@ -47,7 +47,7 @@ body {
   color: var(--m-ink);
   background:
     linear-gradient(160deg, rgba(28, 21, 18, 0.93) 0%, rgba(44, 30, 20, 0.82) 100%),
-    url("../images/hero.jpg") center / cover fixed;
+    url("../images/hero-default.webp") center / cover fixed;
 }
 
 /* ── Page shell ── */

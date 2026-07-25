@@ -4,7 +4,7 @@
   overflow: hidden;
   background:
     linear-gradient(135deg, rgb(11 24 18 / 0.72), rgb(11 24 18 / 0.52)),
-    url("../images/hero-battle.png") center 78% / cover;
+    url("../images/hero-battle.webp") center 78% / cover;
   color: #fff8ee;
   padding-block: clamp(2.2rem, 7vw, 5.4rem);
 }
@@ -1559,7 +1559,7 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 .battle-arena-hero {
   background:
     linear-gradient(135deg, rgb(18 58 42 / 0.97), rgb(48 34 20 / 0.95)),
-    url("/static/images/hero-battle.png") center/cover;
+    url("/static/images/hero-battle.webp") center/cover;
   color: #fff8ee;
   padding-block: clamp(2rem, 5vw, 3.5rem);
 }

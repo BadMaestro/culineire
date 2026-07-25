@@ -39,7 +39,7 @@ _NO_CACHE_PREFIXES = [
 def pwa_manifest(request):
     """Serve the PWA web app manifest at /manifest.json."""
     icon_192 = request.build_absolute_uri(static("images/favicon-192.png"))
-    icon_512 = request.build_absolute_uri(static("images/pwa-icon-512.png"))
+    icon_512 = request.build_absolute_uri(static("images/pwa-icon-512x512.png"))
     apple_icon = request.build_absolute_uri(static("images/apple-touch-icon.png"))
 
     manifest = {
