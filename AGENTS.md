@@ -3,11 +3,11 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.3.0"
+  version: "1.4.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
-  last_updated: "2026-07-23"
+  last_updated: "2026-07-25"
 ```
 
 ## 1. Authority
@@ -20,6 +20,7 @@ The current agent roster is:
 - **GreenBear**
 - **Bolt**
 - **Cursor**
+- **ArenaFront**
 
 All roster agents are **equal peer senior engineers**. No agent is the manager,
 junior, subordinate, supervisor, dispatcher, or owner of another agent. A newly
