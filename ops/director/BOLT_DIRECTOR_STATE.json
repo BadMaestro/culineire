@@ -4,9 +4,8 @@
     "status": "LIVE_OPERATIONAL_STATE",
     "canonical_path": "/ops/director/BOLT_DIRECTOR_STATE.json",
     "purpose": "Bolt's compaction survival file. Read this FIRST on any cold start, resume or post-compaction turn. It is newer than any conversation summary. Rewritten at the end of every stage.",
-    "last_updated": "2026-07-25T14:00Z"
+    "last_updated": "2026-07-25T15:05Z"
   },
-
   "role": {
     "agent": "bolt",
     "title": "Production Director for the Arena",
@@ -21,7 +20,6 @@
       "Deploy only on explicit Owner instruction (AGENTS.md s8)."
     ]
   },
-
   "owner_comms": {
     "send": "wsl -e bash -c \"ssh -i ~/.ssh/culineire_linode root@80.85.84.156 '/srv/culineire/scripts/alert.sh \\\"text\\\"'\"",
     "receive": "python3 /srv/culineire/scripts/owner_tg_fetch.py <offset>  (on the server)",
@@ -29,7 +27,6 @@
     "verified_two_way": true,
     "note": "Never print the bot token. The fetch script reads alert.env itself."
   },
-
   "environment": {
     "bolt_worktree": "E:/CulinEire Project/CulinEire/CulinEire-bolt-sync (branch docs/roster-amend-arenafront, tracks main)",
     "owner_main_checkout": "E:/CulinEire Project/CulinEire/CulinEire — STALE at 726e3380 and DIRTY (29 paths). DO NOT reset, clean or absorb. Owner decision pending.",
@@ -40,10 +37,15 @@
     "poller": "Monitor task b1f227wp7, persistent, 120s, script scratchpad/bolt_poll.sh, watermark scratchpad/bolt_poll_watermark. Path must be wrapped as wsl -e bash -c \"bash '/mnt/c/...'\" — a bare /mnt/c path is mangled by Git Bash into C:/Program Files/Git/mnt/c/...",
     "hooks_installed": ".claude/hooks/bolt_precompact.sh and .claude/hooks/bolt_session_start.py, wired in .claude/settings.json. Tested end to end."
   },
-
   "roster": {
     "constitution": "AGENTS.md v1.4.0 on origin/main",
-    "agents": ["Ember", "GreenBear", "Bolt", "Cursor", "ArenaFront"],
+    "agents": [
+      "Ember",
+      "GreenBear",
+      "Bolt",
+      "Cursor",
+      "ArenaFront"
+    ],
     "CRITICAL_TOPOLOGY": "There is only ONE machine in this project. Cursor and ArenaFront are the SAME agent, two windows on that one machine. The Owner multiplies identities because of limit budgets and is fully aware. Owner ruled 2026-07-25 that ArenaFront is nonetheless a full equal fifth peer in s1.",
     "cursor": "Writes ALL the code / backend. Owns arena_render.js, arena_deck_polish.css, arena_render.css, command deck, merge and deploy. Relay for ArenaFront orders (order C1).",
     "arenafront": "REAL REMIT, per the Owner 2026-07-25: GENERATE VISUAL ASSETS for the code Cursor writes, through the internal PAID OpenAI image system. NOT a CSS tweaker. Owns static/img/arena/**, static/css/arena_atmosphere.css, static/images/crowd/.",
@@ -52,7 +54,6 @@
     "wake_routing": "ALL orders go to the CURSOR inbox on his single 120s poller. ArenaFront has NO poller by design and is woken through the Cursor window. His CoWork identity is preserved permanently per s16 and receives a copy for the record.",
     "recorded_risk": "AGENTS.md s9 describes an 8:6:1 three-machine pool that does not exist. A distributed gate must never be attempted; it would report FULL_SUITE_PASS while running on one box. Stage 5 on the board was corrected to say so (commit 24f7acc7)."
   },
-
   "root_cause_of_the_dead_stop": {
     "found_by": "Bolt, 2026-07-25",
     "summary": "The Arena stalled because the target was invisible, the measurements were constitutionally muted, perspective was banned in our own CSS, and the asset generator was never used.",
@@ -64,7 +65,6 @@
     ],
     "consequence": "About 127 releases, v2.5.462 to v2.5.589, cycled the same seven atmosphere slices (gold dust, ceiling vignette, side washes, floor dark, gold rails, stand haze, corner vignettes) while every structural gap stayed open."
   },
-
   "measured_gap_ranked": [
     "1. No perspective. Plan view vs a 56-degree tilt. IN PROGRESS as G2/G4.",
     "2. Inverted proportions. Floor should be 0.63 of frame width, stands 1.60 R_floor. DONE as G1.",
@@ -74,37 +74,82 @@
     "6. No slate band between floor and stands.",
     "7. HUD scattered on the page instead of framing the arena."
   ],
-
   "commits_landed_today": {
     "96fca99a": "AGENTS.md s1 roster +ArenaFront, constitution v1.3.0 -> v1.4.0",
     "d7b9a4af": "4 mockups committed with sha256 provenance + arena_mockup_spec.json restored AUTHORITATIVE + superseded-banner notice",
     "55d10240": "this director state file",
     "24f7acc7": "board: new workstream 3H geometry track; Stage 5 phantom 8:6:1 pool corrected"
   },
-
   "orders_in_flight": {
-    "G4": {"id": 3072, "to": "cursor", "state": "AWAITING RESULT", "ask": "Remove perspective entirely (cos56=0.5592 hits the measured 0.56 at every width); fit the scene by PROJECTED STANDS bounds instead of the rank floor. Re-report the twelve numbers. Desktop 1280/1920 strict; at 390px only M4 no-clip, M5 hit-testing, M6 no-overflow.", "expected_if_diagnosis_right": "M1 = 0.559 +/- 0.002 IDENTICAL at 1280 and 1920, because a constant tilt gives a constant ratio. If it still drifts, the diagnosis is wrong and there is a second scale-dependent term."},
-    "A2": {"id": 3073, "to": "arenafront", "state": "AWAITING RESULT", "ask": "EXACTLY 24 crowd-face generations, quality low, 96px, run locally, committed not deployed. Owner-approved capped spend. Deliver a contact sheet so the Owner judges style before paying for more, the real count and cost, and a number on whether 24 gives enough variety for 290 seats. If the 24 come out near-identical that is a DEFECT to report, not to commit."},
-    "H2": {"id": 3068, "to": "cursor", "state": "AFTER G4", "ask": "Two parameterised reusable scripts cowork_read.py <id> and cowork_ack.py <id> <action>, replacing one script per message id. Then purge the main-checkout scratchpad by exact pattern with count-first, ten-examples, survivor-list procedure."},
-    "C1": {"id": 3069, "to": "cursor", "state": "ISSUED", "ask": "Act as relay for the ArenaFront lane; no second poller."}
+    "G4": {
+      "id": 3072,
+      "to": "cursor",
+      "state": "AWAITING RESULT",
+      "ask": "Remove perspective entirely (cos56=0.5592 hits the measured 0.56 at every width); fit the scene by PROJECTED STANDS bounds instead of the rank floor. Re-report the twelve numbers. Desktop 1280/1920 strict; at 390px only M4 no-clip, M5 hit-testing, M6 no-overflow.",
+      "expected_if_diagnosis_right": "M1 = 0.559 +/- 0.002 IDENTICAL at 1280 and 1920, because a constant tilt gives a constant ratio. If it still drifts, the diagnosis is wrong and there is a second scale-dependent term."
+    },
+    "A2": {
+      "id": 3073,
+      "to": "arenafront",
+      "state": "AWAITING RESULT",
+      "ask": "EXACTLY 24 crowd-face generations, quality low, 96px, run locally, committed not deployed. Owner-approved capped spend. Deliver a contact sheet so the Owner judges style before paying for more, the real count and cost, and a number on whether 24 gives enough variety for 290 seats. If the 24 come out near-identical that is a DEFECT to report, not to commit."
+    },
+    "H2": {
+      "id": 3068,
+      "to": "cursor",
+      "state": "AFTER G4",
+      "ask": "Two parameterised reusable scripts cowork_read.py <id> and cowork_ack.py <id> <action>, replacing one script per message id. Then purge the main-checkout scratchpad by exact pattern with count-first, ten-examples, survivor-list procedure."
+    },
+    "C1": {
+      "id": 3069,
+      "to": "cursor",
+      "state": "ISSUED",
+      "ask": "Act as relay for the ArenaFront lane; no second poller."
+    }
   },
-
   "geometry_track": {
-    "G1": {"branch": "impl/arena-g1-proportions", "commit": "a81af083", "verdict": "ACCEPTED, verified against diff", "numbers": "floor_outer 296.25, stands_outer 474.0, ratio 1.5999, stage 0.13, FLOOR_SHARE 0.63; selectors.py diff empty; no rotateX; 3 files"},
-    "G2": {"branch": "impl/arena-g2-camera", "commit": "e181e1a4", "verdict": "CODE ACCEPTED, verified against diff", "detail": "rotateX(56deg), perspective 1500px, overflow visible, all FOUR stale prohibitions deleted (perspective:none, 'do not apply rotateX here', 'Keeps fitScene camera (no rotateX)', 'No rotateX any more'). 4 files, +194/-95, CSS got smaller. selectors.py untouched across both slices."},
-    "G3": {"evidence_commit": "6c4cd2d8", "verdict": "MEASURED FAIL, reported honestly, stopped as ordered without reverting or writing a prohibition",
-           "twelve_numbers": {"1280x720": "M1=0.5340 M2=0.6300 M3=1.6412", "1920x1080": "M1=0.5224 M2=0.6300 M3=1.6292", "390x844": "M1=0.5822 M2=0.6300 M3=1.7071"},
-           "m4_clipping_px": {"1280": -21.72, "1920": -25.29, "390": -14.72},
-           "m5_hit_testing": "PASS at all three widths",
-           "m6_horizontal_overflow": "PASS, 0 at 390px",
-           "bolt_diagnosis": "M2 is 0.6300 at ALL widths so the fit constant is correct. M1 and M3 DRIFT by viewport. A constant rotateX cannot produce a drifting ratio, therefore the scale-dependent term is the FIXED perspective:1500px: lens distortion scales with the ratio of perspective distance to rendered size. It also pushes far rows out, inflating M3 above 1.65 and causing the negative M4 at every width. Second cause of M4: fitScene sizes to the RANK FLOOR while stands sit at 1.60x, so they stick out by construction."}
+    "G1": {
+      "branch": "impl/arena-g1-proportions",
+      "commit": "a81af083",
+      "verdict": "ACCEPTED, verified against diff",
+      "numbers": "floor_outer 296.25, stands_outer 474.0, ratio 1.5999, stage 0.13, FLOOR_SHARE 0.63; selectors.py diff empty; no rotateX; 3 files"
+    },
+    "G2": {
+      "branch": "impl/arena-g2-camera",
+      "commit": "e181e1a4",
+      "verdict": "CODE ACCEPTED, verified against diff",
+      "detail": "rotateX(56deg), perspective 1500px, overflow visible, all FOUR stale prohibitions deleted (perspective:none, 'do not apply rotateX here', 'Keeps fitScene camera (no rotateX)', 'No rotateX any more'). 4 files, +194/-95, CSS got smaller. selectors.py untouched across both slices."
+    },
+    "G3": {
+      "evidence_commit": "6c4cd2d8",
+      "verdict": "MEASURED FAIL, reported honestly, stopped as ordered without reverting or writing a prohibition",
+      "twelve_numbers": {
+        "1280x720": "M1=0.5340 M2=0.6300 M3=1.6412",
+        "1920x1080": "M1=0.5224 M2=0.6300 M3=1.6292",
+        "390x844": "M1=0.5822 M2=0.6300 M3=1.7071"
+      },
+      "m4_clipping_px": {
+        "1280": -21.72,
+        "1920": -25.29,
+        "390": -14.72
+      },
+      "m5_hit_testing": "PASS at all three widths",
+      "m6_horizontal_overflow": "PASS, 0 at 390px",
+      "bolt_diagnosis": "M2 is 0.6300 at ALL widths so the fit constant is correct. M1 and M3 DRIFT by viewport. A constant rotateX cannot produce a drifting ratio, therefore the scale-dependent term is the FIXED perspective:1500px: lens distortion scales with the ratio of perspective distance to rendered size. It also pushes far rows out, inflating M3 above 1.65 and causing the negative M4 at every width. Second cause of M4: fitScene sizes to the RANK FLOOR while stands sit at 1.60x, so they stick out by construction."
+    }
   },
-
   "infrastructure_fixed_today": {
     "credential_helper": "The repo LOCAL git config carried a second credential.helper set to /mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe — a WSL path handed to Windows git, which Git Bash expands to C:/Program Files/Git/mnt/c/... (nonexistent). Every push invoked a missing helper; some hung forever. Worktrees share one .git so it broke pushes for EVERY agent. Removed; system-level 'manager' now applies. Proven with a real push and delete. Removed value recorded here for rollback.",
     "hung_pushes_killed": "Two: ArenaFront's git push hung 21h16m since Jul 24 15:55, and Cursor's hung 45 minutes. Both branches confirmed already on origin before killing, so nothing was lost.",
     "worktrees_pruned": "30 down to 6. 24 removed via `git worktree remove` (never rm -rf) on the criterion CLEAN and HEAD reachable from an origin ref. One (cursor-arena) was deregistered but Windows refused the directory delete; verified its commit 1c346c22 was on origin and no uncommitted work remained, then removed the orphan. 113 local and 90 remote branches ALL preserved — only working copies were removed. Was 33,060 duplicated files across 30 trees; now about 6,600 across 6.",
-    "surviving_worktrees": ["CulinEire (owner main, dirty, do not touch)", "CulinEire-bolt-sync (mine)", "CulinEire-impl-arena-g1-proportions", "CulinEire-impl-arena-g2-camera", "cursor-arena-r2", "cursor-arenafront"],
+    "surviving_worktrees": [
+      "CulinEire (owner main, dirty, do not touch)",
+      "CulinEire-bolt-sync (mine)",
+      "CulinEire-impl-arena-g1-proportions",
+      "CulinEire-impl-arena-g2-camera",
+      "cursor-arena-r2",
+      "cursor-arenafront"
+    ],
     "pollers": "Was 4 on Cursor plus 1 on ArenaFront. Now ONE: cursor_inbox_poller.sh at 120s. Verified against the live process list, not the report.",
     "scratchpad_sprawl": "ArenaFront purged 893 -> 107, verified. Cursor's main-checkout scratchpad still ~1042 files (561 .py + 438 .sh) because he writes cursor_read_<id>.py and cursor_ack_<id>.py PER MESSAGE — proven with timestamps as the count grew 1036->1042 during our exchange. Order H2 addresses it.",
     "lane_file_scope": "DONE 2026-07-25, Owner-ordered. Every worktree was a full 1060-file checkout and the IDE indexed all of it, so each agent paid context on every request for files it never opened. Fixed with TWO separate levers, deliberately not one. (a) .cursorignore committed on main at e359bd8c and copied into all four worktrees — excludes other agents' worktree dirs, scratchpad, ops/audits, archived source_prompts. Per-lane narrowing must NEVER go here: a .cursorignore entry makes a file invisible to the agent, which reads as 'the file does not exist'. (b) git sparse-checkout in each lane worktree, non-cone, so unneeded files are genuinely absent from disk. Order S1 (CoWork #3075) taught both windows the take-and-release rule: `git sparse-checkout add <path>` when a task needs a file, restore the lane list when done, report any path they had to add. Diagnostic: `git ls-files -t | grep -c '^H'`.",
@@ -113,21 +158,40 @@
         "worktree": "E:/CulinEire Project/CulinEire/cursor-arenafront",
         "tracked_files_present": 15,
         "was": 1060,
-        "paths": ["/AGENTS.md", "/CLAUDE.md", "/docs/chef_battle/arena_mockup_spec.json", "/docs/chef_battle/mockups/", "/static/images/crowd/", "/static/images/chef_battle/arena/", "/static/css/arena_deck_polish.css", "/static/css/arena_render.css", "/static/css/arena_hall.css", "/templates/chef_battle/_arena_render_ring.html", "/templates/chef_battle/arena.html", "/chef_battle/management/commands/generate_crowd_faces.py"]
+        "paths": [
+          "/AGENTS.md",
+          "/CLAUDE.md",
+          "/docs/chef_battle/arena_mockup_spec.json",
+          "/docs/chef_battle/mockups/",
+          "/static/images/crowd/",
+          "/static/images/chef_battle/arena/",
+          "/static/css/arena_deck_polish.css",
+          "/static/css/arena_render.css",
+          "/static/css/arena_hall.css",
+          "/templates/chef_battle/_arena_render_ring.html",
+          "/templates/chef_battle/arena.html",
+          "/chef_battle/management/commands/generate_crowd_faces.py"
+        ]
       },
       "backend_cursor": {
         "worktree": "E:/CulinEire Project/CulinEire/cursor-arena-r2",
         "tracked_files_present": 990,
         "was": 1060,
         "floor_reason": "This lane must import config.settings and run migrations, so the whole runtime spine and every INSTALLED_APPS package has to stay. 990 is near the real floor, not laziness. Only static/images (77), templates/emails (32) and docs/agents were dropped.",
-        "paths": ["/*", "!/docs/agents/", "!/templates/emails/", "!/static/images/*", "/static/images/crowd/", "/static/images/chef_battle/"]
+        "paths": [
+          "/*",
+          "!/docs/agents/",
+          "!/templates/emails/",
+          "!/static/images/*",
+          "/static/images/crowd/",
+          "/static/images/chef_battle/"
+        ]
       },
       "gotcha": "Never pass sparse paths as CLI arguments from Git Bash. MSYS path conversion rewrote /AGENTS.md into C:/Program Files/Git/AGENTS.md and silently produced a set matching ZERO files. Always use `git sparse-checkout set --no-cone --stdin` with a heredoc.",
       "safety_proven": "Sparse-checkout removes neither untracked nor modified files. Verified after each application: cursor-arena-r2 kept its staged AGENTS.md edit and scratchpad, cursor-arenafront kept its untracked docs/chef_battle files and scratchpad."
     },
     "junk_noted_not_fixed": "The index carries a tracked file literally named 'C:UsersgolovDesktopweekly_pricing.patch' — a path-mangling accident committed at some point. Not removed: deleting a tracked file is product history, and it needs the Owner's word."
   },
-
   "next_steps": [
     "Receive G4 twelve numbers. If M1 = 0.559 identical at 1280/1920 and M4 is non-negative, the geometry track is browser-proven.",
     "Receive A2 contact sheet. Present it to the Owner for the style decision before any full crowd run.",
@@ -136,7 +200,6 @@
     "PROPOSED, NOT YET APPROVED: sparse-checkout per lane. ArenaFront holds 1108 files to work with FIVE (static/css/arena_atmosphere.css + 4 files under static/img/arena/). git 2.54 supports cone mode; not enabled on any worktree. Deferred until after G4 so his tree is not changed mid-measurement.",
     "PROPOSED, NOT YET APPROVED: amend AGENTS.md s9 (the 8:6:1 fiction) and s5 (ACK requirement between identities sharing one machine). Only the Owner may amend (s13)."
   ],
-
   "open_owner_decisions": {
     "crowd_full_run": "After the 24-face contact sheet: how many total generations, and at what quality.",
     "combined_deploy": "G1+G2/G4+board as one deploy.",
@@ -146,7 +209,6 @@
     "sparse_checkout": "Whether to shrink agent worktrees to their lane.",
     "section_9_amendment": "Whether to correct the phantom test pool in the constitution itself."
   },
-
   "hard_rules_not_to_relearn": [
     "The arena floor is LIGHT warm parchment. There is no dark floor theme. Dark lives in the hall and stands.",
     "There is no hero on the arena page. Permanent Owner decision.",
@@ -160,5 +222,45 @@
     "Mass deletion only by EXACT pattern: count first, show ten examples, list survivors, then delete. A substring filter once destroyed three live messages on this project.",
     "No demo battles. No synthetic interactive spectators. Interactive seats are real viewers only.",
     "CURRENT_EXECUTION_PLAN.md is stale. Live truth is the board in recipes/views.py ARENA_RELEASE_STAGES."
+  ],
+  "geometry_track_CLOSED": {
+    "status": "ALL SIX GATES MEASURED AND PASSING. Board 3H marked DONE at d75fdd40.",
+    "hashes": {
+      "G1": "a81af083",
+      "G2": "e181e1a4",
+      "G3_FAIL_evidence": "6c4cd2d8",
+      "G4": "671d0dcd",
+      "G5": "1187a8c3",
+      "branch": "origin/impl/arena-g2-camera"
+    },
+    "final_numbers": {
+      "M1_all_widths": 0.5592,
+      "M1_desktop_drift": 8.8e-08,
+      "M2": 0.6119,
+      "M3": 1.6015,
+      "M4_margins_px": {
+        "1280": 12.8,
+        "1920": 19.2,
+        "390": 3.89
+      },
+      "M5_hit_testing": "PASS",
+      "M6_overflowX": 0
+    },
+    "what_was_wrong_and_how_it_was_found": "G3 drifted M1 across widths and clipped. A constant rotateX cannot drift, so the scale-dependent term had to be the FIXED perspective distance. G4 removed it and M1 became cos(56deg) exactly at every width - prediction held, cause found not tuned. G4 left M3 at 1.7541; resolved from the spec: 640px / 0.50 frame was measured as the OUTERMOST VISIBLE EXTENT, so the comparable quantity is the projected bbox, not the construction radius. Seat CENTRES at 1.60 overhang by half a seat. G5 shrank construction to 1.4594 -> M3 1.6015, and BOTH pre-declared corroborations hit (M1 unchanged, M2 rose to 0.6119).",
+    "M2_note": "0.6119 vs spec 0.63, left UNTUNED on purpose. It is an OUTPUT of fitting stands to 0.98 of frame, not a free parameter."
+  },
+  "crowd_assets_track": {
+    "A2": "DONE. 24 faces + contact sheet. faces 3bc8ff30, sheet 9be67611, branch origin/agent/arenafront/a2-crowd-faces-24. Verified ON DISK: 24 files, 24 distinct sha256. gpt-image-1 quality=low 96px. One 429 absorbed, cap not exceeded.",
+    "owner_decision_2026_07_25": "Owner VIEWED the contact sheet and ACCEPTED the style as crowd canon: warm key light, dark background, consistent framing, real spread of age and ethnicity. He chose a 96-face full run WITH HEAD ROTATION over the plain 96 both agents asked for, on Bolt's finding that all 24 faces look dead-on at the same scale and 96 frontal portraits would still read as a GRID at 290 seats.",
+    "A3_running": "96 generations, HARD cap 96 including retries after 429. Quarter three-quarter left, quarter right, quarter frontal, rest tilted/looking off. Style LOCKED - only the head angle is new. Keep the A2 24, do not overwrite.",
+    "G6_running": "Composite the 24 into spectator cells deterministically (_arena_render_ring.html lines 76-78 currently cycle three files); identify the stray grey panel BEFORE removing it; compare drawn density against spec rings 9/10/11/12 segments 40/48/56/64 = 208 seats and report the delta without silently increasing it. Geometry must not move."
+  },
+  "honest_visual_finding_2026_07_25": "Bolt OPENED ops/audits/arena_g5_1280x720.png rather than trusting the table. All numbers pass and the frame still does not resemble mockup 01. Three visible faults: (1) visual weight inverted - a large bright cream floor with four thin rings of small GREY DOTS outside, where the mockup has a dense dark mass of PEOPLE around a calmer floor; weight comes from density and value, not radius. (2) No faces in the render at all. (3) A stray grey translucent panel with straight edges paints under the scene, visible in the lower corners. Deploy deliberately NOT requested for this reason: shipping a foundation that looks worse than the target is half a delivery.",
+  "owner_directives_2026_07_25_late": [
+    "Full personal responsibility on Bolt: manage, find problems, fix them, watch both agents. NO IDLING - neither the agents nor Bolt.",
+    "The Owner sent both windows a direct order: Bolt's word carries the Owner's authority, 'waiting for the Owner' is not an available state, an ack without an artifact is not a reply, and idleness must be reported to Bolt immediately.",
+    "read_at is NOT evidence: every bolt->cursor message carried the identical stamp 13:04:43.858785, including one sent 90 minutes later. Only a commit hash or a file on disk counts.",
+    "Lane file scope done: graphics worktree 15 tracked files (was 1060), backend 990. .cursorignore committed e359bd8c. Rule S1: take a file with `git sparse-checkout add`, release it after.",
+    "Stray tracked file C:UsersgolovDesktopweekly_pricing.patch removed at 3ec49096 on the Owner's word, after proving every change in it already shipped."
   ]
 }
