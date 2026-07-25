@@ -1,0 +1,130 @@
+{
+  "document": {
+    "id": "bolt-production-director-state",
+    "status": "LIVE_OPERATIONAL_STATE",
+    "canonical_path": "/ops/director/BOLT_DIRECTOR_STATE.json",
+    "purpose": "Bolt's crash and compaction survival file. Rewritten and committed at the end of every stage so a fresh window resumes from here instead of re-deriving. Machine-readable per AGENTS.md section 10.",
+    "last_updated": "2026-07-25"
+  },
+
+  "role": {
+    "agent": "bolt",
+    "appointed": "2026-07-25 by the Product Owner",
+    "title": "Production Director for the Arena",
+    "scope": "Study the canon, measure the gap, produce the production plan, delegate to Cursor and ArenaFront, report every stage to the Owner on Telegram, keep the journals moving.",
+    "standing_orders": [
+      "Single thread. No parallel investigation branches. The Owner is on a hard limit budget and has explicitly called out agents opening ten streams at once.",
+      "Do not ask the Owner a question whose answer does not change the output. Decide, then state what was decided.",
+      "Owner communication is the chat plus the Telegram bot. CoWork messages to the owner identity are NOT read; never send them there.",
+      "Report START and DONE of every stage to Telegram.",
+      "Deploy only on explicit Owner instruction (AGENTS.md section 8)."
+    ]
+  },
+
+  "owner_comms": {
+    "send": "ssh root@80.85.84.156 /srv/culineire/scripts/alert.sh \"message\"",
+    "receive": "ssh root@80.85.84.156 python3 /srv/culineire/scripts/owner_tg_fetch.py <offset>",
+    "offset_watermark_file": "/srv/culineire/shared/bolt_tg_offset",
+    "verified_two_way": true,
+    "note": "Never print the bot token. The fetch script reads alert.env itself and is written not to leak it."
+  },
+
+  "environment": {
+    "bolt_worktree": "E:/CulinEire Project/CulinEire/CulinEire-bolt-sync",
+    "bolt_worktree_state": "clean, tracks origin/main",
+    "owner_main_checkout": "E:/CulinEire Project/CulinEire/CulinEire",
+    "owner_main_checkout_state": "STALE at 726e3380 and DIRTY with 25+ paths, some belonging to other agents. DO NOT reset, clean or absorb. Owner decision pending.",
+    "ssh": "wsl -e bash -c \"ssh -i ~/.ssh/culineire_linode root@80.85.84.156 '...'\"",
+    "server_django": "cd /srv/culineire/current && set -a && . /srv/culineire/shared/.env && set +a && /srv/culineire/venv/bin/python <script>",
+    "server_script_needs": "sys.path.insert(0, '/srv/culineire/current') before django.setup()"
+  },
+
+  "roster": {
+    "constitution": "AGENTS.md v1.4.0 on origin/main",
+    "agents": ["Ember", "GreenBear", "Bolt", "Cursor", "ArenaFront"],
+    "cursor": "ACTIVE. Carrying agent. Owns arena_deck_polish.css, command deck composition, merge and deploy.",
+    "arenafront": "ACTIVE. Owns static/img/arena/** and static/css/arena_atmosphere.css.",
+    "greenbear": "CoWork row stale, not in live traffic.",
+    "ember": "LIMIT_HOLD.",
+    "critical_fact": "Cursor and ArenaFront are the SAME agent, two windows on the SAME machine. The Owner multiplies identities on one machine because of limit budgets. Owner ruled 2026-07-25 that ArenaFront is nonetheless a full equal fifth peer in section 1.",
+    "recorded_risk": "There is only ONE machine. AGENTS.md section 9 describes an 8:6:1 three-machine pool that does not exist. A distributed gate must never be attempted; it would report FULL_SUITE_PASS while running on one box. Raised once, not re-litigated."
+  },
+
+  "cascade_and_fences": {
+    "cascade_lock": "static/css/arena_atmosphere.css MUST load AFTER arena_deck_polish.css in arena.html. Reverting it repaints .page--arena light and kills the dark hall.",
+    "shared_files_needing_one_editor": ["templates/.../arena.html", "config/release_journal.py", "recipes/views.py ARENA_RELEASE_STAGES"],
+    "never_merge": "design/arena-visual-shell-prototype — reference only, by Owner order."
+  },
+
+  "root_cause_of_the_dead_stop": {
+    "found": "2026-07-25 by Bolt",
+    "summary": "The Arena stalled because the target was invisible and the measurements were constitutionally muted.",
+    "evidence": [
+      "The four approved mockups were never committed. Absent from origin/main, from every branch, and from cursor-arenafront, cursor-arena and cursor-arena-r2. Verified by enumeration, not by failing to find them.",
+      "arena_mockup_spec.md was archived into docs/archive/pre-constitution-reset-2026-07-20/. Section 10 makes archived files historical evidence that cannot define design or acceptance.",
+      "The archived copy carries a 2026-07-20 banner saying the 56-degree perspective is dead and must not be implemented. AGENTS.md section 11 at v1.3.0, dated 2026-07-23, re-permits it explicitly. Anyone who found the spec read the banner and stopped.",
+      "Consequence: colour was the only iterable dimension. About 127 releases, v2.5.462 to v2.5.589, cycled the same atmosphere slices (gold dust, ceiling vignette, side washes, floor dark, gold rails, stand haze, corner vignettes) while every structural gap stayed open."
+    ],
+    "fixed_by": "commit d7b9a4af"
+  },
+
+  "stages": [
+    {
+      "id": 1,
+      "name": "Reactivation, sync, roster amendment, comms",
+      "status": "DONE",
+      "evidence": {
+        "commit": "96fca99a",
+        "did": "Bolt out of IDLE. Clean worktree synced to origin/main after being 450 commits behind. AGENTS.md v1.3.0 read including new sections 15 and 16. Section 1 roster amended to add ArenaFront, bumping the constitution to v1.4.0. 31 historical CoWork messages processed and closed. Round-trip requested from ArenaFront in CoWork 3020. Telegram verified in both directions."
+      }
+    },
+    {
+      "id": 2,
+      "name": "Mockup canon into git",
+      "status": "DONE",
+      "evidence": {
+        "commit": "d7b9a4af",
+        "did": "Committed the four approved mockups with sha256 provenance. Restored the measured specification as authoritative JSON. Corrected the stale do-not-implement-perspective banner against section 11."
+      }
+    },
+    {
+      "id": 3,
+      "name": "Live Arena code teardown and re-measure of the gap against v2.5.589",
+      "status": "IN_PROGRESS",
+      "next_actions": [
+        "Read the live arena template, CSS and JS on origin/main.",
+        "Re-verify gap ranks 1, 2, 3 and 7 against v2.5.589 rather than the old v2.5.330 baseline.",
+        "Record which gaps are geometry, which are asset, which are layout."
+      ]
+    },
+    { "id": 4, "name": "Production plan: ordered slices, each with acceptance criteria", "status": "PENDING" },
+    { "id": 5, "name": "Delegation packages to Cursor and ArenaFront with file ownership", "status": "PENDING" },
+    { "id": 6, "name": "Journal and Arena Build Plan board brought back in step with reality", "status": "PENDING" }
+  ],
+
+  "measured_gap_ranked": [
+    "1. No perspective. Plan view versus a 56-degree tilt. One transform over the whole scene, geometry contract unchanged.",
+    "2. Inverted proportions. Floor should be 0.63 of frame width; stands 1.6 R_floor deep. Production has the floor filling the canvas and the stands as a rim.",
+    "3. Faces cropped by the seat polygon instead of fitted round portraits.",
+    "4. No depth falloff across the stands.",
+    "5. No gold rim lights at the floor and stands boundary.",
+    "6. No slate band between floor and stands.",
+    "7. HUD scattered on the page instead of framing the arena."
+  ],
+
+  "open_owner_decisions": {
+    "D2": "Stands as spectator oval. Implied by Owner order 2777 per the Cursor journal. Blocks 3G R5.",
+    "D3": "Country and flag data source. Blocks the flag only; the confrontation band ships flagless.",
+    "owner_main_checkout": "What to do with the stale dirty main checkout, including files belonging to other agents.",
+    "section_9_amendment": "Whether to correct the 8:6:1 three-machine fiction and drop the ACK requirement between identities sharing one machine. Bolt proposed once; awaiting the Owner."
+  },
+
+  "hard_rules_not_to_relearn": [
+    "The arena floor is LIGHT warm parchment. There is no dark floor theme. Dark lives in the hall and stands.",
+    "There is no hero on the arena page. Permanent Owner decision.",
+    "The Arena is staff and superuser only until the Owner releases it. A 404 for everyone else is intended.",
+    "The rank label column is a legend and is deliberately the mirror of ring order. Do not 'fix' it.",
+    "Reuse first. Search, trace callers, find the source of truth, then reuse. New code only when absence is proven.",
+    "No demo battles. No synthetic interactive spectators. The 544 interactive seats are real viewers only."
+  ]
+}
