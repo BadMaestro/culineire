@@ -493,10 +493,17 @@
     return (h >>> 0);
   }
 
-  function crowdFaceFor(ring, cell) {
+  function crowdFaceFor(ring, cell, geometry) {
     var faces = global.ARENA_CROWD_FACES || [];
     if (!faces.length) { return null; }
-    return faces[seatHash(ring, cell) % faces.length];
+    var href = faces[seatHash(ring, cell) % faces.length];
+    // A6 tiers: mid URLs in ARENA_CROWD_FACES; swap by row depth.
+    if (geometry && href && href.indexOf('-round-mid.') !== -1) {
+      var d = rowDepth(geometry, ring);
+      var tier = d < 0.34 ? 'near' : (d > 0.66 ? 'far' : 'mid');
+      href = href.replace('-round-mid.', '-round-' + tier + '.');
+    }
+    return href;
   }
 
   // Nobody in a hall sits perfectly on the centre of their seat, and a grid of
@@ -577,7 +584,7 @@
   }
 
   function appendCrowdFigure(svg, layer, ring, cell, geometry, radius) {
-    var href = crowdFaceFor(ring, cell);
+    var href = crowdFaceFor(ring, cell, geometry);
     if (!href) { return; }
     var polygon = svg.querySelector('.arena-cell[data-ring="' + ring + '"][data-cell="' + cell + '"]');
     if (!polygon) { return; }
