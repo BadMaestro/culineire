@@ -196,26 +196,22 @@
     var floorR = props.floorOuter;
     var standsOuter = props.standsOuter;
     var oval = geometry.spectator_oval || {};
-    var rowsBySide = oval.rows_by_side || { top: 2, right: 3, bottom: 2, left: 3 };
+    // G7: 4 deepening rows, 208 seats (spec production_seats). Client draw only —
+    // get_arena_geometry untouched. BE may still ship 290; report ID divergence.
+    var rowsBySide = { top: 4, right: 4, bottom: 4, left: 4 };
+    var countsBySide = {
+      top: [10, 12, 14, 16],
+      right: [10, 12, 14, 16],
+      bottom: [10, 12, 14, 16],
+      left: [10, 12, 14, 16]
+    };
     var beFloor = oval.floor_outer_radius || 220;
-    var seats = oval.seats && oval.seats.length
-      ? oval.seats
-      : (global.ArenaGeometry.ovalSeats
-        ? global.ArenaGeometry.ovalSeats(
-            0,
-            0,
-            beFloor,
-            rowsBySide,
-            null,
-            oval.counts_by_side || null
-          ).map(function (s) {
-            return s;
-          })
-        : []);
+    var seats = (global.ArenaGeometry.ovalSeats
+      ? global.ArenaGeometry.ovalSeats(0, 0, beFloor, rowsBySide, Math.max(8, beFloor * 0.032), countsBySide)
+      : []);
 
-    // BE oval seats currently land at ~1.28 R_floor. Remap radial depth so the
-    // outermost seat CENTRE sits at STANDS_RATIO (G5: ~1.46 so bbox ≈ 1.60)
-    // without touching get_arena_geometry ring/cell ids. Angle preserved.
+    // Remap radial depth so outermost seat CENTRE sits at STANDS_RATIO
+    // (G5: ~1.46 so bbox ≈ 1.60). Angle preserved.
     var maxBe = beFloor;
     seats.forEach(function (seat) {
       var rb = Math.hypot(seat.x || 0, seat.y || 0);
@@ -236,8 +232,9 @@
       var planX = SVG_SIZE / 2 + Math.cos(ang) * rSvg;
       var planY = SVG_SIZE / 2 + Math.sin(ang) * rSvg;
       var pt = project({ x: planX, y: planY });
-      var pitch = Math.max(11, floorR * 0.045);
-      var r = Math.max(4.2, pitch * 0.34);
+      var pitch = Math.max(8, floorR * 0.032);
+      var depth = (seat.row || 0) / Math.max(1, (rowsBySide[seat.side] || 4) - 1);
+      var r = Math.max(3.6, pitch * (0.40 - 0.06 * depth));
       var circle = el('circle', {
         cx: pt.x.toFixed(2),
         cy: pt.y.toFixed(2),
@@ -533,6 +530,12 @@
   // never has to be inferred from an absolute ring index that shifts whenever
   // the stands get deeper.
   function rowDepth(geometry, ring) {
+    // G7 oval ring ids: 100 + sideIndex*10 + row → row is ring % 10.
+    if (ring >= 100) {
+      var ovalRow = ring % 10;
+      var ovalRows = 4;
+      return Math.min(1, Math.max(0, ovalRow / Math.max(1, ovalRows - 1)));
+    }
     var record = null;
     geometry.rings.forEach(function (r) { if (r.index === ring) { record = r; } });
     if (!record || !record.row || !record.rows_total || record.rows_total < 2) { return 0; }
