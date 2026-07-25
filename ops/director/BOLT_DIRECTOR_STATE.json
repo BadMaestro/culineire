@@ -106,7 +106,26 @@
     "worktrees_pruned": "30 down to 6. 24 removed via `git worktree remove` (never rm -rf) on the criterion CLEAN and HEAD reachable from an origin ref. One (cursor-arena) was deregistered but Windows refused the directory delete; verified its commit 1c346c22 was on origin and no uncommitted work remained, then removed the orphan. 113 local and 90 remote branches ALL preserved — only working copies were removed. Was 33,060 duplicated files across 30 trees; now about 6,600 across 6.",
     "surviving_worktrees": ["CulinEire (owner main, dirty, do not touch)", "CulinEire-bolt-sync (mine)", "CulinEire-impl-arena-g1-proportions", "CulinEire-impl-arena-g2-camera", "cursor-arena-r2", "cursor-arenafront"],
     "pollers": "Was 4 on Cursor plus 1 on ArenaFront. Now ONE: cursor_inbox_poller.sh at 120s. Verified against the live process list, not the report.",
-    "scratchpad_sprawl": "ArenaFront purged 893 -> 107, verified. Cursor's main-checkout scratchpad still ~1042 files (561 .py + 438 .sh) because he writes cursor_read_<id>.py and cursor_ack_<id>.py PER MESSAGE — proven with timestamps as the count grew 1036->1042 during our exchange. Order H2 addresses it."
+    "scratchpad_sprawl": "ArenaFront purged 893 -> 107, verified. Cursor's main-checkout scratchpad still ~1042 files (561 .py + 438 .sh) because he writes cursor_read_<id>.py and cursor_ack_<id>.py PER MESSAGE — proven with timestamps as the count grew 1036->1042 during our exchange. Order H2 addresses it.",
+    "lane_file_scope": "DONE 2026-07-25, Owner-ordered. Every worktree was a full 1060-file checkout and the IDE indexed all of it, so each agent paid context on every request for files it never opened. Fixed with TWO separate levers, deliberately not one. (a) .cursorignore committed on main at e359bd8c and copied into all four worktrees — excludes other agents' worktree dirs, scratchpad, ops/audits, archived source_prompts. Per-lane narrowing must NEVER go here: a .cursorignore entry makes a file invisible to the agent, which reads as 'the file does not exist'. (b) git sparse-checkout in each lane worktree, non-cone, so unneeded files are genuinely absent from disk. Order S1 (CoWork #3075) taught both windows the take-and-release rule: `git sparse-checkout add <path>` when a task needs a file, restore the lane list when done, report any path they had to add. Diagnostic: `git ls-files -t | grep -c '^H'`.",
+    "lane_sparse_sets": {
+      "graphics_arenafront": {
+        "worktree": "E:/CulinEire Project/CulinEire/cursor-arenafront",
+        "tracked_files_present": 15,
+        "was": 1060,
+        "paths": ["/AGENTS.md", "/CLAUDE.md", "/docs/chef_battle/arena_mockup_spec.json", "/docs/chef_battle/mockups/", "/static/images/crowd/", "/static/images/chef_battle/arena/", "/static/css/arena_deck_polish.css", "/static/css/arena_render.css", "/static/css/arena_hall.css", "/templates/chef_battle/_arena_render_ring.html", "/templates/chef_battle/arena.html", "/chef_battle/management/commands/generate_crowd_faces.py"]
+      },
+      "backend_cursor": {
+        "worktree": "E:/CulinEire Project/CulinEire/cursor-arena-r2",
+        "tracked_files_present": 990,
+        "was": 1060,
+        "floor_reason": "This lane must import config.settings and run migrations, so the whole runtime spine and every INSTALLED_APPS package has to stay. 990 is near the real floor, not laziness. Only static/images (77), templates/emails (32) and docs/agents were dropped.",
+        "paths": ["/*", "!/docs/agents/", "!/templates/emails/", "!/static/images/*", "/static/images/crowd/", "/static/images/chef_battle/"]
+      },
+      "gotcha": "Never pass sparse paths as CLI arguments from Git Bash. MSYS path conversion rewrote /AGENTS.md into C:/Program Files/Git/AGENTS.md and silently produced a set matching ZERO files. Always use `git sparse-checkout set --no-cone --stdin` with a heredoc.",
+      "safety_proven": "Sparse-checkout removes neither untracked nor modified files. Verified after each application: cursor-arena-r2 kept its staged AGENTS.md edit and scratchpad, cursor-arenafront kept its untracked docs/chef_battle files and scratchpad."
+    },
+    "junk_noted_not_fixed": "The index carries a tracked file literally named 'C:UsersgolovDesktopweekly_pricing.patch' — a path-mangling accident committed at some point. Not removed: deleting a tracked file is product history, and it needs the Owner's word."
   },
 
   "next_steps": [
