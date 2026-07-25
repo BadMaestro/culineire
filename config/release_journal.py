@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.587",
+        "date": "2026-07-25",
+        "commit": "pending",
+        "title": "GRAPHICS — AF floor sheen + wall grain",
+        "section": "Chef Battles / Deployment",
+        "summary": "Owner Го resume. FE tip 10b8ff47: floor sheen + wall grain lift in arena_atmosphere.css. Cache ?v=20260725-hard-floor (unified hard reset stamp). Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.586",
         "date": "2026-07-25",
         "commit": "b8da9598",
