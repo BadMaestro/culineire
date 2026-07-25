@@ -1,4 +1,4 @@
-/* Arena ATMOSPHERE LAYER — ArenaFront (ARENA_VISUAL_ATMOSPHERE) M17.
+/* Arena ATMOSPHERE LAYER â" ArenaFront (ARENA_VISUAL_ATMOSPHERE) M17.
  *
  * Cascade: loads AFTER polish; page fill + under-oval packed-crowd haze.
  * M17: stand-annulus mass under #arena-render; no synthetic seats.
@@ -11,7 +11,7 @@
   --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 58%, transparent);
   position: relative;
   isolation: isolate;
-  /* Page hall fill — must win over polish light .page--arena background. */
+  /* Page hall fill â" must win over polish light .page--arena background. */
   background:
     radial-gradient(
       100% 48% at 50% -4%,
@@ -69,7 +69,7 @@
   color: var(--ink);
 }
 
-/* Soft side vignette only — no gold-dust grid, no diagonal stand rails.
+/* Soft side vignette only â" no gold-dust grid, no diagonal stand rails.
    Those read as a second drawn arena on the page background. */
 .page--arena::before {
   content: "";
@@ -93,7 +93,7 @@
   opacity: 0.85;
 }
 
-/* Outer hall wash only — NO geometric rings/octagon on the page background.
+/* Outer hall wash only â" NO geometric rings/octagon on the page background.
    Live seats and octagon belong to #arena-render SVG, not CSS chrome.
    Owner 2026-07-24: fake background geometry reads as a broken second arena. */
 .page--arena::after {
@@ -197,7 +197,7 @@
 
 
 /* ============================================================================
- * MOCKUP M17 — packed-crowd atmosphere UNDER the interactive oval.
+ * MOCKUP M17 â" packed-crowd atmosphere UNDER the interactive oval.
  * Soft stand-band mass only (official tokens). Not seats, not faces,
  * not photographic hall-bg, not a second octagon. pointer-events: none.
  * Real interactive rings stay on #arena-render above this layer.
@@ -215,7 +215,7 @@
   z-index: 0;
   pointer-events: none;
   border-radius: inherit;
-  /* Dense soft “gallery mass” in the stand annulus; stage centre stays clear. */
+  /* Dense soft âgallery massâ in the stand annulus; stage centre stays clear. */
   background:
     radial-gradient(circle at 12% 28%, var(--arena-atm-crowd-warm) 0 0.09rem, transparent 0.2rem),
     radial-gradient(circle at 18% 46%, var(--arena-atm-crowd-ink) 0 0.12rem, transparent 0.24rem),
@@ -283,7 +283,7 @@
 
 
 /* ============================================================================
- * GRAPHICS ATM DEPTH — Owner «оба делайте графику» (#2976).
+ * GRAPHICS ATM DEPTH â" Owner Â«Ð¾Ð±Ð° Ð´ÐµÐ»Ð°Ð¹ÑÐµ Ð³ÑÐ°ÑÐ¸ÐºÑÂ» (#2976).
  * Fence: arena_atmosphere.css only. Deepen hall + packed-crowd mass.
  * No fake octagon geometry, no synthetic seats, parchment floor stays.
  * ============================================================================ */
@@ -422,7 +422,7 @@
   opacity: 0.68;
 }
 
-/* Soft gold sparkle in the outer stand band only (prototype atmosphere dots → tokens). */
+/* Soft gold sparkle in the outer stand band only (prototype atmosphere dots â' tokens). */
 .page--arena .arena-render-container::after {
   content: "";
   position: absolute;
@@ -471,7 +471,7 @@
 }
 
 /* ============================================================================
- * GRAPHICS ATM FLOOR+WALL � Owner ?? resume (#2993).
+ * GRAPHICS ATM FLOOR+WALL -- Owner ?? resume (#2993).
  * Fence: arena_atmosphere.css only. Lift floor-sheen + wall grain readability.
  * No fake octagon geometry, no synthetic seats, parchment centre stays clear.
  * ============================================================================ */
