@@ -4,7 +4,7 @@
     "status": "LIVE_OPERATIONAL_STATE",
     "canonical_path": "/ops/director/BOLT_DIRECTOR_STATE.json",
     "purpose": "Bolt's compaction survival file. Read this FIRST on any cold start, resume or post-compaction turn. It is newer than any conversation summary. Rewritten at the end of every stage.",
-    "last_updated": "2026-07-25T18:30Z"
+    "last_updated": "2026-07-25T20:00Z"
   },
   "role": {
     "agent": "bolt",
@@ -264,20 +264,21 @@
     "Stray tracked file C:UsersgolovDesktopweekly_pricing.patch removed at 3ec49096 on the Owner's word, after proving every change in it already shipped."
   ],
   "PRODUCTION_STATE": {
-    "live_version": "v2.5.590 — DEPLOYED 2026-07-25 on the Owner's order 'все изменения на прод'.",
-    "merges": {
-      "e2533244": "geometry track G1..G5 (NOT G6)",
-      "72565596": "version bump",
-      "bd0bbdf2": "A2 24 crowd portraits as assets"
-    },
-    "post_deploy_checks": "manage.py check clean; home/recipes/articles all 200; footer reads v2.5.590; collectstatic ran (48 crowd files in staticfiles after hashing); arena 404 for anonymous = staff gate by design; deployed as user deploy, never root.",
-    "deliberately_excluded": "G6 and everything after it. Shipping G6 would have put a visible regression on the site."
+    "live_version": "v2.5.591 — deployed 2026-07-25 by Bolt. Verified: / /recipes/ /articles/ all 200, footer reads v2.5.591, rankings.webp served 200/5284 B, zero root-owned files in staticfiles, deployed as user deploy.",
+    "main_tip": "e8632f73 fix(widget): put the widget back on the Arena and point it at the light icons",
+    "chain_today": {
+      "ee88e451": "emergency load purge, ~5.35 MB off the Arena (floor-plate 2,658,581 + wall wash 1,358,206 + floor sheen 1,331,113 + hall-bg set). ACCEPTED.",
+      "bece0e19": "Bolt incident record",
+      "473b84eb": "Cursor: face-01..24 restored + first weight guard (templates only)",
+      "7b417f2f": "Cursor W3-FIX: guard extended to CSS url(), hero caps dropped to 800 KB",
+      "ca728d85": "Bolt W1: nine widget icons 1,516,845 -> 32,416 B (-97.9%), 96px q82",
+      "e8632f73": "Bolt W2: widget retargeted to webp, arena exclusion removed, v2.5.591"
+    }
   },
   "OPEN_GATE": {
-    "gate": "G6-FIX. Nothing after it is measured or merged until faces sit in seats.",
-    "defect": "Faces render scattered ACROSS THE FLOOR octagon and outside the stands; the seat rings stay empty grey dots. Count is right (290 emitted, 24 unique), POSITIONS are wrong. Confirmed by Bolt in arena_g6_1280x720.png AND still present in arena_g9_1280x720.png.",
-    "diagnosis": "The face layer is almost certainly positioned in UNTRANSFORMED page coordinates while seats live inside the transformed scene. A face must be a child of the same element as its seat dot, inheriting the same transform chain. Proof required: seat and face must move together when the camera changes.",
-    "sequencing_failure_owned_by_bolt": "Bolt ordered 'never idle, run the queue without waiting'. Cursor obeyed and raced G7/G8/G9/G10 on top of the broken placement, so all three inherit the defect. The G6 rejection (#3104) arrived after he had passed it. Bolt's ordering error, not Cursor's craft."
+    "gate": "G6-FIX/G11/G12 report PASS on Cursor's harness (faces nested in seat transform parent, 290 seats, 0 loose faces, plate dead, M1 0.5592, M3 1.60) on branch impl/arena-g2-camera.",
+    "HELD": "W4 - the crowd does NOT merge to prod until the load budget is signed. 290 seats painting individual face images is a request storm on the page just rescued. Cursor raised this risk himself against his own work.",
+    "when_it_ships": "Wire round/ (96 files, 400 KB), NOT tiers/ (288 files, 1,124 KB) - near/mid/far is brightness and blur, free in CSS. Contact sheets (a3 531 KB, a2 255 KB) move to ops/audits/, never static/."
   },
   "BOLT_DECISIONS_2026_07_25_PM": [
     "PARCHMENT PLATE: REMOVE. Identified by Cursor as .arena-floor-stage::before drawing wider than the fitted floor, translucent straight-edged corners in the lower frame. Decoration older than the current geometry and now contradicting it. Delete the rule, do not resize; if something depends on it, report instead of patching around.",
@@ -307,5 +308,38 @@
     "reporting_discipline_failure": "AF reported 'face-01..24.webp kept' in the same hour Cursor's commit deleted them. Two agents, opposite facts about the same 24 files, neither had read the other's diff. Ordered: read the other's diff before reporting.",
     "bolts_own_share": "Nothing in the repository was watching page weight. Two multi-megabyte assets reached production wired into CSS on a page nobody weighed, and the only detector was the Owner noticing the site was slow. That absence is the real failure and it is the Director's, not the agents'. W3 closes it.",
     "crowd_set_decision": "When the crowd finally ships, wire round/ - 96 files, 400 KB. NOT tiers/ - 288 files, 1,124 KB - for a near/mid/far difference that is brightness and blur, both free in CSS on one image set. Measured on origin/agent/arenafront/a3-crowd-faces-96. Reversible only by a measurement showing what CSS cannot do. Contact sheets (a3 531 KB, a2 255 KB) move to ops/audits/; static/ ships them to every visitor."
+  },
+  "WIDGET_INCIDENT_CLOSED": {
+    "what_it_was": "The widget was AMPUTATED, not broken. base.html gained `request.resolver_match.url_name != 'arena'` to dodge 1.5 MB of sidebar icons. Bolt verified the widget itself was healthy by rendering it against a real staff request via RequestFactory: 3,299 bytes of correct markup, both stylesheets resolving, url_name 'arena' unique.",
+    "root_cause": "Nine 418x418 RGBA PNGs averaging 166 KB each for icons that render at 1.35rem (~22 CSS px).",
+    "fix": "96px WebP q82. 1,516,845 -> 32,416 B. Verified visually at 96px AND at true 22px render size before commit, not only by byte count.",
+    "closed": "e8632f73 live as v2.5.591. Guard shows widget entries GREEN, zero offenders."
+  },
+  "THE_GUARD": {
+    "file": "chef_battle/test_static_image_weight.py",
+    "scans": "templates/**/*.html for {% static %} image refs AND static/css/**/*.css for url() refs, first-matching-prefix caps, missing files skipped rather than false-failing.",
+    "why_CSS_matters": "Bolt tested the first version against the actual disaster and it would NOT have caught it. The 2.6 MB floor-plate was referenced from static/css/arena_command_deck.css:162, never from a template. Cursor fixed it in 7b417f2f and added `assertTrue(css_refs, 'CSS url() scan found nothing - guard is blind again')` unprompted - a test that checks it is still testing.",
+    "caps": "widget/ 100 KB, crowd/ 50 KB, img/arena/ 50 KB, chef_battle/arena/ 100 KB, hero*/avatar* 800 KB, logo 400 KB, default 150 KB.",
+    "current_result": "WIDGET 0 offenders (green). HERO 22 offenders (red, deliberate). OTHER 1: images/chef_battle/season1_champion_coin.png 333,855 > 150,000.",
+    "RULE": "The hero red must NOT be softened. A failing test that tells the truth beats a passing one that lies. It stays red until the Owner rules on hero art."
+  },
+  "OPEN_OWNER_DECISION_HERO_WEIGHT": {
+    "measured": "static/images/ is 131 files, 99 MB. 42 files exceed 1 MB and account for 90 MB. 23 of those 42 are referenced by templates - live weight on real pages.",
+    "examples": "hero.jpg 2,758,257; categories/salads.png 2,657,948; hero-login.png 2,512,582; hero-collection.png 2,452,466; hero-join.png 2,450,260; female-avatar.png 2,385,575.",
+    "finding": "The Arena was never the heaviest page on this site. It was the one the Owner happened to be looking at. Every page carrying a ~2.5 MB hero has the same disease and has had it for a long time.",
+    "bolt_position": "NOT touched and agents forbidden to touch. Hero art is Owner-locked (CLAUDE.md). PNG->WebP at identical dimensions would not move layout or object-position, but it is his art and his call.",
+    "status": "AWAITING OWNER RULING."
+  },
+  "STANDING_RULES_NEW_TODAY": [
+    "An emergency load fix may DISCONNECT any asset from CSS or a template. It may NOT DELETE an asset the Owner paid for or approved, nor DELETE a working UI element. Disconnecting is one line and reversible.",
+    "HIDE IS NOT DISCONNECT (Cursor's finding). A url() earlier in the cascade downloads the file whether or not later rules hide the element. Load work must remove the url(), not the visibility.",
+    "A cap above the observed maximum is not a cap. Set thresholds where they bite.",
+    "Read the peer's DIFF and the INBOX. ArenaFront read diffs but not orders twice today and both times produced waste."
+  ],
+  "AGENT_STATE": {
+    "cursor": "Responsive, high quality. Delivered 473b84eb and 7b417f2f. Volunteered that amputating the widget was the wrong trade, and flagged the crowd request-storm risk against his own finished work. Did NOT execute W2 - Bolt did it.",
+    "arenafront": "Unreliable on order-state. Was 34 unread. Twice acted on code state without order state: reported 'face-01..24 kept' while they were being deleted, then rebuilt W1 after an explicit STOP (#3138), producing competing branch 2b7f72ff.",
+    "icon_ruling": "96px (ca728d85, on main) BEATS AF's 48px (2b7f72ff, branch only, NOT merged). Icons render at 22 CSS px = 66 device px on 3x phones, so a 48px source upscales and blurs. Bolt rendered both at 66px and looked: on 48px the mortar engraving, laurel separation, chest clasp and knife-roll buckle all turn to blobs. Cost of the 96px set is 19,516 extra bytes on a page that shed 5,350,000. AF may overturn it ONLY with a measurement showing 48px not degrading at 66 device px.",
+    "af_branch_2b7f72ff": "Left intact. Nothing deleted."
   }
 }
