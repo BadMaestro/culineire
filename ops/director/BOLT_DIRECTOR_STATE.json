@@ -4,7 +4,7 @@
     "status": "LIVE_OPERATIONAL_STATE",
     "canonical_path": "/ops/director/BOLT_DIRECTOR_STATE.json",
     "purpose": "Bolt's compaction survival file. Read this FIRST on any cold start, resume or post-compaction turn. It is newer than any conversation summary. Rewritten at the end of every stage.",
-    "last_updated": "2026-07-25T22:30Z"
+    "last_updated": "2026-07-25T23:20Z"
   },
   "role": {
     "agent": "bolt",
@@ -264,8 +264,8 @@
     "Stray tracked file C:UsersgolovDesktopweekly_pricing.patch removed at 3ec49096 on the Owner's word, after proving every change in it already shipped."
   ],
   "PRODUCTION_STATE": {
-    "live_version": "v2.5.593 — deployed 2026-07-25 by Bolt. Verified live: / /recipes/ /articles/ /accounts/signup/ all 200, footer v2.5.593, 12 category cards served as .webp with zero .png on the page, avatars 200/image/webp, zero root-owned files.",
-    "main_tip": "9f8cb2ff perf(images): serve the last 16 uncompressed live images as WebP, keep the sources",
+    "live_version": "v2.5.595 — verified live: / /recipes/ /articles/ /about/ /manifest.json all 200, manifest icon 128,071 B, CSS serves hero-battle.webp, zero root-owned.",
+    "main_tip": "6db8f5a3 perf+test(images): guard scans Python, splits payload from fallbacks",
     "chain_today": {
       "ee88e451": "emergency load purge, ~5.35 MB off the Arena. ACCEPTED.",
       "bece0e19": "Bolt incident record",
@@ -274,8 +274,10 @@
       "ca728d85": "Bolt W1: nine widget icons 1,516,845 -> 32,416 B (-97.9%)",
       "e8632f73": "Bolt W2: widget restored on the Arena, v2.5.591",
       "70e92b8c": "state save",
-      "4f3cf403": "Bolt pilot: salads card 2,657,948 -> 239,516 (-91%), v2.5.592",
-      "9f8cb2ff": "Bolt batch: 16 remaining live images 38,211,038 -> 2,806,894 (-92.7%), v2.5.593"
+      "4f3cf403": "pilot: salads 2,657,948 -> 239,516, v2.5.592",
+      "9f8cb2ff": "batch: 16 live images 38,211,038 -> 2,806,894, v2.5.593",
+      "679b13e8": "five heroes wired to WebP that already existed on disk, 31 lines / 19 files, v2.5.594",
+      "6db8f5a3": "guard v3 (Python surface + payload/fallback/social split), 4 CSS misses, PWA icon, coin, v2.5.595"
     }
   },
   "OPEN_GATE": {
@@ -319,14 +321,13 @@
     "closed": "e8632f73 live as v2.5.591. Guard shows widget entries GREEN, zero offenders."
   },
   "THE_GUARD": {
-    "file": "chef_battle/test_static_image_weight.py",
-    "scans": "templates/**/*.html for {% static %} image refs AND static/css/**/*.css for url() refs, first-matching-prefix caps, missing files skipped rather than false-failing.",
-    "why_CSS_matters": "Bolt tested the first version against the actual disaster and it would NOT have caught it. The 2.6 MB floor-plate was referenced from static/css/arena_command_deck.css:162, never from a template. Cursor fixed it in 7b417f2f and added `assertTrue(css_refs, 'CSS url() scan found nothing - guard is blind again')` unprompted - a test that checks it is still testing.",
-    "caps": "widget/ 100 KB, crowd/ 50 KB, img/arena/ 50 KB, chef_battle/arena/ 100 KB, hero*/avatar* 800 KB, logo 400 KB, default 150 KB.",
-    "current_result": "WIDGET 0 offenders (green). HERO 22 offenders (red, deliberate). OTHER 1: images/chef_battle/season1_champion_coin.png 333,855 > 150,000.",
-    "RULE": "The hero red must NOT be softened. A failing test that tells the truth beats a passing one that lies. It stays red until the Owner rules on hero art.",
-    "third_blind_spot": "PYTHON. Templates and CSS are scanned; .py is not, and it was carrying 33 MB. Order W9 to Cursor: scan .py for quoted image paths and static() calls, excluding migrations, tests and config/release_journal.py (prose full of filenames). Must FAIL on 9f8cb2ff~1 and PASS on main, both runs shown, plus assertTrue(py_refs, ...) so it cannot go blind silently.",
-    "hero_caps_open_question": "W10: the 22 hero 'offenders' may be <picture> FALLBACKS that no browser downloads, i.e. the cap is measuring the wrong thing. Cursor to MEASURE the split (bare <img>/url() = real payload vs fallback-inside-<picture> = not payload) and PROPOSE - not implement - how the guard should express the difference. NO cap and NO hero file changes until the Owner has that measurement. The red stays until it is proven to be measuring the wrong thing."
+    "file": "chef_battle/test_static_image_weight.py — rewritten by Bolt at 6db8f5a3 after Cursor went silent.",
+    "surfaces": "THREE: templates/**/*.html {% static %}, static/css/**/*.css url(), and **/*.py quoted image paths. Python skips migrations, tests, and config/release_journal.py (prose changelog full of filenames).",
+    "classification": "payload = what a browser downloads (capped, BLOCKS the suite). fallback = the <img> inside a one-line <picture> offering WebP. social = og:image/twitter:image lines and telegram_preview.py. Non-payload gets a 3 MB sanity ceiling only. Precedence: payload > fallback > social — used as a bare <img> anywhere means it IS payload.",
+    "proof": "FAILS on 4f3cf403~1 with 24 payload offenders; PASSES on main. Real Django run on the server: 3 tests, OK.",
+    "self_check": "test_all_three_surfaces_are_being_scanned asserts each of the three scanners found something, naming which one went blind. Inherited from Cursor's line and extended - the best idea in the original file.",
+    "caps": "widget 100 KB, crowd 50 KB, img/arena 50 KB, chef_battle/arena 100 KB, hero*/my-hero*/categories/avatars 400 KB (every live one is now WebP under 220 KB, so 400 KB forbids a regression to PNG without forbidding art), logo 400 KB, default 150 KB.",
+    "THE_GUARD_CAUGHT_ITS_AUTHOR": "After Bolt rewired the templates and believed the heroes were done, the new CSS scan found FOUR live refs still shipping megabytes: chef_battle.css:7 and :1562 (hero-battle.png 2,134,832) and detail_page.css:216 + maintenance.css:50 (hero.jpg 2,758,257). Same class as the Arena floor-plate. A guard that only confirms what its author already believed is worth nothing."
   },
   "STANDING_RULES_NEW_TODAY": [
     "An emergency load fix may DISCONNECT any asset from CSS or a template. It may NOT DELETE an asset the Owner paid for or approved, nor DELETE a working UI element. Disconnecting is one line and reversible.",
@@ -334,29 +335,33 @@
     "A cap above the observed maximum is not a cap. Set thresholds where they bite.",
     "Read the peer's DIFF and the INBOX. ArenaFront read diffs but not orders twice today and both times produced waste.",
     "Weight hides in whatever surface nobody scanned yet: templates, then CSS url(), then Python string maps. When a guard misses something, ask which SURFACE was unscanned, not which regex to add.",
-    "Do not report a number to the Owner before checking it to the end. The '99 MB live weight' figure was wrong because the <picture> fallbacks were counted as payload."
+    "Do not report a number to the Owner before checking it to the end. The '99 MB live weight' figure was wrong because the <picture> fallbacks were counted as payload.",
+    "A filename pairing is not proof of identity. hero.webp and hero.jpg are different photographs. Compare dimensions before wiring one to the other.",
+    "A guard that only confirms what its author already believed is worth nothing. The CSS scan caught four live megabytes the author had just declared finished."
   ],
   "AGENT_STATE": {
-    "cursor": "Responsive, high quality. Delivered 473b84eb and 7b417f2f. Volunteered that amputating the widget was the wrong trade, and flagged the crowd request-storm risk against his own finished work. Did NOT execute W2 - Bolt did it.",
-    "arenafront": "Unreliable on order-state. Was 34 unread. Twice acted on code state without order state: reported 'face-01..24 kept' while they were being deleted, then rebuilt W1 after an explicit STOP (#3138), producing competing branch 2b7f72ff.",
-    "icon_ruling": "96px (ca728d85, on main) BEATS AF's 48px (2b7f72ff, branch only, NOT merged). Icons render at 22 CSS px = 66 device px on 3x phones, so a 48px source upscales and blurs. Bolt rendered both at 66px and looked: on 48px the mortar engraving, laurel separation, chest clasp and knife-roll buckle all turn to blobs. Cost of the 96px set is 19,516 extra bytes on a page that shed 5,350,000. AF may overturn it ONLY with a measurement showing 48px not degrading at 66 device px.",
-    "af_branch_2b7f72ff": "Left intact. Nothing deleted."
+    "silence": "Neither agent has sent anything since 17:12. Orders #3143 and #3145 were PRINTED into the Cursor terminal at 19:07 and 19:30 - confirmed in cursor_inbox_poller.log - and the short wake #3147 at 21:40. The poller process is alive (pid 699, up since 17:15). So delivery works and the stall is inside their windows; Bolt cannot see in there.",
+    "read_at_is_still_worthless": "Every message shows read_at None. The field proves nothing either way - do not reason from it.",
+    "bolt_position": "Took over their open work rather than idling. W6, W9, W10 done. W7 remains genuinely theirs (needs their harness), W8 was not real work at all."
   },
   "IMAGE_WEIGHT_PASS_DONE": {
     "owner_authorisation": "2026-07-25, explicit: proceed, with rollback, and stop asking.",
-    "result": "38,211,038 -> 2,806,894 B (-92.7%) across 17 files. 12 category cards, 3 default avatars, 2 'my' hero plates. Same pixel dimensions, same crops - no layout movement anywhere.",
+    "result": "55,391,751 -> 4,141,707 B (-92.5%) across the whole site. Widget icons, 12 category cards, 3 default avatars, 2 authoring heroes, 5 page heroes, the champion coin and the PWA icon.",
     "rollback": "ALL 17 source PNG/JPG files remain on disk AND in git. Rollback is a revert of 4f3cf403 and 9f8cb2ff. Nothing needs restoring from a branch.",
     "verified_by_looking": "1:1 side-by-side crops of salads, female-avatar and my-hero-recipes. Pepper grains, feta crumbs, dill, freckles, the clover on the hat, paper grain and surf foam all intact. Byte count alone was NOT accepted as proof.",
     "CORRECTION_BOLT_OWED_THE_OWNER": "My earlier '99 MB of live weight' figure was WRONG and I told him so before doing anything else. The heroes were ALREADY converted - hero-login, hero-collection, hero-join, hero-monitoring and a dozen more have been served as WebP via <picture><source> for a long time, 170-215 KB each. The 2.5 MB PNGs are fallbacks no modern browser fetches. I reported a number without checking it to the end.",
     "THE_REAL_HOLE": "33 MB was live and uncompressed because it is referenced from PYTHON, not from a template or CSS: CATEGORY_IMAGE_MAP at recipes/views.py:508 and the default avatar map at recipes/models.py:161. Invisible to the guard AND to my own template grep.",
-    "self_caught_miss": "My own re-grep after the rewrite found two references I had missed in templates/registration/signup.html (male/female avatar). Closed before commit. The lesson: the verification pass earned its keep on the very first run."
+    "self_caught_miss": "My own re-grep after the rewrite found two references I had missed in templates/registration/signup.html (male/female avatar). Closed before commit. The lesson: the verification pass earned its keep on the very first run.",
+    "hero_measurement_W10_DONE": "Of 20 heavy files: 12 (27.5 MB) are <picture> fallbacks no browser fetches; 8 (12.7 MB) were REAL payload as bare <img>. The WebP for four of them already existed on disk and was simply never wired — 31 lines across 19 templates left as bare <img>. Nothing had to be generated.",
+    "TRAP_CAUGHT": "hero.webp is NOT the WebP of hero.jpg. It is 1916x821 and belongs to hero.png; hero.jpg is 1536x1024. Wiring by NAME would have silently swapped a different photograph onto every page using the card placeholder. Always compare dimensions before trusting a filename pairing. Hence hero-default.webp."
   },
   "ORDERS_OPEN": {
-    "W5_both": "Owner order: compact sessions, clear the hash. Report tracked-file count before/after and any sparse path taken and not released.",
-    "W6_cursor": "season1_champion_coin.png 333,855 B - find the reference first, compress to rendered size, keep the PNG. If unreferenced, SAY SO AND STOP. Never delete.",
-    "W7_cursor": "THE LOAD BUDGET. Requests, bytes, time-to-last-face with the crowd wired (round/, 96 files 400 KB) vs baseline. This is what unblocks W4.",
-    "W8_arenafront": "Contact sheets out of static/ to ops/audits/ (786 KB). Then inbox to zero and ONE line naming the next real thing in his lane.",
-    "W9_cursor": "Guard scans Python. See THE_GUARD.third_blind_spot.",
-    "W10_cursor": "Measure the hero fallback split. See THE_GUARD.hero_caps_open_question."
-  }
+    "W5_both": "Owner order: compact sessions, clear the hash. NOT DONE by either agent.",
+    "W6_cursor": "DONE BY BOLT. Champion coin 333,855 -> 14,322 (-95.7%), 176px for a 44px box, verified by rendering at the true 132 device px.",
+    "W7_cursor": "THE LOAD BUDGET — still the only thing that unblocks the crowd. NOT DONE. Requires a browser harness with the crowd wired.",
+    "W8_arenafront": "NOT ACTIONABLE ON MAIN: the contact sheets are not on main, they live on origin/agent/arenafront/a3-crowd-faces-96. This is a MERGE CONDITION for that branch, not standalone work. Corrected by Bolt.",
+    "W9_cursor": "DONE BY BOLT at 6db8f5a3.",
+    "W10_cursor": "DONE BY BOLT — see IMAGE_WEIGHT_PASS_DONE.hero_measurement_W10_DONE."
+  },
+  "PWA_ICON_DEFECT": "config/pwa_views.py declared images/pwa-icon-512.png as 512x512 to every installer while the file was 1254x1254 and 865,457 B. Replaced with a true 512x512 at 128,071 B (-85%), 256-colour palette where the source has only 2,505 colours, compared side by side with no banding. Kept as PNG: the manifest says image/png and installability is not worth a format experiment. Source file untouched."
 }
