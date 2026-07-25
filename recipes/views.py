@@ -514,7 +514,7 @@ CATEGORY_IMAGE_MAP = {
     "dinner": "images/categories/dinner.png",
     "grilling_and_barbecue": "images/categories/grilling-and-barbecue.png",
     "soups_and_stews": "images/categories/soups-and-stews.png",
-    "salads": "images/categories/salads.png",
+    "salads": "images/categories/salads.webp",
     "seasonal_and_festive_irish": "images/categories/seasonal-and-festive.png",
     "healthy_eating": "images/categories/healthy-eating.png",
     "pasta_and_noodles": "images/categories/pasta-and-noodles.png",
