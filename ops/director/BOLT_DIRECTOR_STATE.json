@@ -3,128 +3,143 @@
     "id": "bolt-production-director-state",
     "status": "LIVE_OPERATIONAL_STATE",
     "canonical_path": "/ops/director/BOLT_DIRECTOR_STATE.json",
-    "purpose": "Bolt's crash and compaction survival file. Rewritten and committed at the end of every stage so a fresh window resumes from here instead of re-deriving. Machine-readable per AGENTS.md section 10.",
-    "last_updated": "2026-07-25"
+    "purpose": "Bolt's compaction survival file. Read this FIRST on any cold start, resume or post-compaction turn. It is newer than any conversation summary. Rewritten at the end of every stage.",
+    "last_updated": "2026-07-25T14:00Z"
   },
 
   "role": {
     "agent": "bolt",
-    "appointed": "2026-07-25 by the Product Owner",
     "title": "Production Director for the Arena",
-    "scope": "Study the canon, measure the gap, produce the production plan, delegate to Cursor and ArenaFront, report every stage to the Owner on Telegram, keep the journals moving.",
+    "appointed": "2026-07-25 by the Product Owner",
+    "remit": "Study the canon, measure the gap to the mockup, produce the plan, delegate to Cursor and ArenaFront, verify their work by measurement, report every stage to the Owner on Telegram, keep the board and journal moving.",
     "standing_orders": [
-      "Single thread. No parallel investigation branches. The Owner is on a hard limit budget and has explicitly called out agents opening ten streams at once.",
-      "Do not ask the Owner a question whose answer does not change the output. Decide, then state what was decided.",
-      "Owner communication is the chat plus the Telegram bot. CoWork messages to the owner identity are NOT read; never send them there.",
+      "SINGLE THREAD. No parallel investigation branches. The Owner is on a hard budget and has explicitly called out agents opening ten streams at once.",
+      "Do not ask the Owner a question whose answer does not change the output. Decide, state what was decided.",
+      "VERIFY, NEVER ACCEPT A REPORT. Check agent claims against the git diff or the live process list. This has already caught real errors.",
+      "Owner comms = chat + Telegram bot. CoWork messages to the owner identity are NOT read; never send them there.",
       "Report START and DONE of every stage to Telegram.",
-      "Deploy only on explicit Owner instruction (AGENTS.md section 8)."
+      "Deploy only on explicit Owner instruction (AGENTS.md s8)."
     ]
   },
 
   "owner_comms": {
-    "send": "ssh root@80.85.84.156 /srv/culineire/scripts/alert.sh \"message\"",
-    "receive": "ssh root@80.85.84.156 python3 /srv/culineire/scripts/owner_tg_fetch.py <offset>",
-    "offset_watermark_file": "/srv/culineire/shared/bolt_tg_offset",
+    "send": "wsl -e bash -c \"ssh -i ~/.ssh/culineire_linode root@80.85.84.156 '/srv/culineire/scripts/alert.sh \\\"text\\\"'\"",
+    "receive": "python3 /srv/culineire/scripts/owner_tg_fetch.py <offset>  (on the server)",
+    "offset_watermark": "/srv/culineire/shared/bolt_tg_offset",
     "verified_two_way": true,
-    "note": "Never print the bot token. The fetch script reads alert.env itself and is written not to leak it."
+    "note": "Never print the bot token. The fetch script reads alert.env itself."
   },
 
   "environment": {
-    "bolt_worktree": "E:/CulinEire Project/CulinEire/CulinEire-bolt-sync",
-    "bolt_worktree_state": "clean, tracks origin/main",
-    "owner_main_checkout": "E:/CulinEire Project/CulinEire/CulinEire",
-    "owner_main_checkout_state": "STALE at 726e3380 and DIRTY with 25+ paths, some belonging to other agents. DO NOT reset, clean or absorb. Owner decision pending.",
+    "bolt_worktree": "E:/CulinEire Project/CulinEire/CulinEire-bolt-sync (branch docs/roster-amend-arenafront, tracks main)",
+    "owner_main_checkout": "E:/CulinEire Project/CulinEire/CulinEire — STALE at 726e3380 and DIRTY (29 paths). DO NOT reset, clean or absorb. Owner decision pending.",
     "ssh": "wsl -e bash -c \"ssh -i ~/.ssh/culineire_linode root@80.85.84.156 '...'\"",
     "server_django": "cd /srv/culineire/current && set -a && . /srv/culineire/shared/.env && set +a && /srv/culineire/venv/bin/python <script>",
-    "server_script_needs": "sys.path.insert(0, '/srv/culineire/current') before django.setup()"
+    "server_script_needs": "sys.path.insert(0, '/srv/culineire/current') before django.setup()",
+    "cowork_write_pattern": "Write a .py locally, scp it to /tmp, run it via the server venv, rm it. Inline heredocs break on quoting.",
+    "poller": "Monitor task b1f227wp7, persistent, 120s, script scratchpad/bolt_poll.sh, watermark scratchpad/bolt_poll_watermark. Path must be wrapped as wsl -e bash -c \"bash '/mnt/c/...'\" — a bare /mnt/c path is mangled by Git Bash into C:/Program Files/Git/mnt/c/...",
+    "hooks_installed": ".claude/hooks/bolt_precompact.sh and .claude/hooks/bolt_session_start.py, wired in .claude/settings.json. Tested end to end."
   },
 
   "roster": {
     "constitution": "AGENTS.md v1.4.0 on origin/main",
     "agents": ["Ember", "GreenBear", "Bolt", "Cursor", "ArenaFront"],
-    "cursor": "ACTIVE. Carrying agent. Owns arena_deck_polish.css, command deck composition, merge and deploy.",
-    "arenafront": "ACTIVE. Owns static/img/arena/** and static/css/arena_atmosphere.css.",
-    "greenbear": "CoWork row stale, not in live traffic.",
+    "CRITICAL_TOPOLOGY": "There is only ONE machine in this project. Cursor and ArenaFront are the SAME agent, two windows on that one machine. The Owner multiplies identities because of limit budgets and is fully aware. Owner ruled 2026-07-25 that ArenaFront is nonetheless a full equal fifth peer in s1.",
+    "cursor": "Writes ALL the code / backend. Owns arena_render.js, arena_deck_polish.css, arena_render.css, command deck, merge and deploy. Relay for ArenaFront orders (order C1).",
+    "arenafront": "REAL REMIT, per the Owner 2026-07-25: GENERATE VISUAL ASSETS for the code Cursor writes, through the internal PAID OpenAI image system. NOT a CSS tweaker. Owns static/img/arena/**, static/css/arena_atmosphere.css, static/images/crowd/.",
+    "greenbear": "CoWork row stale, absent from live traffic.",
     "ember": "LIMIT_HOLD.",
-    "critical_fact": "Cursor and ArenaFront are the SAME agent, two windows on the SAME machine. The Owner multiplies identities on one machine because of limit budgets. Owner ruled 2026-07-25 that ArenaFront is nonetheless a full equal fifth peer in section 1.",
-    "recorded_risk": "There is only ONE machine. AGENTS.md section 9 describes an 8:6:1 three-machine pool that does not exist. A distributed gate must never be attempted; it would report FULL_SUITE_PASS while running on one box. Raised once, not re-litigated."
-  },
-
-  "cascade_and_fences": {
-    "cascade_lock": "static/css/arena_atmosphere.css MUST load AFTER arena_deck_polish.css in arena.html. Reverting it repaints .page--arena light and kills the dark hall.",
-    "shared_files_needing_one_editor": ["templates/.../arena.html", "config/release_journal.py", "recipes/views.py ARENA_RELEASE_STAGES"],
-    "never_merge": "design/arena-visual-shell-prototype — reference only, by Owner order."
+    "wake_routing": "ALL orders go to the CURSOR inbox on his single 120s poller. ArenaFront has NO poller by design and is woken through the Cursor window. His CoWork identity is preserved permanently per s16 and receives a copy for the record.",
+    "recorded_risk": "AGENTS.md s9 describes an 8:6:1 three-machine pool that does not exist. A distributed gate must never be attempted; it would report FULL_SUITE_PASS while running on one box. Stage 5 on the board was corrected to say so (commit 24f7acc7)."
   },
 
   "root_cause_of_the_dead_stop": {
-    "found": "2026-07-25 by Bolt",
-    "summary": "The Arena stalled because the target was invisible and the measurements were constitutionally muted.",
-    "evidence": [
-      "The four approved mockups were never committed. Absent from origin/main, from every branch, and from cursor-arenafront, cursor-arena and cursor-arena-r2. Verified by enumeration, not by failing to find them.",
-      "arena_mockup_spec.md was archived into docs/archive/pre-constitution-reset-2026-07-20/. Section 10 makes archived files historical evidence that cannot define design or acceptance.",
-      "The archived copy carries a 2026-07-20 banner saying the 56-degree perspective is dead and must not be implemented. AGENTS.md section 11 at v1.3.0, dated 2026-07-23, re-permits it explicitly. Anyone who found the spec read the banner and stopped.",
-      "Consequence: colour was the only iterable dimension. About 127 releases, v2.5.462 to v2.5.589, cycled the same atmosphere slices (gold dust, ceiling vignette, side washes, floor dark, gold rails, stand haze, corner vignettes) while every structural gap stayed open."
+    "found_by": "Bolt, 2026-07-25",
+    "summary": "The Arena stalled because the target was invisible, the measurements were constitutionally muted, perspective was banned in our own CSS, and the asset generator was never used.",
+    "four_causes": [
+      "The four Owner-approved mockups were NEVER committed to git. Absent from origin/main, every branch, and every agent worktree. Verified by enumeration. FIXED in d7b9a4af.",
+      "arena_mockup_spec.md was archived, where AGENTS.md s10 makes it historical evidence that cannot define design. The only numbers describing the target were demoted. FIXED: restored as docs/chef_battle/arena_mockup_spec.json, AUTHORITATIVE.",
+      "The archived spec carried a 2026-07-20 banner saying the 56-degree perspective was dead. AGENTS.md s11 v1.3.0 (2026-07-23) re-permits css perspective and rotateX explicitly. Anyone who found the spec read the banner and stopped. FIXED: superseded notice recorded in the JSON.",
+      "FOURTH AND BIGGEST: chef_battle/management/commands/generate_crowd_faces.py exists, OPENAI_API_KEY is live on prod, OPENAI_IMAGE_MODEL=gpt-image-1 — and only THREE crowd faces were ever generated (female-96, male-96, neutral-96), cycled across all 290 seats by _arena_render_ring.html. The mockup stands are hundreds of DIFFERENT faces. No gradient or haze can fake that. 68 CSS atmosphere slices polished light around three pictures instead of generating three hundred."
     ],
-    "fixed_by": "commit d7b9a4af"
+    "consequence": "About 127 releases, v2.5.462 to v2.5.589, cycled the same seven atmosphere slices (gold dust, ceiling vignette, side washes, floor dark, gold rails, stand haze, corner vignettes) while every structural gap stayed open."
   },
 
-  "stages": [
-    {
-      "id": 1,
-      "name": "Reactivation, sync, roster amendment, comms",
-      "status": "DONE",
-      "evidence": {
-        "commit": "96fca99a",
-        "did": "Bolt out of IDLE. Clean worktree synced to origin/main after being 450 commits behind. AGENTS.md v1.3.0 read including new sections 15 and 16. Section 1 roster amended to add ArenaFront, bumping the constitution to v1.4.0. 31 historical CoWork messages processed and closed. Round-trip requested from ArenaFront in CoWork 3020. Telegram verified in both directions."
-      }
-    },
-    {
-      "id": 2,
-      "name": "Mockup canon into git",
-      "status": "DONE",
-      "evidence": {
-        "commit": "d7b9a4af",
-        "did": "Committed the four approved mockups with sha256 provenance. Restored the measured specification as authoritative JSON. Corrected the stale do-not-implement-perspective banner against section 11."
-      }
-    },
-    {
-      "id": 3,
-      "name": "Live Arena code teardown and re-measure of the gap against v2.5.589",
-      "status": "IN_PROGRESS",
-      "next_actions": [
-        "Read the live arena template, CSS and JS on origin/main.",
-        "Re-verify gap ranks 1, 2, 3 and 7 against v2.5.589 rather than the old v2.5.330 baseline.",
-        "Record which gaps are geometry, which are asset, which are layout."
-      ]
-    },
-    { "id": 4, "name": "Production plan: ordered slices, each with acceptance criteria", "status": "PENDING" },
-    { "id": 5, "name": "Delegation packages to Cursor and ArenaFront with file ownership", "status": "PENDING" },
-    { "id": 6, "name": "Journal and Arena Build Plan board brought back in step with reality", "status": "PENDING" }
-  ],
-
   "measured_gap_ranked": [
-    "1. No perspective. Plan view versus a 56-degree tilt. One transform over the whole scene, geometry contract unchanged.",
-    "2. Inverted proportions. Floor should be 0.63 of frame width; stands 1.6 R_floor deep. Production has the floor filling the canvas and the stands as a rim.",
-    "3. Faces cropped by the seat polygon instead of fitted round portraits.",
+    "1. No perspective. Plan view vs a 56-degree tilt. IN PROGRESS as G2/G4.",
+    "2. Inverted proportions. Floor should be 0.63 of frame width, stands 1.60 R_floor. DONE as G1.",
+    "3. Faces cropped by the seat polygon instead of fitted round portraits, AND only 3 distinct faces exist. Asset half is A2.",
     "4. No depth falloff across the stands.",
-    "5. No gold rim lights at the floor and stands boundary.",
+    "5. No gold rim lights at the floor/stands boundary.",
     "6. No slate band between floor and stands.",
     "7. HUD scattered on the page instead of framing the arena."
   ],
 
+  "commits_landed_today": {
+    "96fca99a": "AGENTS.md s1 roster +ArenaFront, constitution v1.3.0 -> v1.4.0",
+    "d7b9a4af": "4 mockups committed with sha256 provenance + arena_mockup_spec.json restored AUTHORITATIVE + superseded-banner notice",
+    "55d10240": "this director state file",
+    "24f7acc7": "board: new workstream 3H geometry track; Stage 5 phantom 8:6:1 pool corrected"
+  },
+
+  "orders_in_flight": {
+    "G4": {"id": 3072, "to": "cursor", "state": "AWAITING RESULT", "ask": "Remove perspective entirely (cos56=0.5592 hits the measured 0.56 at every width); fit the scene by PROJECTED STANDS bounds instead of the rank floor. Re-report the twelve numbers. Desktop 1280/1920 strict; at 390px only M4 no-clip, M5 hit-testing, M6 no-overflow.", "expected_if_diagnosis_right": "M1 = 0.559 +/- 0.002 IDENTICAL at 1280 and 1920, because a constant tilt gives a constant ratio. If it still drifts, the diagnosis is wrong and there is a second scale-dependent term."},
+    "A2": {"id": 3073, "to": "arenafront", "state": "AWAITING RESULT", "ask": "EXACTLY 24 crowd-face generations, quality low, 96px, run locally, committed not deployed. Owner-approved capped spend. Deliver a contact sheet so the Owner judges style before paying for more, the real count and cost, and a number on whether 24 gives enough variety for 290 seats. If the 24 come out near-identical that is a DEFECT to report, not to commit."},
+    "H2": {"id": 3068, "to": "cursor", "state": "AFTER G4", "ask": "Two parameterised reusable scripts cowork_read.py <id> and cowork_ack.py <id> <action>, replacing one script per message id. Then purge the main-checkout scratchpad by exact pattern with count-first, ten-examples, survivor-list procedure."},
+    "C1": {"id": 3069, "to": "cursor", "state": "ISSUED", "ask": "Act as relay for the ArenaFront lane; no second poller."}
+  },
+
+  "geometry_track": {
+    "G1": {"branch": "impl/arena-g1-proportions", "commit": "a81af083", "verdict": "ACCEPTED, verified against diff", "numbers": "floor_outer 296.25, stands_outer 474.0, ratio 1.5999, stage 0.13, FLOOR_SHARE 0.63; selectors.py diff empty; no rotateX; 3 files"},
+    "G2": {"branch": "impl/arena-g2-camera", "commit": "e181e1a4", "verdict": "CODE ACCEPTED, verified against diff", "detail": "rotateX(56deg), perspective 1500px, overflow visible, all FOUR stale prohibitions deleted (perspective:none, 'do not apply rotateX here', 'Keeps fitScene camera (no rotateX)', 'No rotateX any more'). 4 files, +194/-95, CSS got smaller. selectors.py untouched across both slices."},
+    "G3": {"evidence_commit": "6c4cd2d8", "verdict": "MEASURED FAIL, reported honestly, stopped as ordered without reverting or writing a prohibition",
+           "twelve_numbers": {"1280x720": "M1=0.5340 M2=0.6300 M3=1.6412", "1920x1080": "M1=0.5224 M2=0.6300 M3=1.6292", "390x844": "M1=0.5822 M2=0.6300 M3=1.7071"},
+           "m4_clipping_px": {"1280": -21.72, "1920": -25.29, "390": -14.72},
+           "m5_hit_testing": "PASS at all three widths",
+           "m6_horizontal_overflow": "PASS, 0 at 390px",
+           "bolt_diagnosis": "M2 is 0.6300 at ALL widths so the fit constant is correct. M1 and M3 DRIFT by viewport. A constant rotateX cannot produce a drifting ratio, therefore the scale-dependent term is the FIXED perspective:1500px: lens distortion scales with the ratio of perspective distance to rendered size. It also pushes far rows out, inflating M3 above 1.65 and causing the negative M4 at every width. Second cause of M4: fitScene sizes to the RANK FLOOR while stands sit at 1.60x, so they stick out by construction."}
+  },
+
+  "infrastructure_fixed_today": {
+    "credential_helper": "The repo LOCAL git config carried a second credential.helper set to /mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe — a WSL path handed to Windows git, which Git Bash expands to C:/Program Files/Git/mnt/c/... (nonexistent). Every push invoked a missing helper; some hung forever. Worktrees share one .git so it broke pushes for EVERY agent. Removed; system-level 'manager' now applies. Proven with a real push and delete. Removed value recorded here for rollback.",
+    "hung_pushes_killed": "Two: ArenaFront's git push hung 21h16m since Jul 24 15:55, and Cursor's hung 45 minutes. Both branches confirmed already on origin before killing, so nothing was lost.",
+    "worktrees_pruned": "30 down to 6. 24 removed via `git worktree remove` (never rm -rf) on the criterion CLEAN and HEAD reachable from an origin ref. One (cursor-arena) was deregistered but Windows refused the directory delete; verified its commit 1c346c22 was on origin and no uncommitted work remained, then removed the orphan. 113 local and 90 remote branches ALL preserved — only working copies were removed. Was 33,060 duplicated files across 30 trees; now about 6,600 across 6.",
+    "surviving_worktrees": ["CulinEire (owner main, dirty, do not touch)", "CulinEire-bolt-sync (mine)", "CulinEire-impl-arena-g1-proportions", "CulinEire-impl-arena-g2-camera", "cursor-arena-r2", "cursor-arenafront"],
+    "pollers": "Was 4 on Cursor plus 1 on ArenaFront. Now ONE: cursor_inbox_poller.sh at 120s. Verified against the live process list, not the report.",
+    "scratchpad_sprawl": "ArenaFront purged 893 -> 107, verified. Cursor's main-checkout scratchpad still ~1042 files (561 .py + 438 .sh) because he writes cursor_read_<id>.py and cursor_ack_<id>.py PER MESSAGE — proven with timestamps as the count grew 1036->1042 during our exchange. Order H2 addresses it."
+  },
+
+  "next_steps": [
+    "Receive G4 twelve numbers. If M1 = 0.559 identical at 1280/1920 and M4 is non-negative, the geometry track is browser-proven.",
+    "Receive A2 contact sheet. Present it to the Owner for the style decision before any full crowd run.",
+    "Then ONE combined deploy: G1 + G2/G4 + board 24f7acc7. Owner approval required. No micro-releases.",
+    "Then A1 to ArenaFront: framed round portraits at 0.06 R_floor (0.07 front, 0.05 back), circle sitting IN the seat, then depth falloff, gold rim lights, slate band.",
+    "PROPOSED, NOT YET APPROVED: sparse-checkout per lane. ArenaFront holds 1108 files to work with FIVE (static/css/arena_atmosphere.css + 4 files under static/img/arena/). git 2.54 supports cone mode; not enabled on any worktree. Deferred until after G4 so his tree is not changed mid-measurement.",
+    "PROPOSED, NOT YET APPROVED: amend AGENTS.md s9 (the 8:6:1 fiction) and s5 (ACK requirement between identities sharing one machine). Only the Owner may amend (s13)."
+  ],
+
   "open_owner_decisions": {
-    "D2": "Stands as spectator oval. Implied by Owner order 2777 per the Cursor journal. Blocks 3G R5.",
-    "D3": "Country and flag data source. Blocks the flag only; the confrontation band ships flagless.",
+    "crowd_full_run": "After the 24-face contact sheet: how many total generations, and at what quality.",
+    "combined_deploy": "G1+G2/G4+board as one deploy.",
+    "D2": "Stands as spectator oval. Blocks 3G R5.",
+    "D3": "Country and flag data source. Blocks the flag only.",
     "owner_main_checkout": "What to do with the stale dirty main checkout, including files belonging to other agents.",
-    "section_9_amendment": "Whether to correct the 8:6:1 three-machine fiction and drop the ACK requirement between identities sharing one machine. Bolt proposed once; awaiting the Owner."
+    "sparse_checkout": "Whether to shrink agent worktrees to their lane.",
+    "section_9_amendment": "Whether to correct the phantom test pool in the constitution itself."
   },
 
   "hard_rules_not_to_relearn": [
     "The arena floor is LIGHT warm parchment. There is no dark floor theme. Dark lives in the hall and stands.",
     "There is no hero on the arena page. Permanent Owner decision.",
     "The Arena is staff and superuser only until the Owner releases it. A 404 for everyone else is intended.",
-    "The rank label column is a legend and is deliberately the mirror of ring order. Do not 'fix' it.",
-    "Reuse first. Search, trace callers, find the source of truth, then reuse. New code only when absence is proven.",
-    "No demo battles. No synthetic interactive spectators. The 544 interactive seats are real viewers only."
+    "The rank label column is a LEGEND and is deliberately the mirror of ring order. Do not 'fix' it.",
+    "Cascade lock: static/css/arena_atmosphere.css must load AFTER arena_deck_polish.css in arena.html. Reverting repaints .page--arena light and kills the dark hall.",
+    "Never merge design/arena-visual-shell-prototype. Reference only, by Owner order.",
+    "get_arena_geometry is a CONTRACT. Ring counts and segments do not change for visual work.",
+    "Mobile arena is a SEPARATE scene (Owner decision): a rank tile at 390px renders ~8px tall and cannot be tapped, so tapping a ring opens a chef list. Do NOT force desktop ratios onto 390px. That work comes after desktop acceptance.",
+    "REUSE FIRST. Search, trace callers, find the source of truth, then reuse. New code only when absence is proven. The crowd generator existing unused is the cost of skipping this.",
+    "Mass deletion only by EXACT pattern: count first, show ten examples, list survivors, then delete. A substring filter once destroyed three live messages on this project.",
+    "No demo battles. No synthetic interactive spectators. Interactive seats are real viewers only.",
+    "CURRENT_EXECUTION_PLAN.md is stale. Live truth is the board in recipes/views.py ARENA_RELEASE_STAGES."
   ]
 }
