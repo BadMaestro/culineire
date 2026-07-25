@@ -67,15 +67,35 @@ window.ARENA_VIEWER = {
 </div>
 
 {% comment %}
-Build Plan 3C: interactive seats are real viewers only. These default faces
-are retained for potential non-interactive atmosphere use, but arena_render.js
-no longer paints them into empty spectator polygons.
+G6: atmospheric crowd portraits cycle deterministically by seat hash.
+Real viewers still own interactive seats; these fill EMPTY stands only.
 {% endcomment %}
 <script nonce="{{ request.csp_nonce }}">
 window.ARENA_CROWD_FACES = [
-  "{% static 'images/crowd/neutral-96.webp' %}",
-  "{% static 'images/crowd/female-96.webp' %}",
-  "{% static 'images/crowd/male-96.webp' %}"
+  "{% static 'images/crowd/face-01.webp' %}",
+  "{% static 'images/crowd/face-02.webp' %}",
+  "{% static 'images/crowd/face-03.webp' %}",
+  "{% static 'images/crowd/face-04.webp' %}",
+  "{% static 'images/crowd/face-05.webp' %}",
+  "{% static 'images/crowd/face-06.webp' %}",
+  "{% static 'images/crowd/face-07.webp' %}",
+  "{% static 'images/crowd/face-08.webp' %}",
+  "{% static 'images/crowd/face-09.webp' %}",
+  "{% static 'images/crowd/face-10.webp' %}",
+  "{% static 'images/crowd/face-11.webp' %}",
+  "{% static 'images/crowd/face-12.webp' %}",
+  "{% static 'images/crowd/face-13.webp' %}",
+  "{% static 'images/crowd/face-14.webp' %}",
+  "{% static 'images/crowd/face-15.webp' %}",
+  "{% static 'images/crowd/face-16.webp' %}",
+  "{% static 'images/crowd/face-17.webp' %}",
+  "{% static 'images/crowd/face-18.webp' %}",
+  "{% static 'images/crowd/face-19.webp' %}",
+  "{% static 'images/crowd/face-20.webp' %}",
+  "{% static 'images/crowd/face-21.webp' %}",
+  "{% static 'images/crowd/face-22.webp' %}",
+  "{% static 'images/crowd/face-23.webp' %}",
+  "{% static 'images/crowd/face-24.webp' %}"
 ];
 </script>
 

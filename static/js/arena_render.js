@@ -608,21 +608,28 @@
     layer.appendChild(figure);
   }
 
-  // Build Plan 3C: interactive spectator seats are REAL viewers only.
-  // Atmospheric packed-hall presentation lives outside these polygons (hall
-  // image / arena_atmosphere haze) and must not impersonate registered or
-  // online users. Default-avatar stand-ins therefore must never be drawn into
-  // empty interactive seats — leave them empty so front-row-first self-seating
-  // and live payload.spectators remain honest.
-  //
-  // crowdFaceFor / seatHash / appendCrowdFigure stay in-tree as unused helpers
-  // (constitution: do not delete suspected legacy during first 2D work). They
-  // are no longer called from bind().
+  // G6: atmospheric stand-ins in EMPTY spectator seats only. Real payload
+  // occupants still win via the occupants layer. Faces are pointer-events:none
+  // and must not impersonate registered users (constitution s11 atmosphere).
   function fillCrowd(svg, geometry, assignments) {
     var layer = svg.querySelector('[data-arena-layer="crowd"]');
     if (!layer) { return; }
     while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-    // Intentionally empty: no synthetic occupants in interactive seats.
+
+    var occupied = {};
+    (assignments || []).forEach(function (a) {
+      if (!a) { return; }
+      occupied[String(a.ring) + ':' + String(a.cell)] = true;
+    });
+
+    var radius = floorRadius(svg, geometry);
+    var seats = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
+    Array.prototype.forEach.call(seats, function (seat) {
+      var ring = Number(seat.getAttribute('data-ring'));
+      var cell = Number(seat.getAttribute('data-cell'));
+      if (occupied[ring + ':' + cell]) { return; }
+      appendCrowdFigure(svg, layer, ring, cell, geometry, radius);
+    });
   }
 
   function initialOf(entity) {
