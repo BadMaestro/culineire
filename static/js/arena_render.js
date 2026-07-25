@@ -549,23 +549,23 @@
   // Depth of light. Size alone does not read as distance: with every face at
   // full brightness the back row shines as hard as the front and the
   // perspective flattens out. The mockup (§4) drops roughly 35% of brightness
-  // from the near row to the far one, and lets the far rows fall toward the
-  // hall's own colour, so the crowd recedes instead of standing in a wall.
-  var FACE_DIM = 0.35;
-  var FACE_DESATURATE = 0.28;
+  // from the near row to the far one; G8 pushes that to ~45% so four oval rows
+  // actually read as a mass receding into the bowl (tokens via filter only).
+  var FACE_DIM = 0.45;
+  var FACE_DESATURATE = 0.38;
 
   // The seats fall into the dark on the same curve as the faces sitting in
   // them. arena_render.css reads --row-light; it used to hold a hand-written
   // ladder of ring numbers, which stopped covering the stands the moment they
   // grew from four rows to eight. One source of depth, written from here.
   function lightRows(svg, geometry) {
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind !== 'spectator') { return; }
-      var light = (1 - FACE_DIM * rowDepth(geometry, ring.index)).toFixed(3);
-      var seats = svg.querySelectorAll('.arena-cell[data-ring="' + ring.index + '"]');
-      Array.prototype.forEach.call(seats, function (seat) {
-        seat.style.setProperty('--row-light', light);
-      });
+    // G8: light every drawn spectator seat from its own ring id (oval row =
+    // ring % 10). Do not depend on geometry.rings listing every oval row.
+    var seats = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
+    Array.prototype.forEach.call(seats, function (seat) {
+      var ring = Number(seat.getAttribute('data-ring'));
+      var light = (1 - FACE_DIM * rowDepth(geometry, ring)).toFixed(3);
+      seat.style.setProperty('--row-light', light);
     });
   }
 
