@@ -469,3 +469,104 @@
     animation: none;
   }
 }
+
+/* ============================================================================
+ * GRAPHICS ATM FLOOR+WALL — Owner ?? resume (#2993).
+ * Fence: arena_atmosphere.css only. Lift floor-sheen + wall grain readability.
+ * No fake octagon geometry, no synthetic seats, parchment centre stays clear.
+ * ============================================================================ */
+
+/* Wall wash: slightly stronger texture presence under the bowl gradients. */
+.page--arena {
+  background-blend-mode:
+    soft-light,
+    normal,
+    soft-light,
+    normal,
+    normal,
+    normal,
+    normal,
+    normal,
+    normal,
+    multiply;
+}
+
+/* Floor sheen apron: more readable parchment glow around the oval, still masked off centre. */
+.page--arena::after {
+  opacity: 0.34;
+  mix-blend-mode: soft-light;
+  width: min(96vw, 76rem);
+  height: min(86vh, 60rem);
+  background:
+    radial-gradient(
+      ellipse 78% 52% at 50% 58%,
+      color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 18%, transparent) 0 36%,
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 82% 54% at 50% 56%,
+      transparent 0 44%,
+      color-mix(in srgb, var(--hall-dark-0, var(--ink)) 18%, transparent) 70%,
+      transparent 90%
+    ),
+    var(--arena-atm-floor) center / cover no-repeat;
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 52%,
+    transparent 0 38%,
+    #000 62% 100%
+  );
+  mask-image: radial-gradient(
+    circle at 50% 52%,
+    transparent 0 38%,
+    #000 62% 100%
+  );
+}
+
+/* Keep side vignette from crushing the lifted wall grain. */
+.page--arena::before {
+  opacity: 0.78;
+}
+
+@media (min-width: 901px) {
+  .page--arena::before {
+    opacity: 0.88;
+  }
+
+  .page--arena::after {
+    opacity: 0.3;
+    -webkit-mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 40%,
+      #000 64% 100%
+    );
+    mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 40%,
+      #000 64% 100%
+    );
+  }
+}
+
+@media (max-width: 900px) {
+  .page--arena::after {
+    width: min(100vw, 44rem);
+    height: min(64vh, 32rem);
+    opacity: 0.32;
+    -webkit-mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 42%,
+      #000 62% 100%
+    );
+    mask-image: radial-gradient(
+      circle at 50% 52%,
+      transparent 0 42%,
+      #000 62% 100%
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page--arena {
+    background-blend-mode: normal;
+  }
+}
