@@ -506,18 +506,18 @@ def _can_view_site_update_plan(user):
 
 
 CATEGORY_IMAGE_MAP = {
-    "irish_culinary_heritage": "images/categories/irish-culinary-heritage.png",
-    "modern_irish_cooking": "images/categories/modern-irish-cooking.png",
-    "everyday_irish_cooking": "images/categories/everyday-irish-cooking.png",
-    "breakfast_and_brunch": "images/categories/breakfast-and-brunch.png",
-    "lunch": "images/categories/lunch.png",
-    "dinner": "images/categories/dinner.png",
-    "grilling_and_barbecue": "images/categories/grilling-and-barbecue.png",
-    "soups_and_stews": "images/categories/soups-and-stews.png",
+    "irish_culinary_heritage": "images/categories/irish-culinary-heritage.webp",
+    "modern_irish_cooking": "images/categories/modern-irish-cooking.webp",
+    "everyday_irish_cooking": "images/categories/everyday-irish-cooking.webp",
+    "breakfast_and_brunch": "images/categories/breakfast-and-brunch.webp",
+    "lunch": "images/categories/lunch.webp",
+    "dinner": "images/categories/dinner.webp",
+    "grilling_and_barbecue": "images/categories/grilling-and-barbecue.webp",
+    "soups_and_stews": "images/categories/soups-and-stews.webp",
     "salads": "images/categories/salads.webp",
-    "seasonal_and_festive_irish": "images/categories/seasonal-and-festive.png",
-    "healthy_eating": "images/categories/healthy-eating.png",
-    "pasta_and_noodles": "images/categories/pasta-and-noodles.png",
+    "seasonal_and_festive_irish": "images/categories/seasonal-and-festive.webp",
+    "healthy_eating": "images/categories/healthy-eating.webp",
+    "pasta_and_noodles": "images/categories/pasta-and-noodles.webp",
 }
 
 

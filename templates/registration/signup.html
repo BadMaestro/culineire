@@ -98,11 +98,11 @@
                                 <label class="auth-avatar-choice" for="{{ radio.id_for_label }}">
                                     {{ radio.tag }}
                                     {% if radio.data.value == "male" %}
-                                    <img alt="" src="{% static 'images/male-avatar.png' %}">
+                                    <img alt="" src="{% static 'images/male-avatar.webp' %}">
                                     {% elif radio.data.value == "female" %}
-                                    <img alt="" src="{% static 'images/female-avatar.png' %}">
+                                    <img alt="" src="{% static 'images/female-avatar.webp' %}">
                                     {% else %}
-                                    <img alt="" src="{% static 'images/neutral-avatar.PNG' %}">
+                                    <img alt="" src="{% static 'images/neutral-avatar.webp' %}">
                                     {% endif %}
                                     <span>{{ radio.choice_label }}</span>
                                 </label>

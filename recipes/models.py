@@ -159,11 +159,11 @@ class RecipeAuthor(models.Model):
         if self.avatar:
             return self.avatar.url
         default_avatar_files = {
-            self.DefaultAvatar.MALE: "male-avatar.png",
-            self.DefaultAvatar.FEMALE: "female-avatar.png",
-            self.DefaultAvatar.NEUTRAL: "neutral-avatar.PNG",
+            self.DefaultAvatar.MALE: "male-avatar.webp",
+            self.DefaultAvatar.FEMALE: "female-avatar.webp",
+            self.DefaultAvatar.NEUTRAL: "neutral-avatar.webp",
         }
-        filename = default_avatar_files.get(self.default_avatar, "neutral-avatar.PNG")
+        filename = default_avatar_files.get(self.default_avatar, "neutral-avatar.webp")
         return static(f"images/{filename}")
 
 
