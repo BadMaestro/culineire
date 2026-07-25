@@ -1519,15 +1519,14 @@
 }
 
 
-/* 3G — isometric floor presence (prototype floor-glow, site tokens). */
+/* 3G — isometric floor presence (prototype floor-glow, site tokens).
+   G4: no perspective here — camera is rotateX-only on #arena-render. */
 @media (min-width: 901px) {
   .arena-floor-stage {
-    perspective: 56rem;
-    perspective-origin: 50% 42%;
+    transform-style: preserve-3d;
   }
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render {
-    /* Do not foreshorten here — fitScene + later unsquash own transform. */
+  .arena-floor-stage .arena-render-container {
+    /* Container stays flat; #arena-render carries the G2 camera transform. */
     transform: none;
     filter: drop-shadow(0 1.2rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent));
   }
@@ -1556,10 +1555,19 @@
 }
 
 @media (min-width: 901px) and (prefers-reduced-motion: reduce) {
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render {
+  .arena-floor-stage .arena-render-container {
     transform: none;
     filter: none;
+  }
+  /* Keep G2 camera — mockup tilt is composition, not decorative motion. */
+  .arena-floor-stage #arena-render {
+    filter: none;
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
   }
 }
 
@@ -1656,10 +1664,11 @@
 }
 
 
-/* 3G — parchment floor plate under live SVG (prototype floor, official tokens). */
+/* 3G — parchment floor plate under live SVG (prototype floor, official tokens).
+   G4: no perspective on the stage — scene camera is rotateX-only. */
 @media (min-width: 901px) {
   .arena-floor-stage {
-    perspective: 58rem;
+    transform-style: preserve-3d;
   }
   .arena-floor-stage::before {
     content: "";
@@ -1936,17 +1945,23 @@
   .arena-floor-stage {
     inset: 0;
   }
-  /* fitScene owns #arena-render transform — do not apply rotateX here. */
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render {
+  /* G2 camera: one rotateX(56deg) over the scene — see arena_mockup_spec.json.
+     Earlier "do not apply rotateX" notes contradicted AGENTS.md s11. */
+  .arena-floor-stage .arena-render-container {
     transform: none;
   }
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
-    transform: translate(-50%, -50%);
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
   }
   .arena-command-deck__phase-card .arena-panel__heading,
   .arena-command-deck__metrics .arena-panel__heading,
@@ -1958,14 +1973,20 @@
 }
 
 @media (min-width: 901px) and (prefers-reduced-motion: reduce) {
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render,
-  .arena-floor-stage::before {
-    transform: translate(-50%, -50%);
-  }
-  .arena-floor-stage .arena-render-container,
-  .arena-floor-stage #arena-render {
+  .arena-floor-stage .arena-render-container {
     transform: none;
+  }
+  .arena-floor-stage #arena-render {
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
+  }
+  .arena-floor-stage::before {
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
   }
 }
 
@@ -2288,41 +2309,43 @@
 }
 
 
-/* 3G — keep full octagon inside the floor frame (Owner clip hotfix). */
+/* G2/G4 camera — docs/chef_battle/arena_mockup_spec.json
+   G1 proportions + rotateX(56deg) only (no perspective — G4).
+   overflow:visible — overflow:hidden on a plan-sized box clipped the stands. */
 @media (min-width: 901px) {
-  /* arena_render.css + fitScene() own the camera. Do NOT replace #arena-render
-     transform with rotateX — that foreshortens the octagon and clips stands.
-     overflow MUST stay hidden: fitScene sizes the full scene into the frame;
-     visible overflow was clipping under ribbon/footer (Owner 2026-07-24). */
   .arena-floor-stage {
-    perspective: none;
-    overflow: hidden;
+    overflow: visible;
+    transform-style: preserve-3d;
   }
   .page--arena .arena-command-deck__floor {
-    overflow: hidden;
+    overflow: visible;
   }
   .arena-floor-stage .arena-render-container,
   .page--arena .arena-floor-stage .arena-render-container {
-    /* Fill absolute inset:0 from command_deck — do NOT set height:clamp here;
-       that fought inset and left the SVG frame off-centre. */
-    overflow: hidden;
+    overflow: visible;
     height: auto;
     max-width: none;
     width: auto;
     transform: none;
     filter: none;
+    transform-style: preserve-3d;
   }
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    /* Restore fitScene contract from arena_render.css */
-    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
     filter: none;
   }
-  /* Decorative parchment plate: flat underlay, no competing 3D tilt. */
+  /* Decorative parchment plate tracks the floor and shares the camera tilt. */
   .arena-floor-stage::before {
-    transform: translate(-50%, -50%);
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
     opacity: 0.55;
-    width: min(88%, 54rem);
+    width: min(63%, 42rem);
   }
   .arena-floor-stage::after {
     opacity: 0.45;
@@ -2355,18 +2378,25 @@
 }
 
 @media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  /* Camera stays — mockup composition is the acceptance target (AGENTS s11). */
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
+    transform-origin: 50% 62%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
-    transform: translate(-50%, -50%);
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
   }
 }
 
 
 /* 3G — mockup centre gold core + bright parchment plate + ring hierarchy.
-   Keeps fitScene camera (no rotateX). Official tokens only. */
+   Camera tilt is G2 (rotateX 56deg); this block is palette only. */
 @media (min-width: 901px) {
   /* Bright parchment underlay — light floor rule; flat (no squash tilt). */
   .arena-floor-stage::before {
@@ -3741,5 +3771,33 @@
   .page--arena .arena-lower-broadcast .js-arena-join-crowd,
   .page--arena .arena-lower-broadcast a[href*="login"] .chef-battle-cta__label {
     font-weight: 800;
+  }
+}
+
+/* =============================================================================
+   G2/G4 CAMERA (Bolt production order) — cascade winner
+   Source: docs/chef_battle/arena_mockup_spec.json
+   rotateX(56deg) only — parallel projection (G4 removed fixed perspective).
+   ============================================================================= */
+@media (min-width: 901px) {
+  .page--arena .arena-command-deck__floor,
+  .page--arena .arena-floor-stage,
+  .page--arena .arena-floor-stage .arena-render-container {
+    overflow: visible !important;
+  }
+  .page--arena .arena-floor-stage {
+    transform-style: preserve-3d;
+  }
+  .page--arena .arena-floor-stage #arena-render {
+    transform-origin: 50% 62% !important;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(56deg)
+      scale(var(--arena-fit, 1)) !important;
+  }
+  .page--arena .arena-floor-stage::before {
+    transform-origin: 50% 62%;
+    transform: translate(-50%, -50%) rotateX(56deg);
   }
 }

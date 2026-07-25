@@ -1,0 +1,359 @@
+{
+  "slice": "G4",
+  "branch": "impl/arena-g2-camera",
+  "fix": "remove perspective; fitScene by projected stands",
+  "base": "http://127.0.0.1:8765",
+  "url": "http://127.0.0.1:8765/ops/audits/g3_arena_harness.html",
+  "widths": {
+    "1280x720": {
+      "page": {
+        "innerWidth": 1280,
+        "innerHeight": 720,
+        "clientWidth": 1280,
+        "clientHeight": 720,
+        "scrollOverflowX": 0
+      },
+      "floor": {
+        "left": 282.4244689941406,
+        "right": 997.5755004882812,
+        "top": 167.250244140625,
+        "bottom": 567.1575927734375,
+        "width": 715.1510314941406,
+        "height": 399.9073486328125,
+        "cx": 639.9999847412109,
+        "cy": 367.20391845703125,
+        "n": 184
+      },
+      "stands": {
+        "left": 12.784659385681152,
+        "right": 1267.21533203125,
+        "top": 127.48085021972656,
+        "bottom": 606.927001953125,
+        "width": 1254.4306726455688,
+        "height": 479.44615173339844,
+        "cx": 639.9999957084656,
+        "cy": 367.2039260864258,
+        "n": 290
+      },
+      "stage": {
+        "width": 100.9576416015625,
+        "height": 56.454833984375,
+        "left": 589.5211791992188,
+        "top": 338.97650146484375
+      },
+      "svg": {
+        "width": 1310.712646484375,
+        "height": 732.9412231445312
+      },
+      "m1": 0.559192857202904,
+      "m2": 0.5587117433547973,
+      "m3": 1.7540779743052732,
+      "m4_worst": {
+        "ring": "132",
+        "cell": "15",
+        "side": "left",
+        "min_margin": 12.784659385681152,
+        "margins": {
+          "left": 12.784659385681152,
+          "top": 363.8836975097656,
+          "right": 1255.3402843475342,
+          "bottom": 349.475830078125
+        },
+        "outside": false,
+        "rect": {
+          "left": 12.784659385681152,
+          "top": 363.8836975097656,
+          "right": 24.65971565246582,
+          "bottom": 370.524169921875,
+          "width": 11.875056266784668,
+          "height": 6.640472412109375
+        }
+      },
+      "seat_counts": {
+        "floor": 184,
+        "stands": 290
+      },
+      "m5_clicks": {
+        "front": {
+          "ok": true,
+          "before": {
+            "ring": "8",
+            "cell": "0",
+            "kind": "rank"
+          },
+          "after_ring": "8",
+          "after_cell": "0",
+          "label": null,
+          "occupancy": "empty",
+          "target": {
+            "ring": "8",
+            "cell": "0"
+          }
+        },
+        "back": {
+          "ok": true,
+          "before": {
+            "ring": "132",
+            "cell": "15",
+            "kind": "spectator"
+          },
+          "after_ring": "132",
+          "after_cell": "15",
+          "label": null,
+          "occupancy": "empty",
+          "target": {
+            "ring": "132",
+            "cell": "15"
+          }
+        }
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      }
+    },
+    "1920x1080": {
+      "page": {
+        "innerWidth": 1920,
+        "innerHeight": 1080,
+        "clientWidth": 1920,
+        "clientHeight": 1080,
+        "scrollOverflowX": 0
+      },
+      "floor": {
+        "left": 423.63446044921875,
+        "right": 1496.365478515625,
+        "top": 250.86947631835938,
+        "bottom": 850.7330932617188,
+        "width": 1072.7310180664062,
+        "height": 599.8636169433594,
+        "cx": 959.9999694824219,
+        "cy": 550.8012847900391,
+        "n": 184
+      },
+      "stands": {
+        "left": 19.17303466796875,
+        "right": 1900.826904296875,
+        "top": 191.21514892578125,
+        "bottom": 910.3873901367188,
+        "width": 1881.6538696289062,
+        "height": 719.1722412109375,
+        "cx": 959.9999694824219,
+        "cy": 550.80126953125,
+        "n": 290
+      },
+      "stage": {
+        "width": 151.43707275390625,
+        "height": 84.68258666992188,
+        "left": 884.2814331054688,
+        "top": 508.4599914550781
+      },
+      "svg": {
+        "width": 1966.077392578125,
+        "height": 1099.41650390625
+      },
+      "m1": 0.5591929447743679,
+      "m2": 0.5587140719095866,
+      "m3": 1.754077991536574,
+      "m4_worst": {
+        "ring": "132",
+        "cell": "15",
+        "side": "left",
+        "min_margin": 19.17303466796875,
+        "margins": {
+          "left": 19.17303466796875,
+          "top": 545.8209228515625,
+          "right": 1883.0143089294434,
+          "bottom": 524.2183227539062
+        },
+        "outside": false,
+        "rect": {
+          "left": 19.17303466796875,
+          "top": 545.8209228515625,
+          "right": 36.98569107055664,
+          "bottom": 555.7816772460938,
+          "width": 17.81265640258789,
+          "height": 9.96075439453125
+        }
+      },
+      "seat_counts": {
+        "floor": 184,
+        "stands": 290
+      },
+      "m5_clicks": {
+        "front": {
+          "ok": true,
+          "before": {
+            "ring": "8",
+            "cell": "0",
+            "kind": "rank"
+          },
+          "after_ring": "8",
+          "after_cell": "0",
+          "label": null,
+          "occupancy": "empty",
+          "target": {
+            "ring": "8",
+            "cell": "0"
+          }
+        },
+        "back": {
+          "ok": true,
+          "before": {
+            "ring": "112",
+            "cell": "15",
+            "kind": "spectator"
+          },
+          "after_ring": "112",
+          "after_cell": "15",
+          "label": null,
+          "occupancy": "empty",
+          "target": {
+            "ring": "112",
+            "cell": "15"
+          }
+        }
+      },
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      }
+    },
+    "390x844": {
+      "page": {
+        "innerWidth": 390,
+        "innerHeight": 844,
+        "clientWidth": 390,
+        "clientHeight": 844,
+        "scrollOverflowX": 0
+      },
+      "floor": {
+        "left": 86.04792022705078,
+        "right": 303.9520568847656,
+        "top": 369.5151672363281,
+        "bottom": 491.3656311035156,
+        "width": 217.90413665771484,
+        "height": 121.8504638671875,
+        "cx": 194.9999885559082,
+        "cy": 430.4403991699219,
+        "n": 184
+      },
+      "stands": {
+        "left": 3.889559745788574,
+        "right": 386.1104431152344,
+        "top": 357.3975830078125,
+        "bottom": 503.48321533203125,
+        "width": 382.2208833694458,
+        "height": 146.08563232421875,
+        "cx": 195.00000143051147,
+        "cy": 430.4403991699219,
+        "n": 290
+      },
+      "stage": {
+        "width": 30.761444091796875,
+        "height": 17.20159912109375,
+        "left": 179.61927795410156,
+        "top": 421.839599609375
+      },
+      "svg": {
+        "width": 399.36981201171875,
+        "height": 223.32476806640625
+      },
+      "m1": 0.5591929815384412,
+      "m2": 0.5587285555326021,
+      "m3": 1.754078142948891,
+      "m4_worst": {
+        "ring": "112",
+        "cell": "15",
+        "side": "right",
+        "min_margin": 3.889556884765625,
+        "margins": {
+          "left": 382.4921569824219,
+          "top": 429.4287414550781,
+          "right": 3.889556884765625,
+          "bottom": 412.5479431152344
+        },
+        "outside": false,
+        "rect": {
+          "left": 382.4921569824219,
+          "top": 429.4287414550781,
+          "right": 386.1104431152344,
+          "bottom": 431.4520568847656,
+          "width": 3.6182861328125,
+          "height": 2.0233154296875
+        }
+      },
+      "seat_counts": {
+        "floor": 184,
+        "stands": 290
+      },
+      "m5_clicks": {
+        "front": {
+          "ok": true,
+          "before": {
+            "ring": "8",
+            "cell": "0",
+            "kind": "rank"
+          },
+          "after_ring": "8",
+          "after_cell": "0",
+          "label": null,
+          "occupancy": "empty",
+          "target": {
+            "ring": "8",
+            "cell": "0"
+          }
+        },
+        "back": {
+          "ok": true,
+          "before": {
+            "ring": "112",
+            "cell": "15",
+            "kind": "spectator"
+          },
+          "after_ring": "112",
+          "after_cell": "15",
+          "label": null,
+          "occupancy": "empty",
+          "target": {
+            "ring": "112",
+            "cell": "15"
+          }
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    }
+  },
+  "screenshot": "E:\\CulinEire Project\\CulinEire\\CulinEire-impl-arena-g2-camera\\ops\\audits\\arena_g4_1280x720.png",
+  "mockup": "E:\\CulinEire Project\\CulinEire\\CulinEire-impl-arena-g2-camera\\docs\\chef_battle\\mockups\\01_arena_hall_crowd.png",
+  "fails": [
+    "1280x720 M2=0.5587117433547973 (far from 0.63; report to Bolt)",
+    "1280x720 M3=1.7540779743052732",
+    "1920x1080 M2=0.5587140719095866 (far from 0.63; report to Bolt)",
+    "1920x1080 M3=1.754077991536574"
+  ],
+  "status": "FAIL_STOP",
+  "twelve_numbers": {
+    "1280x720": {
+      "M1": 0.559192857202904,
+      "M2": 0.5587117433547973,
+      "M3": 1.7540779743052732
+    },
+    "1920x1080": {
+      "M1": 0.5591929447743679,
+      "M2": 0.5587140719095866,
+      "M3": 1.754077991536574
+    },
+    "390x844": {
+      "M1": 0.5591929815384412,
+      "M2": 0.5587285555326021,
+      "M3": 1.754078142948891
+    }
+  },
+  "m4_worst_case_margin_px": 3.889556884765625,
+  "m1_desktop_drift": 8.75714638581826e-08,
+  "m1_diagnosis": "HOLD \u2014 identical tilt gives constant ratio"
+}

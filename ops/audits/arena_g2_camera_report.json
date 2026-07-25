@@ -1,0 +1,56 @@
+{
+  "slice": "G2",
+  "branch": "impl/arena-g2-camera",
+  "base": "impl/arena-g1-proportions@a81af083",
+  "camera": {
+    "rotateX_deg": 56,
+    "cos56": 0.559193,
+    "vertical_compression_target": 0.56,
+    "perspective_px": 1500,
+    "transform_origin": "50% 62%",
+    "overflow": "visible"
+  },
+  "acceptance": {
+    "1_floor_vh_over_vw": {
+      "target": 0.56,
+      "tolerance": 0.03,
+      "expected_from_cos": 0.559193,
+      "status": "MATH_PASS_BROWSER_PENDING"
+    },
+    "2_floor_span_over_frame": {
+      "target": 0.63,
+      "tolerance": 0.02,
+      "fit_constant": 0.63,
+      "note": "fitScene measures projected rank bbox",
+      "status": "CONTRACT_PASS_BROWSER_PENDING"
+    },
+    "3_stands_over_floor": {
+      "target": 1.6,
+      "tolerance": 0.05,
+      "plan_space": 1.6,
+      "note": "plan radii unchanged; projected ratio should track",
+      "status": "PLAN_PASS_BROWSER_PENDING"
+    },
+    "4_clip_viewports": {
+      "widths_px": [
+        1280,
+        1920,
+        390
+      ],
+      "overflow": "visible",
+      "status": "PENDING_BROWSER"
+    },
+    "5_hit_testing": {
+      "note": "CSS 3D hit-testing on transformed SVG; no pointer-events changes",
+      "status": "UNCHANGED_CODEPATH"
+    },
+    "6_floor_parchment": "unchanged fills",
+    "7_screenshot": "pending beside 01_arena_hall_crowd.png"
+  },
+  "constraints": {
+    "get_arena_geometry_changed": false,
+    "based_on_g1_not_main": true,
+    "deployed": false,
+    "stale_prohibitions_removed": true
+  }
+}
