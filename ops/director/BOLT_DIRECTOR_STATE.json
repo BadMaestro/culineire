@@ -4,7 +4,7 @@
     "status": "LIVE_OPERATIONAL_STATE",
     "canonical_path": "/ops/director/BOLT_DIRECTOR_STATE.json",
     "purpose": "Bolt's compaction survival file. Read this FIRST on any cold start, resume or post-compaction turn. It is newer than any conversation summary. Rewritten at the end of every stage.",
-    "last_updated": "2026-07-25T15:05Z"
+    "last_updated": "2026-07-25T16:00Z"
   },
   "role": {
     "agent": "bolt",
@@ -262,5 +262,33 @@
     "read_at is NOT evidence: every bolt->cursor message carried the identical stamp 13:04:43.858785, including one sent 90 minutes later. Only a commit hash or a file on disk counts.",
     "Lane file scope done: graphics worktree 15 tracked files (was 1060), backend 990. .cursorignore committed e359bd8c. Rule S1: take a file with `git sparse-checkout add`, release it after.",
     "Stray tracked file C:UsersgolovDesktopweekly_pricing.patch removed at 3ec49096 on the Owner's word, after proving every change in it already shipped."
-  ]
+  ],
+  "PRODUCTION_STATE": {
+    "live_version": "v2.5.590 — DEPLOYED 2026-07-25 on the Owner's order 'все изменения на прод'.",
+    "merges": {
+      "e2533244": "geometry track G1..G5 (NOT G6)",
+      "72565596": "version bump",
+      "bd0bbdf2": "A2 24 crowd portraits as assets"
+    },
+    "post_deploy_checks": "manage.py check clean; home/recipes/articles all 200; footer reads v2.5.590; collectstatic ran (48 crowd files in staticfiles after hashing); arena 404 for anonymous = staff gate by design; deployed as user deploy, never root.",
+    "deliberately_excluded": "G6 and everything after it. Shipping G6 would have put a visible regression on the site."
+  },
+  "OPEN_GATE": {
+    "gate": "G6-FIX. Nothing after it is measured or merged until faces sit in seats.",
+    "defect": "Faces render scattered ACROSS THE FLOOR octagon and outside the stands; the seat rings stay empty grey dots. Count is right (290 emitted, 24 unique), POSITIONS are wrong. Confirmed by Bolt in arena_g6_1280x720.png AND still present in arena_g9_1280x720.png.",
+    "diagnosis": "The face layer is almost certainly positioned in UNTRANSFORMED page coordinates while seats live inside the transformed scene. A face must be a child of the same element as its seat dot, inheriting the same transform chain. Proof required: seat and face must move together when the camera changes.",
+    "sequencing_failure_owned_by_bolt": "Bolt ordered 'never idle, run the queue without waiting'. Cursor obeyed and raced G7/G8/G9/G10 on top of the broken placement, so all three inherit the defect. The G6 rejection (#3104) arrived after he had passed it. Bolt's ordering error, not Cursor's craft."
+  },
+  "BOLT_DECISIONS_2026_07_25_PM": [
+    "PARCHMENT PLATE: REMOVE. Identified by Cursor as .arena-floor-stage::before drawing wider than the fitted floor, translucent straight-edged corners in the lower frame. Decoration older than the current geometry and now contradicting it. Delete the rule, do not resize; if something depends on it, report instead of patching around.",
+    "SEAT COUNT: 290, HARD. G7 dropped the client to 208 in 4 rows while the backend ships 290. 290 is the OWNER'S capacity-honesty decision (544 -> 290) recorded on the board; it is a product contract. The spec's 208 describes the MOCKUP's visible rows, not our seat inventory. A render drawing fewer seats than the backend serves will mis-map clicks on opening day. get_arena_geometry does not change - the drawing does.",
+    "ORDER: G6-FIX, then G11 restore 290 keeping G7/G8 depth and falloff, then G12 delete the plate, then ONE combined remeasure and a fresh G10 comparison sheet."
+  ],
+  "CROWD_ASSETS_FINAL": {
+    "A3": "96 faces with head rotation, commit 931c9389, branch origin/agent/arenafront/a3-crowd-faces-96. face-01..face-96 verified on disk.",
+    "A5_A6_free": "96 round framed portraits + 288 depth-tier files (near/mid/far), both derived LOCALLY with ZERO API calls, as ordered.",
+    "wire": "Cursor wired tiers into seats at d1994fb8: ARENA_CROWD_FACES = tiers/face-NN-round-mid.webp x96, crowdFaceFor swaps near/mid/far by rowDepth. Remeasure pending - his local harness on :8765 was down.",
+    "BUDGET_OVERRUN_REPORTED_TO_OWNER": "5 extra paid generations. face-97..face-101 were drawn before the cap order #3098 landed, then deleted; the kept set is exactly 96. Total paid is therefore about 101 against a cap of 96. Reported to the Owner as a LOWER BOUND, not an exact figure, because the generator keeps no API call counter. ArenaFront volunteered the overrun before being caught.",
+    "A4_judgement": "Grid effect reduced but 24 of the 96 are still dead-on frontal - those are the Owner-approved A2 originals."
+  }
 }
