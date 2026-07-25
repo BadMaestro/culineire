@@ -89,9 +89,10 @@
       "n": 8,
       "id": "M08",
       "title": "Confrontation band polish to match mockup weight (names, hex clip, glow)",
-      "status": "FE_TIP",
+      "status": "FE_READY",
       "owner": "arenafront",
-      "depends_on": ["M07"]
+      "depends_on": ["M07"],
+      "note": "Weight pass: hex rails + name weight + side glow; prior v2.5.571"
     },
     {
       "n": 9,
