@@ -18,6 +18,9 @@
 
   var SVG_SIZE = 1000;
   var OUTER_MARGIN = 26;
+  // STAGE_RADIUS is derived per draw from G1 proportions (see g1Radii).
+  // Kept as a mutable cache so centre stamps / walkway helpers can read it
+  // without threading geometry through every call.
   var STAGE_RADIUS = 88;
   var POLL_INTERVAL = 10000;
   var PING_INTERVAL = 20000;
@@ -25,6 +28,15 @@
   // rather than a fixed pixel gap so inner rings (small cells) keep the same
   // visual rhythm as the outer ones.
   var CELL_INSET = 0.94;
+
+  // G1 — docs/chef_battle/arena_mockup_spec.json proportions (NO tilt in this slice).
+  // Floor spans 0.63 of frame width; stands outer = 1.60 × floor outer;
+  // centre stage = 0.13 × floor outer; composition centre at 0.50 W / 0.51 H.
+  var FLOOR_SHARE = 0.63;
+  var STANDS_RATIO = 1.60;
+  var STAGE_RATIO = 0.13;
+  var COMPOSITION_CX = 0.50;
+  var COMPOSITION_CY = 0.51;
 
   var pollTimer = null;
   var pingTimer = null;
@@ -81,14 +93,30 @@
   // there is no tilt and no convergence at all. The projection below is kept
   // whole rather than deleted - put a number back in here and the camera
   // returns without rewriting anything.
-  // Share of the frame taken by the FULL illustrated octagon (rank + spectator
-  // rings + walkway). Historically this was 0.66 of WIDTH measured on RANK
-  // cells only — that left the outer rings larger than the frame, and with
-  // overflow:visible they clipped under the ribbon and lower broadcast
-  // (Owner screenshot 2026-07-24). Fit the whole visible scene instead.
-  var SCENE_SHARE = 0.90;
-
   var CONVERGENCE = 0;
+
+  /**
+   * G1 plan-space radii. Ring counts/segments stay in get_arena_geometry;
+   * only the radial projection changes here so floor/stands/stage hit the
+   * measured mockup ratios without rotateX (G2 owns the camera).
+   */
+  function g1Radii(geometry) {
+    var standsOuter = (SVG_SIZE / 2) - OUTER_MARGIN;
+    var floorOuter = standsOuter / STANDS_RATIO;
+    var stageR = floorOuter * STAGE_RATIO;
+    var rankCount = 0;
+    (geometry && geometry.rings || []).forEach(function (ring) {
+      if (ring.kind === 'rank') { rankCount += 1; }
+    });
+    var rankStep = (floorOuter - stageR) / Math.max(1, rankCount || 8);
+    STAGE_RADIUS = stageR;
+    return {
+      standsOuter: standsOuter,
+      floorOuter: floorOuter,
+      stageR: stageR,
+      rankStep: rankStep
+    };
+  }
   // Neither number is the measurement itself. CONVERGENCE describes the whole
   // depth span, while what has to match is the OCTAGON's own far and near
   // edges, which sit at 0.59 of that span - and VERTICAL_SQUASH acts on the
@@ -125,15 +153,11 @@
   }
 
   function radiusStepFor(geometry) {
-    var usable = (SVG_SIZE / 2) - OUTER_MARGIN - STAGE_RADIUS;
-    var floorRings = (geometry.rings || []).filter(function (ring) {
-      return ring.kind === 'stage' || ring.kind === 'rank';
-    });
-    // Chef floor depth only — oval stands sit outside and must not shrink the octagon.
-    return usable / Math.max(1, Math.max(floorRings.length, 9) - 1);
+    return g1Radii(geometry).rankStep;
   }
 
   function floorOuterRadius(geometry, step) {
+    if (step == null) { return g1Radii(geometry).floorOuter; }
     var lastRank = 0;
     (geometry.rings || []).forEach(function (ring) {
       if (ring.kind === 'rank' && ring.index > lastRank) { lastRank = ring.index; }
@@ -163,11 +187,12 @@
   function drawSpectatorOval(svg, geometry, step, defs) {
     var project = projector();
     var layer = el('g', { 'data-arena-layer': 'spectator-oval' });
-    var floorR = floorOuterRadius(geometry, step);
+    var props = g1Radii(geometry);
+    var floorR = props.floorOuter;
+    var standsOuter = props.standsOuter;
     var oval = geometry.spectator_oval || {};
     var rowsBySide = oval.rows_by_side || { top: 2, right: 3, bottom: 2, left: 3 };
     var beFloor = oval.floor_outer_radius || 220;
-    var scale = floorR / beFloor;
     var seats = oval.seats && oval.seats.length
       ? oval.seats
       : (global.ArenaGeometry.ovalSeats
@@ -183,12 +208,31 @@
           })
         : []);
 
+    // BE oval seats currently land at ~1.28 R_floor. Remap radial depth so the
+    // outermost seat sits at STANDS_RATIO (1.60) without touching get_arena_geometry
+    // ring/cell ids. Angle (and therefore side packing) is preserved.
+    var maxBe = beFloor;
     seats.forEach(function (seat) {
-      var planX = SVG_SIZE / 2 + seat.x * scale;
-      var planY = SVG_SIZE / 2 + seat.y * scale;
+      var rb = Math.hypot(seat.x || 0, seat.y || 0);
+      if (rb > maxBe) { maxBe = rb; }
+    });
+    var depthBe = Math.max(1e-6, maxBe - beFloor);
+    var depthSvg = standsOuter - floorR;
+
+    seats.forEach(function (seat) {
+      var rBe = Math.hypot(seat.x || 0, seat.y || 0);
+      var ang = Math.atan2(seat.y || 0, seat.x || 0);
+      var rSvg;
+      if (rBe <= beFloor) {
+        rSvg = rBe * (floorR / beFloor);
+      } else {
+        rSvg = floorR + ((rBe - beFloor) / depthBe) * depthSvg;
+      }
+      var planX = SVG_SIZE / 2 + Math.cos(ang) * rSvg;
+      var planY = SVG_SIZE / 2 + Math.sin(ang) * rSvg;
       var pt = project({ x: planX, y: planY });
       var pitch = Math.max(11, floorR * 0.045);
-      var r = Math.max(4.2, pitch * 0.34 * Math.min(1.15, scale));
+      var r = Math.max(4.2, pitch * 0.34);
       var circle = el('circle', {
         cx: pt.x.toFixed(2),
         cy: pt.y.toFixed(2),
@@ -253,7 +297,8 @@
   }
 
   function drawGrid(svg, geometry) {
-    var step = radiusStepFor(geometry);
+    var props = g1Radii(geometry);
+    var step = props.rankStep;
     var project = projector();
     var defs = el('defs', {});
     var cells = el('g', { 'data-arena-layer': 'cells' });
@@ -270,7 +315,7 @@
       for (var segment = 0; segment < ring.segments; segment++) {
         var vertices = global.ArenaGeometry.cellVertices(
           SVG_SIZE / 2, SVG_SIZE / 2, ring.index, segment,
-          floorRingCount, ring.segments, step, geometry.sides, STAGE_RADIUS
+          floorRingCount, ring.segments, step, geometry.sides, props.stageR
         );
         var centroid = global.ArenaGeometry.cellCentroid(vertices);
         // Project after the plan-space maths, never before: the geometry
@@ -312,7 +357,7 @@
     drawWalkway(svg, geometry, step);
     drawSpectatorOval(svg, geometry, step, defs);
     svg.appendChild(el('circle', {
-      cx: SVG_SIZE / 2, cy: SVG_SIZE / 2, r: STAGE_RADIUS,
+      cx: SVG_SIZE / 2, cy: SVG_SIZE / 2, r: props.stageR,
       'data-ring': String(stageRing.index),
       'data-ring-key': stageRing.key,
       'data-ring-kind': stageRing.kind,
@@ -475,12 +520,7 @@
   var FACE_FAR = 0.05;
 
   function floorRadius(svg, geometry) {
-    var step = radiusStepFor(geometry);
-    var last = 0;
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind === 'rank' && ring.index > last) { last = ring.index; }
-    });
-    return STAGE_RADIUS + last * step;
+    return g1Radii(geometry).floorOuter;
   }
 
   // How far back a seat sits, 0 at the front row and 1 at the back. The server
@@ -1016,18 +1056,15 @@
     if (!container) { return; }
 
     for (var pass = 0; pass < 2; pass++) {
-      // Fit the FULL visible octagon (rank + spectator + walkway + stage).
-      // Measuring RANK alone under-scaled relative to the outer rings, so the
-      // stands clipped under the ribbon/footer (Owner 2026-07-24). Skip zero
-      // rects — hidden cells report 0 at the origin and collapse the fit.
-      var parts = svg.querySelectorAll(
-        '.arena-cell, .arena-walkway, .arena-rim, .arena-stage'
-      );
-      if (!parts.length) { return; }
+      // G1: measure the RANK floor only. FLOOR_SHARE is the floor span / frame
+      // WIDTH (0.63). Stands sit at 1.60 x R_floor so their diameter fills ~1.0
+      // of the frame. Fitting the full scene to 0.90 inverted the mockup.
+      var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
+      if (!cells.length) { return; }
 
       var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-      for (var i = 0; i < parts.length; i++) {
-        var box = parts[i].getBoundingClientRect();
+      for (var i = 0; i < cells.length; i++) {
+        var box = cells[i].getBoundingClientRect();
         if (!box.width || !box.height) { continue; }
         if (box.left < left) { left = box.left; }
         if (box.right > right) { right = box.right; }
@@ -1041,18 +1078,18 @@
       if (!(width > 0) || !(height > 0)) { return; }
       if (!(frame.width > 0) || !(frame.height > 0)) { return; }
 
-      // Uniform scale: keep the whole scene inside the frame on BOTH axes with
-      // a small margin (panels/ribbon still readable around it).
-      var byWidth = frame.width * SCENE_SHARE / width;
-      var byHeight = frame.height * SCENE_SHARE / height;
+      // Width owns the share; height only caps so the floor cannot overflow.
+      var byWidth = frame.width * FLOOR_SHARE / width;
+      var byHeight = frame.height * 0.98 / height;
       var factor = Math.min(byWidth, byHeight);
       var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
       svg.style.setProperty('--arena-fit', (current * factor).toFixed(4));
 
-      // Centre in screen space on BOTH axes (Owner: octagon sat left/high and
-      // clipped). Previously only Y was corrected.
-      var driftY = (frame.top + frame.bottom) / 2 - (top + bottom) / 2;
-      var driftX = (frame.left + frame.right) / 2 - (left + right) / 2;
+      // Composition centre: 0.50 W / 0.51 H of the frame (spec).
+      var targetX = frame.left + frame.width * COMPOSITION_CX;
+      var targetY = frame.top + frame.height * COMPOSITION_CY;
+      var driftY = targetY - (top + bottom) / 2;
+      var driftX = targetX - (left + right) / 2;
       var shiftY = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
       var shiftX = parseFloat(svg.style.getPropertyValue('--arena-shift-x')) || 0;
       svg.style.setProperty('--arena-shift-y', (shiftY + driftY).toFixed(2) + 'px');

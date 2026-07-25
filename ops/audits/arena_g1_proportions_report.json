@@ -1,0 +1,36 @@
+{
+  "slice": "G1",
+  "branch": "impl/arena-g1-proportions",
+  "plan_space": {
+    "floor_outer": 296.25,
+    "stands_outer": 474.0,
+    "stage_r": 38.513,
+    "stands_over_floor": 1.6,
+    "stage_over_floor": 0.13
+  },
+  "fit_contract": {
+    "FLOOR_SHARE": 0.63,
+    "COMPOSITION_CX": 0.5,
+    "COMPOSITION_CY": 0.51
+  },
+  "acceptance_math": {
+    "1_floor_span_over_frame": {
+      "target": 0.63,
+      "value": 0.63,
+      "status": "PASS"
+    },
+    "2_stands_over_floor": {
+      "target": 1.6,
+      "value": 1.6,
+      "status": "PASS"
+    },
+    "3_clip_note": "Browser visual at 1280x720 / 1920x1080 / 390px still required for seat-edge clip QA",
+    "4_floor_palette": "unchanged",
+    "5_screenshot": "pending Owner/Bolt beside 01_arena_hall_crowd.png"
+  },
+  "constraints": {
+    "get_arena_geometry_changed": false,
+    "rotateX_added": false,
+    "deployed": false
+  }
+}

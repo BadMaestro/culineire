@@ -2288,12 +2288,11 @@
 }
 
 
-/* 3G — keep full octagon inside the floor frame (Owner clip hotfix). */
+/* 3G / G1 — keep arena inside the floor frame.
+   G1 proportions (floor 0.63 W, stands 1.60 R) live in arena_render.js fitScene.
+   Do NOT add rotateX here — G2 owns the camera. overflow stays hidden: with
+   stands diameter ≈ frame width the outer seats sit on the edge, not past it. */
 @media (min-width: 901px) {
-  /* arena_render.css + fitScene() own the camera. Do NOT replace #arena-render
-     transform with rotateX — that foreshortens the octagon and clips stands.
-     overflow MUST stay hidden: fitScene sizes the full scene into the frame;
-     visible overflow was clipping under ribbon/footer (Owner 2026-07-24). */
   .arena-floor-stage {
     perspective: none;
     overflow: hidden;
@@ -2318,11 +2317,11 @@
     transform: translate(-50%, -50%) translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px)) scale(var(--arena-fit, 1));
     filter: none;
   }
-  /* Decorative parchment plate: flat underlay, no competing 3D tilt. */
+  /* Decorative parchment plate tracks the G1 floor span (~0.63 of frame). */
   .arena-floor-stage::before {
     transform: translate(-50%, -50%);
     opacity: 0.55;
-    width: min(88%, 54rem);
+    width: min(63%, 42rem);
   }
   .arena-floor-stage::after {
     opacity: 0.45;
