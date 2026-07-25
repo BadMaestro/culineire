@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.589",
         "date": "2026-07-25",
-        "commit": "pending",
+        "commit": "67079e16",
         "title": "GRAPHICS P0 — dark hall bowl + packed stands",
         "section": "Chef Battles / Deployment",
         "summary": "Owner all-clear. FE tip 4b2c2c43: darken hall bowl + densify packed stands (arena_atmosphere.css ?v=20260725-p0-bowl). On Cursor v2.5.588 base. Not a public Arena release. Rollback: revert and redeploy.",
