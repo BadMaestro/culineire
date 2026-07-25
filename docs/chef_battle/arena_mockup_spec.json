@@ -1,0 +1,150 @@
+{
+  "document": {
+    "id": "arena-mockup-measured-spec",
+    "version": "2.0.0",
+    "status": "AUTHORITATIVE",
+    "authority_basis": "Annex to docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md. Machine-readable per AGENTS.md section 10, which forbids a sixth active Markdown instruction file and asks for JSON instead.",
+    "owner": "CulinEire Product Owner",
+    "canonical_path": "/docs/chef_battle/arena_mockup_spec.json",
+    "last_updated": "2026-07-25",
+    "restored_by": "Bolt, acting Production Director, on Owner instruction 2026-07-25"
+  },
+
+  "why_this_file_exists": [
+    "The four approved mockups were never committed to git. They existed only as untracked files on the Owner's machine, absent from origin/main and from every agent worktree. Agents were asked to match a target they could not open.",
+    "The measured specification was archived into docs/archive/pre-constitution-reset-2026-07-20/ during the constitution reset. Under AGENTS.md section 10 archived documents are historical evidence only and cannot define design or acceptance, so the only numbers describing the target were constitutionally demoted.",
+    "Colour was therefore the only dimension anyone could iterate without a reference. Roughly 127 releases (v2.5.462 to v2.5.589) cycled the same atmosphere slices while the structural gaps stayed untouched."
+  ],
+
+  "superseded_banner_notice": {
+    "stale_claim": "The archived Markdown carries a header dated 2026-07-20 stating the 56-degree perspective camera is 'no longer valid, do not implement'.",
+    "superseded_by": "AGENTS.md section 11 (Design constitution), version 1.3.0, dated 2026-07-23.",
+    "current_rule": "Responsive 2D perspective and depth simulation, including CSS transforms such as perspective and rotateX, SVG, images and photographic or illustrated hall alignment, MAY reproduce the approved mockup. What was abandoned is a true 3D rendering engine or an interactive 3D camera, not the approved fixed cinematic composition.",
+    "consequence": "The perspective transform described below is PERMITTED and is the highest-value gap to close. Do not stop on the archived banner."
+  },
+
+  "source": {
+    "mockups_committed_at": "docs/chef_battle/mockups/",
+    "primary_reference": "01_arena_hall_crowd.png",
+    "frame": "1280x720",
+    "delivered": "2026-07-18",
+    "measured": "2026-07-19 by GreenBear, off the image itself",
+    "sha256": {
+      "01_arena_hall_crowd.png": "3ae663b1bee2e1b4c245815f168f42f8f762ef9c9e77603fb7d5b2bdb9f092d9",
+      "02_arena_master_console.png": "164314cfba436f3fdcdc7c55e47cb80c1a781d30ac12af0eaabc7bbf6d89a58a",
+      "03_live_stream_vs.png": "906aa8d3c6b3057d2a824f9f36ed4710f55fbdb71f8e705c24258a62d067526f",
+      "04_battle_complete_winner.png": "c940153d43ed1eafcc3ad79d2b59a867ac6a12afad23cfddf22c5a349cd2c401"
+    },
+    "mockup_roles": {
+      "01_arena_hall_crowd.png": "PRIMARY CANON for /chef-battle/arena/. The spectator hall.",
+      "02_arena_master_console.png": "Canon for the staff Arena Master Console information architecture. Not the public arena.",
+      "03_live_stream_vs.png": "Reference for the Live/VS room. Not the hall.",
+      "04_battle_complete_winner.png": "Reference for the battle-complete winner state."
+    }
+  },
+
+  "camera": {
+    "note": "Single biggest gap. The mockup is drawn in perspective; production renders a strict plan view. No amount of colour work closes this.",
+    "floor_outer_octagon": {
+      "width_px": 800,
+      "height_px": 450,
+      "width_normalised_to_frame": 0.63,
+      "height_normalised_to_frame": 0.35
+    },
+    "vertical_compression": 0.56,
+    "tilt_degrees_from_vertical": 56,
+    "camera_elevation_above_floor_plane_degrees": 34,
+    "implementation": "One transform over the whole scene (perspective + rotateX). The ring and segment maths in get_arena_geometry does NOT change; only the projection does. Hit testing survives a CSS 3D transform, but far rows become shallow."
+  },
+
+  "proportions": {
+    "note": "Currently inverted in production: the floor fills nearly the whole canvas and the stands are a narrow rim.",
+    "floor_outer_radius": { "px": 400, "normalised_to_frame": 0.31, "R_floor": 1.0 },
+    "stands_outer_radius": { "px": 640, "normalised_to_frame": 0.5, "R_floor": 1.6 },
+    "centre_stage_crown_octagon_radius": { "px": 52, "normalised_to_frame": 0.04, "R_floor": 0.13 },
+    "composition_centre": { "x_normalised": 0.5, "y_normalised": 0.51 },
+    "crowd_band_depth_in_R_floor": 0.6
+  },
+
+  "rings": {
+    "rank_floor": {
+      "order": "ring 1 culinary_master innermost to ring 8 kitchen_porter outermost",
+      "segments": [8, 8, 16, 16, 24, 24, 32, 32],
+      "matches": "get_arena_geometry, confirmed by Bolt 2026-07-18"
+    },
+    "stands": {
+      "visible_rows_in_mockup": "4 to 5, deepening away from the floor",
+      "production_rings": [9, 10, 11, 12],
+      "production_segments": [40, 48, 56, 64],
+      "production_seats": 208,
+      "stagger": "Mockup rows are offset by roughly half a seat so faces sit in the gaps. Differing ring counts already produce this naturally; no extra offset needed."
+    }
+  },
+
+  "faces": {
+    "diameter_in_R_floor": { "typical": 0.06, "front_row": 0.07, "back_row": 0.05 },
+    "diameter_px": { "typical": 24, "front_row": 28, "back_row": 20 },
+    "treatment": "Round portraits framed on the face: head and shoulders, eyes around the upper third. Drawn as a circle sitting IN the seat, not filling it.",
+    "known_defect": "Production scales the avatar to the seat's larger dimension and clips it to the cell, so a slice of hair and forehead lands in the seat.",
+    "depth_falloff": "Front rows brighter and more saturated; roughly a 35 percent brightness drop from the near row to the far row."
+  },
+
+  "palette_sampled_from_mockup": {
+    "note": "Sampled values. Implementation must express these through official CulinEire tokens per AGENTS.md section 11; do not scatter raw hex through templates.",
+    "floor_outer_rings": "#e8e0d0",
+    "floor_inner_rings": "#d9c9a8",
+    "floor_seam_mortar": "#b09a72",
+    "spectator_slate_band": "#9aa8b4",
+    "hall_stands_base": "#0d1a12",
+    "hall_rim_darkest": "#050d08",
+    "gold_accent": "#d9a441",
+    "gold_bright_spotlight_core": "#f0c46a",
+    "chef_panel_challenger": "#1d4d33",
+    "chef_panel_opponent": "#7a1f24",
+    "hard_rule": "The floor stays LIGHT warm parchment. There is no dark floor theme. The dark lives in the hall and stands only."
+  },
+
+  "lighting": {
+    "centre_spotlight": "Warm pool over the centre, brightest at the stage, gone by roughly 0.55 R_stands.",
+    "vignette": "Hall darkens continuously toward the frame edge. A gradient, not a hard edge.",
+    "gold_rim_lights": "Trace the floor/stands boundary, and again at the top of the stands.",
+    "crown_bloom": "The centre crown carries a visible bloom."
+  },
+
+  "hud_positions_normalised_to_frame": {
+    "arena_title_block": { "x": 0.02, "y": 0.1, "contents": "CHEF BATTLES ARENA, hall name, live state" },
+    "phase_panel": { "position": "left, under the title", "contents": "current phase, countdown, next phase" },
+    "phase_rail": { "x_range": [0.33, 0.69], "y": 0.12, "contents": "7 steps CHALLENGE to CROWN, active one lit" },
+    "live_counters": { "x_range": [0.75, 0.99], "y": 0.11, "contents": "viewers, votes, gifts, crown streak" },
+    "rank_ladder": { "x_range": [0.47, 0.54], "y_range": [0.2, 0.44], "contents": "rank labels, centred column" },
+    "crown_ladder": { "x": 0.02, "y": 0.76, "contents": "today's crown holders" },
+    "recent_gifts": { "x": 0.86, "y": 0.76, "contents": "last gifts, Send a Gift" },
+    "supporter_ticker": { "position": "bottom strip, full width", "y": 0.95, "contents": "scrolling messages, Join the Crowd" }
+  },
+
+  "rank_ladder_direction_warning": {
+    "mockup_reads": "top-down from KITCHEN PORTER at the top to CULINARY MASTER at the bottom",
+    "ring_order_is": "ring 1 Culinary Master innermost",
+    "rule": "The label column is a LEGEND, not a map of the rings. It is the mirror of ring order on purpose. Do not 'fix' one to match the other without asking the Owner."
+  },
+
+  "fighters": {
+    "placement": "Two chefs stand in coloured hexagons flanking the crown, NOT in ring cells.",
+    "challenger": "left, green, with country flag",
+    "opponent": "right, red, with country flag",
+    "each_carries": "name and country",
+    "existing_behaviour": "Matches the renderer already vacating a chef's ring seat when they take the centre."
+  },
+
+  "gap_list_mockup_vs_production": [
+    { "rank": 1, "gap": "No perspective", "detail": "Plan view versus a 56-degree tilt. Biggest single difference.", "status": "OPEN" },
+    { "rank": 2, "gap": "Inverted proportions", "detail": "Production floor is about 0.9 of the canvas; it should be about 0.63 of the width with the stands 1.6 R_floor deep.", "status": "OPEN" },
+    { "rank": 3, "gap": "Faces cropped, not framed", "detail": "Avatars sliced by the seat polygon instead of fitted round portraits.", "status": "OPEN" },
+    { "rank": 4, "gap": "No depth falloff across the stands", "detail": "Beyond a flat brightness step.", "status": "OPEN" },
+    { "rank": 5, "gap": "No gold rim lights", "detail": "At the floor/stands boundary.", "status": "OPEN" },
+    { "rank": 6, "gap": "No slate band", "detail": "Between the floor and the stands.", "status": "OPEN" },
+    { "rank": 7, "gap": "HUD not framing the arena", "detail": "Most panels exist elsewhere on the page rather than framing the arena as in the mockup.", "status": "OPEN" }
+  ],
+
+  "gap_list_provenance": "Ordered by cost to the resemblance, measured against production v2.5.330. Re-verification against v2.5.589 is the Production Director's next step; the atmosphere work since then changed colour and lighting, not geometry, so ranks 1, 2, 3 and 7 are expected to be unchanged."
+}
