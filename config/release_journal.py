@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.584",
         "date": "2026-07-25",
-        "commit": "PLACEHOLDER",
+        "commit": "528a4c9f",
         "title": "GRAPHICS — deck chrome WOW (panels + lamp)",
         "section": "Chef Battles / Deployment",
         "summary": "Owner both-agents graphics: Cursor slice — show-panel bronze rails/depth + stronger deck lamp/centre aura via official tokens only (polish+effects ?v=20260725-gfx). AF parallel on atmosphere fence. Not a public Arena release. Rollback: revert and redeploy.",
