@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.583",
+        "date": "2026-07-25",
+        "commit": "pending",
+        "title": "MOCKUP M08 — confrontation band polish (hex rails)",
+        "section": "Chef Battles / Deployment",
+        "summary": "MOCKUP_20_STEP M08. FE tip c8fa4cb5: confrontation band weight — names/hex clip/glow via arena_deck_polish (?v=20260725-m08). Owner unhold after M17. Not a public Arena release. Rollback: revert and redeploy.",
+    },
+    {
         "version": "2.5.582",
         "date": "2026-07-25",
         "commit": "92255b8e",
