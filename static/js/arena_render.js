@@ -1039,29 +1039,22 @@
       .catch(function () { /* a dropped poll is retried on the next tick */ });
   }
 
-  // Fit the tilted scene inside its frame.
+  // Fit the tilted scene inside its frame (G4).
   //
-  // This cannot be done in CSS. A square SVG tilted by rotateX draws cos(angle)
-  // of its height, but the container also carries perspective:1500px, and
-  // perspective is not a constant scale — the nearer half of a tall element is
-  // magnified more than a short one, so the octagon's final on-screen size is
-  // not a fixed fraction of the SVG's own box. Sizing off a measured constant
-  // was tried in v2.5.336 and overshot by 251px a side: the constant taken at
-  // one size is wrong at the next.
-  //
-  // So measure the thing itself. Read the octagon's real on-screen box, scale
-  // by whichever axis runs out first, and repeat once — the second pass lands
-  // on the residue the changed perspective leaves behind. Two passes measure
-  // under 1px of drift, so there is no third.
+  // rotateX(56deg) alone is a parallel projection: vertical compression is
+  // cos(56) at every viewport. Measure PROJECTED STANDS (not the rank floor):
+  // stands sit at 1.60× floor radius, so fitting the floor left them sticking
+  // out by construction. Floor span 0.63 is an OUTPUT to verify, not the fit
+  // target. Two measure/scale passes land under 1px of drift.
   function fitScene(svg) {
     var container = svg.parentElement;
     if (!container) { return; }
 
     for (var pass = 0; pass < 2; pass++) {
-      // G1+G2: measure the RANK floor AFTER CSS projection (getBoundingClientRect
-      // includes rotateX(56deg)). FLOOR_SHARE 0.63 is the projected floor span /
-      // frame WIDTH from the mockup. Do not fit plan-space bounds.
-      var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
+      var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
+      if (!cells.length) {
+        cells = svg.querySelectorAll('.arena-cell--oval-seat');
+      }
       if (!cells.length) { return; }
 
       var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
@@ -1080,8 +1073,8 @@
       if (!(width > 0) || !(height > 0)) { return; }
       if (!(frame.width > 0) || !(frame.height > 0)) { return; }
 
-      // Width owns the share; height only caps so the floor cannot overflow.
-      var byWidth = frame.width * FLOOR_SHARE / width;
+      // Fit stands inside the frame; FLOOR_SHARE is not used as a fit target.
+      var byWidth = frame.width * 0.98 / width;
       var byHeight = frame.height * 0.98 / height;
       var factor = Math.min(byWidth, byHeight);
       var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;

@@ -1519,11 +1519,11 @@
 }
 
 
-/* 3G — isometric floor presence (prototype floor-glow, site tokens). */
+/* 3G — isometric floor presence (prototype floor-glow, site tokens).
+   G4: no perspective here — camera is rotateX-only on #arena-render. */
 @media (min-width: 901px) {
   .arena-floor-stage {
-    perspective: 56rem;
-    perspective-origin: 50% 42%;
+    transform-style: preserve-3d;
   }
   .arena-floor-stage .arena-render-container {
     /* Container stays flat; #arena-render carries the G2 camera transform. */
@@ -1664,10 +1664,11 @@
 }
 
 
-/* 3G — parchment floor plate under live SVG (prototype floor, official tokens). */
+/* 3G — parchment floor plate under live SVG (prototype floor, official tokens).
+   G4: no perspective on the stage — scene camera is rotateX-only. */
 @media (min-width: 901px) {
   .arena-floor-stage {
-    perspective: 58rem;
+    transform-style: preserve-3d;
   }
   .arena-floor-stage::before {
     content: "";
@@ -2308,13 +2309,11 @@
 }
 
 
-/* G2 camera — docs/chef_battle/arena_mockup_spec.json
-   G1 proportions (floor 0.63 W, stands 1.60 R) + rotateX(56deg) one scene transform.
+/* G2/G4 camera — docs/chef_battle/arena_mockup_spec.json
+   G1 proportions + rotateX(56deg) only (no perspective — G4).
    overflow:visible — overflow:hidden on a plan-sized box clipped the stands. */
 @media (min-width: 901px) {
   .arena-floor-stage {
-    perspective: 1500px;
-    perspective-origin: 50% 42%;
     overflow: visible;
     transform-style: preserve-3d;
   }
@@ -2329,7 +2328,6 @@
     width: auto;
     transform: none;
     filter: none;
-    perspective: none; /* perspective lives on .arena-floor-stage */
     transform-style: preserve-3d;
   }
   .arena-floor-stage #arena-render,
@@ -3777,9 +3775,9 @@
 }
 
 /* =============================================================================
-   G2 CAMERA (Bolt production order) — cascade winner
+   G2/G4 CAMERA (Bolt production order) — cascade winner
    Source: docs/chef_battle/arena_mockup_spec.json
-   Permitted by AGENTS.md s11 (perspective + rotateX for fixed cinematic composition).
+   rotateX(56deg) only — parallel projection (G4 removed fixed perspective).
    ============================================================================= */
 @media (min-width: 901px) {
   .page--arena .arena-command-deck__floor,
@@ -3788,8 +3786,6 @@
     overflow: visible !important;
   }
   .page--arena .arena-floor-stage {
-    perspective: 1500px;
-    perspective-origin: 50% 42%;
     transform-style: preserve-3d;
   }
   .page--arena .arena-floor-stage #arena-render {

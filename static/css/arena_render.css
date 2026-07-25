@@ -332,13 +332,14 @@
 }
 
 /* ----------------------------------------------------------------------------
- * Camera (G2 — docs/chef_battle/arena_mockup_spec.json).
+ * Camera (G2/G4 — docs/chef_battle/arena_mockup_spec.json).
  *
  * Mockup floor 800 x 450 px => vertical compression 0.56 = cos(56deg).
- * One CSS transform over the WHOLE scene: perspective + rotateX(56deg).
- * get_arena_geometry and plan-space ring maths stay untouched (G1 proportions).
- * fitScene() measures PROJECTED bounds via getBoundingClientRect and writes
- * --arena-fit so FLOOR_SHARE 0.63 applies after projection, not before.
+ * One CSS transform over the WHOLE scene: rotateX(56deg) only (parallel
+ * projection). A fixed perspective distance scaled differently at every
+ * viewport and was removed in G4. get_arena_geometry stays untouched.
+ * fitScene() measures PROJECTED STANDS bounds and writes --arena-fit;
+ * floor span 0.63 is an output to verify, not the fit target.
  *
  * overflow must NOT be hidden on the plan-sized box — that is what clipped
  * the stands on the last tilt attempt. Size for projected bounds; hall-edge
@@ -353,8 +354,6 @@
   border: 0;
   border-radius: 1rem;
   overflow: visible;
-  perspective: 1500px;
-  perspective-origin: 50% 42%;
   transform-style: preserve-3d;
 }
 
