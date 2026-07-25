@@ -1,0 +1,45 @@
+# Cursor / IDE index scope.
+#
+# Everything listed here is excluded from the IDE index, which means it also
+# stays out of the agent's context window. The repository is 1060 tracked
+# files; a lane that needs five of them should not be paying for a thousand.
+#
+# Two rules for editing this file:
+#   1. Never exclude a path an agent may legitimately need to READ. Excluded
+#      files are invisible to the agent, not merely unindexed - a wrong entry
+#      here looks exactly like "the file does not exist".
+#   2. Per-lane narrowing does NOT belong here. Use git sparse-checkout in that
+#      lane's worktree instead, so the files are genuinely absent from disk.
+#      See ops/director/BOLT_DIRECTOR_STATE.json for the current lane sets.
+
+# Environments and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Heavy archives, dumps and logs
+*.zip
+*.tar.gz
+*.log
+logs/
+
+# Static and build output
+staticfiles/
+media/
+node_modules/
+
+# Other agents' working copies. Each worktree is a full checkout of this same
+# repository; indexing them multiplies every file by the number of worktrees.
+.audit-worktrees/
+.ember-worktrees/
+.claude/worktrees/
+.audit-runtime/
+
+# Throwaway agent working files. Regenerated constantly, never reviewed.
+scratchpad/
+ops/audits/
+
+# Historical evidence. AGENTS.md section 10 makes archived material
+# non-authoritative for design, so it must not compete for context.
+docs/agents/memory/source_prompts/
