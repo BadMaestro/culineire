@@ -235,6 +235,8 @@
       var pitch = Math.max(8, floorR * 0.032);
       var depth = (seat.row || 0) / Math.max(1, (rowsBySide[seat.side] || 4) - 1);
       var r = Math.max(3.6, pitch * (0.40 - 0.06 * depth));
+      // G6-FIX: seat circle + crowd face share this host for one transform chain.
+      var seatGroup = el('g', { class: 'arena-seat-group', 'data-arena-seat-host': 'true' });
       var circle = el('circle', {
         cx: pt.x.toFixed(2),
         cy: pt.y.toFixed(2),
@@ -252,7 +254,8 @@
         'vector-effect': 'non-scaling-stroke',
         class: 'arena-cell arena-cell--oval-seat'
       });
-      layer.appendChild(circle);
+      seatGroup.appendChild(circle);
+      layer.appendChild(seatGroup);
       var clip = el('clipPath', { id: 'arena-clip-' + seat.ring + '-' + seat.cell });
       clip.appendChild(el('circle', {
         cx: pt.x.toFixed(2), cy: pt.y.toFixed(2), r: r.toFixed(2)
@@ -583,19 +586,23 @@
     return 'brightness(' + brightness.toFixed(3) + ') saturate(' + saturation.toFixed(3) + ')';
   }
 
-  function appendCrowdFigure(svg, layer, ring, cell, geometry, radius) {
+  function appendCrowdFigure(svg, ring, cell, geometry, radius) {
     var href = crowdFaceFor(ring, cell, geometry);
     if (!href) { return; }
-    var polygon = svg.querySelector('.arena-cell[data-ring="' + ring + '"][data-cell="' + cell + '"]');
-    if (!polygon) { return; }
-    var box = polygon.getBBox();
+    var seat = svg.querySelector('.arena-cell[data-ring="' + ring + '"][data-cell="' + cell + '"]');
+    if (!seat) { return; }
+    var seatGroup = seat.parentNode;
+    if (!seatGroup) { return; }
+    var cx = parseFloat(seat.getAttribute('cx'));
+    var cy = parseFloat(seat.getAttribute('cy'));
+    var seatR = parseFloat(seat.getAttribute('r'));
+    var seatSize = seatR * 2;
     var jitter = seatJitter(ring, cell);
     // A portrait sits IN its seat, so it never grows past the seat either.
-    var size = Math.min(faceDiameter(geometry, ring, radius) * jitter.scale,
-                        Math.max(box.width, box.height));
+    var size = Math.min(faceDiameter(geometry, ring, radius) * jitter.scale, seatSize);
     // Off-centre by up to a fifth of the seat in each direction.
-    var offsetX = jitter.x * box.width * 0.4;
-    var offsetY = jitter.y * box.height * 0.4;
+    var offsetX = jitter.x * seatSize * 0.4;
+    var offsetY = jitter.y * seatSize * 0.4;
 
     var figure = el('g', {
       'pointer-events': 'none',
@@ -605,8 +612,8 @@
     // in objectBoundingBox units serves every face whatever its size.
     var image = el('image', {
       href: href,
-      x: (box.x + box.width / 2 - size / 2 + offsetX).toFixed(2),
-      y: (box.y + box.height / 2 - size / 2 + offsetY).toFixed(2),
+      x: (cx - size / 2 + offsetX).toFixed(2),
+      y: (cy - size / 2 + offsetY).toFixed(2),
       width: size.toFixed(2), height: size.toFixed(2),
       // The portraits are cut out now, so the seat behind them shows through.
       // No circular clip: a round mask over a head-and-shoulders cut-out chops
@@ -615,7 +622,7 @@
     });
     image.style.filter = faceLighting(geometry, ring);
     figure.appendChild(image);
-    layer.appendChild(figure);
+    seatGroup.appendChild(figure);
   }
 
   // G6: atmospheric stand-ins in EMPTY spectator seats only. Real payload
@@ -623,8 +630,12 @@
   // and must not impersonate registered users (constitution s11 atmosphere).
   function fillCrowd(svg, geometry, assignments) {
     var layer = svg.querySelector('[data-arena-layer="crowd"]');
-    if (!layer) { return; }
-    while (layer.firstChild) { layer.removeChild(layer.firstChild); }
+    if (layer) {
+      while (layer.firstChild) { layer.removeChild(layer.firstChild); }
+    }
+    Array.prototype.forEach.call(svg.querySelectorAll('.arena-crowd-figure'), function (figure) {
+      if (figure.parentNode) { figure.parentNode.removeChild(figure); }
+    });
 
     var occupied = {};
     (assignments || []).forEach(function (a) {
@@ -638,7 +649,7 @@
       var ring = Number(seat.getAttribute('data-ring'));
       var cell = Number(seat.getAttribute('data-cell'));
       if (occupied[ring + ':' + cell]) { return; }
-      appendCrowdFigure(svg, layer, ring, cell, geometry, radius);
+      appendCrowdFigure(svg, ring, cell, geometry, radius);
     });
   }
 
