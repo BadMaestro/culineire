@@ -3,11 +3,11 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.5.0"
+  version: "1.6.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
-  last_updated: "2026-07-26"
+  last_updated: "2026-07-27"
 ```
 
 ## 1. Authority
@@ -108,7 +108,7 @@ bootstrap:
   machine: ""
   branch: ""
   commit: ""
-  constitution_version: "1.5.0"
+  constitution_version: "1.6.0"
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
@@ -317,20 +317,56 @@ All automated testing runs on the **primary 8-core workstation**. Python, git,
 the virtualenv and the full checkout are there. Use its cores: run the suite in
 parallel across the eight of them.
 
-### The Linode is closed to testing
+### Production testing is allowed, under a measured 50% ceiling
 
-**No test suite, no management command run for testing, no image conversion, no
-benchmark and no load generator may execute on the Linode.** It is the live
-production server and it has **one** core.
+Owner's decision, 2026-07-27: testing on production is permitted, **but only
+within 50% of the server's load**, and agents watch the server while they do it:
 
-What that costs, measured on 2026-07-26: two agent Python processes at 30% CPU
-each drove load5 to 2.70 and load1 to 3.44 on that single core while real
-visitors were on the site, and the Owner had to stop every agent to protect it.
-The site was minutes from going down for everyone.
+```text
+https://culineire.ie/monitoring/server/
+```
 
-Read-only production diagnostics stay allowed: log tails, `curl`, `ps`, `df`,
-`ss`, and reading files. Anything that computes, converts, or generates load
-belongs on the workstation.
+**The Linode has ONE core, so `load` 1.00 is 100% of it. The Owner's 50% is
+therefore `load` 0.50.** That is the whole arithmetic; there is no room to
+interpret it generously.
+
+The page reports exactly the figures this rule is written in — `load.one`,
+`load.five`, `memory.available_mb`, `swap.used_pct`, `disk.used_pct`. Read them
+there, or from `/proc/loadavg` and `/proc/meminfo` on the box. Do not substitute
+a metric of your own invention.
+
+| Gate | Value | When |
+|---|---|---|
+| Start only if `load.five` is | **≤ 0.25** | before launching |
+| Abort if `load.one` exceeds | **0.50** | on two consecutive 60s samples |
+| Abort if `memory.available_mb` falls below | **200** | any sample |
+| Abort if `swap.used_pct` rises during the run | any rise | any sample |
+| Never start if `disk.used_pct` is | **≥ 85** | before launching |
+
+Rules that carry the ceiling:
+
+- **One process at a time, `nice -n 19`.** Never parallel workers on the Linode.
+  Parallelism on one core is not speed, it is contention.
+- **Sample every 60 seconds and act on the sample.** A run nobody is watching is
+  not a run under a ceiling.
+- **Never test on production while the watchdog reports a fault**, or during a
+  live incident. The server is not a laboratory while it is a patient.
+- **Stop on the Owner's word instantly**, mid-run, without finishing.
+
+What this ceiling exists to prevent, measured on 2026-07-26: two agent Python
+processes at 30% CPU each drove `load.five` to 2.70 and `load.one` to 3.44 —
+**seven times the ceiling above** — on that single core while real visitors were
+on the site. The Owner had to stop every agent to protect it, not knowing which
+of them was the cause.
+
+**The full automated suite still belongs on the 8-core workstation.** What
+production testing means here is what genuinely *requires* production: smoke
+checks against the live app, checks against real production data, and verifying
+how the deployed page actually behaves. It does not mean moving the suite onto
+the server because the server is there.
+
+Read-only diagnostics — log tails, `curl`, `ps`, `df`, `ss`, reading files —
+carry no meaningful load and need no budget.
 
 ### There is no distributed pool
 
@@ -376,8 +412,26 @@ full_suite_run:
   tests_skipped: 0
   pre_existing_failures: []  # separate from regressions caused by this task
   regressions: []
-  ran_on_linode: false       # must be false
+  ran_on_linode: false       # the full suite is never run on the Linode
   final_result: "FULL_SUITE_PASS | FAIL | INCOMPLETE"
+```
+
+Anything run on production under the 50% ceiling is reported with the figures
+that prove the ceiling held, not with a claim that it did:
+
+```yaml
+production_check:
+  what_required_production: ""   # why the workstation could not answer this
+  started_at: ""
+  load_five_before: 0.0          # must be <= 0.25
+  load_one_peak: 0.0             # must be <= 0.50
+  memory_available_mb_low: 0     # must be >= 200
+  swap_used_pct_before: 0.0
+  swap_used_pct_after: 0.0       # must not have risen
+  samples_taken: 0               # one per 60s, for the whole run
+  aborted: false
+  abort_reason: ""
+  result: "PASS | FAIL | ABORTED"
 ```
 
 ## 10. Documentation authority and archive law
@@ -552,7 +606,7 @@ and onboarding grants no authority over existing agents.
    canonical documents to read in order, the source-of-truth order, the CoWork
    protocol, the current project state, and the hard rules (git isolation,
    existing-code-first, production and release authority, the one-machine test
-   rule and the Linode testing ban, design, scope).
+   rule and the 50% production load ceiling, design, scope).
 3. The new agent completes the cold-start protocol (section 3): it reads the
    four canonical documents, verifies Git, and posts its own bootstrap record.
 4. Connectivity gate (section 5, extended): the new agent's poller connects and
@@ -758,17 +812,20 @@ FORBIDDEN: presenting a local render, a local harness, a local server or a
 locally-served copy of a page as evidence of how anything looks or behaves.
 
 **Read this together with section 9, and do not confuse the two.** They divide
-cleanly:
+by what the question is, and by what the server can afford:
 
 | Question | Where it is answered |
 |---|---|
-| Does the code work? Do the tests pass? | The **8-core workstation**, never the Linode |
+| Do the tests pass? Does the code work? | The **8-core workstation** — the full suite never runs on the Linode |
 | How does the Arena actually LOOK and BEHAVE? | **Production only** — a real page, over real HTTP |
+| Does it hold against real production data? | **Production, under the 50% load ceiling** of section 9 |
 
-Automated suites are computation and belong on the workstation. The Linode is
-closed to them (section 9). What must never be faked locally is a *claim about
-the rendered product* — because that is where a local harness lies silently and
-where this rule was born.
+Automated suites are computation and belong on the workstation. Production
+testing is permitted for what genuinely requires production, inside the measured
+ceiling — never as a way to move the suite onto the server.
+
+What must never be faked locally is a *claim about the rendered product*. That
+is where a local harness lies silently, and where this rule was born.
 
 The reason is not preference, it is a proven failure. On 2026-07-26 Bolt
 photographed the Arena through a local harness that loaded production's CSS
