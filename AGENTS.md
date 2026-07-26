@@ -631,3 +631,27 @@ back to the agent with the pair of screenshots attached.
 
 This closes 17.1 by construction: the artifact is a photograph, and a photograph
 cannot be a claim.
+
+### 17.13 Every order is announced before it is issued, and reported after
+
+Owner's order, 2026-07-26, after a day in which the Owner caught Bolt reporting
+things that were not true. Trust is not assumed; it is rebuilt by disclosure.
+
+BEFORE issuing any order to any agent, Bolt states — in chat AND on Telegram:
+
+- **what** the order is, in plain words
+- **why** it is needed
+- **what it will change**, in terms the Owner can see on a screen
+
+AFTER the order is carried out, Bolt reports:
+
+- **what changed**
+- **how it works now**
+- and the screenshot comparison required by 17.12
+
+FORBIDDEN: issuing an order the Owner has not been told about first. An order the
+Owner learns about only from its result is a decision taken behind his back, no
+matter how correct it was.
+
+Orders are exhaustive in content and short in words. The Owner's time is the
+scarcest resource on this project.
