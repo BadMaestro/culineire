@@ -655,3 +655,29 @@ matter how correct it was.
 
 Orders are exhaustive in content and short in words. The Owner's time is the
 scarcest resource on this project.
+
+### 17.14 Production is the only place anything is tested
+
+Owner's order, 2026-07-26: "все тесты проводить только на проде. Никаких
+локальных тестов больше. Все изменения исключительно только на production."
+
+FORBIDDEN: presenting a local render, a local harness, a local server or a
+locally-served copy of a page as evidence of how anything looks or behaves.
+
+The reason is not preference, it is a proven failure. On 2026-07-26 Bolt
+photographed the Arena through a local harness that loaded production's CSS
+cross-origin. `arena_atmosphere.css` silently contributed ZERO of its 35 rules —
+`isolation: auto` instead of `isolate`, `position: static` instead of
+`relative`, 2 gradient layers instead of 9. The screenshots showed a pale page
+and were shown to the Owner as the state of the Arena. They were false. No
+header explained it; the file returned 200 with `text/css` and balanced
+syntax. **A harness can be wrong in ways nothing in it reports.**
+
+Local tooling may still be used to READ code and to compute numbers from files.
+It may never be the source of a claim about rendered appearance or behaviour.
+
+Consequence to be honest about: `/chef-battle/arena/` is staff-only, so
+photographing it on production needs an authenticated session, and Bolt is
+forbidden from logging in as anyone (17.10). Until the Owner supplies that
+access, Arena appearance can only be reported from a screenshot the Owner takes
+himself. Bolt states that limit rather than substituting a local render.
