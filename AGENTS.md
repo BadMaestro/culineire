@@ -3,11 +3,11 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.4.0"
+  version: "1.5.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
-  last_updated: "2026-07-25"
+  last_updated: "2026-07-26"
 ```
 
 ## 1. Authority
@@ -39,6 +39,19 @@ release decisions, priorities, and acceptance.
 A temporary role such as task owner, integration editor, test coordinator, or
 release verifier is technical ownership for one work package. It does not create
 managerial authority.
+
+### Fixed remits (Owner, 2026-07-26)
+
+Two remits are set by the Owner and are not task-level choices:
+
+- **ArenaFront** is the only agent permitted to call the OpenAI image API. It
+  generates **one or two images for the exact task in hand**, against a written
+  specification — never a speculative batch.
+- **Cursor** is the lead implementer and writes that specification together with
+  ArenaFront before a single image is generated.
+
+Generating a batch because a batch is convenient spends the Owner's money on a
+decision he was not asked about. It is forbidden.
 
 ## 2. Source-of-truth order
 
@@ -95,7 +108,7 @@ bootstrap:
   machine: ""
   branch: ""
   commit: ""
-  constitution_version: "1.3.0"
+  constitution_version: "1.5.0"
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
@@ -193,6 +206,25 @@ Before a new work cycle starts:
 A blinking or running poller is not proof of message delivery. A successful
 round-trip acknowledgement is required.
 
+### Polling discipline (Owner, 2026-07-26)
+
+Polling is the cheapest way to burn a budget and the hardest to notice, because
+every individual poll looks free. On 2026-07-26 a coordinator polled both agents
+and Telegram every 30 seconds and spent most of a weekly allowance on empty
+answers, while the product did not move.
+
+- The minimum poll interval is **120 seconds**. Nothing on this project is
+  urgent enough to justify 30.
+- After **three consecutive empty polls**, stop. Three empty answers mean the
+  CHANNEL is dead, not that the agent is silent. Check whether the poller
+  process is still alive, say what you found, and do not resume polling a
+  channel you have not confirmed.
+- An empty poll is evidence about the channel and never about anyone's work.
+  The honest pulse is a changed file or a commit hash on a remote.
+- **One poller per channel.** Two pollers on the same queue race for every
+  message, and each message then reaches only one of them, unpredictably. This
+  is how an order gets lost while both agents report a healthy connection.
+
 ## 6. Git and file ownership
 
 - One agent, one work package, one branch, one isolated worktree.
@@ -225,69 +257,126 @@ payload contract, or second design system.
 
 CulinEire is a live production system.
 
+### Standing deployment authorisation (Owner, 2026-07-26)
+
+**Agents commit and deploy to production without asking.** No per-release
+permission, no waiting for a word, no queue of finished work sitting in
+branches.
+
+This replaces the previous rule "agents do not deploy unless the Product Owner
+explicitly instructs them", which was repealed by its own author. That rule
+outranked a week of the Owner asking, out loud, for work to go straight to
+production so he could watch it change. The Arena page reloads every 30 seconds
+for exactly that reason: it is how the Owner supervises. Work that stays on a
+branch is invisible to him, and invisible work looks identical to no work — which
+is why this project felt looped while agents were spending real budget.
+
+**A deploy is not a release.** Arena visibility on production stays
+staff/superuser only until the Owner separately says otherwise. This
+authorisation lets code reach the server; it does not open the Arena to the
+public, and no agent may widen that gate under it.
+
+**Every deploy still passes its gates, all of them, before it ships:**
+
+- the static image-weight test (`chef_battle/test_static_image_weight.py`);
+- the focused tests for whatever changed;
+- `git diff --check` clean;
+- the footer version bumped in `templates/base.html`;
+- `collectstatic` run when CSS, JS or images changed — a restart alone serves
+  the old file;
+- a rollback command stated in the report.
+
+Shipping past a red gate is forbidden. This authorisation removes the **wait**,
+never the **checks**. A failing test is not an obstacle to route around; it is
+the mechanism doing its job.
+
+**Excluded from the standing authorisation** — these still need the Owner's
+explicit word every time: payment, payout, Stripe, legal, privacy, moderation
+policy, database migrations, and any change to a schema or a public access gate.
+
 - Protect production before speed.
 - The Arena is **not publicly released**.
 - Until an explicit owner release decision, Arena access on production is **staff/superuser only**.
 - Implemented capability, a feature flag, an audit statement, or a test does not constitute release approval.
 - If real production behaviour allows wider access, report it as a release-gate defect and do not widen access further.
-- Agents do not deploy unless the Product Owner explicitly instructs them.
 - Server work must use the approved non-root deployment account and the repository-approved deployment procedure.
 - Never use `root` for routine deployment.
 - Never run destructive or data-writing production diagnostics merely to prove a visual result.
 - Payment, payout, legal, privacy, moderation, or migration changes require explicit risk reporting and rollback planning.
 
-## 9. Distributed test constitution
+## 9. Test constitution
 
-The available default test pool is:
+Rewritten 2026-07-26 on the Owner's order. The previous version described a
+three-machine pool that does not exist and invited agents onto the production
+server. Both faults cost this project real damage and are recorded below so
+nobody reinstates them.
 
-| Machine class | Logical cores | Default share of timed full-suite load |
-|---|---:|---:|
-| Primary workstation | 8 | 8/15 = 53.33% |
-| Secondary workstation | 6 | 6/15 = 40.00% |
-| Linode | 1 | 1/15 = 6.67% |
+### One machine runs the tests
 
-These machines form one distributed test pool.
+All automated testing runs on the **primary 8-core workstation**. Python, git,
+the virtualenv and the full checkout are there. Use its cores: run the suite in
+parallel across the eight of them.
+
+### The Linode is closed to testing
+
+**No test suite, no management command run for testing, no image conversion, no
+benchmark and no load generator may execute on the Linode.** It is the live
+production server and it has **one** core.
+
+What that costs, measured on 2026-07-26: two agent Python processes at 30% CPU
+each drove load5 to 2.70 and load1 to 3.44 on that single core while real
+visitors were on the site, and the Owner had to stop every agent to protect it.
+The site was minutes from going down for everyone.
+
+Read-only production diagnostics stay allowed: log tails, `curl`, `ps`, `df`,
+`ss`, and reading files. Anything that computes, converts, or generates load
+belongs on the workstation.
+
+### There is no distributed pool
+
+Earlier versions of this section split a timed full-suite load 8:6:1 across a
+primary workstation, a secondary workstation, and the Linode. **The second
+workstation is not available.** It was written into the constitution after the
+6-core machine's agent exhausted its weekly limit and every remaining agent was
+moved onto the single 8-core box.
+
+An agent that "shards" a suite across machines that are not there will report
+`FULL_SUITE_PASS` having run a fraction of the tests. Never attempt a
+distributed gate. If a future machine is added, the Owner amends this section
+first (section 13); discovering spare hardware is not permission to use it.
 
 ### Mandatory rules
 
-- Do not run the same full suite independently on all three machines.
-- Focused tests belong to the task owner during development.
-- A full-suite gate is run once, split into non-overlapping shards.
-- All shards use the same commit, configuration, dependency lock, and `TEST_RUN_ID`.
-- Start the three shards at approximately the same time.
-- Split by historical duration when timing data exists.
-- Otherwise split deterministically and refine after timing data is collected.
-- Do not oversubscribe a machine beyond its approved logical-core count.
-- The one-core Linode receives approximately 1/15 of timed work, preferably serial, integration, smoke, or other suitable tests.
-- Final status is `FULL_SUITE_PASS` only when every shard has reported.
-- Failed or missing shards cannot be hidden by successful shards.
-- One temporary test coordinator aggregates results; this does not create authority over the other agents.
+- Run the full suite **once**, on the 8-core workstation, in parallel.
+- **Never launch more workers than the machine has logical cores.** Eight
+  parallel streams of the same suite on a six-core machine is what removed an
+  agent from this project for a week. More streams is not more speed; past the
+  core count it is contention, then swap, then nothing.
+- Do not run the same suite twice, on any machine, for any reason.
+- Focused tests belong to the task owner during development. Do not run ~1,500
+  tests after a small edit.
+- `FULL_SUITE_PASS` only when the whole suite has reported. A partial run is
+  reported as partial.
+- Record pre-existing failures separately from regressions caused by the task.
+- Never soften a failing check to make a suite green.
 
 Required full-suite record:
 
 ```yaml
-distributed_test_run:
+full_suite_run:
   test_run_id: ""
   commit: ""
+  machine: "primary_8_core"
+  workers: 0                 # never above the machine's logical core count
   started_at: ""
-  shards:
-    primary_8_core:
-      owner: ""
-      manifest: []
-      workers: 8
-      result: "PASS | FAIL | BLOCKED"
-    secondary_6_core:
-      owner: ""
-      manifest: []
-      workers: 6
-      result: "PASS | FAIL | BLOCKED"
-    linode_1_core:
-      owner: ""
-      manifest: []
-      workers: 1
-      result: "PASS | FAIL | BLOCKED"
-  duplicate_tests: []
-  omitted_tests: []
+  duration_seconds: 0
+  tests_collected: 0
+  tests_passed: 0
+  tests_failed: 0
+  tests_skipped: 0
+  pre_existing_failures: []  # separate from regressions caused by this task
+  regressions: []
+  ran_on_linode: false       # must be false
   final_result: "FULL_SUITE_PASS | FAIL | INCOMPLETE"
 ```
 
@@ -403,7 +492,11 @@ completion:
   committed: true
   pushed: true
   production_code_modified: false
-  deployment_performed: false
+  gates_passed: []            # image weight, focused tests, diff --check
+  version_bumped: false
+  collectstatic_run: false    # required when CSS, JS or images changed
+  deployed: false             # expected true under the section 8 standing authorisation
+  rollback_command: ""
   remaining_risks: []
 ```
 
@@ -458,8 +551,8 @@ and onboarding grants no authority over existing agents.
 2. An existing agent posts the onboarding brief to the new agent: the four
    canonical documents to read in order, the source-of-truth order, the CoWork
    protocol, the current project state, and the hard rules (git isolation,
-   existing-code-first, production and release authority, distributed testing,
-   design, scope).
+   existing-code-first, production and release authority, the one-machine test
+   rule and the Linode testing ban, design, scope).
 3. The new agent completes the cold-start protocol (section 3): it reads the
    four canonical documents, verifies Git, and posts its own bootstrap record.
 4. Connectivity gate (section 5, extended): the new agent's poller connects and
@@ -656,13 +749,26 @@ matter how correct it was.
 Orders are exhaustive in content and short in words. The Owner's time is the
 scarcest resource on this project.
 
-### 17.14 Production is the only place anything is tested
+### 17.14 Appearance and behaviour are judged only on production
 
 Owner's order, 2026-07-26: "все тесты проводить только на проде. Никаких
 локальных тестов больше. Все изменения исключительно только на production."
 
 FORBIDDEN: presenting a local render, a local harness, a local server or a
 locally-served copy of a page as evidence of how anything looks or behaves.
+
+**Read this together with section 9, and do not confuse the two.** They divide
+cleanly:
+
+| Question | Where it is answered |
+|---|---|
+| Does the code work? Do the tests pass? | The **8-core workstation**, never the Linode |
+| How does the Arena actually LOOK and BEHAVE? | **Production only** — a real page, over real HTTP |
+
+Automated suites are computation and belong on the workstation. The Linode is
+closed to them (section 9). What must never be faked locally is a *claim about
+the rendered product* — because that is where a local harness lies silently and
+where this rule was born.
 
 The reason is not preference, it is a proven failure. On 2026-07-26 Bolt
 photographed the Arena through a local harness that loaded production's CSS
