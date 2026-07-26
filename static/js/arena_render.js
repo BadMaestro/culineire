@@ -196,19 +196,21 @@
     var floorR = props.floorOuter;
     var standsOuter = props.standsOuter;
     var oval = geometry.spectator_oval || {};
-    // G7: 4 deepening rows, 208 seats (spec production_seats). Client draw only —
-    // get_arena_geometry untouched. BE may still ship 290; report ID divergence.
-    var rowsBySide = { top: 4, right: 4, bottom: 4, left: 4 };
-    var countsBySide = {
-      top: [10, 12, 14, 16],
-      right: [10, 12, 14, 16],
-      bottom: [10, 12, 14, 16],
-      left: [10, 12, 14, 16]
+    // The backend owns the stable 290-seat contract. Keep its ring/cell ids
+    // intact; the fallback mirrors ArenaGeometry's frozen 2/3/2/3-row layout.
+    var rowsBySide = oval.rows_by_side || { top: 2, right: 3, bottom: 2, left: 3 };
+    var countsBySide = oval.counts_by_side || {
+      top: [28, 29],
+      right: [28, 29, 31],
+      bottom: [28, 29],
+      left: [28, 29, 31]
     };
     var beFloor = oval.floor_outer_radius || 220;
-    var seats = (global.ArenaGeometry.ovalSeats
-      ? global.ArenaGeometry.ovalSeats(0, 0, beFloor, rowsBySide, Math.max(8, beFloor * 0.032), countsBySide)
-      : []);
+    var seats = (Array.isArray(oval.seats) && oval.seats.length)
+      ? oval.seats
+      : (global.ArenaGeometry.ovalSeats
+        ? global.ArenaGeometry.ovalSeats(0, 0, beFloor, rowsBySide, Math.max(8, beFloor * 0.032), countsBySide)
+        : []);
 
     // Remap radial depth so outermost seat CENTRE sits at STANDS_RATIO
     // (G5: ~1.46 so bbox ≈ 1.60). Angle preserved.
@@ -540,16 +542,21 @@
   // never has to be inferred from an absolute ring index that shifts whenever
   // the stands get deeper.
   function rowDepth(geometry, ring) {
-    // G7 oval ring ids: 100 + sideIndex*10 + row → row is ring % 10.
+    var record = null;
+    (geometry.rings || []).forEach(function (r) { if (r.index === ring) { record = r; } });
+    if (record && record.row && record.rows_total && record.rows_total >= 2) {
+      return Math.min(1, Math.max(0, (record.row - 1) / (record.rows_total - 1)));
+    }
+    // Oval ring ids: 100 + sideIndex*10 + row. Keep depth valid for fallback
+    // payloads that omit compact oval ring descriptors.
     if (ring >= 100) {
       var ovalRow = ring % 10;
-      var ovalRows = 4;
+      var side = ['top', 'right', 'bottom', 'left'][Math.floor((ring - 100) / 10)];
+      var rows = geometry.spectator_oval && geometry.spectator_oval.rows_by_side;
+      var ovalRows = (rows && rows[side]) || 1;
       return Math.min(1, Math.max(0, ovalRow / Math.max(1, ovalRows - 1)));
     }
-    var record = null;
-    geometry.rings.forEach(function (r) { if (r.index === ring) { record = r; } });
-    if (!record || !record.row || !record.rows_total || record.rows_total < 2) { return 0; }
-    return Math.min(1, Math.max(0, (record.row - 1) / (record.rows_total - 1)));
+    return 0;
   }
 
   function faceDiameter(geometry, ring, radius) {
