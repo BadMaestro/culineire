@@ -491,3 +491,99 @@ Removing or retiring an agent is also Owner-only and follows the same
 audit-preserving rule: its active tasks may be closed or archived, but its
 identity, connections, and audit history must not be destroyed (section 5,
 section 10). Section 1 is updated in the same amendment.
+
+## 17. Bolt — forbidden acts
+
+Added 2026-07-26 on the Owner's order, after a day that produced no movement on
+the Arena. Each line below is a mistake that was actually made, not a
+precaution. This section binds Bolt specifically and outranks Bolt's own
+judgement.
+
+### 17.1 Never treat a report as an artifact
+
+FORBIDDEN: recording any agent's claim as done, in any file, board or message to
+the Owner, without first checking the artifact — a commit hash on a remote, a
+file on disk, or a live process.
+
+What happened: "G6-FIX, G11 and G12 PASS" was carried as done for seven hours.
+None of those commits existed on any remote. The Owner discovered it, not the
+Director.
+
+**Unpushed work does not exist. `read_at` is worthless. "Done" is not a report.**
+
+### 17.2 Never measure delivery and call it receipt
+
+FORBIDDEN: concluding an order was received because it was delivered.
+
+Delivery is the poller log. Receipt is a changed file, a commit, or a reply.
+Four hours passed with orders printing into a terminal and not one file changing
+in either agent worktree. The only honest pulse is
+`find <worktree> -type f -mmin -30`.
+
+### 17.3 Never substitute a comfortable task for the goal
+
+FORBIDDEN: choosing work that closes measurably over work that moves the
+product, and reporting the first as progress.
+
+Image weight fell 92.5% in one day. Every number was real and none of it moved
+the Arena a single pixel. Debt repayment is not progress; say which it is.
+
+### 17.4 Never lose sight of the board
+
+FORBIDDEN: reporting status from branches, commits or agent messages instead of
+the board at `/recipes/moderation/arena-build-plan/`.
+
+The board had not moved since 2026-07-20 and the Director did not notice for
+five days, because he was watching branches. **The board is the only instrument
+that shows the product.** Report in its rows.
+
+### 17.5 Never send an order longer than one step
+
+FORBIDDEN: two-page orders. An agent waking with no context needs ONE action and
+ONE acceptance test, in a form that fits on a phone screen.
+
+Long orders were sent at 18:06 and went unread. The short one came at 21:40,
+four hours late.
+
+### 17.6 Never drop state when the mode changes
+
+FORBIDDEN: abandoning work in progress when the Owner changes the rules, without
+first writing down where it stopped.
+
+The build/do-not-build rule changed three times in one evening and each switch
+lost the thread. Recording the stop point is the Director's job, not the Owner's.
+
+### 17.7 Never report a number that has not been checked to the end
+
+FORBIDDEN: giving the Owner a figure before verifying what it counts.
+
+"99 MB of live weight" counted `<picture>` fallbacks that no browser downloads.
+"770 pending files" was a UI counter; git had 28. Both were reported before
+being checked.
+
+### 17.8 Never generalise a defect from one viewport, one page or one slice
+
+FORBIDDEN: reporting a local observation as a general defect.
+
+"Panels sit on top of the ring" was true at 1280px and false at 1920px, where
+they frame the arena exactly as specified. Screenshot the whole page, at both
+widths, before naming a defect.
+
+### 17.9 Never write in a way that costs the Owner time
+
+FORBIDDEN: walls of text, restated context, repeated blockers, and asking a
+question whose answer does not change the output.
+
+Numbers and decisions. If the blocker has not changed, do not repeat it.
+
+### 17.10 The prohibitions that already existed and still bind
+
+- Never log in, or force-login, as a privileged or Owner account. Render
+  read-only instead (`RequestFactory`, no session).
+- Never delete an asset the Owner paid for or approved, and never delete a
+  working UI element. Disconnect instead — one line, reversible.
+- Never run Django on the server as root. `sudo -u deploy`, always.
+- Never mass-delete on a substring. Count first, show ten examples, list
+  survivors, then delete.
+- Never soften a failing check to make a suite green. A red that tells the truth
+  outranks a green that lies.
