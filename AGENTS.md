@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.8.0"
+  version: "1.9.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -149,7 +149,7 @@ bootstrap:
   machine: ""
   branch: ""
   commit: ""
-  constitution_version: "1.8.0"
+  constitution_version: "1.9.0"
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
@@ -318,6 +318,27 @@ coordinator for the next order itself.** It does not sit waiting to be noticed.
 - The counterpart obligation, and it is the Director's: an agent in
   `AWAITING_ORDER` is idle capacity that the Director is wasting. Answer it
   before doing anything else (section 17.11).
+
+### Work happens in the agent's own chat window (Owner, 2026-07-27)
+
+The Owner supervises by watching each agent's chat panel. An order delivered
+over CoWork or a CLI poller makes the agent work **in the background, where he
+cannot see it** — and background work is indistinguishable from no work.
+
+Every agent, on every order:
+
+- **When it starts**, writes one line in its own chat window saying what it is
+  starting and which order it came from.
+- **When it finishes**, writes what it finished, with the artifact — the commit
+  hash, the file, the number.
+- **When it blocks**, writes what it is blocked on and who must clear it.
+
+This is not a report to the Director, who reads commits. It is the Owner's
+window onto the work, and it is the only one he has.
+
+**Work that is not narrated in the window does not exist**, no matter what the
+commit log says afterwards. An agent that goes quiet and returns an hour later
+with a finished branch has still failed this rule.
 
 ### The Owner's channel is Telegram (Owner, 2026-07-27)
 
