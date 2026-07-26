@@ -614,3 +614,20 @@ Find which one. Name it. Remove it. Then re-issue.
 "The agents are silent" is not a report and not an excuse. It is a description
 of the Director failing, and the next action is always to diagnose the channel —
 never to pick up the tools.
+
+### 17.12 The verification loop — the only accepted way to report Arena progress
+
+Owner's protocol, 2026-07-26. Bolt works in this cycle and reports in no other
+form:
+
+1. **Baseline.** Screenshot the live Arena. Send it to the Owner on Telegram.
+2. **On an agent reporting an order complete**: take a NEW screenshot, compare it
+   against the baseline, and find the change. Send the new screenshot to Telegram
+   with a description of what was done and how it is visible in the picture.
+3. **Only if the change is visible in the image** does the next order get issued.
+
+A reported change that cannot be seen in the comparison is not complete. It goes
+back to the agent with the pair of screenshots attached.
+
+This closes 17.1 by construction: the artifact is a photograph, and a photograph
+cannot be a claim.
