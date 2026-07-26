@@ -5,8 +5,8 @@
  */
 
 .page--arena {
-  --arena-atm-wall: none; /* OWNER CRITICAL load purge */
-  --arena-atm-floor: none; /* OWNER CRITICAL load purge */
+  --arena-atm-wall: url("/static/img/arena/hall-wall-wash-v1.webp");
+  --arena-atm-floor: url("/static/img/arena/floor-sheen-v1.webp");
   --arena-atm-gold: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 88%, transparent);
   --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 58%, transparent);
   position: relative;
