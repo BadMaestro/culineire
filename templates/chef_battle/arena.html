@@ -14,13 +14,7 @@
 <link href="{% static 'css/arena_hall.css' %}?v=20260725-loadpurge" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
 <link href="{% static 'css/arena_deck_polish.css' %}?v=20260725-loadpurge" rel="stylesheet">
-{# The cache-busting value is NOT free text. ModSecurity (OWASP CRS) scored the
-   previous value "20260725-load-slim" at 5 and answered 403 to this stylesheet,
-   so the whole atmosphere layer contributed ZERO of its 35 rules on production
-   and the dark hall silently died. The file was fine: 200 without the query,
-   403 with it, rule id 949110 in the nginx error log. Keep this value plain
-   alphanumeric. #}
-<link href="{% static 'css/arena_atmosphere.css' %}?v=20260726a" rel="stylesheet">
+<link href="{% static 'css/arena_atmosphere.css' %}?v=20260725-load-slim" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
