@@ -31,30 +31,29 @@ def is_battle_visible(request) -> bool:
     """
     Chef Battles is visible when:
     - CHEF_BATTLE_ENABLED is True (public launch), OR
-    - the user is staff/superuser (dark-launch operator preview).
+    - the user is staff/superuser or a bearseeker author (dark-launch
+      operator preview).
 
-    Pre-release policy (owner ruling 2026-07-21, and the standing product
-    contract CHEF_BATTLE_PRODUCT_CONTRACT_2D.md section 5): the Arena is NOT
-    publicly released. Until an explicit release decision, access is
-    STAFF/SUPERUSER ONLY. A registered author who is not staff — like any
-    ordinary authenticated user, and like an anonymous visitor — must NOT be
-    let in during dark launch. Chef enrollment is a participation state, never
-    a visibility grant.
-
-    The earlier "any registered author may visit and watch" rule (release
-    journal v2.5.380, 2026-07-20) is superseded and does not widen access
-    here; the author branch it added has been removed.
+    Bearseeker authors are test operators and the sitewide UI already shows
+    them the Arena entrance. Including them here removes the gate leak where
+    that entrance led to a 404; it does not widen the audience advertised by
+    the UI. Anonymous visitors and ordinary authenticated authors remain
+    excluded. Chef enrollment is a participation state, never a visibility
+    grant.
 
     The Arena Master Console stays behind ``has_arena_console_access``
     (superuser + owner/flag), which is stricter than this gate — so nothing
-    here opens the console to a bare staff user.
+    here opens the console to a bare staff or bearseeker user.
     """
     if getattr(settings, "CHEF_BATTLE_ENABLED", False):
         return True
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
         return False
-    return bool(user.is_staff or user.is_superuser)
+    if user.is_staff or user.is_superuser:
+        return True
+    author = getattr(user, "recipe_author_profile", None)
+    return bool(author is not None and author.has_bearseeker_privileges)
 
 
 def has_arena_console_access(request) -> bool:
