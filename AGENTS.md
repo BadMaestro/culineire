@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.6.0"
+  version: "1.7.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -108,7 +108,7 @@ bootstrap:
   machine: ""
   branch: ""
   commit: ""
-  constitution_version: "1.6.0"
+  constitution_version: "1.7.0"
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
@@ -206,19 +206,69 @@ Before a new work cycle starts:
 A blinking or running poller is not proof of message delivery. A successful
 round-trip acknowledgement is required.
 
-### Polling discipline (Owner, 2026-07-26)
+### Polling discipline (Owner, 2026-07-26, tightened 2026-07-27)
 
 Polling is the cheapest way to burn a budget and the hardest to notice, because
 every individual poll looks free. On 2026-07-26 a coordinator polled both agents
 and Telegram every 30 seconds and spent most of a weekly allowance on empty
 answers, while the product did not move.
 
-- The minimum poll interval is **120 seconds**. Nothing on this project is
-  urgent enough to justify 30.
-- After **three consecutive empty polls**, stop. Three empty answers mean the
-  CHANNEL is dead, not that the agent is silent. Check whether the poller
-  process is still alive, say what you found, and do not resume polling a
-  channel you have not confirmed.
+- The poll interval is **180 seconds**. Not 30, not 120.
+- After **three consecutive empty polls**, stop polling and check the poller
+  process. Three empty answers are evidence about the CHANNEL, not about the
+  agent. Say what you found.
+
+### Nobody works behind a dead poller (Owner, 2026-07-27)
+
+**An agent whose poller is down is not permitted to keep working.** It cannot
+receive a STOP, and an agent that cannot be stopped is a hazard on a live
+production system. Restoring the channel comes before any task, always.
+
+Because a poller dies silently, it is supervised rather than trusted:
+
+- **Every poller runs under a supervisor loop** that notices the process is gone
+  and starts it again, without a human and without waiting for anyone to notice.
+  A poller that needs a person to restart it is not a channel, it is a hope.
+- **Every supervisor writes a heartbeat each cycle** to the shared heartbeat
+  directory. All agents are on one machine, so a plain file is visible to
+  everyone and needs no service:
+
+```yaml
+heartbeat:                       # <agent>.json, rewritten every poll cycle
+  agent: ""
+  pid: 0                         # the poller's process id
+  ts: ""                         # UTC, this cycle
+  poller_restarts: 0             # how many times the supervisor revived it
+  state: "WORKING | AWAITING_ORDER | BLOCKED"
+  current_task: ""               # what is being done RIGHT NOW, in one line
+  last_commit: ""                # the last hash this agent actually pushed
+```
+
+- **A heartbeat older than 10 minutes means the channel is down**, not that the
+  agent is quiet. Do not reason about the agent's work from its silence. Check
+  the process, restart the supervisor, and say so.
+- **`state` distinguishes idle from busy.** `WORKING` with an unchanged
+  `current_task` across many cycles and no new `last_commit` is a stall, and a
+  stall is reported, not waited out.
+- **`poller_restarts` climbing is a defect to report**, not a success to hide.
+  A channel that needs reviving every few minutes is broken.
+
+### No agent waits in silence (Owner, 2026-07-27)
+
+**Finishing a task does not entitle an agent to stop.** The moment a work
+package is done, the agent reports the result and **asks the Director or
+coordinator for the next order itself.** It does not sit waiting to be noticed.
+
+- Silence after a completed task is a fault, and it is the agent's fault.
+- Set `state: AWAITING_ORDER` in the heartbeat **and** send the request. The
+  heartbeat is a record, not a request; it does not ask anyone for anything.
+- If no answer comes, ask again on the next cycle. Do not go quiet after one
+  unanswered request.
+- This continues until the agent's own limit runs out. **Running out of budget
+  is the only acceptable reason an agent stops asking for work.**
+- The counterpart obligation, and it is the Director's: an agent in
+  `AWAITING_ORDER` is idle capacity that the Director is wasting. Answer it
+  before doing anything else (section 17.11).
 - An empty poll is evidence about the channel and never about anyone's work.
   The honest pulse is a changed file or a commit hash on a remote.
 - **One poller per channel.** Two pollers on the same queue race for every
