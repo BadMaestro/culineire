@@ -501,14 +501,8 @@
   function crowdFaceFor(ring, cell, geometry) {
     var faces = global.ARENA_CROWD_FACES || [];
     if (!faces.length) { return null; }
-    var href = faces[seatHash(ring, cell) % faces.length];
-    // A6 tiers: mid URLs in ARENA_CROWD_FACES; swap by row depth.
-    if (geometry && href && href.indexOf('-round-mid.') !== -1) {
-      var d = rowDepth(geometry, ring);
-      var tier = d < 0.34 ? 'near' : (d > 0.66 ? 'far' : 'mid');
-      href = href.replace('-round-mid.', '-round-' + tier + '.');
-    }
-    return href;
+    // C4: round/ only (96). Near/mid/far is faceLighting() via rowDepth — no tiers/ rewrite.
+    return faces[seatHash(ring, cell) % faces.length];
   }
 
   // Nobody in a hall sits perfectly on the centre of their seat, and a grid of
