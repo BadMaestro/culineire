@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static article_filters author_tags %}
+{% load media_webp %}
 
 {% block title %}{{ article.title }} | CulinEire{% endblock %}
 {% block meta_description %}{% if article.excerpt %}{{ article.excerpt|striptags|truncatechars:160 }}{% else %}Read {{ article.title }} on CulinEire, with Irish food stories, cooking context, and recipe notes.{% endif %}{% endblock %}
@@ -37,7 +38,7 @@
 <section class="section">
     <div class="container">
         <article class="detail-page detail-page--article">
-            <header class="detail-page__header"{% if article_hero_image %} style="--detail-hero-image: url('{{ article_hero_image.url }}');"{% endif %}>
+            <header class="detail-page__header"{% if article_hero_image %} style="--detail-hero-image: url('{{ article_hero_image|webp|default:article_hero_image.url }}');"{% endif %}>
                 <div class="detail-page__header-inner">
                     <div class="detail-page__topbar">
                         <div class="detail-page__taxonomy" aria-label="Article information">
@@ -120,15 +121,15 @@
                             <div class="recipe-gallery__image-shell">
                                 {% if forloop.first %}
                                     {% if item.width and item.height %}
-                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="eager" fetchpriority="high" decoding="async">
+                                <picture>{% if item.src_webp %}<source srcset="{{ item.src_webp }}" type="image/webp">{% endif %}<img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="eager" fetchpriority="high" decoding="async"></picture>
                                     {% else %}
-                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="eager" fetchpriority="high" decoding="async">
+                                <picture>{% if item.src_webp %}<source srcset="{{ item.src_webp }}" type="image/webp">{% endif %}<img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="eager" fetchpriority="high" decoding="async"></picture>
                                     {% endif %}
                                 {% else %}
                                     {% if item.width and item.height %}
-                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="lazy" decoding="async">
+                                <picture>{% if item.src_webp %}<source srcset="{{ item.src_webp }}" type="image/webp">{% endif %}<img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" width="{{ item.width }}" height="{{ item.height }}" loading="lazy" decoding="async"></picture>
                                     {% else %}
-                                <img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="lazy" decoding="async">
+                                <picture>{% if item.src_webp %}<source srcset="{{ item.src_webp }}" type="image/webp">{% endif %}<img class="recipe-gallery__media" src="{{ item.src }}" alt="{{ item.alt }}" loading="lazy" decoding="async"></picture>
                                     {% endif %}
                                 {% endif %}
                                 {% if article.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
