@@ -1,5 +1,6 @@
 ﻿{% extends "base.html" %}
 {% load static %}
+{% load media_webp %}
 
 {% block title %}CulinEire | Modern Irish Recipes & Food Stories{% endblock %}
 {% block meta_description %}Explore modern Irish recipes, vintage cookbook finds, seasonal cooking ideas, and food stories from the CulinEire kitchen.{% endblock %}
@@ -190,7 +191,7 @@
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
                             {% if recipe.hero_image %}
-                            <img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
+                            {% with hw=recipe.hero_image|webp %}<picture>{% if hw %}<source srcset="{{ hw }}" type="image/webp">{% endif %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1"></picture>{% endwith %}
                             {% else %}
                             <picture><source srcset="{% static 'images/hero.webp' %}" type="image/webp"><img alt="{{ recipe.title }}" loading="eager" decoding="async" width="1916" height="821" src="{% static 'images/hero.png' %}"></picture>
                             {% endif %}

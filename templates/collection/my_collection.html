@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load media_webp %}
 {% block og_image %}{{ SITE_URL }}{% static 'images/hero-collection.png' %}{% endblock %}
 {% block og_image_secure_url %}{{ SITE_URL }}{% static 'images/hero-collection.png' %}{% endblock %}
 {% block twitter_image %}{{ SITE_URL }}{% static 'images/hero-collection.png' %}{% endblock %}
@@ -63,7 +64,7 @@
                 {% with recipe=saved.recipe %}
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
-                        {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="lazy">
+                        {% if recipe.hero_image %}{% with hw=recipe.hero_image|webp %}<picture>{% if hw %}<source srcset="{{ hw }}" type="image/webp">{% endif %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="lazy"></picture>{% endwith %}
                         {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="lazy">{% endif %}
                     </a>
                     <div class="recipe-card__body">

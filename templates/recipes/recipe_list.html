@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load media_webp %}
 
 {% block title %}{{ page_title|default:"Recipes | CulinEire" }}{% endblock %}
 {% block meta_description %}{{ meta_description|default:"Browse Irish-inspired recipes, vintage cookbook dishes, and modern home cooking ideas on CulinEire." }}{% endblock %}
@@ -79,7 +80,7 @@
                     {% for recipe in recent_recipes %}
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
-                            {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
+                            {% if recipe.hero_image %}{% with hw=recipe.hero_image|webp %}<picture>{% if hw %}<source srcset="{{ hw }}" type="image/webp">{% endif %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1"></picture>{% endwith %}
                             {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
                         </a>
                         <div class="recipe-card__body">
@@ -145,7 +146,7 @@
                 {% for recipe in recipes %}
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
-                        {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async">
+                        {% if recipe.hero_image %}{% with hw=recipe.hero_image|webp %}<picture>{% if hw %}<source srcset="{{ hw }}" type="image/webp">{% endif %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async"></picture>{% endwith %}
                         {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async">{% endif %}
                     </a>
                     <div class="recipe-card__body">
@@ -196,7 +197,7 @@
                 {% for recipe in all_recipes_grid %}
                 <article class="recipe-card">
                     <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
-                        {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async">
+                        {% if recipe.hero_image %}{% with hw=recipe.hero_image|webp %}<picture>{% if hw %}<source srcset="{{ hw }}" type="image/webp">{% endif %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async"></picture>{% endwith %}
                         {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async">{% endif %}
                     </a>
                     <div class="recipe-card__body">
@@ -268,7 +269,7 @@
                     {% for recipe in recipes %}
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
-                            {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
+                            {% if recipe.hero_image %}{% with hw=recipe.hero_image|webp %}<picture>{% if hw %}<source srcset="{{ hw }}" type="image/webp">{% endif %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1"></picture>{% endwith %}
                             {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
                         </a>
                         <div class="recipe-card__body">
@@ -351,7 +352,7 @@
                     {% for recipe in default_recent_recipes %}
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
-                            {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
+                            {% if recipe.hero_image %}{% with hw=recipe.hero_image|webp %}<picture>{% if hw %}<source srcset="{{ hw }}" type="image/webp">{% endif %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1"></picture>{% endwith %}
                             {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
                         </a>
                         <div class="recipe-card__body">
@@ -406,7 +407,7 @@
                     {% for recipe in all_recipes_grid %}
                     <article class="recipe-card">
                         <a class="recipe-card__image-wrapper" href="{{ recipe.get_absolute_url }}">
-                            {% if recipe.hero_image %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1">
+                            {% if recipe.hero_image %}{% with hw=recipe.hero_image|webp %}<picture>{% if hw %}<source srcset="{{ hw }}" type="image/webp">{% endif %}<img alt="{{ recipe.title }}" src="{{ recipe.hero_image.url }}" loading="eager" decoding="async" width="1" height="1"></picture>{% endwith %}
                             {% else %}<img alt="{{ recipe.title }}" src="{% static 'images/hero-default.webp' %}" loading="eager" decoding="async" width="1" height="1">{% endif %}
                         </a>
                         <div class="recipe-card__body">
