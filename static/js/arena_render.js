@@ -196,26 +196,24 @@
     var floorR = props.floorOuter;
     var standsOuter = props.standsOuter;
     var oval = geometry.spectator_oval || {};
+    // The backend owns the stable 290-seat contract. Keep its ring/cell ids
+    // intact; the fallback mirrors ArenaGeometry's frozen 2/3/2/3-row layout.
     var rowsBySide = oval.rows_by_side || { top: 2, right: 3, bottom: 2, left: 3 };
+    var countsBySide = oval.counts_by_side || {
+      top: [28, 29],
+      right: [28, 29, 31],
+      bottom: [28, 29],
+      left: [28, 29, 31]
+    };
     var beFloor = oval.floor_outer_radius || 220;
-    var seats = oval.seats && oval.seats.length
+    var seats = (Array.isArray(oval.seats) && oval.seats.length)
       ? oval.seats
       : (global.ArenaGeometry.ovalSeats
-        ? global.ArenaGeometry.ovalSeats(
-            0,
-            0,
-            beFloor,
-            rowsBySide,
-            null,
-            oval.counts_by_side || null
-          ).map(function (s) {
-            return s;
-          })
+        ? global.ArenaGeometry.ovalSeats(0, 0, beFloor, rowsBySide, Math.max(8, beFloor * 0.032), countsBySide)
         : []);
 
-    // BE oval seats currently land at ~1.28 R_floor. Remap radial depth so the
-    // outermost seat CENTRE sits at STANDS_RATIO (G5: ~1.46 so bbox ≈ 1.60)
-    // without touching get_arena_geometry ring/cell ids. Angle preserved.
+    // Remap radial depth so outermost seat CENTRE sits at STANDS_RATIO
+    // (G5: ~1.46 so bbox ≈ 1.60). Angle preserved.
     var maxBe = beFloor;
     seats.forEach(function (seat) {
       var rb = Math.hypot(seat.x || 0, seat.y || 0);
@@ -236,8 +234,11 @@
       var planX = SVG_SIZE / 2 + Math.cos(ang) * rSvg;
       var planY = SVG_SIZE / 2 + Math.sin(ang) * rSvg;
       var pt = project({ x: planX, y: planY });
-      var pitch = Math.max(11, floorR * 0.045);
-      var r = Math.max(4.2, pitch * 0.34);
+      var pitch = Math.max(8, floorR * 0.032);
+      var depth = (seat.row || 0) / Math.max(1, (rowsBySide[seat.side] || 4) - 1);
+      var r = Math.max(3.6, pitch * (0.40 - 0.06 * depth));
+      // G6-FIX: seat circle + crowd face share this host for one transform chain.
+      var seatGroup = el('g', { class: 'arena-seat-group', 'data-arena-seat-host': 'true' });
       var circle = el('circle', {
         cx: pt.x.toFixed(2),
         cy: pt.y.toFixed(2),
@@ -255,7 +256,8 @@
         'vector-effect': 'non-scaling-stroke',
         class: 'arena-cell arena-cell--oval-seat'
       });
-      layer.appendChild(circle);
+      seatGroup.appendChild(circle);
+      layer.appendChild(seatGroup);
       var clip = el('clipPath', { id: 'arena-clip-' + seat.ring + '-' + seat.cell });
       clip.appendChild(el('circle', {
         cx: pt.x.toFixed(2), cy: pt.y.toFixed(2), r: r.toFixed(2)
@@ -496,9 +498,10 @@
     return (h >>> 0);
   }
 
-  function crowdFaceFor(ring, cell) {
+  function crowdFaceFor(ring, cell, geometry) {
     var faces = global.ARENA_CROWD_FACES || [];
     if (!faces.length) { return null; }
+    // C4: round/ only (96). Near/mid/far is faceLighting() via rowDepth — no tiers/ rewrite.
     return faces[seatHash(ring, cell) % faces.length];
   }
 
@@ -534,9 +537,20 @@
   // the stands get deeper.
   function rowDepth(geometry, ring) {
     var record = null;
-    geometry.rings.forEach(function (r) { if (r.index === ring) { record = r; } });
-    if (!record || !record.row || !record.rows_total || record.rows_total < 2) { return 0; }
-    return Math.min(1, Math.max(0, (record.row - 1) / (record.rows_total - 1)));
+    (geometry.rings || []).forEach(function (r) { if (r.index === ring) { record = r; } });
+    if (record && record.row && record.rows_total && record.rows_total >= 2) {
+      return Math.min(1, Math.max(0, (record.row - 1) / (record.rows_total - 1)));
+    }
+    // Oval ring ids: 100 + sideIndex*10 + row. Keep depth valid for fallback
+    // payloads that omit compact oval ring descriptors.
+    if (ring >= 100) {
+      var ovalRow = ring % 10;
+      var side = ['top', 'right', 'bottom', 'left'][Math.floor((ring - 100) / 10)];
+      var rows = geometry.spectator_oval && geometry.spectator_oval.rows_by_side;
+      var ovalRows = (rows && rows[side]) || 1;
+      return Math.min(1, Math.max(0, ovalRow / Math.max(1, ovalRows - 1)));
+    }
+    return 0;
   }
 
   function faceDiameter(geometry, ring, radius) {
@@ -546,23 +560,23 @@
   // Depth of light. Size alone does not read as distance: with every face at
   // full brightness the back row shines as hard as the front and the
   // perspective flattens out. The mockup (§4) drops roughly 35% of brightness
-  // from the near row to the far one, and lets the far rows fall toward the
-  // hall's own colour, so the crowd recedes instead of standing in a wall.
-  var FACE_DIM = 0.35;
-  var FACE_DESATURATE = 0.28;
+  // from the near row to the far one; G8 pushes that to ~45% so four oval rows
+  // actually read as a mass receding into the bowl (tokens via filter only).
+  var FACE_DIM = 0.45;
+  var FACE_DESATURATE = 0.38;
 
   // The seats fall into the dark on the same curve as the faces sitting in
   // them. arena_render.css reads --row-light; it used to hold a hand-written
   // ladder of ring numbers, which stopped covering the stands the moment they
   // grew from four rows to eight. One source of depth, written from here.
   function lightRows(svg, geometry) {
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind !== 'spectator') { return; }
-      var light = (1 - FACE_DIM * rowDepth(geometry, ring.index)).toFixed(3);
-      var seats = svg.querySelectorAll('.arena-cell[data-ring="' + ring.index + '"]');
-      Array.prototype.forEach.call(seats, function (seat) {
-        seat.style.setProperty('--row-light', light);
-      });
+    // G8: light every drawn spectator seat from its own ring id (oval row =
+    // ring % 10). Do not depend on geometry.rings listing every oval row.
+    var seats = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
+    Array.prototype.forEach.call(seats, function (seat) {
+      var ring = Number(seat.getAttribute('data-ring'));
+      var light = (1 - FACE_DIM * rowDepth(geometry, ring)).toFixed(3);
+      seat.style.setProperty('--row-light', light);
     });
   }
 
@@ -573,19 +587,23 @@
     return 'brightness(' + brightness.toFixed(3) + ') saturate(' + saturation.toFixed(3) + ')';
   }
 
-  function appendCrowdFigure(svg, layer, ring, cell, geometry, radius) {
-    var href = crowdFaceFor(ring, cell);
+  function appendCrowdFigure(svg, ring, cell, geometry, radius) {
+    var href = crowdFaceFor(ring, cell, geometry);
     if (!href) { return; }
-    var polygon = svg.querySelector('.arena-cell[data-ring="' + ring + '"][data-cell="' + cell + '"]');
-    if (!polygon) { return; }
-    var box = polygon.getBBox();
+    var seat = svg.querySelector('.arena-cell[data-ring="' + ring + '"][data-cell="' + cell + '"]');
+    if (!seat) { return; }
+    var seatGroup = seat.parentNode;
+    if (!seatGroup) { return; }
+    var cx = parseFloat(seat.getAttribute('cx'));
+    var cy = parseFloat(seat.getAttribute('cy'));
+    var seatR = parseFloat(seat.getAttribute('r'));
+    var seatSize = seatR * 2;
     var jitter = seatJitter(ring, cell);
     // A portrait sits IN its seat, so it never grows past the seat either.
-    var size = Math.min(faceDiameter(geometry, ring, radius) * jitter.scale,
-                        Math.max(box.width, box.height));
+    var size = Math.min(faceDiameter(geometry, ring, radius) * jitter.scale, seatSize);
     // Off-centre by up to a fifth of the seat in each direction.
-    var offsetX = jitter.x * box.width * 0.4;
-    var offsetY = jitter.y * box.height * 0.4;
+    var offsetX = jitter.x * seatSize * 0.4;
+    var offsetY = jitter.y * seatSize * 0.4;
 
     var figure = el('g', {
       'pointer-events': 'none',
@@ -595,8 +613,8 @@
     // in objectBoundingBox units serves every face whatever its size.
     var image = el('image', {
       href: href,
-      x: (box.x + box.width / 2 - size / 2 + offsetX).toFixed(2),
-      y: (box.y + box.height / 2 - size / 2 + offsetY).toFixed(2),
+      x: (cx - size / 2 + offsetX).toFixed(2),
+      y: (cy - size / 2 + offsetY).toFixed(2),
       width: size.toFixed(2), height: size.toFixed(2),
       // The portraits are cut out now, so the seat behind them shows through.
       // No circular clip: a round mask over a head-and-shoulders cut-out chops
@@ -605,24 +623,35 @@
     });
     image.style.filter = faceLighting(geometry, ring);
     figure.appendChild(image);
-    layer.appendChild(figure);
+    seatGroup.appendChild(figure);
   }
 
-  // Build Plan 3C: interactive spectator seats are REAL viewers only.
-  // Atmospheric packed-hall presentation lives outside these polygons (hall
-  // image / arena_atmosphere haze) and must not impersonate registered or
-  // online users. Default-avatar stand-ins therefore must never be drawn into
-  // empty interactive seats — leave them empty so front-row-first self-seating
-  // and live payload.spectators remain honest.
-  //
-  // crowdFaceFor / seatHash / appendCrowdFigure stay in-tree as unused helpers
-  // (constitution: do not delete suspected legacy during first 2D work). They
-  // are no longer called from bind().
+  // G6: atmospheric stand-ins in EMPTY spectator seats only. Real payload
+  // occupants still win via the occupants layer. Faces are pointer-events:none
+  // and must not impersonate registered users (constitution s11 atmosphere).
   function fillCrowd(svg, geometry, assignments) {
     var layer = svg.querySelector('[data-arena-layer="crowd"]');
-    if (!layer) { return; }
-    while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-    // Intentionally empty: no synthetic occupants in interactive seats.
+    if (layer) {
+      while (layer.firstChild) { layer.removeChild(layer.firstChild); }
+    }
+    Array.prototype.forEach.call(svg.querySelectorAll('.arena-crowd-figure'), function (figure) {
+      if (figure.parentNode) { figure.parentNode.removeChild(figure); }
+    });
+
+    var occupied = {};
+    (assignments || []).forEach(function (a) {
+      if (!a) { return; }
+      occupied[String(a.ring) + ':' + String(a.cell)] = true;
+    });
+
+    var radius = floorRadius(svg, geometry);
+    var seats = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
+    Array.prototype.forEach.call(seats, function (seat) {
+      var ring = Number(seat.getAttribute('data-ring'));
+      var cell = Number(seat.getAttribute('data-cell'));
+      if (occupied[ring + ':' + cell]) { return; }
+      appendCrowdFigure(svg, ring, cell, geometry, radius);
+    });
   }
 
   function initialOf(entity) {
