@@ -189,3 +189,69 @@
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* =============================================================================
+   Furniture — combatant plinths, name plates that size to content, ladder
+   contrast. Site tokens only (--hall-green/--hall-red already aliased).
+   ============================================================================= */
+
+@media (min-width: 901px) {
+  .page--arena .arena-confrontation-band {
+    width: min(56rem, 86%);
+    gap: 0.85rem;
+    align-items: center;
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-chef--challenger,
+  .page--arena .arena-confrontation-band .arena-live-chef--opponent {
+    width: max-content;
+    max-width: min(16rem, 34%);
+    min-width: 11rem;
+    padding: 0.55rem 0.85rem;
+    overflow: visible;
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-chef strong,
+  .page--arena .arena-confrontation-band .arena-live-centre em {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+    max-width: none;
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-chef--challenger {
+    border-color: color-mix(in srgb, var(--hall-green) 70%, var(--hall-border));
+    box-shadow:
+      inset 3px 0 0 var(--hall-green),
+      0 0 1.4rem color-mix(in srgb, var(--hall-green) 24%, transparent);
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-chef--opponent {
+    border-color: color-mix(in srgb, var(--hall-red) 70%, var(--hall-border));
+    box-shadow:
+      inset -3px 0 0 var(--hall-red),
+      0 0 1.4rem color-mix(in srgb, var(--hall-red) 24%, transparent);
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-centre:not(.arena-live-centre--crown):not(.arena-live-centre--quiet) {
+    min-width: 7.5rem;
+    padding: 0.7rem 1rem;
+  }
+
+  .page--arena .arena-rank-spine__step {
+    border-color: color-mix(in srgb, var(--hall-gold) 42%, var(--hall-border));
+    color: var(--hall-gold-light);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--hall-dark-1) 70%, var(--hall-gold)),
+        color-mix(in srgb, var(--hall-dark-0) 88%, transparent)
+      );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hall-gold) 18%, transparent);
+  }
+
+  .page--arena .arena-rank-spine__name {
+    overflow: visible;
+    text-overflow: clip;
+  }
+}

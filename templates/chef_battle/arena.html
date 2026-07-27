@@ -11,7 +11,7 @@
 <link href="{% static 'css/arena.css' %}?v=20260725-loadpurge" rel="stylesheet">
 <link href="{% static 'css/arena_command_deck.css' %}?v=20260725-loadpurge" rel="stylesheet">
 <link href="{% static 'css/arena_effects.css' %}?v=20260725-loadpurge" rel="stylesheet">
-<link href="{% static 'css/arena_hall.css' %}?v=20260727-one-floor" rel="stylesheet">
+<link href="{% static 'css/arena_hall.css' %}?v=20260727-furniture" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay / kill rules last #}
 <link href="{% static 'css/arena_deck_polish.css' %}?v=20260725-loadpurge" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260727-one-floor" rel="stylesheet">
@@ -26,7 +26,7 @@
     <div>
       <p class="arena-command-deck__eyebrow">Chef Battles Arena</p>
       <h1 id="arena-command-title">Emerald Hall</h1>
-      <p class="arena-command-deck__live-note{% if active_battle %} is-live{% endif %}">
+      <p id="arena-live-note" class="arena-command-deck__live-note{% if active_battle %} is-live{% endif %}">
         {% if active_battle %}Live now · a battle holds the centre{% else %}The ranked kitchen floor is open for the next challenge{% endif %}
       </p>
     </div>
@@ -109,7 +109,7 @@
         <li class="arena-panel__empty">No crowns have been awarded today.</li>
       {% endfor %}
     </ol>
-    <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View rankings</a>
+    <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View Full Ladder</a>
   </aside>
   </div>
 
@@ -159,8 +159,8 @@
   <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
     <p class="arena-floor-caption">
       <span>The kitchen floor</span>
-      <strong>{% if active_battle %}Live cooking in progress{% elif arena_data.center.type == 'crown' %}Crown holds the centre{% else %}The floor holds the show{% endif %}</strong>
-      <em>{% if active_battle %}One scene · live hierarchy · real chefs{% else %}One scene · one hierarchy · neutral structure{% endif %}</em>
+      <strong id="arena-floor-caption-strong">{% if active_battle %}Live cooking in progress{% elif arena_data.center.type == 'crown' %}Crown holds the centre{% else %}The floor holds the show{% endif %}</strong>
+      <em id="arena-floor-caption-em">{% if active_battle %}One scene · live hierarchy · real chefs{% else %}One scene · one hierarchy · neutral structure{% endif %}</em>
     </p>
     <section id="arena-live-stage" class="arena-command-deck__live-stage arena-confrontation-band" aria-label="Arena centre" data-centre-key="{% if arena_data.center.type == 'active_battle' or arena_data.center.type == 'facing_pair' %}battle-{{ arena_data.center.battle_id }}{% elif active_battle %}battle-{{ active_battle.pk }}{% elif arena_data.center.type == 'crown' %}crown-{{ arena_data.center.name }}{% else %}empty{% endif %}">
     {% if arena_data.center.type == 'active_battle' or arena_data.center.type == 'facing_pair' %}
@@ -285,9 +285,9 @@
       {% endif %}
     </div>
     <div class="arena-activity-ticker" aria-label="Arena activity" id="arena-activity-ticker">
-      <span>{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</span>
+      <span id="arena-ticker-phase">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</span>
       <span id="arena-top-supporter">{% if arena_data.top_supporter %}Top Supporter: {{ arena_data.top_supporter.name }} {{ arena_data.top_supporter.tokens }}T{% else %}Top Supporter: —{% endif %}</span>
-      <span>{{ arena_data.metrics.active_viewers|default:0 }} watching</span>
+      <span id="arena-ticker-watching">{{ arena_data.metrics.active_viewers|default:0 }} watching</span>
     </div>
     <div class="arena-crowd-rail__actions">
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Browse rankings</a>

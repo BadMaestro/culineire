@@ -17,8 +17,136 @@
 
   var deadlineTicker = null;
   var deadlineAnchor = null;
+  /* Visual Contract §5: empty widgets must show the mockup fixture until real
+     battle data is wired. Stable countdown so polls do not reset the clock. */
+  var fixtureDeadlineUntil = null;
+
+  var LIVE_FIXTURE = {
+    metrics: { active_viewers: '2.4K', public_votes: '3.7K', battle_gifts: '620' },
+    crown_streak: 3,
+    crown_ladder: [
+      { name: 'GreenBear', slug: 'greenbear', crowns: 3 },
+      { name: 'Aidan Byrne', slug: 'aidan-byrne', crowns: 2 },
+      { name: 'ChefOrla', slug: 'cheforla', crowns: 1 },
+      { name: 'Fire&Steel', slug: 'fire-steel', crowns: 1 }
+    ],
+    recent_gifts: [
+      { recipient: 'Aidan Byrne', recipient_slug: 'aidan-byrne', item: 'Artifact Set', tokens: 120 },
+      { recipient: 'Luca Moretti', recipient_slug: 'luca-moretti', item: 'Champagne', tokens: 100 },
+      { recipient: 'Both Chefs', recipient_slug: '', item: 'Good Luck', tokens: 50 }
+    ],
+    top_supporter: { name: 'Sláinte Club', tokens: 420 },
+    phase: { step: 4, key: 'cooking', label: 'Cooking' },
+    center: {
+      type: 'active_battle',
+      battle_id: 'fixture',
+      status_display: 'Cooking',
+      theme: 'Irish stew showdown',
+      battle_url: '/chef-battle/',
+      challenger: {
+        name: 'Aidan Byrne',
+        side: 'challenger',
+        avatar_url: '/static/images/male-avatar.webp',
+        profile_url: '/chef-battle/'
+      },
+      opponent: {
+        name: 'Luca Moretti',
+        side: 'opponent',
+        avatar_url: '/static/images/neutral-avatar.webp',
+        profile_url: '/chef-battle/'
+      }
+    },
+    deadline_seconds: 8 * 60 + 37
+  };
 
   function byId(id) { return document.getElementById(id); }
+
+  function metricsAreEmpty(metrics) {
+    if (!metrics) { return true; }
+    function n(value) {
+      if (value === null || typeof value === 'undefined' || value === '') { return 0; }
+      if (typeof value === 'string' && /[kKmM]/.test(value)) { return 1; }
+      var num = Number(value);
+      return Number.isFinite(num) ? num : 0;
+    }
+    return n(metrics.active_viewers) === 0
+      && n(metrics.public_votes) === 0
+      && n(metrics.battle_gifts) === 0;
+  }
+
+  function hasLiveBattleCentre(center) {
+    if (!center) { return false; }
+    if (center.type !== 'active_battle' && center.type !== 'facing_pair') { return false; }
+    var id = center.battle_id;
+    return id !== null && typeof id !== 'undefined' && String(id) !== '' && String(id) !== 'fixture';
+  }
+
+  function hydrateFixtures(data) {
+    if (!data) { return data; }
+    var out = Object.assign({}, data);
+    var metrics = out.arena_metrics || out.metrics;
+    if (metricsAreEmpty(metrics)) {
+      out.metrics = Object.assign({}, LIVE_FIXTURE.metrics);
+      out.arena_metrics = out.metrics;
+    }
+    if (!Number(out.crown_streak)) {
+      out.crown_streak = LIVE_FIXTURE.crown_streak;
+    }
+    if (!Array.isArray(out.crown_ladder) || !out.crown_ladder.length) {
+      out.crown_ladder = LIVE_FIXTURE.crown_ladder.slice();
+    }
+    if (!Array.isArray(out.recent_gifts) || !out.recent_gifts.length) {
+      out.recent_gifts = LIVE_FIXTURE.recent_gifts.slice();
+    }
+    if (!out.top_supporter || !out.top_supporter.name) {
+      out.top_supporter = Object.assign({}, LIVE_FIXTURE.top_supporter);
+    }
+
+    if (!hasLiveBattleCentre(out.center)) {
+      out.center = Object.assign({}, LIVE_FIXTURE.center, {
+        challenger: Object.assign({}, LIVE_FIXTURE.center.challenger),
+        opponent: Object.assign({}, LIVE_FIXTURE.center.opponent)
+      });
+      out.phase = Object.assign({}, LIVE_FIXTURE.phase);
+      out.arena_phase = out.phase;
+      if (!fixtureDeadlineUntil) {
+        fixtureDeadlineUntil = Date.now() + LIVE_FIXTURE.deadline_seconds * 1000;
+      }
+      var remain = Math.max(0, Math.floor((fixtureDeadlineUntil - Date.now()) / 1000));
+      out.deadline = {
+        seconds_remaining: remain,
+        kind: 'cooking',
+        label: 'Cooking ends',
+        deadline_iso: new Date(fixtureDeadlineUntil).toISOString()
+      };
+      out.server_time = new Date().toISOString();
+      out._fixture_surface = true;
+    } else {
+      fixtureDeadlineUntil = null;
+      out._fixture_surface = false;
+    }
+    return out;
+  }
+
+  function refreshBroadcastCopy(data) {
+    var liveNote = byId('arena-live-note');
+    var floorStrong = byId('arena-floor-caption-strong');
+    var floorEm = byId('arena-floor-caption-em');
+    var tickerPhase = byId('arena-ticker-phase');
+    var tickerWatch = byId('arena-ticker-watching');
+    var metrics = (data && (data.arena_metrics || data.metrics)) || {};
+    var viewers = metricText(metrics.active_viewers);
+    if (data && data._fixture_surface) {
+      if (liveNote) {
+        liveNote.textContent = 'LIVE COOKING IN PROGRESS · CHEFS EARNING THE CROWD';
+        liveNote.classList.add('is-live');
+      }
+      if (floorStrong) { floorStrong.textContent = 'Live cooking in progress'; }
+      if (floorEm) { floorEm.textContent = 'One scene · live hierarchy · fixture until wired'; }
+      if (tickerPhase) { tickerPhase.textContent = 'Cooking'; }
+    }
+    if (tickerWatch) { tickerWatch.textContent = viewers + ' watching'; }
+  }
 
   function svgEl(tag, attrs) {
     var node = document.createElementNS(NS, tag);
@@ -423,16 +551,19 @@
 
   function refresh(data) {
     if (!data) { return; }
+    data = hydrateFixtures(data);
     refreshPanels(data);
     refreshReadModel(data);
     refreshDeadline(data);
     refreshLiveStage(data);
     refreshCrownWindow(data);
+    refreshBroadcastCopy(data);
   }
 
   global.ArenaDeck = {
     refresh: refresh,
     centreKey: centreKey,
-    formatRemaining: formatRemaining
+    formatRemaining: formatRemaining,
+    hydrateFixtures: hydrateFixtures
   };
 })(window);
