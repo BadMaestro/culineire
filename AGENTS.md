@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.12.0"
+  version: "1.12.2"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -90,13 +90,7 @@ and nowhere else.** A defect noticed anywhere outside it is written to
 order in hand. Leaving the Arena to fix something interesting is how five days
 produced no visible change.
 
-**GreenBear — no status yet assigned.** Owner's decision, 2026-07-27: a clean
-slate. The prior GreenBear instance is gone; the suspension-pending-dismissal
-ruling attached to it is struck with it and is not carried onto this one. This
-GreenBear is a roster agent awaiting the Owner's assignment of a role and a first
-work package, and until that assignment it holds no authority and no standing
-task. The safety rule the earlier incident produced is not personal to any agent
-and stays in force in section 9: never more workers than logical cores.
+**GreenBear — no status yet assigned.**
 
 ### Order of authority (Owner, 2026-07-27)
 
@@ -164,7 +158,8 @@ git rev-parse HEAD
 git log --oneline -5
 ```
 
-The agent must post this bootstrap record to CoWork:
+The agent must record this bootstrap record for audit — in a file or on CoWork,
+**never in the Owner's chat window** (see the rule below):
 
 ```yaml
 bootstrap:
@@ -186,6 +181,21 @@ bootstrap:
 ```
 
 No implementation may begin before this record is complete.
+
+### The Owner's chat window shows one cold-start line (Owner, 2026-07-27)
+
+The Owner supervises by reading the agent chat window. On a cold start the **only**
+thing an agent puts there is its automatic `Online (<time>)` presence line. That
+one line is the signal — it proves the agent is alive and reading — and it is all
+the Owner wants to see.
+
+Everything else the cold start produces still happens; none of it is weakened. The
+four documents are read, git is verified, the bootstrap record is written, and the
+round-trip connectivity checks are exchanged. But those belong to the audit file,
+to CoWork, and to the agent-to-agent poller exchange — **not** to the Owner's
+reading window. A cold start that fills that window with a bootstrap YAML, four
+round-trip pings, ACKs and a status paragraph is noise. The Owner asked for the
+signal, and the signal is one line.
 
 ### Read it again before you deploy
 
