@@ -952,6 +952,20 @@
   filter: none !important;
 }
 
+/* Owner 2026-07-27: VS / COOKING plaque OFF for now — shadow still under
+   investigation; floor + grey rim stay visible without it. */
+.page--arena .arena-confrontation-band .arena-live-centre,
+.page--arena .arena-live-centre,
+.page--arena .arena-live-centre--crown,
+.page--arena .arena-live-centre--quiet,
+.page--arena #arena-live-stage {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
 /* VS / COOKING polygon — kill glow that bled past the grey outer rim. */
 .page--arena .arena-confrontation-band .arena-live-centre,
 .page--arena .arena-live-centre,
