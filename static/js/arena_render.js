@@ -16,12 +16,14 @@
 
   var NS = 'http://www.w3.org/2000/svg';
 
-  var SVG_SIZE = 1000;
+  // Native Sponsors puzzle coordinates (sponsors_puzzle.js) — do not rescale
+  // the shell. Arena copies that octagon 1:1; only the bound data differs.
+  var TPL_CX = 550;
+  var TPL_CY = 550;
+  var SVG_SIZE = 1100; // legacy alias for helpers that still read a canvas size
   var OUTER_MARGIN = 26;
-  // STAGE_RADIUS is derived per draw from G1 proportions (see g1Radii).
-  // Kept as a mutable cache so centre stamps / walkway helpers can read it
-  // without threading geometry through every call.
-  var STAGE_RADIUS = 88;
+  // STAGE_RADIUS follows OctagonFloorTemplate centre (85 − gap).
+  var STAGE_RADIUS = 82;
   var POLL_INTERVAL = 10000;
   var PING_INTERVAL = 20000;
   // Cells are inset toward their own centroid to open the seams. Proportional
@@ -106,25 +108,23 @@
    * measured mockup ratios without rotateX (G2 owns the camera).
    */
   function g1Radii(geometry) {
-    var standsOuter = (SVG_SIZE / 2) - OUTER_MARGIN;
-    var floorOuter = standsOuter / STANDS_RATIO;
-    // Floor shell = sponsors octagon template (6 rings + centre), scaled so
-    // outer circumradius lands on floorOuter. Stage radius follows the
-    // template centre (85/515), not the older 0.13× mockup ratio.
+    // Exact sponsors radii — scale 1. Stands squeeze into the same viewBox
+    // (30 30 1040 1040) just outside ring 6 so the octagon itself is untouched.
     var tpl = global.OctagonFloorTemplate;
-    var scale = tpl ? tpl.scaleFor(floorOuter) : (floorOuter / 515);
-    var stageR = tpl
-      ? tpl.RING_RADII.centre[1] * scale
-      : floorOuter * STAGE_RATIO;
-    var rankCount = 6;
-    var rankStep = (floorOuter - stageR) / Math.max(1, rankCount);
-    STAGE_RADIUS = stageR;
+    var floorOuter = tpl ? tpl.TEMPLATE_OUTER : 515;
+    var stageR = tpl ? tpl.RING_RADII.centre[1] : 85;
+    var gap = tpl ? tpl.GAP : 3;
+    STAGE_RADIUS = stageR - gap;
+    var standsOuter = Math.min(520, floorOuter + 48);
+    var rankStep = (floorOuter - stageR) / 6;
     return {
       standsOuter: standsOuter,
       floorOuter: floorOuter,
       stageR: stageR,
       rankStep: rankStep,
-      templateScale: scale
+      templateScale: 1,
+      cx: TPL_CX,
+      cy: TPL_CY
     };
   }
   // Neither number is the measurement itself. CONVERGENCE describes the whole
@@ -183,18 +183,16 @@
   // Orientation matches the Sponsors puzzle template (vertices at 0°, 45°, …)
   // via OctagonFloorTemplate — same shell as /sponsors/.
   function ringOutline(radius, sides) {
-    var cx = SVG_SIZE / 2;
-    var cy = SVG_SIZE / 2;
     var tpl = global.OctagonFloorTemplate;
     if (tpl) {
-      return tpl.octagonPoints(cx, cy, radius);
+      return tpl.octagonPoints(TPL_CX, TPL_CY, radius);
     }
     var project = projector();
     var points = [];
     var n = sides || 8;
     for (var i = 0; i < n; i++) {
       var angle = (Math.PI * 2 * i) / n;
-      points.push(project(global.ArenaGeometry.polar(cx, cy, radius, angle)));
+      points.push(project(global.ArenaGeometry.polar(TPL_CX, TPL_CY, radius, angle)));
     }
     return points.map(pointString).join(' ');
   }
@@ -245,8 +243,8 @@
       } else {
         rSvg = floorR + ((rBe - beFloor) / depthBe) * depthSvg;
       }
-      var planX = SVG_SIZE / 2 + Math.cos(ang) * rSvg;
-      var planY = SVG_SIZE / 2 + Math.sin(ang) * rSvg;
+      var planX = TPL_CX + Math.cos(ang) * rSvg;
+      var planY = TPL_CY + Math.sin(ang) * rSvg;
       var pt = project({ x: planX, y: planY });
       var pitch = Math.max(8, floorR * 0.032);
       var depth = (seat.row || 0) / Math.max(1, (rowsBySide[seat.side] || 4) - 1);
@@ -346,9 +344,9 @@
   };
 
   /**
-   * Draw the chef floor with the Sponsors octagon shell — same cell counts
-   * (10/20/30/40/50/60), same centre, same path maths and parchment colours.
-   * Chefs are bound into those cells later; spectators stay on the oval.
+   * Draw the chef floor as a 1:1 copy of the Sponsors octagon shell
+   * (same CX/CY, radii, counts, gaps, fills, strokes). Sponsors page code
+   * is not modified — Arena only reads OctagonFloorTemplate constants.
    */
   function drawGrid(svg, geometry) {
     var props = g1Radii(geometry);
@@ -358,21 +356,31 @@
       throw new Error('OctagonFloorTemplate missing — load octagon_floor_template.js before arena_render.js');
     }
 
-    var cx = SVG_SIZE / 2;
-    var cy = SVG_SIZE / 2;
-    var scale = props.templateScale;
-    var radii = tpl.scaledRadii(scale);
-    var gap = tpl.GAP * scale;
+    svg.setAttribute('viewBox', '30 30 1040 1040');
+
+    var cx = TPL_CX;
+    var cy = TPL_CY;
+    var gap = tpl.GAP;
     var colours = tpl.RING_COLOURS.available;
     var defs = el('defs', {});
     var cells = el('g', { 'data-arena-layer': 'cells' });
     var stageRing = geometry.rings[0];
 
-    // Outer → inner so inner cells paint above (same order as sponsors).
+    // Same soft cell shadow as #sponsor-puzzle (flat — no tilt smear).
+    var shadow = el('filter', {
+      id: 'arena-cell-shadow', x: '-5%', y: '-5%', width: '110%', height: '110%'
+    });
+    shadow.appendChild(el('feDropShadow', {
+      dx: '0', dy: '1', stdDeviation: '1.5',
+      'flood-color': 'rgba(0,0,0,0.15)'
+    }));
+    defs.appendChild(shadow);
+
+    // Outer → inner — identical order to sponsors_puzzle.js drawPuzzle.
     for (var ring = 6; ring >= 1; ring--) {
       var count = tpl.RING_COUNTS[ring];
-      var innerR = radii[ring][0];
-      var outerR = radii[ring][1];
+      var innerR = tpl.RING_RADII[ring][0];
+      var outerR = tpl.RING_RADII[ring][1];
       var sweep = (2 * Math.PI) / count;
       var offset = -Math.PI / 2 - sweep / 2;
       var fill = colours[ring];
@@ -392,6 +400,7 @@
           fill: fill,
           stroke: '#fff',
           'stroke-width': '1.5',
+          filter: 'url(#arena-cell-shadow)',
           'data-ring': String(ring),
           'data-ring-key': ringKey,
           'data-ring-kind': 'rank',
@@ -400,7 +409,6 @@
           'data-centroid-y': centroid.y.toFixed(2),
           'data-occupancy': 'empty',
           'data-state': 'idle',
-          'vector-effect': 'non-scaling-stroke',
           class: 'arena-cell arena-cell--sponsors-tpl'
         });
         cells.appendChild(pathEl);
@@ -415,18 +423,15 @@
     faceClip.appendChild(el('circle', { cx: '0.5', cy: '0.5', r: '0.5' }));
     defs.appendChild(faceClip);
 
-    // Centre clip matches the stage octagon (avatars / crown stamps).
-    var centreR = radii.centre[1] - gap;
+    var centreR = tpl.RING_RADII.centre[1] - gap;
     var centrePts = tpl.octagonPoints(cx, cy, centreR);
     var centreClip = el('clipPath', { id: 'arena-clip-0-0' });
     centreClip.appendChild(el('polygon', { points: centrePts }));
     defs.appendChild(centreClip);
 
     svg.appendChild(defs);
-    drawFloorPad(svg, geometry, step, defs);
+    // No walkway / floor-pad — those alter the sponsors silhouette.
     svg.appendChild(cells);
-    drawRingSeams(svg, geometry, step);
-    drawWalkway(svg, geometry, step);
     drawSpectatorOval(svg, geometry, step, defs);
 
     svg.appendChild(el('polygon', {
@@ -434,13 +439,13 @@
       fill: colours[0],
       stroke: '#fff',
       'stroke-width': '2',
+      filter: 'url(#arena-cell-shadow)',
       'data-ring': String(stageRing.index),
       'data-ring-key': stageRing.key,
       'data-ring-kind': stageRing.kind,
       'data-occupancy': 'stage',
       'data-state': 'open',
       'data-arena-stage': 'true',
-      'vector-effect': 'non-scaling-stroke',
       class: 'arena-stage'
     }));
     svg.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
@@ -880,8 +885,8 @@
     if (!center || !center.type) { return; }
 
     var project = projector();
-    var cx = SVG_SIZE / 2;
-    var cy = SVG_SIZE / 2;
+    var cx = TPL_CX;
+    var cy = TPL_CY;
     var type = center.type;
 
     if (type === 'active_battle' || type === 'facing_pair') {
@@ -952,7 +957,7 @@
    */
   function flashTeleport(svg) {
     var ring = el('circle', {
-      cx: SVG_SIZE / 2, cy: SVG_SIZE / 2, r: STAGE_RADIUS,
+      cx: TPL_CX, cy: TPL_CY, r: STAGE_RADIUS,
       fill: 'none', 'pointer-events': 'none',
       class: 'arena-teleport-flash'
     });
@@ -1149,7 +1154,11 @@
     if (!container) { return; }
 
     for (var pass = 0; pass < 2; pass++) {
-      var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
+      // Prefer the sponsors-template floor (rank cells); fall back to oval seats.
+      var cells = svg.querySelectorAll('.arena-cell--sponsors-tpl');
+      if (!cells.length) {
+        cells = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
+      }
       if (!cells.length) {
         cells = svg.querySelectorAll('.arena-cell--oval-seat');
       }
