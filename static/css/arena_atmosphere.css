@@ -979,3 +979,20 @@
   text-shadow: none !important;
   filter: none !important;
 }
+
+/* Real culprit (browser check 2026-07-27): live-stage::after side washes —
+   radial blobs at 18%/82% left & right of VS, extending past the grey rim. */
+.page--arena .arena-command-deck__live-stage::after,
+.page--arena .arena-confrontation-band::after,
+.page--arena #arena-live-stage::after,
+.page--arena .arena-command-deck__live-stage[data-centre-key^="battle-"]::after,
+.page--arena .arena-command-deck__live-stage[data-centre-key^="crown-"]::after,
+.page--arena .arena-command-deck__live-stage[data-centre-key="empty"]::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 0 !important;
+  animation: none !important;
+}
