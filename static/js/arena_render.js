@@ -1098,11 +1098,11 @@
     }
 
     if (assets.glyph) {
-      var gSize = radius * 1.05;
+      var gSize = radius * 1.15;
       group.appendChild(el('image', {
         href: assets.glyph,
         x: (cx - gSize / 2).toFixed(2),
-        y: (cy - radius * 0.78).toFixed(2),
+        y: (cy - radius * 0.82).toFixed(2),
         width: gSize.toFixed(2),
         height: gSize.toFixed(2),
         preserveAspectRatio: 'xMidYMid meet',
