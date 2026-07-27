@@ -345,7 +345,7 @@
 /* ----------------------------------------------------------------------------
  * Camera (mockup spec + Owner 2026-07-27).
  *
- * Reference hall uses perspective + rotateX(56deg). G4 dropped perspective and
+ * Reference hall uses perspective + rotateX(42deg). G4 dropped perspective and
  * left a parallel pancake. Restore perspective on the container so the far
  * edge narrows and the octagon reads as a tilted plane, not a flat slab.
  * fitScene() still measures projected bounds after the transform.
@@ -377,7 +377,7 @@
   transform:
     translate(-50%, -50%)
     translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-    rotateX(56deg)
+    rotateX(42deg)
     scale(var(--arena-fit, 1));
 }
 
@@ -406,7 +406,7 @@
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(56deg)
+      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
 }
@@ -423,7 +423,7 @@
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(56deg)
+      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
 }

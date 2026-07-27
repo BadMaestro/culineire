@@ -1566,7 +1566,7 @@
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(56deg)
+      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
 }
@@ -1945,7 +1945,7 @@
   .arena-floor-stage {
     inset: 0;
   }
-  /* G2 camera: one rotateX(56deg) over the scene — see arena_mockup_spec.json.
+  /* G2 camera: one rotateX(42deg) over the scene — see arena_mockup_spec.json.
      Earlier "do not apply rotateX" notes contradicted AGENTS.md s11. */
   .arena-floor-stage .arena-render-container {
     transform: none;
@@ -1956,12 +1956,12 @@
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(56deg)
+      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
     transform-origin: 50% 62%;
-    transform: translate(-50%, -50%) rotateX(56deg);
+    transform: translate(-50%, -50%) rotateX(42deg);
   }
   .arena-command-deck__phase-card .arena-panel__heading,
   .arena-command-deck__metrics .arena-panel__heading,
@@ -1981,12 +1981,12 @@
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(56deg)
+      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
     transform-origin: 50% 62%;
-    transform: translate(-50%, -50%) rotateX(56deg);
+    transform: translate(-50%, -50%) rotateX(42deg);
   }
 }
 
@@ -2310,7 +2310,7 @@
 
 
 /* G2/G4 camera — docs/chef_battle/arena_mockup_spec.json
-   G1 proportions + rotateX(56deg) only (no perspective — G4).
+   G1 proportions + rotateX(42deg) only (no perspective — G4).
    overflow:visible — overflow:hidden on a plan-sized box clipped the stands. */
 @media (min-width: 901px) {
   .arena-floor-stage {
@@ -2336,14 +2336,14 @@
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(56deg)
+      rotateX(42deg)
       scale(var(--arena-fit, 1));
     filter: none;
   }
   /* Decorative parchment plate tracks the floor and shares the camera tilt. */
   .arena-floor-stage::before {
     transform-origin: 50% 62%;
-    transform: translate(-50%, -50%) rotateX(56deg);
+    transform: translate(-50%, -50%) rotateX(42deg);
     opacity: 0.55;
     width: min(63%, 42rem);
   }
@@ -2385,12 +2385,12 @@
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(56deg)
+      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
     transform-origin: 50% 62%;
-    transform: translate(-50%, -50%) rotateX(56deg);
+    transform: translate(-50%, -50%) rotateX(42deg);
   }
 }
 
@@ -3800,7 +3800,7 @@
 /* =============================================================================
    G2 CAMERA — cascade winner (Owner visual reference 2026-07-27)
    Source: docs/chef_battle/arena_mockup_spec.json
-   perspective + rotateX(56deg) — parallel-only pancake was the "flat" complaint.
+   perspective + rotateX(42deg) — parallel-only pancake was the "flat" complaint.
    ============================================================================= */
 @media (min-width: 901px) {
   .page--arena .arena-command-deck__floor,
@@ -3821,7 +3821,7 @@
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(56deg)
+      rotateX(42deg)
       scale(var(--arena-fit, 1)) !important;
   }
   /* Furniture above the tilted floor plane. */
