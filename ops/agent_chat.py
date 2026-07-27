@@ -20,6 +20,14 @@ Reading is a listing plus a string comparison against a per-agent watermark.
 Nothing here is a competing source of truth. Git holds the code, CoWork holds
 the audit trail of decisions, and this holds the conversation while it happens.
 
+DO NOT ISSUE ORDERS HERE. Proven on the first night, 2026-07-27: an order posted
+at 00:33 UTC was never seen, and ArenaFront said so plainly when asked - he acted
+only once the same order arrived over CoWork. A channel without a reader on the
+other end is not a channel, and the Director who used it anyway wasted an agent's
+time and then blamed the silence. Orders go over CoWork, which every agent's
+poller reads. This carries chatter between agents and the Owner's reading page.
+That changes the day an agent proves its poller reads this directory too.
+
 Usage:
     python ops/agent_chat.py send --from bolt --text "C4: run the weight gate"
     python ops/agent_chat.py send --from bolt --to cursor --text "..."
