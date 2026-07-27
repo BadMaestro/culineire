@@ -59,11 +59,71 @@ else
     git log --oneline "$BEFORE".."$AFTER"
 fi
 
+# --- 2. Classify the diff: restart Unit only when the app process must reload --
+# CSS/JS/images are served from disk by nginx after collectstatic — no Unit restart.
+# Django templates use APP_DIRS filesystem loaders (not cached.Loader) — disk read.
+# Python modules and Unit config stay in memory until the workers are restarted.
+NEED_UNIT_RESTART=0
+NEED_COLLECTSTATIC=0
+NEED_PIP=0
+NEED_UNIT_RECONFIGURE=0
+
+if [ "$BEFORE" = "$AFTER" ]; then
+    info "No new commits — skipping Unit restart (override with FORCE_UNIT_RESTART=1)"
+else
+    CHANGED_FILES=$(git diff --name-only "$BEFORE" "$AFTER" || true)
+    while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        case "$path" in
+            requirements.txt|requirements*.txt)
+                NEED_PIP=1
+                NEED_UNIT_RESTART=1
+                ;;
+            deploy/unit*.json)
+                NEED_UNIT_RESTART=1
+                NEED_UNIT_RECONFIGURE=1
+                ;;
+            deploy/modsecurity/*|deploy/nginx*.conf)
+                # nginx/WAF only — handled in section 8; no Unit restart
+                ;;
+            static/*|*/static/*)
+                NEED_COLLECTSTATIC=1
+                ;;
+            templates/*|*.html)
+                # Templates are read from disk each request (APP_DIRS, no cached loader).
+                NEED_COLLECTSTATIC=1
+                ;;
+            *.py|manage.py)
+                NEED_UNIT_RESTART=1
+                ;;
+            *.md|*.txt|*.yml|*.yaml|*.json|docs/*|ops/*|.cursor/*|AGENTS.md)
+                # Docs / ops noise — no process reload
+                ;;
+            *)
+                # Unknown path: fail-safe restart so we never silently miss a runtime change
+                NEED_UNIT_RESTART=1
+                ;;
+        esac
+    done <<< "$CHANGED_FILES"
+
+    info "Change class: Unit restart=$NEED_UNIT_RESTART  collectstatic=$NEED_COLLECTSTATIC  pip=$NEED_PIP  unit reconfigure=$NEED_UNIT_RECONFIGURE"
+fi
+
+if [ "${FORCE_UNIT_RESTART:-0}" = "1" ]; then
+    NEED_UNIT_RESTART=1
+    NEED_UNIT_RECONFIGURE=1
+    info "FORCE_UNIT_RESTART=1 — Unit restart forced"
+fi
+
 # --- 3. Install/update Python dependencies -----------------------------------
-info "Installing requirements..."
-$PIP install --quiet --upgrade pip
-$PIP install --quiet -r "$APP/requirements.txt"
-ok "Requirements installed"
+if [ "$NEED_PIP" = "1" ] || [ "${FORCE_PIP:-0}" = "1" ]; then
+    info "Installing requirements..."
+    $PIP install --quiet --upgrade pip
+    $PIP install --quiet -r "$APP/requirements.txt"
+    ok "Requirements installed"
+else
+    info "requirements.txt unchanged — skipping pip install"
+fi
 
 # --- 3b. Ensure writable shared directories ----------------------------------
 info "Ensuring shared directory permissions..."
@@ -80,10 +140,15 @@ sudo chmod -R u+rwX,g+rwX \
     "$SHARED_DIR/cache"
 ok "Shared directories are writable by $APP_USER"
 
-# --- 4. Collect static files (must run before check --deploy) ----------------
-info "Collecting static files..."
-$PY manage.py collectstatic --noinput --clear -v 0
-ok "Static files collected"
+# --- 4. Collect static files -------------------------------------------------
+if [ "$NEED_COLLECTSTATIC" = "1" ] || [ "$NEED_UNIT_RESTART" = "1" ] || [ "${FORCE_COLLECTSTATIC:-0}" = "1" ]; then
+    # Also collect on Unit restarts: py changes sometimes ship with companion static.
+    info "Collecting static files..."
+    $PY manage.py collectstatic --noinput --clear -v 0
+    ok "Static files collected"
+else
+    info "No static/template changes — skipping collectstatic"
+fi
 
 # --- 5. Django safety checks -------------------------------------------------
 info "Running Django checks..."
@@ -99,27 +164,40 @@ info "Applying migrations..."
 $PY manage.py migrate --noinput
 ok "Migrations applied"
 
-# --- 7. Restart NGINX Unit ----------------------------------------------------
-info "Restarting NGINX Unit..."
-sudo systemctl restart unit
-sleep 2
-if sudo systemctl is-active --quiet unit; then
-    ok "NGINX Unit is running"
+# --- 7. Restart NGINX Unit (only when the in-memory app must reload) ----------
+if [ "$NEED_UNIT_RESTART" = "1" ]; then
+    info "Restarting NGINX Unit (Python / Unit config / fail-safe change)..."
+    sudo systemctl restart unit
+    sleep 2
+    if sudo systemctl is-active --quiet unit; then
+        ok "NGINX Unit is running"
+    else
+        fail "NGINX Unit failed to start — check: sudo journalctl -u unit -n 50"
+    fi
 else
-    fail "NGINX Unit failed to start — check: sudo journalctl -u unit -n 50"
+    info "Skipping Unit restart — static/template-only (or no) diff; no 502 window"
+    if sudo systemctl is-active --quiet unit; then
+        ok "NGINX Unit still running"
+    else
+        fail "NGINX Unit is not active — forcing recovery restart"
+    fi
 fi
 
-info "Loading CulinEire NGINX Unit configuration..."
-UNIT_RECONFIGURE_RESPONSE=$(mktemp)
-trap 'rm -f "$UNIT_RECONFIGURE_RESPONSE"' EXIT
-sudo curl -sS -X PUT --data-binary @"$UNIT_CONFIG" \
-    --unix-socket /var/run/control.unit.sock \
-    http://localhost/config/ >"$UNIT_RECONFIGURE_RESPONSE"
-if grep -q '"success"' "$UNIT_RECONFIGURE_RESPONSE"; then
-    ok "NGINX Unit configuration loaded"
+if [ "$NEED_UNIT_RESTART" = "1" ] || [ "$NEED_UNIT_RECONFIGURE" = "1" ]; then
+    info "Loading CulinEire NGINX Unit configuration..."
+    UNIT_RECONFIGURE_RESPONSE=$(mktemp)
+    trap 'rm -f "$UNIT_RECONFIGURE_RESPONSE"' EXIT
+    sudo curl -sS -X PUT --data-binary @"$UNIT_CONFIG" \
+        --unix-socket /var/run/control.unit.sock \
+        http://localhost/config/ >"$UNIT_RECONFIGURE_RESPONSE"
+    if grep -q '"success"' "$UNIT_RECONFIGURE_RESPONSE"; then
+        ok "NGINX Unit configuration loaded"
+    else
+        cat "$UNIT_RECONFIGURE_RESPONSE"
+        fail "NGINX Unit configuration failed - check: sudo tail -n 100 /var/log/unit.log"
+    fi
 else
-    cat "$UNIT_RECONFIGURE_RESPONSE"
-    fail "NGINX Unit configuration failed - check: sudo tail -n 100 /var/log/unit.log"
+    info "Skipping Unit reconfigure — config unchanged"
 fi
 
 # --- 8. Sync ModSecurity rules when WAF is installed -------------------------
