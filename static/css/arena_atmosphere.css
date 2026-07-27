@@ -863,6 +863,7 @@
 .page--arena #arena-render {
   filter: none !important;
   transform-origin: 50% 62% !important;
+  transform-style: preserve-3d !important;
   transform:
     translate(-50%, -50%)
     translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
@@ -940,12 +941,15 @@
   filter: none !important;
 }
 
-/* Owner 2026-07-28: restore HTML confrontation band (VS / crown / fighters)
-   flat — no outer glow. SVG floor hexes stay off (still rim-bleed risk). */
+/* Owner 2026-07-28: battle positions live ON the tilted SVG floor
+   (challenger / VS / opponent). HTML confrontation band stays hidden so it
+   does not float as a second upright plaque. */
+.page--arena #arena-render [data-arena-layer="centre"],
 .page--arena #arena-render .arena-floor-fighter,
-.page--arena #arena-render [data-arena-layer="centre"] {
-  display: none !important;
-  visibility: hidden !important;
+.page--arena #arena-render .arena-floor-fighter__tile,
+.page--arena #arena-render .arena-floor-fighter__avatar,
+.page--arena #arena-render .arena-floor-vs {
+  visibility: visible !important;
   pointer-events: none !important;
   box-shadow: none !important;
   filter: none !important;
@@ -953,35 +957,21 @@
 
 .page--arena .arena-confrontation-band .arena-live-chef,
 .page--arena .arena-live-chef--challenger,
-.page--arena .arena-live-chef--opponent {
-  display: block !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-  filter: none !important;
-  text-shadow: none !important;
-}
-
+.page--arena .arena-live-chef--opponent,
 .page--arena .arena-confrontation-band .arena-live-centre,
 .page--arena .arena-live-centre,
 .page--arena .arena-live-centre--crown,
-.page--arena .arena-live-centre--quiet {
-  display: inline-flex !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
+.page--arena .arena-live-centre--quiet,
+.page--arena #arena-live-stage {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
   box-shadow: none !important;
   filter: none !important;
   text-shadow: none !important;
 }
 
-.page--arena #arena-live-stage {
-  display: flex !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-
-/* Flat cards: inset accent only — no outer glow past the grey rim. */
+/* Flat accent only if HTML band is re-shown later — no outer glow past rim. */
 .page--arena .arena-confrontation-band .arena-live-chef--challenger {
   box-shadow: inset 3px 0 0 var(--hall-green) !important;
   filter: none !important;

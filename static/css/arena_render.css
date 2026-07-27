@@ -454,18 +454,19 @@
   filter: none;
 }
 
-/* Mockup M07 — on-floor challenger/opponent hex portraits. */
+/* Mockup M07 — on-floor challenger/opponent hex + centred VS (same tilt as floor). */
 #arena-render .arena-floor-fighter__tile {
   fill: color-mix(in srgb, var(--surface) 55%, transparent);
-  stroke-width: 2.2;
+  stroke-width: 2.4;
+  filter: none;
 }
 #arena-render .arena-floor-fighter--challenger .arena-floor-fighter__tile {
   stroke: var(--hall-green);
-  fill: color-mix(in srgb, var(--hall-green) 18%, var(--surface));
+  fill: color-mix(in srgb, var(--hall-green) 22%, var(--surface));
 }
 #arena-render .arena-floor-fighter--opponent .arena-floor-fighter__tile {
   stroke: var(--hall-red);
-  fill: color-mix(in srgb, var(--hall-red) 18%, var(--surface));
+  fill: color-mix(in srgb, var(--hall-red) 22%, var(--surface));
 }
 #arena-render .arena-floor-fighter--crown .arena-floor-fighter__tile {
   stroke: var(--accent-bronze);
@@ -474,11 +475,48 @@
 #arena-render .arena-floor-fighter__name {
   fill: var(--ink);
   font-family: var(--font-serif, "Playfair Display", serif);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   paint-order: stroke;
-  stroke: color-mix(in srgb, var(--surface) 70%, transparent);
+  stroke: color-mix(in srgb, var(--surface) 75%, transparent);
   stroke-width: 3px;
+}
+
+/* Portrait stands facing the camera while the hex pad stays on the floor plane. */
+#arena-render {
+  transform-style: preserve-3d;
+}
+#arena-render .arena-floor-fighter__billboard {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: rotateX(-42deg);
+  transform-style: preserve-3d;
+}
+
+#arena-render .arena-floor-vs__tile {
+  fill: color-mix(in srgb, var(--accent-bronze) 28%, var(--surface));
+  stroke: var(--accent-bronze);
+  stroke-width: 2.6;
+  filter: none;
+}
+#arena-render .arena-floor-vs__mark {
+  fill: var(--brand-dark);
+  font-family: var(--font-serif, "Playfair Display", serif);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--surface) 80%, transparent);
+  stroke-width: 4px;
+}
+#arena-render .arena-floor-vs__status,
+#arena-render .arena-floor-vs__theme {
+  fill: var(--ink-soft);
+  font-family: var(--font-sans, "Source Sans 3", sans-serif);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 @media (prefers-reduced-motion: reduce) {

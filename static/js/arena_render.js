@@ -456,8 +456,12 @@
     }));
     shell.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
     shell.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
-    shell.appendChild(el('g', { 'data-arena-layer': 'centre' }));
     svg.appendChild(shell);
+
+    // Centre battle pads sit above the shell clip so standing billboard
+    // portraits are not shaved by the octagon mask — still inside the SVG
+    // camera tilt.
+    svg.appendChild(el('g', { 'data-arena-layer': 'centre' }));
 
     // Grey outer band outside the clip — visible frame, no avatar bleed over it.
     drawWalkway(svg, geometry, step);
@@ -1045,9 +1049,73 @@
     var layer = svg.querySelector('[data-arena-layer="centre"]');
     if (!layer) { return; }
     while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-    // Owner 2026-07-28: SVG floor hex fighters stay OFF — HTML confrontation
-    // band carries Challenger / VS / Opponent flat (no rim-bleed glow).
-    return;
+    if (!center || !center.type) { return; }
+
+    // Plan coords — CSS rotateX(42deg) on #arena-render tilts the whole floor
+    // including these pads, so they share the octagon plane (mockup M07).
+    var cx = TPL_CX;
+    var cy = TPL_CY;
+    var type = center.type;
+    var padR = STAGE_RADIUS * 1.28;
+    var offset = STAGE_RADIUS * 2.05;
+
+    if (type === 'active_battle' || type === 'facing_pair') {
+      drawFloorFighter(svg, layer, center.challenger, { x: cx - offset, y: cy }, padR, 'challenger');
+      drawFloorVs(layer, cx, cy, STAGE_RADIUS * 0.92, center);
+      drawFloorFighter(svg, layer, center.opponent, { x: cx + offset, y: cy }, padR, 'opponent');
+      return;
+    }
+
+    if (type === 'crown') {
+      drawFloorFighter(svg, layer, {
+        name: center.name,
+        slug: center.slug || '',
+        avatar_url: center.avatar_url
+      }, { x: cx, y: cy }, STAGE_RADIUS * 1.05, 'crown');
+    }
+  }
+
+  function drawFloorVs(layer, cx, cy, radius, center) {
+    var pts = hexPoints(cx, cy, radius);
+    var group = el('g', {
+      class: 'arena-floor-vs',
+      'pointer-events': 'none'
+    });
+    group.appendChild(el('polygon', {
+      points: pts.map(pointString).join(' '),
+      class: 'arena-floor-vs__tile',
+      'vector-effect': 'non-scaling-stroke'
+    }));
+    var status = el('text', {
+      x: cx.toFixed(2),
+      y: (cy - radius * 0.42).toFixed(2),
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      class: 'arena-floor-vs__status'
+    });
+    status.textContent = (center && center.status_display) || '';
+    group.appendChild(status);
+    var vs = el('text', {
+      x: cx.toFixed(2),
+      y: cy.toFixed(2),
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      class: 'arena-floor-vs__mark'
+    });
+    vs.textContent = 'VS';
+    group.appendChild(vs);
+    if (center && center.theme) {
+      var theme = el('text', {
+        x: cx.toFixed(2),
+        y: (cy + radius * 0.42).toFixed(2),
+        'text-anchor': 'middle',
+        'dominant-baseline': 'middle',
+        class: 'arena-floor-vs__theme'
+      });
+      theme.textContent = center.theme;
+      group.appendChild(theme);
+    }
+    layer.appendChild(group);
   }
 
   function drawFloorFighter(svg, layer, fighter, centre, radius, side) {
@@ -1076,22 +1144,25 @@
       'vector-effect': 'non-scaling-stroke'
     }));
     if (fighter.avatar_url) {
-      var size = radius * 1.72;
-      group.appendChild(el('image', {
+      // Portrait stands on the pad: billboard group counter-tilts vs the floor.
+      var size = radius * 1.55;
+      var billboard = el('g', { class: 'arena-floor-fighter__billboard' });
+      billboard.appendChild(el('image', {
         href: fighter.avatar_url,
         x: (centre.x - size / 2).toFixed(2),
-        y: (centre.y - size / 2).toFixed(2),
+        y: (centre.y - size * 0.92).toFixed(2),
         width: size.toFixed(2),
         height: size.toFixed(2),
         preserveAspectRatio: 'xMidYMid slice',
         'clip-path': 'url(#' + clipId + ')',
         class: 'arena-floor-fighter__avatar'
       }));
+      group.appendChild(billboard);
     }
     if (fighter.name) {
       var label = el('text', {
         x: centre.x.toFixed(2),
-        y: (centre.y + radius + 18).toFixed(2),
+        y: (centre.y + radius + 16).toFixed(2),
         'text-anchor': 'middle',
         'dominant-baseline': 'hanging',
         class: 'arena-floor-fighter__name'
