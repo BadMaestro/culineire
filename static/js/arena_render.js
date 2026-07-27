@@ -892,19 +892,10 @@
     var layer = svg.querySelector('[data-arena-layer="centre"]');
     if (!layer) { return; }
     while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-    if (!center || !center.type) { return; }
-
-    var project = projector();
-    var cx = TPL_CX;
-    var cy = TPL_CY;
-    var type = center.type;
-
-    if (type === 'active_battle' || type === 'facing_pair') {
-      var offset = STAGE_RADIUS * 2.35;
-      var size = STAGE_RADIUS * 1.55;
-      drawFloorFighter(svg, layer, center.challenger, project({ x: cx - offset, y: cy }), size, 'challenger');
-      drawFloorFighter(svg, layer, center.opponent, project({ x: cx + offset, y: cy }), size, 'opponent');
-    }
+    // Owner 2026-07-27: challenger/opponent floor hexes OFF for now —
+    // their shadows bled past the grey outer rim. HTML confrontation cards
+    // are also hidden via CSS. Re-enable together when rim is clean.
+    return;
   }
 
   function drawFloorFighter(svg, layer, fighter, centre, radius, side) {
