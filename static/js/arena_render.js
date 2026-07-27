@@ -24,6 +24,11 @@
   var OUTER_MARGIN = 26;
   // STAGE_RADIUS follows OctagonFloorTemplate centre (85 − gap).
   var STAGE_RADIUS = 82;
+  // Crown nick capacity at name Y (dy ≈ 0.44·R, font ≈ 0.16·R): usable ≈ 130
+  // SVG units. Measured live: ~14 uppercase / ~17 mixed; hard ceiling = 14.
+  var CROWN_NAME_MAX_CHARS = 14;
+  var CROWN_NAME_Y_FACTOR = 0.44;
+  var CROWN_NAME_PAD = 6;
   var POLL_INTERVAL = 10000;
   var PING_INTERVAL = 20000;
   // Cells are inset toward their own centroid to open the seams. Proportional
@@ -1123,17 +1128,79 @@
     label.textContent = 'CROWN HOLDER';
     group.appendChild(label);
 
+    var nameY = cy + radius * CROWN_NAME_Y_FACTOR;
     var name = el('text', {
       x: cx.toFixed(2),
-      y: (cy + radius * 0.44).toFixed(2),
+      y: nameY.toFixed(2),
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
       'font-size': (radius * 0.16).toFixed(1),
       class: 'arena-floor-crown__name'
     });
-    name.textContent = (center && center.name) || '';
     group.appendChild(name);
+    // Append before measuring — getComputedTextLength needs a live SVG text node.
     layer.appendChild(group);
+    fitCrownName(
+      name,
+      (center && center.name) || '',
+      crownNameMaxWidth(radius, nameY - cy)
+    );
+  }
+
+  /** Half-width of the stage octagon (verts at 0°/45°/…) at vertical offset dy. */
+  function octagonHalfWidthAt(radius, dy) {
+    var c22 = Math.cos(Math.PI / 8);
+    var s22 = Math.sin(Math.PI / 8);
+    var ady = Math.abs(dy);
+    if (ady <= radius * s22) { return radius * c22; }
+    var x1 = radius * c22;
+    var y1 = radius * s22;
+    var x2 = radius * s22;
+    var y2 = radius * c22;
+    var t = (ady - y1) / (y2 - y1);
+    return x1 + t * (x2 - x1);
+  }
+
+  function crownNameMaxWidth(radius, dy) {
+    return Math.max(0, 2 * octagonHalfWidthAt(radius, dy) - 2 * CROWN_NAME_PAD);
+  }
+
+  /**
+   * Cap the crown nick at CROWN_NAME_MAX_CHARS, then shrink further to the
+   * octagon chord width so wide glyphs (W/M) still stay inside the pad.
+   */
+  function fitCrownName(textNode, raw, maxWidth) {
+    var full = String(raw || '').trim();
+    if (!full) {
+      textNode.textContent = '';
+      return;
+    }
+    var limit = Math.min(full.length, CROWN_NAME_MAX_CHARS);
+    var base = full.length > CROWN_NAME_MAX_CHARS
+      ? full.slice(0, CROWN_NAME_MAX_CHARS - 1) + '\u2026'
+      : full;
+    textNode.textContent = base;
+    if (!maxWidth || textNode.getComputedTextLength() <= maxWidth) { return; }
+
+    var lo = 1;
+    var hi = limit;
+    var best = 1;
+    while (lo <= hi) {
+      var mid = (lo + hi) >> 1;
+      var candidate = mid < full.length
+        ? full.slice(0, mid) + '\u2026'
+        : full.slice(0, mid);
+      textNode.textContent = candidate;
+      if (textNode.getComputedTextLength() <= maxWidth) {
+        best = mid;
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    textNode.textContent = best < full.length
+      ? full.slice(0, best) + '\u2026'
+      : full.slice(0, best);
   }
 
   function drawFloorVs(layer, cx, cy, radius, center) {
