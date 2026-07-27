@@ -482,15 +482,9 @@
   stroke-width: 3px;
 }
 
-/* Portrait stands facing the camera while the hex pad stays on the floor plane. */
-#arena-render {
-  transform-style: preserve-3d;
-}
-#arena-render .arena-floor-fighter__billboard {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  transform: rotateX(-42deg);
-  transform-style: preserve-3d;
+/* Portrait shares the floor plane (same rotateX as the octagon). */
+#arena-render .arena-floor-fighter__avatar {
+  filter: none;
 }
 
 #arena-render .arena-floor-vs__tile {

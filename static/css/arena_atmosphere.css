@@ -863,7 +863,6 @@
 .page--arena #arena-render {
   filter: none !important;
   transform-origin: 50% 62% !important;
-  transform-style: preserve-3d !important;
   transform:
     translate(-50%, -50%)
     translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))

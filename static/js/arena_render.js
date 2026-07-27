@@ -456,12 +456,8 @@
     }));
     shell.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
     shell.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
+    shell.appendChild(el('g', { 'data-arena-layer': 'centre' }));
     svg.appendChild(shell);
-
-    // Centre battle pads sit above the shell clip so standing billboard
-    // portraits are not shaved by the octagon mask — still inside the SVG
-    // camera tilt.
-    svg.appendChild(el('g', { 'data-arena-layer': 'centre' }));
 
     // Grey outer band outside the clip — visible frame, no avatar bleed over it.
     drawWalkway(svg, geometry, step);
@@ -1144,20 +1140,19 @@
       'vector-effect': 'non-scaling-stroke'
     }));
     if (fighter.avatar_url) {
-      // Portrait stands on the pad: billboard group counter-tilts vs the floor.
+      // Flat on the pad — same floor plane / rotateX as the octagon (no nested
+      // 3D billboard: preserve-3d on SVG children shattered the camera).
       var size = radius * 1.55;
-      var billboard = el('g', { class: 'arena-floor-fighter__billboard' });
-      billboard.appendChild(el('image', {
+      group.appendChild(el('image', {
         href: fighter.avatar_url,
         x: (centre.x - size / 2).toFixed(2),
-        y: (centre.y - size * 0.92).toFixed(2),
+        y: (centre.y - size / 2).toFixed(2),
         width: size.toFixed(2),
         height: size.toFixed(2),
         preserveAspectRatio: 'xMidYMid slice',
         'clip-path': 'url(#' + clipId + ')',
         class: 'arena-floor-fighter__avatar'
       }));
-      group.appendChild(billboard);
     }
     if (fighter.name) {
       var label = el('text', {
