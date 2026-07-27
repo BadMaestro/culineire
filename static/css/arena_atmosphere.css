@@ -894,6 +894,13 @@
   stroke: #ffffff !important;
 }
 
+.page--arena #arena-render .arena-stage[data-state="crown"] {
+  fill: color-mix(in srgb, var(--ink) 55%, #1f2c25) !important;
+  stroke: var(--accent-bronze) !important;
+  stroke-width: 5 !important;
+  paint-order: stroke fill;
+}
+
 .page--arena #arena-render .arena-ring-seam,
 .page--arena #arena-render .arena-ring-seam--outer,
 .page--arena #arena-render .arena-ring-seam--stage {

@@ -535,13 +535,6 @@
   stroke-width: 2.5px;
 }
 
-#arena-render .arena-stage[data-state="crown"] {
-  fill: color-mix(in srgb, var(--ink) 55%, #1f2c25);
-  stroke: var(--accent-bronze);
-  stroke-width: 5;
-  paint-order: stroke fill;
-}
-
 @media (prefers-reduced-motion: reduce) {
   #arena-render { filter: none; }
 }
@@ -601,6 +594,16 @@
   fill: var(--sp-ring-0);
   stroke: var(--arena-seam);
   stroke-width: 1.6;
+}
+
+/* Must beat .page--arena #arena-render .arena-stage (atmosphere) and the
+   parchment stage fill above — crown pad is inscribed marble + gold rim. */
+.page--arena #arena-render .arena-stage[data-state="crown"],
+#arena-render .arena-stage[data-state="crown"] {
+  fill: color-mix(in srgb, var(--ink) 55%, #1f2c25);
+  stroke: var(--accent-bronze);
+  stroke-width: 5;
+  paint-order: stroke fill;
 }
 
 /* Explicit concentric ring boundaries (drawn in arena_render.js). */
