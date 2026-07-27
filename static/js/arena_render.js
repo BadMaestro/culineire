@@ -1045,9 +1045,8 @@
     var layer = svg.querySelector('[data-arena-layer="centre"]');
     if (!layer) { return; }
     while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-    // Owner 2026-07-27: challenger/opponent floor hexes OFF for now —
-    // their shadows bled past the grey outer rim. HTML confrontation cards
-    // are also hidden via CSS. Re-enable together when rim is clean.
+    // Owner 2026-07-28: SVG floor hex fighters stay OFF — HTML confrontation
+    // band carries Challenger / VS / Opponent flat (no rim-bleed glow).
     return;
   }
 

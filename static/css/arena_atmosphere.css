@@ -940,11 +940,8 @@
   filter: none !important;
 }
 
-/* Owner 2026-07-27: hide challenger/opponent cards for now — their box-shadow
-   bled past the grey outer rim. Keep VS / phase centre; re-show later. */
-.page--arena .arena-confrontation-band .arena-live-chef,
-.page--arena .arena-live-chef--challenger,
-.page--arena .arena-live-chef--opponent,
+/* Owner 2026-07-28: restore HTML confrontation band (VS / crown / fighters)
+   flat — no outer glow. SVG floor hexes stay off (still rim-bleed risk). */
 .page--arena #arena-render .arena-floor-fighter,
 .page--arena #arena-render [data-arena-layer="centre"] {
   display: none !important;
@@ -954,21 +951,47 @@
   filter: none !important;
 }
 
-/* Owner 2026-07-27: VS / COOKING plaque OFF for now — shadow still under
-   investigation; floor + grey rim stay visible without it. */
+.page--arena .arena-confrontation-band .arena-live-chef,
+.page--arena .arena-live-chef--challenger,
+.page--arena .arena-live-chef--opponent {
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
 .page--arena .arena-confrontation-band .arena-live-centre,
 .page--arena .arena-live-centre,
 .page--arena .arena-live-centre--crown,
-.page--arena .arena-live-centre--quiet,
+.page--arena .arena-live-centre--quiet {
+  display: inline-flex !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
 .page--arena #arena-live-stage {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+  display: flex !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
   box-shadow: none !important;
   filter: none !important;
 }
 
-/* VS / COOKING polygon — kill glow that bled past the grey outer rim. */
+/* Flat cards: inset accent only — no outer glow past the grey rim. */
+.page--arena .arena-confrontation-band .arena-live-chef--challenger {
+  box-shadow: inset 3px 0 0 var(--hall-green) !important;
+  filter: none !important;
+}
+
+.page--arena .arena-confrontation-band .arena-live-chef--opponent {
+  box-shadow: inset -3px 0 0 var(--hall-red) !important;
+  filter: none !important;
+}
+
 .page--arena .arena-confrontation-band .arena-live-centre,
 .page--arena .arena-live-centre,
 .page--arena .arena-live-centre--crown,
@@ -991,7 +1014,10 @@
 
 .page--arena .arena-confrontation-band .arena-live-centre b,
 .page--arena .arena-confrontation-band .arena-live-centre span,
-.page--arena .arena-confrontation-band .arena-live-centre em {
+.page--arena .arena-confrontation-band .arena-live-centre em,
+.page--arena .arena-live-chef span,
+.page--arena .arena-live-chef strong,
+.page--arena .arena-live-centre .arena-ico {
   text-shadow: none !important;
   filter: none !important;
 }
