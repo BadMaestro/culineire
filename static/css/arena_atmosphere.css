@@ -901,3 +901,16 @@
 .page--arena #arena-render .arena-floor-pad--glow {
   filter: none !important;
 }
+
+/* Nothing outside the sponsors shell — oval seats / pads were rim junk. */
+.page--arena #arena-render [data-arena-layer="spectator-oval"],
+.page--arena #arena-render [data-arena-layer="floor-pad"],
+.page--arena #arena-render .arena-cell--oval-seat,
+.page--arena #arena-render [data-ring-kind="spectator"],
+.page--arena #arena-render .arena-rim,
+.page--arena #arena-render .arena-rim--inner,
+.page--arena #arena-render .arena-rim--outer,
+.page--arena #arena-render .arena-floor-pad,
+.page--arena #arena-render .arena-floor-pad--glow {
+  display: none !important;
+}

@@ -295,14 +295,10 @@
     var sides = geometry.sides || 8;
     var band = el('g', { 'data-arena-layer': 'walkway', 'pointer-events': 'none' });
 
-    // Grey stone band hugging the outer ring edge.
+    // Single grey stone band on the outer ring edge — no bronze double-rim.
     band.appendChild(el('polygon', {
       points: ringOutline(radius, sides),
       class: 'arena-walkway'
-    }));
-    band.appendChild(el('polygon', {
-      points: ringOutline(radius, sides),
-      class: 'arena-rim arena-rim--inner'
     }));
     svg.appendChild(band);
   }
@@ -430,7 +426,9 @@
     // Grey closing ring around the outer sponsors ring (walkway only — no pad).
     drawWalkway(svg, geometry, step);
     svg.appendChild(cells);
-    drawSpectatorOval(svg, geometry, step, defs);
+    // Spectator oval OFF while the floor is a 1:1 sponsors shell — empty seat
+    // discs were reading as junk outside the grey rim (Owner 2026-07-27).
+    // Seating returns in a later pass; keep drawSpectatorOval() for that.
 
     svg.appendChild(el('polygon', {
       points: centrePts,
