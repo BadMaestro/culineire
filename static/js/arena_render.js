@@ -844,6 +844,13 @@
     var cxAttr = dotX.toFixed(1);
     var cyAttr = dotY.toFixed(1);
 
+    // Each chef blinks on their own clock — stable hash so polls don't resync.
+    var h = chefSeatHash(entity.slug || ('r' + ring + 'c' + cell), ring);
+    var durSec = 1.05 + ((h % 1100) / 1000);           // ~1.05s … 2.15s
+    var beginSec = (((h >>> 9) % 1000) / 1000) * durSec; // phase 0 … dur
+    var dur = durSec.toFixed(2) + 's';
+    var begin = beginSec.toFixed(2) + 's';
+
     group.appendChild(el('circle', {
       cx: cxAttr, cy: cyAttr, r: '5.5',
       fill: '#fff', 'pointer-events': 'none'
@@ -857,11 +864,11 @@
       class: 'arena-online-ping'
     });
     ping.appendChild(el('animate', {
-      attributeName: 'r', values: '4;11', dur: '1.4s',
+      attributeName: 'r', values: '4;11', dur: dur, begin: begin,
       repeatCount: 'indefinite'
     }));
     ping.appendChild(el('animate', {
-      attributeName: 'opacity', values: '0.85;0', dur: '1.4s',
+      attributeName: 'opacity', values: '0.85;0', dur: dur, begin: begin,
       repeatCount: 'indefinite'
     }));
     group.appendChild(ping);
@@ -869,15 +876,16 @@
     var dot = el('circle', {
       cx: cxAttr, cy: cyAttr, r: '4',
       fill: '#22c55e', 'pointer-events': 'none',
-      class: 'arena-online-dot'
+      class: 'arena-online-dot',
+      style: 'animation-duration:' + dur + ';animation-delay:-' + begin
     });
     // SMIL radius pulse — reliable on SVG circles (CSS `r` keyframes are flaky).
     dot.appendChild(el('animate', {
-      attributeName: 'r', values: '4;2.6;4', dur: '1.4s',
+      attributeName: 'r', values: '4;2.6;4', dur: dur, begin: begin,
       repeatCount: 'indefinite'
     }));
     dot.appendChild(el('animate', {
-      attributeName: 'opacity', values: '1;0.35;1', dur: '1.4s',
+      attributeName: 'opacity', values: '1;0.35;1', dur: dur, begin: begin,
       repeatCount: 'indefinite'
     }));
     group.appendChild(dot);
