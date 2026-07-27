@@ -175,11 +175,16 @@
   /* ---------------------------------------------------------------- */
 
   // The octagon at a given radius, as an SVG points string.
+  // Orientation MUST match ArenaGeometry.cellVertices (flat top/bottom):
+  // -π/2 - π/sides. A plain -π/2 start is pointy-top and reads as a second
+  // brown ring rotated 22.5° against the floor tiles.
   function ringOutline(radius, sides) {
     var project = projector();
     var points = [];
-    for (var i = 0; i < sides; i++) {
-      var angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+    var n = sides || 8;
+    var orientationOffset = -Math.PI / 2 - (Math.PI / n);
+    for (var i = 0; i < n; i++) {
+      var angle = orientationOffset + (Math.PI * 2 * i) / n;
       points.push(project(global.ArenaGeometry.polar(SVG_SIZE / 2, SVG_SIZE / 2, radius, angle)));
     }
     return points.map(pointString).join(' ');

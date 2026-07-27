@@ -2029,8 +2029,8 @@
     stroke-width: 1;
   }
   .page--arena #arena-render .arena-walkway {
-    stroke: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    opacity: 0.85;
+    stroke: color-mix(in srgb, var(--muted) 42%, var(--surface));
+    opacity: 0.96;
   }
 }
 
@@ -2680,9 +2680,12 @@
     stroke: color-mix(in srgb, var(--accent-bronze) 65%, transparent);
   }
   .page--arena #arena-render .arena-rim,
-  .page--arena #arena-render .arena-rim--outer,
+  .page--arena #arena-render .arena-rim--outer {
+    stroke: color-mix(in srgb, var(--muted) 55%, var(--surface));
+    stroke-width: 1.2;
+  }
   .page--arena #arena-render .arena-rim--inner {
-    stroke: color-mix(in srgb, var(--accent-bronze) 75%, transparent);
+    stroke: color-mix(in srgb, var(--accent-bronze) 30%, var(--muted));
     stroke-width: 1.4;
   }
 

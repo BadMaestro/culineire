@@ -77,8 +77,18 @@
 }
 
 .page--arena #arena-render .arena-walkway {
-  stroke: var(--hall-border);
-  opacity: 1;
+  /* Closing stone ring — grey, not hall brass (brass fought the floor silhouette). */
+  stroke: color-mix(in srgb, var(--muted) 42%, var(--surface));
+  opacity: 0.96;
+}
+
+.page--arena #arena-render .arena-rim,
+.page--arena #arena-render .arena-rim--outer {
+  stroke: color-mix(in srgb, var(--muted) 55%, var(--surface));
+}
+
+.page--arena #arena-render .arena-rim--inner {
+  stroke: color-mix(in srgb, var(--hall-gold) 28%, var(--muted));
 }
 
 .page--arena .arena-live-centre,
