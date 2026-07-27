@@ -1093,12 +1093,12 @@ def _build_arena_payload(*, viewer_author=None):
         "enrolled": enrolled,
         "chefs_by_rank": chefs_by_rank,
         "rings": {
-            # Floor seats every enrolled chef by rank (sponsors-template cells).
-            # Presence stays on each record as is_online — the renderer marks
-            # online/idle so the hall still reads who is live without emptying
-            # the octagon when few heartbeats are fresh.
-            # chefs_by_rank stays the same lists for legend/roster counts.
-            rank.value: list(chefs_by_rank[rank.value])
+            # Only chefs currently online occupy ring cells. Offline chefs
+            # vanish from the sector entirely and reappear automatically on the
+            # next arena poll once their heartbeat marks them online again.
+            # chefs_by_rank stays complete so the legend/roster counts still
+            # reflect every enrolled chef.
+            rank.value: [c for c in chefs_by_rank[rank.value] if c["is_online"]]
             for rank in ChefBattleProfile.Rank
         },
         "spectators": _get_spectators(online_cutoff, viewer_author=viewer_author),
