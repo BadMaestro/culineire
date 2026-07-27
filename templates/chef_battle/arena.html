@@ -8,15 +8,13 @@
 
 {% block extra_head %}
 <!-- duplicate chef_battle.css removed 2026-07-25 load purge -->
-{# ARENA-S01: Sinus tokens first — dark hall names before any Arena stylesheet #}
-<link href="{% static 'css/arena.tokens.css' %}?v=20260727-s01" rel="stylesheet">
 <link href="{% static 'css/arena.css' %}?v=20260725-loadpurge" rel="stylesheet">
 <link href="{% static 'css/arena_command_deck.css' %}?v=20260725-loadpurge" rel="stylesheet">
 <link href="{% static 'css/arena_effects.css' %}?v=20260725-loadpurge" rel="stylesheet">
-<link href="{% static 'css/arena_hall.css' %}?v=20260727-s01" rel="stylesheet">
+<link href="{% static 'css/arena_hall.css' %}?v=20260725-loadpurge" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay wins on .page--arena fill #}
 <link href="{% static 'css/arena_deck_polish.css' %}?v=20260725-loadpurge" rel="stylesheet">
-<link href="{% static 'css/arena_atmosphere.css' %}?v=20260727-s01" rel="stylesheet">
+<link href="{% static 'css/arena_atmosphere.css' %}?v=20260725-load-slim" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
