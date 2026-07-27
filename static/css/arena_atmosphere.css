@@ -846,3 +846,45 @@
   /* Atmospheric stand-ins off (Owner). Paid face assets remain in static/. */
   display: none !important;
 }
+
+/* =============================================================================
+   Owner 2026-07-27 — sponsors octagon colours + crisp edges (cascade last).
+   Palette from static/js/sponsors_puzzle.js RING_COLOURS.available.
+   ============================================================================= */
+.page--arena #arena-render {
+  filter: none !important;
+}
+
+.page--arena .arena-render-container {
+  filter: none !important;
+}
+
+.page--arena #arena-render .arena-cell[data-ring-kind="rank"] {
+  stroke: #ffffff !important;
+  stroke-width: 1.2px !important;
+  shape-rendering: geometricPrecision;
+}
+
+/* Exact sponsors_puzzle.js RING_COLOURS.available — 6 template rings. */
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: #f4f1ec !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: #ede8df !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: #e4ddd1 !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: #d8d0c0 !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: #ccc1aa !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: #bfb49a !important; }
+
+.page--arena #arena-render .arena-stage {
+  fill: #6c6054 !important;
+  stroke: #ffffff !important;
+}
+
+.page--arena #arena-render .arena-ring-seam,
+.page--arena #arena-render .arena-ring-seam--outer,
+.page--arena #arena-render .arena-ring-seam--stage {
+  stroke: #ffffff !important;
+  filter: none !important;
+}
+
+.page--arena #arena-render .arena-floor-pad--glow {
+  filter: none !important;
+}

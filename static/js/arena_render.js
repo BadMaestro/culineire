@@ -108,18 +108,23 @@
   function g1Radii(geometry) {
     var standsOuter = (SVG_SIZE / 2) - OUTER_MARGIN;
     var floorOuter = standsOuter / STANDS_RATIO;
-    var stageR = floorOuter * STAGE_RATIO;
-    var rankCount = 0;
-    (geometry && geometry.rings || []).forEach(function (ring) {
-      if (ring.kind === 'rank') { rankCount += 1; }
-    });
-    var rankStep = (floorOuter - stageR) / Math.max(1, rankCount || 8);
+    // Floor shell = sponsors octagon template (6 rings + centre), scaled so
+    // outer circumradius lands on floorOuter. Stage radius follows the
+    // template centre (85/515), not the older 0.13× mockup ratio.
+    var tpl = global.OctagonFloorTemplate;
+    var scale = tpl ? tpl.scaleFor(floorOuter) : (floorOuter / 515);
+    var stageR = tpl
+      ? tpl.RING_RADII.centre[1] * scale
+      : floorOuter * STAGE_RATIO;
+    var rankCount = 6;
+    var rankStep = (floorOuter - stageR) / Math.max(1, rankCount);
     STAGE_RADIUS = stageR;
     return {
       standsOuter: standsOuter,
       floorOuter: floorOuter,
       stageR: stageR,
-      rankStep: rankStep
+      rankStep: rankStep,
+      templateScale: scale
     };
   }
   // Neither number is the measurement itself. CONVERGENCE describes the whole
@@ -175,16 +180,21 @@
   /* ---------------------------------------------------------------- */
 
   // The octagon at a given radius, as an SVG points string.
-  // Orientation MUST match ArenaGeometry.cellVertices: pointy-top (-π/2),
-  // vertex at 12 o'clock — Owner mockup stands the floor on a sharp point.
+  // Orientation matches the Sponsors puzzle template (vertices at 0°, 45°, …)
+  // via OctagonFloorTemplate — same shell as /sponsors/.
   function ringOutline(radius, sides) {
+    var cx = SVG_SIZE / 2;
+    var cy = SVG_SIZE / 2;
+    var tpl = global.OctagonFloorTemplate;
+    if (tpl) {
+      return tpl.octagonPoints(cx, cy, radius);
+    }
     var project = projector();
     var points = [];
     var n = sides || 8;
-    var orientationOffset = -Math.PI / 2;
     for (var i = 0; i < n; i++) {
-      var angle = orientationOffset + (Math.PI * 2 * i) / n;
-      points.push(project(global.ArenaGeometry.polar(SVG_SIZE / 2, SVG_SIZE / 2, radius, angle)));
+      var angle = (Math.PI * 2 * i) / n;
+      points.push(project(global.ArenaGeometry.polar(cx, cy, radius, angle)));
     }
     return points.map(pointString).join(' ');
   }
@@ -282,13 +292,8 @@
   // for the walkway, a thin bronze stroke over it for the rim. Drawn between
   // the cells and the crowd so faces sit in front of it, never behind.
   function drawWalkway(svg, geometry, step) {
-    var lastRank = 0;
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind === 'rank' && ring.index > lastRank) { lastRank = ring.index; }
-    });
-    if (!lastRank) { return; }
-
-    var radius = STAGE_RADIUS + lastRank * step;
+    var props = g1Radii(geometry);
+    var radius = props.floorOuter;
     var sides = geometry.sides || 8;
     var band = el('g', { 'data-arena-layer': 'walkway', 'pointer-events': 'none' });
 
@@ -307,118 +312,115 @@
     svg.appendChild(band);
   }
 
-  // Concentric octagon seams at every rank boundary — cell mortar alone is too
-  // fine under rotateX, so rings wash into one parchment slab without these.
+  // Sponsors template cells already carry white strokes — no extra seams.
   function drawRingSeams(svg, geometry, step) {
-    var lastRank = 0;
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind === 'rank' && ring.index > lastRank) { lastRank = ring.index; }
-    });
-    if (!lastRank) { return; }
-
-    var sides = geometry.sides || 8;
-    var layer = el('g', { 'data-arena-layer': 'ring-seams', 'pointer-events': 'none' });
-    for (var rank = 0; rank <= lastRank; rank++) {
-      var radius = STAGE_RADIUS + rank * step;
-      layer.appendChild(el('polygon', {
-        points: ringOutline(radius, sides),
-        class: rank === 0
-          ? 'arena-ring-seam arena-ring-seam--stage'
-          : (rank === lastRank
-            ? 'arena-ring-seam arena-ring-seam--outer'
-            : 'arena-ring-seam')
-      }));
-    }
-    svg.appendChild(layer);
+    return;
   }
 
-  // Glowing underlay beneath every floor ring — mockup lit plate under the grid.
+  // Solid underlay beneath the sponsors-template floor (no SVG Gaussian blur).
   function drawFloorPad(svg, geometry, step, defs) {
-    var lastRank = 0;
-    geometry.rings.forEach(function (ring) {
-      if (ring.kind === 'rank' && ring.index > lastRank) { lastRank = ring.index; }
-    });
-    if (!lastRank) { return; }
-
-    if (!defs.querySelector('#arena-floor-pad-blur')) {
-      var filter = el('filter', {
-        id: 'arena-floor-pad-blur',
-        x: '-30%', y: '-30%', width: '160%', height: '160%'
-      });
-      filter.appendChild(el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '10' }));
-      defs.appendChild(filter);
-    }
-
+    var props = g1Radii(geometry);
     var sides = geometry.sides || 8;
-    var outer = STAGE_RADIUS + lastRank * step;
+    var outer = props.floorOuter;
     var layer = el('g', { 'data-arena-layer': 'floor-pad', 'pointer-events': 'none' });
     layer.appendChild(el('polygon', {
-      points: ringOutline(outer + step * 0.55, sides),
-      class: 'arena-floor-pad arena-floor-pad--glow',
-      filter: 'url(#arena-floor-pad-blur)'
+      points: ringOutline(outer + step * 0.22, sides),
+      class: 'arena-floor-pad arena-floor-pad--glow'
     }));
     layer.appendChild(el('polygon', {
-      points: ringOutline(outer + step * 0.08, sides),
+      points: ringOutline(outer + step * 0.06, sides),
       class: 'arena-floor-pad'
     }));
     svg.appendChild(layer);
   }
 
+  // Primary rank key shown on each sponsors-template ring. Arena still has 8
+  // culinary ranks in the payload; rings 6–8 share the outer template ring.
+  var TEMPLATE_RING_KEYS = {
+    1: 'culinary_master',
+    2: 'executive_chef',
+    3: 'head_chef',
+    4: 'sous_chef',
+    5: 'chef_de_partie',
+    6: 'commis_chef'
+  };
+
+  /**
+   * Draw the chef floor with the Sponsors octagon shell — same cell counts
+   * (10/20/30/40/50/60), same centre, same path maths and parchment colours.
+   * Chefs are bound into those cells later; spectators stay on the oval.
+   */
   function drawGrid(svg, geometry) {
     var props = g1Radii(geometry);
     var step = props.rankStep;
-    var project = projector();
+    var tpl = global.OctagonFloorTemplate;
+    if (!tpl) {
+      throw new Error('OctagonFloorTemplate missing — load octagon_floor_template.js before arena_render.js');
+    }
+
+    var cx = SVG_SIZE / 2;
+    var cy = SVG_SIZE / 2;
+    var scale = props.templateScale;
+    var radii = tpl.scaledRadii(scale);
+    var gap = tpl.GAP * scale;
+    var colours = tpl.RING_COLOURS.available;
     var defs = el('defs', {});
     var cells = el('g', { 'data-arena-layer': 'cells' });
     var stageRing = geometry.rings[0];
-    // Chef floor only (stage + rank). Spectator oval is drawn separately —
-    // Owner 2026-07-24: viewers do not sit in octagon cells.
-    var floorRings = geometry.rings.filter(function (ring) {
-      return ring.kind === 'stage' || ring.kind === 'rank';
-    });
-    var floorRingCount = floorRings.length;
 
-    floorRings.forEach(function (ring) {
-      if (ring.index === 0) { return; }
-      for (var segment = 0; segment < ring.segments; segment++) {
-        var vertices = global.ArenaGeometry.cellVertices(
-          SVG_SIZE / 2, SVG_SIZE / 2, ring.index, segment,
-          floorRingCount, ring.segments, step, geometry.sides, props.stageR
+    // Outer → inner so inner cells paint above (same order as sponsors).
+    for (var ring = 6; ring >= 1; ring--) {
+      var count = tpl.RING_COUNTS[ring];
+      var innerR = radii[ring][0];
+      var outerR = radii[ring][1];
+      var sweep = (2 * Math.PI) / count;
+      var offset = -Math.PI / 2 - sweep / 2;
+      var fill = colours[ring];
+      var ringKey = TEMPLATE_RING_KEYS[ring] || '';
+
+      for (var pos = 0; pos < count; pos++) {
+        var startAngle = offset + pos * sweep + gap / outerR;
+        var endAngle = offset + (pos + 1) * sweep - gap / outerR;
+        var d = tpl.ringSegmentPath(
+          cx, cy, innerR + gap, outerR - gap / 2, startAngle, endAngle
         );
-        var centroid = global.ArenaGeometry.cellCentroid(vertices);
-        // Project after the plan-space maths, never before: the geometry
-        // contract owns the rings, the projection only draws them.
-        var shape = inset(vertices, centroid).map(project);
-        centroid = project(centroid);
-        var polygon = el('polygon', {
-          points: shape.map(pointString).join(' '),
-          'data-ring': String(ring.index),
-          'data-ring-key': ring.key || '',
-          'data-ring-kind': ring.kind || 'unknown',
-          'data-cell': String(segment),
+        var centroid = tpl.segmentCentroid(
+          cx, cy, innerR + gap, outerR - gap / 2, startAngle, endAngle
+        );
+        var pathEl = el('path', {
+          d: d,
+          fill: fill,
+          stroke: '#fff',
+          'stroke-width': '1.5',
+          'data-ring': String(ring),
+          'data-ring-key': ringKey,
+          'data-ring-kind': 'rank',
+          'data-cell': String(pos),
           'data-centroid-x': centroid.x.toFixed(2),
           'data-centroid-y': centroid.y.toFixed(2),
           'data-occupancy': 'empty',
           'data-state': 'idle',
           'vector-effect': 'non-scaling-stroke',
-          class: 'arena-cell'
+          class: 'arena-cell arena-cell--sponsors-tpl'
         });
-        cells.appendChild(polygon);
+        cells.appendChild(pathEl);
 
-        // One clip path per cell, reused by whoever occupies it. Avatars are
-        // clipped to the cell outline so an occupant fills its tile instead of
-        // floating as a square inside it.
-        var clip = el('clipPath', { id: 'arena-clip-' + ring.index + '-' + segment });
-        clip.appendChild(el('polygon', { points: shape.map(pointString).join(' ') }));
+        var clip = el('clipPath', { id: 'arena-clip-' + ring + '-' + pos });
+        clip.appendChild(el('path', { d: d }));
         defs.appendChild(clip);
       }
-    });
+    }
 
-    // One clip for every crowd portrait. objectBoundingBox units mean the same
-    // path fits a face of any size, so the front row and the back row share it.
     var faceClip = el('clipPath', { id: 'arena-face-clip', clipPathUnits: 'objectBoundingBox' });
     faceClip.appendChild(el('circle', { cx: '0.5', cy: '0.5', r: '0.5' }));
     defs.appendChild(faceClip);
+
+    // Centre clip matches the stage octagon (avatars / crown stamps).
+    var centreR = radii.centre[1] - gap;
+    var centrePts = tpl.octagonPoints(cx, cy, centreR);
+    var centreClip = el('clipPath', { id: 'arena-clip-0-0' });
+    centreClip.appendChild(el('polygon', { points: centrePts }));
+    defs.appendChild(centreClip);
 
     svg.appendChild(defs);
     drawFloorPad(svg, geometry, step, defs);
@@ -426,8 +428,12 @@
     drawRingSeams(svg, geometry, step);
     drawWalkway(svg, geometry, step);
     drawSpectatorOval(svg, geometry, step, defs);
-    svg.appendChild(el('circle', {
-      cx: SVG_SIZE / 2, cy: SVG_SIZE / 2, r: props.stageR,
+
+    svg.appendChild(el('polygon', {
+      points: centrePts,
+      fill: colours[0],
+      stroke: '#fff',
+      'stroke-width': '2',
       'data-ring': String(stageRing.index),
       'data-ring-key': stageRing.key,
       'data-ring-kind': stageRing.kind,
@@ -441,8 +447,6 @@
     svg.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
     svg.appendChild(el('g', { 'data-arena-layer': 'centre' }));
 
-    // One label, moved to whichever free seat is hovered — 368 hidden labels
-    // would cost the same DOM every poll for a thing only ever seen once.
     var label = el('text', {
       'text-anchor': 'middle', 'dominant-baseline': 'central',
       'pointer-events': 'none', hidden: 'hidden',
@@ -474,15 +478,27 @@
   function buildAssignments(payload, geometry) {
     var assignments = [];
     var center = payload.center || {};
+    var tpl = global.OctagonFloorTemplate;
+    // Sponsors template: 6 rings. Arena payload still has 8 rank keys —
+    // geometry rings 1–5 map 1:1; rings 6–8 (commis/prep/porter) share outer ring 6.
+    var nextCell = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+    var capacity = {};
+    for (var r = 1; r <= 6; r++) {
+      capacity[r] = tpl ? tpl.RING_COUNTS[r] : 60;
+    }
 
     geometry.rings.forEach(function (ring) {
       if (ring.kind !== 'rank') { return; }
+      var templateRing = Math.min(6, ring.index);
       var chefs = ((payload.rings && payload.rings[ring.key]) || []).filter(function (chef) {
         return chef && !isDisplaced(chef, center);
       });
-      chefs.slice(0, ring.segments).forEach(function (chef, cell) {
+      chefs.forEach(function (chef) {
+        var cell = nextCell[templateRing];
+        if (cell >= capacity[templateRing]) { return; }
+        nextCell[templateRing] = cell + 1;
         assignments.push({
-          ring: ring.index, cell: cell, entity: chef,
+          ring: templateRing, cell: cell, entity: chef,
           occupancy: 'chef',
           state: chef.in_battle ? 'in-battle' : (chef.is_online ? 'online' : 'idle')
         });

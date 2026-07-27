@@ -1526,9 +1526,10 @@
     transform-style: preserve-3d;
   }
   .arena-floor-stage .arena-render-container {
-    /* Container stays flat; #arena-render carries the G2 camera transform. */
+    /* Container stays flat; #arena-render carries the G2 camera transform.
+       No filter here — softens the tilted SVG. */
     transform: none;
-    filter: drop-shadow(0 1.2rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent));
+    filter: none;
   }
   .arena-floor-stage::after {
     content: "";
@@ -1994,43 +1995,30 @@
 /* 3G — parchment seat rings (live SVG cells, official tokens). */
 @media (min-width: 901px) {
   .page--arena .arena-render-container {
-    --arena-seat: color-mix(in srgb, var(--surface) 88%, var(--accent-bronze));
+    --arena-seat: #f4f1ec;
+    --arena-seam: #ffffff;
   }
   .page--arena #arena-render .arena-cell {
-    stroke: color-mix(in srgb, var(--accent-bronze) 42%, transparent);
-    stroke-width: 0.6;
+    stroke: #ffffff;
+    stroke-width: 1.2;
   }
-  .page--arena #arena-render [data-ring="8"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
-  }
-  .page--arena #arena-render [data-ring="7"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 18%, var(--surface));
-  }
-  .page--arena #arena-render [data-ring="6"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 24%, var(--surface));
-  }
-  .page--arena #arena-render [data-ring="5"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 30%, var(--surface));
-  }
-  .page--arena #arena-render [data-ring="4"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 36%, var(--surface));
-  }
-  .page--arena #arena-render [data-ring="3"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 44%, var(--surface));
-  }
-  .page--arena #arena-render [data-ring="2"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 52%, var(--surface));
-  }
-  .page--arena #arena-render [data-ring="1"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 62%, var(--surface));
-  }
+  /* Keep sponsors ramp — do not recolour with bronze washes. */
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: #f4f1ec; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: #ede8df; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: #e4ddd1; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: #d8d0c0; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: #ccc1aa; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: #bfb49a; }
   .page--arena #arena-render .arena-cell[data-occupancy="chef"] {
-    stroke: color-mix(in srgb, var(--accent-bronze-dark) 70%, transparent);
-    stroke-width: 1;
+    stroke: #ffffff;
+    stroke-width: 1.3;
   }
   .page--arena #arena-render .arena-walkway {
-    stroke: color-mix(in srgb, var(--muted) 42%, var(--surface));
-    opacity: 0.96;
+    stroke: color-mix(in srgb, #d8d0c0 70%, #ffffff);
+    opacity: 1;
+  }
+  .page--arena #arena-render {
+    filter: none !important;
   }
 }
 
@@ -2171,7 +2159,7 @@
       0 0.8rem 1.8rem color-mix(in srgb, var(--ink) 24%, transparent);
   }
   .arena-floor-stage #arena-render {
-    filter: drop-shadow(0 1rem 1.4rem color-mix(in srgb, var(--ink) 30%, transparent));
+    filter: none;
   }
   .arena-confrontation-band .arena-live-centre span {
     color: var(--accent-bronze-dark);
@@ -2362,7 +2350,7 @@
     stroke-width: 1;
   }
   .page--arena #arena-render .arena-cell {
-    stroke-width: 0.85;
+    stroke-width: 1.2;
   }
   .page--arena #arena-render [data-ring="1"][data-occupancy="empty"],
   .page--arena #arena-render [data-ring="2"][data-occupancy="empty"],
@@ -2372,8 +2360,8 @@
   .page--arena #arena-render [data-ring="6"][data-occupancy="empty"],
   .page--arena #arena-render [data-ring="7"][data-occupancy="empty"],
   .page--arena #arena-render [data-ring="8"][data-occupancy="empty"] {
-    stroke: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
-    stroke-width: 0.9;
+    stroke: #ffffff;
+    stroke-width: 1.2;
   }
 }
 
@@ -2457,24 +2445,17 @@
     color: color-mix(in srgb, var(--surface) 88%, var(--accent-bronze));
   }
 
-  /* Inner rings brighter parchment; outer rings darker bowl (mockup depth). */
-  .page--arena #arena-render [data-ring="1"],
-  .page--arena #arena-render [data-ring="2"],
-  .page--arena #arena-render [data-ring="3"] {
-    stroke: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
-    stroke-width: 1.05;
+  /* Sponsors octagon ramp (exact RING_COLOURS.available). */
+  .page--arena #arena-render .arena-cell--sponsors-tpl {
+    stroke: #ffffff;
+    stroke-width: 1.5;
   }
-  .page--arena #arena-render [data-ring="1"][data-occupancy="empty"],
-  .page--arena #arena-render [data-ring="2"][data-occupancy="empty"],
-  .page--arena #arena-render [data-ring="3"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--surface) 82%, var(--accent-bronze));
-  }
-  .page--arena #arena-render [data-ring="6"][data-occupancy="empty"],
-  .page--arena #arena-render [data-ring="7"][data-occupancy="empty"],
-  .page--arena #arena-render [data-ring="8"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--ink) 28%, var(--surface));
-    stroke: color-mix(in srgb, var(--accent-bronze) 42%, transparent);
-  }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: #f4f1ec; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: #ede8df; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: #e4ddd1; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: #d8d0c0; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: #ccc1aa; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: #bfb49a; }
 
   /* Side show panels: night glass lift toward mockup HUD. */
   .page--arena .arena-command-deck__phase-card,
@@ -2654,22 +2635,17 @@
     opacity: 1;
     filter: none;
   }
-  .page--arena #arena-render .arena-cell {
-    stroke: color-mix(in srgb, var(--accent-bronze) 70%, var(--ink));
-    stroke-width: 1.15;
+  .page--arena #arena-render .arena-cell--sponsors-tpl {
+    stroke: #ffffff;
+    stroke-width: 1.5;
   }
-  .page--arena #arena-render [data-ring-kind="rank"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--surface) 78%, var(--accent-bronze));
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring-kind="rank"][data-occupancy="empty"] {
+    /* Base only — per-ring sponsors colours win below. */
+    fill: #e4ddd1;
   }
-  .page--arena #arena-render [data-ring="1"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 55%, var(--surface));
-  }
-  .page--arena #arena-render [data-ring="2"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 42%, var(--surface));
-  }
-  .page--arena #arena-render [data-ring="3"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--accent-bronze) 32%, var(--surface));
-  }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: #bfb49a; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: #ccc1aa; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: #d8d0c0; }
   .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
     fill: color-mix(in srgb, var(--ink) 32%, var(--surface));
     stroke: color-mix(in srgb, var(--accent-bronze) 55%, transparent);

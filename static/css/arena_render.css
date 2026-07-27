@@ -335,11 +335,10 @@
   filter: none;
 }
 
-/* The floor is lit FROM the bowl, not tinted: a warm halo under the SVG keeps
-   every tile fill deriving from the brand token, which is the rule phase A
-   broke. */
+/* The floor is lit by the under-pad polygon, not a CSS filter on the SVG.
+   Filters on a perspective/rotateX layer soften every ring edge. */
 #arena-render {
-  filter: drop-shadow(0 0 30px color-mix(in srgb, var(--arena-spot) 30%, transparent));
+  filter: none;
 }
 
 /* ----------------------------------------------------------------------------
@@ -476,109 +475,113 @@
 
 
 /* ============================================================================
- * MOCKUP M18 — floor material: parchment/marble + clear ring seams.
- * Official tokens only. Steeper ring steps so concentric ranks read as rings,
- * not one washed slab under rotateX.
+ * Floor material = sponsors octagon palette (sponsors_puzzle.js RING_COLOURS).
+ * Same parchment steps + white seams. No CSS filter on #arena-render — filters
+ * on a perspective/rotateX SVG softens every stroke ("floating sharpness").
  * ============================================================================ */
 .arena-render-container {
-  --arena-seat: color-mix(in srgb, var(--surface-soft) 88%, var(--accent-bronze));
-  --arena-seam: color-mix(in srgb, var(--brand-dark) 68%, var(--ink));
-  --arena-marble-hi: color-mix(in srgb, var(--surface) 92%, var(--muted));
-  --arena-marble-lo: color-mix(in srgb, var(--surface-soft) 78%, var(--brand));
-  --arena-ring-line: color-mix(in srgb, var(--brand-dark) 78%, var(--ink));
+  --arena-seat: #f4f1ec;
+  --arena-seam: #ffffff;
+  --arena-ring-line: #ffffff;
+  /* sponsors_puzzle.js RING_COLOURS.available */
+  --sp-ring-6: #f4f1ec;
+  --sp-ring-5: #ede8df;
+  --sp-ring-4: #e4ddd1;
+  --sp-ring-3: #d8d0c0;
+  --sp-ring-2: #ccc1aa;
+  --sp-ring-1: #bfb49a;
+  --sp-ring-0: #6c6054;
 }
 
 #arena-render .arena-cell[data-ring-kind="rank"],
 #arena-render .arena-cell[data-ring-kind="stage"] {
   stroke: var(--arena-seam);
-  stroke-width: 1.15;
+  stroke-width: 1.25;
   stroke-linejoin: miter;
+  shape-rendering: geometricPrecision;
 }
 
-/* Outer stone → warm parchment → bronze depth. Each step jumps enough to read. */
-#arena-render [data-ring="8"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--muted) 38%, var(--surface));
-}
-#arena-render [data-ring="7"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--muted) 18%, var(--surface));
-}
-#arena-render [data-ring="6"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--brand) 16%, var(--surface));
-}
-#arena-render [data-ring="5"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--brand) 28%, var(--surface));
-}
-#arena-render [data-ring="4"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--brand) 40%, var(--surface));
-}
-#arena-render [data-ring="3"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--brand) 54%, var(--surface));
-}
-#arena-render [data-ring="2"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--brand) 68%, var(--surface-soft));
-}
-#arena-render [data-ring="1"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--brand-dark) 58%, var(--brand));
+/* Sponsors-template rings 1–6 (exact RING_COLOURS.available). */
+#arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: var(--sp-ring-6); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: var(--sp-ring-5); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: var(--sp-ring-4); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: var(--sp-ring-3); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: var(--sp-ring-2); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: var(--sp-ring-1); }
+
+#arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-6) 82%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-5) 78%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-4) 75%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-3) 72%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-2) 68%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-1) 55%, var(--sp-ring-0)); }
+
+#arena-render .arena-stage {
+  fill: var(--sp-ring-0);
+  stroke: var(--arena-seam);
+  stroke-width: 1.6;
 }
 
 /* Explicit concentric ring boundaries (drawn in arena_render.js). */
 #arena-render .arena-ring-seam {
   fill: none;
   stroke: var(--arena-ring-line);
-  stroke-width: 1.55;
+  stroke-width: 1.35;
   stroke-linejoin: miter;
   stroke-miterlimit: 3;
-  opacity: 0.92;
+  opacity: 0.95;
+  shape-rendering: geometricPrecision;
 }
 
 #arena-render .arena-ring-seam--stage {
-  stroke: color-mix(in srgb, var(--accent-bronze) 55%, var(--brand-dark));
-  stroke-width: 2.1;
-  opacity: 0.98;
+  stroke: color-mix(in srgb, var(--sp-ring-0) 40%, #ffffff);
+  stroke-width: 1.7;
+  opacity: 1;
 }
 
 #arena-render .arena-ring-seam--outer {
-  stroke: color-mix(in srgb, var(--ink) 55%, var(--muted));
-  stroke-width: 1.85;
-  opacity: 0.95;
+  stroke: #ffffff;
+  stroke-width: 1.6;
+  opacity: 1;
 }
 
-/* Lit plate under the whole octagon — sits below every ring. */
+/* Lit plate under the whole octagon — no blur filter. */
 #arena-render .arena-floor-pad {
-  fill: color-mix(in srgb, var(--surface) 72%, var(--accent-bronze));
+  fill: color-mix(in srgb, var(--sp-ring-6) 70%, var(--sp-ring-1));
   stroke: none;
-  opacity: 0.92;
+  opacity: 0.88;
 }
 
 #arena-render .arena-floor-pad--glow {
-  fill: color-mix(in srgb, var(--accent-bronze) 55%, var(--surface));
-  opacity: 0.45;
+  fill: color-mix(in srgb, var(--sp-ring-1) 35%, transparent);
+  opacity: 0.55;
 }
 
 #arena-render .arena-walkway {
-  stroke: color-mix(in srgb, var(--muted) 48%, var(--surface));
-  opacity: 0.98;
+  stroke: color-mix(in srgb, var(--sp-ring-3) 70%, #ffffff);
+  opacity: 1;
 }
 
 #arena-render .arena-rim {
-  stroke: color-mix(in srgb, var(--ink) 40%, var(--muted));
+  stroke: #ffffff;
 }
 
 #arena-render .arena-rim--inner {
-  stroke: color-mix(in srgb, var(--accent-bronze) 40%, var(--ink));
-  stroke-width: 1.7;
-  opacity: 0.72;
+  stroke: color-mix(in srgb, var(--sp-ring-0) 35%, #ffffff);
+  stroke-width: 1.5;
+  opacity: 0.9;
   filter: none;
 }
 
 #arena-render .arena-rim--outer {
-  stroke-width: 1.35;
-  opacity: 0.62;
+  stroke-width: 1.2;
+  opacity: 0.75;
   filter: none;
 }
 
+/* No filter on the tilted SVG — that was the soft / swimming edges. */
 #arena-render {
-  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--accent-bronze) 28%, transparent));
+  filter: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
