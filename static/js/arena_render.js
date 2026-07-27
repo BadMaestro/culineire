@@ -1100,11 +1100,11 @@
     // Reference stack: crown in the upper third, label mid, nick in the lower
     // third — sized so the glyph box does not collide with the text.
     if (assets.glyph) {
-      var gSize = radius * 0.70;
+      var gSize = radius * 0.62;
       group.appendChild(el('image', {
         href: assets.glyph,
         x: (cx - gSize / 2).toFixed(2),
-        y: (cy - radius * 0.58).toFixed(2),
+        y: (cy - radius * 0.60).toFixed(2),
         width: gSize.toFixed(2),
         height: gSize.toFixed(2),
         preserveAspectRatio: 'xMidYMid meet',
@@ -1114,10 +1114,10 @@
 
     var label = el('text', {
       x: cx.toFixed(2),
-      y: (cy + radius * 0.16).toFixed(2),
+      y: (cy + radius * 0.20).toFixed(2),
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
-      'font-size': (radius * 0.095).toFixed(1),
+      'font-size': (radius * 0.10).toFixed(1),
       class: 'arena-floor-crown__label'
     });
     label.textContent = 'CROWN HOLDER';
@@ -1125,10 +1125,10 @@
 
     var name = el('text', {
       x: cx.toFixed(2),
-      y: (cy + radius * 0.40).toFixed(2),
+      y: (cy + radius * 0.44).toFixed(2),
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
-      'font-size': (radius * 0.155).toFixed(1),
+      'font-size': (radius * 0.16).toFixed(1),
       class: 'arena-floor-crown__name'
     });
     name.textContent = (center && center.name) || '';
