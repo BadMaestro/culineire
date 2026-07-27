@@ -3769,9 +3769,8 @@
 }
 
 /* =============================================================================
-   FLAT SPONSORS TEMPLATE — cascade winner (Owner 2026-07-27)
-   Same plan-view octagon as /sponsors/. No rotateX / perspective — tilt was
-   smearing the template into a soft angled plate.
+   G2 CAMERA — cascade winner (Owner restore 2026-07-27)
+   perspective + rotateX(42deg)
    ============================================================================= */
 @media (min-width: 901px) {
   .page--arena .arena-command-deck__floor,
@@ -3780,21 +3779,23 @@
     overflow: visible !important;
   }
   .page--arena .arena-floor-stage {
-    transform-style: flat;
+    transform-style: preserve-3d;
   }
   .page--arena .arena-floor-stage .arena-render-container {
-    perspective: none !important;
-    transform-style: flat !important;
+    perspective: 1500px !important;
+    perspective-origin: 50% 40% !important;
+    transform-style: preserve-3d !important;
   }
   .page--arena .arena-floor-stage #arena-render {
-    transform-origin: 50% 50% !important;
+    transform-origin: 50% 62% !important;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      rotateX(42deg)
       scale(var(--arena-fit, 1)) !important;
     filter: none !important;
   }
-  /* Furniture above the floor plane. */
+  /* Furniture above the tilted floor plane. */
   .page--arena .arena-rank-spine,
   .page--arena .arena-confrontation-band,
   .page--arena .arena-floor-caption {
