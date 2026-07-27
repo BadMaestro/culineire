@@ -747,10 +747,15 @@
     if (!seat) { return; }
 
     var box = seat.getBBox();
-    var size = Math.max(box.width, box.height);
+    // Cover the wedge bbox so the face fills the cell (sponsors-style clip).
+    var size = Math.max(box.width, box.height) * 1.08;
+    var presence = (assignment.occupancy === 'chef' && entity.is_online === false)
+      ? 'offline'
+      : 'live';
     var group = el('g', {
       'clip-path': 'url(#arena-clip-' + assignment.ring + '-' + assignment.cell + ')',
       'data-entity-slug': entity.slug || '',
+      'data-presence': presence,
       class: 'arena-occupant'
     });
 

@@ -169,6 +169,15 @@
   pointer-events: none;
 }
 
+/* Offline enrolled chefs stay on the floor, slightly dimmed. */
+#arena-render .arena-occupant[data-presence="offline"] {
+  opacity: 0.72;
+}
+
+#arena-render .arena-occupant[data-presence="offline"] image {
+  opacity: 0.85;
+}
+
 /* Fallback when a record carries no avatar: the seat still reads as taken.
    Serif, not sans — the initial stands in for a portrait, so it is display
    type rather than UI type. */
