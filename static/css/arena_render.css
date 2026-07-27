@@ -552,7 +552,7 @@
 }
 
 #arena-render .arena-walkway {
-  stroke: color-mix(in srgb, var(--sp-ring-3) 70%, #ffffff);
+  stroke: #c4bbb0;
   opacity: 1;
 }
 
