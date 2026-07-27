@@ -221,54 +221,128 @@ _COLOURS = {
     "owner": "#e8e3d3",
 }
 
+# The Owner's window, brutalist/terminal skin. Placeholders are __TOKENS__ rather
+# than str.format braces: the script below is full of { } and doubling every one
+# for .format() is how a page stops rendering over a missing brace nobody sees.
+#
+# Two deliberate choices keep this light on the hardware (the Owner's own words:
+# beautiful, but not loading the processes):
+#   1. No web fonts, no CDN, no framework — a monospace SYSTEM stack, zero network.
+#   2. The page is painted ONCE by the server, then it fetches only what is NEW
+#      via /api/messages?since=<lastId> and appends it. The old page reloaded all
+#      300 messages every 5s; this ships an empty list on a quiet channel.
 _PAGE = """<!doctype html>
 <html lang="ru"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Чат агентов CulinEire</title>
+<title>CULINEIRE // AGENT CHAT</title>
 <style>
- body{{background:#14120f;color:#e8e3d3;font:15px/1.55 Inter,Segoe UI,sans-serif;
-      margin:0;padding:1.5rem 1.5rem 12rem}}
- h1{{font:600 1.15rem/1.3 Georgia,serif;color:#c9a227;margin:0 0 .25rem}}
- .sub{{color:#8b8578;font-size:.82rem;margin-bottom:1.25rem}}
- .m{{border-left:3px solid #444;padding:.45rem .8rem;margin:.35rem 0;
-     background:#1b1815;border-radius:0 4px 4px 0}}
- .who{{font-weight:600}} .to{{color:#8b8578;font-weight:400}}
- .ts{{color:#6f6a60;font-size:.75rem;float:right}}
- .tx{{white-space:pre-wrap;margin-top:.15rem;overflow-wrap:anywhere}}
- .empty{{color:#8b8578;font-style:italic}}
- form{{position:fixed;left:0;right:0;bottom:0;background:#0f0d0b;
-       border-top:1px solid #2a2622;padding:.7rem 1.5rem;display:flex;gap:.5rem;
-       align-items:flex-start;flex-wrap:wrap}}
- select,textarea,button{{font:inherit;background:#1b1815;color:#e8e3d3;
-       border:1px solid #3a352f;border-radius:4px;padding:.45rem .6rem}}
- textarea{{flex:1;min-width:14rem;min-height:2.6rem;resize:vertical}}
- button{{background:#c9a227;color:#14120f;font-weight:600;border:0;cursor:pointer;
-       padding:.5rem 1.1rem}}
- .hint{{flex-basis:100%;color:#6f6a60;font-size:.72rem;margin-top:.15rem}}
+ :root{--bg:#0b0a08;--panel:#141210;--ink:#ece6d6;--dim:#8b8578;
+       --line:#2a2622;--gold:#c9a227}
+ *{box-sizing:border-box}
+ body{background:var(--bg);color:var(--ink);margin:0;
+   font:15px/1.5 ui-monospace,"SF Mono","JetBrains Mono",Consolas,"Courier New",monospace}
+ header{position:sticky;top:0;z-index:5;background:var(--bg);
+   border-bottom:2px solid var(--gold);padding:.7rem 1rem}
+ h1{margin:0;font:700 1rem/1.1 inherit;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+ h1 .blink{animation:bl 1.1s steps(1) infinite}
+ @keyframes bl{50%{opacity:0}}
+ .sub{color:var(--dim);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;margin-top:.25rem}
+ main{padding:1rem 1rem 9rem;max-width:920px;margin:0 auto}
+ .m{border:2px solid var(--line);border-left:5px solid var(--who,#666);
+    background:var(--panel);padding:.4rem .7rem;margin:.55rem 0;box-shadow:4px 4px 0 #000}
+ .m .hd{display:flex;justify-content:space-between;gap:1rem;align-items:baseline}
+ .who{font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--who,#ccc)}
+ .to{color:var(--dim);font-weight:400;text-transform:none}
+ .ts{color:#6f6a60;font-size:.66rem;white-space:nowrap}
+ .tx{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:.25rem}
+ .empty{color:var(--dim)}
+ footer{position:fixed;left:0;right:0;bottom:0;background:var(--bg);
+   border-top:2px solid var(--gold);padding:.6rem 1rem}
+ form{display:flex;gap:.5rem;align-items:stretch;flex-wrap:wrap;max-width:920px;margin:0 auto}
+ select,textarea,button{font:inherit;background:#0f0d0b;color:var(--ink);
+   border:2px solid var(--line);border-radius:0;padding:.45rem .55rem}
+ textarea{flex:1;min-width:14rem;min-height:2.7rem;resize:vertical}
+ button{background:var(--gold);color:#14120f;border:2px solid #000;font-weight:700;
+   text-transform:uppercase;letter-spacing:.06em;cursor:pointer;box-shadow:3px 3px 0 #000}
+ button:hover{background:#000;color:var(--gold)}
+ button:active{transform:translate(3px,3px);box-shadow:none}
+ select:focus,textarea:focus{border-color:var(--gold);outline:none}
+ :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+ .hint{flex-basis:100%;color:#6f6a60;font-size:.64rem;text-transform:uppercase;letter-spacing:.05em}
+ @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
-<h1>Чат агентов</h1>
-<div class="sub">{count} сообщений · обновляется само каждые 5 секунд · {net}</div>
-{body}
-<form method="post" action="/">
-  <select name="from" title="от кого">{who_options}</select>
-  <select name="to" title="кому">{to_options}</select>
-  <textarea name="text" placeholder="Написать в чат — Enter отправит, Shift+Enter перенесёт строку" autofocus></textarea>
-  <button type="submit">Отправить</button>
-  <div class="hint">Enter отправляет · Shift+Enter — новая строка · пока пишешь, страница не обновляется</div>
-</form>
+<header>
+ <h1>CULINEIRE // AGENT CHAT<span class="blink"> _</span></h1>
+ <div class="sub"><span id="count">__COUNT__</span> MSG · LIVE Δ-FEED · __NET__</div>
+</header>
+<main id="log" aria-live="polite" aria-label="Лента сообщений">__BODY__</main>
+<footer>
+ <form id="composer" method="post" action="/">
+   <select name="from" title="от кого">__WHO__</select>
+   <select name="to" title="кому">__TO__</select>
+   <textarea id="text" name="text" placeholder="СООБЩЕНИЕ // Enter — отправить · Shift+Enter — перенос" autofocus></textarea>
+   <button type="submit">SEND</button>
+   <div class="hint">Enter отправляет · Shift+Enter — новая строка · страница не мигает, тянет только новое</div>
+ </form>
+</footer>
 <script>
- // Refresh on a timer instead of a meta tag: a meta refresh would wipe whatever
- // is half-typed in the box, which is exactly when a person is about to send.
- var box = document.querySelector('textarea');
- setInterval(function () {{
-   if (document.activeElement !== box || !box.value) {{ location.reload(); }}
- }}, 5000);
- box.addEventListener('keydown', function (e) {{
-   if (e.key !== 'Enter' || e.shiftKey) {{ return; }}   // Shift+Enter stays a newline
-   e.preventDefault();                                  // or the newline is sent too
-   if (box.value.trim()) {{ box.form.submit(); }}       // Enter on an empty box does nothing
- }});
+(function(){
+  var COLOURS = __COLOURS_JSON__;
+  var log = document.getElementById('log');
+  var box = document.getElementById('text');
+  var form = document.getElementById('composer');
+  var counter = document.getElementById('count');
+  function fld(n){ return form.querySelector('[name='+n+']'); }
+  function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':s); return d.innerHTML; }
+  function lastId(){ var e=log.querySelectorAll('.m'); return e.length ? e[e.length-1].getAttribute('data-id') : ''; }
+  function nearBottom(){ return (window.innerHeight+window.scrollY) >= (document.body.offsetHeight-140); }
+  function toBottom(){ window.scrollTo(0, document.body.scrollHeight); }
+  function add(m){
+    var c = COLOURS[m.from] || '#8b8578';
+    var to = (m.to && m.to!=='all') ? ' <span class="to">\\u2192 '+esc(m.to)+'</span>' : '';
+    var div = document.createElement('div');
+    div.className='m'; div.setAttribute('data-id', m.id||''); div.style.setProperty('--who', c);
+    div.innerHTML = '<div class="hd"><span class="who">'+esc(m.from)+to+'</span>'
+      + '<span class="ts">'+esc(m.ts)+'</span></div><div class="tx">'+esc(m.text)+'</div>';
+    var empty = log.querySelector('.empty'); if(empty){ empty.remove(); }
+    log.appendChild(div);
+  }
+  var busy=false;
+  function poll(){
+    if(busy) return; busy=true;
+    var stick = nearBottom();
+    fetch('/api/messages?since='+encodeURIComponent(lastId()))
+      .then(function(r){ return r.json(); })
+      .then(function(list){
+        if(list && list.length){
+          list.forEach(add);
+          if(counter){ counter.textContent = log.querySelectorAll('.m').length; }
+          if(stick){ toBottom(); }
+        }
+      })
+      .catch(function(){})            // a dropped fetch is not a crash; try next tick
+      .then(function(){ busy=false; });
+  }
+  function send(){
+    var text = box.value.trim(); if(!text){ return; }
+    var payload = { from: fld('from').value, to: fld('to').value, text: text, kind:'msg' };
+    box.value=''; box.focus();
+    fetch('/api/send', { method:'POST',
+        headers:{'Content-Type':'application/json; charset=utf-8'},
+        body: JSON.stringify(payload) })
+      .then(function(){ poll(); })
+      .catch(function(){ box.value = text; });   // put it back so nothing is lost
+  }
+  form.addEventListener('submit', function(e){ e.preventDefault(); send(); });
+  box.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' || e.shiftKey){ return; }   // Shift+Enter stays a newline
+    e.preventDefault();                              // Enter must not insert one and send
+    send();
+  });
+  setInterval(poll, 3500);   // quiet channel = an empty array, a few bytes
+  toBottom();
+})();
 </script>
 </body></html>"""
 
@@ -301,12 +375,15 @@ def _render_page(port: int = 8799, network: bool = False) -> bytes:
         to = msg.get("to", "all")
         to_label = "" if to == "all" else f' <span class="to">→ {html.escape(to)}</span>'
         rows.append(
-            f'<div class="m" style="border-left-color:{colour}">'
+            f'<div class="m" data-id="{html.escape(msg.get("id", ""))}" '
+            f'style="--who:{colour}">'
+            f'<div class="hd">'
+            f'<span class="who">{html.escape(who)}{to_label}</span>'
             f'<span class="ts">{html.escape(msg.get("ts", ""))}</span>'
-            f'<span class="who" style="color:{colour}">{html.escape(who)}</span>{to_label}'
+            f'</div>'
             f'<div class="tx">{html.escape(msg.get("text", ""))}</div></div>'
         )
-    body = "\n".join(rows) if rows else '<p class="empty">Пока пусто.</p>'
+    body = "\n".join(rows) if rows else '<p class="empty">Пока пусто. Начните разговор.</p>'
 
     who_options = "".join(
         f'<option value="{a}"{" selected" if a == "owner" else ""}>{a}</option>'
@@ -322,10 +399,20 @@ def _render_page(port: int = 8799, network: bool = False) -> bytes:
     else:
         net = "только эта машина"
 
-    return _PAGE.format(
-        count=len(files), body=body, net=html.escape(net),
-        who_options=who_options, to_options=to_options,
-    ).encode("utf-8")
+    # Named-token substitution, not str.format: the script body is full of braces.
+    # __BODY__ is filled LAST — it carries escaped user text, and filling it before
+    # the fixed tokens would let a message that happens to contain a token string
+    # rewrite the page. The fixed tokens below contain no user input.
+    page = (
+        _PAGE
+        .replace("__COLOURS_JSON__", json.dumps(_COLOURS))
+        .replace("__COUNT__", str(len(files)))
+        .replace("__NET__", html.escape(net))
+        .replace("__WHO__", who_options)
+        .replace("__TO__", to_options)
+        .replace("__BODY__", body)
+    )
+    return page.encode("utf-8")
 
 
 def cmd_serve(args: argparse.Namespace) -> int:
