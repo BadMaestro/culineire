@@ -112,7 +112,7 @@
   stroke-width: 2;
 }
 
-#arena-render .arena-stage[data-state="crown"] { fill: var(--arena-accent); }
+/* crown fill/stroke finalized below with marble overlay */
 #arena-render .arena-stage[data-state="active_battle"] { fill: var(--brand-dark); }
 #arena-render .arena-stage[data-state="facing_pair"] { fill: var(--brand); }
 
@@ -513,8 +513,9 @@
   text-transform: uppercase;
 }
 
-/* Crown holder — plate art + dynamic labels, centred on the stage octagon. */
-#arena-render .arena-floor-crown__plate {
+/* Crown holder — marble+glyph clipped to stage octagon; gold rim = stage stroke. */
+#arena-render .arena-floor-crown__pad,
+#arena-render .arena-floor-crown__glyph {
   pointer-events: none;
 }
 #arena-render .arena-floor-crown__label {
@@ -537,7 +538,8 @@
 #arena-render .arena-stage[data-state="crown"] {
   fill: color-mix(in srgb, var(--ink) 55%, #1f2c25);
   stroke: var(--accent-bronze);
-  stroke-width: 2.4;
+  stroke-width: 5;
+  paint-order: stroke fill;
 }
 
 @media (prefers-reduced-motion: reduce) {

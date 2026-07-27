@@ -1075,24 +1075,38 @@
   }
 
   function drawFloorCrown(layer, cx, cy, radius, center) {
+    var assets = global.ARENA_CROWN_ASSETS || {};
+    // Same clip as .arena-stage (#arena-clip-0-0) — marble/glyph are inscribed
+    // in the centre octagon like chef avatars in ring cells, not a free rectangle.
     var group = el('g', {
       class: 'arena-floor-crown',
-      'pointer-events': 'none'
+      'pointer-events': 'none',
+      'clip-path': 'url(#arena-clip-0-0)'
     });
-    var assets = global.ARENA_CROWN_ASSETS || {};
-    var size = radius * 2.05;
+    var size = radius * 2;
 
-    // Reference plate: gold rim + green marble + 3D crown art. Nickname stays
-    // dynamic SVG text (holder changes without regenerating the plate).
-    if (assets.plate) {
+    if (assets.pad) {
       group.appendChild(el('image', {
-        href: assets.plate,
+        href: assets.pad,
         x: (cx - size / 2).toFixed(2),
         y: (cy - size / 2).toFixed(2),
         width: size.toFixed(2),
         height: size.toFixed(2),
+        preserveAspectRatio: 'xMidYMid slice',
+        class: 'arena-floor-crown__pad'
+      }));
+    }
+
+    if (assets.glyph) {
+      var gSize = radius * 1.05;
+      group.appendChild(el('image', {
+        href: assets.glyph,
+        x: (cx - gSize / 2).toFixed(2),
+        y: (cy - radius * 0.78).toFixed(2),
+        width: gSize.toFixed(2),
+        height: gSize.toFixed(2),
         preserveAspectRatio: 'xMidYMid meet',
-        class: 'arena-floor-crown__plate'
+        class: 'arena-floor-crown__glyph'
       }));
     }
 
