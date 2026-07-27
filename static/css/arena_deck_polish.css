@@ -3798,9 +3798,9 @@
 }
 
 /* =============================================================================
-   G2/G4 CAMERA (Bolt production order) — cascade winner
+   G2 CAMERA — cascade winner (Owner visual reference 2026-07-27)
    Source: docs/chef_battle/arena_mockup_spec.json
-   rotateX(56deg) only — parallel projection (G4 removed fixed perspective).
+   perspective + rotateX(56deg) — parallel-only pancake was the "flat" complaint.
    ============================================================================= */
 @media (min-width: 901px) {
   .page--arena .arena-command-deck__floor,
@@ -3811,6 +3811,11 @@
   .page--arena .arena-floor-stage {
     transform-style: preserve-3d;
   }
+  .page--arena .arena-floor-stage .arena-render-container {
+    perspective: 1500px !important;
+    perspective-origin: 50% 40% !important;
+    transform-style: preserve-3d;
+  }
   .page--arena .arena-floor-stage #arena-render {
     transform-origin: 50% 62% !important;
     transform:
@@ -3819,9 +3824,14 @@
       rotateX(56deg)
       scale(var(--arena-fit, 1)) !important;
   }
-  .page--arena .arena-floor-stage::before {
-    transform-origin: 50% 62%;
-    transform: translate(-50%, -50%) rotateX(56deg);
+  /* Furniture above the tilted floor plane. */
+  .page--arena .arena-rank-spine,
+  .page--arena .arena-confrontation-band,
+  .page--arena .arena-floor-caption {
+    z-index: 24 !important;
+  }
+  .page--arena .arena-render-container {
+    z-index: 1;
   }
 }
 

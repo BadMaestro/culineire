@@ -343,29 +343,25 @@
 }
 
 /* ----------------------------------------------------------------------------
- * Camera (G2/G4 — docs/chef_battle/arena_mockup_spec.json).
+ * Camera (mockup spec + Owner 2026-07-27).
  *
- * Mockup floor 800 x 450 px => vertical compression 0.56 = cos(56deg).
- * One CSS transform over the WHOLE scene: rotateX(56deg) only (parallel
- * projection). A fixed perspective distance scaled differently at every
- * viewport and was removed in G4. get_arena_geometry stays untouched.
- * fitScene() measures PROJECTED STANDS bounds and writes --arena-fit;
- * floor span 0.63 is an output to verify, not the fit target.
- *
- * overflow must NOT be hidden on the plan-sized box — that is what clipped
- * the stands on the last tilt attempt. Size for projected bounds; hall-edge
- * vignette (not overflow:hidden) softens anything past the frame.
+ * Reference hall uses perspective + rotateX(56deg). G4 dropped perspective and
+ * left a parallel pancake. Restore perspective on the container so the far
+ * edge narrows and the octagon reads as a tilted plane, not a flat slab.
+ * fitScene() still measures projected bounds after the transform.
  * -------------------------------------------------------------------------- */
 .page--arena .arena-render-container {
   position: relative;
   width: 100%;
   max-width: none;
-  height: clamp(420px, 52vw, 92vh);
+  height: clamp(480px, 56vw, 94vh);
   padding: 0;
   border: 0;
   border-radius: 1rem;
   overflow: visible;
   transform-style: preserve-3d;
+  perspective: 1500px;
+  perspective-origin: 50% 40%;
 }
 
 .page--arena #arena-render {
@@ -394,16 +390,14 @@
   text-align: center;
 }
 
-/* Billboarding: CSS rotateX(56deg) squashes faces on the floor plane.
+/* Billboarding: CSS rotateX squashes faces on the floor plane.
    billboardFaces() in arena_render.js measures each .arena-crowd-figure and
-   un-squashes it; do not add a global scaleY here (that over-corrected real
-   chef/spectator photos historically). */
+   un-squashes it; do not add a global scaleY here. */
 
-/* Below the desktop breakpoint the arena is already small; kept as its own
-   query for the container sizing (unrelated to billboarding). */
 @media (max-width: 900px) {
   .page--arena .arena-render-container {
-    height: clamp(380px, 72vw, 82vh);
+    height: clamp(400px, 74vw, 84vh);
+    perspective: 1200px;
   }
 
   .page--arena #arena-render {
@@ -419,7 +413,8 @@
 
 @media (max-width: 640px) {
   .page--arena .arena-render-container {
-    height: clamp(360px, 96vw, 78vh);
+    height: clamp(380px, 98vw, 80vh);
+    perspective: 1000px;
   }
 
   .page--arena #arena-render {
@@ -546,6 +541,18 @@
   stroke: color-mix(in srgb, var(--ink) 55%, var(--muted));
   stroke-width: 1.85;
   opacity: 0.95;
+}
+
+/* Lit plate under the whole octagon — sits below every ring. */
+#arena-render .arena-floor-pad {
+  fill: color-mix(in srgb, var(--surface) 72%, var(--accent-bronze));
+  stroke: none;
+  opacity: 0.92;
+}
+
+#arena-render .arena-floor-pad--glow {
+  fill: color-mix(in srgb, var(--accent-bronze) 55%, var(--surface));
+  opacity: 0.45;
 }
 
 #arena-render .arena-walkway {

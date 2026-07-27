@@ -332,6 +332,38 @@
     svg.appendChild(layer);
   }
 
+  // Glowing underlay beneath every floor ring — mockup lit plate under the grid.
+  function drawFloorPad(svg, geometry, step, defs) {
+    var lastRank = 0;
+    geometry.rings.forEach(function (ring) {
+      if (ring.kind === 'rank' && ring.index > lastRank) { lastRank = ring.index; }
+    });
+    if (!lastRank) { return; }
+
+    if (!defs.querySelector('#arena-floor-pad-blur')) {
+      var filter = el('filter', {
+        id: 'arena-floor-pad-blur',
+        x: '-30%', y: '-30%', width: '160%', height: '160%'
+      });
+      filter.appendChild(el('feGaussianBlur', { in: 'SourceGraphic', stdDeviation: '10' }));
+      defs.appendChild(filter);
+    }
+
+    var sides = geometry.sides || 8;
+    var outer = STAGE_RADIUS + lastRank * step;
+    var layer = el('g', { 'data-arena-layer': 'floor-pad', 'pointer-events': 'none' });
+    layer.appendChild(el('polygon', {
+      points: ringOutline(outer + step * 0.55, sides),
+      class: 'arena-floor-pad arena-floor-pad--glow',
+      filter: 'url(#arena-floor-pad-blur)'
+    }));
+    layer.appendChild(el('polygon', {
+      points: ringOutline(outer + step * 0.08, sides),
+      class: 'arena-floor-pad'
+    }));
+    svg.appendChild(layer);
+  }
+
   function drawGrid(svg, geometry) {
     var props = g1Radii(geometry);
     var step = props.rankStep;
@@ -389,6 +421,7 @@
     defs.appendChild(faceClip);
 
     svg.appendChild(defs);
+    drawFloorPad(svg, geometry, step, defs);
     svg.appendChild(cells);
     drawRingSeams(svg, geometry, step);
     drawWalkway(svg, geometry, step);
