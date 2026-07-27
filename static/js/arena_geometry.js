@@ -130,8 +130,9 @@
     var sideIndex = loc.sideIndex;
     var cellIndex = loc.cellIndex;
     var cellsOnSide = Math.max(1, loc.cellsOnSide);
-    // Half-side offset creates a flat top/bottom.
-    var orientationOffset = -Math.PI / 2 - (Math.PI / sides);
+    // Pointy-top octagon (vertex at 12 o'clock) — Owner mockup 2026-07-18.
+    // Flat-top (-π/2 - π/sides) made the floor read as a squashed slab.
+    var orientationOffset = -Math.PI / 2;
     var angle0 = orientationOffset + (Math.PI * 2 * sideIndex / sides);
     var angle1 = orientationOffset + (Math.PI * 2 * (sideIndex + 1) / sides);
     var innerRadius = ringIndex === 0 ? 0 : innerRadiusOffset + (ringIndex - 1) * radiusStep;
