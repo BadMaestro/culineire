@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>G6-FIX acceptance</title>
+  <style>
+    body { margin: 0; }
+    #arena-render { display: block; width: 1000px; height: 1000px; }
+  </style>
+</head>
+<body>
+  <svg id="arena-render" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"></svg>
+  <script id="arena-data-json" type="application/json">
+{
+  "center": {"type": "empty"},
+  "rings": {},
+  "spectators": [],
+  "geometry": {
+    "sides": 8,
+    "rings": [
+      {"index": 0, "kind": "stage", "key": "stage", "segments": 1},
+      {"index": 1, "kind": "rank", "key": "bronze", "segments": 9},
+      {"index": 100, "kind": "spectator", "key": "oval_top_0", "segments": 10, "row": 1, "rows_total": 4},
+      {"index": 101, "kind": "spectator", "key": "oval_top_1", "segments": 12, "row": 2, "rows_total": 4},
+      {"index": 102, "kind": "spectator", "key": "oval_top_2", "segments": 14, "row": 3, "rows_total": 4},
+      {"index": 103, "kind": "spectator", "key": "oval_top_3", "segments": 16, "row": 4, "rows_total": 4}
+    ],
+    "spectator_oval": {
+      "floor_outer_radius": 220,
+      "rows_by_side": {"top": 2, "right": 3, "bottom": 2, "left": 3},
+      "counts_by_side": {
+        "top": [28, 29],
+        "right": [28, 29, 31],
+        "bottom": [28, 29],
+        "left": [28, 29, 31]
+      },
+      "capacity": 290
+    }
+  }
+}
+  </script>
+  <script>
+    window.ARENA_CROWD_FACES = [
+      'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#c88"/></svg>')
+    ];
+    window.ARENA_VIEWER = { slug: '', enrolled: false };
+  </script>
+  <script src="../static/js/arena_geometry.js"></script>
+  <script src="../static/js/arena_render.js"></script>
+  <script>
+    (function () {
+      function center(rect) {
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      }
+
+      function measure() {
+        var svg = document.getElementById('arena-render');
+        var seat = svg.querySelector('.arena-cell[data-ring-kind="spectator"]');
+        var host = seat && seat.parentNode;
+        var figure = host && host.querySelector('.arena-crowd-figure');
+        var face = figure && figure.querySelector('image');
+        if (!seat || !host || !figure || !face) {
+          window.G6_RESULT = { error: 'missing seat or face' };
+          return;
+        }
+
+        var beforeSeat = center(seat.getBoundingClientRect());
+        var beforeFace = center(face.getBoundingClientRect());
+
+        var layer = svg.querySelector('[data-arena-layer="spectator-oval"]');
+        layer.setAttribute('transform', 'translate(40,25)');
+
+        var afterSeat = center(seat.getBoundingClientRect());
+        var afterFace = center(face.getBoundingClientRect());
+
+        var seatDelta = {
+          x: +(afterSeat.x - beforeSeat.x).toFixed(3),
+          y: +(afterSeat.y - beforeSeat.y).toFixed(3)
+        };
+        var faceDelta = {
+          x: +(afterFace.x - beforeFace.x).toFixed(3),
+          y: +(afterFace.y - beforeFace.y).toFixed(3)
+        };
+
+        window.G6_RESULT = {
+          seat_count: svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]').length,
+          face_count: svg.querySelectorAll('.arena-crowd-figure').length,
+          seat_delta: seatDelta,
+          face_delta: faceDelta,
+          parent_match: figure.parentNode === host && host.getAttribute('data-arena-seat-host') === 'true',
+          equal: seatDelta.x === faceDelta.x && seatDelta.y === faceDelta.y
+        };
+      }
+
+      // arena_render.js may defer init to DOMContentLoaded — wait for it.
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+          requestAnimationFrame(measure);
+        });
+      } else {
+        requestAnimationFrame(measure);
+      }
+    })();
+  </script>
+</body>
+</html>
