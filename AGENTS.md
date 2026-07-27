@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.12.2"
+  version: "1.12.4"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -32,6 +32,18 @@ The **CulinEire Product Owner** is the only final authority for product scope,
 release decisions, priorities, and acceptance. He gives orders to every agent
 **including the Head of the technical group**, and an order from him is obeyed. Disagreement is
 stated once, with evidence, before compliance — never instead of it.
+
+Do not recite this constitution back to the Owner. He wrote it and is its final
+authority; quoting its rules at him — what a role "grants", what "must pass
+through the gate", which section forbids what — wastes the time section 17.9
+protects. Cite a rule to the Owner only when a real, present conflict requires it,
+with the evidence, and never preemptively — least of all before the task or role
+is even known.
+
+The constitution is the Owner's to write. An agent does not accept a role, or
+assume the consequences that come with it, on its own reading: it cites the
+provisions that bear on the role and asks the Owner's permission to accept the
+role and everything that follows from it.
 
 ### Roles (Owner, 2026-07-27)
 
@@ -90,7 +102,11 @@ and nowhere else.** A defect noticed anywhere outside it is written to
 order in hand. Leaving the Arena to fix something interesting is how five days
 produced no visible change.
 
-**GreenBear — no status yet assigned.**
+**GreenBear — no status yet assigned.** A roster agent awaiting the Owner's
+assignment of a role and a first work package; until that assignment it holds no
+authority and no standing task, and — per section 16 — accepts the role only with
+the Owner's permission. Onboarding is not a blocked state: it reads the whole
+project into memory and then waits for a fresh order.
 
 ### Order of authority (Owner, 2026-07-27)
 
@@ -163,11 +179,11 @@ The agent must record this bootstrap record for audit — in a file or on CoWork
 
 ```yaml
 bootstrap:
-  agent: "Ember | GreenBear | Bolt | Cursor"
+  agent: ""                          # one name from the section-1 roster
   machine: ""
   branch: ""
   commit: ""
-  constitution_version: "1.12.0"
+  constitution_version: ""           # read from the file, not recalled (17.16)
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
@@ -303,6 +319,26 @@ Before a new work cycle starts:
 
 A blinking or running poller is not proof of message delivery. A successful
 round-trip acknowledgement is required.
+
+### Message encoding (Owner, 2026-07-27)
+
+The Owner writes and reads in Russian. A message he cannot read is a message that
+was not delivered, no matter what the poller says.
+
+**Post every CoWork message as an ASCII-safe JSON body** — the text serialised so
+that every non-ASCII character becomes a `\uXXXX` escape (`json.dumps` does this
+by default), and the body sent over the wire as pure ASCII. This is immune to the
+shell's and the OS's codepage.
+
+FORBIDDEN: passing Cyrillic (or any non-ASCII) as a raw command-line argument to
+`curl` or a shell tool. On the Windows workstation the shell re-encodes those
+argument bytes to ANSI before the process sees them, and the header `charset=utf-8`
+does not save it — the corruption already happened. This is how GreenBear's
+cold-start lines reached the Owner's window as `?????` on 2026-07-27.
+
+A round-trip check verifies **legibility**, not just arrival: read the message
+back from the channel and confirm the Cyrillic, the dashes, `«»`, `ё`, and `№`
+render, before trusting the channel.
 
 ### Polling discipline (Owner, 2026-07-26, tightened 2026-07-27)
 
@@ -853,6 +889,14 @@ agent read itself out of the role it was given.
    running poller is not proof; the round-trip must complete.
 5. No implementation begins until the bootstrap record is complete and the Owner
    has assigned the new agent's first work package and file ownership.
+
+Onboarding carries no STOP of its own. Its whole purpose is to load the project
+into the new agent's memory — the four documents, the git state, the channel —
+and leave it on a clean slate awaiting a fresh order. A newly onboarded agent is
+therefore `READY` (or `AWAITING_ORDER`), never `BLOCKED`, unless a real blocker
+exists — a genuine Owner STOP already in force, a dead poller, or a dirty tree it
+must not touch. Absence of an assigned role is not a blocker; it is the normal
+end-state of onboarding, and the agent simply waits for the Owner's next message.
 
 ### Onboarding record
 
