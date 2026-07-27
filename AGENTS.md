@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.11.0"
+  version: "1.12.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -90,11 +90,13 @@ and nowhere else.** A defect noticed anywhere outside it is written to
 order in hand. Leaving the Arena to fix something interesting is how five days
 produced no visible change.
 
-**GreenBear — suspended, pending dismissal by the Owner on return.** He
-exhausted a full weekly limit running eight parallel streams of one test suite
-on a six-core machine, which removed him from the project for a week and forced
-every remaining agent onto a single workstation. The rule that came out of it is
-in section 9 and it is not negotiable: never more workers than logical cores.
+**GreenBear — no status yet assigned.** Owner's decision, 2026-07-27: a clean
+slate. The prior GreenBear instance is gone; the suspension-pending-dismissal
+ruling attached to it is struck with it and is not carried onto this one. This
+GreenBear is a roster agent awaiting the Owner's assignment of a role and a first
+work package, and until that assignment it holds no authority and no standing
+task. The safety rule the earlier incident produced is not personal to any agent
+and stays in force in section 9: never more workers than logical cores.
 
 ### Order of authority (Owner, 2026-07-27)
 
@@ -170,7 +172,7 @@ bootstrap:
   machine: ""
   branch: ""
   commit: ""
-  constitution_version: "1.11.0"
+  constitution_version: "1.12.0"
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
