@@ -426,10 +426,22 @@
     centreClip.appendChild(el('polygon', { points: centrePts }));
     defs.appendChild(centreClip);
 
-    svg.appendChild(defs);
-    svg.appendChild(cells);
+    // Hard clip: avatars / cell strokes / any filter bleed cannot paint past
+    // the outer octagon. Grey walkway is drawn OUTSIDE this group.
+    var floorClip = el('clipPath', { id: 'arena-shell-clip' });
+    floorClip.appendChild(el('polygon', {
+      points: tpl.octagonPoints(cx, cy, tpl.TEMPLATE_OUTER)
+    }));
+    defs.appendChild(floorClip);
 
-    svg.appendChild(el('polygon', {
+    var shell = el('g', {
+      'data-arena-layer': 'shell',
+      'clip-path': 'url(#arena-shell-clip)'
+    });
+
+    svg.appendChild(defs);
+    shell.appendChild(cells);
+    shell.appendChild(el('polygon', {
       points: centrePts,
       fill: colours[0],
       stroke: '#fff',
@@ -442,11 +454,13 @@
       'data-arena-stage': 'true',
       class: 'arena-stage'
     }));
-    // Grey outer band AFTER cells so it is not covered / clipped into junk.
+    shell.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
+    shell.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
+    shell.appendChild(el('g', { 'data-arena-layer': 'centre' }));
+    svg.appendChild(shell);
+
+    // Grey outer band outside the clip — visible frame, no avatar bleed over it.
     drawWalkway(svg, geometry, step);
-    svg.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
-    svg.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
-    svg.appendChild(el('g', { 'data-arena-layer': 'centre' }));
 
     var label = el('text', {
       'text-anchor': 'middle', 'dominant-baseline': 'central',

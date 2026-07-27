@@ -421,11 +421,11 @@
   }
 }
 
-/* Crown at the centre catches the spotlight. */
+/* Crown at the centre — no drop-shadow (bled past the outer shell). */
 #arena-render .arena-stage[data-state="crown"],
 #arena-render .arena-stage[data-state="active_battle"],
 #arena-render .arena-stage[data-state="facing_pair"] {
-  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--arena-spot) 70%, transparent));
+  filter: none;
 }
 
 /* Mockup M07 — on-floor challenger/opponent hex portraits. */

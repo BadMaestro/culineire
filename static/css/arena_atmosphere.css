@@ -924,3 +924,16 @@
   opacity: 1 !important;
   filter: none !important;
 }
+
+/* Avatars / cells must not cast paint outside the shell (Owner rim ghosts). */
+.page--arena #arena-render [data-arena-layer="shell"],
+.page--arena #arena-render .arena-cell,
+.page--arena #arena-render .arena-cell--sponsors-tpl,
+.page--arena #arena-render .arena-occupant,
+.page--arena #arena-render .arena-occupant image,
+.page--arena #arena-render .arena-stage,
+.page--arena #arena-render .arena-floor-fighter,
+.page--arena #arena-render .arena-floor-fighter__tile,
+.page--arena #arena-render .arena-floor-fighter__avatar {
+  filter: none !important;
+}
