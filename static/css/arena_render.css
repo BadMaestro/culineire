@@ -513,13 +513,9 @@
   text-transform: uppercase;
 }
 
-/* Crown holder — glyph + labels only, centred on the stage octagon. */
-#arena-render .arena-floor-crown__icon {
-  fill: var(--accent-bronze);
-  font-size: 34px;
-  paint-order: stroke;
-  stroke: color-mix(in srgb, var(--surface) 70%, transparent);
-  stroke-width: 3px;
+/* Crown holder — plate art + dynamic labels, centred on the stage octagon. */
+#arena-render .arena-floor-crown__plate {
+  pointer-events: none;
 }
 #arena-render .arena-floor-crown__label {
   fill: var(--accent-bronze);
@@ -529,17 +525,19 @@
   letter-spacing: 0.14em;
 }
 #arena-render .arena-floor-crown__name {
-  fill: var(--surface);
+  fill: color-mix(in srgb, var(--accent-bronze) 70%, var(--surface));
   font-family: var(--font-serif, "Playfair Display", serif);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   paint-order: stroke;
-  stroke: color-mix(in srgb, var(--ink) 35%, transparent);
+  stroke: color-mix(in srgb, var(--ink) 45%, transparent);
   stroke-width: 2.5px;
 }
 
 #arena-render .arena-stage[data-state="crown"] {
-  fill: color-mix(in srgb, var(--accent-bronze) 35%, #6c6054);
+  fill: color-mix(in srgb, var(--ink) 55%, #1f2c25);
+  stroke: var(--accent-bronze);
+  stroke-width: 2.4;
 }
 
 @media (prefers-reduced-motion: reduce) {

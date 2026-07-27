@@ -37,6 +37,12 @@ window.ARENA_VIEWER = {
   slug: "{{ viewer_author.slug|default:'' }}",
   enrolled: {{ user_enrolled|yesno:"true,false" }}
 };
+window.ARENA_CROWN_ASSETS = {
+  plate: "{% static 'images/arena/crown/crown-centre-plate.webp' %}",
+  glyph: "{% static 'images/arena/crown/crown-glyph.webp' %}",
+  pad: "{% static 'images/arena/crown/crown-pad-marble.webp' %}",
+  rim: "{% static 'images/arena/crown/crown-octagon-rim.webp' %}"
+};
 </script>
 
 <div id="arena-tooltip" class="arena-tooltip" hidden aria-live="polite">
@@ -183,10 +189,10 @@ window.ARENA_CROWD_FACES = [
 ];
 </script>
 
-<link href="{% static 'css/arena_render.css' %}?v=20260728-crown-centre" rel="stylesheet">
+<link href="{% static 'css/arena_render.css' %}?v=20260728-crown-assets" rel="stylesheet">
 
 <script src="{% static 'js/arena_geometry.js' %}?v=20260727-pointy-top"></script>
 <script src="{% static 'js/octagon_floor_template.js' %}?v=20260727-sponsors-1to1"></script>
 <script src="{% static 'js/arena_deck.js' %}?v=20260727-furniture"></script>
 <script src="{% static 'js/arena_battle_room.js' %}?v=20260725-loadpurge"></script>
-<script src="{% static 'js/arena_render.js' %}?v=20260728-crown-centre"></script>
+<script src="{% static 'js/arena_render.js' %}?v=20260728-crown-assets"></script>

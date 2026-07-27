@@ -1079,19 +1079,26 @@
       class: 'arena-floor-crown',
       'pointer-events': 'none'
     });
-    var icon = el('text', {
-      x: cx.toFixed(2),
-      y: (cy - radius * 0.22).toFixed(2),
-      'text-anchor': 'middle',
-      'dominant-baseline': 'middle',
-      class: 'arena-floor-crown__icon'
-    });
-    icon.textContent = '\u265B';
-    group.appendChild(icon);
+    var assets = global.ARENA_CROWN_ASSETS || {};
+    var size = radius * 2.05;
+
+    // Reference plate: gold rim + green marble + 3D crown art. Nickname stays
+    // dynamic SVG text (holder changes without regenerating the plate).
+    if (assets.plate) {
+      group.appendChild(el('image', {
+        href: assets.plate,
+        x: (cx - size / 2).toFixed(2),
+        y: (cy - size / 2).toFixed(2),
+        width: size.toFixed(2),
+        height: size.toFixed(2),
+        preserveAspectRatio: 'xMidYMid meet',
+        class: 'arena-floor-crown__plate'
+      }));
+    }
 
     var label = el('text', {
       x: cx.toFixed(2),
-      y: (cy + radius * 0.12).toFixed(2),
+      y: (cy + radius * 0.22).toFixed(2),
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
       class: 'arena-floor-crown__label'
@@ -1101,7 +1108,7 @@
 
     var name = el('text', {
       x: cx.toFixed(2),
-      y: (cy + radius * 0.42).toFixed(2),
+      y: (cy + radius * 0.48).toFixed(2),
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
       class: 'arena-floor-crown__name'
