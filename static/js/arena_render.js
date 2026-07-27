@@ -1052,8 +1052,13 @@
     var cx = TPL_CX;
     var cy = TPL_CY;
     var type = center.type;
-    var padR = STAGE_RADIUS * 1.28;
-    var offset = STAGE_RADIUS * 2.05;
+    var padR = STAGE_RADIUS * 1.15;
+    var offset = STAGE_RADIUS * 2.35;
+    var stage = svg.querySelector('.arena-stage');
+    if (stage) {
+      stage.setAttribute('data-state', type);
+      stage.setAttribute('data-occupancy', type === 'crown' ? 'crown' : 'stage');
+    }
 
     if (type === 'active_battle' || type === 'facing_pair') {
       drawFloorFighter(svg, layer, center.challenger, { x: cx - offset, y: cy }, padR, 'challenger');
@@ -1063,22 +1068,61 @@
     }
 
     if (type === 'crown') {
-      drawFloorFighter(svg, layer, {
-        name: center.name,
-        slug: center.slug || '',
-        avatar_url: center.avatar_url
-      }, { x: cx, y: cy }, STAGE_RADIUS * 1.05, 'crown');
+      // Reference: centre octagon holds crown glyph + nick only — never the
+      // holder avatar (that would cover / mis-read the stage pad).
+      drawFloorCrown(layer, cx, cy, STAGE_RADIUS, center);
     }
   }
 
+  function drawFloorCrown(layer, cx, cy, radius, center) {
+    var group = el('g', {
+      class: 'arena-floor-crown',
+      'pointer-events': 'none'
+    });
+    var icon = el('text', {
+      x: cx.toFixed(2),
+      y: (cy - radius * 0.22).toFixed(2),
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      class: 'arena-floor-crown__icon'
+    });
+    icon.textContent = '\u265B';
+    group.appendChild(icon);
+
+    var label = el('text', {
+      x: cx.toFixed(2),
+      y: (cy + radius * 0.12).toFixed(2),
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      class: 'arena-floor-crown__label'
+    });
+    label.textContent = 'CROWN HOLDER';
+    group.appendChild(label);
+
+    var name = el('text', {
+      x: cx.toFixed(2),
+      y: (cy + radius * 0.42).toFixed(2),
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      class: 'arena-floor-crown__name'
+    });
+    name.textContent = (center && center.name) || '';
+    group.appendChild(name);
+    layer.appendChild(group);
+  }
+
   function drawFloorVs(layer, cx, cy, radius, center) {
-    var pts = hexPoints(cx, cy, radius);
+    var tpl = global.OctagonFloorTemplate;
+    // Same octagon math as .arena-stage — not a hex — so VS sits in the true centre pad.
+    var points = tpl
+      ? tpl.octagonPoints(cx, cy, radius)
+      : hexPoints(cx, cy, radius).map(pointString).join(' ');
     var group = el('g', {
       class: 'arena-floor-vs',
       'pointer-events': 'none'
     });
     group.appendChild(el('polygon', {
-      points: pts.map(pointString).join(' '),
+      points: points,
       class: 'arena-floor-vs__tile',
       'vector-effect': 'non-scaling-stroke'
     }));
