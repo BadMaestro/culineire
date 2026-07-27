@@ -61,18 +61,19 @@
        DIFFERENT values (a dark floating widget), and .arena-command-deck
        re-scopes --arena-gold/--arena-muted again with a THIRD, light set for
        its own HUD text. Reusing those names here would have resolved to
-       whichever of the other two happened to cascade in, silently. Values
-       equal the widget's dark set (not new colours, just a name that can't collide). */
-    --hall-dark-0: #07090a;
-    --hall-dark-1: #0d1113;
-    --hall-dark-2: #121719;
-    --hall-text: #f4f3ee;
-    --hall-muted: #a8afb1;
-    --hall-border: rgb(255 255 255 / 0.11);
-    --hall-green: #67b74a;
-    --hall-red: #d8463e;
-    --hall-gold: #d6a64b;
-    --hall-gold-light: #f1d27a;
+       whichever of the other two happened to cascade in, silently.
+       ARENA-01 (GB): values retargeted to Owner-approved Emerald-night mockup
+       (handoff hall-3/2/1 + gold + challenger/opponent), still under --hall-*. */
+    --hall-dark-0: #0a1410;
+    --hall-dark-1: #0f2a1d;
+    --hall-dark-2: #164a33;
+    --hall-text: #f3ece0;
+    --hall-muted: #9fb0b5;
+    --hall-border: rgba(240, 214, 138, 0.22);
+    --hall-green: #4ea86f;
+    --hall-red: #e05a4a;
+    --hall-gold: #d4af5f;
+    --hall-gold-light: #f0d68a;
 
     /* Scrollbars */
     --scrollbar-size: 4px;
