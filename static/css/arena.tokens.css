@@ -1,0 +1,58 @@
+/* CulinÉire Chef Battle — Arena tokens.
+   Machine-readable form of ARENA_2D_HANDOFF.md §1. Names match that document exactly.
+   Binding. See also docs/ARENA_VISUAL_CONTRACT.md.
+
+   THE ARENA IS A DARK HALL. CulinEire_colour_font_scheme.pdf is the SITE palette
+   and must never be applied here. */
+
+:root {
+  /* Hall */
+  --arena-hall-1: #164a33;
+  --arena-hall-2: #0f2a1d;
+  --arena-hall-3: #0a1410;
+  --arena-hall-backdrop: radial-gradient(ellipse at 50% 42%, var(--arena-hall-1) 0%, var(--arena-hall-2) 45%, var(--arena-hall-3) 78%);
+
+  /* Floor — parchment, lightest at the centre. The ONLY light surface in the design. */
+  --arena-floor-outer: #9fb0b5;
+  --arena-floor-1: #dfd3ba;
+  --arena-floor-2: #e9dfc9;
+  --arena-floor-3: #efe6d4;
+  --arena-floor-4: #f3ece0;
+  --arena-floor-core: #f7f1e4;
+  --arena-floor-seam: rgba(10, 20, 16, 0.14);
+
+  /* Gold */
+  --arena-gold: #d4af5f;
+  --arena-gold-light: #f0d68a;
+  --arena-gold-line: rgba(240, 214, 138, 0.22);
+
+  /* Combatants — contractual, not decorative (contract §12).
+     Challenger is ALWAYS left/green. Opponent is ALWAYS right/red. */
+  --arena-challenger: #4ea86f;
+  --arena-challenger-glow: rgba(78, 168, 111, 0.55);
+  --arena-opponent: #e05a4a;
+  --arena-opponent-glow: rgba(224, 90, 74, 0.50);
+
+  /* Panels and text */
+  --arena-panel-bg: linear-gradient(180deg, rgba(15, 42, 29, 0.88), rgba(10, 20, 16, 0.94));
+  --arena-panel-border: 1px solid var(--arena-gold-line);
+  --arena-panel-radius: 18px;
+  --arena-panel-shadow: 0 18px 40px rgba(4, 10, 7, 0.55);
+  --arena-panel-blur: blur(8px);
+  --arena-ink-on-dark: #f3ece0;
+  --arena-ink-muted: #9fb0b5;
+  --arena-live: #4ea86f;
+
+  /* Geometry (handoff §2–§3) */
+  --arena-octagon: polygon(29% 0%, 71% 0%, 100% 29%, 100% 71%, 71% 100%, 29% 100%, 0% 71%, 0% 29%);
+  --arena-floor-tilt: rotateX(58deg);
+  --arena-perspective: 1000px;
+
+  /* Type */
+  --arena-font-display: 'Playfair Display', Georgia, serif;
+  --arena-font-ui: 'Inter', system-ui, sans-serif;
+  --arena-tracking-eyebrow: 0.14em;
+
+  /* Reference viewport — the Arena stage is not supported below this */
+  --arena-min-width: 1280px;
+}
