@@ -1122,9 +1122,11 @@
       if (!(width > 0) || !(height > 0)) { return; }
       if (!(frame.width > 0) || !(frame.height > 0)) { return; }
 
-      // Fit stands inside the frame; FLOOR_SHARE is not used as a fit target.
-      var byWidth = frame.width * 0.98 / width;
-      var byHeight = frame.height * 0.98 / height;
+      // Fit stands inside the frame at 80% — Owner 2026-07-27: leaving 20%
+      // margin stops the page from squashing the octagon against the rails.
+      var viewPad = 0.80;
+      var byWidth = frame.width * viewPad / width;
+      var byHeight = frame.height * viewPad / height;
       var factor = Math.min(byWidth, byHeight);
       var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
       svg.style.setProperty('--arena-fit', (current * factor).toFixed(4));
