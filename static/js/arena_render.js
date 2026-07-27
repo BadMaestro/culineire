@@ -490,13 +490,59 @@
     return !!chef.slug && slugs.indexOf(chef.slug) !== -1;
   }
 
+  // Stable per-chef hash — seats stay put across 20s polls (no Math.random flicker).
+  function chefSeatHash(slug, ring) {
+    var source = String(slug || '') + '#' + String(ring || 0);
+    var h = 2166136261;
+    for (var i = 0; i < source.length; i++) {
+      h ^= source.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function cellsAdjacent(a, b, capacity) {
+    if (capacity <= 0) { return false; }
+    var d = Math.abs(a - b) % capacity;
+    return d === 1 || d === capacity - 1;
+  }
+
+  /**
+   * Pick a free cell in the ring. Idle chefs scatter by slug hash (ТЗ: random
+   * places). Neighbours are avoided when possible — they only stand side by
+   * side after an accepted challenge (facing teleport), not on ordinary online.
+   */
+  function pickScatteredCell(ring, slug, capacity, occupied) {
+    if (capacity <= 0) { return -1; }
+    var start = chefSeatHash(slug, ring) % capacity;
+    var i;
+    var cell;
+    // Pass 1: preferred hash seat, then walk — skip seats beside anyone already placed.
+    for (i = 0; i < capacity; i++) {
+      cell = (start + i) % capacity;
+      if (occupied[cell]) { continue; }
+      var blocked = false;
+      for (var other in occupied) {
+        if (!occupied.hasOwnProperty(other)) { continue; }
+        if (cellsAdjacent(cell, Number(other), capacity)) { blocked = true; break; }
+      }
+      if (!blocked) { return cell; }
+    }
+    // Pass 2: ring nearly full — take any free seat.
+    for (i = 0; i < capacity; i++) {
+      cell = (start + i) % capacity;
+      if (!occupied[cell]) { return cell; }
+    }
+    return -1;
+  }
+
   function buildAssignments(payload, geometry) {
     var assignments = [];
     var center = payload.center || {};
     var tpl = global.OctagonFloorTemplate;
     // Sponsors template: 6 rings. Arena payload still has 8 rank keys —
     // geometry rings 1–5 map 1:1; rings 6–8 (commis/prep/porter) share outer ring 6.
-    var nextCell = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+    var occupiedByRing = { 1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {} };
     var capacity = {};
     for (var r = 1; r <= 6; r++) {
       capacity[r] = tpl ? tpl.RING_COUNTS[r] : 60;
@@ -508,10 +554,17 @@
       var chefs = ((payload.rings && payload.rings[ring.key]) || []).filter(function (chef) {
         return chef && !isDisplaced(chef, center);
       });
+      // Stable order so hash collisions resolve the same way every poll.
+      chefs.sort(function (a, b) {
+        return String(a.slug || '').localeCompare(String(b.slug || ''));
+      });
       chefs.forEach(function (chef) {
-        var cell = nextCell[templateRing];
-        if (cell >= capacity[templateRing]) { return; }
-        nextCell[templateRing] = cell + 1;
+        var occupied = occupiedByRing[templateRing];
+        var cell = pickScatteredCell(
+          templateRing, chef.slug, capacity[templateRing], occupied
+        );
+        if (cell < 0) { return; }
+        occupied[cell] = true;
         assignments.push({
           ring: templateRing, cell: cell, entity: chef,
           occupancy: 'chef',
