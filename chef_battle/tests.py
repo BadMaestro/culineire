@@ -904,6 +904,85 @@ class EnergyServiceTests(TestCase):
         profile = ChefBattleProfile.objects.get(author=self.chef)
         self.assertEqual(profile.battle_moves, ENERGY_CAP)
 
+    def test_pinch_publish_reward_is_once_per_object(self):
+        """Editing an approved Pinch sends it back to PENDING; re-approval must
+        not pay a second time. The signal passed no `reference`, and the
+        once-per-object guard only applies when it gets one — so every
+        re-approval paid again, including the uncapped faction/clan points."""
+        from pinch.models import Pinch
+        from .energy_service import EARN_PINCH_PUBLISHED
+        from .models import BattleMoveTransaction
+        TxType = BattleMoveTransaction.TxType
+
+        item = Pinch.objects.create(
+            author=self.chef,
+            title="Re-approved Bite",
+            slug="re-approved-bite",
+            short_description="yum",
+            status=Pinch.Status.APPROVED,
+        )
+        awards = BattleMoveTransaction.objects.filter(
+            chef=self.chef, transaction_type=TxType.PINCH_PUBLISHED
+        )
+        self.assertEqual(awards.count(), 1)
+        self.assertEqual(awards.first().amount, EARN_PINCH_PUBLISHED)
+
+        for _ in range(3):
+            item.status = Pinch.Status.PENDING
+            item.save(update_fields=["status"])
+            item.status = Pinch.Status.APPROVED
+            item.save(update_fields=["status"])
+
+        self.assertEqual(awards.count(), 1)
+
+    def test_like_anti_farming_binds_a_liker_without_an_author_profile(self):
+        """The gate used to key on the liker's RecipeAuthor, so every liker
+        without one walked straight past it — unlimited moves AND unlimited
+        faction/clan season points, which is how clan standings get farmed."""
+        from django.contrib.auth import get_user_model
+        from .energy_service import award_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE
+        from .models import BattleMoveTransaction, ChefBattleProfile
+        TxType = BattleMoveTransaction.TxType
+        plain_liker = get_user_model().objects.create_user(
+            username="no-author-profile", password="pw"
+        )
+        self.assertIsNone(getattr(plain_liker, "recipe_author_profile", None))
+        for _ in range(LIKE_ANTI_FARM_MAX_PER_SOURCE):
+            awarded = award_moves(
+                self.chef, 1, TxType.LIKE_RECEIVED, source_user=plain_liker
+            )
+            self.assertEqual(awarded, 1)
+        self.assertEqual(
+            award_moves(self.chef, 1, TxType.LIKE_RECEIVED, source_user=plain_liker), 0
+        )
+        profile = ChefBattleProfile.objects.get(author=self.chef)
+        self.assertEqual(profile.battle_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE)
+
+    def test_like_with_no_identifiable_source_is_not_paid(self):
+        """An award that cannot be rate-limited is not an award."""
+        from .energy_service import award_moves
+        from .models import BattleMoveTransaction
+        TxType = BattleMoveTransaction.TxType
+        self.assertEqual(award_moves(self.chef, 1, TxType.LIKE_RECEIVED), 0)
+
+    def test_like_allowance_is_per_liker_not_shared(self):
+        """Two different likers each get their own daily allowance."""
+        from django.contrib.auth import get_user_model
+        from .energy_service import award_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE
+        from .models import BattleMoveTransaction
+        TxType = BattleMoveTransaction.TxType
+        User = get_user_model()
+        first = User.objects.create_user(username="liker-one", password="pw")
+        second = User.objects.create_user(username="liker-two", password="pw")
+        for _ in range(LIKE_ANTI_FARM_MAX_PER_SOURCE):
+            award_moves(self.chef, 1, TxType.LIKE_RECEIVED, source_user=first)
+        self.assertEqual(
+            award_moves(self.chef, 1, TxType.LIKE_RECEIVED, source_user=first), 0
+        )
+        self.assertEqual(
+            award_moves(self.chef, 1, TxType.LIKE_RECEIVED, source_user=second), 1
+        )
+
     def test_like_anti_farming(self):
         from .energy_service import award_moves, LIKE_ANTI_FARM_MAX_PER_SOURCE
         from .models import BattleMoveTransaction, ChefBattleProfile

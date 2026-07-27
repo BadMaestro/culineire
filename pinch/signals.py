@@ -133,7 +133,17 @@ def award_battle_moves_on_approval(sender, instance, created, **kwargs):
     try:
         from chef_battle.energy_service import award_moves, EARN_PINCH_PUBLISHED
         from chef_battle.models import BattleMoveTransaction
-        award_moves(author, EARN_PINCH_PUBLISHED, BattleMoveTransaction.TxType.PINCH_PUBLISHED)
+        # `reference` is what makes the award idempotent: energy_service only
+        # applies its once-per-object guard when it is given the object. Without
+        # it, every re-approval of an edited Pinch pays again — and pinch_published
+        # also feeds the uncapped faction and clan season totals, so the same edit
+        # loop farms clan standings. Recipes and articles already pass it.
+        award_moves(
+            author,
+            EARN_PINCH_PUBLISHED,
+            BattleMoveTransaction.TxType.PINCH_PUBLISHED,
+            reference=instance,
+        )
     except Exception:
         logger.exception("Failed to award battle moves for Pinch pk=%s", instance.pk)
 

@@ -25,13 +25,17 @@ def award_like_moves(sender, instance, created, **kwargs):
             return
         from chef_battle.energy_service import award_moves, EARN_LIKE_RECEIVED
         from chef_battle.models import BattleMoveTransaction
-        # Use the liker's RecipeAuthor as source for anti-farming (if they have one)
+        # Anti-farm key. The liker's User is what always exists; the RecipeAuthor
+        # is passed too, but only so rows written before the switch keep counting
+        # towards the same daily allowance. Keying on the author profile alone
+        # let every liker without one past the gate.
         liker_author = getattr(instance.user, "recipe_author_profile", None)
         award_moves(
             author,
             EARN_LIKE_RECEIVED,
             BattleMoveTransaction.TxType.LIKE_RECEIVED,
             source_author=liker_author,
+            source_user=instance.user,
         )
     except Exception:
         logger.exception(
