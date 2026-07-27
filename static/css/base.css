@@ -53,27 +53,28 @@
     --accent-bronze: #b47a33;
     --accent-bronze-dark: #60401f;
 
-    /* Arena hall dark palette — arena_hall.css, arena_render.css,
-       arena_master_console*.css, arena_command_deck.css and arena_deck_polish.css
-       all draw the arena's dark stands/console surface from this set instead of
-       repeating hex. Deliberately NOT named --arena-* : chef_battle.css already
-       scopes --arena-muted/--arena-gold/etc to .site-battle-widget with
-       DIFFERENT values (a dark floating widget), and .arena-command-deck
-       re-scopes --arena-gold/--arena-muted again with a THIRD, light set for
-       its own HUD text. Reusing those names here would have resolved to
-       whichever of the other two happened to cascade in, silently.
-       ARENA-01 (GB): values retargeted to Owner-approved Emerald-night mockup
-       (handoff hall-3/2/1 + gold + challenger/opponent), still under --hall-*. */
-    --hall-dark-0: #0a1410;
-    --hall-dark-1: #0f2a1d;
-    --hall-dark-2: #164a33;
-    --hall-text: #f3ece0;
-    --hall-muted: #9fb0b5;
-    --hall-border: rgba(240, 214, 138, 0.22);
-    --hall-green: #4ea86f;
-    --hall-red: #e05a4a;
-    --hall-gold: #d4af5f;
-    --hall-gold-light: #f0d68a;
+    /* Arena hall aliases — names stay --hall-* (never --arena-*: chef_battle.css
+       and .arena-command-deck already scope --arena-* to different values).
+       VALUES must come from CulinEire_colour_font_scheme.pdf / site tokens above
+       or color-mix of those tokens. No emerald/gold/cool-grey outside the scheme. */
+    --hall-dark-0: color-mix(in srgb, var(--ink) 88%, var(--ce-card-accent));
+    --hall-dark-1: var(--ink);
+    --hall-dark-2: color-mix(in srgb, var(--ink) 58%, var(--brand-dark));
+    --hall-text: var(--bg);
+    --hall-muted: var(--ce-card-muted-soft);
+    --hall-border: var(--line-strong);
+    /* L/R combatant paint — scheme has no green/red; bronze vs brand-dark. */
+    --hall-green: var(--accent-bronze);
+    --hall-red: var(--brand-dark);
+    --hall-gold: var(--accent-bronze);
+    --hall-gold-light: color-mix(in srgb, var(--accent-bronze) 62%, var(--surface));
+    /* Floor rings — parchment ladder from the site surfaces (lightest at core). */
+    --hall-floor-1: var(--surface-muted);
+    --hall-floor-2: var(--surface-soft);
+    --hall-floor-3: var(--bg);
+    --hall-floor-4: var(--ce-card-bg);
+    --hall-floor-core: var(--surface);
+    --hall-floor-seam: color-mix(in srgb, var(--ink) 14%, transparent);
 
     /* Scrollbars */
     --scrollbar-size: 4px;

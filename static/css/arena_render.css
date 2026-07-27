@@ -81,7 +81,15 @@
 /* Spectator galleries read cooler than the floor, mixed off --ink so they stay
    inside the palette. The scheme has no blue token; if the reference's slate
    gallery becomes a brand colour, it belongs in base.css, not here. */
-#arena-render [data-ring-kind="spectator"][data-occupancy="empty"] { fill: color-mix(in srgb, var(--ink) 10%, var(--surface-muted)); }
+/* Spectator galleries: occupied only. Empty seat discs were a grey dot grid
+   around the floor — hide paint, keep nodes for seating logic/faces. */
+#arena-render [data-ring-kind="spectator"][data-occupancy="empty"],
+#arena-render .arena-cell--oval-seat[data-occupancy="empty"] {
+  fill: none;
+  stroke: none;
+  opacity: 0;
+  pointer-events: none;
+}
 #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] { fill: color-mix(in srgb, var(--ink) 55%, var(--surface)); }
 
 /* ---- state ---- */

@@ -1,15 +1,19 @@
 /* Arena Hall presentation boundary.
  *
- * Layout belongs to arena_command_deck.css. This final cascade layer keeps the
- * hall in the shared CulinEire parchment language and intentionally declares
- * no private hall palette.
+ * Layout belongs to arena_command_deck.css. Colour comes only through --hall-*
+ * (aliases of CulinEire_colour_font_scheme.pdf / site tokens in base.css).
+ * Stage = ink-derived dark hall; floor plate stays parchment via --hall-floor-*.
  */
 
 .page--arena {
-  color: var(--ink);
+  color: var(--hall-text);
   background:
-    radial-gradient(circle at 50% 18%, var(--brand-soft), transparent 42%),
-    linear-gradient(180deg, var(--bg), var(--surface-soft));
+    radial-gradient(
+      ellipse at 50% 42%,
+      var(--hall-dark-2) 0%,
+      var(--hall-dark-1) 45%,
+      var(--hall-dark-0) 78%
+    );
 }
 
 .page--arena #main-content {
@@ -17,7 +21,7 @@
 }
 
 .page--arena .arena-command-deck {
-  color: var(--ink);
+  color: var(--hall-text);
 }
 
 .page--arena .arena-command-deck__header,
@@ -27,41 +31,43 @@
 .page--arena .arena-command-deck__gifts,
 .page--arena .arena-command-deck__crowd-rail,
 .page--arena .arena-command-deck__phase-rail {
-  border-color: var(--line-strong);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--hall-border);
+  background: color-mix(in srgb, var(--hall-dark-1) 88%, transparent);
+  box-shadow: 0 1.1rem 2.5rem color-mix(in srgb, var(--hall-dark-0) 55%, transparent);
+  color: var(--hall-text);
 }
 
 
 /* 3G R2: rail brackets + lower broadcast share official bronze line language. */
 .page--arena .arena-interface-rail::after {
-  border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  border-color: color-mix(in srgb, var(--hall-gold) 55%, transparent);
 }
 
 .page--arena .arena-lower-broadcast {
-  border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  border-color: color-mix(in srgb, var(--hall-gold) 55%, transparent);
   background:
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--surface) 92%, transparent),
-      color-mix(in srgb, var(--surface-soft) 88%, transparent),
-      color-mix(in srgb, var(--surface) 92%, transparent)
+      color-mix(in srgb, var(--hall-dark-1) 92%, transparent),
+      color-mix(in srgb, var(--hall-dark-0) 88%, transparent),
+      color-mix(in srgb, var(--hall-dark-1) 92%, transparent)
     );
+  color: var(--hall-text);
 }
 .page--arena .arena-command-deck__floor {
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
+  border: 1px solid var(--hall-border);
+  background: color-mix(in srgb, var(--hall-dark-0) 72%, transparent);
   box-shadow: var(--shadow-md);
 }
 
 .page--arena .arena-command-deck__live-stage {
-  border-color: var(--line-strong);
-  background: linear-gradient(135deg, var(--surface-soft), var(--surface));
+  border-color: var(--hall-border);
+  background: linear-gradient(135deg, var(--hall-dark-1), var(--hall-dark-0));
 }
 
 .page--arena .arena-floor-stage,
 .page--arena .arena-render-container {
-  border-color: var(--line-strong);
+  border-color: var(--hall-border);
   background: transparent;
   box-shadow: none;
 }
@@ -71,55 +77,56 @@
 }
 
 .page--arena #arena-render .arena-walkway {
-  stroke: var(--border);
+  stroke: var(--hall-border);
   opacity: 1;
 }
 
 .page--arena .arena-live-centre,
 .page--arena .arena-live-centre--crown {
-  border-color: var(--accent-bronze);
-  color: var(--ink);
-  background: var(--surface);
-  box-shadow: inset 0 0 0 2px var(--brand-soft);
+  border-color: var(--hall-gold);
+  color: var(--hall-text);
+  background: color-mix(in srgb, var(--hall-dark-1) 90%, var(--hall-gold));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hall-gold) 22%, transparent);
 }
 
 .page--arena .arena-live-centre:hover,
 .page--arena .arena-live-centre:focus-visible {
-  border-color: var(--brand-dark);
-  background: var(--surface-soft);
+  border-color: var(--hall-gold-light);
+  background: color-mix(in srgb, var(--hall-dark-2) 85%, var(--hall-gold));
 }
 
 .page--arena .arena-live-chef {
-  border-color: var(--line-strong);
-  background: var(--surface);
+  border-color: var(--hall-border);
+  background: color-mix(in srgb, var(--hall-dark-1) 92%, transparent);
   box-shadow: var(--shadow-sm);
+  color: var(--hall-text);
 }
 
 .page--arena .arena-phase-step.is-active,
 .page--arena .arena-rank-spine__step:hover,
 .page--arena .arena-rank-spine__step:focus-visible {
-  border-color: var(--accent-bronze);
-  color: var(--brand-dark);
-  background: var(--surface-soft);
+  border-color: var(--hall-gold);
+  color: var(--hall-gold-light);
+  background: color-mix(in srgb, var(--hall-dark-2) 70%, var(--hall-gold));
 }
 
 .page--arena .arena-rank-spine__step,
 .page--arena .arena-rank-spine__step b {
-  border-color: var(--line-strong);
-  color: var(--ink);
-  background: var(--surface);
+  border-color: var(--hall-border);
+  color: var(--hall-gold-light);
+  background: color-mix(in srgb, var(--hall-dark-0) 80%, transparent);
   box-shadow: none;
 }
 
 .page--arena .arena-render-container {
-  --arena-bowl: var(--surface-soft);
-  --arena-bowl-edge: var(--surface-muted);
-  --arena-spot: var(--accent-bronze);
+  --arena-bowl: var(--hall-dark-1);
+  --arena-bowl-edge: var(--hall-dark-0);
+  --arena-spot: var(--hall-gold);
 }
 
 .page--arena .arena-command-deck :focus-visible,
 .page--arena .arena-popup__panel :focus-visible {
-  outline: 3px solid var(--accent-bronze);
+  outline: 3px solid var(--hall-gold);
   outline-offset: 3px;
 }
 
@@ -131,7 +138,7 @@
   .page--arena .arena-command-deck__gifts,
   .page--arena .arena-command-deck__crowd-rail,
   .page--arena .arena-command-deck__phase-rail {
-    background: var(--surface);
+    background: color-mix(in srgb, var(--hall-dark-1) 94%, transparent);
   }
 }
 
@@ -147,24 +154,24 @@
 }
 
 
-/* 3G — glass panels win on desktop; parchment cards remain on small screens. */
+/* 3G — glass panels on desktop over the dark hall. */
 @media (min-width: 901px) {
   .page--arena .arena-command-deck__phase-card,
   .page--arena .arena-command-deck__metrics,
   .page--arena .arena-command-deck__ladder,
   .page--arena .arena-command-deck__gifts,
   .page--arena .arena-command-deck__crowd-rail {
-    background: color-mix(in srgb, var(--surface) 78%, transparent);
-    border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    box-shadow: 0 0.8rem 2rem color-mix(in srgb, var(--ink) 36%, transparent);
+    background: color-mix(in srgb, var(--hall-dark-1) 78%, transparent);
+    border-color: color-mix(in srgb, var(--hall-gold) 55%, transparent);
+    box-shadow: 0 0.8rem 2rem color-mix(in srgb, var(--hall-dark-0) 55%, transparent);
   }
   .page--arena .arena-broadcast-ribbon {
     background:
       linear-gradient(
         90deg,
-        color-mix(in srgb, var(--surface) 90%, transparent),
-        color-mix(in srgb, var(--surface-soft) 84%, transparent),
-        color-mix(in srgb, var(--surface) 90%, transparent)
+        color-mix(in srgb, var(--hall-dark-1) 90%, transparent),
+        color-mix(in srgb, var(--hall-dark-0) 84%, transparent),
+        color-mix(in srgb, var(--hall-dark-1) 90%, transparent)
       );
   }
 }
@@ -175,15 +182,7 @@
    Numbers: wrapper 1020x840, perspective 1000px, rotateX 58deg, nested octagons.
    ============================================================================= */
 
-.page--arena .arena-floor-stage {
-  /* Parchment ring fills — named on the stage so templates stay hex-free. */
-  --hall-floor-1: #dfd3ba;
-  --hall-floor-2: #e9dfc9;
-  --hall-floor-3: #efe6d4;
-  --hall-floor-4: #f3ece0;
-  --hall-floor-core: #f7f1e4;
-  --hall-floor-seam: rgba(10, 20, 16, 0.14);
-}
+/* Floor ring fills live on :root as --hall-floor-* (site surfaces only). */
 
 @media (min-width: 901px) {
   .page--arena .arena-command-deck .arena-floor-stage .arena-render-container {
