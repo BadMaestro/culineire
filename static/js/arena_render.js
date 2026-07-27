@@ -740,33 +740,64 @@
     return source ? source.charAt(0).toUpperCase() : '?';
   }
 
-  function appendOnlineDot(layer, assignment, seat) {
-    // White halo + green pulse in the top-left corner of the cell bbox.
+  function appendOnlineDot(group, assignment, seat) {
+    // Top-left of the wedge itself (not the bbox) — bbox min sits outside
+    // slanted cells and spilled the pulse into the neighbour.
     var entity = assignment.entity || {};
+    var tpl = global.OctagonFloorTemplate;
     if (assignment.occupancy !== 'chef') { return; }
     if (entity.is_online === false) { return; }
-    if (!seat) { return; }
+    if (!seat || !tpl) { return; }
 
-    var box = seat.getBBox();
-    var pad = 8;
-    var dotX = box.x + pad;
-    var dotY = box.y + pad;
+    var ring = assignment.ring;
+    var cell = assignment.cell;
+    var count = tpl.RING_COUNTS[ring];
+    var radii = tpl.RING_RADII[ring];
+    if (!count || !radii) { return; }
 
-    var mark = el('g', {
-      class: 'arena-online-mark',
-      'data-entity-slug': entity.slug || '',
-      'pointer-events': 'none'
-    });
-    mark.appendChild(el('circle', {
+    var outerR = radii[1] - tpl.GAP / 2;
+    var innerR = radii[0] + tpl.GAP;
+    var sweep = (2 * Math.PI) / count;
+    var offset = -Math.PI / 2 - sweep / 2;
+    var startAngle = offset + cell * sweep + tpl.GAP / outerR;
+    var endAngle = offset + (cell + 1) * sweep - tpl.GAP / outerR;
+    var pts = tpl.ringSegmentPoints(TPL_CX, TPL_CY, innerR, outerR, startAngle, endAngle);
+
+    var best = pts[0];
+    var bestScore = pts[0][0] + pts[0][1];
+    for (var i = 1; i < pts.length; i++) {
+      var score = pts[i][0] + pts[i][1];
+      if (score < bestScore) {
+        bestScore = score;
+        best = pts[i];
+      }
+    }
+
+    var cx = parseFloat(seat.getAttribute('data-centroid-x'));
+    var cy = parseFloat(seat.getAttribute('data-centroid-y'));
+    if (!isFinite(cx) || !isFinite(cy)) {
+      var box = seat.getBBox();
+      cx = box.x + box.width / 2;
+      cy = box.y + box.height / 2;
+    }
+
+    // Pull inward from the NW corner so the white halo stays on the avatar.
+    var dx = cx - best[0];
+    var dy = cy - best[1];
+    var len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var pull = 12;
+    var dotX = best[0] + (dx / len) * pull;
+    var dotY = best[1] + (dy / len) * pull;
+
+    group.appendChild(el('circle', {
       cx: dotX.toFixed(1), cy: dotY.toFixed(1), r: '5.5',
       fill: '#fff', 'pointer-events': 'none'
     }));
-    mark.appendChild(el('circle', {
+    group.appendChild(el('circle', {
       cx: dotX.toFixed(1), cy: dotY.toFixed(1), r: '4',
       fill: '#22c55e', 'pointer-events': 'none',
       class: 'arena-online-dot'
     }));
-    layer.appendChild(mark);
   }
 
   function appendOccupant(svg, layer, assignment) {
@@ -809,8 +840,8 @@
       group.appendChild(initial);
     }
 
+    appendOnlineDot(group, assignment, seat);
     layer.appendChild(group);
-    appendOnlineDot(layer, assignment, seat);
   }
 
   function bind(svg, payload, geometry) {
