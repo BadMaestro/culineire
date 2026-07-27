@@ -157,7 +157,13 @@ class RecipeAuthor(models.Model):
     @property
     def display_avatar_url(self):
         if self.avatar:
-            return self.avatar.url
+            # Uploaded avatars are photographs: measured on production
+            # 2026-07-26, they run 1.6-2.4 MB each while rendering at 38x38 in
+            # the header and 76x76 on a profile. Prefer the WebP sibling when
+            # generate_media_webp has written one; fall back to the original,
+            # untouched file otherwise.
+            from recipes.media_utils import webp_url
+            return webp_url(self.avatar) or self.avatar.url
         default_avatar_files = {
             self.DefaultAvatar.MALE: "male-avatar.webp",
             self.DefaultAvatar.FEMALE: "female-avatar.webp",

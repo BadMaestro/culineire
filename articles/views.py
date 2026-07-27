@@ -3,6 +3,8 @@ import logging
 from datetime import datetime, time
 
 from django.conf import settings
+
+from recipes.media_utils import webp_url
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -360,6 +362,9 @@ class ArticleDetailView(DetailView):
     def _image_to_gallery_item(image_field, alt, caption=""):
         return {
             "src": image_field.url,
+            # Empty unless the sibling exists on storage, so a partly converted
+            # media tree serves originals instead of breaking the page.
+            "src_webp": webp_url(image_field),
             "alt": alt,
             "caption": caption or "",
             "width": getattr(image_field, "width", None),

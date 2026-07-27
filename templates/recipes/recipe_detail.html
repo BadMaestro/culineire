@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static recipe_schema author_tags %}
+{% load media_webp %}
 
 {% block title %}{{ recipe.title }} - Traditional Irish Recipe | CulinEire{% endblock %}
 {% block meta_description %}{% if recipe.short_description %}{{ recipe.short_description }}{% else %}A home-cooking recipe for {{ recipe.title }} on CulinEire.{% endif %}{% endblock %}
@@ -20,7 +21,7 @@
 {% if can_moderate_bar %}
 <link href="{% static 'css/messaging.css' %}" rel="stylesheet">{% endif %}
 <link href="{% static 'css/print.css' %}" rel="stylesheet" media="print">
-{% if gallery_items %}<link rel="preload" as="image" href="{{ gallery_items.0.src }}">{% elif recipe.hero_image %}<link rel="preload" as="image" href="{{ recipe.hero_image.url }}">{% endif %}
+{% if gallery_items %}<link rel="preload" as="image" href="{{ gallery_items.0.src_webp|default:gallery_items.0.src }}">{% elif recipe.hero_image %}<link rel="preload" as="image" href="{{ recipe.hero_image.url }}">{% endif %}
 {% recipe_schema_json recipe %}
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"},{"@type":"ListItem","position":2,"name":"Recipes","item":"{{ request.scheme }}://{{ request.get_host }}{% url 'recipes:recipe_list' %}"},{"@type":"ListItem","position":3,"name":"{{ recipe.title|escapejs }}"}]}</script>
 {% endblock %}
@@ -28,7 +29,7 @@
 {% block content %}
 <section class="hero hero--home hero--recipe-detail hero--has-battle">
     <div aria-hidden="true" class="hero__background">
-        {% if recipe.hero_image %}<img alt="{{ recipe.title }} image" src="{{ recipe.hero_image.url }}" loading="eager" fetchpriority="high" decoding="async">
+        {% if recipe.hero_image %}{% with hero_webp=recipe.hero_image|webp %}<picture>{% if hero_webp %}<source srcset="{{ hero_webp }}" type="image/webp">{% endif %}<img alt="{{ recipe.title }} image" src="{{ recipe.hero_image.url }}" loading="eager" fetchpriority="high" decoding="async"></picture>{% endwith %}
         {% else %}<img alt="" src="{% static 'images/hero-default.webp' %}" loading="eager" fetchpriority="high" decoding="async">{% endif %}
     </div>
     <div aria-hidden="true" class="hero__overlay"></div>
@@ -121,9 +122,9 @@
                                         Your browser does not support the video tag.
                                     </video>
                                     {% elif forloop.first %}
-                                    <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="eager" fetchpriority="high" decoding="async">
+                                    <picture>{% if item.src_webp %}<source srcset="{{ item.src_webp }}" type="image/webp">{% endif %}<img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="eager" fetchpriority="high" decoding="async"></picture>
                                     {% else %}
-                                    <img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="lazy" decoding="async">
+                                    <picture>{% if item.src_webp %}<source srcset="{{ item.src_webp }}" type="image/webp">{% endif %}<img alt="{{ item.alt }}" class="recipe-gallery__media" src="{{ item.src }}" loading="lazy" decoding="async"></picture>
                                     {% endif %}
                                     {% if recipe.image_rights_status == 'ai_generated' %}<span aria-label="AI generated image" class="ai-image-badge ai-image-badge--watermark">AI</span>{% endif %}
                                     {% if recipe.image_rights_status == 'own' or recipe.image_rights_status == 'ai_generated' %}<span aria-hidden="true" class="culineire-watermark">www.culineire.ie</span>{% endif %}

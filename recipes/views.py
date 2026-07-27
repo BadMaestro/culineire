@@ -10,6 +10,8 @@ from urllib.parse import urlencode
 logger = logging.getLogger("recipes")
 
 from django.conf import settings
+
+from recipes.media_utils import webp_url
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.contrib import messages
@@ -1009,6 +1011,10 @@ def recipe_detail(request, slug):
                     {
                         "media_type": "image",
                         "src": item.image.url,
+                        # Empty unless a WebP sibling has been generated; the
+                        # template offers it as a <source> and keeps src as the
+                        # fallback, so a half-converted media tree still renders.
+                        "src_webp": webp_url(item.image),
                         "alt": alt_text,
                         "caption": caption,
                         "poster": "",
