@@ -174,6 +174,20 @@
   opacity: 1;
 }
 
+/* Online presence pulse — same marker as legacy arena_puzzle appendOnlineDot. */
+#arena-render .arena-online-dot {
+  animation: arena-pulse 2s ease-in-out infinite;
+}
+
+@keyframes arena-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-online-dot { animation: none; opacity: 1; }
+}
+
 /* Fallback when a record carries no avatar: the seat still reads as taken.
    Serif, not sans — the initial stands in for a portrait, so it is display
    type rather than UI type. */

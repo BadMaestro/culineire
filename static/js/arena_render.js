@@ -740,6 +740,46 @@
     return source ? source.charAt(0).toUpperCase() : '?';
   }
 
+  function appendOnlineDot(layer, assignment) {
+    // Legacy arena_puzzle marker: white halo + green pulse on the outer rim
+    // of an occupied online cell. Only chefs currently online reach this floor.
+    var tpl = global.OctagonFloorTemplate;
+    if (!tpl || assignment.occupancy !== 'chef') { return; }
+    var entity = assignment.entity || {};
+    if (entity.is_online === false) { return; }
+
+    var ring = assignment.ring;
+    var cell = assignment.cell;
+    var count = tpl.RING_COUNTS[ring];
+    var radii = tpl.RING_RADII[ring];
+    if (!count || !radii) { return; }
+
+    var sweep = (2 * Math.PI) / count;
+    var offset = -Math.PI / 2 - sweep / 2;
+    var midAngle = offset + (cell + 0.5) * sweep;
+    // Inset from the outer path edge so the halo stays inside the cell.
+    var edge = radii[1] - tpl.GAP / 2 - 7;
+    var r = tpl.octRadius(midAngle, edge);
+    var dotX = TPL_CX + r * Math.cos(midAngle);
+    var dotY = TPL_CY + r * Math.sin(midAngle);
+
+    var mark = el('g', {
+      class: 'arena-online-mark',
+      'data-entity-slug': entity.slug || '',
+      'pointer-events': 'none'
+    });
+    mark.appendChild(el('circle', {
+      cx: dotX.toFixed(1), cy: dotY.toFixed(1), r: '5.5',
+      fill: '#fff', 'pointer-events': 'none'
+    }));
+    mark.appendChild(el('circle', {
+      cx: dotX.toFixed(1), cy: dotY.toFixed(1), r: '4',
+      fill: '#22c55e', 'pointer-events': 'none',
+      class: 'arena-online-dot'
+    }));
+    layer.appendChild(mark);
+  }
+
   function appendOccupant(svg, layer, assignment) {
     var entity = assignment.entity || {};
     var selector = '.arena-cell[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]';
@@ -781,6 +821,7 @@
     }
 
     layer.appendChild(group);
+    appendOnlineDot(layer, assignment);
   }
 
   function bind(svg, payload, geometry) {
