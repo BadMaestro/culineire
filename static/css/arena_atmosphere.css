@@ -951,3 +951,31 @@
   box-shadow: none !important;
   filter: none !important;
 }
+
+/* VS / COOKING polygon — kill glow that bled past the grey outer rim. */
+.page--arena .arena-confrontation-band .arena-live-centre,
+.page--arena .arena-live-centre,
+.page--arena .arena-live-centre--crown,
+.page--arena .arena-live-centre--quiet {
+  box-shadow: none !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+.page--arena .arena-confrontation-band .arena-live-centre::before,
+.page--arena .arena-confrontation-band .arena-live-centre::after,
+.page--arena .arena-live-centre::before,
+.page--arena .arena-live-centre::after {
+  content: none !important;
+  display: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 0 !important;
+}
+
+.page--arena .arena-confrontation-band .arena-live-centre b,
+.page--arena .arena-confrontation-band .arena-live-centre span,
+.page--arena .arena-confrontation-band .arena-live-centre em {
+  text-shadow: none !important;
+  filter: none !important;
+}
