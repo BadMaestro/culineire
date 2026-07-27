@@ -253,9 +253,9 @@ _PAGE = """<!doctype html>
 <form method="post" action="/">
   <select name="from" title="от кого">{who_options}</select>
   <select name="to" title="кому">{to_options}</select>
-  <textarea name="text" placeholder="Написать в чат — Ctrl+Enter отправит" autofocus></textarea>
+  <textarea name="text" placeholder="Написать в чат — Enter отправит, Shift+Enter перенесёт строку" autofocus></textarea>
   <button type="submit">Отправить</button>
-  <div class="hint">Страница обновляется сама. Пока курсор в поле ввода — не обновляется, чтобы не стереть написанное.</div>
+  <div class="hint">Enter отправляет · Shift+Enter — новая строка · пока пишешь, страница не обновляется</div>
 </form>
 <script>
  // Refresh on a timer instead of a meta tag: a meta refresh would wipe whatever
@@ -265,7 +265,9 @@ _PAGE = """<!doctype html>
    if (document.activeElement !== box || !box.value) {{ location.reload(); }}
  }}, 5000);
  box.addEventListener('keydown', function (e) {{
-   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {{ box.form.submit(); }}
+   if (e.key !== 'Enter' || e.shiftKey) {{ return; }}   // Shift+Enter stays a newline
+   e.preventDefault();                                  // or the newline is sent too
+   if (box.value.trim()) {{ box.form.submit(); }}       // Enter on an empty box does nothing
  }});
 </script>
 </body></html>"""
