@@ -94,13 +94,17 @@ def _load(path: Path) -> dict | None:
         return None
 
 
-def cmd_send(args: argparse.Namespace) -> int:
+def write_message(sender: str, text: str, to: str = "all", kind: str = "msg") -> str:
+    """Append one message. The single writer for the CLI, the web form and the API.
+
+    Three callers writing three slightly different files is how a channel starts
+    lying about itself, so they all come through here.
+    """
     _ensure_dirs()
-    sender = args.sender.strip().lower()
-    text = args.text.strip()
+    sender = (sender or "").strip().lower() or "unknown"
+    text = (text or "").strip()
     if not text:
-        print("refusing to send an empty message", file=sys.stderr)
-        return 2
+        raise ValueError("refusing to send an empty message")
 
     suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=4))
     name = f"{_now()}-{sender}-{suffix}.json"
@@ -108,8 +112,8 @@ def cmd_send(args: argparse.Namespace) -> int:
         "id": name[:-5],
         "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "from": sender,
-        "to": (args.to or "all").strip().lower(),
-        "kind": args.kind,
+        "to": (to or "all").strip().lower(),
+        "kind": kind,
         "text": text,
     }
 
@@ -123,7 +127,15 @@ def cmd_send(args: argparse.Namespace) -> int:
     # A plain-text mirror, so `tail -f` works and a human never needs this tool.
     with TRANSCRIPT.open("a", encoding="utf-8") as log:
         log.write(f"[{payload['ts']}] {sender} -> {payload['to']}: {text}\n")
+    return name
 
+
+def cmd_send(args: argparse.Namespace) -> int:
+    try:
+        name = write_message(args.sender, args.text, args.to, args.kind)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     print(f"sent {name}")
     return 0
 
@@ -212,27 +224,70 @@ _COLOURS = {
 _PAGE = """<!doctype html>
 <html lang="ru"><head>
 <meta charset="utf-8">
-<meta http-equiv="refresh" content="5">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Чат агентов CulinEire</title>
 <style>
  body{{background:#14120f;color:#e8e3d3;font:15px/1.55 Inter,Segoe UI,sans-serif;
-      margin:0;padding:1.5rem}}
+      margin:0;padding:1.5rem 1.5rem 12rem}}
  h1{{font:600 1.15rem/1.3 Georgia,serif;color:#c9a227;margin:0 0 .25rem}}
  .sub{{color:#8b8578;font-size:.82rem;margin-bottom:1.25rem}}
  .m{{border-left:3px solid #444;padding:.45rem .8rem;margin:.35rem 0;
      background:#1b1815;border-radius:0 4px 4px 0}}
  .who{{font-weight:600}} .to{{color:#8b8578;font-weight:400}}
  .ts{{color:#6f6a60;font-size:.75rem;float:right}}
- .tx{{white-space:pre-wrap;margin-top:.15rem}}
+ .tx{{white-space:pre-wrap;margin-top:.15rem;overflow-wrap:anywhere}}
  .empty{{color:#8b8578;font-style:italic}}
+ form{{position:fixed;left:0;right:0;bottom:0;background:#0f0d0b;
+       border-top:1px solid #2a2622;padding:.7rem 1.5rem;display:flex;gap:.5rem;
+       align-items:flex-start;flex-wrap:wrap}}
+ select,textarea,button{{font:inherit;background:#1b1815;color:#e8e3d3;
+       border:1px solid #3a352f;border-radius:4px;padding:.45rem .6rem}}
+ textarea{{flex:1;min-width:14rem;min-height:2.6rem;resize:vertical}}
+ button{{background:#c9a227;color:#14120f;font-weight:600;border:0;cursor:pointer;
+       padding:.5rem 1.1rem}}
+ .hint{{flex-basis:100%;color:#6f6a60;font-size:.72rem;margin-top:.15rem}}
 </style></head><body>
 <h1>Чат агентов</h1>
-<div class="sub">{count} сообщений · обновляется само каждые 5 секунд · только эта машина, сервер не участвует</div>
+<div class="sub">{count} сообщений · обновляется само каждые 5 секунд · {net}</div>
 {body}
+<form method="post" action="/">
+  <select name="from" title="от кого">{who_options}</select>
+  <select name="to" title="кому">{to_options}</select>
+  <textarea name="text" placeholder="Написать в чат — Ctrl+Enter отправит" autofocus></textarea>
+  <button type="submit">Отправить</button>
+  <div class="hint">Страница обновляется сама. Пока курсор в поле ввода — не обновляется, чтобы не стереть написанное.</div>
+</form>
+<script>
+ // Refresh on a timer instead of a meta tag: a meta refresh would wipe whatever
+ // is half-typed in the box, which is exactly when a person is about to send.
+ var box = document.querySelector('textarea');
+ setInterval(function () {{
+   if (document.activeElement !== box || !box.value) {{ location.reload(); }}
+ }}, 5000);
+ box.addEventListener('keydown', function (e) {{
+   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {{ box.form.submit(); }}
+ }});
+</script>
 </body></html>"""
 
 
-def _render_page() -> bytes:
+def _lan_addresses(port: int) -> list[str]:
+    """Every address another machine on this network could use to reach us."""
+    import socket
+
+    out = []
+    try:
+        host = socket.gethostname()
+        for info in socket.getaddrinfo(host, None, socket.AF_INET):
+            ip = info[4][0]
+            if not ip.startswith("127.") and f"http://{ip}:{port}/" not in out:
+                out.append(f"http://{ip}:{port}/")
+    except OSError:
+        pass
+    return out
+
+
+def _render_page(port: int = 8799, network: bool = False) -> bytes:
     files = _message_files()[-300:]
     rows = []
     for file in files:
@@ -250,30 +305,106 @@ def _render_page() -> bytes:
             f'<div class="tx">{html.escape(msg.get("text", ""))}</div></div>'
         )
     body = "\n".join(rows) if rows else '<p class="empty">Пока пусто.</p>'
-    return _PAGE.format(count=len(files), body=body).encode("utf-8")
+
+    who_options = "".join(
+        f'<option value="{a}"{" selected" if a == "owner" else ""}>{a}</option>'
+        for a in KNOWN_AGENTS
+    )
+    to_options = '<option value="all" selected>всем</option>' + "".join(
+        f'<option value="{a}">{a}</option>' for a in KNOWN_AGENTS if a != "owner"
+    )
+
+    if network:
+        addrs = _lan_addresses(port)
+        net = "открыт для сети: " + (", ".join(addrs) if addrs else f"порт {port}")
+    else:
+        net = "только эта машина"
+
+    return _PAGE.format(
+        count=len(files), body=body, net=html.escape(net),
+        who_options=who_options, to_options=to_options,
+    ).encode("utf-8")
 
 
 def cmd_serve(args: argparse.Namespace) -> int:
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from urllib.parse import parse_qs, urlparse
 
     _ensure_dirs()
+    host = "0.0.0.0" if args.network else "127.0.0.1"
+    port = args.port
+    networked = bool(args.network)
 
     class Handler(BaseHTTPRequestHandler):
-        def do_GET(self):  # noqa: N802 - name fixed by the stdlib
-            payload = _render_page()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(payload)))
+        protocol_version = "HTTP/1.1"
+
+        def _send(self, code, body: bytes, ctype="text/html; charset=utf-8"):
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
             self.end_headers()
-            self.wfile.write(payload)
+            self.wfile.write(body)
+
+        def do_GET(self):  # noqa: N802 - name fixed by the stdlib
+            path = urlparse(self.path).path
+            if path == "/api/messages":
+                # For agents on other machines: everything after ?since=<id>.
+                qs = parse_qs(urlparse(self.path).query)
+                since = (qs.get("since") or [""])[0]
+                out = []
+                for file in _message_files():
+                    if since and file.name[:-5] <= since:
+                        continue
+                    msg = _load(file)
+                    if msg:
+                        out.append(msg)
+                self._send(200, json.dumps(out, ensure_ascii=False).encode("utf-8"),
+                           "application/json; charset=utf-8")
+                return
+            self._send(200, _render_page(port, networked))
+
+        def do_POST(self):  # noqa: N802
+            path = urlparse(self.path).path
+            length = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(length).decode("utf-8", errors="replace") if length else ""
+
+            if path == "/api/send":
+                # Agents post JSON; a bad body must not take the server down.
+                try:
+                    data = json.loads(raw or "{}")
+                    name = write_message(data.get("from", ""), data.get("text", ""),
+                                         data.get("to", "all"), data.get("kind", "msg"))
+                except (ValueError, TypeError) as exc:
+                    self._send(400, json.dumps({"error": str(exc)}).encode("utf-8"),
+                               "application/json; charset=utf-8")
+                    return
+                self._send(200, json.dumps({"ok": True, "id": name[:-5]}).encode("utf-8"),
+                           "application/json; charset=utf-8")
+                return
+
+            form = parse_qs(raw)
+            try:
+                write_message((form.get("from") or [""])[0],
+                              (form.get("text") or [""])[0],
+                              (form.get("to") or ["all"])[0])
+            except ValueError:
+                pass  # empty box, just show the page again
+            # Redirect after post, so a refresh does not resend the message.
+            self.send_response(303)
+            self.send_header("Location", "/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
 
         def log_message(self, *_args):
             pass  # a refresh every 5s would otherwise bury the console
 
-    # Localhost only. This page is for the people at this machine and is not
-    # published anywhere; binding to 0.0.0.0 would put it on the network.
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
-    print(f"chat page: http://localhost:{args.port}/   (Ctrl+C to stop)")
+    server = ThreadingHTTPServer((host, port), Handler)
+    print(f"chat page: http://localhost:{port}/   (Ctrl+C to stop)")
+    if networked:
+        for addr in _lan_addresses(port) or [f"http://<this-machine>:{port}/"]:
+            print(f"  from other machines on this network: {addr}")
+        print("  agents elsewhere: GET /api/messages?since=<id> , POST /api/send")
+        print("  NOTE: no password. Anyone who can reach this port can read and post.")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -313,8 +444,10 @@ def main() -> int:
     p_tail.add_argument("-n", "--number", type=int, default=20)
     p_tail.set_defaults(func=cmd_tail)
 
-    p_serve = sub.add_parser("serve", help="serve the Owner's reading page")
+    p_serve = sub.add_parser("serve", help="serve the chat page (read and write)")
     p_serve.add_argument("--port", type=int, default=8799)
+    p_serve.add_argument("--network", action="store_true",
+                         help="bind to the LAN so other machines and their agents can join")
     p_serve.set_defaults(func=cmd_serve)
 
     args = parser.parse_args()
