@@ -1563,11 +1563,10 @@
   /* Keep G2 camera — mockup tilt is composition, not decorative motion. */
   .arena-floor-stage #arena-render {
     filter: none;
-    transform-origin: 50% 62%;
+    transform-origin: 50% 50%;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
 }
@@ -1680,7 +1679,7 @@
     width: min(72%, 46rem);
     aspect-ratio: 1;
     pointer-events: none;
-    transform: translate(-50%, -50%) rotateX(28deg) scale(1.05);
+    transform: translate(-50%, -50%) scale(1.05);
     transform-origin: 50% 58%;
     clip-path: polygon(29.3% 0, 70.7% 0, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0 70.7%, 0 29.3%);
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
@@ -1946,23 +1945,22 @@
   .arena-floor-stage {
     inset: 0;
   }
-  /* G2 camera: one rotateX(42deg) over the scene — see arena_mockup_spec.json.
+  /* G2 camera: one over the scene — see arena_mockup_spec.json.
      Earlier "do not apply rotateX" notes contradicted AGENTS.md s11. */
   .arena-floor-stage .arena-render-container {
     transform: none;
   }
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform-origin: 50% 62%;
+    transform-origin: 50% 50%;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
-    transform-origin: 50% 62%;
-    transform: translate(-50%, -50%) rotateX(42deg);
+    transform-origin: 50% 50%;
+    transform: translate(-50%, -50%);
   }
   .arena-command-deck__phase-card .arena-panel__heading,
   .arena-command-deck__metrics .arena-panel__heading,
@@ -1978,16 +1976,15 @@
     transform: none;
   }
   .arena-floor-stage #arena-render {
-    transform-origin: 50% 62%;
+    transform-origin: 50% 50%;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
-    transform-origin: 50% 62%;
-    transform: translate(-50%, -50%) rotateX(42deg);
+    transform-origin: 50% 50%;
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -2298,7 +2295,7 @@
 
 
 /* G2/G4 camera — docs/chef_battle/arena_mockup_spec.json
-   G1 proportions + rotateX(42deg) only (no perspective — G4).
+   G1 proportions + only (no perspective — G4).
    overflow:visible — overflow:hidden on a plan-sized box clipped the stands. */
 @media (min-width: 901px) {
   .arena-floor-stage {
@@ -2320,18 +2317,17 @@
   }
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform-origin: 50% 62%;
+    transform-origin: 50% 50%;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
       scale(var(--arena-fit, 1));
     filter: none;
   }
   /* Decorative parchment plate tracks the floor and shares the camera tilt. */
   .arena-floor-stage::before {
-    transform-origin: 50% 62%;
-    transform: translate(-50%, -50%) rotateX(42deg);
+    transform-origin: 50% 50%;
+    transform: translate(-50%, -50%);
     opacity: 0.55;
     width: min(63%, 42rem);
   }
@@ -2369,16 +2365,15 @@
   /* Camera stays — mockup composition is the acceptance target (AGENTS s11). */
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform-origin: 50% 62%;
+    transform-origin: 50% 50%;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
   .arena-floor-stage::before {
-    transform-origin: 50% 62%;
-    transform: translate(-50%, -50%) rotateX(42deg);
+    transform-origin: 50% 50%;
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -3774,9 +3769,9 @@
 }
 
 /* =============================================================================
-   G2 CAMERA — cascade winner (Owner visual reference 2026-07-27)
-   Source: docs/chef_battle/arena_mockup_spec.json
-   perspective + rotateX(42deg) — parallel-only pancake was the "flat" complaint.
+   FLAT SPONSORS TEMPLATE — cascade winner (Owner 2026-07-27)
+   Same plan-view octagon as /sponsors/. No rotateX / perspective — tilt was
+   smearing the template into a soft angled plate.
    ============================================================================= */
 @media (min-width: 901px) {
   .page--arena .arena-command-deck__floor,
@@ -3785,22 +3780,21 @@
     overflow: visible !important;
   }
   .page--arena .arena-floor-stage {
-    transform-style: preserve-3d;
+    transform-style: flat;
   }
   .page--arena .arena-floor-stage .arena-render-container {
-    perspective: 1500px !important;
-    perspective-origin: 50% 40% !important;
-    transform-style: preserve-3d;
+    perspective: none !important;
+    transform-style: flat !important;
   }
   .page--arena .arena-floor-stage #arena-render {
-    transform-origin: 50% 62% !important;
+    transform-origin: 50% 50% !important;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
       scale(var(--arena-fit, 1)) !important;
+    filter: none !important;
   }
-  /* Furniture above the tilted floor plane. */
+  /* Furniture above the floor plane. */
   .page--arena .arena-rank-spine,
   .page--arena .arena-confrontation-band,
   .page--arena .arena-floor-caption {

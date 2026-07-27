@@ -848,11 +848,24 @@
 }
 
 /* =============================================================================
-   Owner 2026-07-27 — sponsors octagon colours + crisp edges (cascade last).
+   Owner 2026-07-27 — flat sponsors-template floor (cascade last).
+   No rotateX/perspective: tilt smeared the sharp sponsors grid.
    Palette from static/js/sponsors_puzzle.js RING_COLOURS.available.
    ============================================================================= */
+.page--arena .arena-floor-stage .arena-render-container {
+  perspective: none !important;
+  transform-style: flat !important;
+  filter: none !important;
+}
+
+.page--arena .arena-floor-stage #arena-render,
 .page--arena #arena-render {
   filter: none !important;
+  transform-origin: 50% 50% !important;
+  transform:
+    translate(-50%, -50%)
+    translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+    scale(var(--arena-fit, 1)) !important;
 }
 
 .page--arena .arena-render-container {

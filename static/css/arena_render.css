@@ -342,12 +342,10 @@
 }
 
 /* ----------------------------------------------------------------------------
- * Camera (mockup spec + Owner 2026-07-27).
+ * Camera — flat plan view (Owner 2026-07-27).
  *
- * Reference hall uses perspective + rotateX(42deg). G4 dropped perspective and
- * left a parallel pancake. Restore perspective on the container so the far
- * edge narrows and the octagon reads as a tilted plane, not a flat slab.
- * fitScene() still measures projected bounds after the transform.
+ * Floor shell is the Sponsors octagon template. Any CSS rotateX/perspective
+ * turns that sharp grid into a smeared tilted plate. Match /sponsors/: no tilt.
  * -------------------------------------------------------------------------- */
 .page--arena .arena-render-container {
   position: relative;
@@ -358,9 +356,8 @@
   border: 0;
   border-radius: 1rem;
   overflow: visible;
-  transform-style: preserve-3d;
-  perspective: 1500px;
-  perspective-origin: 50% 40%;
+  perspective: none;
+  transform-style: flat;
 }
 
 .page--arena #arena-render {
@@ -368,16 +365,15 @@
   left: 50%;
   top: 50%;
   width: auto;
-  height: 172%;
+  height: 92%;
   aspect-ratio: 1;
-  transform-style: preserve-3d;
-  /* Origin below centre: far side lifts away; near side stays in frame. */
-  transform-origin: 50% 62%;
+  transform-style: flat;
+  transform-origin: 50% 50%;
   transform:
     translate(-50%, -50%)
     translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-    rotateX(42deg)
     scale(var(--arena-fit, 1));
+  filter: none;
 }
 
 .page--arena .arena-puzzle-label {
@@ -396,16 +392,15 @@
 @media (max-width: 900px) {
   .page--arena .arena-render-container {
     height: clamp(400px, 74vw, 84vh);
-    perspective: 1200px;
+    perspective: none;
   }
 
   .page--arena #arena-render {
-    height: 127%;
-    transform-origin: 50% 62%;
+    height: 96%;
+    transform-origin: 50% 50%;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
 }
@@ -413,16 +408,15 @@
 @media (max-width: 640px) {
   .page--arena .arena-render-container {
     height: clamp(380px, 98vw, 80vh);
-    perspective: 1000px;
+    perspective: none;
   }
 
   .page--arena #arena-render {
-    height: 111%;
-    transform-origin: 50% 62%;
+    height: 98%;
+    transform-origin: 50% 50%;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
       scale(var(--arena-fit, 1));
   }
 }
