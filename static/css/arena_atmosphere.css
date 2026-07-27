@@ -7,35 +7,21 @@
 .page--arena {
   --arena-atm-wall: url("/static/img/arena/hall-wall-wash-v1.webp");
   --arena-atm-floor: url("/static/img/arena/floor-sheen-v1.webp");
-  --arena-atm-gold: color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 88%, transparent);
-  --arena-atm-gold-soft: color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 58%, transparent);
+  --arena-atm-gold: color-mix(in srgb, var(--arena-gold) 88%, transparent);
+  --arena-atm-gold-soft: color-mix(in srgb, var(--arena-gold-light) 58%, transparent);
   position: relative;
   isolation: isolate;
-  /* ARENA-01 (GB REUSE-FIRST): Emerald-night dome via existing --hall-dark-*.
-     Drop --surface-muted mixes that washed the hall toward site parchment. */
+  /* ARENA-S01: Sinus dark-hall backdrop wins. Floor stays the only light surface. */
   background:
     radial-gradient(
       100% 48% at 50% -4%,
-      color-mix(in srgb, var(--hall-gold, var(--accent-bronze)) 28%, transparent),
-      color-mix(in srgb, var(--hall-gold-light, var(--accent-bronze)) 12%, transparent) 40%,
+      color-mix(in srgb, var(--arena-gold) 18%, transparent),
       transparent 70%
     ),
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--hall-green) 28%, transparent),
-      transparent 18%,
-      transparent 82%,
-      color-mix(in srgb, var(--hall-red) 28%, transparent)
-    ),
-    radial-gradient(
-      ellipse at 50% 42%,
-      var(--hall-dark-2) 0%,
-      var(--hall-dark-1) 45%,
-      var(--hall-dark-0) 78%
-    ),
-    var(--arena-atm-wall) center 2% / cover no-repeat !important;
-  background-color: var(--hall-dark-0, var(--ink));
-  color: var(--hall-text, var(--ink));
+    var(--arena-hall-backdrop),
+    var(--arena-atm-wall) center 2% / cover no-repeat;
+  background-color: var(--arena-hall-3);
+  color: var(--arena-ink-on-dark);
 }
 
 /* Soft side vignette only â" no gold-dust grid, no diagonal stand rails.

@@ -1,15 +1,14 @@
 /* Arena Hall presentation boundary.
  *
- * Layout belongs to arena_command_deck.css. This final cascade layer keeps the
- * hall in the shared CulinEire parchment language and intentionally declares
- * no private hall palette.
+ * ARENA-S01: stage is a DARK HALL. Site parchment palette must not paint the
+ * viewport. Tokens come from arena.tokens.css (--arena-hall-backdrop).
+ * Layout still belongs to arena_command_deck.css.
  */
 
 .page--arena {
-  color: var(--ink);
-  background:
-    radial-gradient(circle at 50% 18%, var(--brand-soft), transparent 42%),
-    linear-gradient(180deg, var(--bg), var(--surface-soft));
+  color: var(--arena-ink-on-dark);
+  background: var(--arena-hall-backdrop);
+  background-color: var(--arena-hall-3);
 }
 
 .page--arena #main-content {
