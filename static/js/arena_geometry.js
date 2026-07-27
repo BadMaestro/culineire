@@ -5,9 +5,50 @@
  * Owner 2026-07-24: rank rings may use uneven cells-per-side (mockup counts
  * 9/10/15… are not multiples of 8). Spectators use ovalSeats(), not polar
  * cellVertices on the floor grid.
+ *
+ * ARENA-03: floorSpec() carries HANDOFF §3 numbers for the parchment plate.
  */
 (function (global) {
   'use strict';
+
+  /** ARENA_2D_HANDOFF §3 — floor wrapper / camera / nested octagon insets. */
+  var FLOOR_SPEC = {
+    wrapperWidth: 1020,
+    wrapperHeight: 840,
+    perspectivePx: 1000,
+    rotateXDeg: 58,
+    clipPath: 'polygon(29% 0%, 71% 0%, 100% 29%, 100% 71%, 71% 100%, 29% 100%, 0% 71%, 0% 29%)',
+    layers: [
+      { key: 'gold-rim', inset: '0', fillToken: '--hall-gold-light' },
+      { key: 'dark-bezel', inset: '13px', fillToken: '--hall-dark-0' },
+      { key: 'outer-band', inset: '19px', fillToken: '--hall-muted' },
+      { key: 'ring-3', inset: '8%', fillToken: '--hall-floor-3' },
+      { key: 'ring-4', inset: '18%', fillToken: '--hall-floor-4' },
+      { key: 'ring-5', inset: '29%', fillToken: '--hall-floor-2' },
+      { key: 'core', inset: '39%', fillToken: '--hall-floor-core' }
+    ],
+    seam: 'rgba(10, 20, 16, 0.14)',
+    tileStepDeg: 4.5,
+    tileSeamDeg: 0.28
+  };
+
+  function floorSpec() {
+    return FLOOR_SPEC;
+  }
+
+  /**
+   * repeating-conic tile seam string for a parchment ring.
+   * Inner rings bump stepDeg so tiles stay visually equal as radius shrinks.
+   */
+  function floorTileBackground(stepDeg) {
+    var step = stepDeg == null ? FLOOR_SPEC.tileStepDeg : stepDeg;
+    var seam = FLOOR_SPEC.tileSeamDeg;
+    return (
+      'repeating-conic-gradient(from 0deg at 50% 50%, ' +
+      FLOOR_SPEC.seam + ' 0deg ' + seam + 'deg, transparent ' + seam +
+      'deg ' + step + 'deg)'
+    );
+  }
 
   function polar(centerX, centerY, radius, angle) {
     return {
@@ -165,6 +206,8 @@
     cellCentroid: cellCentroid,
     cellVertices: cellVertices,
     cellsPerSideList: cellsPerSideList,
-    ovalSeats: ovalSeats
+    ovalSeats: ovalSeats,
+    floorSpec: floorSpec,
+    floorTileBackground: floorTileBackground
   };
 })(window);

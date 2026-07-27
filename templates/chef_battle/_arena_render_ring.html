@@ -10,6 +10,18 @@ names, so the interaction contract is preserved exactly.
 {% endcomment %}
 
 <div class="arena-render-container">
+  {# ARENA-03 floor plate: nested octagons; no raw hex in this template. #}
+  <div class="arena-floor-wrapper" aria-hidden="true">
+    <div class="arena-floor-plane">
+      <span class="arena-floor-ring arena-floor-ring--gold-rim"></span>
+      <span class="arena-floor-ring arena-floor-ring--dark-bezel"></span>
+      <span class="arena-floor-ring arena-floor-ring--outer-band"></span>
+      <span class="arena-floor-ring arena-floor-ring--ring-3"></span>
+      <span class="arena-floor-ring arena-floor-ring--ring-4"></span>
+      <span class="arena-floor-ring arena-floor-ring--ring-5"></span>
+      <span class="arena-floor-ring arena-floor-ring--core"></span>
+    </div>
+  </div>
   <p class="arena-puzzle-label">Click any chef to view their profile</p>
   <svg id="arena-render" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"
        role="img" aria-label="Chef Battles Arena">
@@ -172,7 +184,7 @@ window.ARENA_CROWD_FACES = [
 
 <link href="{% static 'css/arena_render.css' %}?v=20260725-loadpurge" rel="stylesheet">
 
-<script src="{% static 'js/arena_geometry.js' %}?v=20260725-loadpurge"></script>
+<script src="{% static 'js/arena_geometry.js' %}?v=20260727-arena-03"></script>
 <script src="{% static 'js/arena_deck.js' %}?v=20260725-loadpurge"></script>
 <script src="{% static 'js/arena_battle_room.js' %}?v=20260725-loadpurge"></script>
 <script src="{% static 'js/arena_render.js' %}?v=20260725-loadpurge"></script>
