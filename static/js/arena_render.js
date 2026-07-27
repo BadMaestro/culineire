@@ -308,6 +308,31 @@
     svg.appendChild(band);
   }
 
+  // Concentric octagon seams at every rank boundary — cell mortar alone is too
+  // fine under rotateX, so rings wash into one parchment slab without these.
+  function drawRingSeams(svg, geometry, step) {
+    var lastRank = 0;
+    geometry.rings.forEach(function (ring) {
+      if (ring.kind === 'rank' && ring.index > lastRank) { lastRank = ring.index; }
+    });
+    if (!lastRank) { return; }
+
+    var sides = geometry.sides || 8;
+    var layer = el('g', { 'data-arena-layer': 'ring-seams', 'pointer-events': 'none' });
+    for (var rank = 0; rank <= lastRank; rank++) {
+      var radius = STAGE_RADIUS + rank * step;
+      layer.appendChild(el('polygon', {
+        points: ringOutline(radius, sides),
+        class: rank === 0
+          ? 'arena-ring-seam arena-ring-seam--stage'
+          : (rank === lastRank
+            ? 'arena-ring-seam arena-ring-seam--outer'
+            : 'arena-ring-seam')
+      }));
+    }
+    svg.appendChild(layer);
+  }
+
   function drawGrid(svg, geometry) {
     var props = g1Radii(geometry);
     var step = props.rankStep;
@@ -366,6 +391,7 @@
 
     svg.appendChild(defs);
     svg.appendChild(cells);
+    drawRingSeams(svg, geometry, step);
     drawWalkway(svg, geometry, step);
     drawSpectatorOval(svg, geometry, step, defs);
     svg.appendChild(el('circle', {

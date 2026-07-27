@@ -481,67 +481,92 @@
 
 
 /* ============================================================================
- * MOCKUP M18 — floor material: parchment/marble + bronze seams.
- * Official tokens only (--surface / --surface-soft / --accent-bronze).
+ * MOCKUP M18 — floor material: parchment/marble + clear ring seams.
+ * Official tokens only. Steeper ring steps so concentric ranks read as rings,
+ * not one washed slab under rotateX.
  * ============================================================================ */
 .arena-render-container {
   --arena-seat: color-mix(in srgb, var(--surface-soft) 88%, var(--accent-bronze));
-  --arena-seam: color-mix(in srgb, var(--accent-bronze) 42%, var(--brand-dark));
-  --arena-marble-hi: color-mix(in srgb, var(--surface) 92%, var(--accent-bronze));
-  --arena-marble-lo: color-mix(in srgb, var(--surface-soft) 82%, var(--brand));
+  --arena-seam: color-mix(in srgb, var(--brand-dark) 68%, var(--ink));
+  --arena-marble-hi: color-mix(in srgb, var(--surface) 92%, var(--muted));
+  --arena-marble-lo: color-mix(in srgb, var(--surface-soft) 78%, var(--brand));
+  --arena-ring-line: color-mix(in srgb, var(--brand-dark) 78%, var(--ink));
 }
 
 #arena-render .arena-cell[data-ring-kind="rank"],
 #arena-render .arena-cell[data-ring-kind="stage"] {
   stroke: var(--arena-seam);
-  stroke-width: 0.85;
+  stroke-width: 1.15;
+  stroke-linejoin: miter;
 }
 
-/* Parchment marble reads warmer and slightly veined via ring depth mixes. */
+/* Outer stone → warm parchment → bronze depth. Each step jumps enough to read. */
 #arena-render [data-ring="8"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--arena-marble-hi) 78%, var(--brand));
+  fill: color-mix(in srgb, var(--muted) 38%, var(--surface));
 }
 #arena-render [data-ring="7"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--arena-marble-hi) 70%, var(--brand));
+  fill: color-mix(in srgb, var(--muted) 18%, var(--surface));
 }
 #arena-render [data-ring="6"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--arena-marble-lo) 68%, var(--brand));
+  fill: color-mix(in srgb, var(--brand) 16%, var(--surface));
 }
 #arena-render [data-ring="5"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--arena-marble-lo) 58%, var(--brand));
+  fill: color-mix(in srgb, var(--brand) 28%, var(--surface));
 }
 #arena-render [data-ring="4"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--arena-marble-lo) 48%, var(--brand));
+  fill: color-mix(in srgb, var(--brand) 40%, var(--surface));
 }
 #arena-render [data-ring="3"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--brand) 52%, var(--surface));
+  fill: color-mix(in srgb, var(--brand) 54%, var(--surface));
 }
 #arena-render [data-ring="2"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--brand) 64%, var(--surface));
+  fill: color-mix(in srgb, var(--brand) 68%, var(--surface-soft));
 }
 #arena-render [data-ring="1"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--brand) 76%, var(--surface-soft));
+  fill: color-mix(in srgb, var(--brand-dark) 58%, var(--brand));
+}
+
+/* Explicit concentric ring boundaries (drawn in arena_render.js). */
+#arena-render .arena-ring-seam {
+  fill: none;
+  stroke: var(--arena-ring-line);
+  stroke-width: 1.55;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 3;
+  opacity: 0.92;
+}
+
+#arena-render .arena-ring-seam--stage {
+  stroke: color-mix(in srgb, var(--accent-bronze) 55%, var(--brand-dark));
+  stroke-width: 2.1;
+  opacity: 0.98;
+}
+
+#arena-render .arena-ring-seam--outer {
+  stroke: color-mix(in srgb, var(--ink) 55%, var(--muted));
+  stroke-width: 1.85;
+  opacity: 0.95;
 }
 
 #arena-render .arena-walkway {
-  stroke: color-mix(in srgb, var(--muted) 42%, var(--surface));
-  opacity: 0.96;
+  stroke: color-mix(in srgb, var(--muted) 48%, var(--surface));
+  opacity: 0.98;
 }
 
 #arena-render .arena-rim {
-  stroke: color-mix(in srgb, var(--muted) 55%, var(--surface));
+  stroke: color-mix(in srgb, var(--ink) 40%, var(--muted));
 }
 
 #arena-render .arena-rim--inner {
-  stroke: color-mix(in srgb, var(--accent-bronze) 35%, var(--muted));
-  stroke-width: 1.5;
-  opacity: 0.55;
+  stroke: color-mix(in srgb, var(--accent-bronze) 40%, var(--ink));
+  stroke-width: 1.7;
+  opacity: 0.72;
   filter: none;
 }
 
 #arena-render .arena-rim--outer {
-  stroke-width: 1.2;
-  opacity: 0.5;
+  stroke-width: 1.35;
+  opacity: 0.62;
   filter: none;
 }
 
