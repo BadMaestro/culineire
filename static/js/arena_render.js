@@ -291,13 +291,26 @@
   // the cells and the crowd so faces sit in front of it, never behind.
   function drawWalkway(svg, geometry, step) {
     var props = g1Radii(geometry);
-    var radius = props.floorOuter;
-    var sides = geometry.sides || 8;
+    var tpl = global.OctagonFloorTemplate;
+    var inner = props.floorOuter;
+    // Grey band sits OUTSIDE the last ring (not a clipped stroke on the edge).
+    var outer = inner + 18;
     var band = el('g', { 'data-arena-layer': 'walkway', 'pointer-events': 'none' });
 
-    // Single grey stone band on the outer ring edge — no bronze double-rim.
-    band.appendChild(el('polygon', {
-      points: ringOutline(radius, sides),
+    function octPath(R) {
+      var pts = [];
+      for (var i = 0; i < 8; i++) {
+        var angle = i * Math.PI / 4;
+        pts.push((TPL_CX + R * Math.cos(angle)).toFixed(2) + ',' + (TPL_CY + R * Math.sin(angle)).toFixed(2));
+      }
+      return 'M ' + pts.join(' L ') + ' Z';
+    }
+
+    band.appendChild(el('path', {
+      d: octPath(outer) + ' ' + octPath(inner),
+      'fill-rule': 'evenodd',
+      fill: '#c4bbb0',
+      stroke: 'none',
       class: 'arena-walkway'
     }));
     svg.appendChild(band);
@@ -349,7 +362,7 @@
       throw new Error('OctagonFloorTemplate missing — load octagon_floor_template.js before arena_render.js');
     }
 
-    svg.setAttribute('viewBox', '30 30 1040 1040');
+    svg.setAttribute('viewBox', '0 0 1100 1100');
 
     var cx = TPL_CX;
     var cy = TPL_CY;
@@ -359,15 +372,7 @@
     var cells = el('g', { 'data-arena-layer': 'cells' });
     var stageRing = geometry.rings[0];
 
-    // Same soft cell shadow as #sponsor-puzzle (flat — no tilt smear).
-    var shadow = el('filter', {
-      id: 'arena-cell-shadow', x: '-5%', y: '-5%', width: '110%', height: '110%'
-    });
-    shadow.appendChild(el('feDropShadow', {
-      dx: '0', dy: '1', stdDeviation: '1.5',
-      'flood-color': 'rgba(0,0,0,0.15)'
-    }));
-    defs.appendChild(shadow);
+    // No cell-shadow — soft drop-shadows bled past the outer rim as junk.
 
     // Outer → inner — identical order to sponsors_puzzle.js drawPuzzle.
     for (var ring = 6; ring >= 1; ring--) {
@@ -393,7 +398,6 @@
           fill: fill,
           stroke: '#fff',
           'stroke-width': '1.5',
-          filter: 'url(#arena-cell-shadow)',
           'data-ring': String(ring),
           'data-ring-key': ringKey,
           'data-ring-kind': 'rank',
@@ -423,19 +427,13 @@
     defs.appendChild(centreClip);
 
     svg.appendChild(defs);
-    // Grey closing ring around the outer sponsors ring (walkway only — no pad).
-    drawWalkway(svg, geometry, step);
     svg.appendChild(cells);
-    // Spectator oval OFF while the floor is a 1:1 sponsors shell — empty seat
-    // discs were reading as junk outside the grey rim (Owner 2026-07-27).
-    // Seating returns in a later pass; keep drawSpectatorOval() for that.
 
     svg.appendChild(el('polygon', {
       points: centrePts,
       fill: colours[0],
       stroke: '#fff',
       'stroke-width': '2',
-      filter: 'url(#arena-cell-shadow)',
       'data-ring': String(stageRing.index),
       'data-ring-key': stageRing.key,
       'data-ring-kind': stageRing.kind,
@@ -444,6 +442,8 @@
       'data-arena-stage': 'true',
       class: 'arena-stage'
     }));
+    // Grey outer band AFTER cells so it is not covered / clipped into junk.
+    drawWalkway(svg, geometry, step);
     svg.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
     svg.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
     svg.appendChild(el('g', { 'data-arena-layer': 'centre' }));

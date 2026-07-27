@@ -914,3 +914,13 @@
 .page--arena #arena-render .arena-floor-pad--glow {
   display: none !important;
 }
+
+/* Grey outer band must stay visible (filled evenodd ring). */
+.page--arena #arena-render [data-arena-layer="walkway"],
+.page--arena #arena-render .arena-walkway {
+  display: block !important;
+  fill: #c4bbb0 !important;
+  stroke: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+}

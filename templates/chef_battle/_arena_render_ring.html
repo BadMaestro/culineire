@@ -23,8 +23,8 @@ names, so the interaction contract is preserved exactly.
     </div>
   </div>
   <p class="arena-puzzle-label">Click any chef to view their profile</p>
-  {# Same viewBox as sponsors #sponsor-puzzle — identical octagon shell. #}
-  <svg id="arena-render" viewBox="30 30 1040 1040" xmlns="http://www.w3.org/2000/svg"
+  {# Room for the grey outer band; shell maths stay at sponsors CX/CY 550. #}
+  <svg id="arena-render" viewBox="0 0 1100 1100" xmlns="http://www.w3.org/2000/svg"
        role="img" aria-label="Chef Battles Arena">
     <title>Chef Battles Arena</title>
   </svg>
@@ -183,10 +183,10 @@ window.ARENA_CROWD_FACES = [
 ];
 </script>
 
-<link href="{% static 'css/arena_render.css' %}?v=20260727-grey-rim" rel="stylesheet">
+<link href="{% static 'css/arena_render.css' %}?v=20260727-grey-band" rel="stylesheet">
 
 <script src="{% static 'js/arena_geometry.js' %}?v=20260727-pointy-top"></script>
 <script src="{% static 'js/octagon_floor_template.js' %}?v=20260727-sponsors-1to1"></script>
 <script src="{% static 'js/arena_deck.js' %}?v=20260727-furniture"></script>
 <script src="{% static 'js/arena_battle_room.js' %}?v=20260725-loadpurge"></script>
-<script src="{% static 'js/arena_render.js' %}?v=20260727-kill-rim-junk"></script>
+<script src="{% static 'js/arena_render.js' %}?v=20260727-grey-band"></script>

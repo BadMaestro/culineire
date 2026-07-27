@@ -552,7 +552,8 @@
 }
 
 #arena-render .arena-walkway {
-  stroke: #c4bbb0;
+  fill: #c4bbb0;
+  stroke: none;
   opacity: 1;
 }
 
