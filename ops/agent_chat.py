@@ -60,18 +60,27 @@ DEFAULT_ROOT = Path(__file__).resolve().parent.parent.parent / ".agent-chat"
 ROOT = Path(os.environ.get("AGENT_CHAT_DIR", DEFAULT_ROOT))
 MSG_DIR = ROOT / "msgs"
 MARK_DIR = ROOT / "read"
+PRESENCE_DIR = ROOT / "presence"
 TRANSCRIPT = ROOT / "chat.log"
 
 KNOWN_AGENTS = ["bolt", "cursor", "arenafront", "ember", "greenbear", "owner"]
+# Pollers run ~180s; leave a little headroom before declaring "Left the Chat".
+ONLINE_TIMEOUT_SEC = int(os.environ.get("AGENT_CHAT_ONLINE_TIMEOUT", "240"))
 
 
 def _ensure_dirs() -> None:
     MSG_DIR.mkdir(parents=True, exist_ok=True)
     MARK_DIR.mkdir(parents=True, exist_ok=True)
+    PRESENCE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%f")
+
+
+def _display_when() -> str:
+    """Local wall clock for Online lines — date + time only, no timezone label."""
+    return datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _message_files() -> list[Path]:
@@ -130,13 +139,140 @@ def write_message(sender: str, text: str, to: str = "all", kind: str = "msg") ->
     return name
 
 
+# --------------------------------------------------------------------------
+# Presence: who is online. One small JSON per agent, same dumb-as-rocks design
+# as the messages. A heartbeat is touched on every read/peek/send; silence past
+# ONLINE_TIMEOUT_SEC becomes "Left the Chat". Merged from Cursor's handoff
+# (agent/cursor/chat-presence) into the brutalist page — GreenBear, chat owner.
+# --------------------------------------------------------------------------
+
+def _presence_path(agent: str) -> Path:
+    return PRESENCE_DIR / f"{agent}.json"
+
+
+def _load_presence(agent: str) -> dict:
+    path = _presence_path(agent)
+    if not path.is_file():
+        return {"agent": agent, "online": False, "last_seen": None}
+    data = _load(path) or {}
+    return {
+        "agent": agent,
+        "online": bool(data.get("online")),
+        "last_seen": data.get("last_seen"),
+    }
+
+
+def _save_presence(agent: str, online: bool, last_seen: str | None) -> None:
+    _ensure_dirs()
+    path = _presence_path(agent)
+    payload = {"agent": agent, "online": online, "last_seen": last_seen}
+    fd, tmp = tempfile.mkstemp(dir=str(PRESENCE_DIR), suffix=".tmp")
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=1)
+    os.replace(tmp, path)
+
+
+def mark_online(agent: str) -> bool:
+    """Touch presence. On offline→online, append the Online system line.
+
+    Returns True when an Online announcement was written.
+    """
+    agent = (agent or "").strip().lower()
+    if not agent or agent == "unknown":
+        return False
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    prev = _load_presence(agent)
+    announced = False
+    if not prev.get("online"):
+        when = _display_when()
+        write_message(agent, f"Online ({when})", to="all", kind="presence")
+        announced = True
+    _save_presence(agent, True, now)
+    return announced
+
+
+def mark_offline(agent: str) -> bool:
+    """Mark left. On online→offline, append the Left the Chat system line."""
+    agent = (agent or "").strip().lower()
+    if not agent or agent == "unknown":
+        return False
+    prev = _load_presence(agent)
+    if not prev.get("online"):
+        _save_presence(agent, False, prev.get("last_seen"))
+        return False
+    write_message(agent, "Left the Chat", to="all", kind="presence")
+    _save_presence(agent, False, datetime.now(timezone.utc).isoformat(timespec="seconds"))
+    return True
+
+
+def sweep_stale_presence() -> list[str]:
+    """Anyone online whose last heartbeat is too old → Left the Chat."""
+    left: list[str] = []
+    if not PRESENCE_DIR.is_dir():
+        return left
+    now = datetime.now(timezone.utc)
+    for path in PRESENCE_DIR.glob("*.json"):
+        data = _load(path) or {}
+        agent = (data.get("agent") or path.stem).strip().lower()
+        if not data.get("online"):
+            continue
+        raw = data.get("last_seen") or ""
+        try:
+            seen = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            if seen.tzinfo is None:
+                seen = seen.replace(tzinfo=timezone.utc)
+        except ValueError:
+            mark_offline(agent)
+            left.append(agent)
+            continue
+        age = (now - seen).total_seconds()
+        if age > ONLINE_TIMEOUT_SEC:
+            mark_offline(agent)
+            left.append(agent)
+    return left
+
+
+def list_online_agents() -> list[dict]:
+    sweep_stale_presence()
+    out: list[dict] = []
+    if not PRESENCE_DIR.is_dir():
+        return out
+    for path in sorted(PRESENCE_DIR.glob("*.json")):
+        data = _load(path) or {}
+        if data.get("online"):
+            out.append({
+                "agent": data.get("agent") or path.stem,
+                "last_seen": data.get("last_seen"),
+            })
+    return out
+
+
 def cmd_send(args: argparse.Namespace) -> int:
     try:
+        mark_online(args.sender)
         name = write_message(args.sender, args.text, args.to, args.kind)
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 2
     print(f"sent {name}")
+    return 0
+
+
+def cmd_online(args: argparse.Namespace) -> int:
+    agent = args.agent.strip().lower()
+    if mark_online(agent):
+        print(f"online announced: {agent}")
+    else:
+        print(f"already online / heartbeat: {agent}")
+    return 0
+
+
+def cmd_offline(args: argparse.Namespace) -> int:
+    agent = args.agent.strip().lower()
+    if mark_offline(agent):
+        print(f"left announced: {agent}")
+    else:
+        print(f"already offline: {agent}")
     return 0
 
 
@@ -167,6 +303,8 @@ def _unread(agent: str) -> tuple[list[dict], str]:
             continue
         if msg.get("from") == agent:
             continue  # nobody needs their own words read back to them
+        if msg.get("kind") == "presence":
+            continue  # Online/Left is for the Owner window, not poller wakeups
         if msg.get("to") not in ("all", agent):
             continue
         out.append(msg)
@@ -176,6 +314,7 @@ def _unread(agent: str) -> tuple[list[dict], str]:
 def cmd_read(args: argparse.Namespace) -> int:
     _ensure_dirs()
     agent = args.agent.strip().lower()
+    mark_online(agent)
     messages, last = _unread(agent)
     for msg in messages:
         print(f"[{msg['ts']}] {msg['from']} -> {msg['to']}: {msg['text']}")
@@ -188,7 +327,9 @@ def cmd_read(args: argparse.Namespace) -> int:
 
 def cmd_peek(args: argparse.Namespace) -> int:
     _ensure_dirs()
-    messages, _ = _unread(args.agent.strip().lower())
+    agent = args.agent.strip().lower()
+    mark_online(agent)
+    messages, _ = _unread(agent)
     for msg in messages:
         print(f"[{msg['ts']}] {msg['from']} -> {msg['to']}: {msg['text']}")
     if not messages:
@@ -257,6 +398,12 @@ _PAGE = """<!doctype html>
  .ts{color:#6f6a60;font-size:.66rem;white-space:nowrap}
  .tx{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:.25rem}
  .empty{color:var(--dim)}
+ .roster{color:var(--dim);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;margin-top:.2rem}
+ .roster b{color:#4f9d69;font-weight:700}
+ .dot{display:inline-block;width:.5rem;height:.5rem;background:#4f9d69;margin-right:.35rem}
+ .m.presence{border-width:1px;border-left-width:5px;border-style:dashed;
+    background:transparent;box-shadow:none;color:var(--dim);font-style:italic}
+ .m.presence .who{font-style:normal}
  footer{position:fixed;left:0;right:0;bottom:0;background:var(--bg);
    border-top:2px solid var(--gold);padding:.6rem 1rem}
  form{display:flex;gap:.5rem;align-items:stretch;flex-wrap:wrap;max-width:920px;margin:0 auto}
@@ -275,6 +422,7 @@ _PAGE = """<!doctype html>
 <header>
  <h1>CULINEIRE // AGENT CHAT<span class="blink"> _</span></h1>
  <div class="sub"><span id="count">__COUNT__</span> MSG · LIVE Δ-FEED · __NET__</div>
+ <div class="roster"><span class="dot"></span>ONLINE: <b id="roster">__ROSTER__</b></div>
 </header>
 <main id="log" aria-live="polite" aria-label="Лента сообщений">__BODY__</main>
 <footer>
@@ -293,6 +441,7 @@ _PAGE = """<!doctype html>
   var box = document.getElementById('text');
   var form = document.getElementById('composer');
   var counter = document.getElementById('count');
+  var roster = document.getElementById('roster');
   function fld(n){ return form.querySelector('[name='+n+']'); }
   function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':s); return d.innerHTML; }
   function lastId(){ var e=log.querySelectorAll('.m'); return e.length ? e[e.length-1].getAttribute('data-id') : ''; }
@@ -300,13 +449,30 @@ _PAGE = """<!doctype html>
   function toBottom(){ window.scrollTo(0, document.body.scrollHeight); }
   function add(m){
     var c = COLOURS[m.from] || '#8b8578';
-    var to = (m.to && m.to!=='all') ? ' <span class="to">\\u2192 '+esc(m.to)+'</span>' : '';
     var div = document.createElement('div');
-    div.className='m'; div.setAttribute('data-id', m.id||''); div.style.setProperty('--who', c);
-    div.innerHTML = '<div class="hd"><span class="who">'+esc(m.from)+to+'</span>'
-      + '<span class="ts">'+esc(m.ts)+'</span></div><div class="tx">'+esc(m.text)+'</div>';
+    div.setAttribute('data-id', m.id||''); div.style.setProperty('--who', c);
+    if(m.kind === 'presence'){
+      div.className = 'm presence';
+      div.innerHTML = '<div class="hd"><span class="who">'+esc(m.from)+'</span>'
+        + '<span class="ts">'+esc(m.ts)+'</span></div><div class="tx">'+esc(m.text)+'</div>';
+    } else {
+      var to = (m.to && m.to!=='all') ? ' <span class="to">\\u2192 '+esc(m.to)+'</span>' : '';
+      div.className='m';
+      div.innerHTML = '<div class="hd"><span class="who">'+esc(m.from)+to+'</span>'
+        + '<span class="ts">'+esc(m.ts)+'</span></div><div class="tx">'+esc(m.text)+'</div>';
+    }
     var empty = log.querySelector('.empty'); if(empty){ empty.remove(); }
     log.appendChild(div);
+  }
+  function refreshRoster(){
+    if(!roster) return;
+    fetch('/api/presence')
+      .then(function(r){ return r.json(); })
+      .then(function(list){
+        roster.textContent = (list && list.length)
+          ? list.map(function(x){ return x.agent; }).join(', ') : 'никого';
+      })
+      .catch(function(){});
   }
   var busy=false;
   function poll(){
@@ -322,7 +488,7 @@ _PAGE = """<!doctype html>
         }
       })
       .catch(function(){})            // a dropped fetch is not a crash; try next tick
-      .then(function(){ busy=false; });
+      .then(function(){ busy=false; refreshRoster(); });
   }
   function send(){
     var text = box.value.trim(); if(!text){ return; }
@@ -342,6 +508,7 @@ _PAGE = """<!doctype html>
   });
   setInterval(poll, 3500);   // quiet channel = an empty array, a few bytes
   toBottom();
+  refreshRoster();
 })();
 </script>
 </body></html>"""
@@ -364,6 +531,7 @@ def _lan_addresses(port: int) -> list[str]:
 
 
 def _render_page(port: int = 8799, network: bool = False) -> bytes:
+    sweep_stale_presence()
     files = _message_files()[-300:]
     rows = []
     for file in files:
@@ -372,6 +540,17 @@ def _render_page(port: int = 8799, network: bool = False) -> bytes:
             continue
         who = msg.get("from", "?")
         colour = _COLOURS.get(who, "#8b8578")
+        if msg.get("kind") == "presence":
+            rows.append(
+                f'<div class="m presence" data-id="{html.escape(msg.get("id", ""))}" '
+                f'style="--who:{colour}">'
+                f'<div class="hd">'
+                f'<span class="who">{html.escape(who)}</span>'
+                f'<span class="ts">{html.escape(msg.get("ts", ""))}</span>'
+                f'</div>'
+                f'<div class="tx">{html.escape(msg.get("text", ""))}</div></div>'
+            )
+            continue
         to = msg.get("to", "all")
         to_label = "" if to == "all" else f' <span class="to">→ {html.escape(to)}</span>'
         rows.append(
@@ -384,6 +563,9 @@ def _render_page(port: int = 8799, network: bool = False) -> bytes:
             f'<div class="tx">{html.escape(msg.get("text", ""))}</div></div>'
         )
     body = "\n".join(rows) if rows else '<p class="empty">Пока пусто. Начните разговор.</p>'
+
+    online = list_online_agents()
+    roster = ", ".join(x["agent"] for x in online) if online else "никого"
 
     who_options = "".join(
         f'<option value="{a}"{" selected" if a == "owner" else ""}>{a}</option>'
@@ -410,6 +592,7 @@ def _render_page(port: int = 8799, network: bool = False) -> bytes:
         .replace("__NET__", html.escape(net))
         .replace("__WHO__", who_options)
         .replace("__TO__", to_options)
+        .replace("__ROSTER__", html.escape(roster))
         .replace("__BODY__", body)
     )
     return page.encode("utf-8")
@@ -431,12 +614,21 @@ def cmd_serve(args: argparse.Namespace) -> int:
             self.send_response(code)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
+            # The Owner window must never keep a stale full page in cache.
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+            self.send_header("Pragma", "no-cache")
             self.end_headers()
             self.wfile.write(body)
 
         def do_GET(self):  # noqa: N802 - name fixed by the stdlib
             path = urlparse(self.path).path
+            if path == "/api/presence":
+                body = json.dumps(list_online_agents(), ensure_ascii=False).encode("utf-8")
+                self._send(200, body, "application/json; charset=utf-8")
+                return
             if path == "/api/messages":
+                # Stale heartbeats become "Left the Chat" before the next poll.
+                sweep_stale_presence()
                 # For agents on other machines: everything after ?since=<id>.
                 qs = parse_qs(urlparse(self.path).query)
                 since = (qs.get("since") or [""])[0]
@@ -457,11 +649,33 @@ def cmd_serve(args: argparse.Namespace) -> int:
             length = int(self.headers.get("Content-Length") or 0)
             raw = self.rfile.read(length).decode("utf-8", errors="replace") if length else ""
 
+            if path == "/api/presence":
+                # Agents heartbeat here: {"agent":"bolt"} or {"agent":"bolt","state":"offline"}
+                try:
+                    data = json.loads(raw or "{}")
+                    agent = (data.get("agent") or "").strip().lower()
+                    state = (data.get("state") or "heartbeat").strip().lower()
+                    if not agent:
+                        raise ValueError("agent required")
+                    if state in ("offline", "left", "leave"):
+                        changed = mark_offline(agent)
+                    else:
+                        changed = mark_online(agent)
+                    self._send(200, json.dumps(
+                        {"ok": True, "agent": agent, "state": state, "announced": changed}
+                    ).encode("utf-8"), "application/json; charset=utf-8")
+                except (ValueError, TypeError) as exc:
+                    self._send(400, json.dumps({"error": str(exc)}).encode("utf-8"),
+                               "application/json; charset=utf-8")
+                return
+
             if path == "/api/send":
                 # Agents post JSON; a bad body must not take the server down.
                 try:
                     data = json.loads(raw or "{}")
-                    name = write_message(data.get("from", ""), data.get("text", ""),
+                    sender = data.get("from", "")
+                    mark_online(sender)   # sending is proof of life
+                    name = write_message(sender, data.get("text", ""),
                                          data.get("to", "all"), data.get("kind", "msg"))
                 except (ValueError, TypeError) as exc:
                     self._send(400, json.dumps({"error": str(exc)}).encode("utf-8"),
@@ -473,7 +687,9 @@ def cmd_serve(args: argparse.Namespace) -> int:
 
             form = parse_qs(raw)
             try:
-                write_message((form.get("from") or [""])[0],
+                sender = (form.get("from") or [""])[0]
+                mark_online(sender)
+                write_message(sender,
                               (form.get("text") or [""])[0],
                               (form.get("to") or ["all"])[0])
             except ValueError:
@@ -485,7 +701,7 @@ def cmd_serve(args: argparse.Namespace) -> int:
             self.end_headers()
 
         def log_message(self, *_args):
-            pass  # a refresh every 5s would otherwise bury the console
+            pass  # polls every few seconds would otherwise bury the console
 
     server = ThreadingHTTPServer((host, port), Handler)
     print(f"chat page: http://localhost:{port}/   (Ctrl+C to stop)")
@@ -518,8 +734,17 @@ def main() -> int:
     p_send.add_argument("--from", dest="sender", required=True, help="your agent name")
     p_send.add_argument("--to", default="all", help="recipient, or 'all'")
     p_send.add_argument("--text", required=True)
-    p_send.add_argument("--kind", default="msg", choices=["msg", "order", "report", "block"])
+    p_send.add_argument("--kind", default="msg",
+                        choices=["msg", "order", "report", "block", "presence"])
     p_send.set_defaults(func=cmd_send)
+
+    p_online = sub.add_parser("online", help="announce Agent online (or heartbeat)")
+    p_online.add_argument("--agent", required=True)
+    p_online.set_defaults(func=cmd_online)
+
+    p_offline = sub.add_parser("offline", help="announce Agent left the chat")
+    p_offline.add_argument("--agent", required=True)
+    p_offline.set_defaults(func=cmd_offline)
 
     p_read = sub.add_parser("read", help="new messages, and mark them read")
     p_read.add_argument("--agent", required=True)
