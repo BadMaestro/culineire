@@ -626,9 +626,11 @@
     seatGroup.appendChild(figure);
   }
 
-  // G6: atmospheric stand-ins in EMPTY spectator seats only. Real payload
-  // occupants still win via the occupants layer. Faces are pointer-events:none
-  // and must not impersonate registered users (constitution s11 atmosphere).
+  // G6: atmospheric stand-ins in EMPTY spectator seats — DISABLED (Owner 2026-07-27).
+  // The paid face assets under static/images/crowd/ stay on disk for a later
+  // real crowd pass; do not delete them. fillCrowd only clears leftover
+  // .arena-crowd-figure nodes so polls do not leave ghosts. Real payload
+  // spectators still render via appendOccupant / occupants layer.
   function fillCrowd(svg, geometry, assignments) {
     var layer = svg.querySelector('[data-arena-layer="crowd"]');
     if (layer) {
@@ -636,21 +638,6 @@
     }
     Array.prototype.forEach.call(svg.querySelectorAll('.arena-crowd-figure'), function (figure) {
       if (figure.parentNode) { figure.parentNode.removeChild(figure); }
-    });
-
-    var occupied = {};
-    (assignments || []).forEach(function (a) {
-      if (!a) { return; }
-      occupied[String(a.ring) + ':' + String(a.cell)] = true;
-    });
-
-    var radius = floorRadius(svg, geometry);
-    var seats = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
-    Array.prototype.forEach.call(seats, function (seat) {
-      var ring = Number(seat.getAttribute('data-ring'));
-      var cell = Number(seat.getAttribute('data-cell'));
-      if (occupied[ring + ':' + cell]) { return; }
-      appendCrowdFigure(svg, ring, cell, geometry, radius);
     });
   }
 

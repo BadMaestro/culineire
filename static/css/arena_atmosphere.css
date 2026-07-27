@@ -923,6 +923,6 @@
 }
 
 .page--arena #arena-render .arena-crowd-figure {
-  /* Atmospheric stand-ins stay; empty seat discs under them do not. */
-  opacity: 1;
+  /* Atmospheric stand-ins off (Owner). Paid face assets remain in static/. */
+  display: none !important;
 }
