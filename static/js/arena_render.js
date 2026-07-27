@@ -788,16 +788,46 @@
     var pull = 12;
     var dotX = best[0] + (dx / len) * pull;
     var dotY = best[1] + (dy / len) * pull;
+    var cxAttr = dotX.toFixed(1);
+    var cyAttr = dotY.toFixed(1);
 
     group.appendChild(el('circle', {
-      cx: dotX.toFixed(1), cy: dotY.toFixed(1), r: '5.5',
+      cx: cxAttr, cy: cyAttr, r: '5.5',
       fill: '#fff', 'pointer-events': 'none'
     }));
-    group.appendChild(el('circle', {
-      cx: dotX.toFixed(1), cy: dotY.toFixed(1), r: '4',
+
+    // Expanding ping — reads as “live” even when opacity alone is subtle.
+    var ping = el('circle', {
+      cx: cxAttr, cy: cyAttr, r: '4',
+      fill: 'none', stroke: '#22c55e', 'stroke-width': '2',
+      'pointer-events': 'none',
+      class: 'arena-online-ping'
+    });
+    ping.appendChild(el('animate', {
+      attributeName: 'r', values: '4;11', dur: '1.4s',
+      repeatCount: 'indefinite'
+    }));
+    ping.appendChild(el('animate', {
+      attributeName: 'opacity', values: '0.85;0', dur: '1.4s',
+      repeatCount: 'indefinite'
+    }));
+    group.appendChild(ping);
+
+    var dot = el('circle', {
+      cx: cxAttr, cy: cyAttr, r: '4',
       fill: '#22c55e', 'pointer-events': 'none',
       class: 'arena-online-dot'
+    });
+    // SMIL radius pulse — reliable on SVG circles (CSS `r` keyframes are flaky).
+    dot.appendChild(el('animate', {
+      attributeName: 'r', values: '4;2.6;4', dur: '1.4s',
+      repeatCount: 'indefinite'
     }));
+    dot.appendChild(el('animate', {
+      attributeName: 'opacity', values: '1;0.35;1', dur: '1.4s',
+      repeatCount: 'indefinite'
+    }));
+    group.appendChild(dot);
   }
 
   function appendOccupant(svg, layer, assignment) {

@@ -174,18 +174,24 @@
   opacity: 1;
 }
 
-/* Online presence pulse — same marker as legacy arena_puzzle appendOnlineDot. */
+/* Online presence pulse — SMIL on the circle does the hard work; CSS is backup. */
 #arena-render .arena-online-dot {
-  animation: arena-pulse 2s ease-in-out infinite;
+  animation: arena-online-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes arena-pulse {
+#arena-render .arena-online-ping {
+  pointer-events: none;
+}
+
+@keyframes arena-online-pulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.55; }
+  50%       { opacity: 0.35; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   #arena-render .arena-online-dot { animation: none; opacity: 1; }
+  #arena-render .arena-online-dot animate,
+  #arena-render .arena-online-ping animate { display: none; }
 }
 
 /* Fallback when a record carries no avatar: the seat still reads as taken.
