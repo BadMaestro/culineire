@@ -1181,9 +1181,9 @@
       if (!(width > 0) || !(height > 0)) { return; }
       if (!(frame.width > 0) || !(frame.height > 0)) { return; }
 
-      // Fit stands inside the frame at 80% — Owner 2026-07-27: leaving 20%
-      // margin stops the page from squashing the octagon against the rails.
-      var viewPad = 0.80;
+      // Fit stands inside the frame at 64% — Owner 2026-07-27: shrink octagon
+      // 20% from the prior 80% fit so the floor leaves more hall margin.
+      var viewPad = 0.64;
       var byWidth = frame.width * viewPad / width;
       var byHeight = frame.height * viewPad / height;
       var factor = Math.min(byWidth, byHeight);
