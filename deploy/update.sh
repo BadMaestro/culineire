@@ -88,10 +88,13 @@ else
                 ;;
             static/*|*/static/*)
                 NEED_COLLECTSTATIC=1
+                # ManifestStaticFilesStorage keeps hashed_files in the worker
+                # process; collectstatic alone leaves {% static %} on the old hash.
+                NEED_UNIT_RESTART=1
                 ;;
             templates/*|*.html)
-                # Templates are read from disk each request (APP_DIRS, no cached loader).
                 NEED_COLLECTSTATIC=1
+                NEED_UNIT_RESTART=1
                 ;;
             *.py|manage.py)
                 NEED_UNIT_RESTART=1
