@@ -295,17 +295,14 @@
     var sides = geometry.sides || 8;
     var band = el('g', { 'data-arena-layer': 'walkway', 'pointer-events': 'none' });
 
+    // Grey stone band hugging the outer ring edge.
     band.appendChild(el('polygon', {
-      points: ringOutline(radius + step * 0.34, sides),
+      points: ringOutline(radius, sides),
       class: 'arena-walkway'
     }));
     band.appendChild(el('polygon', {
       points: ringOutline(radius, sides),
       class: 'arena-rim arena-rim--inner'
-    }));
-    band.appendChild(el('polygon', {
-      points: ringOutline(radius + step * 0.68, sides),
-      class: 'arena-rim arena-rim--outer'
     }));
     svg.appendChild(band);
   }
@@ -430,7 +427,8 @@
     defs.appendChild(centreClip);
 
     svg.appendChild(defs);
-    // No walkway / floor-pad — those alter the sponsors silhouette.
+    // Grey closing ring around the outer sponsors ring (walkway only — no pad).
+    drawWalkway(svg, geometry, step);
     svg.appendChild(cells);
     drawSpectatorOval(svg, geometry, step, defs);
 
