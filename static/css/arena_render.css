@@ -521,18 +521,16 @@
 #arena-render .arena-floor-crown__label {
   fill: var(--accent-bronze);
   font-family: var(--font-sans, "Source Sans 3", sans-serif);
-  font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
 }
 #arena-render .arena-floor-crown__name {
-  fill: color-mix(in srgb, var(--accent-bronze) 70%, var(--surface));
+  fill: color-mix(in srgb, var(--accent-bronze) 78%, var(--surface));
   font-family: var(--font-serif, "Playfair Display", serif);
-  font-size: 15px;
   font-weight: 700;
   paint-order: stroke;
-  stroke: color-mix(in srgb, var(--ink) 45%, transparent);
-  stroke-width: 2.5px;
+  stroke: color-mix(in srgb, var(--ink) 50%, transparent);
+  stroke-width: 2.2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
