@@ -740,28 +740,17 @@
     return source ? source.charAt(0).toUpperCase() : '?';
   }
 
-  function appendOnlineDot(layer, assignment) {
-    // Legacy arena_puzzle marker: white halo + green pulse on the outer rim
-    // of an occupied online cell. Only chefs currently online reach this floor.
-    var tpl = global.OctagonFloorTemplate;
-    if (!tpl || assignment.occupancy !== 'chef') { return; }
+  function appendOnlineDot(layer, assignment, seat) {
+    // White halo + green pulse in the top-left corner of the cell bbox.
     var entity = assignment.entity || {};
+    if (assignment.occupancy !== 'chef') { return; }
     if (entity.is_online === false) { return; }
+    if (!seat) { return; }
 
-    var ring = assignment.ring;
-    var cell = assignment.cell;
-    var count = tpl.RING_COUNTS[ring];
-    var radii = tpl.RING_RADII[ring];
-    if (!count || !radii) { return; }
-
-    var sweep = (2 * Math.PI) / count;
-    var offset = -Math.PI / 2 - sweep / 2;
-    var midAngle = offset + (cell + 0.5) * sweep;
-    // Inset from the outer path edge so the halo stays inside the cell.
-    var edge = radii[1] - tpl.GAP / 2 - 7;
-    var r = tpl.octRadius(midAngle, edge);
-    var dotX = TPL_CX + r * Math.cos(midAngle);
-    var dotY = TPL_CY + r * Math.sin(midAngle);
+    var box = seat.getBBox();
+    var pad = 8;
+    var dotX = box.x + pad;
+    var dotY = box.y + pad;
 
     var mark = el('g', {
       class: 'arena-online-mark',
@@ -821,7 +810,7 @@
     }
 
     layer.appendChild(group);
-    appendOnlineDot(layer, assignment);
+    appendOnlineDot(layer, assignment, seat);
   }
 
   function bind(svg, payload, geometry) {
