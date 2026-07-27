@@ -167,15 +167,11 @@
 
 #arena-render .arena-occupant {
   pointer-events: none;
+  opacity: 1;
 }
 
-/* Offline enrolled chefs stay on the floor, slightly dimmed. */
-#arena-render .arena-occupant[data-presence="offline"] {
-  opacity: 0.72;
-}
-
-#arena-render .arena-occupant[data-presence="offline"] image {
-  opacity: 0.85;
+#arena-render .arena-occupant image {
+  opacity: 1;
 }
 
 /* Fallback when a record carries no avatar: the seat still reads as taken.
