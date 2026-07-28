@@ -513,9 +513,10 @@
   text-transform: uppercase;
 }
 
-/* Crown holder — marble+glyph clipped to stage octagon; gold rim = stage stroke. */
+/* Crown holder — marble+glyph clipped; beveled rim sits outside the clip. */
 #arena-render .arena-floor-crown__pad,
-#arena-render .arena-floor-crown__glyph {
+#arena-render .arena-floor-crown__glyph,
+#arena-render .arena-floor-crown__rim {
   pointer-events: none;
 }
 #arena-render .arena-floor-crown__label {

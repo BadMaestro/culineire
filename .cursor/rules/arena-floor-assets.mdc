@@ -1,0 +1,50 @@
+---
+description: Arena floor art pipeline — generate parts, true alpha, clip into geometry, crown styles
+globs: static/images/arena/**/*,static/js/arena_render.js,static/css/arena_render.css,static/css/arena_atmosphere.css,templates/chef_battle/_arena_render_ring.html
+alwaysApply: false
+---
+
+# Arena floor assets (crown / inscribed art)
+
+## Decompose, do not drop a rectangle
+
+Break a reference into **parts**, ship WebP under `static/images/arena/…`, then **inscribe** into SVG geometry (same pattern as chef cell avatars). Never overlay a free square plate on the floor.
+
+Crown centre parts (v2.5.65x):
+
+| Part | Path | Role |
+|------|------|------|
+| Marble pad | `crown/crown-pad-marble.webp` | Full-bleed texture, clipped to stage |
+| Crown glyph | `crown/crown-glyph.webp` | Transparent subject only |
+| Rim | `crown/crown-octagon-rim.webp` | Beveled gold frame outside stage clip (rotate flat→pointy +22.5°) |
+| Plate composite | `crown/crown-centre-plate.webp` | Avoid for live — rectangle + baked BG |
+
+Wire URLs via `{% static %}` → `window.ARENA_CROWN_ASSETS` in `_arena_render_ring.html`.
+
+## GenerateImage → true alpha
+
+Cursor `GenerateImage` often **bakes checkerboard/grey into opaque pixels** (Pillow: `trans=0`). Always:
+
+1. Generate on **solid chroma key** (`#FF00FF` magenta), subject only — no checkerboard, no text, no octagon frame unless that part *is* the frame.
+2. Pillow: key magenta → alpha, crop bbox + pad, square canvas, resize (e.g. 256–320), save **WebP** with alpha.
+3. Scrub residual magenta fringe; verify corners `a=0` before commit.
+4. Flat-top rim art must be rotated **−22.5°** to match stage verts at 0°/45°/… (pointy cardinals).
+5. Weight gate: `chef_battle.test_static_image_weight` (default UI chrome ≤150KB).
+
+## Inscribe into the stage octagon
+
+- Inner stack clip: `clip-path: url(#arena-clip-0-0)` — pad, glyph, labels.
+- Pad: `preserveAspectRatio: xMidYMid slice`, size `2 * STAGE_RADIUS`.
+- Glyph: smaller box in upper third (`~0.62·R`), `meet`.
+- Rim: **outside** the clip, size `~2.18·R`, hollow over marble; stage stroke thinned (atmosphere `!important`).
+## Text stack + capacity
+
+- Label `CROWN HOLDER`: sans, bronze, `~0.10·R`, mid band.
+- Nick: serif Playfair, bronze/surface mix + dark stroke; **adaptive font** `fitCrownName` (short → larger, long → smaller) within chord width.
+- Constants (lockstep with `RecipeAuthor.PEN_NAME_MAX_LENGTH`): `CROWN_NAME_MAX_CHARS = 14`, `FONT_MAX=0.24`, `FONT_MIN=0.125`, `FILL=0.90`, pad `6`.
+- Dynamic nick only — never bake holder name into the glyph asset.
+
+## Do / don’t
+
+- Do: part assets + SVG clip + site tokens (`--accent-bronze`, `--font-serif` / `--font-sans`).
+- Don’t: emoji crown, holder avatar on crown pad, nested `preserve-3d` billboards, rectangular plate with fake transparency.

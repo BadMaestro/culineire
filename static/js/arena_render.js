@@ -1087,11 +1087,14 @@
 
   function drawFloorCrown(layer, cx, cy, radius, center) {
     var assets = global.ARENA_CROWN_ASSETS || {};
-    // Same clip as .arena-stage (#arena-clip-0-0) — marble/glyph are inscribed
-    // in the centre octagon like chef avatars in ring cells, not a free rectangle.
-    var group = el('g', {
+    // Rim sits outside the stage clip so the outer bevel is not shaved off.
+    // Pad / glyph / text stay clipped to #arena-clip-0-0 like cell avatars.
+    var stack = el('g', {
       class: 'arena-floor-crown',
-      'pointer-events': 'none',
+      'pointer-events': 'none'
+    });
+    var group = el('g', {
+      class: 'arena-floor-crown__inner',
       'clip-path': 'url(#arena-clip-0-0)'
     });
     var size = radius * 2;
@@ -1143,8 +1146,24 @@
       class: 'arena-floor-crown__name'
     });
     group.appendChild(name);
-    // Append before measuring — getComputedTextLength needs a live SVG text node.
-    layer.appendChild(group);
+    stack.appendChild(group);
+
+    if (assets.rim) {
+      // Slightly larger than the stage so the outer bevel reads outside the
+      // marble edge; hollow centre is transparent over the clipped pad.
+      var rimSize = radius * 2.18;
+      stack.appendChild(el('image', {
+        href: assets.rim,
+        x: (cx - rimSize / 2).toFixed(2),
+        y: (cy - rimSize / 2).toFixed(2),
+        width: rimSize.toFixed(2),
+        height: rimSize.toFixed(2),
+        preserveAspectRatio: 'xMidYMid meet',
+        class: 'arena-floor-crown__rim'
+      }));
+    }
+
+    layer.appendChild(stack);
     fitCrownName(
       name,
       (center && center.name) || '',

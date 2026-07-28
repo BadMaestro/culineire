@@ -895,9 +895,11 @@
 }
 
 .page--arena #arena-render .arena-stage[data-state="crown"] {
+  /* Beveled gold rim is the crown-octagon-rim asset; stage stroke is a thin
+     under-line only so parchment seams do not flash white through the bevel. */
   fill: color-mix(in srgb, var(--ink) 55%, #1f2c25) !important;
-  stroke: var(--accent-bronze) !important;
-  stroke-width: 5 !important;
+  stroke: color-mix(in srgb, var(--accent-bronze) 55%, transparent) !important;
+  stroke-width: 1.2 !important;
   paint-order: stroke fill;
 }
 
