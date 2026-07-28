@@ -324,7 +324,12 @@
       var viewers = byId('arena-metric-viewers');
       var votes = byId('arena-metric-votes');
       var gifts = byId('arena-metric-gifts');
+      // The status-facts list renders the SAME viewer count as the deck. It was
+      // not updated here, so it kept the server value and read 0 next to a
+      // hydrated 2.4K — the same number twice on one screen, disagreeing.
+      var factsViewers = byId('arena-facts-viewers');
       if (viewers) { viewers.textContent = metricText(metrics.active_viewers); }
+      if (factsViewers) { factsViewers.textContent = metricText(metrics.active_viewers); }
       if (votes) { votes.textContent = metricText(metrics.public_votes); }
       if (gifts) { gifts.textContent = metricText(metrics.battle_gifts); }
     }
