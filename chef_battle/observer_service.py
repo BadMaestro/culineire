@@ -107,6 +107,20 @@ def nominate_arena_observers(champion, candidate_a, candidate_b, won_season):
 
     created = []
     with transaction.atomic():
+        # Lock the season row so concurrent nominations serialise, then enforce
+        # the seat cap on (existing seats ∪ the two new chefs). A bare
+        # "fewer than N exist" precheck (can_nominate_observers) is not enough:
+        # with one seat already taken it passes, and this then seats two more —
+        # three in two chairs. The authoritative cap lives here, under the lock.
+        Season.objects.select_for_update().get(pk=won_season.pk)
+        seated = set(
+            SeasonArenaObserver.objects.filter(won_season=won_season)
+            .values_list("chef_id", flat=True)
+        )
+        if len(seated | {candidate_a.pk, candidate_b.pk}) > OBSERVER_SEATS_PER_SEASON:
+            raise ValueError(
+                f"A season may seat at most {OBSERVER_SEATS_PER_SEASON} Arena Observers."
+            )
         for candidate in (candidate_a, candidate_b):
             obj, _ = SeasonArenaObserver.objects.get_or_create(
                 chef=candidate, won_season=won_season,

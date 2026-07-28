@@ -6485,6 +6485,25 @@ class ArenaObserverTests(TestCase):
         nominate_arena_observers(self.champion, self.members[1], self.members[2], self.s1)
         self.assertFalse(can_nominate_observers(self.champion, self.s1))  # seats full
 
+    def test_service_rejects_a_third_seat(self):
+        """The cap is enforced inside the service, not only by the view: with one
+        seat already taken, nominating two more (three in two chairs) is refused."""
+        from .models import ClanMembership, SeasonArenaObserver
+        from .observer_service import nominate_arena_observers
+        # a fourth active clan member to make the third candidate legitimate
+        m4 = self._chef("obs-m4")
+        ClanMembership.objects.create(clan=self.clan, chef=m4, status=ClanMembership.Status.ACTIVE)
+        # pre-seat one observer directly, bypassing the view
+        SeasonArenaObserver.objects.create(
+            chef=self.members[1], won_season=self.s1,
+            nominated_by=self.champion, clan=self.clan,
+        )
+        with self.assertRaises(ValueError):
+            nominate_arena_observers(self.champion, self.members[2], m4, self.s1)
+        self.assertEqual(
+            SeasonArenaObserver.objects.filter(won_season=self.s1).count(), 1
+        )
+
     def test_role_expires_after_following_season(self):
         from datetime import timedelta
         from .models import Season
