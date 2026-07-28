@@ -5155,6 +5155,7 @@ RELEASE_JOURNAL = [
 ]
 
 
+import os
 import re
 import subprocess
 
@@ -5232,3 +5233,33 @@ def build_git_journal(repo_path: str, limit: int = 60) -> list[dict]:
     if not git_entries:
         return list(reversed(RELEASE_JOURNAL))
     return git_entries
+
+
+_FOOTER_VERSION_RE = re.compile(r'class="footer-version">\s*v?([0-9]+(?:\.[0-9]+)+)')
+
+
+def current_version(repo_path: str) -> str:
+    """The version this checkout actually serves, read from the site footer.
+
+    The footer in templates/base.html is bumped on every deploy and is what a
+    visitor sees, so it is the one place that cannot drift from what shipped.
+
+    RELEASE_JOURNAL is a hand-written highlight list. The build board used to
+    take its header from RELEASE_JOURNAL[0] with a comment promising the header
+    would "never go stale again" — and it went stale anyway, showing v2.5.589
+    while production served v2.5.667, because nobody adds an entry per release
+    and nothing made them. A number that depends on a person remembering is a
+    number that will be wrong; this one is derived.
+
+    Falls back to the journal's newest entry if the template cannot be read, so
+    a missing file degrades to the old behaviour instead of an exception.
+    """
+    try:
+        base_html = os.path.join(repo_path, "templates", "base.html")
+        with open(base_html, encoding="utf-8") as handle:
+            match = _FOOTER_VERSION_RE.search(handle.read())
+        if match:
+            return "v" + match.group(1)
+    except Exception:
+        pass
+    return "v" + RELEASE_JOURNAL[0]["version"]

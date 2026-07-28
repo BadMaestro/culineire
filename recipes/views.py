@@ -42,7 +42,7 @@ from accounts.views import (
 from config.email_utils import build_absolute_url, send_template_mail
 from articles.models import Article, ArticleImage
 from collection.models import SavedArticle, SavedContent, SavedRecipe
-from config.release_journal import RELEASE_JOURNAL, build_git_journal
+from config.release_journal import RELEASE_JOURNAL, build_git_journal, current_version
 from config.turnstile import verify_turnstile
 from monitoring.tracker import get_client_ip, hash_ip, track_event
 from .allergens import build_present_allergen_items
@@ -3218,10 +3218,12 @@ def _arena_build_context():
         "archive": ARENA_ARCHIVE_SUMMARY,
         "legacy_stages": legacy_stages,
         "legacy_later_stages": legacy_later_stages,
-        # Track the real latest release so the board header never goes stale
-        # again (it was pinned to v2.5.326 while prod had moved several releases
-        # past it). RELEASE_JOURNAL is newest-first.
-        "prod_version": "v" + RELEASE_JOURNAL[0]["version"],
+        # Derived from the footer this checkout serves, not from the hand-kept
+        # RELEASE_JOURNAL. The previous line read RELEASE_JOURNAL[0] under a
+        # comment promising the header would never go stale again; it read
+        # v2.5.589 while production served v2.5.667, because the list only moves
+        # when someone remembers to add an entry.
+        "prod_version": current_version(settings.BASE_DIR),
     }
 
 

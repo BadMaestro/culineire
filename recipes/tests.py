@@ -434,6 +434,27 @@ class ModerationPanelRoleTests(TestCase):
         self.assertContains(response, "Deployment Journal")
         self.assertEqual(response.context["release_journal"], build_git_journal(settings.BASE_DIR))
 
+    def test_board_header_version_matches_the_footer_this_build_serves(self):
+        """The board header must track the version actually shipped.
+
+        It was pinned to v2.5.326 once, fixed by reading RELEASE_JOURNAL[0]
+        under a comment promising it would never go stale again, and then read
+        v2.5.589 while production served v2.5.667. Any source that only moves
+        when a person remembers will drift; this asserts the derived value
+        against the footer, which every deploy bumps.
+        """
+        import re
+        from config.release_journal import current_version
+
+        base_html = (settings.BASE_DIR / "templates" / "base.html").read_text(encoding="utf-8")
+        footer = re.search(r'class="footer-version">\s*(v?[0-9]+(?:\.[0-9]+)+)', base_html)
+        self.assertIsNotNone(footer, "base.html has no footer-version to derive from")
+        expected = footer.group(1)
+        if not expected.startswith("v"):
+            expected = "v" + expected
+
+        self.assertEqual(current_version(settings.BASE_DIR), expected)
+
     def test_moderation_panel_links_to_deployment_journal(self):
         self.client.force_login(self.owner)
 
