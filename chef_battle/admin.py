@@ -397,6 +397,12 @@ class ChefArtifactAdmin(admin.ModelAdmin):
         if not request.user.is_staff:
             from django.contrib.auth.views import redirect_to_login
             return redirect_to_login(request.get_full_path())
+        # Granting an artifact IS adding a ChefArtifact — gate it on the model's
+        # add permission, not on is_staff alone, so a staff account without
+        # artifact rights cannot mint one. Matches the rest of the admin.
+        if not self.has_add_permission(request):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
 
         form = AdminArtifactGrantForm(request.POST or None)
         if request.method == "POST" and form.is_valid():

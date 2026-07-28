@@ -8240,3 +8240,58 @@ class ArenaSeatConcurrencyTests(TransactionTestCase):
         self.assertEqual(
             ArenaSeat.objects.filter(released_at__isnull=True).count(), len(viewers),
         )
+
+
+class GrantArtifactPermissionTests(TestCase):
+    """The admin grant-artifact view must gate on the ChefArtifact add
+    permission, not on is_staff alone. A staff account without artifact rights
+    (e.g. a moderator) must not be able to mint one. (chef_battle/admin.py
+    grant_artifact_view.)"""
+
+    def setUp(self):
+        from recipes.models import RecipeAuthor
+        from .models import Artifact
+        User = get_user_model()
+        self.chef = RecipeAuthor.objects.create(
+            user=User.objects.create_user("chefx", password="x"),
+            name="Chef X", slug="chef-x",
+        )
+        self.artifact = Artifact.objects.create(name="Grantable Blade")
+        self.url = reverse("admin:chef_battle_chefartifact_grant")
+
+    def _staff(self, username, with_perm):
+        User = get_user_model()
+        user = User.objects.create_user(username, password="x", is_staff=True)
+        if with_perm:
+            from django.contrib.auth.models import Permission
+            from django.contrib.contenttypes.models import ContentType
+            from .models import ChefArtifact
+            ct = ContentType.objects.get_for_model(ChefArtifact)
+            user.user_permissions.add(
+                Permission.objects.get(codename="add_chefartifact", content_type=ct)
+            )
+        return user
+
+    def test_staff_without_permission_is_forbidden(self):
+        from .models import ChefArtifact
+        self.client.force_login(self._staff("mod_only", with_perm=False))
+        resp = self.client.post(self.url, {
+            "chef": self.chef.pk, "artifact": self.artifact.pk,
+            "reason": "trying to mint without rights",
+        })
+        self.assertEqual(resp.status_code, 403)
+        self.assertFalse(
+            ChefArtifact.objects.filter(chef=self.chef, artifact=self.artifact).exists()
+        )
+
+    def test_staff_with_permission_can_grant(self):
+        from .models import ChefArtifact
+        self.client.force_login(self._staff("granter", with_perm=True))
+        resp = self.client.post(self.url, {
+            "chef": self.chef.pk, "artifact": self.artifact.pk,
+            "reason": "legitimate grant for testing",
+        })
+        self.assertIn(resp.status_code, (200, 302))
+        self.assertTrue(
+            ChefArtifact.objects.filter(chef=self.chef, artifact=self.artifact).exists()
+        )
