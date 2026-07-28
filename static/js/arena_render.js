@@ -1168,29 +1168,38 @@
     }));
 
     var bulbs = el('g', { class: 'arena-floor-crown__bulbs' });
-    var bulbR = (recessInnerR + recessOuterR) / 2;
+    // Centre of the brown band, measured along the edge normal. octagonPathD
+    // takes a CIRCUMradius, but a bulb sits on a flat edge, whose distance from
+    // the centre is the APOTHEM — shorter by cos(PI/8). Using the circumradius
+    // here pushed every bulb about 7.6% of the radius too far out, past the
+    // outer wall, so none of them sat in the band they belong to.
+    var apothem = Math.cos(Math.PI / 8);
+    var bulbR = ((recessInnerR + recessOuterR) / 2) * apothem;
     var i;
     for (i = 0; i < 8; i++) {
       var angle = i * Math.PI / 4 + Math.PI / 8;
       var bx = cx + bulbR * Math.cos(angle);
       var by = cy + bulbR * Math.sin(angle);
       var far = Math.sin(angle) < -0.05;
+      // Glow reaches the gold lip: the bulb sits (bulbR - goldOuterR*apothem)
+      // away from it, so a halo smaller than that gap can never light it. Sized
+      // from the radius, not a fixed number, so it survives a stage resize.
+      var glowR = (bulbR - goldOuterR * apothem) * (far ? 1.15 : 1.45);
       bulbs.appendChild(el('circle', {
         cx: bx.toFixed(2),
         cy: by.toFixed(2),
-        r: (far ? 2.2 : 2.8).toFixed(2),
+        r: glowR.toFixed(2),
+        fill: 'url(#arena-crown-bulb-grad)',
         class: 'arena-floor-crown__bulb-glow' + (far ? ' arena-floor-crown__bulb-glow--far' : '')
       }));
       bulbs.appendChild(el('circle', {
         cx: bx.toFixed(2),
         cy: by.toFixed(2),
-        r: (far ? 0.85 : 1.15).toFixed(2),
+        r: (radius * (far ? 0.0104 : 0.0140)).toFixed(2),
         fill: 'url(#arena-crown-bulb-grad)',
         class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
       }));
     }
-    frame.appendChild(bulbs);
-
     // Soft under-edge so gold reads as a raised lip, then bright gold stroke.
     frame.appendChild(el('path', {
       d: octagonPathD(cx, cy, goldOuterR),
@@ -1207,6 +1216,10 @@
       'stroke-width': '1.8',
       class: 'arena-floor-crown__gold-lip'
     }));
+
+    // Bulbs go on TOP of the gold. Drawn under it, as they were, the lip
+    // painted over every glow and no light could reach the gold at all.
+    frame.appendChild(bulbs);
 
     stack.appendChild(frame);
   }

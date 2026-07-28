@@ -533,12 +533,14 @@
 #arena-render .arena-floor-crown__recess-wall {
   pointer-events: none;
 }
+/* Additive: the halo brightens the gold lip it overlaps instead of veiling it
+   in a flat wash. The fill is the warm radial gradient, set in the markup. */
 #arena-render .arena-floor-crown__bulb-glow {
-  fill: #ffc966;
-  opacity: 0.22;
+  mix-blend-mode: screen;
+  opacity: 0.55;
 }
 #arena-render .arena-floor-crown__bulb-glow--far {
-  opacity: 0.1;
+  opacity: 0.28;
 }
 #arena-render .arena-floor-crown__bulb-core {
   opacity: 0.88;
