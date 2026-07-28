@@ -968,6 +968,7 @@ def get_current_round(battle: Battle) -> int:
     return (last.round_number + 1) if last else 1
 
 
+@transaction.atomic
 def submit_combat_action(
     battle: Battle,
     chef,
@@ -980,6 +981,11 @@ def submit_combat_action(
     Chef declares their combat action for the current round.
     Moves are NOT deducted yet — only on resolve.
     Raises ValueError on invalid input.
+
+    Atomic as a whole: the artifact reservation below is a write, and when this
+    ran in autocommit a later failure left the artifact pinned to the battle,
+    counting against the chef's loadout limit, for an action that was never
+    recorded.
     """
     if battle.status != Battle.Status.ACTIVE:
         raise ValueError("Combat actions are only allowed during an active battle.")
@@ -1131,15 +1137,6 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
     c_bonus = _artifact_bonus(challenger_action)
     o_bonus = _artifact_bonus(opponent_action)
 
-    # Consume activated artifacts inside the same resolution block
-    for _action, _bonus in ((challenger_action, c_bonus), (opponent_action, o_bonus)):
-        if _bonus and _action.artifact_used and _action.artifact_used.status == "available":
-            ca = _action.artifact_used
-            ca.status = "consumed"
-            ca.consumed_at = timezone.now()
-            ca.consumed_in_battle = battle
-            ca.save(update_fields=["status", "consumed_at", "consumed_in_battle"])
-
     c_power += c_bonus
     o_power += o_bonus
 
@@ -1217,6 +1214,31 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
     )
 
     with transaction.atomic():
+        # Serialise resolution on the battle row. Both chefs submitting in the
+        # same instant each saw the other's action and each called this; the
+        # unique round constraint then failed one of them AFTER it had already
+        # burned artifacts and deducted moves.
+        Battle.objects.select_for_update().get(pk=battle.pk)
+        if BattleRound.objects.filter(
+            battle=battle, round_number=round_number
+        ).exists():
+            return None
+
+        # Consume activated artifacts. This used to sit above the transaction,
+        # in autocommit: when the block below failed — a concurrent resolve
+        # hitting unique_round_per_battle, or _energy_spend_moves raising
+        # InsufficientEnergy because the opponent's balance moved between
+        # submitting and resolving — the round rolled back and the artifact
+        # stayed consumed. The chef lost an earned item to a round that never
+        # happened.
+        for _action, _bonus in ((challenger_action, c_bonus), (opponent_action, o_bonus)):
+            if _bonus and _action.artifact_used and _action.artifact_used.status == "available":
+                ca = _action.artifact_used
+                ca.status = "consumed"
+                ca.consumed_at = timezone.now()
+                ca.consumed_in_battle = battle
+                ca.save(update_fields=["status", "consumed_at", "consumed_in_battle"])
+
         # Lock both actions
         BattleCombatAction.objects.filter(
             battle=battle, round_number=round_number
@@ -1382,11 +1404,10 @@ def place_ingredient_lock(*, battle: Battle, chef, ingredient_index: int) -> Ing
     """Loser places a hidden lock on one of their ingredient lines."""
     if battle.status != Battle.Status.INGREDIENT_PENALTY:
         raise ValueError("Locks can only be placed during the ingredient penalty phase.")
+    if chef is None:
+        raise ValueError("Only the loser can place ingredient locks.")
     if battle.loser_id != chef.pk:
         raise ValueError("Only the loser can place ingredient locks.")
-    existing = battle.ingredient_locks.filter(chef=chef).count()
-    if existing >= IngredientLock.MAX_LOCKS:
-        raise ValueError(f"You can only place {IngredientLock.MAX_LOCKS} locks.")
     loser_entry = battle.entries.filter(author=chef).select_related("recipe").first()
     if not loser_entry or not loser_entry.recipe:
         raise ValueError("No recipe found for this entry.")
@@ -1395,11 +1416,21 @@ def place_ingredient_lock(*, battle: Battle, chef, ingredient_index: int) -> Ing
     }
     if ingredient_index not in ingredient_indices:
         raise ValueError("Invalid ingredient index.")
-    lock, created = IngredientLock.objects.get_or_create(
-        battle=battle, chef=chef, ingredient_index=ingredient_index
-    )
-    if not created:
-        raise ValueError("This ingredient is already locked.")
+    # Count and create under the battle row lock. The unique constraint stops a
+    # second lock on the SAME ingredient, but nothing stopped two simultaneous
+    # requests on two different ingredients from both passing the count check
+    # and leaving the chef with more than MAX_LOCKS. Two locks is a rule of the
+    # game, not a hint.
+    with transaction.atomic():
+        Battle.objects.select_for_update().get(pk=battle.pk)
+        existing = battle.ingredient_locks.filter(chef=chef).count()
+        if existing >= IngredientLock.MAX_LOCKS:
+            raise ValueError(f"You can only place {IngredientLock.MAX_LOCKS} locks.")
+        lock, created = IngredientLock.objects.get_or_create(
+            battle=battle, chef=chef, ingredient_index=ingredient_index
+        )
+        if not created:
+            raise ValueError("This ingredient is already locked.")
     return lock
 
 
@@ -1407,14 +1438,13 @@ def fire_ingredient_shot(*, battle: Battle, shooter, target_index: int) -> Ingre
     """Winner fires one shot at a loser's ingredient line. Bounces off locks."""
     if battle.status != Battle.Status.INGREDIENT_PENALTY:
         raise ValueError("Shots can only be fired during the ingredient penalty phase.")
+    if shooter is None:
+        raise ValueError("Only the winner can fire ingredient shots.")
     if battle.winner_id != shooter.pk:
         raise ValueError("Only the winner can fire ingredient shots.")
     loser = battle.loser
     if not loser:
         raise ValueError("No loser found for this battle.")
-    existing_shots = battle.ingredient_shots.filter(shooter=shooter).count()
-    if existing_shots >= IngredientShot.MAX_SHOTS:
-        raise ValueError(f"You can only fire {IngredientShot.MAX_SHOTS} shots.")
     loser_entry = battle.entries.filter(author=loser).select_related("recipe").first()
     if not loser_entry or not loser_entry.recipe:
         raise ValueError("No loser recipe found.")
@@ -1424,17 +1454,26 @@ def fire_ingredient_shot(*, battle: Battle, shooter, target_index: int) -> Ingre
     }
     if target_index not in ingredients:
         raise ValueError("Invalid ingredient index.")
-    locked_indices = set(
-        battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True)
-    )
-    bounced = target_index in locked_indices
-    shot = IngredientShot.objects.create(
-        battle=battle,
-        shooter=shooter,
-        target_index=target_index,
-        bounced=bounced,
-    )
-    _post_biathlon_event(battle, shot, ingredients[target_index], bounced)
+    # Count and fire under the battle row lock. IngredientShot carries no unique
+    # constraint of any kind, so the count check was the only thing limiting a
+    # chef to MAX_SHOTS — and two simultaneous requests both passed it. Three
+    # shots is a rule of the game.
+    with transaction.atomic():
+        Battle.objects.select_for_update().get(pk=battle.pk)
+        existing_shots = battle.ingredient_shots.filter(shooter=shooter).count()
+        if existing_shots >= IngredientShot.MAX_SHOTS:
+            raise ValueError(f"You can only fire {IngredientShot.MAX_SHOTS} shots.")
+        locked_indices = set(
+            battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True)
+        )
+        bounced = target_index in locked_indices
+        shot = IngredientShot.objects.create(
+            battle=battle,
+            shooter=shooter,
+            target_index=target_index,
+            bounced=bounced,
+        )
+        _post_biathlon_event(battle, shot, ingredients[target_index], bounced)
     return shot
 
 

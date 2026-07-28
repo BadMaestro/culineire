@@ -1685,6 +1685,26 @@ class SuspensionGateTests(TestCase):
         # redirect, not 200 or 403
         self.assertIn(response.status_code, [301, 302])
 
+    def test_suspension_covers_every_combat_action_endpoint(self):
+        """Suspension is enforced by chef_battle_guard and by nothing else, so a
+        combat endpoint without the decorator lets a suspended chef keep playing.
+        These five carried only @login_required and were reachable throughout."""
+        endpoints = [
+            ("chef_battle:battle_set_ready", {}),
+            ("chef_battle:battle_declare_menu", {}),
+            ("chef_battle:biathlon_lock", {"ingredient_index": "0"}),
+            ("chef_battle:biathlon_shoot", {"target_index": "0"}),
+            ("chef_battle:cooking_submit", {}),
+        ]
+        for name, payload in endpoints:
+            with self.subTest(endpoint=name):
+                url = reverse(name, kwargs={"pk": 1})
+                response = self.client.post(url, payload)
+                self.assertIn(
+                    response.status_code, [301, 302],
+                    f"{name} did not turn a suspended chef away",
+                )
+
 
 # ---------------------------------------------------------------------------
 # CB-23xx: Phase 8 — Battle completion writes LedgerEvent

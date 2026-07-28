@@ -2101,6 +2101,7 @@ def biathlon(request, pk):
     })
 
 
+@chef_battle_guard
 @login_required
 @require_POST
 def biathlon_lock(request, pk):
@@ -2115,6 +2116,7 @@ def biathlon_lock(request, pk):
     return redirect("chef_battle:biathlon", pk=pk)
 
 
+@chef_battle_guard
 @login_required
 @require_POST
 def biathlon_shoot(request, pk):
@@ -2154,6 +2156,7 @@ def cooking_moderation_approve(request, pk):
     return redirect("chef_battle:cooking_moderation")
 
 
+@chef_battle_guard
 @login_required
 def cooking_submit(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
@@ -2759,6 +2762,7 @@ def changing_room(request):
 
 # ── E3: Readiness Gate ──────────────────────────────────────────────────────
 
+@chef_battle_guard
 @login_required
 @require_POST
 def battle_set_ready(request, pk):
@@ -2871,6 +2875,7 @@ def battle_recipe_attach(request, pk):
     return render(request, "chef_battle/recipe_attach.html", {"battle": battle, "form": form})
 
 
+@chef_battle_guard
 @login_required
 @require_POST
 def battle_declare_menu(request, pk):
