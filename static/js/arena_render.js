@@ -30,6 +30,11 @@
   var CROWN_NAME_MAX_CHARS = 14;
   var CROWN_NAME_Y_FACTOR = 0.44;
   var CROWN_NAME_PAD = 6;
+  // Adaptive nick type: short names grow toward MAX, long ones settle near MIN,
+  // then width-fit clamps so the chord never overflows.
+  var CROWN_NAME_FONT_MAX = 0.24;
+  var CROWN_NAME_FONT_MIN = 0.125;
+  var CROWN_NAME_FILL = 0.90;
   var POLL_INTERVAL = 10000;
   var PING_INTERVAL = 20000;
   // Cells are inset toward their own centroid to open the seams. Proportional
@@ -1135,7 +1140,6 @@
       y: nameY.toFixed(2),
       'text-anchor': 'middle',
       'dominant-baseline': 'middle',
-      'font-size': (radius * 0.16).toFixed(1),
       class: 'arena-floor-crown__name'
     });
     group.appendChild(name);
@@ -1144,7 +1148,8 @@
     fitCrownName(
       name,
       (center && center.name) || '',
-      crownNameMaxWidth(radius, nameY - cy)
+      crownNameMaxWidth(radius, nameY - cy),
+      radius
     );
   }
 
@@ -1167,41 +1172,69 @@
   }
 
   /**
-   * Cap the crown nick at CROWN_NAME_MAX_CHARS, then shrink further to the
-   * octagon chord width so wide glyphs (W/M) still stay inside the pad.
+   * Adaptive crown nick: shorter names render larger (up to FONT_MAX), longer
+   * names settle smaller. Binary-search the largest size that still fits the
+   * octagon chord; char ceiling stays CROWN_NAME_MAX_CHARS.
    */
-  function fitCrownName(textNode, raw, maxWidth) {
+  function fitCrownName(textNode, raw, maxWidth, radius) {
     var full = String(raw || '').trim();
     if (!full) {
       textNode.textContent = '';
       return;
     }
-    var limit = Math.min(full.length, CROWN_NAME_MAX_CHARS);
-    var base = full.length > CROWN_NAME_MAX_CHARS
+
+    var display = full.length > CROWN_NAME_MAX_CHARS
       ? full.slice(0, CROWN_NAME_MAX_CHARS - 1) + '\u2026'
       : full;
-    textNode.textContent = base;
-    if (!maxWidth || textNode.getComputedTextLength() <= maxWidth) { return; }
+    textNode.textContent = display;
 
-    var lo = 1;
-    var hi = limit;
-    var best = 1;
-    while (lo <= hi) {
-      var mid = (lo + hi) >> 1;
-      var candidate = mid < full.length
-        ? full.slice(0, mid) + '\u2026'
-        : full.slice(0, mid);
-      textNode.textContent = candidate;
-      if (textNode.getComputedTextLength() <= maxWidth) {
+    var maxFs = radius * CROWN_NAME_FONT_MAX;
+    var minFs = radius * CROWN_NAME_FONT_MIN;
+    var hardMax = maxWidth > 0 ? maxWidth : Infinity;
+    // Leave a little air from the gold rim so the nick does not kiss the edge.
+    var fitMax = maxWidth > 0 ? maxWidth * CROWN_NAME_FILL : hardMax;
+
+    var lo = minFs;
+    var hi = maxFs;
+    var best = minFs;
+    var i;
+    for (i = 0; i < 18; i++) {
+      var mid = (lo + hi) / 2;
+      textNode.setAttribute('font-size', mid.toFixed(1));
+      var w = textNode.getComputedTextLength();
+      if (w <= fitMax) {
         best = mid;
-        lo = mid + 1;
+        lo = mid;
       } else {
-        hi = mid - 1;
+        hi = mid;
       }
     }
-    textNode.textContent = best < full.length
-      ? full.slice(0, best) + '\u2026'
-      : full.slice(0, best);
+    textNode.setAttribute('font-size', best.toFixed(1));
+
+    // Floor size still overflows (very wide glyphs) — trim characters.
+    if (textNode.getComputedTextLength() > hardMax) {
+      textNode.setAttribute('font-size', minFs.toFixed(1));
+      var limit = Math.min(full.length, CROWN_NAME_MAX_CHARS);
+      var loC = 1;
+      var hiC = limit;
+      var bestC = 1;
+      while (loC <= hiC) {
+        var midC = (loC + hiC) >> 1;
+        var candidate = midC < full.length
+          ? full.slice(0, midC) + '\u2026'
+          : full.slice(0, midC);
+        textNode.textContent = candidate;
+        if (textNode.getComputedTextLength() <= hardMax) {
+          bestC = midC;
+          loC = midC + 1;
+        } else {
+          hiC = midC - 1;
+        }
+      }
+      textNode.textContent = bestC < full.length
+        ? full.slice(0, bestC) + '\u2026'
+        : full.slice(0, bestC);
+    }
   }
 
   function drawFloorVs(layer, cx, cy, radius, center) {
