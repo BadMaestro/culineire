@@ -1344,6 +1344,33 @@ def arena_take_seat(request):
     return JsonResponse({"ok": True, "seat": public_seat(seat)})
 
 
+# Everything the public arena poll is allowed to return, and the only thing it
+# can return: arena_state builds its response by picking exactly these keys out
+# of the payload. Adding a key to _build_arena_payload no longer leaks it — the
+# key has to be named here too, which is a deliberate act with a reviewer.
+#
+# It used to be an explicit dict in the view with the same names restated in two
+# tests. On 2026-07-24 `top_supporter` was added to the view and to neither
+# test, so both leak checks went red and stayed red for four days — a guard
+# nobody could read any more. One list, three readers, no memory required.
+PUBLIC_ARENA_STATE_KEYS = (
+    "rings",
+    "spectators",
+    "center",
+    "latest_result",
+    "crown_streak",
+    "crown_ladder",
+    "recent_gifts",
+    "top_supporter",
+    "metrics",
+    "phase",
+    "phase_rail",
+    "deadline",
+    "geometry",
+    "server_time",
+)
+
+
 @require_POST
 @ratelimit(key="ip", rate="120/m", method="POST", block=False)
 def arena_state(request):
@@ -1371,22 +1398,7 @@ def arena_state(request):
             _ensure_spectator_seat(viewer_author)
 
     payload = _build_arena_payload(viewer_author=viewer_author)
-    return JsonResponse({
-        "rings": payload["rings"],
-        "spectators": payload["spectators"],
-        "center": payload["center"],
-        "latest_result": payload["latest_result"],
-        "crown_streak": payload["crown_streak"],
-        "crown_ladder": payload["crown_ladder"],
-        "recent_gifts": payload["recent_gifts"],
-        "top_supporter": payload["top_supporter"],
-        "metrics": payload["metrics"],
-        "phase": payload["phase"],
-        "phase_rail": payload["phase_rail"],
-        "deadline": payload["deadline"],
-        "geometry": payload["geometry"],
-        "server_time": payload["server_time"],
-    })
+    return JsonResponse({key: payload[key] for key in PUBLIC_ARENA_STATE_KEYS})
 
 
 @chef_battle_guard
