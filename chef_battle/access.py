@@ -7,6 +7,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 
 
 def valid_share_token(provided, expected) -> bool:
@@ -91,6 +93,24 @@ def arena_console_guard(view_func):
     return wrapper
 
 
+def _suspended_redirect_target(request) -> str:
+    """Where to send a suspended user whose POST was refused.
+
+    Not back to ``request.path``. Many arena actions are POST-only
+    (``@require_POST``), so redirecting a refused POST to its own URL lands the
+    browser on a GET the view does not accept, and the user is told they are
+    suspended by a bare 405. The referring page is where they actually were, so
+    prefer it, and only when it is on this site — an attacker-supplied Referer
+    must never become an open redirect.
+    """
+    referer = request.META.get("HTTP_REFERER") or ""
+    if referer and url_has_allowed_host_and_scheme(
+        referer, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return referer
+    return reverse("chef_battle:arena")
+
+
 def chef_battle_guard(view_func):
     """
     View decorator: raises Http404 for any user who cannot see Chef Battles.
@@ -105,14 +125,18 @@ def chef_battle_guard(view_func):
         if user and user.is_authenticated and request.method == "POST":
             try:
                 profile = user.recipe_author_profile.battle_profile
-                if profile.is_suspended:
-                    messages.error(
-                        request,
-                        "Your arena account is currently suspended. "
-                        "Please contact us if you believe this is an error.",
-                    )
-                    return redirect(request.path)
             except Exception:
-                pass
+                profile = None
+            # Deliberately outside the try: a suspension must not be swallowed
+            # by an exception handler that exists only to tolerate a missing
+            # profile. Previously any error raised while building the redirect
+            # let the request fall through into the view.
+            if profile is not None and profile.is_suspended:
+                messages.error(
+                    request,
+                    "Your arena account is currently suspended. "
+                    "Please contact us if you believe this is an error.",
+                )
+                return redirect(_suspended_redirect_target(request))
         return view_func(request, *args, **kwargs)
     return wrapper

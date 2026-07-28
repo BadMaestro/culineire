@@ -1705,6 +1705,29 @@ class SuspensionGateTests(TestCase):
                     f"{name} did not turn a suspended chef away",
                 )
 
+    def test_refused_post_does_not_redirect_a_post_only_view_onto_itself(self):
+        """Most arena actions are POST-only, so bouncing a refused POST back to
+        its own URL served the suspended user a bare 405 instead of the message."""
+        url = reverse("chef_battle:biathlon_shoot", kwargs={"pk": 1})
+        response = self.client.post(url, {"target_index": "0"})
+        self.assertIn(response.status_code, [301, 302])
+        self.assertNotEqual(response["Location"], url)
+
+    def test_refused_post_honours_a_same_site_referer(self):
+        response = self.client.post(
+            reverse("chef_battle:battle_set_ready", kwargs={"pk": 1}),
+            HTTP_REFERER="/chef-battle/challenges/",
+        )
+        self.assertEqual(response["Location"], "/chef-battle/challenges/")
+
+    def test_refused_post_refuses_an_off_site_referer(self):
+        """A Referer is attacker-controlled; it must never become an open redirect."""
+        response = self.client.post(
+            reverse("chef_battle:battle_set_ready", kwargs={"pk": 1}),
+            HTTP_REFERER="https://evil.example/phish",
+        )
+        self.assertNotIn("evil.example", response["Location"])
+
 
 # ---------------------------------------------------------------------------
 # CB-23xx: Phase 8 — Battle completion writes LedgerEvent
@@ -2726,14 +2749,37 @@ class ArenaMasterStateTests(TestCase):
 
     # ── public leak checks ──
     def test_public_arena_state_keys_unchanged(self):
+        """The public poll returns the allowlist and nothing else.
+
+        Asserted against views.PUBLIC_ARENA_STATE_KEYS rather than a literal
+        restated here: a copy of the list in the test is what let `top_supporter`
+        ship past two leak checks and leave them red for four days."""
+        from .views import PUBLIC_ARENA_STATE_KEYS
+
         self._battle(Battle.Status.ACTIVE)
         resp = self.client.post(reverse("chef_battle:arena_state"))
         self.assertEqual(resp.status_code, 200)
-        data = resp.json()
-        self.assertEqual(set(data.keys()),
-                         {"rings", "spectators", "center", "latest_result",
-                          "crown_streak", "crown_ladder", "recent_gifts", "metrics",
-                          "phase", "phase_rail", "deadline", "server_time", "geometry"})
+        self.assertEqual(set(resp.json().keys()), set(PUBLIC_ARENA_STATE_KEYS))
+
+    def test_public_arena_state_cannot_leak_a_new_payload_key(self):
+        """The guard that the allowlist exists to be: a key added to the payload
+        and not to the allowlist must not reach the public response."""
+        from unittest.mock import patch
+        from . import views as chef_battle_views
+
+        self._battle(Battle.Status.ACTIVE)
+        real_builder = chef_battle_views._build_arena_payload
+
+        def leaky_builder(*args, **kwargs):
+            payload = real_builder(*args, **kwargs)
+            payload["operator_secret"] = "must not reach the public poll"
+            return payload
+
+        with patch.object(chef_battle_views, "_build_arena_payload", leaky_builder):
+            resp = self.client.post(reverse("chef_battle:arena_state"))
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn("operator_secret", resp.json())
 
     def test_operator_fields_do_not_leak_into_public_arena(self):
         self._battle(Battle.Status.VOTING)
@@ -4325,13 +4371,12 @@ class ViewerPresenceTests(TestCase):
         self.assertNotIn("viewer_hash", raw)
 
     def test_public_polls_unbroken_and_arena_json_clean(self):
+        from .views import PUBLIC_ARENA_STATE_KEYS
+
         resp = self.client.post(reverse("chef_battle:arena_state"),
                                 REMOTE_ADDR="10.0.0.5", HTTP_USER_AGENT="A/1")
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(set(resp.json().keys()),
-                         {"rings", "spectators", "center", "latest_result",
-                          "crown_streak", "crown_ladder", "recent_gifts", "metrics",
-                          "phase", "phase_rail", "deadline", "server_time", "geometry"})
+        self.assertEqual(set(resp.json().keys()), set(PUBLIC_ARENA_STATE_KEYS))
 
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
