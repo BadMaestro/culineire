@@ -673,8 +673,24 @@ def _score_battle(battle: Battle) -> Battle:
     loser = battle.opponent if winner.pk == battle.challenger_id else battle.challenger
 
     with transaction.atomic():
-        winner_profile = get_or_create_battle_profile(winner)
-        loser_profile = get_or_create_battle_profile(loser)
+        # The battle row is locked by the caller, but the PROFILES are shared:
+        # a chef can be in more than one battle, and two battles finishing at
+        # once take different battle locks, so both scorings would read the same
+        # rating, add to it, and write — losing one win, one crown and one rank
+        # change. Lock both profile rows here, ordered by pk so two scorings
+        # that share a chef always take the rows in the same order and cannot
+        # deadlock against each other.
+        get_or_create_battle_profile(winner)
+        get_or_create_battle_profile(loser)
+        locked_profiles = {
+            profile.author_id: profile
+            for profile in ChefBattleProfile.objects
+            .select_for_update()
+            .filter(author_id__in=[winner.pk, loser.pk])
+            .order_by("pk")
+        }
+        winner_profile = locked_profiles[winner.pk]
+        loser_profile = locked_profiles[loser.pk]
 
         old_winner_rank = winner_profile.rank
         old_loser_rank = loser_profile.rank
@@ -1592,13 +1608,22 @@ def credit_tokens(chef, amount: int, tx_type: str, description: str = "", battle
         raise ValueError("Credit amount must be positive.")
     with transaction.atomic():
         wallet = get_or_create_wallet(chef)
+        # total_purchased counts money spent on tokens, so only a PURCHASE moves
+        # it. It used to rise on every credit: the one caller here grants an LSR
+        # reward as ADMIN_GRANT, and each reward was recorded as if the chef had
+        # bought those tokens. The field is read by the wallet admin list, so the
+        # damage was a wrong number in front of an operator rather than wrong
+        # money — but a column named total_purchased that counts gifts is a trap
+        # for whoever reaches for it next.
+        fields = {
+            "balance": F("balance") + amount,
+            "updated_at": timezone.now(),
+        }
+        if tx_type == TokenTransaction.TxType.PURCHASE:
+            fields["total_purchased"] = F("total_purchased") + amount
         # Atomic DB-side increment — a read-modify-write here loses updates
         # under concurrent credits (e.g. webhook retry + gift at once).
-        TokenWallet.objects.filter(pk=wallet.pk).update(
-            balance=F("balance") + amount,
-            total_purchased=F("total_purchased") + amount,
-            updated_at=timezone.now(),
-        )
+        TokenWallet.objects.filter(pk=wallet.pk).update(**fields)
         wallet.refresh_from_db()
         return TokenTransaction.objects.create(
             wallet=wallet,
