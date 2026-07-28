@@ -1665,6 +1665,69 @@ class ComplianceFlagTests(TestCase):
 # CB-22xx: Phase 8 — Suspension gate on arena POST actions
 # ---------------------------------------------------------------------------
 
+class RoutedViewAccessAuditTests(TestCase):
+    """Every routed chef_battle view is guarded, or listed as deliberately not.
+
+    Guarding by decorator is fail-open: a view added without chef_battle_guard
+    is public, and nothing announces it. An audit found 37 of 79 routed views
+    without a guard — most correct, some only by luck, one (battle_chat_poll)
+    a leak that had already been found and patched by hand. The point of this
+    test is not the current count; it is that the NEXT view cannot slip in
+    unnoticed.
+    """
+
+    def _routed_chef_battle_views(self):
+        from django.urls import get_resolver
+
+        resolver = get_resolver()
+        found = {}
+        for pattern in resolver.url_patterns:
+            if getattr(pattern, "namespace", None) != "chef_battle":
+                continue
+            for route in pattern.url_patterns:
+                callback = getattr(route, "callback", None)
+                if callback is None:
+                    continue
+                found[callback.__name__] = callback
+        return found
+
+    def test_every_routed_view_is_guarded_or_listed(self):
+        from .access import UNGUARDED_BY_DESIGN
+
+        views = self._routed_chef_battle_views()
+        self.assertTrue(views, "no chef_battle routes were resolved — check the namespace")
+
+        unaccounted = sorted(
+            name for name, view in views.items()
+            if not getattr(view, "chef_battle_access_checked", False)
+            and name not in UNGUARDED_BY_DESIGN
+        )
+        self.assertEqual(
+            unaccounted, [],
+            "These chef_battle views carry no access guard and are not listed in "
+            "UNGUARDED_BY_DESIGN. Add the guard, or add the view to that dict with "
+            "the reason it is safe without one: " + ", ".join(unaccounted),
+        )
+
+    def test_the_allowlist_does_not_outlive_its_views(self):
+        """A name left behind after a view is renamed or deleted is a stale
+        exemption that would silently cover the next view to take that name."""
+        from .access import UNGUARDED_BY_DESIGN
+
+        views = self._routed_chef_battle_views()
+        stale = sorted(set(UNGUARDED_BY_DESIGN) - set(views))
+        self.assertEqual(
+            stale, [],
+            "UNGUARDED_BY_DESIGN names views that are no longer routed: " + ", ".join(stale),
+        )
+
+    def test_every_exemption_states_a_reason(self):
+        from .access import UNGUARDED_BY_DESIGN
+
+        blank = sorted(k for k, v in UNGUARDED_BY_DESIGN.items() if not (v or "").strip())
+        self.assertEqual(blank, [], "Exemptions without a reason: " + ", ".join(blank))
+
+
 @override_settings(CHEF_BATTLE_ENABLED=True)
 class SuspensionGateTests(TestCase):
     """CB-2201: suspended profiles cannot POST to arena views."""

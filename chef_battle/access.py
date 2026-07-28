@@ -90,7 +90,62 @@ def arena_console_guard(view_func):
         if not has_arena_console_access(request):
             raise Http404
         return view_func(request, *args, **kwargs)
+    wrapper.chef_battle_access_checked = True
     return wrapper
+
+
+# Routed chef_battle views that deliberately carry neither chef_battle_guard nor
+# arena_console_guard, each with the reason. A guard-by-decorator scheme is
+# fail-open: a view added without the decorator is simply public, and nothing
+# says so out loud. This list makes the absence deliberate — test_every_routed_
+# view_is_guarded_or_listed fails on any routed view that is neither guarded nor
+# named here, so a new endpoint cannot become public by omission.
+#
+# Adding a name here is a decision about who may reach a page. It is not a
+# formality, and it is not a way to silence the test.
+UNGUARDED_BY_DESIGN = {
+    # Public by intent: reference material about the game, no user data.
+    "battle_rules": "Public rules page, no user data.",
+    "battle_guide": "Permanent redirect to the rules page.",
+    "artifact_gallery": "Public artifact catalogue; staff-only generation is checked inside.",
+    "artifact_detail": "Public, linkable reference page for one artifact.",
+    "appreciation_gallery": "Public gift catalogue with costs.",
+    "chef_battle_profile": "Permanent redirect to the author page, keeps old links alive.",
+
+    # These carry their own credential. The visibility gate would break them.
+    "arena_preview_current": "The share-token URL segment IS the credential; 404s when unset or wrong.",
+    "arena_preview_prototype": "Same share-token credential as the current-arena preview.",
+    "token_stripe_webhook": "Called by Stripe, not a browser; authenticated by webhook signature.",
+
+    # Signed-in surfaces that authorise per object: author profile, battle
+    # participation, moderator status or a fraud gate, checked in the view.
+    "age_verification": "login_required; requires the caller's own author profile.",
+    "chef_enroll": "login_required; onboarding for the caller's own account.",
+    "enroll_success": "login_required; confirmation for the caller's own enrolment.",
+    "reward_agreement": "login_required; PermissionDenied without an author profile.",
+    "payout_statement": "login_required; PermissionDenied without an author profile.",
+    "battle_chest": "login_required; shows only the caller's own artifacts.",
+    "changing_room": "login_required; shows only the caller's own state.",
+    "battle_changing_room": "login_required; PermissionDenied unless a battle participant.",
+    "battle_recipe_attach": "login_required; participant-checked in the view.",
+    "biathlon": "login_required; PermissionDenied unless a battle participant.",
+    "content_report_submit": "login_required; DSA reporting endpoint, validates its own input.",
+    "send_appreciation_gift_view": "login_required; runs the fraud gates including suspension.",
+    "send_viewer_battle_gift_view": "login_required; runs the fraud gates including suspension.",
+    "token_checkout_create": "login_required; wallet is resolved from the caller.",
+    "artifact_generate_image": "login_required; staff/moderator checked in the view.",
+
+    # Poll and action endpoints that call is_battle_visible directly, because
+    # the guard's suspended-POST branch would stack a banner on every poll.
+    "arena_state": "Calls is_battle_visible directly; guard would add a banner per 20s poll.",
+    "arena_ping": "Calls is_battle_visible directly; heartbeat endpoint.",
+    "arena_take_seat": "Calls is_battle_visible directly.",
+    "arena_react": "Calls is_battle_visible directly.",
+    "arena_blast": "Calls is_battle_visible directly.",
+    "battle_chat_poll": "Calls is_battle_visible directly; previously leaked chat to anonymous.",
+    "cooking_moderation": "Moderator-only, checked with is_moderator in the view.",
+    "cooking_moderation_approve": "Moderator-only, checked with is_moderator in the view.",
+}
 
 
 def _suspended_redirect_target(request) -> str:
@@ -139,4 +194,8 @@ def chef_battle_guard(view_func):
                 )
                 return redirect(_suspended_redirect_target(request))
         return view_func(request, *args, **kwargs)
+    # Marked so the URLconf can be audited at runtime instead of by reading
+    # source: functools.wraps copies __dict__ outward, so the flag survives
+    # decorators stacked above this one.
+    wrapper.chef_battle_access_checked = True
     return wrapper
