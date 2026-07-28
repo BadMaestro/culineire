@@ -1110,9 +1110,11 @@
       y2: (TPL_CY + STAGE_RADIUS * 1.2).toFixed(2)
     });
     // rotateX(42deg): plan-top = far/shadow, plan-bottom = near/highlight.
-    rimGrad.appendChild(el('stop', { offset: '0%', 'stop-color': '#4a3018', 'stop-opacity': '0.9' }));
-    rimGrad.appendChild(el('stop', { offset: '45%', 'stop-color': '#b8862e', 'stop-opacity': '0.95' }));
-    rimGrad.appendChild(el('stop', { offset: '100%', 'stop-color': '#f5d070', 'stop-opacity': '1' }));
+    rimGrad.appendChild(el('stop', { offset: '0%', 'stop-color': '#8a5a18' }));
+    rimGrad.appendChild(el('stop', { offset: '28%', 'stop-color': '#d4a017' }));
+    rimGrad.appendChild(el('stop', { offset: '55%', 'stop-color': '#f0c85a' }));
+    rimGrad.appendChild(el('stop', { offset: '78%', 'stop-color': '#ffe9a0' }));
+    rimGrad.appendChild(el('stop', { offset: '100%', 'stop-color': '#fff6d0' }));
     defs.appendChild(rimGrad);
 
     var recessGrad = el('linearGradient', {
@@ -1141,10 +1143,11 @@
    */
   function drawCrownStageFrame(stack, svg, cx, cy, radius) {
     ensureCrownStageDefs(svg);
-    var goldOuterR = radius + radius * 0.012;
-    var moatGap = radius * 0.07;
+    // Ring footprint halved vs v664; gold sits tight on the marble edge.
+    var goldOuterR = radius + radius * 0.006;
+    var moatGap = radius * 0.035;
     var recessInnerR = goldOuterR + moatGap;
-    var recessOuterR = recessInnerR + radius * 0.17;
+    var recessOuterR = recessInnerR + radius * 0.085;
     var frame = el('g', { class: 'arena-floor-crown__frame', 'pointer-events': 'none' });
 
     frame.appendChild(el('path', {
@@ -1155,13 +1158,12 @@
       class: 'arena-floor-crown__recess'
     }));
 
-    // Inner wall of moat — separates lit trough from raised gold lip.
     frame.appendChild(el('path', {
       d: octagonPathD(cx, cy, recessInnerR),
       fill: 'none',
       stroke: '#120c08',
-      'stroke-width': '1.4',
-      opacity: '0.65',
+      'stroke-width': '0.9',
+      opacity: '0.55',
       class: 'arena-floor-crown__recess-wall'
     }));
 
@@ -1169,7 +1171,6 @@
     var bulbR = (recessInnerR + recessOuterR) / 2;
     var i;
     for (i = 0; i < 8; i++) {
-      // Edge midpoints — reference bulbs sit on flat sides, not on gold corners.
       var angle = i * Math.PI / 4 + Math.PI / 8;
       var bx = cx + bulbR * Math.cos(angle);
       var by = cy + bulbR * Math.sin(angle);
@@ -1177,25 +1178,33 @@
       bulbs.appendChild(el('circle', {
         cx: bx.toFixed(2),
         cy: by.toFixed(2),
-        r: (far ? 3.2 : 4.0).toFixed(2),
+        r: (far ? 2.2 : 2.8).toFixed(2),
         class: 'arena-floor-crown__bulb-glow' + (far ? ' arena-floor-crown__bulb-glow--far' : '')
       }));
       bulbs.appendChild(el('circle', {
         cx: bx.toFixed(2),
         cy: by.toFixed(2),
-        r: (far ? 1.1 : 1.5).toFixed(2),
+        r: (far ? 0.85 : 1.15).toFixed(2),
         fill: 'url(#arena-crown-bulb-grad)',
         class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
       }));
     }
     frame.appendChild(bulbs);
 
-    // Thin raised gold lip — stroke only, not a thick filled band.
+    // Soft under-edge so gold reads as a raised lip, then bright gold stroke.
+    frame.appendChild(el('path', {
+      d: octagonPathD(cx, cy, goldOuterR),
+      fill: 'none',
+      stroke: '#6b4510',
+      'stroke-width': '3.2',
+      opacity: '0.45',
+      class: 'arena-floor-crown__gold-shadow'
+    }));
     frame.appendChild(el('path', {
       d: octagonPathD(cx, cy, goldOuterR),
       fill: 'none',
       stroke: 'url(#arena-crown-rim-grad)',
-      'stroke-width': '2.6',
+      'stroke-width': '1.8',
       class: 'arena-floor-crown__gold-lip'
     }));
 
@@ -1266,11 +1275,13 @@
     stack.appendChild(group);
 
     // Gold lip must paint over marble edge (raised rim, not recessed).
-    var goldLip = stack.querySelector('.arena-floor-crown__gold-lip');
-    if (goldLip && goldLip.parentNode) {
-      goldLip.parentNode.removeChild(goldLip);
-      stack.appendChild(goldLip);
-    }
+    ['.arena-floor-crown__gold-shadow', '.arena-floor-crown__gold-lip'].forEach(function (sel) {
+      var node = stack.querySelector(sel);
+      if (node && node.parentNode) {
+        node.parentNode.removeChild(node);
+        stack.appendChild(node);
+      }
+    });
 
     layer.appendChild(stack);
     fitCrownName(
