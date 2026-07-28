@@ -1136,41 +1136,38 @@
   }
 
   /**
-   * Reference: thin tilted gold lip + recessed outer ring with vertex bulbs.
-   * Bitmap rim removed — it read flat and too bright under rotateX.
+   * Reference layering (outside → in):
+   *   1. Recessed outer trough (dark wood) — bulbs live HERE only.
+   *   2. Raised gold lip around the marble — not recessed, no lamps.
+   *   3. Marble + crown + nick (clipped).
    */
   function drawCrownStageFrame(stack, svg, cx, cy, radius) {
     ensureCrownStageDefs(svg);
-    var recessDepth = radius * 0.16;
-    var outerR = radius + recessDepth;
+    var goldBand = radius * 0.042;
+    var goldOuterR = radius + goldBand;
+    var recessInnerR = goldOuterR + 2.5;
+    var recessOuterR = goldOuterR + radius * 0.15;
     var frame = el('g', { class: 'arena-floor-crown__frame', 'pointer-events': 'none' });
 
+    // Outer trough — strictly outside the raised gold lip.
     frame.appendChild(el('path', {
-      d: octagonPathD(cx, cy, outerR) + ' ' + octagonPathD(cx, cy, radius),
+      d: octagonPathD(cx, cy, recessOuterR) + ' ' + octagonPathD(cx, cy, recessInnerR),
       'fill-rule': 'evenodd',
       fill: 'url(#arena-crown-recess-grad)',
       stroke: 'none',
       class: 'arena-floor-crown__recess'
     }));
 
-    // Inner shadow lip — darker on the far (plan-top) half of the trough wall.
-    frame.appendChild(el('path', {
-      d: octagonPathD(cx, cy, radius),
-      fill: 'none',
-      stroke: 'url(#arena-crown-rim-grad)',
-      'stroke-width': '1.8',
-      class: 'arena-floor-crown__recess-lip'
-    }));
-
+    // Bulbs sit in the trough mid-line — never on the gold ring.
     var bulbs = el('g', { class: 'arena-floor-crown__bulbs' });
+    var bulbR = (recessInnerR + recessOuterR) / 2;
     var i;
     for (i = 0; i < 8; i++) {
       var angle = i * Math.PI / 4;
-      var bx = cx + radius * Math.cos(angle);
-      var by = cy + radius * Math.sin(angle);
-      // Far verts (sin(angle) < 0 in plan = smaller screen y before tilt) dimmer.
+      var bx = cx + bulbR * Math.cos(angle);
+      var by = cy + bulbR * Math.sin(angle);
       var far = Math.sin(angle) < -0.15;
-      var glowR = far ? 4.2 : 5.4;
+      var glowR = far ? 3.8 : 4.8;
       bulbs.appendChild(el('circle', {
         cx: bx.toFixed(2),
         cy: by.toFixed(2),
@@ -1180,20 +1177,20 @@
       bulbs.appendChild(el('circle', {
         cx: bx.toFixed(2),
         cy: by.toFixed(2),
-        r: (far ? 1.5 : 1.9).toFixed(2),
+        r: (far ? 1.3 : 1.7).toFixed(2),
         fill: 'url(#arena-crown-bulb-grad)',
         class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
       }));
     }
     frame.appendChild(bulbs);
 
-    // Thin gold bevel on the marble lip — gradient simulates tilt, not a uniform band.
+    // Raised gold lip — drawn on top of marble in drawFloorCrown after the pad.
     frame.appendChild(el('path', {
-      d: octagonPathD(cx, cy, radius * 0.992),
-      fill: 'none',
-      stroke: 'url(#arena-crown-rim-grad)',
-      'stroke-width': '2.2',
-      class: 'arena-floor-crown__inner-rim'
+      d: octagonPathD(cx, cy, goldOuterR) + ' ' + octagonPathD(cx, cy, radius * 0.988),
+      'fill-rule': 'evenodd',
+      fill: 'url(#arena-crown-rim-grad)',
+      stroke: 'none',
+      class: 'arena-floor-crown__gold-lip'
     }));
 
     stack.appendChild(frame);
@@ -1261,6 +1258,13 @@
     });
     group.appendChild(name);
     stack.appendChild(group);
+
+    // Gold lip must paint over marble edge (raised rim, not recessed).
+    var goldLip = stack.querySelector('.arena-floor-crown__gold-lip');
+    if (goldLip && goldLip.parentNode) {
+      goldLip.parentNode.removeChild(goldLip);
+      stack.appendChild(goldLip);
+    }
 
     layer.appendChild(stack);
     fitCrownName(

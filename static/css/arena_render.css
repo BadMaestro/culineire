@@ -521,13 +521,9 @@
 #arena-render .arena-floor-crown__recess {
   pointer-events: none;
 }
-#arena-render .arena-floor-crown__recess-lip {
-  opacity: 0.55;
-  stroke-width: 1.2;
-}
-#arena-render .arena-floor-crown__inner-rim {
-  opacity: 0.88;
-  stroke-width: 2;
+#arena-render .arena-floor-crown__gold-lip {
+  pointer-events: none;
+  opacity: 0.92;
 }
 #arena-render .arena-floor-crown__bulb-glow {
   fill: #ff9a2e;

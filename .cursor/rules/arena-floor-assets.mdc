@@ -16,7 +16,7 @@ Crown centre parts (v2.5.65x):
 |------|------|------|
 | Marble pad | `crown/crown-pad-marble.webp` | Full-bleed texture, clipped to stage |
 | Crown glyph | `crown/crown-glyph.webp` | Transparent subject only |
-| Rim | `crown/crown-octagon-rim.webp` | Beveled gold frame outside stage clip (rotate flat→pointy +22.5°) |
+| Rim | `crown/crown-octagon-rim.webp` | Legacy bitmap — prefer procedural recess + gradient lip in JS |
 | Plate composite | `crown/crown-centre-plate.webp` | Avoid for live — rectangle + baked BG |
 
 Wire URLs via `{% static %}` → `window.ARENA_CROWN_ASSETS` in `_arena_render_ring.html`.
@@ -36,7 +36,10 @@ Cursor `GenerateImage` often **bakes checkerboard/grey into opaque pixels** (Pil
 - Inner stack clip: `clip-path: url(#arena-clip-0-0)` — pad, glyph, labels.
 - Pad: `preserveAspectRatio: xMidYMid slice`, size `2 * STAGE_RADIUS`.
 - Glyph: smaller box in upper third (`~0.62·R`), `meet`.
-- Rim: **outside** the clip, size `~2.18·R`, hollow over marble; stage stroke thinned (atmosphere `!important`).
+- **Do not** drop a bright rim bitmap — use `drawCrownStageFrame` with three separate layers:
+  1. **Recessed trough** outside the gold lip (dark gradient fill only).
+  2. **Bulbs** in the trough mid-line only — never on the gold ring.
+  3. **Raised gold lip** (filled band on marble edge, painted over pad) — tilt gradient, not recessed.
 ## Text stack + capacity
 
 - Label `CROWN HOLDER`: sans, bronze, `~0.10·R`, mid band.
