@@ -513,11 +513,34 @@
   text-transform: uppercase;
 }
 
-/* Crown holder — marble+glyph clipped; beveled rim sits outside the clip. */
+/* Crown holder — recess ring + bulbs; marble/glyph clipped inside. */
 #arena-render .arena-floor-crown__pad,
-#arena-render .arena-floor-crown__glyph,
-#arena-render .arena-floor-crown__rim {
+#arena-render .arena-floor-crown__glyph {
   pointer-events: none;
+}
+#arena-render .arena-floor-crown__recess {
+  pointer-events: none;
+}
+#arena-render .arena-floor-crown__recess-lip {
+  opacity: 0.55;
+  stroke-width: 1.2;
+}
+#arena-render .arena-floor-crown__inner-rim {
+  opacity: 0.88;
+  stroke-width: 2;
+}
+#arena-render .arena-floor-crown__bulb-glow {
+  fill: #ff9a2e;
+  opacity: 0.28;
+}
+#arena-render .arena-floor-crown__bulb-glow--far {
+  opacity: 0.14;
+}
+#arena-render .arena-floor-crown__bulb-core {
+  opacity: 0.95;
+}
+#arena-render .arena-floor-crown__bulb-core--far {
+  opacity: 0.55;
 }
 #arena-render .arena-floor-crown__label {
   fill: var(--accent-bronze);
@@ -600,8 +623,7 @@
 .page--arena #arena-render .arena-stage[data-state="crown"],
 #arena-render .arena-stage[data-state="crown"] {
   fill: color-mix(in srgb, var(--ink) 55%, #1f2c25);
-  stroke: var(--accent-bronze);
-  stroke-width: 5;
+  stroke: none;
   paint-order: stroke fill;
 }
 

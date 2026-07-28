@@ -1085,14 +1085,130 @@
     }
   }
 
+  function octagonPathD(cx, cy, R) {
+    var pts = [];
+    var i;
+    for (i = 0; i < 8; i++) {
+      var angle = i * Math.PI / 4;
+      pts.push((cx + R * Math.cos(angle)).toFixed(2) + ',' + (cy + R * Math.sin(angle)).toFixed(2));
+    }
+    return 'M ' + pts.join(' L ') + ' Z';
+  }
+
+  /** One-time defs: tilt-aware gold rim + warm bulb glow (no SVG filter blur). */
+  function ensureCrownStageDefs(svg) {
+    if (svg.querySelector('#arena-crown-rim-grad')) { return; }
+    var defs = svg.querySelector('defs');
+    if (!defs) { return; }
+
+    var rimGrad = el('linearGradient', {
+      id: 'arena-crown-rim-grad',
+      gradientUnits: 'userSpaceOnUse',
+      x1: TPL_CX.toFixed(2),
+      y1: (TPL_CY - STAGE_RADIUS * 1.2).toFixed(2),
+      x2: TPL_CX.toFixed(2),
+      y2: (TPL_CY + STAGE_RADIUS * 1.2).toFixed(2)
+    });
+    // rotateX(42deg): plan-top = far/shadow, plan-bottom = near/highlight.
+    rimGrad.appendChild(el('stop', { offset: '0%', 'stop-color': '#3d2812', 'stop-opacity': '0.85' }));
+    rimGrad.appendChild(el('stop', { offset: '42%', 'stop-color': '#8a5c28', 'stop-opacity': '0.75' }));
+    rimGrad.appendChild(el('stop', { offset: '100%', 'stop-color': '#d4a24a', 'stop-opacity': '0.95' }));
+    defs.appendChild(rimGrad);
+
+    var recessGrad = el('linearGradient', {
+      id: 'arena-crown-recess-grad',
+      gradientUnits: 'userSpaceOnUse',
+      x1: TPL_CX.toFixed(2),
+      y1: (TPL_CY - STAGE_RADIUS * 1.4).toFixed(2),
+      x2: TPL_CX.toFixed(2),
+      y2: (TPL_CY + STAGE_RADIUS * 1.4).toFixed(2)
+    });
+    recessGrad.appendChild(el('stop', { offset: '0%', 'stop-color': '#1a120c' }));
+    recessGrad.appendChild(el('stop', { offset: '55%', 'stop-color': '#2a1e14' }));
+    recessGrad.appendChild(el('stop', { offset: '100%', 'stop-color': '#4a3524' }));
+    defs.appendChild(recessGrad);
+
+    var bulbGrad = el('radialGradient', { id: 'arena-crown-bulb-grad', cx: '50%', cy: '50%', r: '50%' });
+    bulbGrad.appendChild(el('stop', { offset: '0%', 'stop-color': '#fff4d0' }));
+    bulbGrad.appendChild(el('stop', { offset: '35%', 'stop-color': '#ffb347' }));
+    bulbGrad.appendChild(el('stop', { offset: '100%', 'stop-color': '#ff8c1a', 'stop-opacity': '0' }));
+    defs.appendChild(bulbGrad);
+  }
+
+  /**
+   * Reference: thin tilted gold lip + recessed outer ring with vertex bulbs.
+   * Bitmap rim removed — it read flat and too bright under rotateX.
+   */
+  function drawCrownStageFrame(stack, svg, cx, cy, radius) {
+    ensureCrownStageDefs(svg);
+    var recessDepth = radius * 0.16;
+    var outerR = radius + recessDepth;
+    var frame = el('g', { class: 'arena-floor-crown__frame', 'pointer-events': 'none' });
+
+    frame.appendChild(el('path', {
+      d: octagonPathD(cx, cy, outerR) + ' ' + octagonPathD(cx, cy, radius),
+      'fill-rule': 'evenodd',
+      fill: 'url(#arena-crown-recess-grad)',
+      stroke: 'none',
+      class: 'arena-floor-crown__recess'
+    }));
+
+    // Inner shadow lip — darker on the far (plan-top) half of the trough wall.
+    frame.appendChild(el('path', {
+      d: octagonPathD(cx, cy, radius),
+      fill: 'none',
+      stroke: 'url(#arena-crown-rim-grad)',
+      'stroke-width': '1.8',
+      class: 'arena-floor-crown__recess-lip'
+    }));
+
+    var bulbs = el('g', { class: 'arena-floor-crown__bulbs' });
+    var i;
+    for (i = 0; i < 8; i++) {
+      var angle = i * Math.PI / 4;
+      var bx = cx + radius * Math.cos(angle);
+      var by = cy + radius * Math.sin(angle);
+      // Far verts (sin(angle) < 0 in plan = smaller screen y before tilt) dimmer.
+      var far = Math.sin(angle) < -0.15;
+      var glowR = far ? 4.2 : 5.4;
+      bulbs.appendChild(el('circle', {
+        cx: bx.toFixed(2),
+        cy: by.toFixed(2),
+        r: glowR.toFixed(2),
+        class: 'arena-floor-crown__bulb-glow' + (far ? ' arena-floor-crown__bulb-glow--far' : '')
+      }));
+      bulbs.appendChild(el('circle', {
+        cx: bx.toFixed(2),
+        cy: by.toFixed(2),
+        r: (far ? 1.5 : 1.9).toFixed(2),
+        fill: 'url(#arena-crown-bulb-grad)',
+        class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
+      }));
+    }
+    frame.appendChild(bulbs);
+
+    // Thin gold bevel on the marble lip — gradient simulates tilt, not a uniform band.
+    frame.appendChild(el('path', {
+      d: octagonPathD(cx, cy, radius * 0.992),
+      fill: 'none',
+      stroke: 'url(#arena-crown-rim-grad)',
+      'stroke-width': '2.2',
+      class: 'arena-floor-crown__inner-rim'
+    }));
+
+    stack.appendChild(frame);
+  }
+
   function drawFloorCrown(layer, cx, cy, radius, center) {
     var assets = global.ARENA_CROWN_ASSETS || {};
-    // Rim sits outside the stage clip so the outer bevel is not shaved off.
-    // Pad / glyph / text stay clipped to #arena-clip-0-0 like cell avatars.
+    var svg = layer.ownerSVGElement || document.getElementById('arena-render');
     var stack = el('g', {
       class: 'arena-floor-crown',
       'pointer-events': 'none'
     });
+
+    drawCrownStageFrame(stack, svg, cx, cy, radius);
+
     var group = el('g', {
       class: 'arena-floor-crown__inner',
       'clip-path': 'url(#arena-clip-0-0)'
@@ -1111,8 +1227,6 @@
       }));
     }
 
-    // Reference stack: crown in the upper third, label mid, nick in the lower
-    // third — sized so the glyph box does not collide with the text.
     if (assets.glyph) {
       var gSize = radius * 0.62;
       group.appendChild(el('image', {
@@ -1147,21 +1261,6 @@
     });
     group.appendChild(name);
     stack.appendChild(group);
-
-    if (assets.rim) {
-      // Slightly larger than the stage so the outer bevel reads outside the
-      // marble edge; hollow centre is transparent over the clipped pad.
-      var rimSize = radius * 2.18;
-      stack.appendChild(el('image', {
-        href: assets.rim,
-        x: (cx - rimSize / 2).toFixed(2),
-        y: (cy - rimSize / 2).toFixed(2),
-        width: rimSize.toFixed(2),
-        height: rimSize.toFixed(2),
-        preserveAspectRatio: 'xMidYMid meet',
-        class: 'arena-floor-crown__rim'
-      }));
-    }
 
     layer.appendChild(stack);
     fitCrownName(
