@@ -2678,6 +2678,57 @@ class SponsorOgImageTests(TestCase):
         self.assertIn('property="og:image:alt"', content)
 
 
+@override_settings(**SPONSOR_TEST_SETTINGS)
+class SponsorLogoFileCleanupTests(TestCase):
+    """A logo file must not orphan on disk when its row is deleted or the logo
+    is replaced. Regression guard for the 603 orphaned sponsor files (35 MB)
+    swept on 2026-07-28."""
+
+    def setUp(self):
+        self.cell = SponsorCell.objects.create(cell_number=91, ring=6, position_in_ring=0)
+
+    def _make_application(self, logo_name="cleanup-test.png"):
+        return SponsorApplication.objects.create(
+            cell=self.cell,
+            status=SponsorApplication.Status.DRAFT,
+            sponsor_name="Cleanup Co",
+            contact_name="C",
+            email="c@example.com",
+            logo=png_upload(logo_name),
+            price_net_cents=1000,
+        )
+
+    def test_deleting_application_removes_logo_file(self):
+        from django.core.files.storage import default_storage
+        app = self._make_application()
+        name = app.logo.name
+        self.assertTrue(default_storage.exists(name))
+        app.delete()
+        self.assertFalse(default_storage.exists(name))
+
+    def test_replacing_logo_removes_the_old_file(self):
+        from django.core.files.storage import default_storage
+        app = self._make_application()
+        old = app.logo.name
+        self.assertTrue(default_storage.exists(old))
+        app.logo = png_upload("cleanup-test-replacement.png")
+        app.save()
+        new = app.logo.name
+        self.assertNotEqual(old, new)
+        self.assertFalse(default_storage.exists(old))
+        self.assertTrue(default_storage.exists(new))
+
+    def test_deleting_also_removes_the_webp_sibling(self):
+        from django.core.files.base import ContentFile
+        from django.core.files.storage import default_storage
+        app = self._make_application()
+        webp = app.logo.name.rsplit(".", 1)[0] + ".webp"
+        default_storage.save(webp, ContentFile(b"fake-webp"))
+        self.assertTrue(default_storage.exists(webp))
+        app.delete()
+        self.assertFalse(default_storage.exists(webp))
+
+
 def teardown_module(_module=None):
     """Remove the temporary media directory created for sponsor tests."""
     shutil.rmtree(_TEMP_MEDIA, ignore_errors=True)
