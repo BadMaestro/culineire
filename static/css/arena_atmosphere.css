@@ -849,32 +849,17 @@
 }
 
 /* =============================================================================
-   Owner 2026-07-27 — camera restore + sponsors palette (cascade last).
-   perspective + rotateX(42deg). Palette from sponsors RING_COLOURS.available.
+   Owner 2026-07-27 — sponsors palette (cascade last).
+   Palette from sponsors RING_COLOURS.available.
+
+   The camera used to be restated here in full, with !important on every line,
+   which made two files own one transform and let them disagree: this block
+   forced `flat` while arena_render.css declared `preserve-3d`, so the rule you
+   read was not the rule that ran. The camera now lives only in
+   arena_render.css. Values were identical (perspective 1500px, origin 50% 40%,
+   origin 50% 62%, rotateX 42deg), and the `filter: none` overrides here
+   neutralised nothing — no stylesheet sets a filter on these elements.
    ============================================================================= */
-.page--arena .arena-floor-stage .arena-render-container {
-  perspective: 1500px !important;
-  perspective-origin: 50% 40% !important;
-  transform-style: preserve-3d !important;
-  filter: none !important;
-}
-
-.page--arena .arena-floor-stage #arena-render,
-.page--arena #arena-render {
-  filter: none !important;
-  transform-origin: 50% 62% !important;
-  transform-style: flat !important;
-  transform:
-    translate(-50%, -50%)
-    translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-    rotateX(42deg)
-    scale(var(--arena-fit, 1)) !important;
-}
-
-.page--arena .arena-render-container {
-  filter: none !important;
-}
-
 .page--arena #arena-render .arena-cell[data-ring-kind="rank"] {
   stroke: #ffffff !important;
   stroke-width: 1.2px !important;

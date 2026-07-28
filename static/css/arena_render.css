@@ -390,7 +390,12 @@
   width: auto;
   height: 172%;
   aspect-ratio: 1;
-  transform-style: preserve-3d;
+  /* flat, not preserve-3d: the floor is one plane and a nested 3D context
+     under this transform broke the camera (v2.5.649). This file is the only
+     place the camera is declared — arena_atmosphere.css used to restate the
+     whole block with !important and force `flat` from there, so this line
+     said preserve-3d while the page rendered flat. */
+  transform-style: flat;
   transform-origin: 50% 62%;
   transform:
     translate(-50%, -50%)

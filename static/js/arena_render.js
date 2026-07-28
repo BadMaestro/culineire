@@ -48,13 +48,16 @@
   // construction so projected bbox lands on 1.60 (1.60²/1.7541 ≈ 1.4594).
   // Floor span 0.63 is an OUTPUT after fit-by-stands; stage = 0.13 × floor;
   // composition centre at 0.50 W / 0.51 H.
-  var FLOOR_SHARE = 0.63;
+  // Removed here because nothing read them: FLOOR_SHARE 0.63, STAGE_RATIO 0.13
+  // and VERTICAL_COMPRESSION 0.56 were declared and never used. All three are
+  // recorded values, not working code, and they remain in
+  // docs/chef_battle/arena_mockup_spec.json, which is the authoritative copy.
+  // Note VERTICAL_COMPRESSION 0.56 = cos(56deg) — the spec's camera tilt. The
+  // live camera is rotateX(42deg), so that acceptance figure never described
+  // what ships; keeping it in the source implied otherwise.
   var STANDS_RATIO = 1.60 * 1.60 / 1.7541;
-  var STAGE_RATIO = 0.13;
   var COMPOSITION_CX = 0.50;
   var COMPOSITION_CY = 0.51;
-  // G2 acceptance: projected floor height/width ≈ cos(56deg).
-  var VERTICAL_COMPRESSION = 0.56;
 
   var pollTimer = null;
   var pingTimer = null;
