@@ -26,6 +26,7 @@
   var STAGE_RADIUS = 82;
   // Crown nick capacity at name Y (dy ≈ 0.44·R, font ≈ 0.16·R): usable ≈ 130
   // SVG units. Measured live: ~14 uppercase / ~17 mixed; hard ceiling = 14.
+  // Keep in lockstep with recipes.models.RecipeAuthor.PEN_NAME_MAX_LENGTH.
   var CROWN_NAME_MAX_CHARS = 14;
   var CROWN_NAME_Y_FACTOR = 0.44;
   var CROWN_NAME_PAD = 6;

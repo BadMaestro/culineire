@@ -1227,7 +1227,7 @@ class AuthenticationPageTests(TestCase):
         response = self.client.post(
             reverse("recipes:author_edit"),
             {
-                "name": "Ciaran O Kitchen",
+                "name": "Ciaran Kitchen",
                 "default_avatar": RecipeAuthor.DefaultAvatar.NEUTRAL,
                 "bio": "Modern Irish cooking notes.",
                 "avatar": "",
@@ -1236,10 +1236,39 @@ class AuthenticationPageTests(TestCase):
 
         author.refresh_from_db()
         self.assertRedirects(response, author.get_absolute_url())
-        self.assertEqual(author.name, "Ciaran O Kitchen")
+        self.assertEqual(author.name, "Ciaran Kitchen")
         self.assertEqual(author.slug, "ciaran")
         self.assertEqual(author.bio, "Modern Irish cooking notes.")
         self.assertEqual(author.user, self.user)
+
+    def test_author_edit_rejects_pen_name_over_arena_limit(self):
+        author = RecipeAuthor.objects.create(
+            user=self.user,
+            name="Ciaran",
+            slug="ciaran",
+        )
+        self.client.force_login(self.user)
+        too_long = "X" * (RecipeAuthor.PEN_NAME_MAX_LENGTH + 1)
+
+        response = self.client.post(
+            reverse("recipes:author_edit"),
+            {
+                "name": too_long,
+                "default_avatar": RecipeAuthor.DefaultAvatar.NEUTRAL,
+                "bio": "Still short bio.",
+                "avatar": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(
+            response.context["form"],
+            "name",
+            f"Pen name must be {RecipeAuthor.PEN_NAME_MAX_LENGTH} characters or fewer "
+            f"(arena crown pad limit).",
+        )
+        author.refresh_from_db()
+        self.assertEqual(author.name, "Ciaran")
 
     def test_recipe_create_assigns_linked_author(self):
         author = RecipeAuthor.objects.create(

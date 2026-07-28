@@ -332,12 +332,16 @@ class RecipeAuthorProfileForm(forms.ModelForm):
             "avatar",
         )
         labels = {
-            "name": "Author Name",
+            "name": "Author Name / Pen Name",
             "default_avatar": "Choose Default Avatar",
             "bio": "Short Bio",
             "avatar": "Author Avatar",
         }
         help_texts = {
+            "name": (
+                f"Public chef alias shown on the arena crown pad — "
+                f"max {RecipeAuthor.PEN_NAME_MAX_LENGTH} characters."
+            ),
             "avatar": "Upload a square PNG or JPG for the best result.",
         }
         widgets = {
@@ -351,12 +355,29 @@ class RecipeAuthorProfileForm(forms.ModelForm):
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "authoring-control")
 
-        self.fields["name"].widget.attrs.setdefault("placeholder", "e.g. CulinEire Kitchen")
+        name_field = self.fields["name"]
+        name_field.max_length = RecipeAuthor.PEN_NAME_MAX_LENGTH
+        name_field.widget.attrs["maxlength"] = str(RecipeAuthor.PEN_NAME_MAX_LENGTH)
+        name_field.widget.attrs.setdefault("placeholder", "e.g. GreenBear")
         self.fields["bio"].widget.attrs.setdefault(
             "placeholder",
             "A short note about your cooking style, background or kitchen focus.",
         )
         self.fields["avatar"].widget.attrs.setdefault("accept", ".jpg,.jpeg,.png,.webp")
+
+    def clean_name(self):
+        name = (self.cleaned_data.get("name") or "").strip()
+        if len(name) < 2:
+            raise forms.ValidationError("Name must be at least 2 characters long.")
+        if len(name) > RecipeAuthor.PEN_NAME_MAX_LENGTH:
+            raise forms.ValidationError(
+                f"Pen name must be {RecipeAuthor.PEN_NAME_MAX_LENGTH} characters or fewer "
+                f"(arena crown pad limit)."
+            )
+        bad = find_profanity(name)
+        if bad:
+            raise forms.ValidationError("Name contains forbidden words.")
+        return name
 
 
 class RecipeRatingForm(forms.Form):

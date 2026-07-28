@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
         for user in user_model.objects.filter(recipe_author_profile__isnull=True):
             slug = _unique_slug(user.username)
-            RecipeAuthor.objects.create(user=user, name=user.username, slug=slug)
+            RecipeAuthor.objects.create(user=user, name=user.username[:RecipeAuthor.PEN_NAME_MAX_LENGTH], slug=slug)
             self.stdout.write(f"  Created profile for: {user.username} (slug: {slug})")
             created += 1
 

@@ -4,6 +4,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from django.conf import settings
+from django.core.validators import MaxLengthValidator
 from django.db import models
 from django.db.models import Q
 from django.templatetags.static import static
@@ -97,6 +98,10 @@ class RecipeAuthor(models.Model):
         FEMALE = "female", "Female Avatar"
         NEUTRAL = "neutral", "Neutral Avatar"
 
+    # Arena crown pad chord holds ~14 glyphs at the nick font size
+    # (static/js/arena_render.js CROWN_NAME_MAX_CHARS). Keep in lockstep.
+    PEN_NAME_MAX_LENGTH = 14
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -105,7 +110,12 @@ class RecipeAuthor(models.Model):
         related_name="recipe_author_profile",
         verbose_name="Linked user account",
     )
-    name = models.CharField("Name / pen name", max_length=100)
+    name = models.CharField(
+        "Name / pen name",
+        max_length=100,
+        validators=[MaxLengthValidator(PEN_NAME_MAX_LENGTH)],
+        help_text=f"Public chef alias — max {PEN_NAME_MAX_LENGTH} characters (fits the arena crown pad).",
+    )
     slug = models.SlugField("URL slug", unique=True)
     default_avatar = models.CharField(
         "Default avatar",
