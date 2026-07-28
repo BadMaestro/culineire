@@ -523,20 +523,25 @@
 }
 #arena-render .arena-floor-crown__gold-lip {
   pointer-events: none;
-  opacity: 0.92;
+  opacity: 1;
+  stroke-width: 2.6;
+  paint-order: stroke;
+}
+#arena-render .arena-floor-crown__recess-wall {
+  pointer-events: none;
 }
 #arena-render .arena-floor-crown__bulb-glow {
-  fill: #ff9a2e;
-  opacity: 0.28;
+  fill: #ffc966;
+  opacity: 0.22;
 }
 #arena-render .arena-floor-crown__bulb-glow--far {
-  opacity: 0.14;
+  opacity: 0.1;
 }
 #arena-render .arena-floor-crown__bulb-core {
-  opacity: 0.95;
+  opacity: 0.88;
 }
 #arena-render .arena-floor-crown__bulb-core--far {
-  opacity: 0.55;
+  opacity: 0.45;
 }
 #arena-render .arena-floor-crown__label {
   fill: var(--accent-bronze);

@@ -1110,9 +1110,9 @@
       y2: (TPL_CY + STAGE_RADIUS * 1.2).toFixed(2)
     });
     // rotateX(42deg): plan-top = far/shadow, plan-bottom = near/highlight.
-    rimGrad.appendChild(el('stop', { offset: '0%', 'stop-color': '#3d2812', 'stop-opacity': '0.85' }));
-    rimGrad.appendChild(el('stop', { offset: '42%', 'stop-color': '#8a5c28', 'stop-opacity': '0.75' }));
-    rimGrad.appendChild(el('stop', { offset: '100%', 'stop-color': '#d4a24a', 'stop-opacity': '0.95' }));
+    rimGrad.appendChild(el('stop', { offset: '0%', 'stop-color': '#4a3018', 'stop-opacity': '0.9' }));
+    rimGrad.appendChild(el('stop', { offset: '45%', 'stop-color': '#b8862e', 'stop-opacity': '0.95' }));
+    rimGrad.appendChild(el('stop', { offset: '100%', 'stop-color': '#f5d070', 'stop-opacity': '1' }));
     defs.appendChild(rimGrad);
 
     var recessGrad = el('linearGradient', {
@@ -1136,20 +1136,17 @@
   }
 
   /**
-   * Reference layering (outside → in):
-   *   1. Recessed outer trough (dark wood) — bulbs live HERE only.
-   *   2. Raised gold lip around the marble — not recessed, no lamps.
-   *   3. Marble + crown + nick (clipped).
+   * Reference (Capture2): raised green marble + thin bright gold lip;
+   * separate sunken moat outside gold with bulbs on flat edges — not on vertices.
    */
   function drawCrownStageFrame(stack, svg, cx, cy, radius) {
     ensureCrownStageDefs(svg);
-    var goldBand = radius * 0.042;
-    var goldOuterR = radius + goldBand;
-    var recessInnerR = goldOuterR + 2.5;
-    var recessOuterR = goldOuterR + radius * 0.15;
+    var goldOuterR = radius + radius * 0.012;
+    var moatGap = radius * 0.07;
+    var recessInnerR = goldOuterR + moatGap;
+    var recessOuterR = recessInnerR + radius * 0.17;
     var frame = el('g', { class: 'arena-floor-crown__frame', 'pointer-events': 'none' });
 
-    // Outer trough — strictly outside the raised gold lip.
     frame.appendChild(el('path', {
       d: octagonPathD(cx, cy, recessOuterR) + ' ' + octagonPathD(cx, cy, recessInnerR),
       'fill-rule': 'evenodd',
@@ -1158,38 +1155,47 @@
       class: 'arena-floor-crown__recess'
     }));
 
-    // Bulbs sit in the trough mid-line — never on the gold ring.
+    // Inner wall of moat — separates lit trough from raised gold lip.
+    frame.appendChild(el('path', {
+      d: octagonPathD(cx, cy, recessInnerR),
+      fill: 'none',
+      stroke: '#120c08',
+      'stroke-width': '1.4',
+      opacity: '0.65',
+      class: 'arena-floor-crown__recess-wall'
+    }));
+
     var bulbs = el('g', { class: 'arena-floor-crown__bulbs' });
     var bulbR = (recessInnerR + recessOuterR) / 2;
     var i;
     for (i = 0; i < 8; i++) {
-      var angle = i * Math.PI / 4;
+      // Edge midpoints — reference bulbs sit on flat sides, not on gold corners.
+      var angle = i * Math.PI / 4 + Math.PI / 8;
       var bx = cx + bulbR * Math.cos(angle);
       var by = cy + bulbR * Math.sin(angle);
-      var far = Math.sin(angle) < -0.15;
-      var glowR = far ? 3.8 : 4.8;
+      var far = Math.sin(angle) < -0.05;
       bulbs.appendChild(el('circle', {
         cx: bx.toFixed(2),
         cy: by.toFixed(2),
-        r: glowR.toFixed(2),
+        r: (far ? 3.2 : 4.0).toFixed(2),
         class: 'arena-floor-crown__bulb-glow' + (far ? ' arena-floor-crown__bulb-glow--far' : '')
       }));
       bulbs.appendChild(el('circle', {
         cx: bx.toFixed(2),
         cy: by.toFixed(2),
-        r: (far ? 1.3 : 1.7).toFixed(2),
+        r: (far ? 1.1 : 1.5).toFixed(2),
         fill: 'url(#arena-crown-bulb-grad)',
         class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
       }));
     }
     frame.appendChild(bulbs);
 
-    // Raised gold lip — drawn on top of marble in drawFloorCrown after the pad.
+    // Thin raised gold lip — stroke only, not a thick filled band.
     frame.appendChild(el('path', {
-      d: octagonPathD(cx, cy, goldOuterR) + ' ' + octagonPathD(cx, cy, radius * 0.988),
-      'fill-rule': 'evenodd',
-      fill: 'url(#arena-crown-rim-grad)',
-      stroke: 'none',
+      d: octagonPathD(cx, cy, goldOuterR),
+      fill: 'none',
+      stroke: 'url(#arena-crown-rim-grad)',
+      'stroke-width': '2.6',
       class: 'arena-floor-crown__gold-lip'
     }));
 
