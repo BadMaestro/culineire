@@ -18,7 +18,13 @@ def _require_access(request):
 
 def dashboard(request):
     _require_access(request)
-    agents = CoworkingAgent.objects.prefetch_related("log_entries").all()
+    # The board shows the working agents only; "owner" is the Owner's send
+    # identity for the paste box, not a worker, so it is kept out of the cards.
+    agents = (
+        CoworkingAgent.objects.exclude(agent_id="owner")
+        .prefetch_related("log_entries")
+        .all()
+    )
     shared = CoworkingSharedMemory.load()
     return render(request, "coworking/dashboard.html", {
         "agents": agents,

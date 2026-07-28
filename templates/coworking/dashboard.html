@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Coworking | CulinEire{% endblock %}
-{% block meta_description %}Internal AI agent coworking dashboard.{% endblock %}
+{% block title %}Carpet | CulinEire{% endblock %}
+{% block meta_description %}Internal AI agent Carpet dashboard.{% endblock %}
 
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
@@ -36,7 +36,7 @@
         <header class="automation-header">
             <div>
                 <p class="automation-kicker">Internal AI agent coordination</p>
-                <h1 class="automation-title">Coworking</h1>
+                <h1 class="automation-title">Carpet</h1>
                 <p class="automation-summary">{{ agents.count }} agent{{ agents.count|pluralize }} registered</p>
             </div>
         </header>
@@ -48,6 +48,24 @@
             {% endfor %}
         </ul>
         {% endif %}
+
+        <section class="coworking-paste">
+            <h2>Paste &amp; deliver</h2>
+            <p class="coworking-paste__hint">Paste text of any length (e.g. a full transcript) and route it to an agent's inbox. No character limit.</p>
+            <form method="post" action="{% url 'coworking:send_message' %}" class="coworking-paste__form">
+                {% csrf_token %}
+                <div class="coworking-paste__controls">
+                    <label>Deliver to
+                        <select name="to_agent" required>
+                            {% for agent in agents %}{% if agent.agent_id != 'owner' %}<option value="{{ agent.agent_id }}">{{ agent.label }}</option>{% endif %}{% endfor %}
+                        </select>
+                    </label>
+                    <input type="text" name="subject" placeholder="Optional subject, e.g. GreenBear last transcript" maxlength="200">
+                </div>
+                <textarea name="body" rows="14" required placeholder="Paste here — any length is accepted…" style="width:100%; font-family:var(--font-mono, monospace); font-size:.85rem; line-height:1.5; resize:vertical;"></textarea>
+                <button class="btn-primary" type="submit">Deliver to agent</button>
+            </form>
+        </section>
 
         <div class="coworking-board">
             {% for agent in agents %}
@@ -113,24 +131,6 @@
             <input type="text" name="label" placeholder="New agent label, e.g. Claude D" required>
             <button class="btn-secondary" type="submit">Add agent</button>
         </form>
-
-        <section class="coworking-paste">
-            <h2>Paste &amp; deliver</h2>
-            <p class="coworking-paste__hint">Paste text of any length (e.g. a full transcript) and route it to an agent's inbox. No character limit.</p>
-            <form method="post" action="{% url 'coworking:send_message' %}" class="coworking-paste__form">
-                {% csrf_token %}
-                <div class="coworking-paste__controls">
-                    <label>Deliver to
-                        <select name="to_agent" required>
-                            {% for agent in agents %}{% if agent.agent_id != 'owner' %}<option value="{{ agent.agent_id }}">{{ agent.label }}</option>{% endif %}{% endfor %}
-                        </select>
-                    </label>
-                    <input type="text" name="subject" placeholder="Optional subject, e.g. GreenBear last transcript" maxlength="200">
-                </div>
-                <textarea name="body" rows="14" required placeholder="Paste here — any length is accepted…" style="width:100%; font-family:var(--font-mono, monospace); font-size:.85rem; line-height:1.5; resize:vertical;"></textarea>
-                <button class="btn-primary" type="submit">Deliver to agent</button>
-            </form>
-        </section>
 
         <section class="coworking-shared">
             <h2>Shared</h2>
