@@ -476,6 +476,18 @@
     // Grey outer band outside the clip — visible frame, no avatar bleed over it.
     drawWalkway(svg, geometry, step);
 
+    // The spectator oval. drawSpectatorOval existed, was complete, and was
+    // called from nowhere: production rendered 210 rank cells, one stage and
+    // ZERO spectator seats, while the payload carried all 290 of them. Nothing
+    // reported it, because an unseated arena looks the same as an arena with no
+    // seats. It also builds the arena-clip-<ring>-<cell> clip paths that a
+    // seated viewer's portrait is masked with, so without this call a viewer
+    // could never appear in the stands at all.
+    //
+    // Drawn after the walkway so seats sit in front of it, and inside drawGrid
+    // so the nodes exist before bind() seats anyone.
+    drawSpectatorOval(svg, geometry, step, defs);
+
     var label = el('text', {
       'text-anchor': 'middle', 'dominant-baseline': 'central',
       'pointer-events': 'none', hidden: 'hidden',
