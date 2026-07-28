@@ -3,11 +3,11 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "1.14.0"
+  version: "1.15.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
-  last_updated: "2026-07-27"
+  last_updated: "2026-07-28"
 ```
 
 ## 1. Authority
@@ -620,6 +620,20 @@ All automated testing runs on the **primary 8-core workstation**. Python, git,
 the virtualenv and the full checkout are there. Use its cores: run the suite in
 parallel across the eight of them.
 
+### The test database is Postgres, never SQLite
+
+Tests run on **PostgreSQL only**. This is a standing rule, not a new one. The
+local `.env` must carry `DATABASE_URL=postgresql://…@127.0.0.1:5432/culineire`;
+verify the live engine before trusting a run: `connection.settings_dict['ENGINE']`
+must read `django.db.backends.postgresql`.
+
+**Never SQLite.** `select_for_update` is a silent no-op on SQLite, so every
+`FOR UPDATE` lock in the codebase runs untested while the suite still reports
+green. A run that fell back to SQLite has verified nothing about concurrency and
+is not a run. Measure the cores, do not trust a stated number: the primary box is
+an Intel i7-2600 — 4 physical cores / **8 logical threads** — so `os.cpu_count()`
+is 8 and `--parallel` uses 8. Never more workers than the 8 logical threads.
+
 ### Production testing is allowed, under a measured 50% ceiling
 
 Owner's decision, 2026-07-27: testing on production is permitted, **but only
@@ -687,6 +701,9 @@ first (section 13); discovering spare hardware is not permission to use it.
 ### Mandatory rules
 
 - Run the full suite **once**, on the 8-core workstation, in parallel.
+- **On PostgreSQL only, never SQLite** (`select_for_update` is a no-op on SQLite;
+  a green SQLite run proves nothing about the locks). Always `--parallel`, never
+  serial. Record the engine and worker count with the result.
 - **Never launch more workers than the machine has logical cores.** Eight
   parallel streams of the same suite on a six-core machine is what removed an
   agent from this project for a week. More streams is not more speed; past the
@@ -706,6 +723,7 @@ full_suite_run:
   test_run_id: ""
   commit: ""
   machine: "primary_8_core"
+  database_engine: "postgresql"   # MUST be postgresql; a run on sqlite is invalid
   workers: 0                 # never above the machine's logical core count
   started_at: ""
   duration_seconds: 0
