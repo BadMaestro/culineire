@@ -2669,6 +2669,28 @@ class ArenaMasterConsoleAccessTests(TestCase):
         # without it the grid would silently render empty.
         self.assertContains(resp, "arena-data-json")
         self.assertContains(resp, "arena_geometry")
+        # The compact facts list repeats the authoritative viewer count. It
+        # must keep a stable target so arena_deck.js can refresh both visible
+        # copies from the same payload value.
+        self.assertContains(resp, 'id="arena-facts-viewers"')
+
+    def test_unified_renderer_invokes_existing_spectator_oval(self):
+        """The 290-seat backend contract must be connected to the SVG layer."""
+        from django.conf import settings as django_settings
+        from pathlib import Path
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+        # One declaration and one invocation. Before the fix only the
+        # declaration existed, leaving all spectator seats and clip paths
+        # absent even though the backend payload contained them.
+        self.assertEqual(source.count("drawSpectatorOval("), 2)
+        self.assertLess(
+            source.index("drawWalkway(svg, geometry, step);"),
+            source.index("drawSpectatorOval(svg, geometry, step, defs);"),
+        )
 
 
 # ── AMC P02 — master_state read models ───────────────────────────────────────
