@@ -1317,6 +1317,75 @@ class CrownTests(TestCase):
         self.assertTrue(event.is_public)
 
 
+class ConcurrentScoringSharesOneProfileTests(TransactionTestCase):
+    """One chef, two battles, both scored at the same instant.
+
+    The battle row lock does not help here: the two battles are different rows,
+    so both scorings proceed, and each one read-modify-wrote the SAME
+    ChefBattleProfile. Two wins landed as one — one win, one crown and one rank
+    step silently lost. Real threads and real transactions, because a serial
+    test cannot see it.
+    """
+
+    def _battle_won_by(self, winner, loser, tag):
+        User = get_user_model()
+        challenge = BattleChallenge.objects.create(
+            challenger=winner,
+            opponent=loser,
+            theme=f"Race {tag}",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        battle = accept_challenge(challenge)
+        voter = User.objects.create_user(username=f"race-voter-{tag}", password="pw")
+        BattleVote.objects.create(battle=battle, voter=voter, voted_for=winner)
+        return battle
+
+    def _one_win(self, tag):
+        User = get_user_model()
+        wu = User.objects.create_user(username=f"race-w-{tag}", password="pw")
+        lu = User.objects.create_user(username=f"race-l-{tag}", password="pw")
+        winner = RecipeAuthor.objects.create(user=wu, name=f"RW {tag}", slug=f"race-w-{tag}")
+        loser = RecipeAuthor.objects.create(user=lu, name=f"RL {tag}", slug=f"race-l-{tag}")
+        return winner, self._battle_won_by(winner, loser, tag)
+
+    def test_profiles_are_read_under_a_row_lock(self):
+        """Asserted on the SQL, not by racing threads.
+
+        A two-thread version of this test was written first and passed with the
+        lock removed: the read-modify-write window is too narrow to hit by
+        chance, so the test proved nothing while looking like proof. What can be
+        stated exactly is the mechanism — the scoring reads the profile rows
+        with FOR UPDATE, which is what makes a concurrent scoring wait.
+        """
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        winner, battle = self._one_win("sql")
+        with CaptureQueriesContext(connection) as captured:
+            calculate_battle_result(battle)
+
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper()
+            and "chef_battle_chefbattleprofile" in q["sql"].lower()
+        ]
+        self.assertTrue(
+            locking,
+            "scoring read the chef profiles without FOR UPDATE — two battles "
+            "finishing at once would each read the same rating and lose a win",
+        )
+
+    def test_scoring_keeps_the_author_cached_profile_fresh(self):
+        """Callers read author.battle_profile straight after scoring — the crown
+        badge in battle_detail.html does exactly that. Re-reading the rows under
+        a lock left that cache pointing at the pre-battle figures."""
+        winner, battle = self._one_win("cache")
+        calculate_battle_result(battle)
+        self.assertEqual(winner.battle_profile.wins, 1)
+        self.assertEqual(winner.battle_profile.crown_count, 1)
+        self.assertTrue(winner.battle_profile.has_crown)
+
+
 class AutoCompleteVotingTests(TestCase):
     """CB-1402: management command completes VOTING battles past deadline."""
 

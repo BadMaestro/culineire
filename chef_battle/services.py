@@ -691,6 +691,15 @@ def _score_battle(battle: Battle) -> Battle:
         }
         winner_profile = locked_profiles[winner.pk]
         loser_profile = locked_profiles[loser.pk]
+        # Point each author's cached reverse relation at the row we are about to
+        # change. Scoring used to mutate the very object Django had attached to
+        # the author, so anything reading author.battle_profile afterwards saw
+        # the new figures; re-reading the rows under a lock quietly broke that.
+        # It is not only a test detail — battle_detail.html renders the crown
+        # from battle.challenger.battle_profile.has_crown, so a stale cache
+        # would show the fresh winner without their crown.
+        winner.battle_profile = winner_profile
+        loser.battle_profile = loser_profile
 
         old_winner_rank = winner_profile.rank
         old_loser_rank = loser_profile.rank
