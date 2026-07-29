@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.713",
+        "date": "2026-07-30",
+        "commit": "d39e4cf7",
+        "title": "Chefs stopped disappearing from the floor",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner reported chefs missing from the arena and the green online light gone. Cause was a half-finished AR1: the floor was rewritten to the arena's own eleven rings, but occupant PLACEMENT still read the Sponsors template - capacity 10..60 against a floor that now draws 9..40 - so a chef whose scattered cell landed past the drawn count matched no cell, hit a silent 'if (!seat) return' in bind(), and vanished together with its online indicator. Placement also collapsed ranks 6-8 onto one ring via Math.min(6, index), so commis/prep/porter competed for the same seats and prep_cook and kitchen_porter never stood on a ring of their own. Placement now takes ring identity and capacity from payload.geometry, the same authority the floor is drawn from, so the two can no longer drift. A dropped occupant now logs a warning instead of disappearing without a word - that silence is why the Owner had to find this instead of the code. Verified live: both chefs render, both online, Kitchen Porter on ring 8 for the first time.",
+    },
+    {
         "version": "2.5.709",
         "date": "2026-07-29",
         "commit": "53ac4443",
