@@ -3007,23 +3007,25 @@ ARENA_RELEASE_STAGES = [
         "title": "Design Arena visual integration", "status": "IN PROGRESS",
         "purpose": "Bring the live Arena to the Design Arena reference, working only on top of "
                    "the existing scene — no octagon-method or camera change.",
-        "owners": "Ember writes Arena JS/templates/tests and hands commits; GreenBear gates "
-                  "(merge/deploy/verify/close) and owns the CSS slices.",
+        "owners": "Ember owns the active chef-plinth slice and temporary full gate while "
+                  "GreenBear is limited; normal ownership resumes on his return.",
         "criteria": ["Spectator oval actually drawn — 290 seats (drawSpectatorOval was never called). DONE v2.5.676.",
                      "One authoritative viewer count, not two disagreeing. DONE v2.5.676.",
                      "Leaked multiline template comment removed. DONE v2.5.677.",
                      "Empty spectator stands visible (leftover opacity:0 cleared; atmosphere "
                      "cleanup no longer hides them). DONE v2.5.678.",
+                     "Active slice: chef names plus static Irish flag/country inside the "
+                     "existing floor plinths; no separate support panel.",
                      "Remaining visual slices tracked in docs/ARENA_BATTLE_PLAN.md section 5.",
                      "Hard constraints held every slice: octagon method and camera rotateX(42deg) "
                      "frozen; mechanisms, seat contract, backend, Dark Launch and Master Console untouched."],
         "dependencies": "Stage 1 baseline DONE.",
-        "blockers": ["Next visual slice awaits Ember's definition from the reference build (see plan section 5)."],
-        "branch": "main", "commit": "514cdcb8 (v2.5.680)",
-        "verification": "Production v2.5.680: 290/290 spectator seats visible, single viewer "
-                        "count, instant Carpet delivery live-verified (~175ms wake).",
-        "updated": "2026-07-29T01:00:00.000Z",
-        "next_action": "Ember defines and writes the next visual slice; GreenBear runs the gate.",
+        "blockers": [],
+        "branch": "temporary isolated worktree", "commit": "v2.5.682 candidate",
+        "verification": "18 focused PostgreSQL tests passed; Django check, JS syntax and "
+                        "diff checks passed. Production browser postflight remains.",
+        "updated": "2026-07-29T01:34:00.000Z",
+        "next_action": "Deploy v2.5.682 and verify the chef-plinth identity overlay in production.",
     },
     {
         "n": 3, "id": "release-readiness",

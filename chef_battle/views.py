@@ -781,13 +781,16 @@ def battle_home(request):
 
 
 _ARENA_ONLINE_THRESHOLD = 180  # seconds — chef counts as online if seen within 3 min
+_ARENA_STATIC_COUNTRY = "Ireland"
+_ARENA_STATIC_FLAG = "\U0001F1EE\U0001F1EA"
 
 
 def _arena_fighter_payload(author, side):
     """Build Plan 3R3 fighter contract for the confrontation band.
 
-    Keys: name, avatar_url, slug, profile_url, side.
-    Country/flag intentionally omitted until Owner decision D3.
+    Country/flag stay static until profile country data is approved. The Arena
+    reference requires both inside each floor plinth; keeping the values here
+    makes the initial render and every state poll use one authoritative payload.
     """
     return {
         "name": author.name,
@@ -795,6 +798,8 @@ def _arena_fighter_payload(author, side):
         "slug": author.slug,
         "profile_url": author.get_absolute_url(),
         "side": side,
+        "country": _ARENA_STATIC_COUNTRY,
+        "flag": _ARENA_STATIC_FLAG,
     }
 
 

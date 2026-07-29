@@ -1491,17 +1491,38 @@
         class: 'arena-floor-fighter__avatar'
       }));
     }
+
+    // Identity belongs inside the octagon on a dark lower fade. This remains
+    // part of the existing floor fighter, not a separate support panel.
+    group.appendChild(el('rect', {
+      x: (centre.x - radius).toFixed(2),
+      y: (centre.y + radius * 0.20).toFixed(2),
+      width: (radius * 2).toFixed(2),
+      height: (radius * 0.80).toFixed(2),
+      'clip-path': 'url(#' + clipId + ')',
+      class: 'arena-floor-fighter__identity-shade'
+    }));
     if (fighter.name) {
       var label = el('text', {
         x: centre.x.toFixed(2),
-        y: (centre.y + radius + 16).toFixed(2),
+        y: (centre.y + radius * 0.48).toFixed(2),
         'text-anchor': 'middle',
-        'dominant-baseline': 'hanging',
+        'dominant-baseline': 'middle',
         class: 'arena-floor-fighter__name'
       });
       label.textContent = fighter.name;
       group.appendChild(label);
     }
+    var country = el('text', {
+      x: centre.x.toFixed(2),
+      y: (centre.y + radius * 0.73).toFixed(2),
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      class: 'arena-floor-fighter__country'
+    });
+    country.textContent = ((fighter.flag || '\uD83C\uDDEE\uD83C\uDDEA') + ' ' +
+      (fighter.country || 'Ireland')).trim();
+    group.appendChild(country);
     layer.appendChild(group);
   }
 

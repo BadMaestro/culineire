@@ -2693,6 +2693,20 @@ class ArenaMasterConsoleAccessTests(TestCase):
             source.index("drawSpectatorOval(svg, geometry, step, defs);"),
         )
 
+    def test_floor_fighter_identity_stays_inside_existing_plinth(self):
+        """Name and static country belong inside the existing floor fighter."""
+        from django.conf import settings as django_settings
+        from pathlib import Path
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("arena-floor-fighter__identity-shade", source)
+        self.assertIn("arena-floor-fighter__country", source)
+        self.assertIn("fighter.country || 'Ireland'", source)
+        self.assertNotIn("centre.y + radius + 16", source)
+
 
 # ── AMC P02 — master_state read models ───────────────────────────────────────
 
@@ -7086,9 +7100,11 @@ class ArenaCenterMetaTests(TestCase):
 
 
 class ArenaCenterConfrontationContractTests(TestCase):
-    """Build Plan 3R3: confrontation-band fighter contract (no country/flag)."""
+    """Confrontation payload includes the reference plinth identity."""
 
-    FIGHTER_KEYS = {"name", "avatar_url", "slug", "profile_url", "side"}
+    FIGHTER_KEYS = {
+        "name", "avatar_url", "slug", "profile_url", "side", "country", "flag",
+    }
 
     def _pair(self):
         U = get_user_model()
@@ -7107,8 +7123,8 @@ class ArenaCenterConfrontationContractTests(TestCase):
         self.assertEqual(fighter["slug"], author.slug)
         self.assertEqual(fighter["profile_url"], author.get_absolute_url())
         self.assertEqual(fighter["side"], side)
-        self.assertNotIn("country", fighter)
-        self.assertNotIn("flag", fighter)
+        self.assertEqual(fighter["country"], "Ireland")
+        self.assertEqual(fighter["flag"], "🇮🇪")
         self.assertNotIn("flag_url", fighter)
         self.assertNotIn("country_code", fighter)
 

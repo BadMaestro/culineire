@@ -484,13 +484,23 @@
   fill: color-mix(in srgb, var(--accent-bronze) 22%, var(--surface));
 }
 #arena-render .arena-floor-fighter__name {
-  fill: var(--ink);
+  fill: var(--surface);
   font-family: var(--font-serif, "Playfair Display", serif);
   font-size: 12px;
   font-weight: 700;
   paint-order: stroke;
-  stroke: color-mix(in srgb, var(--surface) 75%, transparent);
-  stroke-width: 3px;
+  stroke: color-mix(in srgb, var(--brand-dark) 80%, transparent);
+  stroke-width: 2px;
+}
+#arena-render .arena-floor-fighter__identity-shade {
+  fill: color-mix(in srgb, var(--brand-dark) 78%, transparent);
+}
+#arena-render .arena-floor-fighter__country {
+  fill: color-mix(in srgb, var(--surface) 82%, transparent);
+  font-family: var(--font-sans, "Montserrat", sans-serif);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 /* Portrait shares the floor plane (same rotateX as the octagon). */

@@ -4125,7 +4125,7 @@ class ArenaBuildPlanShareLinkTests(TestCase):
         byte-for-byte against the moderator page: a signed-in response also
         carries session-driven chrome the anonymous one has no reason to."""
         resp = self.client.get(self.url())
-        for marker in ["Arena Build Plan", "Arena Implementation", "NOT READY"]:
+        for marker in ["Arena Build Plan", "Design Arena visual integration", "NOT READY"]:
             self.assertContains(resp, marker)
 
     def test_the_start_control_is_not_reachable_from_the_share_link(self):
