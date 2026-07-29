@@ -2719,8 +2719,9 @@
 
 /* ============================================================================
  * MOCKUP M05/M06/M11 — floor rank titles + crown hub + Emerald Hall identity.
- * DOM order stays model order (Kitchen Porter → Culinary Master); desktop
- * column-reverse places Culinary Master near the centre like the mockup.
+ * DOM and visual order stay model order (Kitchen Porter → Culinary Master):
+ * the far/top edge begins with Kitchen Porter and Culinary Master finishes
+ * beside the centre, matching the approved Arena reference.
  * ============================================================================ */
 @media (min-width: 901px) {
   .arena-broadcast-ribbon .arena-command-deck__header h1 {
@@ -2742,7 +2743,7 @@
   .arena-rank-spine__list {
     flex: 1 1 auto;
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
     justify-content: space-between;
     gap: 0;
     min-height: 0;

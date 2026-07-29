@@ -5,7 +5,7 @@ Arena (the "Design Arena" reference build) onto `main`. **GreenBear and Ember
 both read this at the start of every work turn and execute against it.** When a
 slice lands, the owner of that slice updates the table below in the same change.
 
-Last updated: 2026-07-29 · Production: **v2.5.682** (`03151165`).
+Last updated: 2026-07-29 · Target release: **v2.5.684**.
 
 ---
 
@@ -54,7 +54,7 @@ Last updated: 2026-07-29 · Production: **v2.5.682** (`03151165`).
 | # | Slice | Owner | Files | Status |
 |---|-------|-------|-------|--------|
 | 1 | Chef plinth identity overlay: name plus static Irish flag/country inside each existing floor fighter; no separate support panel | Ember (temporary full gate while GreenBear is limited) | `chef_battle/views.py`, `static/js/arena_render.js`, `static/css/arena_render.css`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.682 |
-| 2 | Define the next smallest overlay from the reference without changing the octagon, camera or existing mechanisms | Ember | TBD after production/reference comparison | PLANNED |
+| 2 | Correct the always-visible desktop rank spine: Kitchen Porter at the far/top edge through Culinary Master beside the centre, matching the reference | Ember temporary full gate | `static/css/arena_deck_polish.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | READY v2.5.684 |
 
 ## 6. Rollback
 

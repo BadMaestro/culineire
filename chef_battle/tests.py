@@ -7715,6 +7715,7 @@ class ArenaRankColumnTests(TestCase):
     asserted in a CSS comment."""
 
     CSS_DECK = Path(settings.BASE_DIR) / "static" / "css" / "arena_command_deck.css"
+    CSS_POLISH = Path(settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
     CSS_BASE = Path(settings.BASE_DIR) / "static" / "css" / "base.css"
 
     def setUp(self):
@@ -7776,6 +7777,14 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("left: 50%", base)
         self.assertIn("translateX(-50%)", base)
         self.assertNotIn("left: 0", base)
+
+    def test_desktop_rank_stack_runs_outer_to_centre(self):
+        """Reference: Kitchen Porter at the far edge, Culinary Master at centre."""
+        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        mockup_rules = css.split("MOCKUP M05/M06/M11", 1)[1]
+        rank_list = mockup_rules.split(".arena-rank-spine__list {", 1)[1].split("}", 1)[0]
+        self.assertIn("flex-direction: column", rank_list)
+        self.assertNotIn("column-reverse", rank_list)
 
     def test_each_step_is_screen_reader_readable(self):
         """The count renders as a bare numeral. Without a label a screen reader
