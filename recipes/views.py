@@ -3026,7 +3026,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Kitchen Porter starts at the far edge; Culinary Master finishes by the centre.",
         "acceptance": "All eight labels visible in the approved order and silhouette.",
         "forbidden": "Do not alter floor cells, rank data or camera.",
-        "evidence": "DONE v2.5.684-v2.5.685.",
+        "evidence": "DONE v2.5.684-v2.5.685; non-interactive plinth correction v2.5.695.",
     },
     {
         "id": "A04", "group": "Arena Hall", "title": "Cell click ripple and chef-card anchoring",
@@ -3037,7 +3037,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Click feedback stays in the cell; the chef card opens next to that cell.",
         "acceptance": "Works on every ring; card flips above near the bottom and stays inside screen edges.",
         "forbidden": "No per-cell special cases and no change to profile/challenge behaviour.",
-        "evidence": "DONE v2.5.687 and v2.5.691.",
+        "evidence": "DONE v2.5.687 and v2.5.691; close control v2.5.695.",
     },
     {
         "id": "A05", "group": "Arena Hall", "title": "Broadcast ribbon, phase rail, metrics and identity",

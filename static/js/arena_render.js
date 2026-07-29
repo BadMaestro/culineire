@@ -1667,6 +1667,16 @@
   }
 
   function attachEvents(svg) {
+    var tip = tooltipEl();
+    var close = tip && tip.querySelector('.arena-tooltip__close');
+    if (close) {
+      close.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        hideTooltip();
+      });
+    }
+
     svg.addEventListener('mouseover', function (event) {
       var seat = event.target.closest && event.target.closest('.arena-cell[data-seatable]');
       if (seat) { showSeatLabel(svg, seat); } else { hideSeatLabel(svg); }

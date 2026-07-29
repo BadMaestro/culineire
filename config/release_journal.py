@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.695",
+        "date": "2026-07-29",
+        "commit": "3d390723",
+        "title": "Arena chef-card close and non-interactive rank plinths",
+        "section": "Chef Battles / Arena",
+        "summary": "The chef-card close button now calls the existing tooltip close path. The eight rank plinths remain an ordered, accessible progression but no longer duplicate the same rankings link or animate through conflicting hover backgrounds. Focused PostgreSQL tests: 17/17. Dark Launch, floor geometry, colours, seat data and profile/challenge behaviour are unchanged. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.589",
         "date": "2026-07-25",
         "commit": "67079e16",

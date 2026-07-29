@@ -7775,7 +7775,7 @@ class ArenaRankColumnTests(TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
 
-        spine = html.split('class="arena-rank-spine"', 1)[1].split("</nav>", 1)[0]
+        spine = html.split('class="arena-rank-spine"', 1)[1].split("</div>", 1)[0]
         labels = [label for _value, label in ChefBattleProfile.Rank.choices]
 
         for label in labels:
@@ -7803,11 +7803,12 @@ class ArenaRankColumnTests(TestCase):
 
     def test_ladder_is_marked_up_as_an_ordered_progression(self):
         response = self.client.get(reverse("chef_battle:arena"))
-        spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</nav>", 1)[0]
+        spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</div>", 1)[0]
         self.assertIn('class="arena-rank-spine__label"', spine)
         self.assertIn("Kitchen rank progression", spine)
         self.assertIn('<ol class="arena-rank-spine__list">', spine)
         self.assertEqual(spine.count('class="arena-rank-spine__item"'), len(ChefBattleProfile.Rank.choices))
+        self.assertNotIn('href="', spine)
 
     def test_desktop_rank_stack_is_centred_option_b(self):
         """Owner D1 Option B (2026-07-24): Ember prototype centred stack, not a side column."""
@@ -7865,9 +7866,33 @@ class ArenaRankColumnTests(TestCase):
         """The count renders as a bare numeral. Without a label a screen reader
         reads a number with no noun, so every step carries its own aria-label."""
         response = self.client.get(reverse("chef_battle:arena"))
-        spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</nav>", 1)[0]
+        spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</div>", 1)[0]
         for _value, label in ChefBattleProfile.Rank.choices:
             self.assertIn(f'aria-label="{label} —', spine)
+
+    def test_rank_plinths_are_labels_not_duplicate_rankings_links(self):
+        response = self.client.get(reverse("chef_battle:arena"))
+        spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</div>", 1)[0]
+        self.assertNotIn("<a ", spine)
+        self.assertNotIn('href="', spine)
+        self.assertEqual(
+            spine.count('class="arena-rank-spine__step '),
+            len(ChefBattleProfile.Rank.choices),
+        )
+
+    def test_tooltip_close_button_calls_the_existing_hide_function(self):
+        from django.conf import settings as django_settings
+        from pathlib import Path
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        event_wiring = source.split("function attachEvents(svg)", 1)[1].split(
+            "svg.addEventListener('mouseover'", 1
+        )[0]
+        self.assertIn("querySelector('.arena-tooltip__close')", event_wiring)
+        self.assertIn("hideTooltip()", event_wiring)
+        self.assertIn("event.stopPropagation()", event_wiring)
 
     # ---- responsive ------------------------------------------------------
 

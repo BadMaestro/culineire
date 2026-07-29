@@ -58,8 +58,8 @@ at most one card. Nobody starts the next card before the current one is DONE.
 | A00 | Reference authority and immutable constraints reconciled | Plan/Deployment Project audit |
 | A01 | Real 290-seat oval connected; one viewer count; stands visible | v2.5.676–v2.5.678 |
 | A02 | Chef identity inside existing fighter plinths | v2.5.682 |
-| A03 | Correct rank order and approved bevelled labels | v2.5.684–v2.5.685 |
-| A04 | Cell ripple and chef card anchored to any clicked cell | v2.5.687, v2.5.691 |
+| A03 | Correct rank order and approved bevelled labels | v2.5.684–v2.5.685; non-interactive plinth correction v2.5.695 |
+| A04 | Cell ripple and chef card anchored to any clicked cell | v2.5.687, v2.5.691; close control v2.5.695 |
 | A05 | Identity/phase rail separated; compact metrics; contrast fixed | v2.5.689–v2.5.692 |
 
 ## 5. Atomic dispatch queue
