@@ -493,7 +493,14 @@
           'data-centroid-y': centroid.y.toFixed(2),
           'data-occupancy': 'empty',
           'data-state': 'idle',
-          class: 'arena-cell arena-cell--sponsors-tpl arena-cell--' + entry.kind
+          // Only the rank rings still carry arena-cell--sponsors-tpl: 37 fill
+          // rules across three stylesheets key on it, so dropping it there
+          // would un-paint the floor (AR2 renames it when it rewrites those
+          // rules). The moat and VIP ring are NOT sponsors-template rings and
+          // must not inherit its paint, so they are left out of it.
+          class: entry.kind === 'rank'
+            ? 'arena-cell arena-cell--sponsors-tpl arena-cell--rank'
+            : 'arena-cell arena-cell--' + entry.kind
         };
         if (ringAttr !== '') { attrs['data-ring'] = ringAttr; }
         cells.appendChild(el('path', attrs));

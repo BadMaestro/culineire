@@ -114,15 +114,21 @@
    they are deliberately outside the seating key. AR3 hangs the lanterns in the
    moat; AR5 dresses the VIP band for sponsors. */
 
+/* Both blocks are scoped .page--arena on purpose. arena_deck_polish.css carries
+   `.page--arena #arena-render .arena-cell { stroke: #fff }`, which outranks a
+   plain `#arena-render .arena-cell--moat` on specificity no matter the load
+   order — the same trap that made v2.5.686 a silent no-op (see AR0 audit).
+   Matching the prefix is the fix; !important is not. */
+
 /* Ring 2 — the Moat. No visible cell borders (Owner): the ring must read as one
    unbroken dark band separating the Crown from the ranks. */
-#arena-render .arena-cell--moat {
+.page--arena #arena-render .arena-cell--moat {
   fill: var(--arena-moat);
   stroke: none;
 }
 
 /* Ring 11 — VIP Guests (sponsors): the steel band at the floor's outer edge. */
-#arena-render .arena-cell--vip {
+.page--arena #arena-render .arena-cell--vip {
   fill: var(--arena-vip);
   stroke: none;
 }
