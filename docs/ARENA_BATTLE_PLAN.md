@@ -23,17 +23,42 @@ Director, Cursor and ArenaFront are retired. Master Console is outside this
 plan. One file has one owner during an active card; agents do not create
 parallel long-lived branches.
 
-## 2. Immutable Owner contract
+## 2. Arena structure contract (v2 — 11-ring octagon)
 
-- The site's gold/brass palette is authoritative. **Do not change floor colours.**
-- Keep the existing octagon render method and `rotateX(42deg)`.
-- Preserve the existing backend, grid, eight rings, real seats, SVG, polling,
-  effects and interactions. Build on the scene; do not rebuild it.
-- Dust, gifts, rays, shimmer and crown light stay. Master Console stays untouched.
-- Do not add the reference K banner. Reuse existing CulinEire branding where a
-  mark is required.
-- Dark Launch stays intact: unauthorised and anonymous Arena requests remain 404.
+Approved by the Owner 2026-07-29. This **supersedes** the former freeze
+("eight rings", "do not change the existing octagon render method", "do not
+change floor colours"): the eleven-ring structure below is now the target, and
+the renderer may change to build it.
+
+The octagon is **eleven rings**, centre outward:
+
+| # | Ring | Fill (reference; implemented as tokens) |
+|---|------|------|
+| 1 | **Crown Holder** — crown + current holder's name (already live) | `#52422E` |
+| 2 | **Moat** — service ring: `border:0`, no visible cells; a glowing lantern at each cell centre casts glints onto the gold ring | base `#52422E` |
+| 3 | Culinary Master | `#7C674D` |
+| 4 | Executive Chef | ↓ eight rank rings, one monotonic |
+| 5 | Head Chef | gradient from `#7C674D` (ring 3) |
+| 6 | Sous Chef | to `#EEE1CA` (ring 10): the six named |
+| 7 | Chef De Partie | palette tans/beiges + two logically |
+| 8 | Commis Chef | interpolated steps |
+| 9 | Prep Chef | ↑ |
+| 10 | Kitchen Porter | `#EEE1CA` |
+| 11 | **VIP Guests** (Sponsors) | `#535252` steel |
+
+Around the floor: **two rows of seats top and bottom** = authorised guests who
+are **authors** (not chefs); behind them, **balconies** for unauthorised users —
+bodiless spirits. The seat contract is rewritten for this new grid (drafted
+separately, §2a).
+
+Still in force (unchanged by v2):
+
+- Camera `rotateX(42deg)`.
+- Design **tokens** only, no raw hex — the palette above lands in tokens.
+- Dark Launch intact: unauthorised and anonymous Arena requests remain 404.
 - Never put fake fighters, rankings, gifts, viewers, streams or results in production.
+- Effects (dust, gifts, rays, shimmer, crown light) preserved; Master Console untouched.
+- No reference K banner; reuse existing CulinEire branding where a mark is required.
 - Mobile Arena is frozen and is not a blocker for this desktop plan.
 
 ## 3. Slice gate
