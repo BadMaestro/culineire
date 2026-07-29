@@ -54,6 +54,13 @@ dependency).** Slice N+1 is not started until slice N is **DONE** (merged,
 deployed and verified). Only one slice is ever in flight, and each agent holds
 at most one card. Nobody starts the next card before the current one is DONE.
 
+**Before taking a new card, go to the board first.** Confirm the previous card is
+marked **DONE** in both §5 here and `ARENA_RELEASE_STAGES`/`ARENA_DESIGN_TASKS`
+(`recipes/views.py`), and that the closing change is **deployed** to production.
+Only then move to the next card. Closing the board is part of finishing a card,
+not a separate afterthought — a card whose board row is not DONE-and-deployed is
+not finished.
+
 **No roles: any agent may deploy, one at a time, by the full Gate.** Before
 shipping, the deploying agent proves three things: (1) **production is current**
 — the base is `origin/main` and nothing is unshipped ahead of the served
@@ -72,6 +79,7 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 | A03 | Correct rank order and approved bevelled labels | v2.5.684–v2.5.685; non-interactive plinth correction v2.5.695 |
 | A04 | Cell ripple and chef card anchored to any clicked cell | v2.5.687, v2.5.691; close control v2.5.695 |
 | A05 | Independent left Cooking Widget; lifecycle rail separated; compact metrics | v2.5.689–v2.5.692; complete Cooking Widget corrected v2.5.699–v2.5.701 |
+| A06 | Production vs Design-Arena measurement matrix (read-only) | ops/audits/arena/A06_measurement_matrix_2026-07-29.md |
 
 ## 5. Atomic dispatch queue
 
@@ -86,8 +94,8 @@ forbidden changes and evidence for every row below.
 | A03 | Arena Hall | Rank spine order and approved plinth shape | Ember | A01 | DONE |
 | A04 | Arena Hall | Cell click ripple and chef-card anchoring | Ember | A01 | DONE |
 | A05 | Arena Hall | Broadcast ribbon, phase rail, metrics and identity | Ember | A00 | DONE |
-| **A06** | Arena Hall | **Fresh production/reference measurement matrix** | Bolt + Ember | A05 | **NEXT** |
-| A07 | Arena Hall | Stage framing and full-octagon composition | GreenBear | A06 | PENDING |
+| A06 | Arena Hall | Fresh production/reference measurement matrix | GreenBear | A05 | DONE |
+| **A07** | Arena Hall | Stage framing and full-octagon composition | GreenBear | A06 | **NEXT** |
 | A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | PENDING |
 | A09 | Arena Hall | Live challenger/opponent composition | Ember | A07 | PENDING |
 | A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | PENDING |
