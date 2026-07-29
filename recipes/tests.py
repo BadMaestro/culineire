@@ -4058,10 +4058,10 @@ class ArenaBuildPlanTests(TestCase):
         self.client.login(username="abp-boss", password="pw")
         resp = self.client.get(reverse("recipes:arena_build_plan"))
         for marker in [
-            "26",
+            "31",
             "Next assignable task",
-            "A07",
-            "Stage framing and full-octagon composition",
+            "AR1",
+            "Eleven-ring octagon geometry",
             "Files",
             "Depends on",
             "Visible result",
@@ -4073,20 +4073,20 @@ class ArenaBuildPlanTests(TestCase):
         self.assertNotContains(resp, "pending v2.5.691")
         self.assertNotContains(resp, "Verify and deploy v2.5.691")
 
-    def test_design_task_ids_are_unique_and_only_a07_is_next(self):
+    def test_design_task_ids_are_unique_and_only_ar1_is_next(self):
         from recipes.views import ARENA_DESIGN_TASKS
 
         ids = [task["id"] for task in ARENA_DESIGN_TASKS]
-        self.assertEqual(len(ids), 26)
+        self.assertEqual(len(ids), 31)
         self.assertEqual(len(ids), len(set(ids)))
         self.assertEqual(
             [task["id"] for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"],
-            ["A07"],
+            ["AR1"],
         )
         self.assertEqual(
             [task["id"] for task in ARENA_DESIGN_TASKS
              if task["status"] in {"NEXT", "IN PROGRESS"}],
-            ["A07"],
+            ["AR1"],
         )
         required = {
             "id", "group", "title", "status", "owner", "files", "depends_on",

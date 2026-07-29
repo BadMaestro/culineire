@@ -136,7 +136,12 @@ forbidden changes and evidence for every row below.
 | A04 | Arena Hall | Cell click ripple and chef-card anchoring | Ember | A01 | DONE |
 | A05 | Arena Hall | Broadcast ribbon, phase rail, metrics and identity | Ember | A00 | DONE |
 | A06 | Arena Hall | Fresh production/reference measurement matrix | GreenBear | A05 | DONE |
-| **A07** | Arena Hall | Stage framing and full-octagon composition | GreenBear | A06 | **NEXT** |
+| **AR1** | Arena Hall | Eleven-ring octagon geometry (Crown, Moat, 8 ranks, VIP) | GreenBear | A06 | **NEXT** |
+| AR2 | Arena Hall | Eleven-ring palette tokens | GreenBear | AR1 | PENDING |
+| AR3 | Arena Hall | Moat ring (ring 2) with lanterns + gold-ring glints | GreenBear | AR1 | PENDING |
+| AR4 | Arena Hall | Author seat rows (two top, two bottom) | GreenBear | AR1 | PENDING |
+| AR5 | Arena Hall | Spirit balconies + VIP sponsor ring | GreenBear | AR4 | PENDING |
+| A07 | Arena Hall | Stage framing and full-octagon composition | GreenBear | AR5 | PENDING |
 | A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | PENDING |
 | A09 | Arena Hall | Live challenger/opponent composition | Ember | A07 | PENDING |
 | A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | PENDING |
