@@ -192,8 +192,9 @@ and a status paragraph is noise.
 What he gets is one line: the agent is up, here is the production version and
 the `origin/main` hash, here is the next card on the board, waiting for orders.
 
-The local agent chat that used to carry an automatic presence line was retired
-by the Owner on 2026-07-29 and is not restarted (section 5).
+The local agent chat that used to carry an automatic presence line was switched
+off by the Owner on 2026-07-29. It is kept for later use and no agent restarts it
+on its own judgement (section 5).
 
 ### Read it again before you deploy
 
@@ -275,9 +276,12 @@ tasks:** confirming that nothing arrived costs money and returns no information.
   and signed with the agent's own name so he never has to guess who is talking.
 - **Agents to each other** — Carpet, the project's `coworking` system. It carries
   coordination and the audit trail of decisions.
-- **Retired** — the local agent chat that ran on port 8799. Retired by the Owner
-  on 2026-07-29. Do not restart it. If a stale process is found listening there,
-  report it; do not use it.
+- **Switched off, not retired** — the local agent chat on port 8799
+  (`ops/agent_chat.py`). The Owner took it out of service on 2026-07-29 and has
+  said it will be wanted again. It is **not** dead code and **not** an archive
+  candidate: keep the script, the `.agent-chat` directory and its history intact,
+  and do not let a cleanup pass remove any of it. No agent starts it on its own
+  judgement — it comes back when the Owner says so, and only then.
 
 **Never write to the Owner on Carpet.** He does not read it, so a message sent
 there was not delivered no matter what the channel says. This has already cost a
