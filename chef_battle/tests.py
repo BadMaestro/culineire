@@ -7812,6 +7812,15 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("var(--accent-bronze)", rank_step)
         self.assertNotIn("clip-path: none", rank_step)
 
+    def test_broadcast_ribbon_resets_nested_grid_areas(self):
+        """Header and phase rail must occupy separate ribbon columns."""
+        css = self.CSS_DECK.read_text(encoding="utf-8")
+        nested = css.split(
+            ".arena-broadcast-ribbon .arena-command-deck__header,", 1
+        )[1].split("}", 1)[0]
+        self.assertIn("grid-area: auto", nested)
+        self.assertIn("grid-column: auto", nested)
+
     def test_each_step_is_screen_reader_readable(self):
         """The count renders as a bare numeral. Without a label a screen reader
         reads a number with no noun, so every step carries its own aria-label."""

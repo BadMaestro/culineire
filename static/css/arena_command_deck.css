@@ -396,6 +396,8 @@
 
   .arena-broadcast-ribbon .arena-command-deck__header,
   .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    grid-area: auto;
+    grid-column: auto;
     position: relative;
     left: auto;
     right: auto;
