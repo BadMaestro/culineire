@@ -126,6 +126,25 @@
   .arena-phase-step { transition:none; }
 }
 
+/* OWNER 2026-07-29 — warm site-brass identity masthead.
+ * The hall ink token is intentionally green-biased across the wider Arena,
+ * but the compact broadcast identity is a site-brand plaque, not another
+ * piece of hall scenery. Warm it with the official brown/bronze tokens while
+ * preserving the existing ribbon geometry and live-state mechanism. */
+.page--arena .arena-broadcast-ribbon .arena-command-deck__header {
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 58%, var(--brand-dark));
+  border-inline-start: 0.25rem solid var(--accent-bronze);
+  background:
+    linear-gradient(
+      105deg,
+      color-mix(in srgb, var(--accent-bronze-dark) 84%, var(--ink)),
+      color-mix(in srgb, var(--brand-dark) 72%, var(--ink))
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 15%, transparent),
+    0 0.5rem 1.25rem color-mix(in srgb, var(--brand-dark) 24%, transparent);
+}
+
 
 /* 3G R6 polish — phase cells read as one track inside the ribbon. */
 @media (min-width: 901px) {

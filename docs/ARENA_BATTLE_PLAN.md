@@ -60,7 +60,7 @@ at most one card. Nobody starts the next card before the current one is DONE.
 | A02 | Chef identity inside existing fighter plinths | v2.5.682 |
 | A03 | Correct rank order and approved bevelled labels | v2.5.684–v2.5.685; non-interactive plinth correction v2.5.695 |
 | A04 | Cell ripple and chef card anchored to any clicked cell | v2.5.687, v2.5.691; close control v2.5.695 |
-| A05 | Identity/phase rail separated; compact metrics; contrast fixed | v2.5.689–v2.5.692 |
+| A05 | Identity/phase rail separated; compact metrics; contrast fixed | v2.5.689–v2.5.692; warm site-brass masthead v2.5.696 |
 
 ## 5. Atomic dispatch queue
 

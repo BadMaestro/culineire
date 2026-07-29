@@ -7862,6 +7862,18 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("color: var(--surface)", graphics)
         self.assertIn("color: var(--accent-bronze)", graphics)
 
+    def test_identity_masthead_uses_warm_site_tokens_not_hall_green(self):
+        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        masthead = css.split("OWNER 2026-07-29 — warm site-brass identity masthead", 1)[1]
+        rule = masthead.split(
+            ".page--arena .arena-broadcast-ribbon .arena-command-deck__header {", 1
+        )[1].split("}", 1)[0]
+        self.assertIn("var(--accent-bronze-dark)", rule)
+        self.assertIn("var(--brand-dark)", rule)
+        self.assertIn("var(--accent-bronze)", rule)
+        self.assertNotIn("var(--hall-dark-1)", rule)
+        self.assertNotRegex(rule, r"#[0-9a-fA-F]{3,8}\b")
+
     def test_each_step_is_screen_reader_readable(self):
         """The count renders as a bare numeral. Without a label a screen reader
         reads a number with no noun, so every step carries its own aria-label."""
