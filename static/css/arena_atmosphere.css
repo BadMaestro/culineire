@@ -823,17 +823,6 @@
   height: 0 !important;
 }
 
-/* Empty spectator seat discs — grey dot grid around the floor. Hidden. */
-.page--arena #arena-render .arena-cell--oval-seat[data-occupancy="empty"],
-.page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"],
-#arena-render .arena-cell--oval-seat[data-occupancy="empty"],
-#arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
-  fill: none !important;
-  stroke: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
 /* Empty CSS floor plate (ARENA-03) — hide at every width; SVG is the floor. */
 .page--arena .arena-floor-wrapper,
 .page--arena .arena-floor-plane,
@@ -897,11 +886,8 @@
   filter: none !important;
 }
 
-/* Nothing outside the sponsors shell — oval seats / pads were rim junk. */
-.page--arena #arena-render [data-arena-layer="spectator-oval"],
+/* Nothing outside the sponsors shell — pads and obsolete rim nodes stay hidden. */
 .page--arena #arena-render [data-arena-layer="floor-pad"],
-.page--arena #arena-render .arena-cell--oval-seat,
-.page--arena #arena-render [data-ring-kind="spectator"],
 .page--arena #arena-render .arena-rim,
 .page--arena #arena-render .arena-rim--inner,
 .page--arena #arena-render .arena-rim--outer,
