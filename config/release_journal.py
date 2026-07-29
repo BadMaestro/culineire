@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.707",
+        "date": "2026-07-29",
+        "commit": "28a5018b",
+        "title": "Octagon floor takes the Owner's reference ramp",
+        "section": "Chef Battles / Arena",
+        "summary": "The floor ramp is now the Owner's eight-entry reference table, entries 1-6 mapped onto the six rings from the centre outward: #52422e, #7c674d, #9b8467, #b49c7f, #d2bb9f, #e1cbb0. It replaces the agent's own scanline reading, which missed both dark inner steps - a single horizontal cut through the centre passes behind the Crown Holder card - and produced one duplicate pair. Both lists were checked against mockups/arena.png before choosing. Entries 7 and 8 are the rim and border, not ring fills, and were not touched. Geometry, seats, mechanisms, payload and Dark Launch unchanged. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.706",
         "date": "2026-07-29",
         "commit": "f24089e4",

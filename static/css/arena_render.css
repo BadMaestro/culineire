@@ -20,18 +20,23 @@
      visible bands and the Arena draws eight ranks, so three steps are linear
      fills, not readings. Named here rather than scattered as literals in the
      rules below, per TECHNICAL_STANDARDS section 7. */
-  --arena-floor-6: #e6d2ba;
-  --arena-floor-5: #e6d1b9;
-  --arena-floor-4: #dbc0a3;
-  --arena-floor-3: #b49d80;
-  --arena-floor-2: #b59d81;
-  --arena-floor-1: #9d886c;
-  /* The floor draws SIX rings, not eight: 10+20+30+40+50+60 = 210 cells, and
-     data-ring="6" is the OUTER band. Measured in the live DOM, after two
-     deploys had assumed eight. 7 and 8 are kept only so the rank rules below
-     have something to resolve if a seventh ring is ever added. */
-  --arena-floor-8: #e6d2ba;
-  --arena-floor-7: #e6d2ba;
+  --arena-floor-1: #52422e;
+  --arena-floor-2: #7c674d;
+  --arena-floor-3: #9b8467;
+  --arena-floor-4: #b49c7f;
+  --arena-floor-5: #d2bb9f;
+  --arena-floor-6: #e1cbb0;
+  /* Owner's reference table, 2026-07-29, centre outward. It replaces my own
+     scanline reading, which missed the two dark inner steps entirely: a single
+     horizontal cut through the centre passes behind the Crown Holder card, so
+     the innermost rings never appeared in it, and two of my six values came out
+     a duplicate pair. Both lists were checked against mockups/arena.png; his
+     dark steps carry 17-22k pixels each, mine had nothing that dark.
+     Entries 7 (#eee1ca, light accent edge) and 8 (#535252, steel border) from
+     that table are the rim, not ring fills, and are left alone.
+     The floor draws SIX rings: 10+20+30+40+50+60 = 210 cells, ring 6 outer. */
+  --arena-floor-8: #e1cbb0;
+  --arena-floor-7: #e1cbb0;
   --arena-seat: var(--surface-soft);
   --arena-seam: var(--surface);
   --arena-stage-ink: var(--brand-dark);
