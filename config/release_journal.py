@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.705",
+        "date": "2026-07-29",
+        "commit": "f2eefbf6",
+        "title": "Octagon floor repaint actually reaches the screen",
+        "section": "Chef Battles / Arena",
+        "summary": "v2.5.704 put the measured mockup colours in the SVG fill attribute, where eight CSS rules in arena_render.css overrode them - a CSS fill always beats an SVG fill attribute, so the floor stayed the old pale tone. The measured ramp now lives in named tokens --arena-floor-1..8 on .arena-render-container and the rank-ring rules read them. Five of the eight are measured off mockups/arena.png; three are linear interpolations between measured anchors, because the mockup shows six bands and the Arena draws eight ranks. Geometry, ring counts, seats, mechanisms, payload and Dark Launch unchanged. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.704",
         "date": "2026-07-29",
         "commit": "f02449a4",
