@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.701",
         "date": "2026-07-29",
-        "commit": "866a2f09",
+        "commit": "19bf7741",
         "title": "Cooking Widget header and live panel reuse corrected",
         "section": "Chef Battles / Arena",
         "summary": "Production screenshot verification caught the v2.5.700 Back to Chef Battles chip compressing the identity heading into a vertical column. The redundant chip is disconnected by CSS, the header returns to one full-width column, and the outer Cooking Widget joins the same existing night-glass selector that already skins Crown ladder and the other live Arena panels. No octagon, floor, phase, timer, polling, payload, access or battle mechanism changed. Rollback: revert the deployment commit and redeploy.",
