@@ -2334,10 +2334,14 @@
   .arena-floor-stage::after {
     opacity: 0.45;
   }
-  /* Outer spectator stands must read as distinct rings, not mud. */
+  /* The outer stands are the DARK crowd bowl wrapping the lit floor (reference:
+     "the dark IS the crowd"). This is the winning rule for empty spectator seats
+     (.page--arena raises its specificity above arena_render.css), so the bowl's
+     darkness is set here: ink-dominant, with the bronze seam keeping the rings
+     distinct so it reads as a packed crowd, not mud. */
   .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--ink) 18%, var(--surface));
-    stroke: color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+    fill: color-mix(in srgb, var(--ink) 72%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent-bronze) 42%, transparent);
     stroke-width: 0.85;
   }
   .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
@@ -2642,7 +2646,7 @@
   .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: #ccc1aa; }
   .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: #d8d0c0; }
   .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--ink) 32%, var(--surface));
+    fill: color-mix(in srgb, var(--ink) 72%, var(--surface));
     stroke: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
     stroke-width: 1;
   }
