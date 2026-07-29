@@ -5,6 +5,7 @@ One file per agent. The Owner points an agent here by name:
 
     "читай Onboarding GreenBear"   ->  ops/onboarding/greenbear.txt
     "читай Onboarding Bolt"        ->  ops/onboarding/bolt.txt
+    "читай Onboarding Ember"       ->  ops/onboarding/ember.txt
 
 WHY THESE LIVE IN GIT
 ---------------------
@@ -49,5 +50,5 @@ rule is corrected in the same change as the constitution. A runbook still
 describing a repealed arrangement is worse than no runbook: an agent will follow
 it, in good faith, and cite it afterwards.
 
-Current: bolt.txt 3.1, greenbear.txt 3.1, both against AGENTS.md v2.0.0.
-Ember has no runbook yet.
+Current: bolt.txt 3.1, greenbear.txt 3.1, ember.txt 3.1 — all three against
+AGENTS.md v2.0.0. Every agent on the section-1 roster has one.
