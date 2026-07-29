@@ -3017,18 +3017,20 @@ ARENA_RELEASE_STAGES = [
                      "Chef names plus static Irish flag/country moved inside the existing "
                      "floor plinths; no separate support panel. DONE v2.5.682.",
                      "Always-visible desktop rank spine corrected so Kitchen Porter starts at "
-                     "the far/top edge and Culinary Master finishes by centre. READY v2.5.684.",
+                     "the far/top edge and Culinary Master finishes by centre. DONE v2.5.684.",
+                     "Approved bevelled plinth silhouette and brass edge restored to the rank "
+                     "labels without touching floor, camera or mechanisms. READY v2.5.685.",
                      "Remaining visual slices tracked in docs/ARENA_BATTLE_PLAN.md section 5.",
                      "Hard constraints held every slice: octagon method and camera rotateX(42deg) "
                      "frozen; mechanisms, seat contract, backend, Dark Launch and Master Console untouched."],
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
-        "branch": "temporary isolated worktree", "commit": "pending v2.5.684",
-        "verification": "11 focused PostgreSQL rank-column tests passed. Local authenticated "
+        "branch": "temporary isolated worktree", "commit": "pending v2.5.685",
+        "verification": "Production v2.5.684 confirmed. Local authenticated "
                         "visual QA confirmed Kitchen Porter at the far/top edge through Culinary "
                         "Master beside the centre; octagon, camera and mechanisms unchanged.",
-        "updated": "2026-07-29T09:45:00.000Z",
-        "next_action": "Deploy v2.5.684 and run targeted production postflight.",
+        "updated": "2026-07-29T09:55:00.000Z",
+        "next_action": "Deploy v2.5.685 and run targeted production postflight.",
     },
     {
         "n": 3, "id": "release-readiness",

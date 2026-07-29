@@ -7786,6 +7786,14 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("flex-direction: column", rank_list)
         self.assertNotIn("column-reverse", rank_list)
 
+    def test_desktop_rank_steps_use_reference_plinth_silhouette(self):
+        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        mockup_rules = css.split("MOCKUP M05/M06/M11", 1)[1]
+        rank_step = mockup_rules.split(".arena-rank-spine__step {", 1)[1].split("}", 1)[0]
+        self.assertIn("clip-path: polygon(", rank_step)
+        self.assertIn("var(--accent-bronze)", rank_step)
+        self.assertNotIn("clip-path: none", rank_step)
+
     def test_each_step_is_screen_reader_readable(self):
         """The count renders as a bare numeral. Without a label a screen reader
         reads a number with no noun, so every step carries its own aria-label."""
