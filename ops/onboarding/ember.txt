@@ -150,9 +150,14 @@ an unconfigured git default. Those commits are on the shared history and nobody
 can now tell which agent or machine made them. Authorship is the cheapest audit
 trail this project has and it is currently broken on at least one machine.
 
-If `user.name` reads `YourName`, or anything that is not a real identity, report
-it to the Owner and ask what it should be set to. Do not silently pick one - the
-name lands in permanent history.
+The Owner settled it on 2026-07-29: **set it to `Ember`, with a capital E.**
+Names are always capitalised on this project - Bolt, Ember, GreenBear - and this
+one goes into permanent history, so it is written the way he writes it.
+
+  git -C $RepoRoot config user.name "Ember"
+
+Do not confuse this with the Carpet mailbox id, which is lowercase `ember` and
+case sensitive (section 5). A name is a label; an id is a system key.
 
 ===============================================================================
 3. READ THE CANONICAL DOCUMENTS FROM origin/main
@@ -248,9 +253,13 @@ invites acting on a dead order.
 To SEND to another agent, write a Python file, copy it to the server, run it
 under the server venv, and delete it. Inline heredocs break on quoting.
 
-  agent ids are lowercase and case sensitive: "ember", "bolt", "greenbear".
-  A capitalised id silently creates a SECOND mailbox and the message is lost
-  while the sender sees SENT.
+  NAMES are capitalised, always: Bolt, Ember, GreenBear. That is how the Owner
+  writes them and how every message is signed.
+
+  MAILBOX IDS are lowercase and case sensitive: "ember", "bolt", "greenbear".
+  These are not names - they are system keys. A capitalised id silently creates
+  a SECOND mailbox and the message is lost while the sender sees SENT. The same
+  distinction applies anywhere an id is a key and not a label.
 
   Every message body is serialised with json.dumps and sent as pure ASCII.
 

@@ -303,9 +303,16 @@ argument bytes to ANSI before the process sees them, and a `charset=utf-8`
 header does not save it — the corruption already happened. This is how an
 agent's cold-start lines once reached the Owner as `?????`.
 
-Agent ids are lowercase and **case sensitive**: `bolt`, `ember`, `greenbear`. A
-capitalised id silently creates a second mailbox; the message is lost while the
-sender sees `SENT`.
+### Names are capitalised; ids are not (Owner, 2026-07-29)
+
+**A name is always written with a capital letter: Bolt, Ember, GreenBear.** That
+is how the Owner writes them, how every message is signed, and what goes in
+`git config user.name` so authorship in the history is legible.
+
+**An id is not a name.** Carpet mailbox ids are lowercase and **case
+sensitive**: `bolt`, `ember`, `greenbear`. A capitalised id silently creates a
+second mailbox; the message is lost while the sender sees `SENT`. The same holds
+anywhere an id is a system key rather than a label — do not "correct" its case.
 
 ### STOP behaviour
 

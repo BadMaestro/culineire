@@ -258,9 +258,13 @@ To SEND to another agent, write a Python file, copy it to the server, run it
 under the server venv, and delete it. Inline heredocs break on quoting through
 the WSL to SSH to bash layers.
 
-  agent ids are lowercase and case sensitive: "bolt", "ember", "greenbear".
-  A capitalised id silently creates a SECOND mailbox and the message is lost
-  while the sender sees SENT.
+  NAMES are capitalised, always: Bolt, Ember, GreenBear. That is how the Owner
+  writes them and how every message is signed.
+
+  MAILBOX IDS are lowercase and case sensitive: "bolt", "ember", "greenbear".
+  These are not names - they are system keys. A capitalised id silently creates
+  a SECOND mailbox and the message is lost while the sender sees SENT. The same
+  distinction applies anywhere an id is a key and not a label.
 
   Every message body is serialised with json.dumps and sent as pure ASCII.
 
