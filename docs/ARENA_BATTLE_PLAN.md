@@ -13,9 +13,12 @@ Last reconciled: 2026-07-29 · Production baseline: **v2.5.692**
 |---|---|
 | **Owner** | Final authority; assigns one atomic card and accepts visible results. |
 | **Ember** | Integration, JS, templates, backend wiring and focused PostgreSQL tests. |
-| **GreenBear** | Visual CSS and deploy gate when available. |
+| **GreenBear** | Visual CSS. |
 | **Bolt** | Measurements and independent visual/regression checks. |
 
+**There are no fixed roles and no deploy gate-holder.** The column above is a
+typical focus, not a lock, and the §5 "suggested owner" is a suggestion. Any
+agent may deploy their own work — one at a time, by the full Gate in §3.
 Director, Cursor and ArenaFront are retired. Master Console is outside this
 plan. One file has one owner during an active card; agents do not create
 parallel long-lived branches.
@@ -50,6 +53,14 @@ parallel long-lived branches.
 dependency).** Slice N+1 is not started until slice N is **DONE** (merged,
 deployed and verified). Only one slice is ever in flight, and each agent holds
 at most one card. Nobody starts the next card before the current one is DONE.
+
+**No roles: any agent may deploy, one at a time, by the full Gate.** Before
+shipping, the deploying agent proves three things: (1) **production is current**
+— the base is `origin/main` and nothing is unshipped ahead of the served
+version; (2) **nobody else is deploying right now** — claim the turn (shared
+`deploy.lock`, or tell the Owner and wait for his word); (3) **it breaks nothing
+and erases no important files** — focused PostgreSQL tests, `manage.py check` and
+`git diff --check` are green, and no paid or approved asset is deleted.
 
 ## 4. Completed production foundation
 
