@@ -121,6 +121,8 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 | A04 | Cell ripple and chef card anchored to any clicked cell | v2.5.687, v2.5.691; close control v2.5.695 |
 | A05 | Independent left Cooking Widget; lifecycle rail separated; compact metrics | v2.5.689–v2.5.692; complete Cooking Widget corrected v2.5.699–v2.5.703 |
 | A06 | Production vs Design-Arena measurement matrix (read-only) | ops/audits/arena/A06_measurement_matrix_2026-07-29.md |
+| AR0 | Arena CSS/JS dead-code inventory (read-only) | ops/audits/arena/AR0_dead_code_inventory_2026-07-29.md |
+| AR1 | Arena owns its eleven-ring geometry; Sponsors grid no longer borrowed | v2.5.709–v2.5.710 |
 
 ## 5. Atomic dispatch queue
 
@@ -136,8 +138,8 @@ forbidden changes and evidence for every row below.
 | A04 | Arena Hall | Cell click ripple and chef-card anchoring | Ember | A01 | DONE |
 | A05 | Arena Hall | Broadcast ribbon, phase rail, metrics and identity | Ember | A00 | DONE |
 | A06 | Arena Hall | Fresh production/reference measurement matrix | GreenBear | A05 | DONE |
-| **AR1** | Arena Hall | Eleven-ring octagon geometry (Crown, Moat, 8 ranks, VIP) | GreenBear | A06 | **NEXT** |
-| AR2 | Arena Hall | Eleven-ring palette tokens | GreenBear | AR1 | PENDING |
+| AR1 | Arena Hall | Eleven-ring octagon geometry (Crown, Moat, 8 ranks, VIP) | GreenBear | A06 | DONE |
+| **AR2** | Arena Hall | Eleven-ring palette tokens | GreenBear | AR1 | **NEXT** |
 | AR3 | Arena Hall | Moat ring (ring 2) with lanterns + gold-ring glints | GreenBear | AR1 | PENDING |
 | AR4 | Arena Hall | Author seat rows (two top, two bottom) | GreenBear | AR1 | PENDING |
 | AR5 | Arena Hall | Spirit balconies + VIP sponsor ring | GreenBear | AR4 | PENDING |

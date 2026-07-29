@@ -4060,8 +4060,8 @@ class ArenaBuildPlanTests(TestCase):
         for marker in [
             "31",
             "Next assignable task",
-            "AR1",
-            "Eleven-ring octagon geometry",
+            "AR2",
+            "Eleven-ring palette tokens",
             "Files",
             "Depends on",
             "Visible result",
@@ -4073,7 +4073,7 @@ class ArenaBuildPlanTests(TestCase):
         self.assertNotContains(resp, "pending v2.5.691")
         self.assertNotContains(resp, "Verify and deploy v2.5.691")
 
-    def test_design_task_ids_are_unique_and_only_ar1_is_next(self):
+    def test_design_task_ids_are_unique_and_only_ar2_is_next(self):
         from recipes.views import ARENA_DESIGN_TASKS
 
         ids = [task["id"] for task in ARENA_DESIGN_TASKS]
@@ -4081,12 +4081,12 @@ class ArenaBuildPlanTests(TestCase):
         self.assertEqual(len(ids), len(set(ids)))
         self.assertEqual(
             [task["id"] for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"],
-            ["AR1"],
+            ["AR2"],
         )
         self.assertEqual(
             [task["id"] for task in ARENA_DESIGN_TASKS
              if task["status"] in {"NEXT", "IN PROGRESS"}],
-            ["AR1"],
+            ["AR2"],
         )
         required = {
             "id", "group", "title", "status", "owner", "files", "depends_on",

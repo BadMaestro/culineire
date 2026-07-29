@@ -33,8 +33,17 @@ Two structural faults, both measured:
    while the winning rule sat in `arena_deck_polish.css:2339`. One wasted
    deploy, found only by probing computed styles in the browser.
 
-**The JS is not the problem.** `arena_render.js`: 67 functions, **0 never
-called**. The bloat is in CSS, plus two build-then-hide pairs below.
+**CORRECTION (same day, before AR1 shipped).** This section first read "67
+functions, 0 never called". That was wrong: the audit script concatenated
+`arena_render.js` twice — once directly, once via the `static/js/**` glob — so
+every function scored at least two occurrences and nothing could ever be
+flagged. Re-checked with the file deduplicated: **7 of 68 functions were
+unreachable** — `drawRingSeams`, `drawFloorPad`, `floorOuterRadius`,
+`floorRadius`, `radiusStepFor`, `inset`, `appendCrowdFigure`. Six were removed in
+AR1 (v2.5.709) together with the orphaned `CELL_INSET`; `appendCrowdFigure` and
+`crowdFaceFor` were deliberately **kept, disconnected**, because card A08 is what
+turns the atmospheric crowd back on and the paid face assets stay. The CSS
+findings below were unaffected by the bug.
 
 ## Tier 1 — dead by absence (no creator anywhere; deleting cannot change pixels)
 
