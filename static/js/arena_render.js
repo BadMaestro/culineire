@@ -39,8 +39,6 @@
   var PING_INTERVAL = 20000;
   // Cells are inset toward their own centroid to open the seams. Proportional
   // rather than a fixed pixel gap so inner rings (small cells) keep the same
-  // visual rhythm as the outer ones.
-  var CELL_INSET = 0.94;
 
   // G1/G5 — docs/chef_battle/arena_mockup_spec.json proportions (NO tilt in this slice).
   // Mockup stands_outer 1.60 R_floor is the OUTERMOST VISIBLE EXTENT (bbox), not
@@ -79,15 +77,6 @@
 
   function pointString(point) {
     return point.x.toFixed(2) + ',' + point.y.toFixed(2);
-  }
-
-  function inset(vertices, centroid) {
-    return vertices.map(function (point) {
-      return {
-        x: centroid.x + (point.x - centroid.x) * CELL_INSET,
-        y: centroid.y + (point.y - centroid.y) * CELL_INSET
-      };
-    });
   }
 
   /* ---------------------------------------------------------------- */
@@ -174,19 +163,6 @@
         y: half + ((2 * travel / full) - 1) * span * VERTICAL_SQUASH
       };
     };
-  }
-
-  function radiusStepFor(geometry) {
-    return g1Radii(geometry).rankStep;
-  }
-
-  function floorOuterRadius(geometry, step) {
-    if (step == null) { return g1Radii(geometry).floorOuter; }
-    var lastRank = 0;
-    (geometry.rings || []).forEach(function (ring) {
-      if (ring.kind === 'rank' && ring.index > lastRank) { lastRank = ring.index; }
-    });
-    return STAGE_RADIUS + lastRank * step;
   }
 
   /* ---------------------------------------------------------------- */
@@ -303,6 +279,50 @@
   // Both are one outline at the floor's outer radius: a wide neutral stroke
   // for the walkway, a thin bronze stroke over it for the rim. Drawn between
   // the cells and the crowd so faces sit in front of it, never behind.
+  // Atmospheric crowd stand-ins. Currently unreachable on purpose: the
+  // Owner switched the figures off and arena_atmosphere.css hides
+  // .arena-crowd-figure. Card A08 (crowd bowl depth / atmospheric
+  // population) is what turns them back on, so this stays disconnected
+  // rather than deleted, and the paid face assets stay in static/.
+  function appendCrowdFigure(svg, ring, cell, geometry, radius) {
+    var href = crowdFaceFor(ring, cell, geometry);
+    if (!href) { return; }
+    var seat = svg.querySelector('.arena-cell[data-ring="' + ring + '"][data-cell="' + cell + '"]');
+    if (!seat) { return; }
+    var seatGroup = seat.parentNode;
+    if (!seatGroup) { return; }
+    var cx = parseFloat(seat.getAttribute('cx'));
+    var cy = parseFloat(seat.getAttribute('cy'));
+    var seatR = parseFloat(seat.getAttribute('r'));
+    var seatSize = seatR * 2;
+    var jitter = seatJitter(ring, cell);
+    // A portrait sits IN its seat, so it never grows past the seat either.
+    var size = Math.min(faceDiameter(geometry, ring, radius) * jitter.scale, seatSize);
+    // Off-centre by up to a fifth of the seat in each direction.
+    var offsetX = jitter.x * seatSize * 0.4;
+    var offsetY = jitter.y * seatSize * 0.4;
+
+    var figure = el('g', {
+      'pointer-events': 'none',
+      class: 'arena-crowd-figure'
+    });
+    // Round portrait, not a slice of the seat's polygon. One shared clip path
+    // in objectBoundingBox units serves every face whatever its size.
+    var image = el('image', {
+      href: href,
+      x: (cx - size / 2 + offsetX).toFixed(2),
+      y: (cy - size / 2 + offsetY).toFixed(2),
+      width: size.toFixed(2), height: size.toFixed(2),
+      // The portraits are cut out now, so the seat behind them shows through.
+      // No circular clip: a round mask over a head-and-shoulders cut-out chops
+      // the shoulders off and puts the carton back.
+      preserveAspectRatio: 'xMidYMid meet'
+    });
+    image.style.filter = faceLighting(geometry, ring);
+    figure.appendChild(image);
+    seatGroup.appendChild(figure);
+  }
+
   function drawWalkway(svg, geometry, step) {
     var props = g1Radii(geometry);
     var tpl = global.OctagonFloorTemplate;
@@ -331,37 +351,83 @@
   }
 
   // Sponsors template cells already carry white strokes — no extra seams.
-  function drawRingSeams(svg, geometry, step) {
-    return;
-  }
-
   // Solid underlay beneath the sponsors-template floor (no SVG Gaussian blur).
-  function drawFloorPad(svg, geometry, step, defs) {
-    var props = g1Radii(geometry);
-    var sides = geometry.sides || 8;
-    var outer = props.floorOuter;
-    var layer = el('g', { 'data-arena-layer': 'floor-pad', 'pointer-events': 'none' });
-    layer.appendChild(el('polygon', {
-      points: ringOutline(outer + step * 0.22, sides),
-      class: 'arena-floor-pad arena-floor-pad--glow'
-    }));
-    layer.appendChild(el('polygon', {
-      points: ringOutline(outer + step * 0.06, sides),
-      class: 'arena-floor-pad'
-    }));
-    svg.appendChild(layer);
-  }
+  // ---------------------------------------------------------------------------
+  // The arena's OWN ring table — eleven rings, centre outward (ARENA_BATTLE_PLAN
+  // §2 v2, Owner 2026-07-29).
+  //
+  // Until now the floor borrowed the Sponsors puzzle's SIX-ring table
+  // (OctagonFloorTemplate.RING_COUNTS / RING_RADII). That table is shared, live,
+  // with sponsors_puzzle.js and sponsors_modal.js, so it cannot be widened to
+  // eleven without changing the Sponsors page. The borrow also hid two silent
+  // faults, both fixed here:
+  //   * the floor drew six rings for EIGHT ranks — prep_chef and kitchen_porter
+  //     had no floor ring at all, while the rank spine listed them;
+  //   * it drew the sponsors' cell counts (10..60 = 210 cells) instead of the
+  //     arena's own RANK_RING_SEGMENTS (9..40 = 184), which is what seating is
+  //     addressed by. Floor and seat map never agreed.
+  //
+  // Only the template's PURE geometry helpers are still read (ringSegmentPath,
+  // segmentCentroid, octagonPoints, GAP): they take radii as arguments and carry
+  // no ring data, so reusing them leaves Sponsors untouched. Reuse-first.
+  //
+  // Numbering, deliberately two-track — this is the confusion the audit found,
+  // resolved rather than repeated:
+  //   data-ring        = the BACKEND index (stage 0, ranks 1..8, oval ring ids).
+  //                      It is the SEATING KEY: bind() finds a seat by
+  //                      assignment.ring, and live ArenaSeat rows store it, so
+  //                      renumbering it would be a data migration.
+  //   data-ring-visual = the approved 1..11 structure. Stylesheets target this.
+  // Crown = 1, Moat = 2, the eight ranks = 3..10, VIP Guests = 11.
+  var VISUAL_CROWN = 1;
+  var VISUAL_MOAT = 2;
+  var VISUAL_RANK_FIRST = 3;
+  var VISUAL_VIP = 11;
+  // Geometry-implied defaults: one per octagon face. Both are counts the Owner
+  // may want changed — they are stated here, not buried in the drawing loop.
+  var MOAT_SEGMENTS = 8;
+  var VIP_SEGMENTS = 8;
+  var MOAT_BAND = 25;
+  var VIP_BAND = 45;
 
-  // Primary rank key shown on each sponsors-template ring. Arena still has 8
-  // culinary ranks in the payload; rings 6–8 share the outer template ring.
-  var TEMPLATE_RING_KEYS = {
-    1: 'culinary_master',
-    2: 'executive_chef',
-    3: 'head_chef',
-    4: 'sous_chef',
-    5: 'chef_de_partie',
-    6: 'commis_chef'
-  };
+  /**
+   * Build the eleven-ring table. Radii are the arena's own; segment counts and
+   * rank keys come from payload.geometry, which is the backend's authority for
+   * seating — so the floor can no longer disagree with the seat map.
+   */
+  function arenaRingTable(geometry) {
+    var tpl = global.OctagonFloorTemplate;
+    var outerR = tpl.TEMPLATE_OUTER;
+    var crownOuter = tpl.RING_RADII.centre[1];
+    var moatOuter = crownOuter + MOAT_BAND;
+    var vipInner = outerR - VIP_BAND;
+    var ranks = (geometry.rings || []).filter(function (r) {
+      return r.kind === 'rank';
+    }).sort(function (a, b) { return a.index - b.index; });
+    var band = ranks.length ? (vipInner - moatOuter) / ranks.length : 0;
+    var table = [
+      {
+        visual: VISUAL_MOAT, kind: 'moat', ring: null, key: 'moat',
+        inner: crownOuter, outer: moatOuter, segments: MOAT_SEGMENTS
+      }
+    ];
+    ranks.forEach(function (ring, i) {
+      table.push({
+        visual: VISUAL_RANK_FIRST + i,
+        kind: 'rank',
+        ring: ring.index,
+        key: ring.key,
+        inner: moatOuter + i * band,
+        outer: moatOuter + (i + 1) * band,
+        segments: ring.segments
+      });
+    });
+    table.push({
+      visual: VISUAL_VIP, kind: 'vip', ring: null, key: 'vip_guests',
+      inner: vipInner, outer: outerR, segments: VIP_SEGMENTS
+    });
+    return table;
+  }
 
   /**
    * Draw the chef floor as a 1:1 copy of the Sponsors octagon shell
@@ -388,15 +454,25 @@
 
     // No cell-shadow — soft drop-shadows bled past the outer rim as junk.
 
-    // Outer → inner — identical order to sponsors_puzzle.js drawPuzzle.
-    for (var ring = 6; ring >= 1; ring--) {
-      var count = tpl.RING_COUNTS[ring];
-      var innerR = tpl.RING_RADII[ring][0];
-      var outerR = tpl.RING_RADII[ring][1];
+    // Outer → inner, so an inner ring paints over its neighbour's seam the way
+    // the sponsors shell did. The table is the arena's own (arenaRingTable);
+    // no fill or stroke is written inline any more — CSS owns every colour, per
+    // TECHNICAL_STANDARDS (tokens, never raw hex). SVG presentation attributes
+    // lose to any stylesheet rule anyway, so the old inline #fff/hex pairs were
+    // dead weight that made the floor look JS-painted.
+    var table = arenaRingTable(geometry);
+    for (var t = table.length - 1; t >= 0; t--) {
+      var entry = table[t];
+      var count = entry.segments;
+      if (!count) { continue; }
+      var innerR = entry.inner;
+      var outerR = entry.outer;
       var sweep = (2 * Math.PI) / count;
       var offset = -Math.PI / 2 - sweep / 2;
-      var fill = colours[ring];
-      var ringKey = TEMPLATE_RING_KEYS[ring] || '';
+      // Ranks keep the backend index in data-ring (the seating key). The moat
+      // and the VIP ring hold no seats yet (AR3 / AR5), so they carry no
+      // seating index at all rather than a made-up one.
+      var ringAttr = entry.ring === null ? '' : String(entry.ring);
 
       for (var pos = 0; pos < count; pos++) {
         var startAngle = offset + pos * sweep + gap / outerR;
@@ -407,26 +483,28 @@
         var centroid = tpl.segmentCentroid(
           cx, cy, innerR + gap, outerR - gap / 2, startAngle, endAngle
         );
-        var pathEl = el('path', {
+        var attrs = {
           d: d,
-          fill: fill,
-          stroke: '#fff',
-          'stroke-width': '1.5',
-          'data-ring': String(ring),
-          'data-ring-key': ringKey,
-          'data-ring-kind': 'rank',
+          'data-ring-visual': String(entry.visual),
+          'data-ring-key': entry.key,
+          'data-ring-kind': entry.kind,
           'data-cell': String(pos),
           'data-centroid-x': centroid.x.toFixed(2),
           'data-centroid-y': centroid.y.toFixed(2),
           'data-occupancy': 'empty',
           'data-state': 'idle',
-          class: 'arena-cell arena-cell--sponsors-tpl'
-        });
-        cells.appendChild(pathEl);
+          class: 'arena-cell arena-cell--sponsors-tpl arena-cell--' + entry.kind
+        };
+        if (ringAttr !== '') { attrs['data-ring'] = ringAttr; }
+        cells.appendChild(el('path', attrs));
 
-        var clip = el('clipPath', { id: 'arena-clip-' + ring + '-' + pos });
-        clip.appendChild(el('path', { d: d }));
-        defs.appendChild(clip);
+        // Portrait clips are keyed by the seating index, so only real seat
+        // rings build them — and the ids stay byte-identical to before.
+        if (ringAttr !== '') {
+          var clip = el('clipPath', { id: 'arena-clip-' + ringAttr + '-' + pos });
+          clip.appendChild(el('path', { d: d }));
+          defs.appendChild(clip);
+        }
       }
     }
 
@@ -461,6 +539,7 @@
       stroke: '#fff',
       'stroke-width': '2',
       'data-ring': String(stageRing.index),
+      'data-ring-visual': String(VISUAL_CROWN),
       'data-ring-key': stageRing.key,
       'data-ring-kind': stageRing.kind,
       'data-occupancy': 'stage',
@@ -700,10 +779,6 @@
   var FACE_NEAR = 0.07;
   var FACE_FAR = 0.05;
 
-  function floorRadius(svg, geometry) {
-    return g1Radii(geometry).floorOuter;
-  }
-
   // How far back a seat sits, 0 at the front row and 1 at the back. The server
   // puts row / rows_total in the geometry contract for exactly this, so depth
   // never has to be inferred from an absolute ring index that shifts whenever
@@ -758,45 +833,6 @@
     var brightness = 1 - FACE_DIM * depth;
     var saturation = 1 - FACE_DESATURATE * depth;
     return 'brightness(' + brightness.toFixed(3) + ') saturate(' + saturation.toFixed(3) + ')';
-  }
-
-  function appendCrowdFigure(svg, ring, cell, geometry, radius) {
-    var href = crowdFaceFor(ring, cell, geometry);
-    if (!href) { return; }
-    var seat = svg.querySelector('.arena-cell[data-ring="' + ring + '"][data-cell="' + cell + '"]');
-    if (!seat) { return; }
-    var seatGroup = seat.parentNode;
-    if (!seatGroup) { return; }
-    var cx = parseFloat(seat.getAttribute('cx'));
-    var cy = parseFloat(seat.getAttribute('cy'));
-    var seatR = parseFloat(seat.getAttribute('r'));
-    var seatSize = seatR * 2;
-    var jitter = seatJitter(ring, cell);
-    // A portrait sits IN its seat, so it never grows past the seat either.
-    var size = Math.min(faceDiameter(geometry, ring, radius) * jitter.scale, seatSize);
-    // Off-centre by up to a fifth of the seat in each direction.
-    var offsetX = jitter.x * seatSize * 0.4;
-    var offsetY = jitter.y * seatSize * 0.4;
-
-    var figure = el('g', {
-      'pointer-events': 'none',
-      class: 'arena-crowd-figure'
-    });
-    // Round portrait, not a slice of the seat's polygon. One shared clip path
-    // in objectBoundingBox units serves every face whatever its size.
-    var image = el('image', {
-      href: href,
-      x: (cx - size / 2 + offsetX).toFixed(2),
-      y: (cy - size / 2 + offsetY).toFixed(2),
-      width: size.toFixed(2), height: size.toFixed(2),
-      // The portraits are cut out now, so the seat behind them shows through.
-      // No circular clip: a round mask over a head-and-shoulders cut-out chops
-      // the shoulders off and puts the carton back.
-      preserveAspectRatio: 'xMidYMid meet'
-    });
-    image.style.filter = faceLighting(geometry, ring);
-    figure.appendChild(image);
-    seatGroup.appendChild(figure);
   }
 
   // G6: atmospheric stand-ins in EMPTY spectator seats — DISABLED (Owner 2026-07-27).

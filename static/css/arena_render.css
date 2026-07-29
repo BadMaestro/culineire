@@ -37,6 +37,12 @@
      The floor draws SIX rings: 10+20+30+40+50+60 = 210 cells, ring 6 outer. */
   --arena-floor-8: #e1cbb0;
   --arena-floor-7: #e1cbb0;
+  /* Ring 2 (Moat) and ring 11 (VIP Guests) from the Owner's reference table,
+     ARENA_BATTLE_PLAN §2 v2. Named once here rather than repeated as literals in
+     the rules below, per TECHNICAL_STANDARDS section 7. The moat reuses the
+     innermost floor tone so the Crown sits in one continuous dark centre. */
+  --arena-moat: var(--arena-floor-1);
+  --arena-vip: #535252;
   --arena-seat: var(--surface-soft);
   --arena-seam: var(--surface);
   --arena-stage-ink: var(--brand-dark);
@@ -102,6 +108,24 @@
 #arena-render [data-ring="3"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-3) 78%, var(--arena-stage-ink)); }
 #arena-render [data-ring="2"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-2) 78%, var(--arena-stage-ink)); }
 #arena-render [data-ring="1"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-1) 78%, var(--arena-stage-ink)); }
+
+/* ---- the two rings the eleven-ring structure adds (AR1) ----
+   These carry data-ring-kind, not a numeric data-ring: they hold no seats, so
+   they are deliberately outside the seating key. AR3 hangs the lanterns in the
+   moat; AR5 dresses the VIP band for sponsors. */
+
+/* Ring 2 — the Moat. No visible cell borders (Owner): the ring must read as one
+   unbroken dark band separating the Crown from the ranks. */
+#arena-render .arena-cell--moat {
+  fill: var(--arena-moat);
+  stroke: none;
+}
+
+/* Ring 11 — VIP Guests (sponsors): the steel band at the floor's outer edge. */
+#arena-render .arena-cell--vip {
+  fill: var(--arena-vip);
+  stroke: none;
+}
 
 /* Spectator galleries read cooler than the floor, mixed off --ink so they stay
    inside the palette. The scheme has no blue token; if the reference's slate
