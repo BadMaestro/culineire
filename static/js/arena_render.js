@@ -816,6 +816,7 @@
     if (entity.is_online === false) { return; }
     if (!seat || !tpl) { return; }
 
+    var ring = assignment.ring;
     var cell = assignment.cell;
     // Read the wedge off the cell the floor actually drew. This used to read the
     // Sponsors template's ring table, which had no entry at all for
