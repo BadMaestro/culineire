@@ -687,13 +687,17 @@ to one of the five active documents.
   Arena tokens may be derived from the approved mockup; they are part of that
   design system, not a detached parallel visual system.
 - Do not scatter raw HEX, RGB, or HSL literals through the implementation.
-- Arena palette direction: dark hall atmosphere, gold accents, a light parchment
-  Arena floor, a green challenger accent, and a red opponent accent. The general
-  site palette outside the Arena remains unchanged.
+- Arena palette direction: dark hall atmosphere, gold accents, the Owner-approved
+  11-ring floor palette (centre `#52422E` → outer `#EEE1CA`, VIP/rim `#535252`),
+  a green challenger accent, and a red opponent accent. The general site palette
+  outside the Arena remains unchanged.
 - Atmospheric crowd presentation may match the approved mockup but must not
-  impersonate real, authenticated, registered, or online users. The eight
-  interactive rings retain 290 real-viewer-only seats, filled front rows first,
-  with logged-in self-seating and no synthetic interactive occupants.
+  impersonate real, authenticated, registered, or online users. Real interactive
+  seats belong to **authors** (authorised non-chef users) in two rows top and two
+  bottom, filled front rows first, with logged-in self-seating and no synthetic
+  occupants; unauthorised users appear only as **bodiless spirits in the
+  balconies**; VIP seats (ring 11) are reserved for sponsors. See
+  ARENA_BATTLE_PLAN §2/§2a for the eleven-ring structure.
 - Typography: existing Playfair Display and Inter usage.
 - Accessibility, responsive behaviour, keyboard operation, reduced motion, and readable contrast are acceptance requirements, not optional polish.
 

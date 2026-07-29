@@ -91,8 +91,8 @@ Direction:
   depth may be simulated with CSS, SVG, and images, but there is no true 3D engine
   or interactive camera;
 - the photographic or painted hall atmosphere, dark cinematic setting, gold
-  accents, light parchment floor, and visual hierarchy follow the approved mockup
-  through official named Arena tokens;
+  accents, the Owner-approved 11-ring floor palette (ARENA_BATTLE_PLAN §2), and
+  visual hierarchy follow the approved mockup through official named Arena tokens;
 - atmospheric crowd presentation may reproduce the mockup, but it must remain
   distinct from real interactive viewer seats and must never impersonate a
   registered or online user.
@@ -319,11 +319,13 @@ The public Arena must:
   around the central Crown Holder focal area;
 - display each battle participant's real photo and name; display a country flag
   only after the Product Owner approves a country-data source;
-- keep atmospheric crowd presentation separate from interactive viewer seating:
-  atmospheric figures may match the mockup but may not impersonate real users,
-  while the spectator oval retains 290 real-viewer seats (Owner M02 2026-07-25;
-  was 544 polar rings), assign front rows first, and let a logged-in viewer see
-  themselves seated;
+- keep atmospheric crowd presentation separate from interactive seating:
+  atmospheric figures may match the mockup but may not impersonate real users.
+  Real interactive seats belong to **authors** (authorised non-chef users) in two
+  rows top and two bottom; assign front rows first and let a logged-in author see
+  themselves seated. VIP ring (ring 11) is reserved for sponsors; unauthorised
+  users appear only as bodiless spirits in the balconies (ARENA_BATTLE_PLAN §2a,
+  superseding the former 290-seat oval; Owner 2026-07-29);
 - display the rank column from KITCHEN PORTER through CULINARY MASTER and retain
   recorded numeric contrast evidence of at least 7:1;
 - preserve backend payload and action contracts;
@@ -333,7 +335,7 @@ The public Arena must not be defined by:
 
 - a true 3D rendering engine or an interactive camera;
 - synthetic occupants presented as registered, online, or otherwise real users
-  in the 290 interactive viewer seats;
+  in the author seat rows;
 - an independent visual system detached from the approved mockup and official
   named Arena tokens;
 - scattered raw colour literals instead of those tokens;

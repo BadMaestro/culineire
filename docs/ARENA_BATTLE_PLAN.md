@@ -61,6 +61,22 @@ Still in force (unchanged by v2):
 - No reference K banner; reuse existing CulinEire branding where a mark is required.
 - Mobile Arena is frozen and is not a blocker for this desktop plan.
 
+## 2a. Seat & spectator contract (v2)
+
+Approved by the Owner 2026-07-29. Replaces the "290 real-viewer oval" model.
+
+- **Real interactive seats belong to authors** (authorised users who are not
+  chefs): two rows top and two rows bottom around the floor. Front rows fill
+  first; a logged-in author sees themselves seated.
+- **VIP Guests** (ring 11) are reserved seats for **sponsors**.
+- **Balconies** behind the author rows hold **unauthorised users as bodiless
+  spirits** — atmospheric only, never impersonating a real/online user, with no
+  interactive seat identity.
+- The former fixed **290**-seat oval is superseded; capacity follows the two-row
+  geometry, front rows first.
+- Chefs occupy rank rings 3–10 by rank; the Crown Holder holds ring 1; the
+  **Moat (ring 2) has no occupants** — lanterns only.
+
 ## 3. Slice gate
 
 1. Start from current `origin/main` in one disposable worktree.
