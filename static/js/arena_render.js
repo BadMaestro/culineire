@@ -22,7 +22,7 @@
   var TPL_CY = 550;
   var SVG_SIZE = 1100; // legacy alias for helpers that still read a canvas size
   var OUTER_MARGIN = 26;
-  // STAGE_RADIUS follows OctagonFloorTemplate centre (85 − gap).
+  // STAGE_RADIUS follows the arena octagon's crown plate (85 − gap).
   var STAGE_RADIUS = 82;
   // Crown nick capacity at name Y (dy ≈ 0.44·R, font ≈ 0.16·R): usable ≈ 130
   // SVG units. Measured live: ~14 uppercase / ~17 mixed; hard ceiling = 14.
@@ -113,9 +113,9 @@
   function g1Radii(geometry) {
     // Exact sponsors radii — scale 1. Stands squeeze into the same viewBox
     // (30 30 1040 1040) just outside ring 6 so the octagon itself is untouched.
-    var tpl = global.OctagonFloorTemplate;
-    var floorOuter = tpl ? tpl.TEMPLATE_OUTER : 515;
-    var stageR = tpl ? tpl.RING_RADII.centre[1] : 85;
+    var tpl = global.ArenaOctagon;
+    var floorOuter = tpl ? tpl.OUTER : 515;
+    var stageR = tpl ? tpl.CROWN_OUTER : 85;
     var gap = tpl ? tpl.GAP : 3;
     STAGE_RADIUS = stageR - gap;
     var standsOuter = Math.min(520, floorOuter + 48);
@@ -171,9 +171,10 @@
 
   // The octagon at a given radius, as an SVG points string.
   // Orientation matches the Sponsors puzzle template (vertices at 0°, 45°, …)
-  // via OctagonFloorTemplate — same shell as /sponsors/.
+  // via the arena's own ArenaOctagon — geometrically the same shell the
+  // sponsors floor uses, but a copy the arena owns (Owner, 2026-07-30).
   function ringOutline(radius, sides) {
-    var tpl = global.OctagonFloorTemplate;
+    var tpl = global.ArenaOctagon;
     if (tpl) {
       return tpl.octagonPoints(TPL_CX, TPL_CY, radius);
     }
@@ -325,7 +326,7 @@
 
   function drawWalkway(svg, geometry, step) {
     var props = g1Radii(geometry);
-    var tpl = global.OctagonFloorTemplate;
+    var tpl = global.ArenaOctagon;
     var inner = props.floorOuter;
     // Grey band sits OUTSIDE the last ring (not a clipped stroke on the edge).
     var outer = inner + 18;
@@ -352,94 +353,25 @@
 
   // Sponsors template cells already carry white strokes — no extra seams.
   // Solid underlay beneath the sponsors-template floor (no SVG Gaussian blur).
-  // ---------------------------------------------------------------------------
-  // The arena's OWN ring table — eleven rings, centre outward (ARENA_BATTLE_PLAN
-  // §2 v2, Owner 2026-07-29).
-  //
-  // Until now the floor borrowed the Sponsors puzzle's SIX-ring table
-  // (OctagonFloorTemplate.RING_COUNTS / RING_RADII). That table is shared, live,
-  // with sponsors_puzzle.js and sponsors_modal.js, so it cannot be widened to
-  // eleven without changing the Sponsors page. The borrow also hid two silent
-  // faults, both fixed here:
-  //   * the floor drew six rings for EIGHT ranks — prep_chef and kitchen_porter
-  //     had no floor ring at all, while the rank spine listed them;
-  //   * it drew the sponsors' cell counts (10..60 = 210 cells) instead of the
-  //     arena's own RANK_RING_SEGMENTS (9..40 = 184), which is what seating is
-  //     addressed by. Floor and seat map never agreed.
-  //
-  // Only the template's PURE geometry helpers are still read (ringSegmentPath,
-  // segmentCentroid, octagonPoints, GAP): they take radii as arguments and carry
-  // no ring data, so reusing them leaves Sponsors untouched. Reuse-first.
-  //
-  // Numbering, deliberately two-track — this is the confusion the audit found,
-  // resolved rather than repeated:
-  //   data-ring        = the BACKEND index (stage 0, ranks 1..8, oval ring ids).
-  //                      It is the SEATING KEY: bind() finds a seat by
-  //                      assignment.ring, and live ArenaSeat rows store it, so
-  //                      renumbering it would be a data migration.
-  //   data-ring-visual = the approved 1..11 structure. Stylesheets target this.
-  // Crown = 1, Moat = 2, the eight ranks = 3..10, VIP Guests = 11.
-  var VISUAL_CROWN = 1;
-  var VISUAL_MOAT = 2;
-  var VISUAL_RANK_FIRST = 3;
-  var VISUAL_VIP = 11;
-  // Geometry-implied defaults: one per octagon face. Both are counts the Owner
-  // may want changed — they are stated here, not buried in the drawing loop.
-  var MOAT_SEGMENTS = 8;
-  var VIP_SEGMENTS = 8;
-  var MOAT_BAND = 25;
-  var VIP_BAND = 45;
-
-  /**
-   * Build the eleven-ring table. Radii are the arena's own; segment counts and
-   * rank keys come from payload.geometry, which is the backend's authority for
-   * seating — so the floor can no longer disagree with the seat map.
-   */
-  function arenaRingTable(geometry) {
-    var tpl = global.OctagonFloorTemplate;
-    var outerR = tpl.TEMPLATE_OUTER;
-    var crownOuter = tpl.RING_RADII.centre[1];
-    var moatOuter = crownOuter + MOAT_BAND;
-    var vipInner = outerR - VIP_BAND;
-    var ranks = (geometry.rings || []).filter(function (r) {
-      return r.kind === 'rank';
-    }).sort(function (a, b) { return a.index - b.index; });
-    var band = ranks.length ? (vipInner - moatOuter) / ranks.length : 0;
-    var table = [
-      {
-        visual: VISUAL_MOAT, kind: 'moat', ring: null, key: 'moat',
-        inner: crownOuter, outer: moatOuter, segments: MOAT_SEGMENTS
-      }
-    ];
-    ranks.forEach(function (ring, i) {
-      table.push({
-        visual: VISUAL_RANK_FIRST + i,
-        kind: 'rank',
-        ring: ring.index,
-        key: ring.key,
-        inner: moatOuter + i * band,
-        outer: moatOuter + (i + 1) * band,
-        segments: ring.segments
-      });
-    });
-    table.push({
-      visual: VISUAL_VIP, kind: 'vip', ring: null, key: 'vip_guests',
-      inner: vipInner, outer: outerR, segments: VIP_SEGMENTS
-    });
-    return table;
-  }
+  // Ring structure, geometry and the eleven-ring table all live in
+  // static/js/arena_octagon.js — the arena's OWN copy of the octagon, with no
+  // link back to the Sponsors puzzle (Owner, 2026-07-30). data-ring stays the
+  // BACKEND seating key (stage 0, ranks 1..8, oval ring ids) because live
+  // ArenaSeat rows store it; the approved 1..11 structure ships alongside as
+  // data-ring-visual, which is what stylesheets target.
 
   /**
    * Draw the chef floor as a 1:1 copy of the Sponsors octagon shell
    * (same CX/CY, radii, counts, gaps, fills, strokes). Sponsors page code
-   * is not modified — Arena only reads OctagonFloorTemplate constants.
+   * shell. Nothing here reads the Sponsors puzzle any more: the arena has its
+   * own copy of the octagon in arena_octagon.js.
    */
   function drawGrid(svg, geometry) {
     var props = g1Radii(geometry);
     var step = props.rankStep;
-    var tpl = global.OctagonFloorTemplate;
+    var tpl = global.ArenaOctagon;
     if (!tpl) {
-      throw new Error('OctagonFloorTemplate missing — load octagon_floor_template.js before arena_render.js');
+      throw new Error('ArenaOctagon missing — load arena_octagon.js before arena_render.js');
     }
 
     svg.setAttribute('viewBox', '0 0 1100 1100');
@@ -447,20 +379,19 @@
     var cx = TPL_CX;
     var cy = TPL_CY;
     var gap = tpl.GAP;
-    var colours = tpl.RING_COLOURS.arena || tpl.RING_COLOURS.available;
-    var defs = el('defs', {});
+        var defs = el('defs', {});
     var cells = el('g', { 'data-arena-layer': 'cells' });
     var stageRing = geometry.rings[0];
 
     // No cell-shadow — soft drop-shadows bled past the outer rim as junk.
 
     // Outer → inner, so an inner ring paints over its neighbour's seam the way
-    // the sponsors shell did. The table is the arena's own (arenaRingTable);
+    // the sponsors shell did. The table is the arena's own (ArenaOctagon.ringTable).
     // no fill or stroke is written inline any more — CSS owns every colour, per
     // TECHNICAL_STANDARDS (tokens, never raw hex). SVG presentation attributes
     // lose to any stylesheet rule anyway, so the old inline #fff/hex pairs were
     // dead weight that made the floor look JS-painted.
-    var table = arenaRingTable(geometry);
+    var table = tpl.ringTable(geometry.rings);
     for (var t = table.length - 1; t >= 0; t--) {
       var entry = table[t];
       var count = entry.segments;
@@ -491,6 +422,12 @@
           'data-cell': String(pos),
           'data-centroid-x': centroid.x.toFixed(2),
           'data-centroid-y': centroid.y.toFixed(2),
+          // The cell carries its own band and cell count. Anything that needs to
+          // re-find this wedge later (the online beacon) reads it from here
+          // instead of a table that can drift out from under it.
+          'data-ring-inner': innerR.toFixed(2),
+          'data-ring-outer': outerR.toFixed(2),
+          'data-ring-count': String(count),
           'data-occupancy': 'empty',
           'data-state': 'idle',
           // Only the rank rings still carry arena-cell--sponsors-tpl: 37 fill
@@ -519,7 +456,7 @@
     faceClip.appendChild(el('circle', { cx: '0.5', cy: '0.5', r: '0.5' }));
     defs.appendChild(faceClip);
 
-    var centreR = tpl.RING_RADII.centre[1] - gap;
+    var centreR = tpl.CROWN_OUTER - gap;
     var centrePts = tpl.octagonPoints(cx, cy, centreR);
     var centreClip = el('clipPath', { id: 'arena-clip-0-0' });
     centreClip.appendChild(el('polygon', { points: centrePts }));
@@ -529,7 +466,7 @@
     // the outer octagon. Grey walkway is drawn OUTSIDE this group.
     var floorClip = el('clipPath', { id: 'arena-shell-clip' });
     floorClip.appendChild(el('polygon', {
-      points: tpl.octagonPoints(cx, cy, tpl.TEMPLATE_OUTER)
+      points: tpl.octagonPoints(cx, cy, tpl.OUTER)
     }));
     defs.appendChild(floorClip);
 
@@ -542,7 +479,6 @@
     shell.appendChild(cells);
     shell.appendChild(el('polygon', {
       points: centrePts,
-      fill: colours[0],
       stroke: '#fff',
       'stroke-width': '2',
       'data-ring': String(stageRing.index),
@@ -652,7 +588,7 @@
     var assignments = [];
     var center = payload.center || {};
     // Ring identity and capacity come from payload.geometry — the same authority
-    // the floor is now drawn from (arenaRingTable). Until this fix they came from
+    // the floor is now drawn from (ArenaOctagon.ringTable). Until this fix they came from
     // the Sponsors template instead, and both halves were wrong once AR1 gave the
     // arena its own rings:
     //   * capacity was 10..60 while the floor draws 9..40, so a chef whose
@@ -875,24 +811,25 @@
     // Top-left of the wedge itself (not the bbox) — bbox min sits outside
     // slanted cells and spilled the pulse into the neighbour.
     var entity = assignment.entity || {};
-    var tpl = global.OctagonFloorTemplate;
+    var tpl = global.ArenaOctagon;
     if (assignment.occupancy !== 'chef') { return; }
     if (entity.is_online === false) { return; }
     if (!seat || !tpl) { return; }
 
-    var ring = assignment.ring;
     var cell = assignment.cell;
-    var count = tpl.RING_COUNTS[ring];
-    var radii = tpl.RING_RADII[ring];
-    if (!count || !radii) { return; }
+    // Read the wedge off the cell the floor actually drew. This used to read the
+    // Sponsors template's ring table, which had no entry at all for
+    // the arena's outer rank rings — so a Kitchen Porter simply got no beacon —
+    // and stale radii for the inner ones, which put the beacon off the avatar.
+    var count = parseFloat(seat.getAttribute('data-ring-count'));
+    var bandInner = parseFloat(seat.getAttribute('data-ring-inner'));
+    var bandOuter = parseFloat(seat.getAttribute('data-ring-outer'));
+    if (!isFinite(count) || !count || !isFinite(bandInner) || !isFinite(bandOuter)) { return; }
 
-    var outerR = radii[1] - tpl.GAP / 2;
-    var innerR = radii[0] + tpl.GAP;
-    var sweep = (2 * Math.PI) / count;
-    var offset = -Math.PI / 2 - sweep / 2;
-    var startAngle = offset + cell * sweep + tpl.GAP / outerR;
-    var endAngle = offset + (cell + 1) * sweep - tpl.GAP / outerR;
-    var pts = tpl.ringSegmentPoints(TPL_CX, TPL_CY, innerR, outerR, startAngle, endAngle);
+    var outerR = bandOuter - tpl.GAP / 2;
+    var innerR = bandInner + tpl.GAP;
+    var angles = tpl.cellAngles(count, cell, outerR);
+    var pts = tpl.ringSegmentPoints(tpl.CX, tpl.CY, innerR, outerR, angles.start, angles.end);
 
     var best = pts[0];
     var bestScore = pts[0][0] + pts[0][1];
@@ -1470,7 +1407,7 @@
   }
 
   function drawFloorVs(layer, cx, cy, radius, center) {
-    var tpl = global.OctagonFloorTemplate;
+    var tpl = global.ArenaOctagon;
     // Same octagon math as .arena-stage — not a hex — so VS sits in the true centre pad.
     var points = tpl
       ? tpl.octagonPoints(cx, cy, radius)
