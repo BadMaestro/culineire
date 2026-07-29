@@ -263,13 +263,15 @@
  * geometry outward instead of from the frame inward.
  * -------------------------------------------------------------------------- */
 #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
-  fill: color-mix(in srgb, var(--arena-bowl) 88%, var(--ink));
-  stroke: color-mix(in srgb, var(--arena-bowl-edge) 70%, var(--arena-spot));
-  /* The pre-redesign rule above (empty seat = nothing) still sets opacity: 0,
-     which this block never cleared — so the dark stands it paints stayed fully
-     transparent and an empty house rendered as a bare floor with no seats at
-     all (owner: "no spectators, and no seats for them either"). The bowl only
-     exists when its 290 empty seats are visible; restore that here. */
+  /* The empty stands must read as the DARK crowd bowl that wraps the lit floor
+     (reference: "the dark IS the crowd"). --arena-bowl is a light surface token,
+     so the previous bowl-88%/ink-12% mix painted the seats near-white and the
+     stands read as a faint grey dot-ring, not a packed amphitheatre. Flip it
+     ink-dominant so the outer rings carry the dark. Tokens only, no raw hex. */
+  fill: color-mix(in srgb, var(--ink) 74%, var(--arena-bowl));
+  stroke: color-mix(in srgb, var(--ink) 88%, var(--arena-bowl-edge));
+  /* opacity: the pre-redesign rule above still sets 0 on empty seats; restore
+     it here or the bowl is fully transparent (owner: "no seats for them"). */
   opacity: 1;
 }
 
