@@ -265,6 +265,12 @@
 #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
   fill: color-mix(in srgb, var(--arena-bowl) 88%, var(--ink));
   stroke: color-mix(in srgb, var(--arena-bowl-edge) 70%, var(--arena-spot));
+  /* The pre-redesign rule above (empty seat = nothing) still sets opacity: 0,
+     which this block never cleared — so the dark stands it paints stayed fully
+     transparent and an empty house rendered as a bare floor with no seats at
+     all (owner: "no spectators, and no seats for them either"). The bowl only
+     exists when its 290 empty seats are visible; restore that here. */
+  opacity: 1;
 }
 
 /* An occupied seat is a lit face in the dark: brighter than the stand around
