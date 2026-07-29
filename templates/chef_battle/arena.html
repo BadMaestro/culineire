@@ -81,11 +81,6 @@
       </div>
       <div>
         <dt>Viewers</dt>
-        {# Same figure as the deck's "Active viewers". It needs an id or the
-           deck cannot reach it: refreshReadModel writes metrics by id, so
-           without one this dd keeps the server-rendered value and sits at 0
-           while the deck beside it shows the hydrated 2.4K. Two counts of the
-           same thing, disagreeing, on one screen. #}
         <dd id="arena-facts-viewers">{{ arena_data.metrics.active_viewers|default:0 }}</dd>
       </div>
     </dl>

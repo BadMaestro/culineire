@@ -2673,6 +2673,7 @@ class ArenaMasterConsoleAccessTests(TestCase):
         # must keep a stable target so arena_deck.js can refresh both visible
         # copies from the same payload value.
         self.assertContains(resp, 'id="arena-facts-viewers"')
+        self.assertNotContains(resp, "{# Same figure")
 
     def test_unified_renderer_invokes_existing_spectator_oval(self):
         """The 290-seat backend contract must be connected to the SVG layer."""
