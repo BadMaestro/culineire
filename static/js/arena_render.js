@@ -1686,6 +1686,17 @@
     });
     svg.addEventListener('mouseleave', function () { hideSeatLabel(svg); });
 
+    // The card is position:fixed, but fixed is relative to the nearest
+    // TRANSFORMED ancestor — and the card ships inside .arena-floor-stage, which
+    // carries the camera. That is why it opened on the other side of the floor:
+    // a computed top of 320px was drawn at 494. Lifting it to <body> makes fixed
+    // mean fixed, and the card lands beside the chef. Measured on production
+    // before and after, not guessed.
+    var tipNode = tooltipEl();
+    if (tipNode && tipNode.parentElement !== document.body) {
+      document.body.appendChild(tipNode);
+    }
+
     // Bound to the CONTAINER, not the svg. Measured on production 2026-07-30:
     // over every chef on the floor, document.elementFromPoint returns the
     // container, never the cell — the floor is an SVG under the rotateX(42deg)
