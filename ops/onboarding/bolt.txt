@@ -633,7 +633,66 @@ per section 8.
 Then stop. Do not touch code until a card is assigned.
 
 ===============================================================================
-11. COMPLETION CHECKLIST
+12. RETURN PLAN - written 2026-07-29, read this after the git state
+===============================================================================
+
+Where things stood when this was written. Production v2.5.707, origin/main
+acfa4253, working tree clean, deploy turn lock free, no processes running.
+
+Do these in order and nothing else until the Owner assigns a card.
+
+1. Read the five documents from origin/main (section 3). The constitution went
+   to v2.0.0 on 2026-07-29 - no roles, no pollers, deploy in turn - so anything
+   remembered from before that is wrong.
+2. Read docs/ARENA_BATTLE_PLAN.md. When this was written the next card was A07
+   (stage framing and full-octagon composition), suggested owner GreenBear. Not
+   Bolt's, and not to be self-assigned.
+3. Report ready in one line and wait.
+
+Open items, none of them started, none of them Bolt's to start unprompted:
+
+- THE FIXTURE. static/js/arena_deck.js hydrateFixtures() runs unconditionally at
+  the entry point and fills the Arena with invented data whenever the real
+  payload is empty: 2.4K viewers, 3.7K votes, 620 gifts, a fake Aidan vs Luca
+  battle with a countdown, a crown ladder naming GreenBear. Deliberate scaffold
+  from commit e2f3f41a, 27 July, labelled "fixture until wired" on screen.
+  Harmless while the Arena is staff-only; it becomes a public lie the day the
+  Owner opens it. Reported to him 2026-07-29; his decision, not an agent's.
+  There is a second, smaller defect in the same file: refreshBroadcastCopy sets
+  the live captions and the is-live class inside the fixture branch with no
+  else, so once real data arrives the fixture copy stays until a reload.
+- RIM AND BORDER. The Owner's reference table has eight entries; 1-6 are now the
+  ring fills. Entry 7 (#eee1ca, light accent edge) and entry 8 (#535252, steel
+  border) are the rim, drawn in another layer, and were left untouched pending
+  his word.
+- v2.5.702 has no release-journal entry. It shipped. Ember's release; his to
+  correct, and not to be back-filled by guesswork.
+- The local Postgres role password was reset three times in one session by
+  something outside this agent's work. Ember runs on the same machine. If tests
+  fail on `password authentication failed for user "culineire"`, reset it and
+  say so; do not treat it as a mystery each time.
+
+Lessons this session paid for, in the order they cost the most:
+
+- A DEPLOY THAT REACHES THE SERVER IS NOT A CHANGE ON THE SCREEN. Three deploys
+  went out repainting the octagon floor before any pixel moved, because the
+  colour was declared in three places and only the last one - six !important
+  rules in arena_atmosphere.css - actually paints. Verify the pixel, in a
+  browser, not the presence of the file on disk.
+- An element whose own `fill` attribute disagrees with its computed fill is
+  telling you a rule wins somewhere else. That single check would have saved two
+  releases.
+- One horizontal scanline through the centre is not a measurement of a circular
+  ramp. It passes behind the centre card and loses the innermost rings. When two
+  measured steps come back nearly identical, suspect the method before declaring
+  it a property of the source.
+- Do not speculate about budget or limits, ever. The Owner sees them and says so
+  himself; guessing at them wasted his attention repeatedly on 2026-07-29.
+- Put the answer in the FIRST line. A recommendation buried in the fourth
+  paragraph was not read, and the Owner asked the same question again.
+
+===============================================================================
+13. COMPLETION CHECKLIST
 ===============================================================================
 
   [ ] Repository path was the fixed inner repository.
