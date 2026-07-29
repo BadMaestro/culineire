@@ -855,13 +855,18 @@
   shape-rendering: geometricPrecision;
 }
 
-/* Exact sponsors_puzzle.js RING_COLOURS.available — 6 template rings. */
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: #f4f1ec !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: #ede8df !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: #e4ddd1 !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: #d8d0c0 !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: #ccc1aa !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: #bfb49a !important; }
+/* The floor ramp, measured off the Owner-approved mockup and named in
+   arena_render.css as --arena-floor-1..8. These rules are the ones that
+   actually paint: they carry .page--arena, a class and two attributes, and
+   this file loads last. Two earlier attempts to repaint the floor - in the
+   SVG fill attribute and in arena_render.css - never reached the screen
+   because of them. Keep the colour in the token; never restate it here. */
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: var(--arena-floor-6) !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: var(--arena-floor-5) !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: var(--arena-floor-4) !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: var(--arena-floor-3) !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: var(--arena-floor-2) !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: var(--arena-floor-1) !important; }
 
 .page--arena #arena-render .arena-stage {
   fill: #6c6054 !important;

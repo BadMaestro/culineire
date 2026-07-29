@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.706",
+        "date": "2026-07-29",
+        "commit": "f24089e4",
+        "title": "Octagon floor: the rules that actually paint now carry the mockup colours",
+        "section": "Chef Battles / Arena",
+        "summary": "Two earlier attempts changed layers that never won. The floor is painted by six !important rules in arena_atmosphere.css, which loads last and carries higher specificity; they held a third hardcoded copy of the sponsor palette. They now read the measured tokens. Measured in the live DOM at the same time: the floor draws SIX rings (210 cells) and data-ring 6 is the outer band, not eight as the previous two commits assumed, so the ramp is remapped and needs no interpolation - every one of the six is a reading off mockups/arena.png. Geometry, seats, mechanisms, payload and Dark Launch unchanged. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.705",
         "date": "2026-07-29",
         "commit": "f2eefbf6",

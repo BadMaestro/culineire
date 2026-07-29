@@ -20,14 +20,18 @@
      visible bands and the Arena draws eight ranks, so three steps are linear
      fills, not readings. Named here rather than scattered as literals in the
      rules below, per TECHNICAL_STANDARDS section 7. */
-  --arena-floor-8: #e6d2ba;
-  --arena-floor-7: #e6d1b9;
-  --arena-floor-6: #dbc0a3;
-  --arena-floor-5: #c8ae92;
-  --arena-floor-4: #b49d80;
-  --arena-floor-3: #ab947a;
-  --arena-floor-2: #a48e73;
+  --arena-floor-6: #e6d2ba;
+  --arena-floor-5: #e6d1b9;
+  --arena-floor-4: #dbc0a3;
+  --arena-floor-3: #b49d80;
+  --arena-floor-2: #b59d81;
   --arena-floor-1: #9d886c;
+  /* The floor draws SIX rings, not eight: 10+20+30+40+50+60 = 210 cells, and
+     data-ring="6" is the OUTER band. Measured in the live DOM, after two
+     deploys had assumed eight. 7 and 8 are kept only so the rank rules below
+     have something to resolve if a seventh ring is ever added. */
+  --arena-floor-8: #e6d2ba;
+  --arena-floor-7: #e6d2ba;
   --arena-seat: var(--surface-soft);
   --arena-seam: var(--surface);
   --arena-stage-ink: var(--brand-dark);
