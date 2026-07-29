@@ -2725,6 +2725,28 @@ class ArenaMasterConsoleAccessTests(TestCase):
         self.assertIn("fireRipple(svg, seat)", source)
         self.assertIn("fireRipple(svg, stage)", source)
 
+    def test_chef_tooltip_is_viewport_anchored_to_any_cell(self):
+        """The popup must stay beside its clicked cell under page scroll."""
+        from django.conf import settings as django_settings
+        from pathlib import Path
+
+        js = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
+        ).read_text(encoding="utf-8")
+
+        positioner = js.split("function position(tip, anchor)", 1)[1].split(
+            "function setHidden", 1
+        )[0]
+        self.assertIn("anchor.getBoundingClientRect()", positioner)
+        self.assertIn("global.innerHeight", positioner)
+        self.assertIn("rect.top - tip.offsetHeight", positioner)
+        self.assertNotIn("scrollY", positioner)
+        tooltip_rule = css.split(".arena-tooltip {", 1)[1].split("}", 1)[0]
+        self.assertIn("position: fixed", tooltip_rule)
+
 
 # ── AMC P02 — master_state read models ───────────────────────────────────────
 

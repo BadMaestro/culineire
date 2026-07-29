@@ -3025,18 +3025,20 @@ ARENA_RELEASE_STAGES = [
                      "Broadcast identity and seven-step phase rail separated into their intended "
                      "columns instead of overlapping. DONE v2.5.689.",
                      "Live metrics converted from the tall 2x2 card into the approved compact "
-                     "four-column strip. READY v2.5.690.",
+                     "four-column strip. DONE v2.5.690.",
+                     "Chef tooltip anchored beside any clicked cell in viewport coordinates, "
+                     "with automatic above/below placement. READY v2.5.691.",
                      "Remaining visual slices tracked in docs/ARENA_BATTLE_PLAN.md section 5.",
                      "Hard constraints held every slice: octagon method and camera rotateX(42deg) "
                      "frozen; mechanisms, seat contract, backend, Dark Launch and Master Console untouched."],
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
-        "branch": "temporary isolated worktree", "commit": "pending v2.5.690",
-        "verification": "Production v2.5.689 confirmed. Local authenticated visual QA shows "
-                        "all four existing live metrics in one compact row; metric ids, payload "
-                        "and update mechanisms unchanged.",
-        "updated": "2026-07-29T11:35:00.000Z",
-        "next_action": "Deploy v2.5.690 and verify production.",
+        "branch": "temporary isolated worktree", "commit": "pending v2.5.691",
+        "verification": "Production v2.5.690 confirmed. Tooltip positioning now uses the clicked "
+                        "cell viewport rect, clamps to screen edges and flips above near the "
+                        "bottom; shared by every ring cell.",
+        "updated": "2026-07-29T11:45:00.000Z",
+        "next_action": "Verify and deploy v2.5.691.",
     },
     {
         "n": 3, "id": "release-readiness",

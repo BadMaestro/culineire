@@ -128,7 +128,7 @@
 /* Chef tooltip                                                        */
 /* ------------------------------------------------------------------ */
 .arena-tooltip {
-  position: absolute;
+  position: fixed;
   z-index: 200;
   background: var(--surface);
   border: 1px solid var(--ce-card-border);

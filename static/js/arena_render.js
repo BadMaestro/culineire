@@ -1595,13 +1595,16 @@
 
   function position(tip, anchor) {
     var rect = anchor.getBoundingClientRect();
-    var scrollX = global.scrollX || global.pageXOffset;
-    var scrollY = global.scrollY || global.pageYOffset;
     var margin = 8;
-    var left = rect.left + scrollX + (rect.width / 2) - (tip.offsetWidth / 2);
-    var maxLeft = scrollX + global.innerWidth - tip.offsetWidth - margin;
-    tip.style.left = Math.max(scrollX + margin, Math.min(left, maxLeft)) + 'px';
-    tip.style.top = (rect.bottom + scrollY + margin) + 'px';
+    var left = rect.left + (rect.width / 2) - (tip.offsetWidth / 2);
+    var maxLeft = global.innerWidth - tip.offsetWidth - margin;
+    var below = rect.bottom + margin;
+    var above = rect.top - tip.offsetHeight - margin;
+    var top = below + tip.offsetHeight <= global.innerHeight - margin
+      ? below
+      : Math.max(margin, above);
+    tip.style.left = Math.max(margin, Math.min(left, maxLeft)) + 'px';
+    tip.style.top = top + 'px';
   }
 
   function setHidden(node, hidden) { if (node) { node.hidden = hidden; } }
