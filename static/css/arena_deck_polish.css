@@ -3884,8 +3884,15 @@
 .page--arena .arena-cooking-widget .arena-command-deck__phase-card {
   position: relative;
   inset: auto;
-  width: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
   margin: 0;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  align-self: stretch;
   transform: none;
 }
 

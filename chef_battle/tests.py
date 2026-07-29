@@ -7934,6 +7934,22 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("position: absolute", desktop)
         self.assertIn("left: 1.5%", desktop)
 
+        phase_card = widget.split(
+            ".page--arena .arena-cooking-widget .arena-command-deck__phase-card {",
+            1,
+        )[1].split("}", 1)[0]
+        for declaration in (
+            "width: 100%",
+            "min-width: 0",
+            "max-width: none",
+            "flex: 0 0 auto",
+            "align-self: stretch",
+            "left: auto",
+            "right: auto",
+            "box-sizing: border-box",
+        ):
+            self.assertIn(declaration, phase_card)
+
     def test_cooking_widget_copy_stays_inside_and_next_phase_hydrates(self):
         css = self.CSS_POLISH.read_text(encoding="utf-8")
         widget = css.split(

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.703",
+        "date": "2026-07-29",
+        "commit": "9c4bb4d7",
+        "title": "Cooking Widget live phase card width restored",
+        "section": "Chef Battles / Arena",
+        "summary": "Production wide-screen verification found that a legacy phase-card width rule could collapse the reused live phase panel into a narrow vertical strip. The independent Cooking Widget now explicitly owns the full available width while retaining the existing shared panel chrome. No octagon, floor, phase, timer, polling, payload, access or battle mechanism changed. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.701",
         "date": "2026-07-29",
         "commit": "19bf7741",

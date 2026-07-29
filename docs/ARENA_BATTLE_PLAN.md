@@ -78,7 +78,7 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 | A02 | Chef identity inside existing fighter plinths | v2.5.682 |
 | A03 | Correct rank order and approved bevelled labels | v2.5.684–v2.5.685; non-interactive plinth correction v2.5.695 |
 | A04 | Cell ripple and chef card anchored to any clicked cell | v2.5.687, v2.5.691; close control v2.5.695 |
-| A05 | Independent left Cooking Widget; lifecycle rail separated; compact metrics | v2.5.689–v2.5.692; complete Cooking Widget corrected v2.5.699–v2.5.701 |
+| A05 | Independent left Cooking Widget; lifecycle rail separated; compact metrics | v2.5.689–v2.5.692; complete Cooking Widget corrected v2.5.699–v2.5.703 |
 | A06 | Production vs Design-Arena measurement matrix (read-only) | ops/audits/arena/A06_measurement_matrix_2026-07-29.md |
 
 ## 5. Atomic dispatch queue
