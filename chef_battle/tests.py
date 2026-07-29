@@ -7895,6 +7895,14 @@ class ArenaRankColumnTests(TestCase):
             "  .page--arena .arena-command-deck__phase-card,",
             graphics_contract,
         )
+        night_glass_contract = css.split(
+            "atmospheric crowd wash + panel night glass", 1
+        )[1].split(".arena-panel__kicker,", 1)[0]
+        self.assertIn(
+            ".page--arena .arena-cooking-widget,\n"
+            "  .page--arena .arena-command-deck__ladder,",
+            night_glass_contract,
+        )
 
         widget = css.split(
             "OWNER 2026-07-29 — independent Cooking Widget; reuses Crown ladder chrome",
@@ -7909,6 +7917,17 @@ class ArenaRankColumnTests(TestCase):
         self.assertNotIn("box-shadow:", shell)
         self.assertIn(
             ".page--arena .arena-cooking-widget .arena-command-deck__header {",
+            widget,
+        )
+        header = widget.split(
+            ".page--arena .arena-cooking-widget .arena-command-deck__header {",
+            1,
+        )[1].split("}", 1)[0]
+        self.assertIn("display: block", header)
+        self.assertNotIn("grid-template-columns", header)
+        self.assertIn(
+            ".page--arena .arena-cooking-widget .arena-command-deck__header > "
+            ".btn-secondary {\n  display: none;",
             widget,
         )
         desktop = widget.split("@media (min-width: 901px)", 1)[1]

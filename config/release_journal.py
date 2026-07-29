@@ -1,11 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.701",
+        "date": "2026-07-29",
+        "commit": "pending",
+        "title": "Cooking Widget header and live panel reuse corrected",
+        "section": "Chef Battles / Arena",
+        "summary": "Production screenshot verification caught the v2.5.700 Back to Chef Battles chip compressing the identity heading into a vertical column. The redundant chip is disconnected by CSS, the header returns to one full-width column, and the outer Cooking Widget joins the same existing night-glass selector that already skins Crown ladder and the other live Arena panels. No octagon, floor, phase, timer, polling, payload, access or battle mechanism changed. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.700",
         "date": "2026-07-29",
         "commit": "dc659e19",
-        "title": "Cooking Widget integrated with the live Arena panel system",
+        "title": "Cooking Widget panel-reuse attempt superseded by v2.5.701",
         "section": "Chef Battles / Arena",
-        "summary": "Corrects the first v2.5.699 visual pass after production comparison. The independent left Cooking Widget keeps the approved reference hierarchy but now uses the same parchment surface, brass double frame, rounded corners, shadow and typography as the existing Crown ladder. Live copy is contained, the fixture reads Live Now, and the existing next-phase row hydrates from the seven-step rail. Position, phase IDs, refresh timer, payload, Dark Launch, octagon and Arena mechanisms are unchanged. Rollback: revert the deployment commit and redeploy.",
+        "summary": "Attempted to replace the v2.5.699 detached dark skin with the existing Crown ladder panel contract. Production screenshot verification found that the retained Back to Chef Battles chip compressed the heading into a vertical column; v2.5.701 supersedes this pass. Phase IDs, refresh timer, payload, Dark Launch, octagon and Arena mechanisms remained unchanged.",
     },
     {
         "version": "2.5.699",
