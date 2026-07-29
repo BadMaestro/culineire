@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.697",
+        "date": "2026-07-29",
+        "commit": "67589de1",
+        "title": "Sign in with the username in any capitalisation",
+        "section": "Accounts / Sign-in",
+        "summary": "crestedten, CrestedTen and CrEsTeDtEn are one account. A new authentication backend matches the username without regard to case; the password stays case-sensitive and the stored username keeps its original capitalisation. Signup now refuses a name that differs from an existing one only in case, so two accounts can never answer to one login. Checked on production first: 20 users, zero case-collisions. Focused PostgreSQL tests 8/8, verified failing on the stock backend; whole accounts app 20/20; image-weight gate green. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.696",
         "date": "2026-07-29",
         "commit": "728d65b5",
