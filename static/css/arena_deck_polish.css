@@ -126,26 +126,6 @@
   .arena-phase-step { transition:none; }
 }
 
-/* OWNER 2026-07-29 — warm site-brass identity masthead.
- * The hall ink token is intentionally green-biased across the wider Arena,
- * but the compact broadcast identity is a site-brand plaque, not another
- * piece of hall scenery. Warm it with the official brown/bronze tokens while
- * preserving the existing ribbon geometry and live-state mechanism. */
-.page--arena .arena-broadcast-ribbon .arena-command-deck__header {
-  border: 1px solid color-mix(in srgb, var(--accent-bronze) 58%, var(--brand-dark));
-  border-inline-start: 0.25rem solid var(--accent-bronze);
-  background:
-    linear-gradient(
-      105deg,
-      color-mix(in srgb, var(--accent-bronze-dark) 84%, var(--ink)),
-      color-mix(in srgb, var(--brand-dark) 72%, var(--ink))
-    );
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--surface) 15%, transparent),
-    0 0.5rem 1.25rem color-mix(in srgb, var(--brand-dark) 24%, transparent);
-}
-
-
 /* 3G R6 polish — phase cells read as one track inside the ribbon. */
 @media (min-width: 901px) {
   .arena-broadcast-ribbon .arena-phase-step {
@@ -3845,4 +3825,50 @@
   width: 0 !important;
   height: 0 !important;
   opacity: 0 !important;
+}
+
+/* OWNER 2026-07-29 — Cooking Widget identity header.
+ * This is the top section of the approved Cooking Widget, not a standalone
+ * brown page banner. Keep its black-glass / brass frame and title hierarchy
+ * while preserving the existing ribbon geometry and live-state mechanism.
+ * Deliberately last: this visual contract must win the accumulated Arena
+ * polish cascade without !important. */
+.page--arena .arena-broadcast-ribbon .arena-command-deck__header {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 72%, var(--brand-dark));
+  outline: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  outline-offset: -0.28rem;
+  background:
+    radial-gradient(
+      circle at 78% 18%,
+      color-mix(in srgb, var(--accent-bronze) 14%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(
+      112deg,
+      color-mix(in srgb, var(--ink) 70%, var(--accent-bronze-dark)),
+      color-mix(in srgb, var(--ink) 84%, var(--brand-dark))
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--accent-bronze) 18%, transparent),
+    0 0.55rem 1.35rem color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.page--arena .arena-broadcast-ribbon .arena-command-deck__eyebrow {
+  color: var(--hall-gold-light);
+  font-size: clamp(0.72rem, 0.86vw, 0.92rem);
+  letter-spacing: 0.045em;
+}
+.page--arena .arena-broadcast-ribbon .arena-command-deck__header h1 {
+  margin-top: 0.18rem;
+  color: color-mix(in srgb, var(--accent-bronze) 72%, var(--surface));
+  font-family: var(--font-sans);
+  font-size: clamp(0.58rem, 0.66vw, 0.72rem);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+.page--arena .arena-broadcast-ribbon .arena-command-deck__header .btn-secondary {
+  border-color: color-mix(in srgb, var(--accent-bronze) 62%, var(--brand-dark));
+  color: var(--hall-gold-light);
+  background: color-mix(in srgb, var(--ink) 82%, var(--accent-bronze-dark));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent-bronze) 18%, transparent);
 }

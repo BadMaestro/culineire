@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.698",
+        "date": "2026-07-29",
+        "commit": "pending",
+        "title": "Arena identity restored as the Cooking Widget header",
+        "section": "Chef Battles / Arena",
+        "summary": "Corrects v2.5.696: the Emerald Hall block is the top section of the approved Cooking Widget, not a standalone brown masthead. It now uses the reference black-glass field, double brass frame, gold Chef Battles Arena title hierarchy and a matching dark Back control. Existing phase data, ribbon geometry, Dark Launch and Arena mechanisms are unchanged. Focused PostgreSQL and image-weight tests: 21/21. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.697",
         "date": "2026-07-29",
         "commit": "67589de1",
