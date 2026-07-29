@@ -1686,7 +1686,13 @@
     });
     svg.addEventListener('mouseleave', function () { hideSeatLabel(svg); });
 
-    svg.addEventListener('click', function (event) {
+    // Bound to the CONTAINER, not the svg. Measured on production 2026-07-30:
+    // over every chef on the floor, document.elementFromPoint returns the
+    // container, never the cell — the floor is an SVG under the rotateX(42deg)
+    // camera, and its hit area does not sit where its pixels are drawn. A
+    // listener on the svg therefore never fired for a click aimed at a chef.
+    // Clicks that DO land on the svg still bubble up here, so nothing is lost.
+    svg.parentElement.addEventListener('click', function (event) {
       // The centre stage opens the live battle room, exactly as the legacy
       // centre cells did.
       var stage = event.target.closest && event.target.closest('[data-arena-stage]');
@@ -1697,6 +1703,30 @@
         return;
       }
       var seat = event.target.closest && event.target.closest('.arena-cell[data-ring]');
+      if (!seat || !seat.chefRecord) {
+        // Fall back to what the viewer actually aimed at: the portrait's own
+        // on-screen box. getBoundingClientRect is the browser's own answer for
+        // where that portrait is, so this holds whatever the camera does to the
+        // geometry underneath it.
+        var portraits = svg.querySelectorAll('.arena-occupant[data-entity-slug]');
+        var picked = null;
+        var pickedArea = Infinity;
+        for (var i = 0; i < portraits.length; i++) {
+          var box = portraits[i].getBoundingClientRect();
+          if (!box.width || !box.height) { continue; }
+          if (event.clientX < box.left || event.clientX > box.right) { continue; }
+          if (event.clientY < box.top || event.clientY > box.bottom) { continue; }
+          var area = box.width * box.height;
+          // Smallest box wins, so two overlapping portraits resolve to the one
+          // the click is most precisely inside rather than to draw order.
+          if (area < pickedArea) { pickedArea = area; picked = portraits[i]; }
+        }
+        if (picked) {
+          seat = svg.querySelector(
+            '.arena-cell[data-entity-slug="' + picked.getAttribute('data-entity-slug') + '"]'
+          );
+        }
+      }
       if (!seat || !seat.chefRecord) { hideTooltip(); return; }
       event.stopPropagation();
       fireRipple(svg, seat);
