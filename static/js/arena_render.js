@@ -381,7 +381,7 @@
     var cx = TPL_CX;
     var cy = TPL_CY;
     var gap = tpl.GAP;
-    var colours = tpl.RING_COLOURS.available;
+    var colours = tpl.RING_COLOURS.arena || tpl.RING_COLOURS.available;
     var defs = el('defs', {});
     var cells = el('g', { 'data-arena-layer': 'cells' });
     var stageRing = geometry.rings[0];

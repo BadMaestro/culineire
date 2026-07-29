@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.704",
+        "date": "2026-07-29",
+        "commit": "f02449a4",
+        "title": "Octagon floor repainted to the approved mockup",
+        "section": "Chef Battles / Arena",
+        "summary": "The Arena floor now uses colours measured off the Owner-approved mockup (mockups/arena.png) instead of the sponsor palette it had been borrowing: warmer and darker in every ring, centre #9e886c through outer #e6d2ba. The sponsors puzzle keeps its own `available` table untouched. Geometry, ring count, seats, mechanisms, payload and Dark Launch unchanged. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.703",
         "date": "2026-07-29",
         "commit": "9c4bb4d7",

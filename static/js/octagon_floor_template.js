@@ -43,6 +43,14 @@
       6: '#faf0d8', 5: '#f5e6c8', 4: '#f2ddb2', 3: '#efd49c',
       2: '#ebca86', 1: '#e6c070', 0: '#c8942a'
     },
+    // The Arena floor, measured off the Owner-approved mockup
+    // (docs mockups/arena.png, horizontal scanline through the octagon centre,
+    // median of a 5x5 window per sample). Sponsors keep `available` unchanged:
+    // that table paints /sponsors/ and is not ours to repaint.
+    arena: {
+      6: '#e6d2ba', 5: '#e6d1b9', 4: '#dbc0a3', 3: '#b49d80',
+      2: '#b59d81', 1: '#9d886c', 0: '#9e886c'
+    },
     sold: {
       6: '#ddd8ce', 5: '#cdc7ba', 4: '#b8b0a0', 3: '#a49888',
       2: '#907e6c', 1: '#786454', 0: '#3a2e28'
