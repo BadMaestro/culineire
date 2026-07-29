@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.696",
         "date": "2026-07-29",
-        "commit": "pending",
+        "commit": "728d65b5",
         "title": "Arena identity masthead uses the warm site-brass palette",
         "section": "Chef Battles / Arena",
         "summary": "Replaced the green-biased hall fill behind the Emerald Hall identity with a warm brown/bronze plaque built only from official CulinEire tokens. Ribbon geometry, lifecycle phases, live status and Dark Launch remain unchanged. Focused PostgreSQL and image-weight tests: 21/21. Rollback: revert the deployment commit and redeploy.",
