@@ -651,18 +651,27 @@
   function buildAssignments(payload, geometry) {
     var assignments = [];
     var center = payload.center || {};
-    var tpl = global.OctagonFloorTemplate;
-    // Sponsors template: 6 rings. Arena payload still has 8 rank keys —
-    // geometry rings 1–5 map 1:1; rings 6–8 (commis/prep/porter) share outer ring 6.
-    var occupiedByRing = { 1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {} };
+    // Ring identity and capacity come from payload.geometry — the same authority
+    // the floor is now drawn from (arenaRingTable). Until this fix they came from
+    // the Sponsors template instead, and both halves were wrong once AR1 gave the
+    // arena its own rings:
+    //   * capacity was 10..60 while the floor draws 9..40, so a chef whose
+    //     scattered cell landed past the drawn count matched no cell, hit the
+    //     `if (!seat) { return; }` in bind() and vanished from the arena without a
+    //     word — taking its green online light with it (Owner, 2026-07-30);
+    //   * ranks 6-8 were collapsed onto one template ring with Math.min(6, index),
+    //     so commis/prep/porter fought for the same seats and prep_cook and
+    //     kitchen_porter never stood on a ring of their own.
+    var occupiedByRing = {};
     var capacity = {};
-    for (var r = 1; r <= 6; r++) {
-      capacity[r] = tpl ? tpl.RING_COUNTS[r] : 60;
-    }
+    geometry.rings.forEach(function (ring) {
+      if (ring.kind !== 'rank') { return; }
+      occupiedByRing[ring.index] = {};
+      capacity[ring.index] = ring.segments;
+    });
 
     geometry.rings.forEach(function (ring) {
       if (ring.kind !== 'rank') { return; }
-      var templateRing = Math.min(6, ring.index);
       var chefs = ((payload.rings && payload.rings[ring.key]) || []).filter(function (chef) {
         return chef && !isDisplaced(chef, center);
       });
@@ -671,14 +680,14 @@
         return String(a.slug || '').localeCompare(String(b.slug || ''));
       });
       chefs.forEach(function (chef) {
-        var occupied = occupiedByRing[templateRing];
+        var occupied = occupiedByRing[ring.index];
         var cell = pickScatteredCell(
-          templateRing, chef.slug, capacity[templateRing], occupied
+          ring.index, chef.slug, capacity[ring.index], occupied
         );
         if (cell < 0) { return; }
         occupied[cell] = true;
         assignments.push({
-          ring: templateRing, cell: cell, entity: chef,
+          ring: ring.index, cell: cell, entity: chef,
           occupancy: 'chef',
           state: chef.in_battle ? 'in-battle' : (chef.is_online ? 'online' : 'idle')
         });
@@ -1027,7 +1036,20 @@
       var seat = svg.querySelector(
         '.arena-cell[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]'
       );
-      if (!seat) { return; }
+      if (!seat) {
+        // A dropped occupant used to be invisible in every sense: no cell, no
+        // message, just a chef missing from the arena — which is exactly how the
+        // AR1 capacity mismatch survived a deploy and had to be reported by the
+        // Owner instead of by the code. Say it out loud.
+        if (global.console && global.console.warn) {
+          global.console.warn(
+            'arena_render: no cell at ring ' + assignment.ring + ' cell ' +
+            assignment.cell + ' — occupant dropped',
+            (assignment.entity && assignment.entity.slug) || ''
+          );
+        }
+        return;
+      }
       var entity = assignment.entity;
       seat.setAttribute('data-occupancy', assignment.occupancy);
       seat.setAttribute('data-state', assignment.state);
