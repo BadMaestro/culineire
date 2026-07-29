@@ -138,7 +138,7 @@
     var viewers = metricText(metrics.active_viewers);
     if (data && data._fixture_surface) {
       if (liveNote) {
-        liveNote.textContent = 'LIVE COOKING IN PROGRESS · CHEFS EARNING THE CROWD';
+        liveNote.textContent = 'Live Now';
         liveNote.classList.add('is-live');
       }
       if (floorStrong) { floorStrong.textContent = 'Live cooking in progress'; }
@@ -340,6 +340,7 @@
     if (!rail) { return; }
     var phaseName = byId('arena-current-phase');
     var phaseCopy = byId('arena-current-phase-copy');
+    var phaseNext = byId('arena-phase-next');
     var activeStep = phase && phase.step ? Number(phase.step) : 0;
 
     if (Array.isArray(phaseRail) && phaseRail.length) {
@@ -356,6 +357,7 @@
       rail.setAttribute('data-phase-key', '');
       if (phaseName) { phaseName.textContent = 'Open floor'; }
       if (phaseCopy) { phaseCopy.textContent = 'Choose a chef on the floor to inspect their profile or issue a challenge.'; }
+      if (phaseNext) { phaseNext.hidden = true; }
       return;
     }
     rail.classList.remove('is-open');
@@ -370,6 +372,16 @@
     rail.setAttribute('data-phase-key', phase.key || '');
     if (phaseName) { phaseName.textContent = phase.label || 'Battle in progress'; }
     if (phaseCopy) { phaseCopy.textContent = 'The centre tile opens the live battle room, chat and public actions.'; }
+    if (phaseNext) {
+      var nextLabel = rail.querySelector(
+        '[data-phase-step="' + String(activeStep + 1) + '"] b'
+      );
+      phaseNext.hidden = !nextLabel;
+      if (nextLabel) {
+        var phaseNextText = phaseNext.querySelector('b');
+        if (phaseNextText) { phaseNextText.textContent = nextLabel.textContent; }
+      }
+    }
   }
 
   function ensurePhaseRailSteps(rail, phaseRail) {

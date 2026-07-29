@@ -13,7 +13,7 @@
 <link href="{% static 'css/arena_effects.css' %}?v=20260727-kill-stage-aura" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260727-tilt42" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay / kill rules last #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260729-cooking-widget-left" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260729-cooking-widget-copy" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260728-crown-recess" rel="stylesheet">
 {% endblock %}
 
@@ -26,12 +26,12 @@
     phase card; all phase IDs and update mechanisms are unchanged.
   {% endcomment %}
   <section class="arena-cooking-widget" aria-label="Cooking Widget">
-  <header class="arena-command-deck__header">
+  <header class="arena-command-deck__header arena-panel__title">
     <div>
-      <p class="arena-command-deck__eyebrow">Chef Battles Arena</p>
-      <h1 id="arena-command-title">Emerald Hall</h1>
+      <p class="arena-command-deck__eyebrow arena-panel__heading">Chef Battles Arena</p>
+      <h1 id="arena-command-title" class="arena-panel__kicker">Emerald Hall</h1>
       <p id="arena-live-note" class="arena-command-deck__live-note{% if active_battle %} is-live{% endif %}">
-        {% if active_battle %}Live now · a battle holds the centre{% else %}The ranked kitchen floor is open for the next challenge{% endif %}
+        {% if active_battle %}Live Now{% else %}Floor Open{% endif %}
       </p>
     </div>
     <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Back to Chef Battles</a>
@@ -46,13 +46,15 @@
       <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">00:30</strong>
     </header>
     <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge" style="width:100%"></span></div>
+    <p class="arena-phase-next" id="arena-phase-next"{% if not arena_data.phase %} hidden{% endif %}>Next: <b>
     {% if arena_data.phase and arena_data.phase_rail %}
       {% for rung in arena_data.phase_rail %}
         {% if rung.step == arena_data.phase.step|add:1 %}
-          <p class="arena-phase-next" id="arena-phase-next">Next: <b>{{ rung.label }}</b></p>
+          {{ rung.label }}
         {% endif %}
       {% endfor %}
     {% endif %}
+    </b></p>
     <p id="arena-current-phase-copy" class="arena-command-deck__phase-copy">
       {% if active_battle %}The centre tile opens the live battle room, chat and public actions.{% else %}Choose a chef on the floor to inspect their profile or issue a challenge.{% endif %}
     </p>

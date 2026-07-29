@@ -7758,6 +7758,7 @@ class ArenaRankColumnTests(TestCase):
     CSS_POLISH = Path(settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
     CSS_BASE = Path(settings.BASE_DIR) / "static" / "css" / "base.css"
     TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+    JS_DECK = Path(settings.BASE_DIR) / "static" / "js" / "arena_deck.js"
 
     def setUp(self):
         User = get_user_model()
@@ -7870,20 +7871,42 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("color: var(--surface)", graphics)
         self.assertIn("color: var(--accent-bronze)", graphics)
 
-    def test_independent_cooking_widget_uses_the_approved_visual_contract(self):
+    def test_cooking_widget_reuses_the_crown_ladder_panel_chrome(self):
         css = self.CSS_POLISH.read_text(encoding="utf-8")
-        widget = css.split("OWNER 2026-07-29 — independent Cooking Widget", 1)[1]
+        ladder_contract = css.split("MOCKUP M13", 1)[1].split(
+            ".arena-command-deck__ladder .arena-ladder-list", 1
+        )[0]
+        self.assertIn(
+            ".arena-command-deck__ladder,\n  .arena-cooking-widget {",
+            ladder_contract,
+        )
+        self.assertIn(
+            ".arena-command-deck__ladder > .arena-panel__title,\n"
+            "  .arena-cooking-widget > .arena-panel__title {",
+            ladder_contract,
+        )
+
+        graphics_contract = css.split("GRAPHICS WP (Owner 2026-07-25)", 1)[1]
+        graphics_contract = graphics_contract.split(
+            ".page--arena .arena-broadcast-ribbon {", 1
+        )[0]
+        self.assertIn(
+            ".page--arena .arena-cooking-widget,\n"
+            "  .page--arena .arena-command-deck__phase-card,",
+            graphics_contract,
+        )
+
+        widget = css.split(
+            "OWNER 2026-07-29 — independent Cooking Widget; reuses Crown ladder chrome",
+            1,
+        )[1]
         shell = widget.split(
             ".page--arena .arena-cooking-widget {", 1
         )[1].split("}", 1)[0]
-        self.assertIn("var(--accent-bronze-dark)", shell)
-        self.assertIn("var(--brand-dark)", shell)
-        self.assertIn("var(--accent-bronze)", shell)
-        self.assertNotRegex(shell, r"#[0-9a-fA-F]{3,8}\b")
-        self.assertIn(
-            ".page--arena .arena-cooking-widget .arena-command-deck__phase-card {",
-            widget,
-        )
+        self.assertIn("overflow: hidden", shell)
+        self.assertNotIn("background:", shell)
+        self.assertNotIn("border:", shell)
+        self.assertNotIn("box-shadow:", shell)
         self.assertIn(
             ".page--arena .arena-cooking-widget .arena-command-deck__header {",
             widget,
@@ -7891,6 +7914,24 @@ class ArenaRankColumnTests(TestCase):
         desktop = widget.split("@media (min-width: 901px)", 1)[1]
         self.assertIn("position: absolute", desktop)
         self.assertIn("left: 1.5%", desktop)
+
+    def test_cooking_widget_copy_stays_inside_and_next_phase_hydrates(self):
+        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        widget = css.split(
+            "OWNER 2026-07-29 — independent Cooking Widget; reuses Crown ladder chrome",
+            1,
+        )[1]
+        live_note = widget.split(
+            ".page--arena .arena-cooking-widget .arena-command-deck__live-note {",
+            1,
+        )[1].split("}", 1)[0]
+        self.assertIn("overflow: hidden", live_note)
+        self.assertIn("text-overflow: ellipsis", live_note)
+
+        js = self.JS_DECK.read_text(encoding="utf-8")
+        self.assertIn("liveNote.textContent = 'Live Now'", js)
+        self.assertIn("var phaseNext = byId('arena-phase-next')", js)
+        self.assertIn("phaseNext.hidden = !nextLabel", js)
 
     def test_each_step_is_screen_reader_readable(self):
         """The count renders as a bare numeral. Without a label a screen reader

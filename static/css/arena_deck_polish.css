@@ -1610,7 +1610,8 @@
 /* 3G — prototype rail widths (narrower show panels). */
 @media (min-width: 901px) {
   .arena-command-deck__phase-card,
-  .arena-command-deck__ladder {
+  .arena-command-deck__ladder,
+  .arena-cooking-widget {
     left: 1.2%;
     width: min(15.5rem, 17.5%);
   }
@@ -3208,7 +3209,8 @@
  * Keep ladder ids / profile links; visual parity only.
  * ============================================================================ */
 @media (min-width: 901px) {
-  .arena-command-deck__ladder {
+  .arena-command-deck__ladder,
+  .arena-cooking-widget {
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
@@ -3224,20 +3226,23 @@
     box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
   }
 
-  .arena-command-deck__ladder > .arena-panel__title {
+  .arena-command-deck__ladder > .arena-panel__title,
+  .arena-cooking-widget > .arena-panel__title {
     margin: 0;
     padding-bottom: 0.45rem;
     border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
   }
 
-  .arena-command-deck__ladder .arena-panel__kicker {
+  .arena-command-deck__ladder .arena-panel__kicker,
+  .arena-cooking-widget .arena-panel__kicker {
     margin: 0;
     font-size: 0.52rem;
     letter-spacing: 0.14em;
     color: var(--accent-bronze-dark);
   }
 
-  .arena-command-deck__ladder .arena-panel__heading {
+  .arena-command-deck__ladder .arena-panel__heading,
+  .arena-cooking-widget .arena-panel__heading {
     margin: 0.12rem 0 0;
     font-size: clamp(1.05rem, 1.45vw, 1.28rem);
     letter-spacing: 0.02em;
@@ -3695,6 +3700,7 @@
    bronze rails + parchment depth. Official tokens only. AF owns atmosphere;
    Cursor owns polish. */
 @media (min-width: 901px) {
+  .page--arena .arena-cooking-widget,
   .page--arena .arena-command-deck__phase-card,
   .page--arena .arena-command-deck__metrics,
   .page--arena .arena-command-deck__ladder,
@@ -3827,30 +3833,13 @@
   opacity: 0 !important;
 }
 
-/* OWNER 2026-07-29 — independent Cooking Widget.
+/* OWNER 2026-07-29 — independent Cooking Widget; reuses Crown ladder chrome.
  * The approved left HUD is one component: identity + the existing live phase
  * card. It is a sibling of the lifecycle header, never a child of it.
- * Deliberately last so this measured contract wins the accumulated polish
- * cascade without changing phase IDs, timers or update behaviour. */
+ * Crown ladder and Graphics WP own its visual skin; only the unique layout
+ * lives below. Phase IDs, timers and update behaviour stay unchanged. */
 .page--arena .arena-cooking-widget {
-  color: var(--hall-gold-light);
-  border: 1px solid color-mix(in srgb, var(--accent-bronze) 72%, var(--brand-dark));
-  outline: 1px solid color-mix(in srgb, var(--accent-bronze) 24%, transparent);
-  outline-offset: -0.3rem;
-  background:
-    radial-gradient(
-      circle at 76% 12%,
-      color-mix(in srgb, var(--accent-bronze) 13%, transparent),
-      transparent 32%
-    ),
-    linear-gradient(
-      120deg,
-      color-mix(in srgb, var(--ink) 88%, var(--accent-bronze-dark)),
-      color-mix(in srgb, var(--ink) 93%, var(--brand-dark))
-    );
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--accent-bronze) 18%, transparent),
-    0 0.75rem 1.8rem color-mix(in srgb, var(--ink) 38%, transparent);
+  overflow: hidden;
 }
 
 .page--arena .arena-cooking-widget .arena-command-deck__header {
@@ -3858,45 +3847,26 @@
   inset: auto;
   width: auto;
   margin: 0;
-  padding: 0.65rem 0.75rem 0.5rem;
   transform: none;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: 0.4rem;
-  border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
-  border-radius: 0;
-  outline: 0;
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
-.page--arena .arena-cooking-widget .arena-command-deck__eyebrow {
-  color: var(--hall-gold-light);
-  font-size: clamp(0.8rem, 1vw, 1rem);
-  line-height: 1.1;
-  letter-spacing: 0.035em;
-}
-
-.page--arena .arena-cooking-widget .arena-command-deck__header h1 {
-  display: inline;
-  margin: 0.32rem 0 0;
-  color: color-mix(in srgb, var(--hall-green) 58%, var(--hall-gold-light));
-  font-family: var(--font-sans);
-  font-size: clamp(0.58rem, 0.66vw, 0.7rem);
-  font-weight: 650;
-  letter-spacing: 0.02em;
-}
-
 .page--arena .arena-cooking-widget .arena-command-deck__live-note {
   display: inline;
+  max-width: 100%;
   margin: 0;
-  color: color-mix(in srgb, var(--hall-green) 68%, var(--surface));
+  overflow: hidden;
+  color: var(--muted);
   font-size: clamp(0.54rem, 0.62vw, 0.66rem);
   line-height: 1.2;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -3904,70 +3874,12 @@
   content: " · ";
 }
 
-.page--arena .arena-cooking-widget .arena-command-deck__header .btn-secondary {
-  width: 1.55rem;
-  min-height: 1.55rem;
-  padding: 0;
-  overflow: hidden;
-  border: 0;
-  color: var(--hall-gold-light);
-  font-size: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.page--arena .arena-cooking-widget .arena-command-deck__header .btn-secondary::before {
-  content: "←";
-  font-size: 0.78rem;
-}
-
 .page--arena .arena-cooking-widget .arena-command-deck__phase-card {
   position: relative;
   inset: auto;
   width: auto;
-  margin: 0.5rem;
-  padding: 0.72rem 0.8rem 0.78rem;
+  margin: 0;
   transform: none;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--hall-green) 42%, var(--accent-bronze-dark));
-  border-radius: 0.22rem;
-  color: var(--hall-gold-light);
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--hall-green) 17%, var(--ink)),
-      color-mix(in srgb, var(--hall-green) 8%, var(--ink))
-    ) !important;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--hall-green) 18%, transparent),
-    0 0.35rem 0.9rem color-mix(in srgb, var(--ink) 35%, transparent);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.page--arena .arena-cooking-widget .arena-command-deck__phase-card::before {
-  inset: 0.28rem;
-  border-color: color-mix(in srgb, var(--accent-bronze) 24%, transparent);
-  border-radius: 0.12rem;
-}
-
-.page--arena .arena-cooking-widget .arena-panel__kicker,
-.page--arena .arena-cooking-widget .arena-phase-timer,
-.page--arena .arena-cooking-widget .arena-command-deck__phase-name,
-.page--arena .arena-cooking-widget .arena-phase-next {
-  color: var(--hall-gold-light);
-}
-
-.page--arena .arena-cooking-widget .arena-command-deck__phase-name {
-  margin: 0.38rem 0 0.1rem;
-  font-family: var(--font-sans);
-  font-size: clamp(0.92rem, 1.2vw, 1.18rem);
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
-}
-
-.page--arena .arena-cooking-widget .arena-phase-gauge {
-  background: color-mix(in srgb, var(--accent-bronze) 16%, transparent);
 }
 
 .page--arena .arena-cooking-widget .arena-phase-next {
