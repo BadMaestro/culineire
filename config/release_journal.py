@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.709",
+        "date": "2026-07-29",
+        "commit": "53ac4443",
+        "title": "The arena draws its own eleven rings (AR1)",
+        "section": "Chef Battles / Arena",
+        "summary": "The floor no longer borrows the Sponsors puzzle's six-ring table. That table is shared live with sponsors_puzzle.js and sponsors_modal.js, so it could not be widened - and the borrow hid two faults: six rings were drawn for EIGHT ranks, leaving prep_chef and kitchen_porter with no floor ring while the rank spine listed them, and the sponsors' cell counts (10..60 = 210) were drawn instead of the arena's own RANK_RING_SEGMENTS (9..40 = 184) that seating is addressed by, so floor and seat map never agreed. arenaRingTable() now owns the geometry per ARENA_BATTLE_PLAN section 2 v2: Crown 1, Moat 2, the eight ranks 3-10 with counts and keys taken from payload.geometry, VIP Guests 11. Only the template's pure helpers are still read, so Sponsors is untouched. data-ring stays the backend seating key - renumbering it would migrate live ArenaSeat rows, which was not authorised - and the approved 1..11 structure ships alongside as data-ring-visual for stylesheets. Inline fill/stroke dropped from the cells so CSS owns colour. Six unreachable functions and an orphaned constant removed; appendCrowdFigure and crowdFaceFor kept disconnected for card A08, paid face assets untouched. Verified live: rank 184 / moat 8 / vip 8 / spectator 290. Rollback: git reset --hard rollback/pre-ar1-v2.5.708 and redeploy.",
+    },
+    {
+        "version": "2.5.710",
+        "date": "2026-07-29",
+        "commit": "a0c004ce",
+        "title": "Moat and VIP ring lose their cell borders",
+        "section": "Chef Battles / Arena",
+        "summary": "The moat shipped with a white cell border although the Owner's requirement is border 0. Cause: '.page--arena #arena-render .arena-cell' in arena_deck_polish.css outranks a plain '#arena-render .arena-cell--moat' on specificity whatever the load order - the same trap that made v2.5.686 a silent no-op. Fixed without !important: the moat and VIP cells no longer carry arena-cell--sponsors-tpl, since they are not sponsors-template rings and must not inherit its fills, and their own rules now carry the same .page--arena prefix. The winning rule was read out of document.styleSheets on production rather than judged by eye.",
+    },
+    {
         "version": "2.5.707",
         "date": "2026-07-29",
         "commit": "28a5018b",
