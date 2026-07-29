@@ -31,6 +31,12 @@ Last updated: 2026-07-29 · Production: **v2.5.691** (`8faeb380`). Target: **v2.
 
 ## 3. Gate procedure (every slice)
 
+**Slices run strictly one at a time, in the §5 table order (sequential
+dependency).** Slice N+1 is not started until slice N is **DONE** (merged,
+deployed, verified). Only one slice is ever in flight. Each agent holds at most
+**one card at a time** — Ember writes the current card, GreenBear gates it —
+and neither picks up the next card until the current one is DONE.
+
 1. **Ember** writes one slice on one temporary branch from current `origin/main`, runs focused PostgreSQL tests + Django/diff checks, and sends GreenBear the exact **commit SHA, files, visible effect, and checks**. Ember does not deploy.
 2. **GreenBear** inspects the diff, re-runs focused tests on PostgreSQL (`--parallel`), verifies the constraints in §2 are intact, bumps the footer version, merges to `origin/main`, deploys (`deploy.sh`), and verifies production (served version + browser postflight).
 3. **GreenBear** closes the temporary branch. **End state after every slice is `origin/main` only** — no long-lived branches, worktrees, or dangling refs (Owner branch policy).
