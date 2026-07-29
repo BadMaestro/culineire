@@ -482,7 +482,7 @@
       stroke: '#fff',
       'stroke-width': '2',
       'data-ring': String(stageRing.index),
-      'data-ring-visual': String(VISUAL_CROWN),
+      'data-ring-visual': String(tpl.VISUAL_CROWN),
       'data-ring-key': stageRing.key,
       'data-ring-kind': stageRing.kind,
       'data-occupancy': 'stage',
