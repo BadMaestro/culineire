@@ -111,6 +111,7 @@ Do not assign a dependent card before its prerequisites are DONE.
 
 ## 7. Rollback
 
-Pinned recovery refs remain
-`rollback/2026-07-28-stable-v2.5.675` and
-`backup/main-stable-2026-07-28` at `3b4f88ad`. Do not delete them.
+Pinned recovery tag `rollback/2026-07-28-stable-v2.5.675` resolves to
+`3b4f88ad`. The former backup branch is no longer on origin; do not claim it as
+rollback evidence. A board-only rollback is `git revert cb613759` followed by
+the approved deploy procedure.

@@ -3281,14 +3281,13 @@ ARENA_RELEASE_STAGES = [
                    "Cursor/ArenaFront branch scatter, plus the agent roles built on it.",
         "owners": "Owner, GreenBear, Ember (Bolt weekly-limited; Cursor and ArenaFront retired)",
         "criteria": ["Production stable at v2.5.675 and rolling forward cleanly.",
-                     "Rollback pinned: tag rollback/2026-07-28-stable-v2.5.675 and branch "
-                     "backup/main-stable-2026-07-28 at 3b4f88ad.",
+                     "Rollback tag rollback/2026-07-28-stable-v2.5.675 resolves to 3b4f88ad.",
                      "Roles fixed: Ember writes Arena code and hands commits; GreenBear owns "
                      "the deploy gate and the CSS slices; both execute docs/ARENA_BATTLE_PLAN.md."],
         "dependencies": "None — this is the recovered baseline.",
         "blockers": [],
         "branch": "main", "commit": "3b4f88adea2a46f5201754728cb7417ebb4ce986",
-        "verification": "Rollback refs verified on origin; production served v2.5.675 at pin time.",
+        "verification": "Rollback tag verified on origin; production served v2.5.675 at pin time.",
         "updated": "2026-07-29T01:00:00.000Z",
         "next_action": "Keep the rollback refs; do not delete them.",
     },
