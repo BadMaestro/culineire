@@ -7757,6 +7757,7 @@ class ArenaRankColumnTests(TestCase):
     CSS_DECK = Path(settings.BASE_DIR) / "static" / "css" / "arena_command_deck.css"
     CSS_POLISH = Path(settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
     CSS_BASE = Path(settings.BASE_DIR) / "static" / "css" / "base.css"
+    TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
 
     def setUp(self):
         User = get_user_model()
@@ -7835,14 +7836,21 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("var(--accent-bronze)", rank_step)
         self.assertNotIn("clip-path: none", rank_step)
 
-    def test_broadcast_ribbon_resets_nested_grid_areas(self):
-        """Header and phase rail must occupy separate ribbon columns."""
-        css = self.CSS_DECK.read_text(encoding="utf-8")
-        nested = css.split(
-            ".arena-broadcast-ribbon .arena-command-deck__header,", 1
-        )[1].split("}", 1)[0]
-        self.assertIn("grid-area: auto", nested)
-        self.assertIn("grid-column: auto", nested)
+    def test_cooking_widget_is_independent_from_the_lifecycle_header(self):
+        """The approved left widget owns identity + phase; the top header owns
+        only the lifecycle rail."""
+        template = self.TEMPLATE.read_text(encoding="utf-8")
+        widget = template.index('class="arena-cooking-widget"')
+        phase_card = template.index(
+            'class="arena-command-deck__phase-card"', widget
+        )
+        lifecycle_header = template.index(
+            'class="arena-broadcast-ribbon"', widget
+        )
+        phase_rail = template.index('id="arena-phase-rail"', lifecycle_header)
+        self.assertLess(widget, phase_card)
+        self.assertLess(phase_card, lifecycle_header)
+        self.assertLess(lifecycle_header, phase_rail)
 
     def test_desktop_metrics_use_compact_four_column_strip(self):
         css = self.CSS_POLISH.read_text(encoding="utf-8")
@@ -7862,25 +7870,27 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("color: var(--surface)", graphics)
         self.assertIn("color: var(--accent-bronze)", graphics)
 
-    def test_identity_masthead_uses_the_cooking_widget_visual_contract(self):
+    def test_independent_cooking_widget_uses_the_approved_visual_contract(self):
         css = self.CSS_POLISH.read_text(encoding="utf-8")
-        masthead = css.split("OWNER 2026-07-29 — Cooking Widget identity header", 1)[1]
-        rule = masthead.split(
-            ".page--arena .arena-broadcast-ribbon .arena-command-deck__header {", 1
+        widget = css.split("OWNER 2026-07-29 — independent Cooking Widget", 1)[1]
+        shell = widget.split(
+            ".page--arena .arena-cooking-widget {", 1
         )[1].split("}", 1)[0]
-        self.assertIn("var(--accent-bronze-dark)", rule)
-        self.assertIn("var(--brand-dark)", rule)
-        self.assertIn("var(--accent-bronze)", rule)
-        self.assertNotIn("var(--hall-dark-1)", rule)
-        self.assertNotRegex(rule, r"#[0-9a-fA-F]{3,8}\b")
+        self.assertIn("var(--accent-bronze-dark)", shell)
+        self.assertIn("var(--brand-dark)", shell)
+        self.assertIn("var(--accent-bronze)", shell)
+        self.assertNotRegex(shell, r"#[0-9a-fA-F]{3,8}\b")
         self.assertIn(
-            ".page--arena .arena-broadcast-ribbon .arena-command-deck__eyebrow {",
-            masthead,
+            ".page--arena .arena-cooking-widget .arena-command-deck__phase-card {",
+            widget,
         )
         self.assertIn(
-            ".page--arena .arena-broadcast-ribbon .arena-command-deck__header .btn-secondary {",
-            masthead,
+            ".page--arena .arena-cooking-widget .arena-command-deck__header {",
+            widget,
         )
+        desktop = widget.split("@media (min-width: 901px)", 1)[1]
+        self.assertIn("position: absolute", desktop)
+        self.assertIn("left: 1.5%", desktop)
 
     def test_each_step_is_screen_reader_readable(self):
         """The count renders as a bare numeral. Without a label a screen reader

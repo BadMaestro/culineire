@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.699",
+        "date": "2026-07-29",
+        "commit": "pending",
+        "title": "Cooking Widget restored as an independent left Arena HUD",
+        "section": "Chef Battles / Arena",
+        "summary": "Corrects v2.5.698: the identity plaque is not part of the lifecycle header. Chef Battles Arena, Emerald Hall and the existing live phase card now form one independent left Cooking Widget over the Arena, matching the approved composition. The seven-step lifecycle remains a separate centred header. Existing phase IDs, timers, server payload, Dark Launch, octagon and Arena mechanisms are unchanged. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
         "version": "2.5.698",
         "date": "2026-07-29",
         "commit": "4695a521",

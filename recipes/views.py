@@ -3048,7 +3048,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "One-row phase stepper and compact top-right signal strip match the reference hierarchy.",
         "acceptance": "Seven phases never overlap the identity; metrics remain server-updated; site tokens only.",
         "forbidden": "No phase inference and no payload rewrite.",
-        "evidence": "DONE v2.5.689-v2.5.692; Cooking Widget header corrected v2.5.698.",
+        "evidence": "DONE v2.5.689-v2.5.692; complete independent Cooking Widget corrected v2.5.699.",
     },
     {
         "id": "A06", "group": "Arena Hall", "title": "Fresh production/reference measurement matrix",

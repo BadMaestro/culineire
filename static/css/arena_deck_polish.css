@@ -3827,48 +3827,190 @@
   opacity: 0 !important;
 }
 
-/* OWNER 2026-07-29 — Cooking Widget identity header.
- * This is the top section of the approved Cooking Widget, not a standalone
- * brown page banner. Keep its black-glass / brass frame and title hierarchy
- * while preserving the existing ribbon geometry and live-state mechanism.
- * Deliberately last: this visual contract must win the accumulated Arena
- * polish cascade without !important. */
-.page--arena .arena-broadcast-ribbon .arena-command-deck__header {
-  position: relative;
+/* OWNER 2026-07-29 — independent Cooking Widget.
+ * The approved left HUD is one component: identity + the existing live phase
+ * card. It is a sibling of the lifecycle header, never a child of it.
+ * Deliberately last so this measured contract wins the accumulated polish
+ * cascade without changing phase IDs, timers or update behaviour. */
+.page--arena .arena-cooking-widget {
+  color: var(--hall-gold-light);
   border: 1px solid color-mix(in srgb, var(--accent-bronze) 72%, var(--brand-dark));
-  outline: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
-  outline-offset: -0.28rem;
+  outline: 1px solid color-mix(in srgb, var(--accent-bronze) 24%, transparent);
+  outline-offset: -0.3rem;
   background:
     radial-gradient(
-      circle at 78% 18%,
-      color-mix(in srgb, var(--accent-bronze) 14%, transparent),
-      transparent 34%
+      circle at 76% 12%,
+      color-mix(in srgb, var(--accent-bronze) 13%, transparent),
+      transparent 32%
     ),
     linear-gradient(
-      112deg,
-      color-mix(in srgb, var(--ink) 70%, var(--accent-bronze-dark)),
-      color-mix(in srgb, var(--ink) 84%, var(--brand-dark))
+      120deg,
+      color-mix(in srgb, var(--ink) 88%, var(--accent-bronze-dark)),
+      color-mix(in srgb, var(--ink) 93%, var(--brand-dark))
     );
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--accent-bronze) 18%, transparent),
-    0 0.55rem 1.35rem color-mix(in srgb, var(--ink) 30%, transparent);
+    0 0.75rem 1.8rem color-mix(in srgb, var(--ink) 38%, transparent);
 }
-.page--arena .arena-broadcast-ribbon .arena-command-deck__eyebrow {
+
+.page--arena .arena-cooking-widget .arena-command-deck__header {
+  position: relative;
+  inset: auto;
+  width: auto;
+  margin: 0;
+  padding: 0.65rem 0.75rem 0.5rem;
+  transform: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.4rem;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.page--arena .arena-cooking-widget .arena-command-deck__eyebrow {
   color: var(--hall-gold-light);
-  font-size: clamp(0.72rem, 0.86vw, 0.92rem);
-  letter-spacing: 0.045em;
+  font-size: clamp(0.8rem, 1vw, 1rem);
+  line-height: 1.1;
+  letter-spacing: 0.035em;
 }
-.page--arena .arena-broadcast-ribbon .arena-command-deck__header h1 {
-  margin-top: 0.18rem;
-  color: color-mix(in srgb, var(--accent-bronze) 72%, var(--surface));
+
+.page--arena .arena-cooking-widget .arena-command-deck__header h1 {
+  display: inline;
+  margin: 0.32rem 0 0;
+  color: color-mix(in srgb, var(--hall-green) 58%, var(--hall-gold-light));
   font-family: var(--font-sans);
-  font-size: clamp(0.58rem, 0.66vw, 0.72rem);
+  font-size: clamp(0.58rem, 0.66vw, 0.7rem);
   font-weight: 650;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
-.page--arena .arena-broadcast-ribbon .arena-command-deck__header .btn-secondary {
-  border-color: color-mix(in srgb, var(--accent-bronze) 62%, var(--brand-dark));
+
+.page--arena .arena-cooking-widget .arena-command-deck__live-note {
+  display: inline;
+  margin: 0;
+  color: color-mix(in srgb, var(--hall-green) 68%, var(--surface));
+  font-size: clamp(0.54rem, 0.62vw, 0.66rem);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.page--arena .arena-cooking-widget .arena-command-deck__live-note::before {
+  content: " · ";
+}
+
+.page--arena .arena-cooking-widget .arena-command-deck__header .btn-secondary {
+  width: 1.55rem;
+  min-height: 1.55rem;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
   color: var(--hall-gold-light);
-  background: color-mix(in srgb, var(--ink) 82%, var(--accent-bronze-dark));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+  font-size: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page--arena .arena-cooking-widget .arena-command-deck__header .btn-secondary::before {
+  content: "←";
+  font-size: 0.78rem;
+}
+
+.page--arena .arena-cooking-widget .arena-command-deck__phase-card {
+  position: relative;
+  inset: auto;
+  width: auto;
+  margin: 0.5rem;
+  padding: 0.72rem 0.8rem 0.78rem;
+  transform: none;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--hall-green) 42%, var(--accent-bronze-dark));
+  border-radius: 0.22rem;
+  color: var(--hall-gold-light);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--hall-green) 17%, var(--ink)),
+      color-mix(in srgb, var(--hall-green) 8%, var(--ink))
+    ) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--hall-green) 18%, transparent),
+    0 0.35rem 0.9rem color-mix(in srgb, var(--ink) 35%, transparent);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.page--arena .arena-cooking-widget .arena-command-deck__phase-card::before {
+  inset: 0.28rem;
+  border-color: color-mix(in srgb, var(--accent-bronze) 24%, transparent);
+  border-radius: 0.12rem;
+}
+
+.page--arena .arena-cooking-widget .arena-panel__kicker,
+.page--arena .arena-cooking-widget .arena-phase-timer,
+.page--arena .arena-cooking-widget .arena-command-deck__phase-name,
+.page--arena .arena-cooking-widget .arena-phase-next {
+  color: var(--hall-gold-light);
+}
+
+.page--arena .arena-cooking-widget .arena-command-deck__phase-name {
+  margin: 0.38rem 0 0.1rem;
+  font-family: var(--font-sans);
+  font-size: clamp(0.92rem, 1.2vw, 1.18rem);
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.page--arena .arena-cooking-widget .arena-phase-gauge {
+  background: color-mix(in srgb, var(--accent-bronze) 16%, transparent);
+}
+
+.page--arena .arena-cooking-widget .arena-phase-next {
+  margin: 0.55rem 0 0;
+  padding-top: 0.48rem;
+  border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  font-size: 0.6rem;
+}
+
+@media (min-width: 901px) {
+  .page--arena .arena-cooking-widget {
+    position: absolute;
+    z-index: 27;
+    top: 1rem;
+    left: 1.5%;
+    width: clamp(15.5rem, 18vw, 19rem);
+  }
+
+  .page--arena .arena-cooking-widget .arena-command-deck__phase-copy,
+  .page--arena .arena-cooking-widget .arena-compact-facts,
+  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline {
+    display: none;
+  }
+
+  .page--arena .arena-broadcast-ribbon {
+    left: clamp(18.5rem, 23vw, 26rem);
+    right: clamp(16rem, 22vw, 24rem);
+    width: auto;
+    display: block;
+  }
+
+  .page--arena .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .page--arena .arena-cooking-widget {
+    grid-area: header;
+    margin: 0.65rem;
+  }
+
+  .page--arena .arena-cooking-widget .arena-command-deck__phase-card {
+    display: block;
+  }
 }
