@@ -4054,6 +4054,48 @@ class ArenaBuildPlanTests(TestCase):
         self.assertContains(resp, "FROZEN")
         self.assertContains(resp, "OUT OF CURRENT RELEASE SCOPE")
 
+    def test_design_stage_is_an_atomic_dispatch_queue(self):
+        self.client.login(username="abp-boss", password="pw")
+        resp = self.client.get(reverse("recipes:arena_build_plan"))
+        for marker in [
+            "26",
+            "Next assignable task",
+            "A06",
+            "Fresh production/reference measurement matrix",
+            "Files",
+            "Depends on",
+            "Visible result",
+            "Acceptance",
+            "Forbidden",
+            "A00–G01",
+        ]:
+            self.assertContains(resp, marker)
+        self.assertNotContains(resp, "pending v2.5.691")
+        self.assertNotContains(resp, "Verify and deploy v2.5.691")
+
+    def test_design_task_ids_are_unique_and_only_a06_is_next(self):
+        from recipes.views import ARENA_DESIGN_TASKS
+
+        ids = [task["id"] for task in ARENA_DESIGN_TASKS]
+        self.assertEqual(len(ids), 26)
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertEqual(
+            [task["id"] for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"],
+            ["A06"],
+        )
+        self.assertEqual(
+            [task["id"] for task in ARENA_DESIGN_TASKS
+             if task["status"] in {"NEXT", "IN PROGRESS"}],
+            ["A06"],
+        )
+        required = {
+            "id", "group", "title", "status", "owner", "files", "depends_on",
+            "action", "visible_result", "acceptance", "forbidden", "evidence",
+        }
+        for task in ARENA_DESIGN_TASKS:
+            self.assertEqual(set(task), required)
+            self.assertTrue(all(str(task[key]).strip() for key in required))
+
 
     def test_moderation_panel_links_to_the_board(self):
         """The board is unreachable unless the panel offers it, next to Arena Console Plan."""

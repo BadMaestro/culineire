@@ -13,7 +13,7 @@
   .abp-head h1 { margin:.2rem 0; font-family:var(--font-serif); }
   .abp-kicker, .abp-label { color:var(--muted); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; }
   .abp-summary { max-width:76ch; }
-  .abp-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.7rem; margin:1.1rem 0; }
+  .abp-metrics { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.7rem; margin:1.1rem 0; }
   .abp-metric { border:1px solid var(--line); border-radius:12px; padding:.8rem; background:var(--surface); }
   .abp-metric strong { display:block; color:var(--brand-dark); font-family:var(--font-serif); font-size:1.25rem; }
   .abp-metric span { color:var(--muted); font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; }
@@ -53,8 +53,11 @@
   .abp-field li { font-size:.82rem; margin:.2rem 0; }
   .abp-blocker { border-left:3px solid var(--danger,var(--brand-dark)); padding-left:.55rem; }
   .abp-workstreams { border-top:1px solid var(--line); margin-top:1rem; padding-top:.9rem; }
-  .abp-workstream { border:1px solid var(--line); border-radius:10px; margin:.6rem 0; padding:.75rem; }
-  .abp-workstream__head { display:flex; gap:.6rem; justify-content:space-between; }
+  .abp-workstream { border:1px solid var(--line); border-radius:10px; margin:.6rem 0; overflow:hidden; }
+  .abp-workstream[open] { box-shadow:0 0 0 1px color-mix(in srgb,var(--brand) 28%,transparent); }
+  .abp-workstream__head { align-items:center; cursor:pointer; display:flex; gap:.6rem; justify-content:space-between; list-style:none; padding:.75rem; }
+  .abp-workstream__head::-webkit-details-marker { display:none; }
+  .abp-workstream__body { border-top:1px solid var(--line); padding:.75rem; }
   .abp-workstream h3 { font-size:.92rem; margin:0; }
   .abp-workstream p, .abp-workstream li { font-size:.8rem; }
   .abp-deferred { border:1px dashed var(--brand); border-radius:14px; margin:1.5rem 0; padding:1rem; background:var(--surface-soft); }
@@ -67,7 +70,7 @@
   .abp-legacy-lanes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
   .abp-legacy-lanes p { font-size:.82rem; }
   .abp-note { background:var(--surface-soft); border-left:3px solid var(--brand); font-size:.8rem; padding:.55rem .7rem; }
-  @media (max-width:800px) { .abp-metrics, .abp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (max-width:900px) { .abp-metrics, .abp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
   @media (max-width:560px) { .abp-metrics, .abp-grid, .abp-legacy-lanes { grid-template-columns:1fr; } .abp-stage__bar, .abp-workstream__head { align-items:flex-start; flex-wrap:wrap; } }
   @media (prefers-reduced-motion:reduce) { summary.abp-stage__bar::after { transition:none; } }
 </style>
@@ -84,7 +87,8 @@
       <p class="automation-summary abp-summary">A strict, evidence-based delivery pipeline. Green means the full stage acceptance gate is satisfied—not merely coded or pushed.</p>
       <div class="abp-metrics" aria-label="Arena release summary">
         <div class="abp-metric"><strong>{{ done_count }}/{{ total }}</strong><span>Delivery stages complete</span></div>
-        <div class="abp-metric"><strong>{{ active_stage.n }} — {{ active_stage.title }}</strong><span>Active stage</span></div>
+        <div class="abp-metric"><strong>{{ design_task_done_count }}/{{ design_task_total }}</strong><span>Design tasks complete</span></div>
+        <div class="abp-metric"><strong>{{ next_design_task.id }}</strong><span>Next assignable task</span></div>
         <div class="abp-metric"><strong>{{ release_readiness }}</strong><span>Release readiness</span></div>
         <div class="abp-metric"><strong>{{ blocker_count }}</strong><span>Current blockers</span></div>
       </div>
@@ -96,7 +100,7 @@
       <p class="abp-summary">Strict sequential delivery pipeline for the current Arena release.</p>
       <div class="abp-rule">
         <p>Exactly one stage may be active. A later stage cannot be done while an earlier required stage is incomplete.</p>
-        <p>Release readiness becomes READY only after Stages 1–7 are DONE. Stage 8 is deployment and post-deploy verification.</p>
+        <p>Stage 2 completes only when every non-deferred Design task A00–G01 is DONE. Stage 3 is the final PostgreSQL, deployment and Owner acceptance gate.</p>
       </div>
 
       {% for s in stages %}
@@ -121,15 +125,28 @@
           <div class="abp-field"><span class="abp-label">Next required action</span><p>{{ s.next_action }}</p></div>
 
           {% if s.workstreams %}
-          <section class="abp-workstreams" aria-label="Stage 3 workstreams">
-            <span class="abp-label">Implementation workstreams</span>
+          <section class="abp-workstreams" aria-label="Atomic assignable tasks">
+            <span class="abp-label">Atomic assignable tasks · give an agent one card at a time</span>
             {% for w in s.workstreams %}
-            <article class="abp-workstream">
-              <div class="abp-workstream__head"><h3>{{ w.id }} · {{ w.title }}</h3><span class="abp-status">{{ w.status }}</span></div>
-              <p><strong>Owner:</strong> {{ w.owner }}</p>
-              <ul>{% for item in w.requirements %}<li>{{ item }}</li>{% endfor %}</ul>
-              <p><strong>Evidence / blocker:</strong> {{ w.evidence }}</p>
-            </article>
+            <details class="abp-workstream"{% if w.status == 'NEXT' or w.status == 'IN PROGRESS' %} open{% endif %}>
+              <summary class="abp-workstream__head">
+                <h3>{{ w.id }} · {{ w.title }}</h3>
+                <span class="abp-status {% if w.status == 'DONE' %}abp-status--done{% elif w.status == 'NEXT' or w.status == 'IN PROGRESS' %}abp-status--active{% endif %}">{{ w.status }}</span>
+              </summary>
+              <div class="abp-workstream__body">
+                <div class="abp-grid">
+                  <div class="abp-field"><span class="abp-label">Surface</span><p>{{ w.group }}</p></div>
+                  <div class="abp-field"><span class="abp-label">Suggested owner</span><p>{{ w.owner }}</p></div>
+                  <div class="abp-field"><span class="abp-label">Files</span><p>{{ w.files }}</p></div>
+                  <div class="abp-field"><span class="abp-label">Depends on</span><p>{{ w.depends_on }}</p></div>
+                  <div class="abp-field"><span class="abp-label">Action</span><p>{{ w.action }}</p></div>
+                  <div class="abp-field"><span class="abp-label">Visible result</span><p>{{ w.visible_result }}</p></div>
+                  <div class="abp-field"><span class="abp-label">Acceptance</span><p>{{ w.acceptance }}</p></div>
+                  <div class="abp-field abp-blocker"><span class="abp-label">Forbidden</span><p>{{ w.forbidden }}</p></div>
+                </div>
+                <div class="abp-field"><span class="abp-label">Evidence / blocker</span><p>{{ w.evidence }}</p></div>
+              </div>
+            </details>
             {% endfor %}
           </section>
           {% endif %}

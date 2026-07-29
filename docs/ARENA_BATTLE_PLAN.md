@@ -1,75 +1,116 @@
 # Arena Battle Plan — Design Arena integration onto `main`
 
-**Status:** ACTIVE. This is the single source of truth for building the new
-Arena (the "Design Arena" reference build) onto `main`. **GreenBear and Ember
-both read this at the start of every work turn and execute against it.** When a
-slice lands, the owner of that slice updates the table below in the same change.
+**Status:** ACTIVE. This file and the moderation build board are the dispatch
+contract for the Arena. The Owner gives an agent **one card at a time**. The
+agent returns its exact commit, files, visible result, checks and evidence.
 
-Last updated: 2026-07-29 · Production: **v2.5.691** (`8faeb380`). Target: **v2.5.692**.
+Last reconciled: 2026-07-29 · Production baseline: **v2.5.692**
+(`53c93e93`) · Next assignable card: **A06**.
 
----
+## 1. Current team and ownership
 
-## 1. Roles — who does what
+| Role | Responsibility |
+|---|---|
+| **Owner** | Final authority; assigns one atomic card and accepts visible results. |
+| **Ember** | Integration, JS, templates, backend wiring and focused PostgreSQL tests. |
+| **GreenBear** | Visual CSS and deploy gate when available. |
+| **Bolt** | Measurements and independent visual/regression checks. |
 
-| Agent | Owns | Does NOT |
-|-------|------|----------|
-| **Ember** (Codex) | Writes the Arena code slices (continues Bolt's line): Arena **JS, templates, tests, backend/integration**. Hands each finished slice to GreenBear as an exact commit. | Does **not** deploy or change production (Codex prompts on every command; deploy is GreenBear's). Does not touch GreenBear's CSS files while a CSS slice is active. |
-| **GreenBear** (Claude) | The **deploy gate**: merge → `origin/main` → deploy → production verification → branch closure. Owns the visual **CSS** slices: `static/css/arena_render.css`, `arena_hall.css`, `arena_effects.css`. Keeps this plan and the build board honest. | Does not rewrite Arena JS/templates/backend (Ember's). Does not deploy without the Owner's go. |
-| **Bolt** | Arena measurement / regression / independent geometry checks when present. | Currently weekly-limited. |
-| **Owner** | Final authority on design, palette, scope, and every deploy `go`. | — |
+Director, Cursor and ArenaFront are retired. Master Console is outside this
+plan. One file has one owner during an active card; agents do not create
+parallel long-lived branches.
 
-**One file has one owner per slice.** No overlapping edits.
+## 2. Immutable Owner contract
 
-## 2. Hard constraints (Owner contract, do not break)
+- The site's gold/brass palette is authoritative. **Do not change floor colours.**
+- Keep the existing octagon render method and `rotateX(42deg)`.
+- Preserve the existing backend, grid, eight rings, real seats, SVG, polling,
+  effects and interactions. Build on the scene; do not rebuild it.
+- Dust, gifts, rays, shimmer and crown light stay. Master Console stays untouched.
+- Do not add the reference K banner. Reuse existing CulinEire branding where a
+  mark is required.
+- Dark Launch stays intact: unauthorised and anonymous Arena requests remain 404.
+- Never put fake fighters, rankings, gifts, viewers, streams or results in production.
+- Mobile Arena is frozen and is not a blocker for this desktop plan.
 
-- **Octagon** stays exactly as in Sponsors — its **render method must not change**. Rings may be added and recoloured; the octagon method may not.
-- **Camera** stays `rotateX(42deg)`. No `tilt` / `rotateX` / `perspective` edits. The reference build's 57°/56° are **not** applied.
-- **Existing mechanisms preserved**: effects, animations, polling, spectator controls, SVG, backend, `ArenaSeat` seat contract, the 8 rank rings and live seat data.
-- **Work only on top of the existing scene.** Do not rebuild it.
-- **Dark Launch** intact (anonymous Arena stays HTTP 404). **Master Console** is out of scope.
-- Colours are **design tokens**, never raw hex in stylesheets.
+## 3. Slice gate
 
-## 3. Gate procedure (every slice)
+1. Start from current `origin/main` in one disposable worktree.
+2. Implement one card only; check overlap before editing.
+3. Run focused PostgreSQL tests, `manage.py check`, diff hygiene and the
+   card-specific visual check. The full suite belongs to final gate G01, not
+   every small slice.
+4. Commit and push the exact slice. The deploy gate verifies origin commit,
+   production version, recent deploys, rollback safety and postflight.
+5. After a deployed slice, close its temporary branch/worktree. The shared
+   repository truth is `origin/main`.
+6. Update the card evidence and status in the same change.
 
 **Slices run strictly one at a time, in the §5 table order (sequential
 dependency).** Slice N+1 is not started until slice N is **DONE** (merged,
-deployed, verified). Only one slice is ever in flight. Each agent holds at most
-**one card at a time** — Ember writes the current card, GreenBear gates it —
-and neither picks up the next card until the current one is DONE.
+deployed and verified). Only one slice is ever in flight, and each agent holds
+at most one card. Nobody starts the next card before the current one is DONE.
 
-1. **Ember** writes one slice on one temporary branch from current `origin/main`, runs focused PostgreSQL tests + Django/diff checks, and sends GreenBear the exact **commit SHA, files, visible effect, and checks**. Ember does not deploy.
-2. **GreenBear** inspects the diff, re-runs focused tests on PostgreSQL (`--parallel`), verifies the constraints in §2 are intact, bumps the footer version, merges to `origin/main`, deploys (`deploy.sh`), and verifies production (served version + browser postflight).
-3. **GreenBear** closes the temporary branch. **End state after every slice is `origin/main` only** — no long-lived branches, worktrees, or dangling refs (Owner branch policy).
-4. The slice owner updates §5 below in the same change.
+## 4. Completed production foundation
 
-## 4. Done so far (on production)
+| Card | Result | Evidence |
+|---|---|---|
+| A00 | Reference authority and immutable constraints reconciled | Plan/Deployment Project audit |
+| A01 | Real 290-seat oval connected; one viewer count; stands visible | v2.5.676–v2.5.678 |
+| A02 | Chef identity inside existing fighter plinths | v2.5.682 |
+| A03 | Correct rank order and approved bevelled labels | v2.5.684–v2.5.685 |
+| A04 | Cell ripple and chef card anchored to any clicked cell | v2.5.687, v2.5.691 |
+| A05 | Identity/phase rail separated; compact metrics; contrast fixed | v2.5.689–v2.5.692 |
 
-| Ver | What | By |
-|-----|------|----|
-| 677 | Removed leaked multiline `{# #}` template comment | Ember |
-| 678 | Empty spectator stands made visible (cleared leftover `opacity:0`) + atmosphere-cleanup no longer hides the stands | GreenBear (fix) / Ember (gate at the time) |
-| 680 | Instant Carpet delivery: `send()` NOTIFY doorbell + `agent_inbox --wait` (agents wake the instant mail lands, ~175 ms live) | GreenBear |
-| 676 | Spectator oval actually drawn (`drawSpectatorOval` — 290 seats existed, were never called) + one authoritative viewer count | Ember (from Bolt's line) |
+## 5. Atomic dispatch queue
 
-## 5. Remaining slices — living table
+The build board contains the full action, files, visible result, acceptance,
+forbidden changes and evidence for every row below.
 
-> Ember maintains the concrete slice list from the Design Arena reference build
-> (`Chef Battles Arena v2.dc.html`, `ARENA_2D_HANDOFF.md`, mockups — on the
-> Owner's machine). Each row is one deployable slice, one owner, one branch.
+| ID | Surface | Task | Suggested owner | Depends on | Status |
+|---|---|---|---|---|---|
+| A00 | Arena Hall | Reference authority and immutable constraints | Ember | — | DONE |
+| A01 | Arena Hall | Recovered live scene baseline | Ember + GreenBear | A00 | DONE |
+| A02 | Arena Hall | Chef identity inside existing floor plinths | Ember | A01 | DONE |
+| A03 | Arena Hall | Rank spine order and approved plinth shape | Ember | A01 | DONE |
+| A04 | Arena Hall | Cell click ripple and chef-card anchoring | Ember | A01 | DONE |
+| A05 | Arena Hall | Broadcast ribbon, phase rail, metrics and identity | Ember | A00 | DONE |
+| **A06** | Arena Hall | **Fresh production/reference measurement matrix** | Bolt + Ember | A05 | **NEXT** |
+| A07 | Arena Hall | Stage framing and full-octagon composition | GreenBear | A06 | PENDING |
+| A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | PENDING |
+| A09 | Arena Hall | Live challenger/opponent composition | Ember | A07 | PENDING |
+| A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | PENDING |
+| A11 | Furniture | Phase panel reference pass | Ember | A06 | PENDING |
+| A12 | Furniture | Crown ladder panel reference pass | GreenBear | A06 | PENDING |
+| A13 | Furniture | Recent gifts panel reference pass | GreenBear | A06 | PENDING |
+| A14 | Furniture | Bottom ticker and Join the Crowd composition | GreenBear | A06 | PENDING |
+| A15 | Arena Hall | Effects and artifacts preservation pass | GreenBear | A07–A10 | PENDING |
+| A16 | Arena Hall | CulinEire branding and K-mark audit | Ember | A11–A14 | PENDING |
+| A17 | Integrity | Truthful visual state matrix | Ember | A09–A16 | PENDING |
+| A18 | Integrity | Desktop accessibility and responsive gate | Bolt + Ember | A17 | PENDING |
+| A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
+| B01 | Battle Broadcast | Broadcast shell and confrontation header | Ember + GreenBear | A19 | PENDING |
+| B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | PENDING |
+| B03 | Battle Broadcast | Broadcast chat and composer | Ember | B02 | PENDING |
+| R01 | Result / Winner | Champion and runner-up result shell | Ember + GreenBear | B03 | PENDING |
+| R02 | Result / Winner | Result metrics, status and chat | Ember | R01 | PENDING |
+| G01 | Release gate | Complete Design Arena regression and production evidence | Team + Owner | A19, B03, R02 | PENDING |
 
-| # | Slice | Owner | Files | Status |
-|---|-------|-------|-------|--------|
-| 1 | Chef plinth identity overlay: name plus static Irish flag/country inside each existing floor fighter; no separate support panel | Ember (temporary full gate while GreenBear is limited) | `chef_battle/views.py`, `static/js/arena_render.js`, `static/css/arena_render.css`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.682 |
-| 2 | Correct the always-visible desktop rank spine: Kitchen Porter at the far/top edge through Culinary Master beside the centre, matching the reference | Ember temporary full gate | `static/css/arena_deck_polish.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.684 |
-| 3 | Restore the approved bevelled plinth silhouette and brass edge to the always-visible rank labels; no floor, camera or mechanism changes | Ember temporary full gate | `static/css/arena_deck_polish.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.685 |
-| 4 | Anchor the click ripple to the activated SVG cell/stage in SVG user space so CSS 3D camera projection cannot displace it | Ember temporary full gate | `static/js/arena_render.js`, `templates/chef_battle/_arena_render_ring.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.687 |
-| 5 | Reset nested grid areas inside the broadcast ribbon so Arena identity and the seven phase steps no longer overlap | Ember temporary full gate | `static/css/arena_command_deck.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.689 |
-| 6 | Convert the live metrics panel from a tall 2×2 card into the approved compact four-column strip | Ember temporary full gate | `static/css/arena_deck_polish.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.690 |
-| 7 | Anchor every chef tooltip beside its clicked cell in viewport coordinates, flipping above when there is no room below | Ember temporary full gate | `static/js/arena_render.js`, `static/css/arena.css`, `templates/chef_battle/arena.html`, `templates/chef_battle/_arena_render_ring.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.691 |
-| 8 | Restore readable site-token contrast to the Arena identity on the dark broadcast ribbon | Ember temporary full gate | `static/css/arena_deck_polish.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.692 |
+## 6. How to assign a card
 
-## 6. Rollback
+Copy one expanded card from the build board. It is complete only when the agent
+has returned:
 
-Production rollback point: tag `rollback/2026-07-28-stable-v2.5.675` and branch
-`backup/main-stable-2026-07-28`, both at `3b4f88ad`. Restore = `git reset --hard`
-that ref + `deploy.sh`. Do not delete these refs.
+- exact commit and changed files;
+- the stated visible result;
+- every acceptance statement checked;
+- confirmation that every forbidden change was avoided;
+- focused PostgreSQL/check/diff results and screenshot evidence when visual.
+
+Do not assign a dependent card before its prerequisites are DONE.
+
+## 7. Rollback
+
+Pinned recovery refs remain
+`rollback/2026-07-28-stable-v2.5.675` and
+`backup/main-stable-2026-07-28` at `3b4f88ad`. Do not delete them.
