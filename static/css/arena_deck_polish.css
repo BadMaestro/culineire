@@ -3739,6 +3739,15 @@
   .page--arena .arena-panel__kicker {
     color: var(--accent-bronze-dark);
   }
+
+  .page--arena .arena-broadcast-ribbon .arena-command-deck__eyebrow {
+    color: var(--accent-bronze);
+  }
+
+  .page--arena .arena-broadcast-ribbon .arena-command-deck__header h1 {
+    color: var(--surface);
+    text-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 70%, transparent);
+  }
 }
 
 /* OWNER ALL-CLEAR P0 — crown name wrap + confrontation card width */

@@ -7851,6 +7851,16 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("repeat(4, minmax(0, 1fr))", metrics)
         self.assertIn("width: clamp(30rem, 32vw, 40rem)", metrics)
 
+    def test_dark_ribbon_identity_uses_readable_site_tokens(self):
+        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        graphics = css.split("GRAPHICS WP", 1)[1]
+        self.assertIn(
+            ".page--arena .arena-broadcast-ribbon .arena-command-deck__header h1",
+            graphics,
+        )
+        self.assertIn("color: var(--surface)", graphics)
+        self.assertIn("color: var(--accent-bronze)", graphics)
+
     def test_each_step_is_screen_reader_readable(self):
         """The count renders as a bare numeral. Without a label a screen reader
         reads a number with no noun, so every step carries its own aria-label."""

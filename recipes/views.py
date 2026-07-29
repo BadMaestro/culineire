@@ -3027,18 +3027,20 @@ ARENA_RELEASE_STAGES = [
                      "Live metrics converted from the tall 2x2 card into the approved compact "
                      "four-column strip. DONE v2.5.690.",
                      "Chef tooltip anchored beside any clicked cell in viewport coordinates, "
-                     "with automatic above/below placement. READY v2.5.691.",
+                     "with automatic above/below placement. DONE v2.5.691.",
+                     "Arena identity restored to readable surface/brass site-token contrast on "
+                     "the dark broadcast ribbon. READY v2.5.692.",
                      "Remaining visual slices tracked in docs/ARENA_BATTLE_PLAN.md section 5.",
                      "Hard constraints held every slice: octagon method and camera rotateX(42deg) "
                      "frozen; mechanisms, seat contract, backend, Dark Launch and Master Console untouched."],
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
-        "branch": "temporary isolated worktree", "commit": "pending v2.5.691",
-        "verification": "Production v2.5.690 confirmed. Tooltip positioning now uses the clicked "
-                        "cell viewport rect, clamps to screen edges and flips above near the "
-                        "bottom; shared by every ring cell.",
-        "updated": "2026-07-29T11:45:00.000Z",
-        "next_action": "Verify and deploy v2.5.691.",
+        "branch": "temporary isolated worktree", "commit": "pending v2.5.692",
+        "verification": "Production v2.5.691 confirmed. Local authenticated visual QA shows "
+                        "the Arena identity in readable surface and brass tokens against its "
+                        "existing dark ribbon background.",
+        "updated": "2026-07-29T12:15:00.000Z",
+        "next_action": "Verify and deploy v2.5.692.",
     },
     {
         "n": 3, "id": "release-readiness",
