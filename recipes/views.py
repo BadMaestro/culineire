@@ -3014,18 +3014,20 @@ ARENA_RELEASE_STAGES = [
                      "Leaked multiline template comment removed. DONE v2.5.677.",
                      "Empty spectator stands visible (leftover opacity:0 cleared; atmosphere "
                      "cleanup no longer hides them). DONE v2.5.678.",
-                     "Active slice: chef names plus static Irish flag/country inside the "
-                     "existing floor plinths; no separate support panel.",
+                     "Chef names plus static Irish flag/country moved inside the existing "
+                     "floor plinths; no separate support panel. DONE v2.5.682.",
                      "Remaining visual slices tracked in docs/ARENA_BATTLE_PLAN.md section 5.",
                      "Hard constraints held every slice: octagon method and camera rotateX(42deg) "
                      "frozen; mechanisms, seat contract, backend, Dark Launch and Master Console untouched."],
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
-        "branch": "temporary isolated worktree", "commit": "v2.5.682 candidate",
-        "verification": "18 focused PostgreSQL tests passed; Django check, JS syntax and "
-                        "diff checks passed. Production browser postflight remains.",
+        "branch": "main", "commit": "03151165 (v2.5.682)",
+        "verification": "36 focused PostgreSQL tests passed; Django check, JS syntax and diff "
+                        "checks passed. Production HEAD matched origin/main; site 200; anonymous "
+                        "Arena 404; local authenticated visual QA showed both names and Irish "
+                        "country labels inside the two existing plinths.",
         "updated": "2026-07-29T01:34:00.000Z",
-        "next_action": "Deploy v2.5.682 and verify the chef-plinth identity overlay in production.",
+        "next_action": "Define the next smallest reference overlay in plan section 5.",
     },
     {
         "n": 3, "id": "release-readiness",
