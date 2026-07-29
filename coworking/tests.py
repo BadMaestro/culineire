@@ -1,9 +1,10 @@
 from io import StringIO
 
 from django.core.management import call_command
-from django.test import TestCase
+from django.db import connection
+from django.test import TestCase, TransactionTestCase
 
-from coworking.models import CoworkingAgent, CoworkingMessage
+from coworking.models import COWORK_INBOX_CHANNEL, CoworkingAgent, CoworkingMessage
 
 
 class CoworkingMessageTests(TestCase):
@@ -136,3 +137,62 @@ class CoworkingAgentListCoercionTests(TestCase):
         a.refresh_from_db()
         self.assertEqual(a.key_facts, ["one", "two"])
         self.assertEqual(a.blockers, [])
+
+
+class InboxWaitTests(TestCase):
+    """agent_inbox --wait: return immediately when mail is already waiting, and
+    return empty (not hang) when the timeout elapses with nothing."""
+
+    def setUp(self):
+        CoworkingAgent.objects.create(agent_id="bolt", label="Bolt")
+        CoworkingAgent.objects.create(agent_id="greenbear", label="GreenBear")
+
+    def test_wait_returns_immediately_when_unread_exists(self):
+        import time as _t
+        CoworkingMessage.send(from_agent="greenbear", to_agent="bolt", body="already here")
+        out = StringIO()
+        start = _t.monotonic()
+        # A pre-existing unread short-circuits before any LISTEN connection, so
+        # this must return at once, well under the 30s timeout.
+        call_command("agent_inbox", "bolt", "--wait", "--timeout", "30", stdout=out)
+        self.assertLess(_t.monotonic() - start, 5.0)
+        self.assertIn("already here", out.getvalue())
+
+    def test_wait_returns_empty_after_timeout(self):
+        import time as _t
+        out = StringIO()
+        start = _t.monotonic()
+        call_command("agent_inbox", "bolt", "--wait", "--timeout", "1", stdout=out)
+        elapsed = _t.monotonic() - start
+        self.assertGreaterEqual(elapsed, 1.0)
+        self.assertLess(elapsed, 6.0)
+        self.assertEqual(out.getvalue().strip(), "")
+
+
+class InboxNotifyTests(TransactionTestCase):
+    """The doorbell itself: a LISTENer wakes on the NOTIFY that send() fires,
+    carrying the recipient's agent_id as the payload."""
+
+    def test_send_fires_notify_to_recipient_channel(self):
+        if connection.vendor != "postgresql":
+            self.skipTest("LISTEN/NOTIFY is Postgres-only")
+        import psycopg
+        CoworkingAgent.objects.create(agent_id="bolt", label="Bolt")
+        CoworkingAgent.objects.create(agent_id="greenbear", label="GreenBear")
+
+        sd = connection.settings_dict
+        conninfo = psycopg.conninfo.make_conninfo(
+            dbname=sd["NAME"], user=sd.get("USER") or None,
+            password=sd.get("PASSWORD") or None, host=sd.get("HOST") or None,
+            port=str(sd["PORT"]) if sd.get("PORT") else None,
+        )
+        with psycopg.connect(conninfo, autocommit=True) as listener:
+            listener.execute(f'LISTEN "{COWORK_INBOX_CHANNEL}"')
+            # LISTEN is live before the message is sent, so its on_commit NOTIFY
+            # is delivered to this connection.
+            CoworkingMessage.send(from_agent="greenbear", to_agent="bolt", body="wake up")
+            payloads = []
+            for note in listener.notifies(timeout=5):
+                payloads.append(note.payload)
+                break
+        self.assertEqual(payloads, ["bolt"])

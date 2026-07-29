@@ -1,7 +1,28 @@
 from __future__ import annotations
 
-from django.db import models
+from django.db import connection, models, transaction
 from django.utils import timezone
+
+# Postgres channel every recipient's waiter LISTENs on. The payload is the
+# recipient agent_id, so one channel serves the whole team and a waiter can
+# ignore notifications addressed to someone else.
+COWORK_INBOX_CHANNEL = "cowork_inbox"
+
+
+def notify_inbox(agent_id: str) -> None:
+    """Fire a Postgres NOTIFY so a waiting recipient wakes the instant a message
+    lands, instead of discovering it on the next timed poll. No-op off Postgres
+    (local sqlite dev) and never fatal — delivery is the message row; the NOTIFY
+    is only the doorbell."""
+    if connection.vendor != "postgresql":
+        return
+    try:
+        with connection.cursor() as cur:
+            cur.execute("SELECT pg_notify(%s, %s)", [COWORK_INBOX_CHANNEL, agent_id])
+    except Exception:
+        # A failed doorbell must never lose a delivered message; the waiter's
+        # periodic re-check still finds it.
+        pass
 
 
 class CoworkingAgent(models.Model):
@@ -132,9 +153,14 @@ class CoworkingMessage(models.Model):
             to_agent, _ = CoworkingAgent.objects.get_or_create(
                 agent_id=to_agent, defaults={"label": to_agent.title()}
             )
-        return cls.objects.create(
+        msg = cls.objects.create(
             from_agent=from_agent, to_agent=to_agent, subject=subject, body=body
         )
+        # Ring the recipient's doorbell only after the row is durably committed,
+        # so the waiter that wakes always finds the message it was told about.
+        recipient_id = msg.to_agent_id
+        transaction.on_commit(lambda: notify_inbox(recipient_id))
+        return msg
 
     @classmethod
     def unread_for(cls, agent_id: str):
