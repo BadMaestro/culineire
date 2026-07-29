@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.700",
         "date": "2026-07-29",
-        "commit": "pending",
+        "commit": "dc659e19",
         "title": "Cooking Widget integrated with the live Arena panel system",
         "section": "Chef Battles / Arena",
         "summary": "Corrects the first v2.5.699 visual pass after production comparison. The independent left Cooking Widget keeps the approved reference hierarchy but now uses the same parchment surface, brass double frame, rounded corners, shadow and typography as the existing Crown ladder. Live copy is contained, the fixture reads Live Now, and the existing next-phase row hydrates from the seven-step rail. Position, phase IDs, refresh timer, payload, Dark Launch, octagon and Arena mechanisms are unchanged. Rollback: revert the deployment commit and redeploy.",
