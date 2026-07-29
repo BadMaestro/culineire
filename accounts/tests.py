@@ -189,3 +189,91 @@ class AdminSetPasswordTests(TestCase):
         )
         self.assertContains(response, "Admin: Set New Password")
         self.assertContains(response, self.url)
+
+
+class CaseInsensitiveLoginTests(TestCase):
+    """The username is one name however it is capitalised (Owner, 2026-07-29)."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="CrestedTen", password="RealPass123!", email="ct@example.com"
+        )
+
+    def test_sign_in_works_in_any_capitalisation(self):
+        for typed in ("CrestedTen", "crestedten", "CRESTEDTEN", "CrEsTeDtEn"):
+            with self.subTest(typed=typed):
+                self.client.logout()
+                response = self.client.post(
+                    reverse("login"),
+                    {"username": typed, "password": "RealPass123!"},
+                )
+                self.assertEqual(response.status_code, 302, f"{typed} was refused")
+                self.assertEqual(
+                    self.client.session["_auth_user_id"], str(self.user.pk)
+                )
+
+    def test_ajax_sign_in_works_in_any_capitalisation(self):
+        response = self.client.post(
+            reverse("ajax_login"),
+            {"username": "crestedten", "password": "RealPass123!"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
+
+    def test_the_password_stays_case_sensitive(self):
+        response = self.client.post(
+            reverse("login"),
+            {"username": "crestedten", "password": "realpass123!"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_a_wrong_name_is_still_refused(self):
+        response = self.client.post(
+            reverse("login"),
+            {"username": "crestedeleven", "password": "RealPass123!"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_an_inactive_account_cannot_sign_in_by_changing_case(self):
+        self.user.is_active = False
+        self.user.save(update_fields=["is_active"])
+        response = self.client.post(
+            reverse("login"),
+            {"username": "crestedten", "password": "RealPass123!"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_the_stored_username_keeps_its_original_case(self):
+        self.client.post(
+            reverse("login"), {"username": "crestedten", "password": "RealPass123!"}
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "CrestedTen")
+
+    def test_signup_refuses_a_username_that_differs_only_in_case(self):
+        from accounts.forms import SignUpForm
+
+        form = SignUpForm(data={
+            "username": "crestedten",
+            "email": "someone.else@example.com",
+            "default_avatar": RecipeAuthor.DefaultAvatar.NEUTRAL,
+            "password1": "AnotherPass123!",
+            "password2": "AnotherPass123!",
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn("username", form.errors)
+
+    def test_signup_still_accepts_a_genuinely_new_username(self):
+        from accounts.forms import SignUpForm
+
+        form = SignUpForm(data={
+            "username": "CrestedEleven",
+            "email": "eleven@example.com",
+            "default_avatar": RecipeAuthor.DefaultAvatar.NEUTRAL,
+            "password1": "AnotherPass123!",
+            "password2": "AnotherPass123!",
+        })
+        self.assertTrue(form.is_valid(), form.errors)

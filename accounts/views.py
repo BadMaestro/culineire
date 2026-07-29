@@ -82,7 +82,10 @@ class CulinEireLoginView(LoginView):
             user_model = get_user_model()
             username = request.POST.get("username", "")
             try:
-                user = user_model.objects.get(username=username)
+                # iexact, to match how the backend now resolves the username.
+                # An exact lookup here would leave a superuser rate-limited out
+                # of his own site for typing his name in a different case.
+                user = user_model.objects.get(username__iexact=username)
                 if getattr(user, "is_superuser", False):
                     return super().post(request, *args, **kwargs)
             except user_model.DoesNotExist:

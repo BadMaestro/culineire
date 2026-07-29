@@ -246,6 +246,14 @@ else:
     }
 
 
+# The username is matched without regard to case; see accounts/auth_backends.py.
+# Listing only this backend replaces ModelBackend rather than adding to it — two
+# backends would mean the exact-match one answers first and the case-insensitive
+# one is never reached for an existing account.
+AUTHENTICATION_BACKENDS = [
+    "accounts.auth_backends.CaseInsensitiveModelBackend",
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",

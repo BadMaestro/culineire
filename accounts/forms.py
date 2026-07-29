@@ -94,6 +94,21 @@ class SignUpForm(UserCreationForm):
         widget=forms.HiddenInput,
     )
 
+    def clean_username(self):
+        # Sign-in matches the username without regard to case, so two accounts
+        # differing only in case would both answer to one login and the backend
+        # could not tell which was meant. The taken name keeps whatever case its
+        # owner chose; only a case-variant of it is refused here.
+        username = self.cleaned_data.get("username", "").strip()
+        User = get_user_model()
+        if username and User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError(
+                "This username is already taken. Usernames are not "
+                "case-sensitive, so a different capitalisation of an existing "
+                "name is the same name."
+            )
+        return username
+
     def clean_email(self):
         email = self.cleaned_data.get("email", "").strip().lower()
         User = get_user_model()
