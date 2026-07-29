@@ -1612,15 +1612,20 @@
     if (tip) { tip.hidden = true; }
   }
 
-  /** One-shot ripple at the click point, in SVG user space. */
-  function fireRipple(svg, event) {
-    if (!svg.createSVGPoint || !svg.getScreenCTM) { return; }
-    var point = svg.createSVGPoint();
-    point.x = event.clientX;
-    point.y = event.clientY;
-    var ctm = svg.getScreenCTM();
-    if (!ctm) { return; }
-    var at = point.matrixTransform(ctm.inverse());
+  /** One-shot ripple centred on the activated SVG cell.
+   *
+   * The Arena carries a CSS 3D rotateX transform. getScreenCTM() is a 2D
+   * matrix and cannot reliably invert that projection, so client coordinates
+   * put the ripple beside the clicked cell. The cell's own SVG bbox is already
+   * in the correct user space and remains stable at every camera scale.
+   */
+  function fireRipple(svg, anchor) {
+    if (!anchor || !anchor.getBBox) { return; }
+    var box = anchor.getBBox();
+    var at = {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2
+    };
     var circle = el('circle', {
       cx: at.x.toFixed(1), cy: at.y.toFixed(1), r: '0',
       fill: 'rgba(58,48,40,0.28)', 'pointer-events': 'none'
@@ -1671,14 +1676,14 @@
       var stage = event.target.closest && event.target.closest('[data-arena-stage]');
       if (stage && stageCentre && stageCentre.popup_url) {
         event.stopPropagation();
-        fireRipple(svg, event);
+        fireRipple(svg, stage);
         global.ArenaBattleRoom.open(stageCentre.popup_url, stageCentre.battle_url);
         return;
       }
       var seat = event.target.closest && event.target.closest('.arena-cell[data-ring]');
       if (!seat || !seat.chefRecord) { hideTooltip(); return; }
       event.stopPropagation();
-      fireRipple(svg, event);
+      fireRipple(svg, seat);
       showTooltip(seat.chefRecord, seat);
     });
     document.addEventListener('click', function (event) {

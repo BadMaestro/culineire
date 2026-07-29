@@ -3019,18 +3019,20 @@ ARENA_RELEASE_STAGES = [
                      "Always-visible desktop rank spine corrected so Kitchen Porter starts at "
                      "the far/top edge and Culinary Master finishes by centre. DONE v2.5.684.",
                      "Approved bevelled plinth silhouette and brass edge restored to the rank "
-                     "labels without touching floor, camera or mechanisms. READY v2.5.685.",
+                     "labels without touching floor, camera or mechanisms. DONE v2.5.685.",
+                     "Click ripple anchored to the activated SVG cell/stage so the 3D camera "
+                     "cannot displace it beside the octagon. READY v2.5.687.",
                      "Remaining visual slices tracked in docs/ARENA_BATTLE_PLAN.md section 5.",
                      "Hard constraints held every slice: octagon method and camera rotateX(42deg) "
                      "frozen; mechanisms, seat contract, backend, Dark Launch and Master Console untouched."],
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
-        "branch": "temporary isolated worktree", "commit": "pending v2.5.685",
-        "verification": "Production v2.5.684 confirmed. Local authenticated "
-                        "visual QA confirmed Kitchen Porter at the far/top edge through Culinary "
-                        "Master beside the centre; octagon, camera and mechanisms unchanged.",
-        "updated": "2026-07-29T09:55:00.000Z",
-        "next_action": "Deploy v2.5.685 and run targeted production postflight.",
+        "branch": "temporary isolated worktree", "commit": "pending v2.5.687",
+        "verification": "Production v2.5.685 confirmed. Ripple regression test and JS syntax "
+                        "check passed; every ring cell and the centre use the same corrected "
+                        "SVG-space anchor path.",
+        "updated": "2026-07-29T11:20:00.000Z",
+        "next_action": "Deploy v2.5.687 and verify production.",
     },
     {
         "n": 3, "id": "release-readiness",

@@ -2707,6 +2707,24 @@ class ArenaMasterConsoleAccessTests(TestCase):
         self.assertIn("fighter.country || 'Ireland'", source)
         self.assertNotIn("centre.y + radius + 16", source)
 
+    def test_arena_ripple_uses_clicked_cell_svg_coordinates(self):
+        """CSS 3D camera coordinates must not displace the cell ripple."""
+        from django.conf import settings as django_settings
+        from pathlib import Path
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+        ripple = source.split("function fireRipple(svg, anchor)", 1)[1].split(
+            "function showSeatLabel", 1
+        )[0]
+        self.assertIn("anchor.getBBox()", ripple)
+        self.assertNotIn("event.clientX", ripple)
+        self.assertNotIn("getScreenCTM", ripple)
+        self.assertIn("fireRipple(svg, seat)", source)
+        self.assertIn("fireRipple(svg, stage)", source)
+
 
 # ── AMC P02 — master_state read models ───────────────────────────────────────
 
