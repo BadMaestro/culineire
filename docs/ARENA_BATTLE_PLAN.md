@@ -5,7 +5,7 @@ Arena (the "Design Arena" reference build) onto `main`. **GreenBear and Ember
 both read this at the start of every work turn and execute against it.** When a
 slice lands, the owner of that slice updates the table below in the same change.
 
-Last updated: 2026-07-29 · Current main: **v2.5.688** (`ec0a3fc5`). Target: **v2.5.689**.
+Last updated: 2026-07-29 · Production: **v2.5.689** (`02465113`). Target: **v2.5.690**.
 
 ---
 
@@ -57,7 +57,8 @@ Last updated: 2026-07-29 · Current main: **v2.5.688** (`ec0a3fc5`). Target: **v
 | 2 | Correct the always-visible desktop rank spine: Kitchen Porter at the far/top edge through Culinary Master beside the centre, matching the reference | Ember temporary full gate | `static/css/arena_deck_polish.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.684 |
 | 3 | Restore the approved bevelled plinth silhouette and brass edge to the always-visible rank labels; no floor, camera or mechanism changes | Ember temporary full gate | `static/css/arena_deck_polish.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.685 |
 | 4 | Anchor the click ripple to the activated SVG cell/stage in SVG user space so CSS 3D camera projection cannot displace it | Ember temporary full gate | `static/js/arena_render.js`, `templates/chef_battle/_arena_render_ring.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.687 |
-| 5 | Reset nested grid areas inside the broadcast ribbon so Arena identity and the seven phase steps no longer overlap | Ember temporary full gate | `static/css/arena_command_deck.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | READY v2.5.689 |
+| 5 | Reset nested grid areas inside the broadcast ribbon so Arena identity and the seven phase steps no longer overlap | Ember temporary full gate | `static/css/arena_command_deck.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | DONE v2.5.689 |
+| 6 | Convert the live metrics panel from a tall 2×2 card into the approved compact four-column strip | Ember temporary full gate | `static/css/arena_deck_polish.css`, `templates/chef_battle/arena.html`, `chef_battle/tests.py`, `recipes/views.py` | READY v2.5.690 |
 
 ## 6. Rollback
 

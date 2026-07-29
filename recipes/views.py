@@ -3023,18 +3023,20 @@ ARENA_RELEASE_STAGES = [
                      "Click ripple anchored to the activated SVG cell/stage so the 3D camera "
                      "cannot displace it beside the octagon. DONE v2.5.687.",
                      "Broadcast identity and seven-step phase rail separated into their intended "
-                     "columns instead of overlapping. READY v2.5.689.",
+                     "columns instead of overlapping. DONE v2.5.689.",
+                     "Live metrics converted from the tall 2x2 card into the approved compact "
+                     "four-column strip. READY v2.5.690.",
                      "Remaining visual slices tracked in docs/ARENA_BATTLE_PLAN.md section 5.",
                      "Hard constraints held every slice: octagon method and camera rotateX(42deg) "
                      "frozen; mechanisms, seat contract, backend, Dark Launch and Master Console untouched."],
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
-        "branch": "temporary isolated worktree", "commit": "pending v2.5.689",
-        "verification": "Production v2.5.687 confirmed. Local authenticated visual QA shows "
-                        "the identity block at left and all seven phase steps in a separate "
-                        "centred rail; Arena mechanisms unchanged.",
-        "updated": "2026-07-29T11:30:00.000Z",
-        "next_action": "Deploy v2.5.689 and verify production.",
+        "branch": "temporary isolated worktree", "commit": "pending v2.5.690",
+        "verification": "Production v2.5.689 confirmed. Local authenticated visual QA shows "
+                        "all four existing live metrics in one compact row; metric ids, payload "
+                        "and update mechanisms unchanged.",
+        "updated": "2026-07-29T11:35:00.000Z",
+        "next_action": "Deploy v2.5.690 and verify production.",
     },
     {
         "n": 3, "id": "release-readiness",

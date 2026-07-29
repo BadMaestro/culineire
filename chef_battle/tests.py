@@ -7821,6 +7821,14 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("grid-area: auto", nested)
         self.assertIn("grid-column: auto", nested)
 
+    def test_desktop_metrics_use_compact_four_column_strip(self):
+        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        metrics = css.split("MOCKUP M12", 1)[1].split(
+            ".arena-command-deck__metrics {", 1
+        )[1].split("}", 1)[0]
+        self.assertIn("repeat(4, minmax(0, 1fr))", metrics)
+        self.assertIn("width: clamp(30rem, 32vw, 40rem)", metrics)
+
     def test_each_step_is_screen_reader_readable(self):
         """The count renders as a bare numeral. Without a label a screen reader
         reads a number with no noun, so every step carries its own aria-label."""
