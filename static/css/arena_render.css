@@ -128,10 +128,7 @@
 /* Ring 2 — the Moat. No visible cell borders (Owner): the ring must read as one
    unbroken dark band separating the Crown from the ranks. */
 .page--arena #arena-render .arena-cell--moat {
-  /* A moat, not a band of floor: dark and semi-transparent so the ring reads as
-     depth around the gold rather than another tile, and with no cell borders at
-     all — the Owner's rule for ring 2. */
-  fill: color-mix(in srgb, var(--ink) 78%, transparent);
+  fill: var(--arena-moat);
   stroke: none;
 }
 
