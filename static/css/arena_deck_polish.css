@@ -1782,17 +1782,6 @@
     top: 14%;
     width: min(11rem, 18%);
   }
-  .arena-rank-spine::before {
-    content: "Rank ladder";
-    display: block;
-    margin: 0 0 0.28rem;
-    color: var(--accent-bronze-dark);
-    font-size: 0.43rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    text-align: center;
-    text-transform: uppercase;
-  }
   .arena-rank-spine__step {
     min-height: 1.05rem;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
