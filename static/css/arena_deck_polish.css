@@ -1124,25 +1124,7 @@
 
 
 /* 3G — tablet lower bar: keep ticker readable. */
-@media (min-width: 901px) and (max-width: 1200px) {
-  .arena-command-deck__crowd-rail.arena-lower-broadcast {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.65rem 0.85rem;
-  }
-  .arena-activity-ticker {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
-    order: 3;
-    padding-top: 0.15rem;
-    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 28%, transparent);
-  }
-  .arena-lower-broadcast .arena-crowd-rail__status {
-    order: 1;
-  }
-  .arena-lower-broadcast .arena-crowd-rail__actions {
-    order: 2;
-  }
-}
+
 
 
 /* 3G — keyboard focus rings on Arena controls. */
@@ -3583,76 +3565,7 @@
 
 
 /* Phone ~390: stack, clip, no page-level sideways scroll. */
-@media (max-width: 767px) {
-  .page--arena .arena-command-deck {
-    width: min(100% - 0.75rem, 100%);
-    margin-inline: auto;
-    gap: 0.55rem;
-  }
 
-  .page--arena .arena-command-deck__phase-rail {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(4.6rem, 1fr);
-    grid-template-columns: none;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .page--arena .arena-phase-step b {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .page--arena .arena-command-deck__metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: 100%;
-  }
-
-  .page--arena .arena-metric {
-    border-left: 0;
-    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
-    text-align: left;
-  }
-
-  .page--arena .arena-metric:nth-child(-n+3) {
-    border-top: 0;
-  }
-
-  .page--arena .arena-lower-broadcast {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.45rem;
-  }
-
-  .page--arena .arena-activity-ticker {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 0.55rem;
-    white-space: normal;
-  }
-
-  .page--arena .arena-crowd-rail__actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    width: 100%;
-  }
-
-  .page--arena .arena-crowd-rail__actions > * {
-    width: 100%;
-  }
-
-  .page--arena .arena-confrontation-band {
-    gap: 0.45rem;
-  }
-
-  .page--arena .arena-live-chef {
-    max-width: 100%;
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .page--arena .arena-command-deck__floor,

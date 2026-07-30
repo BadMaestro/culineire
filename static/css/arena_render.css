@@ -542,22 +542,7 @@
 
 
 
-@media (max-width: 640px) {
-  .page--arena .arena-render-container {
-    height: clamp(380px, 98vw, 80vh);
-    perspective: 1000px;
-  }
 
-  .page--arena #arena-render {
-    height: 111%;
-    transform-origin: 50% 62%;
-    transform:
-      translate(-50%, -50%)
-      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
-      scale(var(--arena-fit, 1));
-  }
-}
 
 /* Crown at the centre — no drop-shadow (bled past the outer shell). */
 #arena-render .arena-stage[data-state="crown"],

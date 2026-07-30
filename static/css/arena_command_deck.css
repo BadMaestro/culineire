@@ -215,42 +215,9 @@
 .arena-crowd-rail__actions .btn-secondary { min-height: 2.25rem; padding-inline: .8rem; font-size: .7rem; }
 .arena-command-deck__crowd-rail .ce-nav__link { flex: 0 0 auto; }
 
-@media (max-width: 1199px) {
-  .arena-command-deck { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "header header" "phase-rail phase-rail" "phase metrics" "floor floor" "ladder gifts" "crowd crowd"; }
-  .arena-command-deck__phase-card { align-self: stretch; }
-}
 
-@media (max-width: 767px) {
-  .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; grid-template-columns: 1fr; grid-template-areas: "header" "phase" "phase-rail" "metrics" "floor" "crowd" "ladder" "gifts"; gap: .65rem; }
-  .arena-command-deck__header, .arena-command-deck__floor-head, .arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
-  .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
-  .arena-command-deck__phase-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .arena-phase-step { min-height: 2rem; font-size: .61rem; }
-  .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
-  .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
-  .arena-metric:first-child { border-left: 0; }
-  .arena-metric span { font-size: .54rem; }
-  .arena-command-deck__floor { padding: .7rem; border-radius: .9rem; }
-  .arena-command-deck__live-stage { grid-template-columns: 1fr; gap: .55rem; text-align: center; }
-  .arena-live-chef, .arena-live-chef--opponent { justify-content: center; text-align: center; }
-  .arena-live-chef--opponent { flex-direction: row-reverse; }
-  .arena-command-deck__floor .arena-legend { max-width: 100%; justify-content: flex-start; }
-  .arena-command-deck__floor-head { gap: .55rem; }
-  /* Stage 3E: the complete rank ladder stays available on a phone. It was
-     display:none here, which removed all eight ranks below 768px. Instead of
-     hiding it, the column stops being an overlay on the floor and becomes a
-     compact wrapped row in normal flow: every rank is still present and
-     readable, nothing covers the crown, and the chips wrap rather than pushing
-     the page sideways. placeRankSpine() clears its measured inline top/left/
-     width at this width so the stylesheet, not the renderer, owns the layout. */
-  .arena-rank-spine { position: static; width: 100%; margin: .15rem 0 .4rem; transform: none; }
-  .arena-rank-spine__label { text-align: left; margin-bottom: .2rem; }
-  .arena-rank-spine__list { display: flex; flex-wrap: wrap; gap: .25rem; }
-  .arena-rank-spine__item { flex: 1 1 auto; }
-  .arena-rank-spine__step { min-height: 1.5rem; padding: .2rem .5rem; font-size: .58rem; clip-path: none; }
-  .arena-crowd-rail__actions { width: 100%; }
-  .arena-crowd-rail__actions > * { flex: 1 1 0; text-align: center; justify-content: center; }
-}
+
+
 
 @media (prefers-reduced-motion: no-preference) {
   .arena-command-deck__floor { animation: arena-command-deck-breathe 8s ease-in-out infinite; }
