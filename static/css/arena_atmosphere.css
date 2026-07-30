@@ -884,3 +884,25 @@
   opacity: 0 !important;
   animation: none !important;
 }
+
+/* =============================================================================
+   PANEL SKIN — taken from the Chef Battles Arena widget (Owner, 2026-07-30).
+   The floating battle widget is the look the Owner approved, so it becomes the
+   one skin every panel on the arena wears: warm parchment gradient, a single
+   soft border, 16px corners, one deep diffuse shadow and the same blur behind
+   the glass. Written here because this file loads last in the head, so it wins
+   ties against arena_deck_polish.css without a specificity war or !important.
+   Values are tokens, not the widget's literals, so the palette still drives it.
+   ========================================================================== */
+.page--arena .arena-cooking-widget,
+.page--arena .arena-command-deck__phase-card,
+.page--arena .arena-command-deck__ladder,
+.page--arena .arena-command-deck__metrics,
+.page--arena .arena-command-deck__gifts {
+  background: linear-gradient(160deg, var(--surface), var(--surface-soft));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--ink) 16%, transparent);
+  backdrop-filter: blur(16px);
+  color: var(--ink);
+}
