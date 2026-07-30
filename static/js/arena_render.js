@@ -396,6 +396,11 @@
       var entry = table[t];
       var count = entry.segments;
       if (!count) { continue; }
+      // The crown plate is drawn once, below, as the stage polygon with its own
+      // gold rim and bulbs. Drawing a cell for it as well put a second, LIGHT
+      // octagon over the gold — the grey ring the Owner saw — and pushed the moat
+      // out to where it no longer touched the crown.
+      if (entry.kind === 'crown') { continue; }
       var innerR = entry.inner;
       var outerR = entry.outer;
       var sweep = (2 * Math.PI) / count;
