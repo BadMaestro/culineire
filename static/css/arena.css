@@ -785,11 +785,4 @@
   color: color-mix(in srgb, var(--surface-soft) 55%, transparent);
   line-height: 1.4;
 }
-@media (max-width: 900px) {
-  .arena-demo-panel {
-    position: static;
-    width: auto;
-    max-width: 320px;
-    margin: 1rem auto 0;
-  }
-}
+

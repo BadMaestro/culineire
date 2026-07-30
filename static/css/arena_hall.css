@@ -140,17 +140,7 @@
   outline-offset: 3px;
 }
 
-@media (max-width: 900px) {
-  .page--arena .arena-command-deck__header,
-  .page--arena .arena-command-deck__phase-card,
-  .page--arena .arena-command-deck__metrics,
-  .page--arena .arena-command-deck__ladder,
-  .page--arena .arena-command-deck__gifts,
-  .page--arena .arena-command-deck__crowd-rail,
-  .page--arena .arena-command-deck__phase-rail {
-    background: color-mix(in srgb, var(--hall-dark-1) 94%, transparent);
-  }
-}
+
 
 @media (prefers-reduced-motion: reduce) {
   .page--arena *,
@@ -165,7 +155,7 @@
 
 
 /* 3G â€” glass panels on desktop over the dark hall. */
-@media (min-width: 901px) {
+
   .page--arena .arena-command-deck__phase-card,
   .page--arena .arena-command-deck__metrics,
   .page--arena .arena-command-deck__ladder,
@@ -184,7 +174,7 @@
         color-mix(in srgb, var(--hall-dark-1) 90%, transparent)
       );
   }
-}
+
 
 /* =============================================================================
    ARENA-03 CSS plate OFF — fought the live SVG camera (G2 rotateX on
@@ -205,7 +195,7 @@
    contrast. Site tokens only (--hall-green/--hall-red already aliased).
    ============================================================================= */
 
-@media (min-width: 901px) {
+
   .page--arena .arena-confrontation-band {
     width: min(56rem, 86%);
     gap: 0.85rem;
@@ -264,4 +254,4 @@
     overflow: visible;
     text-overflow: clip;
   }
-}
+

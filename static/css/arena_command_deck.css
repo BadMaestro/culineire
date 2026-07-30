@@ -327,7 +327,7 @@
   display: contents;
 }
 
-@media (min-width: 901px) {
+
   .arena-command-deck {
     display: block;
     /* Oval stands (Owner mockup) need more vertical room than the old polar
@@ -492,12 +492,12 @@
   }
 
   .arena-command-deck__metrics strong { color: var(--accent-bronze); }
-}
+
 
 /* 3G R3 — confrontation band (composition from prototype, live data only).
    Positions the existing live-stage as one connected challenger | focus | opponent
    band over the floor. No new DOM targets; no flag (D3). */
-@media (min-width: 901px) {
+
   .arena-command-deck__live-stage.arena-confrontation-band {
     position: absolute;
     z-index: 2;
@@ -571,10 +571,10 @@
     text-align: center;
     margin: 0;
   }
-}
+
 
 /* 3G R2 v2 — architectural rail ticks only (panels stay where they are). */
-@media (min-width: 901px) {
+
   .arena-command-deck__phase-card::after,
   .arena-command-deck__ladder::after,
   .arena-command-deck__metrics::after,
@@ -603,18 +603,14 @@
     border-left: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
     border-radius: 0.7rem 0 0 0.7rem;
   }
-}
 
 
-@media (max-width: 900px) {
-  .arena-broadcast-ribbon {
-    display: contents;
-  }
-}
+
+
 
 
 /* 3G atmosphere — hall depth without a second palette. */
-@media (min-width: 901px) {
+
   .arena-command-deck__floor::before {
     content: "";
     position: absolute;
@@ -647,11 +643,11 @@
         color-mix(in srgb, var(--hall-red) 8%, var(--surface))
       );
   }
-}
+
 
 
 /* 3G R3 empty/crown: keep the band as one row, quiet copy under the focus. */
-@media (min-width: 901px) {
+
   .arena-confrontation-band[data-centre-key="empty"],
   .arena-confrontation-band[data-centre-key^="crown-"] {
     grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.8fr) minmax(0, 1fr);
@@ -661,11 +657,11 @@
     font-size: 0.7rem;
     opacity: 0.9;
   }
-}
+
 
 
 /* 3G — VS / crown focus pill (prototype crown-focus energy, official tokens). */
-@media (min-width: 901px) {
+
   .arena-confrontation-band .arena-live-centre {
     position: relative;
     isolation: isolate;
@@ -695,11 +691,11 @@
       inset -3px 0 0 var(--hall-red),
       0 0.55rem 1.2rem color-mix(in srgb, var(--hall-red) 12%, transparent);
   }
-}
+
 
 
 /* 3G — lower broadcast denser action row. */
-@media (min-width: 901px) {
+
   .arena-command-deck__crowd-rail.arena-lower-broadcast {
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) auto;
@@ -716,11 +712,11 @@
   .arena-lower-broadcast .ce-nav__link {
     min-height: 2.35rem;
   }
-}
+
 
 
 /* 3G — rank spine broadcast chips (stay readable on the floor photo). */
-@media (min-width: 901px) {
+
   .arena-rank-spine__step {
     border-width: 1.5px;
     box-shadow:
@@ -732,4 +728,4 @@
     border-color: var(--accent-bronze-dark);
     background: color-mix(in srgb, var(--surface) 92%, var(--accent-bronze));
   }
-}
+

@@ -113,7 +113,7 @@
   z-index: 130;
 }
 
-@media (min-width: 901px) {
+
   .page--arena::before {
     opacity: 1;
   }
@@ -131,29 +131,9 @@
       #000 70% 100%
     );
   }
-}
 
-@media (max-width: 900px) {
-  .page--arena::before {
-    opacity: 0.95;
-  }
 
-  .page--arena::after {
-    width: min(100vw, 42rem);
-    height: min(62vh, 30rem);
-    opacity: 0.2;
-    -webkit-mask-image: radial-gradient(
-      circle at 50% 52%,
-      transparent 0 46%,
-      #000 66% 100%
-    );
-    mask-image: radial-gradient(
-      circle at 50% 52%,
-      transparent 0 46%,
-      #000 66% 100%
-    );
-  }
-}
+
 
 @media (prefers-reduced-motion: reduce) {
   .page--arena::before,
@@ -236,11 +216,7 @@
   z-index: 2;
 }
 
-@media (max-width: 900px) {
-  .page--arena .arena-render-container::before {
-    opacity: 0.42;
-  }
-}
+
 
 @media (prefers-reduced-motion: reduce) {
   .page--arena .arena-render-container::before {
@@ -421,15 +397,7 @@
   );
 }
 
-@media (max-width: 900px) {
-  .page--arena .arena-render-container::before {
-    opacity: 0.5;
-  }
 
-  .page--arena .arena-render-container::after {
-    opacity: 0.22;
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .page--arena .arena-render-container::after {
@@ -496,7 +464,7 @@
   opacity: 0.78;
 }
 
-@media (min-width: 901px) {
+
   .page--arena::before {
     opacity: 0.88;
   }
@@ -514,25 +482,9 @@
       #000 64% 100%
     );
   }
-}
 
-@media (max-width: 900px) {
-  .page--arena::after {
-    width: min(100vw, 44rem);
-    height: min(64vh, 32rem);
-    opacity: 0.32;
-    -webkit-mask-image: radial-gradient(
-      circle at 50% 52%,
-      transparent 0 42%,
-      #000 62% 100%
-    );
-    mask-image: radial-gradient(
-      circle at 50% 52%,
-      transparent 0 42%,
-      #000 62% 100%
-    );
-  }
-}
+
+
 
 @media (prefers-reduced-motion: reduce) {
   .page--arena {
@@ -656,7 +608,7 @@
   opacity: 0.42;
 }
 
-@media (min-width: 901px) {
+
   .page--arena::before {
     opacity: 1;
   }
@@ -664,21 +616,9 @@
   .page--arena::after {
     opacity: 0.24;
   }
-}
 
-@media (max-width: 900px) {
-  .page--arena::before {
-    opacity: 0.9;
-  }
 
-  .page--arena .arena-render-container::before {
-    opacity: 0.62;
-  }
 
-  .page--arena .arena-render-container::after {
-    opacity: 0.28;
-  }
-}
 
 /* =============================================================================
    ONE FIX — free the arena from the page container; even stage all viewports.
@@ -717,74 +657,7 @@
 
 /* Mobile / tablet: stage is in normal flow (not absolute-in-zero-height),
    square, full bleed, centred — equal left/right, no 0.75rem/640px box. */
-@media (max-width: 900px) {
-  .page--arena .arena-command-deck {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    width: 100% !important;
-    margin: 0 !important;
-  }
 
-  .page--arena .arena-command-deck__floor {
-    position: relative;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .page--arena .arena-command-deck__floor > .arena-floor-stage {
-    position: relative !important;
-    inset: auto !important;
-    left: auto !important;
-    top: auto !important;
-    width: 100% !important;
-    max-width: none !important;
-    height: auto !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    overflow: visible;
-    background-color: transparent;
-  }
-
-  .page--arena .arena-command-deck__floor .arena-render-container {
-    position: relative !important;
-    inset: auto !important;
-    left: auto !important;
-    top: auto !important;
-    width: 100% !important;
-    max-width: none !important;
-    height: auto !important;
-    aspect-ratio: 1 / 1;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    overflow: visible;
-    background-color: transparent;
-  }
-
-  /* CSS floor plate stays off on mobile too — SVG only. */
-  .page--arena .arena-floor-wrapper,
-  .page--arena .arena-floor-plane,
-  .page--arena .arena-floor-ring {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
-
-  .page--arena .arena-floor-stage #arena-render {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: min(100%, 100%);
-    height: auto;
-    max-width: 100%;
-    aspect-ratio: 1 / 1;
-    transform-origin: 50% 62%;
-    transform:
-      translate(-50%, -50%)
-      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
-      scale(var(--arena-fit, 1));
-  }
-}
 
 /* =============================================================================
    KILL JUNK — fake crowd dots, sparkle rings, page ellipses, empty seat dots.
