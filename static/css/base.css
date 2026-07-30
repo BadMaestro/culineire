@@ -31,7 +31,14 @@
     --surface-muted: #f2eadf;
 
     /* Typography */
-    --ink: #1f2c25;
+    /* Neutral dark, not green. #1f2c25 was rgb(31,44,37) — a dark GREEN, and as
+       text it read as near-black so nobody saw it; used as a large background
+       (the arena hall takes --hall-dark-1 straight from --ink) the same paint
+       reads plainly green, which is what the Owner saw on mobile 2026-07-30.
+       #292929 is the exact luminance match of the old value with the hue removed
+       (0.2126R+0.7152G+0.0722B = 40.7 both ways), so every contrast ratio on the
+       site is preserved to the decimal — only the green is gone. */
+    --ink: #292929;
     --ink-soft: #42514a;
     --muted: #66746d;
 
