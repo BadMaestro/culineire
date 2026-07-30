@@ -809,3 +809,18 @@
     filter: none;
   }
 }
+
+/* AR3 — moat lanterns. The ring itself stays unbroken (no cell borders); the
+   light comes from eight lamps standing in it, and their glow is what lands on
+   the gold Crown ring beside them. Colour is the existing VIP gold token, so no
+   new literal enters the palette. */
+.page--arena #arena-render .arena-lantern {
+  fill: var(--arena-vip-gold);
+  filter: drop-shadow(0 0 3px var(--arena-vip-gold))
+          drop-shadow(0 0 9px color-mix(in srgb, var(--arena-vip-gold) 70%, transparent));
+}
+
+/* The glint the lanterns throw onto the Crown plate's rim. */
+.page--arena #arena-render .arena-stage {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--arena-vip-gold) 45%, transparent));
+}

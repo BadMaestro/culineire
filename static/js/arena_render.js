@@ -442,6 +442,24 @@
         if (ringAttr !== '') { attrs['data-ring'] = ringAttr; }
         cells.appendChild(el('path', attrs));
 
+        // AR3 — the moat is lit, not decorated. One lantern at each cell centre;
+        // the glow is CSS so the light stays a token and never a literal.
+        if (entry.kind === 'moat') {
+          var lamp = el('circle', {
+            cx: centroid.x.toFixed(2), cy: centroid.y.toFixed(2), r: '4.2',
+            'pointer-events': 'none', class: 'arena-lantern'
+          });
+          // Each lantern breathes on its own clock so the ring never pulses as
+          // one flat band.
+          var ph = ((pos * 37) % 100) / 100;
+          lamp.appendChild(el('animate', {
+            attributeName: 'opacity', values: '0.95;0.55;0.95',
+            dur: (2.4 + ph).toFixed(2) + 's', begin: (ph * 2).toFixed(2) + 's',
+            repeatCount: 'indefinite'
+          }));
+          cells.appendChild(lamp);
+        }
+
         // A VIP box gets a gold liner set inside its own edge. A stroke sits
         // centred on a path, so an inner rim cannot be done with one shape —
         // this is a second, inset wedge that carries the gold and takes no
