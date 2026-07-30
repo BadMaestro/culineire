@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.719",
+        "date": "2026-07-30",
+        "commit": "f5ab6d0e",
+        "title": "Clicking an online chef opens their card, beside the chef",
+        "section": "Chef Battles / Arena",
+        "summary": "Two separate faults, both from the rotateX(42deg) camera over the SVG floor. (1) Delivery: over every chef, document.elementFromPoint returns the container, never the cell - the floor's hit area does not sit where its pixels are drawn - so the click listener bound to the svg never fired. It now listens on the container (clicks that do land on the svg still bubble up) and, when no cell resolves, finds the chef from the portrait's own on-screen box, which is the browser's own answer for where that portrait is. (2) Placement: the card is position:fixed, and fixed resolves against the nearest TRANSFORMED ancestor; the card shipped inside .arena-floor-stage, which carries the camera, so a computed top of 320px painted at 494 - about 175px away, on the far side of the floor. Lifting the card to <body> makes fixed mean fixed. The card and its data were never broken. Verified live on production before each deploy: three real clicks resolve to GreenBear, CrestedTen and Jam O'Liver, each card landing 5-7px from its portrait, horizontally centred. Ships v2.5.718 (delivery) and v2.5.719 (placement).",
+    },
+    {
+        "version": "2.5.717",
+        "date": "2026-07-30",
+        "commit": "7501d5fb",
+        "title": "The arena owns its octagon; no link to the sponsors template",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner's instruction: the arena must share NO code with the Sponsors puzzle - the only relationship is that sponsors sit in the VIP ring. The renderer had kept reading OctagonFloorTemplate live instead of owning a copy, and that was the root cause of the day's breakage: occupant capacity, cell radii and the online beacon all trusted a foreign table that stopped describing the floor once the arena grew its own eleven rings. static/js/arena_octagon.js is now that copy (same circumradius convention, same 12-step tessellation, same gap handling) and the arena page no longer loads octagon_floor_template.js at all; the file stays on disk, disconnected, not deleted. Each cell now carries its own band and cell count, so the beacon reads the floor that was actually drawn - a Kitchen Porter had been getting no green light at all because the foreign table had no entry for the outer rank rings. Shipped across v2.5.714-717, and honestly two of those were my own breakages: v2.5.715 restored an empty floor after a moved constant left a caller behind, v2.5.716 restored the chefs after the same mistake with a local variable, and v2.5.717 removed a multi-line {# #} template comment that leaked onto the page as text - the same trap v2.5.677 had already cleaned up once. node --check proves syntax, not that the renderer runs; a browser check before deploy is the gate that was missing.",
+    },
+    {
         "version": "2.5.713",
         "date": "2026-07-30",
         "commit": "d39e4cf7",
