@@ -1836,7 +1836,6 @@
   .page--arena .arena-cooking-widget,
   .page--arena .arena-command-deck__ladder,
   .page--arena .arena-command-deck__gifts {
-    background: color-mix(in srgb, var(--ink) 18%, var(--surface)) !important;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
     box-shadow:
       0 0.45rem 1.2rem color-mix(in srgb, var(--ink) 28%, transparent),
@@ -3250,7 +3249,6 @@
     height: 1.35rem;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
     border-radius: 50%;
-    background: color-mix(in srgb, var(--ink) 18%, var(--surface));
     color: var(--accent-bronze);
     font-size: 0.58rem;
     font-weight: 800;
