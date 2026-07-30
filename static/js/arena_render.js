@@ -396,11 +396,6 @@
       var entry = table[t];
       var count = entry.segments;
       if (!count) { continue; }
-      // The crown plate is drawn once, below, as the stage polygon with its own
-      // gold rim and bulbs. Drawing a cell for it as well put a second, LIGHT
-      // octagon over the gold — the grey ring the Owner saw — and pushed the moat
-      // out to where it no longer touched the crown.
-      if (entry.kind === 'crown') { continue; }
       var innerR = entry.inner;
       var outerR = entry.outer;
       var sweep = (2 * Math.PI) / count;
@@ -413,14 +408,8 @@
       for (var pos = 0; pos < count; pos++) {
         var startAngle = offset + pos * sweep + gap / outerR;
         var endAngle = offset + (pos + 1) * sweep - gap / outerR;
-        // The moat is drawn a few units wider than its band, and it is drawn
-        // last (inner rings paint over outer ones), so it covers the white cell
-        // dividers exactly where they converge on the gold ring. The dividers
-        // stay white everywhere else — a stroke cannot be dropped on one side of
-        // a shape, so the ring above is what hides those ends.
-        var drawOuter = entry.kind === 'moat' ? outerR + 6 : outerR;
         var d = tpl.ringSegmentPath(
-          cx, cy, innerR + gap, drawOuter - gap / 2, startAngle, endAngle
+          cx, cy, innerR + gap, outerR - gap / 2, startAngle, endAngle
         );
         var centroid = tpl.segmentCentroid(
           cx, cy, innerR + gap, outerR - gap / 2, startAngle, endAngle
