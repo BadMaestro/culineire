@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.751",
+        "date": "2026-07-31",
+        "commit": "46b139ba",
+        "title": "The eight white dividers are gone from the moat",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner circled eight white wedges standing on the octagon's vertices, just outside the crown plate. They were not a stroke and no CSS drew them: the moat's cells took the same angular gap as every other ring - GAP/outerR at each end - so a 3.1 degree wedge, about 5.9 SVG units at r=108.5, was cut clean out of the ring at every corner and the backdrop showed through it. Eight cells, eight vertices, eight holes. The moat is one unbroken band by contract (its own white outline is already drawn as two whole octagons, not per cell), so its wedges now meet exactly; ranks and VIP keep their gap, which is a real seam between real cells. Located by count, not by eye: ranks carry 9, 10, 15, 20, 25, 30, 35 and 40 segments and VIP carries 32, so only the moat's MOAT_SEGMENTS = 8 can put exactly eight dividers on exactly eight corners. One variable in arena_render.js, no CSS and no template touched.",
+    },
+    {
         "version": "2.5.719",
         "date": "2026-07-30",
         "commit": "f5ab6d0e",
