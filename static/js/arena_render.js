@@ -400,13 +400,6 @@
       var outerR = entry.outer;
       var sweep = (2 * Math.PI) / count;
       var offset = -Math.PI / 2 - sweep / 2;
-      // The VIP ring must sit ON the faces. With the rank rings' half-sweep shift
-      // every fourth box is centred on a VERTEX, so that box is folded in half by
-      // the corner — which is why SPONSORS read crooked inside it while V, I and P
-      // sat fine on the flat boxes. Dropping the shift puts every boundary on a
-      // vertex instead (32 boxes at 11.25 degrees, a face is 45), so each face
-      // carries four flat boxes and the word lies straight.
-      if (entry.kind === 'vip') { offset = -Math.PI / 2; }
       // Ranks keep the backend index in data-ring (the seating key). The moat
       // and the VIP ring hold no seats yet (AR3 / AR5), so they carry no
       // seating index at all rather than a made-up one.
@@ -464,25 +457,30 @@
           }));
 
           // Every fourth box is centred exactly on an octagon vertex (32 boxes at
-          // 11.25 degrees, a face is 45), and those corner boxes carry the word;
-          // the three between them carry V, I and P. Each label is rotated by its
-          // own box angle plus a quarter turn, so it sits level inside the box and
-          // reads outward from the centre of the arena rather than sideways.
+          // 11.25 degrees, a face is 45), so that box is folded by the corner.
+          // The word is folded with it: half on each face, each half rotated to
+          // its own side, so SPONSORS turns the corner instead of fighting it.
+          // The three boxes between corners are flat and carry V, I and P.
           var mid = (startAngle + endAngle) / 2;
-          var isCorner = (pos % 4) === 0;
-          var sign = isCorner ? 'SPONSORS' : ['', 'V', 'I', 'P'][pos % 4];
-          var label = el('text', {
-            x: centroid.x.toFixed(2),
-            y: centroid.y.toFixed(2),
-            'text-anchor': 'middle',
-            'dominant-baseline': 'central',
-            'pointer-events': 'none',
-            transform: 'rotate(' + (mid * 180 / Math.PI + 90).toFixed(2) + ' ' +
-              centroid.x.toFixed(2) + ' ' + centroid.y.toFixed(2) + ')',
-            class: isCorner ? 'arena-vip-label arena-vip-label--word' : 'arena-vip-label'
-          });
-          label.textContent = sign;
-          cells.appendChild(label);
+          var addLabel = function (text, a0, a1, cls) {
+            var c = tpl.segmentCentroid(cx, cy, innerR + gap, outerR - gap / 2, a0, a1);
+            var deg = ((a0 + a1) / 2) * 180 / Math.PI + 90;
+            var node = el('text', {
+              x: c.x.toFixed(2), y: c.y.toFixed(2),
+              'text-anchor': 'middle', 'dominant-baseline': 'central',
+              'pointer-events': 'none',
+              transform: 'rotate(' + deg.toFixed(2) + ' ' + c.x.toFixed(2) + ' ' + c.y.toFixed(2) + ')',
+              class: cls
+            });
+            node.textContent = text;
+            cells.appendChild(node);
+          };
+          if ((pos % 4) === 0) {
+            addLabel('SPON', startAngle, mid, 'arena-vip-label arena-vip-label--word');
+            addLabel('SORS', mid, endAngle, 'arena-vip-label arena-vip-label--word');
+          } else {
+            addLabel(['', 'V', 'I', 'P'][pos % 4], startAngle, endAngle, 'arena-vip-label');
+          }
         }
 
         // Portrait clips are keyed by the seating index, so only real seat
