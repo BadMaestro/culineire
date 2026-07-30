@@ -820,7 +820,11 @@
           drop-shadow(0 0 9px color-mix(in srgb, var(--arena-vip-gold) 70%, transparent));
 }
 
-/* The glint the lanterns throw onto the Crown plate's rim. */
-.page--arena #arena-render .arena-stage {
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--arena-vip-gold) 45%, transparent));
+/* One glint per lamp, lying on the gold ring where that lamp's light lands.
+   The uniform halo that used to sit on the whole plate is gone: it read as a
+   single light with no source, and pointed nowhere near the lanterns. */
+.page--arena #arena-render .arena-lantern-glint {
+  fill: var(--arena-vip-gold);
+  opacity: 0.38;
+  filter: blur(3px);
 }

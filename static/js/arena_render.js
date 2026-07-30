@@ -445,6 +445,19 @@
         // AR3 — the moat is lit, not decorated. One lantern at each cell centre;
         // the glow is CSS so the light stays a token and never a literal.
         if (entry.kind === 'moat') {
+          // The glint each lamp throws INWARD, onto the gold Crown ring: same
+          // angle as the lamp, placed at the moat's inner edge. Eight lamps make
+          // eight glints — a single halo on the plate would read as one light
+          // coming from nowhere.
+          var midAng = (startAngle + endAngle) / 2;
+          var gp = tpl.octPoint(cx, cy, midAng, innerR + gap);
+          cells.appendChild(el('ellipse', {
+            cx: gp[0].toFixed(2), cy: gp[1].toFixed(2), rx: '11', ry: '5',
+            transform: 'rotate(' + (midAng * 180 / Math.PI + 90).toFixed(2) + ' ' +
+              gp[0].toFixed(2) + ' ' + gp[1].toFixed(2) + ')',
+            'pointer-events': 'none', class: 'arena-lantern-glint'
+          }));
+
           var lamp = el('circle', {
             cx: centroid.x.toFixed(2), cy: centroid.y.toFixed(2), r: '4.2',
             'pointer-events': 'none', class: 'arena-lantern'
