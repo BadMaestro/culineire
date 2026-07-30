@@ -1292,17 +1292,6 @@
   }
 
   /* Side panels: glass over the floor, not opaque admin cards. */
-  .page--arena .arena-command-deck__phase-card,
-  .page--arena .arena-command-deck__metrics,
-  .page--arena .arena-cooking-widget,
-  .page--arena .arena-command-deck__ladder,
-  .page--arena .arena-command-deck__gifts {
-    z-index: 5;
-    background: color-mix(in srgb, var(--surface) 72%, transparent) !important;
-    backdrop-filter: blur(10px) saturate(1.08);
-    -webkit-backdrop-filter: blur(10px) saturate(1.08);
-  }
-
   /* Empty centre must read as the focus, not a bare SVG disc. */
   .arena-confrontation-band[data-centre-key="empty"] .arena-live-centre--quiet,
   .arena-confrontation-band[data-centre-key^="crown-"] .arena-live-centre--crown {
