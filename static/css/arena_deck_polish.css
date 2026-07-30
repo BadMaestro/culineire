@@ -971,7 +971,829 @@
     top: 28%;
     width: min(11.5rem, 20%);
   }
-    .arena-rank-spine__step {
+  .arena-rank-spine::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 2px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--accent-bronze) 55%, transparent),
+      transparent
+    );
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  .arena-rank-spine__list {
+    gap: 0.28rem;
+  }
+  .arena-rank-spine__step {
+    backdrop-filter: blur(6px) saturate(1.05);
+    -webkit-backdrop-filter: blur(6px) saturate(1.05);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+  }
+
+
+
+/* 3G — centre floor caption (prototype arena-core heading). */
+
+  .arena-floor-caption {
+    position: absolute;
+    z-index: 3;
+    top: 8.2%;
+    left: 50%;
+    width: min(28rem, 48%);
+    margin: 0;
+    transform: translateX(-50%);
+    text-align: center;
+    pointer-events: none;
+  }
+  .arena-floor-caption span {
+    display: block;
+    color: var(--accent-bronze-dark);
+    font-size: 0.5rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+  .arena-floor-caption strong {
+    display: block;
+    margin-top: 0.18rem;
+    color: var(--ink);
+    font: 700 clamp(0.95rem, 1.35vw, 1.2rem)/1.05 var(--font-serif, "Playfair Display", serif);
+    letter-spacing: 0.01em;
+    text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent);
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 16.5%;
+  }
+
+
+
+
+
+/* 3G — vertical stack alignment after caption graft. */
+
+  .arena-floor-caption {
+    top: 7.8%;
+    width: min(26rem, 42%);
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 17.5%;
+    width: min(70%, 50rem);
+  }
+  .arena-rank-spine {
+    top: 38%;
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics {
+    top: 16%;
+  }
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    bottom: 10%;
+  }
+
+
+
+/* 3G — mobile-safe panel titles + compact facts. */
+.arena-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.45rem;
+}
+.arena-panel__title > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.arena-panel__title .arena-panel__kicker {
+  margin: 0;
+}
+.arena-panel__heading,
+.arena-panel__title .arena-command-deck__phase-name {
+  margin: 0.1rem 0 0;
+  color: var(--ink);
+  font: 700 1.05rem/1.1 var(--font-serif, "Playfair Display", serif);
+}
+.arena-panel__title > .arena-ico {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  padding: 0.22rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+  border-radius: 50%;
+  color: var(--accent-bronze-dark);
+  background: color-mix(in srgb, var(--accent-bronze) 10%, var(--surface));
+  box-sizing: content-box;
+}
+.arena-compact-facts {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.45rem 0 0;
+  padding: 0;
+}
+.arena-compact-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.45rem;
+  padding-top: 0.28rem;
+  border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+}
+.arena-compact-facts dt {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.arena-compact-facts dd {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.62rem;
+  font-weight: 750;
+  text-align: right;
+}
+
+
+/* 3G — tablet lower bar: keep ticker readable. */
+
+
+
+/* 3G — keyboard focus rings on Arena controls. */
+.arena-rank-spine__step:focus-visible,
+.arena-live-centre:focus-visible,
+.arena-broadcast-ribbon .btn-secondary:focus-visible,
+.arena-command-deck__ladder .btn-secondary:focus-visible,
+.arena-command-deck__gifts .btn-primary:focus-visible,
+.arena-command-deck__gifts .btn-secondary:focus-visible,
+.arena-lower-broadcast .btn-secondary:focus-visible,
+.arena-lower-broadcast .ce-nav__link--battle:focus-visible,
+.arena-phase-step:focus-visible {
+  outline: 2px solid var(--accent-bronze-dark);
+  outline-offset: 2px;
+}
+.arena-ladder-list a:focus-visible,
+.arena-gift-list a:focus-visible {
+  outline: 2px solid var(--accent-bronze-dark);
+  outline-offset: 2px;
+  border-radius: 0.2rem;
+}
+
+
+/* 3G — stage frame around the desktop Arena viewport. */
+
+  .arena-command-deck {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+    border-radius: 0.85rem;
+    box-shadow:
+      0 1.2rem 2.8rem color-mix(in srgb, var(--ink) 22%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+  .arena-broadcast-ribbon {
+    border-top-left-radius: 0.85rem;
+    border-top-right-radius: 0.85rem;
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    border-bottom-left-radius: 0.85rem;
+    border-bottom-right-radius: 0.85rem;
+  }
+
+
+
+/* 3G — outer show glow on the framed Arena. */
+
+  .page--arena .arena-command-deck {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent-bronze) 28%, transparent),
+      0 1.4rem 3.2rem color-mix(in srgb, var(--ink) 26%, transparent),
+      0 0 2.4rem color-mix(in srgb, var(--accent-bronze) 16%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+
+
+
+/* 3G — framed Arena breathing room on desktop. */
+
+  .page--arena .arena-command-deck {
+    width: min(100% - 1.5rem, 1720px);
+    margin-top: 0.85rem;
+    margin-bottom: 2.25rem;
+    margin-inline: auto;
+  }
+
+
+/* Owner 2026-07-24: taller stage for oval — allow the page to scroll. */
+
+  .page--arena {
+    overflow-x: clip;
+    overflow-y: auto;
+  }
+  .page--arena #main-content {
+    overflow: visible;
+  }
+
+
+
+/* 3G — CENTER the stage: Stage-1 set margin:0; constrained width must auto-center. */
+
+  .arena-command-deck {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .page--arena #main-content {
+    display: block;
+    width: 100%;
+  }
+  /* Fixed battle widget stays overlay; do not leave a dead cream column. */
+  .page--arena .site-battle-widget {
+    z-index: 130;
+  }
+
+
+
+/* 3G — floor caption supporting line (prototype arena-core). */
+
+  .arena-floor-caption em {
+    display: block;
+    margin-top: 0.22rem;
+    color: var(--muted);
+    font-size: 0.5rem;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+
+
+/* 3G — COMPOSITION RESET: hall stage, not parchment dashboard. */
+
+  /* Floor is the stage plane — kill the cream card chrome. */
+  .page--arena .arena-command-deck__floor,
+  .arena-command-deck__floor {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .page--arena .arena-floor-stage,
+  .page--arena .arena-render-container {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Ribbon must be the first readable show strip. */
+  .arena-broadcast-ribbon {
+    z-index: 8;
+    min-height: 4.4rem;
+    padding: 0.55rem 1.15rem 0.65rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 96%, transparent),
+        color-mix(in srgb, var(--surface-soft) 92%, transparent)
+      ) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 65%, transparent);
+    box-shadow: 0 0.75rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header h1 {
+    font-size: clamp(1.25rem, 1.9vw, 1.65rem);
+    color: var(--ink);
+  }
+
+  /* Confrontation sits under ribbon, above the rings. */
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    z-index: 6;
+    top: 15.5%;
+    width: min(68%, 48rem);
+  }
+  .arena-floor-caption {
+    z-index: 7;
+    top: 9.2%;
+  }
+
+  /* Spine is a side legend, not a sticker on the crown. */
+  .arena-rank-spine {
+    top: auto;
+    bottom: 14%;
+    left: 50%;
+    width: min(11rem, 18%);
+    transform: translateX(-50%);
+    z-index: 4;
+  }
+
+  /* Side panels: glass over the floor, not opaque admin cards. */
+  /* Empty centre must read as the focus, not a bare SVG disc. */
+  .arena-confrontation-band[data-centre-key="empty"] .arena-live-centre--quiet,
+  .arena-confrontation-band[data-centre-key^="crown-"] .arena-live-centre--crown {
+    width: 7.8rem;
+    height: 7.8rem;
+  }
+
+
+
+/* 3G — prototype hall depth + rank strip (site tokens). */
+
+  /* Hall fill is owned by arena_atmosphere.css (loads after polish).
+     Do NOT paint a light page background here — it washes the dark bowl. */
+  .page--arena .arena-command-deck {
+    background:
+      radial-gradient(70% 50% at 50% 42%, color-mix(in srgb, var(--accent-bronze) 10%, transparent), transparent 58%),
+      color-mix(in srgb, var(--ink) 8%, var(--surface-soft));
+    overflow: hidden;
+  }
+
+  /* Rank ladder as a bottom strip (prototype rank-progression), not a sticker on the crown. */
+  .arena-rank-spine {
+    top: auto;
+    bottom: 11%;
+    left: 50%;
+    width: min(46rem, 72%);
+    transform: translateX(-50%);
+  }
+  .arena-rank-spine__list {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0.28rem;
+  }
+  .arena-rank-spine__item {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .arena-rank-spine__step {
+    width: 100%;
+    min-height: 1.55rem;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.2rem 0.28rem;
+    font-size: clamp(0.42rem, 0.55vw, 0.58rem);
+  }
+  .arena-rank-spine__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arena-rank-spine::before {
+    display: none;
+  }
+
+  /* Keep confrontation above the strip, clearer empty/crown focus. */
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 18%;
+  }
+  .arena-floor-caption {
+    top: 10.5%;
+  }
+
+
+
+/* 3G — confrontation at floor centre (prototype confrontation-zone). */
+
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 46%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(52rem, 78%);
+    z-index: 6;
+  }
+  .arena-floor-caption {
+    top: 11%;
+    z-index: 7;
+  }
+  /* Crown / empty: one focal medallion in the middle column. */
+  .arena-confrontation-band[data-centre-key="empty"],
+  .arena-confrontation-band[data-centre-key^="crown-"] {
+    grid-template-columns: minmax(0, 1.1fr) minmax(8rem, 0.9fr) minmax(0, 1.1fr);
+  }
+  .arena-confrontation-band[data-centre-key="empty"] .arena-live-awaiting,
+  .arena-confrontation-band[data-centre-key^="crown-"] .arena-live-awaiting {
+    align-self: center;
+    font-size: 0.62rem;
+    opacity: 0.85;
+  }
+  .arena-confrontation-band .arena-live-chef--crown {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--accent-bronze) 18%, var(--surface)),
+        color-mix(in srgb, var(--surface) 88%, transparent)
+      );
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 50%, transparent);
+    box-shadow: 0 0 1.4rem color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  }
+  .arena-rank-spine {
+    bottom: 10%;
+    z-index: 5;
+  }
+
+
+
+/* 3G — rank spine as prototype vertical progression above crown. */
+
+  .arena-rank-spine {
+    top: 22%;
+    bottom: auto;
+    left: 50%;
+    width: min(11.5rem, 20%);
+    transform: translateX(-50%);
+    z-index: 5;
+  }
+  .arena-rank-spine__list {
+    display: grid;
+    gap: 0.18rem;
+  }
+  .arena-rank-spine__item {
+    flex: none;
+    min-width: 0;
+  }
+  .arena-rank-spine__step {
+    width: 100%;
+    min-height: 1.15rem;
+    justify-content: space-between;
+    padding: 0.14rem 0.4rem;
+    font-size: clamp(0.45rem, 0.62vw, 0.62rem);
+    clip-path: polygon(0.55rem 0, calc(100% - 0.55rem) 0, 100% 50%, calc(100% - 0.55rem) 100%, 0.55rem 100%, 0 50%);
+    border-radius: 0;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)),
+        color-mix(in srgb, var(--surface-soft) 88%, var(--ink))
+      );
+  }
+  .arena-rank-spine::before {
+    display: none;
+  }
+  /* Caption sits above the progression; confrontation stays at floor centre. */
+  .arena-floor-caption {
+    top: 9.5%;
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 52%;
+  }
+
+
+
+/* 3G — hex chef rails (prototype chef-position, no layout break). */
+
+  .arena-confrontation-band .arena-live-chef--challenger,
+  .arena-confrontation-band .arena-live-chef--opponent {
+    clip-path: polygon(0.75rem 0, calc(100% - 0.75rem) 0, 100% 50%, calc(100% - 0.75rem) 100%, 0.75rem 100%, 0 50%);
+    border-radius: 0;
+    min-height: 5.1rem;
+    backdrop-filter: blur(8px) saturate(1.05);
+    -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  }
+  .arena-confrontation-band .arena-live-chef--challenger {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hall-green) 28%, var(--surface)),
+        color-mix(in srgb, var(--surface) 82%, transparent)
+      );
+  }
+  .arena-confrontation-band .arena-live-chef--opponent {
+    background:
+      linear-gradient(
+        -90deg,
+        color-mix(in srgb, var(--hall-red) 28%, var(--surface)),
+        color-mix(in srgb, var(--surface) 82%, transparent)
+      );
+  }
+  .arena-confrontation-band .arena-live-centre {
+    min-height: 6.2rem;
+  }
+  .arena-confrontation-band .arena-live-centre--crown,
+  .arena-confrontation-band .arena-live-centre--quiet {
+    width: 8.2rem;
+    height: 8.2rem;
+    border-width: 2px;
+  }
+
+
+
+/* 3G — isometric floor presence (prototype floor-glow, site tokens).
+   G4: no perspective here — camera is rotateX-only on #arena-render. */
+
+  .arena-floor-stage {
+    transform-style: preserve-3d;
+  }
+  .arena-floor-stage .arena-render-container {
+    /* Container stays flat; #arena-render carries the G2 camera transform.
+       No filter here — softens the tilted SVG. */
+    transform: none;
+    filter: none;
+  }
+  .arena-floor-stage::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    top: 58%;
+    width: min(72%, 40rem);
+    aspect-ratio: 1.75;
+    border-radius: 50%;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+    filter: blur(2.4rem);
+    transform: translate(-50%, -50%);
+    opacity: 0.75;
+  }
+  .arena-floor-stage .arena-rank-spine {
+    transform: translateX(-50%);
+    /* keep spine upright above the tilted floor */
+  }
+  .arena-puzzle-label {
+    display: none;
+  }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-floor-stage .arena-render-container {
+    transform: none;
+    filter: none;
+  }
+  /* Keep G2 camera — mockup tilt is composition, not decorative motion. */
+  .arena-floor-stage #arena-render {
+    filter: none;
+    transform-origin: 50% 50%;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+      scale(var(--arena-fit, 1));
+  }
+}
+
+
+/* 3G — denser broadcast ribbon phase track (prototype masthead). */
+
+  .arena-broadcast-ribbon {
+    grid-template-columns: minmax(14rem, 1fr) minmax(0, 2.6fr) auto;
+    align-items: center;
+    gap: 0.7rem 1rem;
+    min-height: 3.55rem;
+    padding: 0.38rem 1.2rem 0.45rem;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.1rem 0;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header > div {
+    min-width: 0;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    gap: 0.26rem;
+    padding: 0.16rem;
+  }
+  .arena-broadcast-ribbon .arena-phase-step {
+    min-height: 1.8rem;
+    font-size: 0.56rem;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__live-note {
+    font-size: 0.52rem;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__header h1 {
+    font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+  }
+
+
+
+/* 3G — prototype rail widths (narrower show panels). */
+
+  .arena-command-deck__phase-card,
+  .arena-command-deck__ladder,
+  .arena-cooking-widget {
+    left: 1.2%;
+    width: min(15.5rem, 17.5%);
+  }
+  .arena-command-deck__metrics,
+  .arena-command-deck__gifts {
+    right: 1.2%;
+    width: min(15.5rem, 17.5%);
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics {
+    top: 14%;
+  }
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    bottom: 9%;
+  }
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    width: min(48rem, 70%);
+  }
+
+
+
+/* 3G — hall side walls + lower dock frame (prototype stage edges). */
+
+  .arena-command-deck__floor::before {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--ink) 38%, transparent),
+        transparent 18% 82%,
+        color-mix(in srgb, var(--ink) 38%, transparent)
+      ),
+      radial-gradient(circle at 10% 28%, color-mix(in srgb, var(--accent-bronze) 40%, transparent) 0 0.08rem, transparent 0.16rem),
+      radial-gradient(circle at 90% 28%, color-mix(in srgb, var(--accent-bronze) 40%, transparent) 0 0.08rem, transparent 0.16rem),
+      radial-gradient(90% 55% at 50% 0%, color-mix(in srgb, var(--accent-bronze) 14%, transparent), transparent 58%),
+      radial-gradient(70% 50% at 50% 100%, color-mix(in srgb, var(--ink) 26%, transparent), transparent 65%);
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    min-height: 3.35rem;
+    z-index: 9;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 62%, transparent);
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hall-green) 10%, var(--surface)),
+        color-mix(in srgb, var(--surface) 90%, transparent) 42%,
+        color-mix(in srgb, var(--hall-red) 10%, var(--surface))
+      );
+  }
+
+
+
+/* 3G — parchment floor plate under live SVG (prototype floor, official tokens).
+   G4: no perspective on the stage — scene camera is rotateX-only. */
+
+  .arena-floor-stage {
+    transform-style: preserve-3d;
+  }
+  .arena-floor-stage::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    top: 52%;
+    width: min(72%, 46rem);
+    aspect-ratio: 1;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(1.05);
+    transform-origin: 50% 58%;
+    clip-path: polygon(29.3% 0, 70.7% 0, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0 70.7%, 0 29.3%);
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    background:
+      radial-gradient(
+        circle at 50% 50%,
+        color-mix(in srgb, var(--surface) 96%, var(--accent-bronze)) 0 16%,
+        transparent 16.4%
+      ),
+      repeating-radial-gradient(
+        circle at 50% 50%,
+        transparent 0 7.5%,
+        color-mix(in srgb, var(--accent-bronze) 42%, transparent) 7.6% 7.9%,
+        transparent 8.1% 12.5%
+      ),
+      conic-gradient(
+        from 22.5deg at 50% 50%,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 0 12.4%,
+        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 12.5% 24.9%,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 25% 37.4%,
+        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 37.5% 49.9%,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 50% 62.4%,
+        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 62.5% 74.9%,
+        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 75% 87.4%,
+        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 87.5% 100%
+      );
+    box-shadow:
+      inset 0 0 0 0.35rem color-mix(in srgb, var(--accent-bronze) 48%, transparent),
+      inset 0 0 2.4rem color-mix(in srgb, var(--surface) 70%, transparent),
+      0 1.6rem 2.8rem color-mix(in srgb, var(--ink) 28%, transparent);
+    opacity: 0.92;
+  }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-floor-stage::before {
+    transform: translate(-50%, -50%);
+  }
+}
+
+
+/* 3G — rail wing brackets + stage arch (prototype interface-rail). */
+
+  .arena-command-deck__phase-card::after,
+  .arena-command-deck__ladder::after,
+  .arena-command-deck__metrics::after,
+  .arena-command-deck__gifts::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 18%;
+    bottom: 18%;
+    width: 2.35rem;
+    pointer-events: none;
+    opacity: 0.72;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  }
+  .arena-command-deck__phase-card::after,
+  .arena-command-deck__ladder::after {
+    right: -2.2rem;
+    border-right: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-radius: 0 0.85rem 0.85rem 0;
+  }
+  .arena-command-deck__metrics::after,
+  .arena-command-deck__gifts::after {
+    left: -2.2rem;
+    border-left: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-radius: 0.85rem 0 0 0.85rem;
+  }
+  .arena-command-deck__floor::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: 12%;
+    right: 12%;
+    top: 3.5%;
+    height: 42%;
+    pointer-events: none;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+    border-bottom: 0;
+    border-radius: 50% 50% 0 0;
+    opacity: 0.55;
+    box-shadow:
+      inset 0 0 3.2rem color-mix(in srgb, var(--ink) 18%, transparent),
+      0 0 1.6rem color-mix(in srgb, var(--accent-bronze) 16%, transparent);
+  }
+
+
+
+/* 3G — confrontation inner glow + crown halo + denser spine (prototype). */
+
+  .arena-confrontation-band .arena-live-chef--challenger,
+  .arena-confrontation-band .arena-live-chef--opponent {
+    position: relative;
+    box-shadow: 0 0 1.6rem color-mix(in srgb, var(--ink) 18%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--challenger::after,
+  .arena-confrontation-band .arena-live-chef--opponent::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0.22rem;
+    clip-path: inherit;
+    pointer-events: none;
+    opacity: 0.55;
+  }
+  .arena-confrontation-band .arena-live-chef--challenger::after {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--hall-green) 55%, transparent), transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--opponent::after {
+    background: linear-gradient(-90deg, color-mix(in srgb, var(--hall-red) 55%, transparent), transparent);
+  }
+  .arena-confrontation-band .arena-live-centre {
+    position: relative;
+  }
+  .arena-confrontation-band .arena-live-centre::after {
+    content: "";
+    position: absolute;
+    inset: -0.4rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 1.4rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+  .arena-confrontation-band .arena-live-centre--crown,
+  .arena-confrontation-band .arena-live-centre--quiet {
+    background:
+      radial-gradient(
+        circle,
+        color-mix(in srgb, var(--surface) 70%, var(--ink)),
+        color-mix(in srgb, var(--ink) 35%, var(--surface)) 72%
+      );
+  }
+  .arena-rank-spine {
+    top: 14%;
+    width: min(11rem, 18%);
+  }
+  .arena-rank-spine::before {
+    content: "Rank ladder";
+    display: block;
+    margin: 0 0 0.28rem;
+    color: var(--accent-bronze-dark);
+    font-size: 0.43rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .arena-rank-spine__step {
     min-height: 1.05rem;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
     color: color-mix(in srgb, var(--ink) 88%, var(--surface));
