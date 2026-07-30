@@ -455,6 +455,21 @@
             class: 'arena-cell--vip-liner',
             'pointer-events': 'none'
           }));
+
+          // One label per octagon face, not per box: 32 would be unreadable, and
+          // the ring should read the way a stand is signed — once along each side.
+          if (pos % 4 === 1) {
+            var label = el('text', {
+              x: centroid.x.toFixed(2),
+              y: centroid.y.toFixed(2),
+              'text-anchor': 'middle',
+              'dominant-baseline': 'central',
+              'pointer-events': 'none',
+              class: 'arena-vip-label'
+            });
+            label.textContent = 'SPONSORS VIP';
+            cells.appendChild(label);
+          }
         }
 
         // Portrait clips are keyed by the seating index, so only real seat
