@@ -938,3 +938,9 @@
 .page--arena .arena-command-deck__phase-rail .arena-phase-step__index {
   flex: 0 0 auto;
 }
+
+/* The "Kitchen rank progression" caption sat over the floor as a column of
+   single letters. The rank pills name themselves; the caption goes. */
+.page--arena .arena-rank-spine__label {
+  display: none;
+}
