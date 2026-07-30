@@ -886,23 +886,38 @@
 }
 
 /* =============================================================================
-   PANEL SKIN — taken from the Chef Battles Arena widget (Owner, 2026-07-30).
-   The floating battle widget is the look the Owner approved, so it becomes the
-   one skin every panel on the arena wears: warm parchment gradient, a single
-   soft border, 16px corners, one deep diffuse shadow and the same blur behind
-   the glass. Written here because this file loads last in the head, so it wins
-   ties against arena_deck_polish.css without a specificity war or !important.
-   Values are tokens, not the widget's literals, so the palette still drives it.
+   THE ARENA WIDGET SYSTEM — one place, every widget (Owner, 2026-07-30).
+
+   Every panel on the arena is a widget and they all wear one skin, taken from
+   the Chef Battles Arena widget the Owner approved. The phase rail had been left
+   out of that family, which is exactly the problem this block exists to end:
+   there is now ONE list and ONE set of values, so a change here reaches every
+   widget at once instead of being chased through six stylesheets.
+
+   To restyle every arena widget, edit the four variables below. To bring a new
+   widget into the system, add its selector to the list — nothing else.
+
+   Lives in this file because it loads last in the head, so it wins ties without a
+   specificity war or !important.
    ========================================================================== */
+.page--arena {
+  --arena-widget-bg: linear-gradient(160deg, var(--surface), var(--surface-soft));
+  --arena-widget-border: 1px solid var(--border);
+  --arena-widget-radius: 16px;
+  --arena-widget-shadow: 0 16px 36px color-mix(in srgb, var(--ink) 16%, transparent);
+}
+
 .page--arena .arena-cooking-widget,
 .page--arena .arena-command-deck__phase-card,
 .page--arena .arena-command-deck__ladder,
 .page--arena .arena-command-deck__metrics,
-.page--arena .arena-command-deck__gifts {
-  background: linear-gradient(160deg, var(--surface), var(--surface-soft));
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 16px 36px color-mix(in srgb, var(--ink) 16%, transparent);
+.page--arena .arena-command-deck__gifts,
+.page--arena .arena-broadcast-ribbon,
+.page--arena .arena-command-deck__phase-rail {
+  background: var(--arena-widget-bg);
+  border: var(--arena-widget-border);
+  border-radius: var(--arena-widget-radius);
+  box-shadow: var(--arena-widget-shadow);
   backdrop-filter: blur(16px);
   color: var(--ink);
 }
