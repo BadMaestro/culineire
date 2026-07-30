@@ -406,8 +406,12 @@
       var ringAttr = entry.ring === null ? '' : String(entry.ring);
 
       for (var pos = 0; pos < count; pos++) {
-        var startAngle = offset + pos * sweep + gap / outerR;
-        var endAngle = offset + (pos + 1) * sweep - gap / outerR;
+        // The moat has no dividers: its eight cells meet at the octagon's
+        // vertices, so an angular gap there is not a seam between cells but a
+        // white notch cut into the ring at every corner. Ranks and VIP keep it.
+        var angGap = entry.kind === 'moat' ? 0 : gap / outerR;
+        var startAngle = offset + pos * sweep + angGap;
+        var endAngle = offset + (pos + 1) * sweep - angGap;
         var d = tpl.ringSegmentPath(
           cx, cy, innerR + gap, outerR - gap / 2, startAngle, endAngle
         );
