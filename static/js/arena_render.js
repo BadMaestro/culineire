@@ -456,23 +456,26 @@
             'pointer-events': 'none'
           }));
 
-          // One letter per box, so the ring signs itself the way a stand does.
-          // The cycle is padded to 16 characters, which divides the 32 boxes
-          // exactly twice — an uneven cycle would break the word at a corner.
-          var VIP_SIGN = 'SPONSORS VIP    ';
-          var ch = VIP_SIGN.charAt(pos % VIP_SIGN.length);
-          if (ch !== ' ') {
-            var label = el('text', {
-              x: centroid.x.toFixed(2),
-              y: centroid.y.toFixed(2),
-              'text-anchor': 'middle',
-              'dominant-baseline': 'central',
-              'pointer-events': 'none',
-              class: 'arena-vip-label'
-            });
-            label.textContent = ch;
-            cells.appendChild(label);
-          }
+          // Every fourth box is centred exactly on an octagon vertex (32 boxes at
+          // 11.25 degrees, a face is 45), and those corner boxes carry the word;
+          // the three between them carry V, I and P. Each label is rotated by its
+          // own box angle plus a quarter turn, so it sits level inside the box and
+          // reads outward from the centre of the arena rather than sideways.
+          var mid = (startAngle + endAngle) / 2;
+          var isCorner = (pos % 4) === 0;
+          var sign = isCorner ? 'SPONSORS' : ['', 'V', 'I', 'P'][pos % 4];
+          var label = el('text', {
+            x: centroid.x.toFixed(2),
+            y: centroid.y.toFixed(2),
+            'text-anchor': 'middle',
+            'dominant-baseline': 'central',
+            'pointer-events': 'none',
+            transform: 'rotate(' + (mid * 180 / Math.PI + 90).toFixed(2) + ' ' +
+              centroid.x.toFixed(2) + ' ' + centroid.y.toFixed(2) + ')',
+            class: isCorner ? 'arena-vip-label arena-vip-label--word' : 'arena-vip-label'
+          });
+          label.textContent = sign;
+          cells.appendChild(label);
         }
 
         // Portrait clips are keyed by the seating index, so only real seat
