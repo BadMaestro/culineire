@@ -413,8 +413,14 @@
       for (var pos = 0; pos < count; pos++) {
         var startAngle = offset + pos * sweep + gap / outerR;
         var endAngle = offset + (pos + 1) * sweep - gap / outerR;
+        // The moat is drawn a few units wider than its band, and it is drawn
+        // last (inner rings paint over outer ones), so it covers the white cell
+        // dividers exactly where they converge on the gold ring. The dividers
+        // stay white everywhere else — a stroke cannot be dropped on one side of
+        // a shape, so the ring above is what hides those ends.
+        var drawOuter = entry.kind === 'moat' ? outerR + 6 : outerR;
         var d = tpl.ringSegmentPath(
-          cx, cy, innerR + gap, outerR - gap / 2, startAngle, endAngle
+          cx, cy, innerR + gap, drawOuter - gap / 2, startAngle, endAngle
         );
         var centroid = tpl.segmentCentroid(
           cx, cy, innerR + gap, outerR - gap / 2, startAngle, endAngle
