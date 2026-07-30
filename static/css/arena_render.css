@@ -43,6 +43,8 @@
      innermost floor tone so the Crown sits in one continuous dark centre. */
   --arena-moat: var(--arena-floor-1);
   --arena-vip: #535252;
+  /* Brass trim for the VIP boxes, mixed from the site accent, not restated. */
+  --arena-vip-edge: color-mix(in srgb, var(--accent-bronze) 62%, var(--arena-vip));
   --arena-seat: var(--surface-soft);
   --arena-seam: var(--surface);
   --arena-stage-ink: var(--brand-dark);
@@ -127,10 +129,31 @@
   stroke: none;
 }
 
-/* Ring 11 — VIP Guests (sponsors): the steel band at the floor's outer edge. */
+/* Ring 11 — VIP Guests (sponsors): the steel band at the floor's outer edge.
+   Four boxes per octagon face. These are the only seats on the floor that are
+   BOUGHT, so they must not read as another rank tile: steel plate, brass edge,
+   and a brass lift on hover. The brass is mixed from the site's own accent token
+   rather than restated as a colour, so a palette change carries through. */
 .page--arena #arena-render .arena-cell--vip {
   fill: var(--arena-vip);
-  stroke: none;
+  stroke: var(--arena-vip-edge);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+/* A VIP box lifts toward brass when pointed at — the seat is for sale. */
+.page--arena #arena-render .arena-cell--vip:hover {
+  fill: color-mix(in srgb, var(--arena-vip) 82%, var(--accent-bronze));
+  stroke: var(--accent-bronze);
+  stroke-width: 1.8;
+}
+
+/* An occupied VIP box carries its sponsor: brass edge at full strength. */
+.page--arena #arena-render .arena-cell--vip[data-occupancy="sponsor"],
+.page--arena #arena-render .arena-cell--vip[data-occupancy="chef"] {
+  fill: color-mix(in srgb, var(--arena-vip) 70%, var(--accent-bronze));
+  stroke: var(--accent-bronze);
+  stroke-width: 2;
 }
 
 /* Spectator galleries read cooler than the floor, mixed off --ink so they stay

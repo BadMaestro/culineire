@@ -36,13 +36,14 @@
   var CROWN_OUTER = 85;
   var GAP = 3;
 
-  // Bands for the two rings that are not ranks, and their cell counts. One cell
-  // per octagon face is the geometry-implied default; both counts are Owner-
-  // facing numbers, so they are named here rather than buried in a loop.
+  // Bands for the two rings that are not ranks, and their cell counts. Both are
+  // Owner-facing numbers, so they are named here rather than buried in a loop.
   var MOAT_BAND = 25;
   var VIP_BAND = 45;
   var MOAT_SEGMENTS = 8;
-  var VIP_SEGMENTS = 8;
+  // Four VIP boxes per octagon face (Owner, 2026-07-30): one box per face read as
+  // a slab of floor, not as seating. 32 keeps them square-ish on a 45-unit band.
+  var VIP_SEGMENTS = 32;
 
   var VISUAL_CROWN = 1;
   var VISUAL_MOAT = 2;
