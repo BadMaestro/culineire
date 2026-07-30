@@ -442,6 +442,21 @@
         if (ringAttr !== '') { attrs['data-ring'] = ringAttr; }
         cells.appendChild(el('path', attrs));
 
+        // A VIP box gets a gold liner set inside its own edge. A stroke sits
+        // centred on a path, so an inner rim cannot be done with one shape —
+        // this is a second, inset wedge that carries the gold and takes no
+        // pointer events, so hover and clicks still belong to the box itself.
+        if (entry.kind === 'vip') {
+          cells.appendChild(el('path', {
+            d: tpl.ringSegmentPath(
+              cx, cy, innerR + gap + 5, outerR - gap / 2 - 5,
+              startAngle + 0.008, endAngle - 0.008
+            ),
+            class: 'arena-cell--vip-liner',
+            'pointer-events': 'none'
+          }));
+        }
+
         // Portrait clips are keyed by the seating index, so only real seat
         // rings build them — and the ids stay byte-identical to before.
         if (ringAttr !== '') {

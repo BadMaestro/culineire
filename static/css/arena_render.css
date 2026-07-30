@@ -45,6 +45,9 @@
   --arena-vip: #535252;
   /* Brass trim for the VIP boxes, mixed from the site accent, not restated. */
   --arena-vip-edge: color-mix(in srgb, var(--accent-bronze) 62%, var(--arena-vip));
+  /* The liner reads as gold rather than bronze: the accent lifted toward the
+     page's light surface, so it stays inside the palette. */
+  --arena-vip-gold: color-mix(in srgb, var(--accent-bronze) 72%, var(--surface-soft));
   --arena-seat: var(--surface-soft);
   --arena-seam: var(--surface);
   --arena-stage-ink: var(--brand-dark);
@@ -135,7 +138,9 @@
    and a brass lift on hover. The brass is mixed from the site's own accent token
    rather than restated as a colour, so a palette change carries through. */
 .page--arena #arena-render .arena-cell--vip {
-  fill: var(--arena-vip);
+  /* Velvet: deeper and warmer than the steel rim it sits in, so the box reads as
+     upholstered rather than as another plate of floor. */
+  fill: color-mix(in srgb, var(--arena-vip) 58%, var(--ink));
   stroke: var(--arena-vip-edge);
   stroke-width: 1.4;
   stroke-linejoin: round;
@@ -146,6 +151,21 @@
   fill: color-mix(in srgb, var(--arena-vip) 82%, var(--accent-bronze));
   stroke: var(--accent-bronze);
   stroke-width: 1.8;
+}
+
+/* The gold liner inside each box — drawn as its own inset wedge, because a
+   stroke is centred on its path and cannot be an inner rim on its own. */
+.page--arena #arena-render .arena-cell--vip-liner {
+  fill: none;
+  stroke: var(--arena-vip-gold);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+.page--arena #arena-render .arena-cell--vip:hover + .arena-cell--vip-liner {
+  opacity: 1;
+  stroke-width: 1.4;
 }
 
 /* An occupied VIP box carries its sponsor: brass edge at full strength. */
