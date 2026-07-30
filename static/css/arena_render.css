@@ -132,6 +132,13 @@
   stroke: none;
 }
 
+/* The ring's own white outline — one line per edge, no dividers inside. */
+.page--arena #arena-render .arena-moat-edge {
+  fill: none;
+  stroke: var(--arena-seam);
+  stroke-width: 1.5;
+}
+
 /* Ring 11 — VIP Guests (sponsors): the steel band at the floor's outer edge.
    Four boxes per octagon face. These are the only seats on the floor that are
    BOUGHT, so they must not read as another rank tile: steel plate, brass edge,

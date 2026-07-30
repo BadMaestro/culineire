@@ -524,6 +524,23 @@
       }
     }
 
+    // The moat keeps NO dividers between its eight cells, but the ring itself is
+    // still outlined in white, inner edge and outer edge. Cells are strokeless
+    // and the outline is drawn once, as a ring, so nothing cuts across it.
+    (function () {
+      var moat = null;
+      for (var mi = 0; mi < table.length; mi++) {
+        if (table[mi].kind === 'moat') { moat = table[mi]; break; }
+      }
+      if (!moat) { return; }
+      [moat.inner + gap, moat.outer - gap / 2].forEach(function (r) {
+        cells.appendChild(el('polygon', {
+          points: tpl.octagonPoints(cx, cy, r),
+          'pointer-events': 'none', class: 'arena-moat-edge'
+        }));
+      });
+    })();
+
     var faceClip = el('clipPath', { id: 'arena-face-clip', clipPathUnits: 'objectBoundingBox' });
     faceClip.appendChild(el('circle', { cx: '0.5', cy: '0.5', r: '0.5' }));
     defs.appendChild(faceClip);
