@@ -456,9 +456,12 @@
             'pointer-events': 'none'
           }));
 
-          // One label per octagon face, not per box: 32 would be unreadable, and
-          // the ring should read the way a stand is signed — once along each side.
-          if (pos % 4 === 1) {
+          // One letter per box, so the ring signs itself the way a stand does.
+          // The cycle is padded to 16 characters, which divides the 32 boxes
+          // exactly twice — an uneven cycle would break the word at a corner.
+          var VIP_SIGN = 'SPONSORS VIP    ';
+          var ch = VIP_SIGN.charAt(pos % VIP_SIGN.length);
+          if (ch !== ' ') {
             var label = el('text', {
               x: centroid.x.toFixed(2),
               y: centroid.y.toFixed(2),
@@ -467,7 +470,7 @@
               'pointer-events': 'none',
               class: 'arena-vip-label'
             });
-            label.textContent = 'SPONSORS VIP';
+            label.textContent = ch;
             cells.appendChild(label);
           }
         }
