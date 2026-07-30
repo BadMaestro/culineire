@@ -400,6 +400,13 @@
       var outerR = entry.outer;
       var sweep = (2 * Math.PI) / count;
       var offset = -Math.PI / 2 - sweep / 2;
+      // The VIP ring must sit ON the faces. With the rank rings' half-sweep shift
+      // every fourth box is centred on a VERTEX, so that box is folded in half by
+      // the corner — which is why SPONSORS read crooked inside it while V, I and P
+      // sat fine on the flat boxes. Dropping the shift puts every boundary on a
+      // vertex instead (32 boxes at 11.25 degrees, a face is 45), so each face
+      // carries four flat boxes and the word lies straight.
+      if (entry.kind === 'vip') { offset = -Math.PI / 2; }
       // Ranks keep the backend index in data-ring (the seating key). The moat
       // and the VIP ring hold no seats yet (AR3 / AR5), so they carry no
       // seating index at all rather than a made-up one.
