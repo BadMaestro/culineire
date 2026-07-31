@@ -1237,6 +1237,70 @@
   }
 
   /**
+   * Two beams for one lamp: one inward over the marble, one outward across the
+   * moat into the ranks. Each is an isoceles triangle with its apex ON the lamp,
+   * so the light reads as coming out of it rather than lying beside it.
+   *
+   * The fade needs a gradient that runs apex → far end, and that axis is
+   * different for every lamp, so the gradient cannot be shared: each beam gets
+   * its own, in user space, rebuilt on every draw because a stage resize moves
+   * the lamps and a stale axis would leave the light pointing the wrong way.
+   */
+  function addLampCones(defs, group, bx, by, angle, radius, index, far) {
+    var ux = Math.cos(angle);
+    var uy = Math.sin(angle);
+    // Perpendicular to the beam: the base of the triangle is measured on it.
+    var px = -uy;
+    var py = ux;
+    // Reach and spread are fractions of the stage radius, never fixed numbers,
+    // so both survive a resize the same way the bulbs do. The outward beam is
+    // longer and wider because it has the whole moat to cross before it lands.
+    var beams = [
+      { key: 'in', reach: -radius * 0.58, half: radius * 0.115 },
+      { key: 'out', reach: radius * 0.78, half: radius * 0.230 }
+    ];
+
+    for (var b = 0; b < beams.length; b++) {
+      var beam = beams[b];
+      var tipX = bx + ux * beam.reach;
+      var tipY = by + uy * beam.reach;
+      var gradId = 'arena-crown-cone-' + beam.key + '-' + index;
+      var stale = defs.querySelector('#' + gradId);
+      if (stale) { stale.remove(); }
+
+      var grad = el('linearGradient', {
+        id: gradId,
+        gradientUnits: 'userSpaceOnUse',
+        x1: bx.toFixed(2), y1: by.toFixed(2),
+        x2: tipX.toFixed(2), y2: tipY.toFixed(2)
+      });
+      // Same warm bulb palette as the lamp itself, faded to nothing at the far
+      // end — a beam with a hard edge reads as a painted shape, not as light.
+      grad.appendChild(el('stop', {
+        offset: '0%', 'stop-color': '#ffd489', 'stop-opacity': far ? '0.5' : '0.62'
+      }));
+      grad.appendChild(el('stop', {
+        offset: '45%', 'stop-color': '#ffb347', 'stop-opacity': far ? '0.16' : '0.22'
+      }));
+      grad.appendChild(el('stop', {
+        offset: '100%', 'stop-color': '#ff8c1a', 'stop-opacity': '0'
+      }));
+      defs.appendChild(grad);
+
+      group.appendChild(el('polygon', {
+        points: [
+          bx.toFixed(2) + ',' + by.toFixed(2),
+          (tipX + px * beam.half).toFixed(2) + ',' + (tipY + py * beam.half).toFixed(2),
+          (tipX - px * beam.half).toFixed(2) + ',' + (tipY - py * beam.half).toFixed(2)
+        ].join(' '),
+        fill: 'url(#' + gradId + ')',
+        'pointer-events': 'none',
+        class: 'arena-floor-crown__cone arena-floor-crown__cone--' + beam.key
+      }));
+    }
+  }
+
+  /**
    * Reference (Capture2): raised green marble + thin bright gold lip;
    * separate sunken moat outside gold with bulbs on flat edges — not on vertices.
    */
@@ -1266,6 +1330,14 @@
       class: 'arena-floor-crown__recess-wall'
     }));
 
+    var defs = svg.querySelector('defs');
+    // Owner 2026-07-31: every lamp throws a wedge of light BOTH ways along its
+    // face normal — inward across the marble toward the crown, outward over the
+    // moat into the rank rings. A bulb's halo is a circle and a circle has no
+    // direction; the direction is the whole point of the light, so the beam is
+    // a triangle with its apex on the lamp. Cones are their own group, laid
+    // down before the bulbs, so a beam never paints over the lamp that casts it.
+    var cones = el('g', { class: 'arena-floor-crown__cones' });
     var bulbs = el('g', { class: 'arena-floor-crown__bulbs' });
     // Centre of the brown band, measured along the edge normal. octagonPathD
     // takes a CIRCUMradius, but a bulb sits on a flat edge, whose distance from
@@ -1298,6 +1370,8 @@
         fill: 'url(#arena-crown-bulb-grad)',
         class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
       }));
+
+      if (defs) { addLampCones(defs, cones, bx, by, angle, radius, i, far); }
     }
     // Soft under-edge so gold reads as a raised lip, then bright gold stroke.
     frame.appendChild(el('path', {
@@ -1317,7 +1391,10 @@
     }));
 
     // Bulbs go on TOP of the gold. Drawn under it, as they were, the lip
-    // painted over every glow and no light could reach the gold at all.
+    // painted over every glow and no light could reach the gold at all. The
+    // beams follow the same rule and go down first, so the lamps stay the
+    // brightest thing in their own light.
+    frame.appendChild(cones);
     frame.appendChild(bulbs);
 
     stack.appendChild(frame);

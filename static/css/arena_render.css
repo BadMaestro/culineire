@@ -827,3 +827,17 @@
           drop-shadow(0 0 9px color-mix(in srgb, var(--arena-vip-gold) 70%, transparent));
 }
 
+/* Owner 2026-07-31 — the crown lamps throw a beam each way, inward over the
+   marble and outward across the moat. `screen` is what makes two beams that
+   cross read as brighter light instead of as two stacked sheets of paint; the
+   colour and the falloff live in the per-lamp gradient, not here. */
+.page--arena #arena-render .arena-floor-crown__cone {
+  mix-blend-mode: screen;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page--arena #arena-render .arena-floor-crown__cone {
+    opacity: 0.75;
+  }
+}
+
