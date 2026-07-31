@@ -1302,6 +1302,13 @@
         ].join(' '),
         fill: 'url(#' + gradId + ')',
         'pointer-events': 'none',
+        // Owner 2026-07-31: every beam sweeps, 90 degrees right and 90 left of
+        // where it starts. The pivot has to be the lamp itself, so the origin is
+        // written per beam in viewBox units — `transform-box: view-box` makes
+        // those two numbers mean the same coordinates the polygon is drawn in.
+        // The sweep is a CSS animation rather than SMIL for one reason: CSS is
+        // what `prefers-reduced-motion` can switch off.
+        style: 'transform-origin: ' + bx.toFixed(2) + 'px ' + by.toFixed(2) + 'px',
         class: 'arena-floor-crown__cone arena-floor-crown__cone--' + beam.key
       }));
     }

@@ -833,10 +833,24 @@
    colour and the falloff live in the per-lamp gradient, not here. */
 .page--arena #arena-render .arena-floor-crown__cone {
   mix-blend-mode: screen;
+  /* The pivot is written on each beam as its own lamp's coordinates; view-box
+     is what makes those numbers mean viewBox units instead of the beam's own
+     bounding box, whose centre is not the lamp. */
+  transform-box: view-box;
+  animation: arena-lamp-sweep 7s ease-in-out infinite;
+}
+
+/* Owner 2026-07-31: the beam does not stand still — it swings 90 degrees each
+   way, so the light crosses everything between one shoulder and the other. */
+@keyframes arena-lamp-sweep {
+  0% { transform: rotate(-90deg); }
+  50% { transform: rotate(90deg); }
+  100% { transform: rotate(-90deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .page--arena #arena-render .arena-floor-crown__cone {
+    animation: none;
     opacity: 0.75;
   }
 }
