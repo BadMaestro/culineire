@@ -848,10 +848,44 @@
   100% { transform: rotate(-90deg); }
 }
 
+/* Owner 2026-07-31 — the Enter Arena button's travelling spot, on the gold ring
+   and on the eight moat lanterns, the only lamps that throw no beam. The button
+   masks a conic gradient into its border; a path has no background to mask, so
+   the same spot is a short bright dash chasing round the outline. Every length
+   is a percentage of the outline because both shapes carry pathLength="100". */
+.page--arena #arena-render .arena-floor-crown__gold-spot {
+  stroke: var(--arena-vip-gold);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-dasharray: 7 93;
+  filter: drop-shadow(0 0 3px var(--arena-vip-gold));
+  animation: arena-spot-run 3.2s linear infinite;
+}
+
+.page--arena #arena-render .arena-lamp-orbit {
+  stroke: var(--arena-vip-gold);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 11 89;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 2px var(--arena-vip-gold));
+  animation: arena-spot-run 2.4s linear infinite;
+}
+
+@keyframes arena-spot-run {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page--arena #arena-render .arena-floor-crown__cone {
     animation: none;
     opacity: 0.75;
+  }
+
+  .page--arena #arena-render .arena-floor-crown__gold-spot,
+  .page--arena #arena-render .arena-lamp-orbit {
+    animation: none;
   }
 }
 

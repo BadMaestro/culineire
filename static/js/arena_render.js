@@ -1378,7 +1378,7 @@
       // shine cones inward across the marble ring." So this row sits ON the
       // plate's own vertices — the gold lip's circumradius, not the recess band
       // the first row stands in — and it throws one beam only, toward the crown.
-      { key: 'vertex', offset: 0, lampR: goldOuterR, scale: 0.82, dirs: ['in'] }
+      { key: 'vertex', offset: 0, lampR: goldOuterR, scale: 0.82, dirs: ['in'], spot: true }
     ];
     var i, r;
     for (r = 0; r < rows.length; r++) {
@@ -1407,6 +1407,18 @@
           fill: 'url(#arena-crown-bulb-grad)',
           class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
         }));
+
+        // Owner 2026-07-31: the lamps he marked on the plate's corners read as
+        // throwing no light, so they get the Enter Arena button's travelling
+        // spot — its own small orbit with one bright dash running round it.
+        if (row.spot) {
+          bulbs.appendChild(el('circle', {
+            cx: bx.toFixed(2), cy: by.toFixed(2),
+            r: (radius * 0.075).toFixed(2),
+            pathLength: '100', fill: 'none',
+            'pointer-events': 'none', class: 'arena-lamp-orbit'
+          }));
+        }
 
         if (defs) {
           addLampCones(defs, cones, bx, by, angle, radius, row.key + '-' + i, far, row.scale, row.dirs);
@@ -1442,6 +1454,20 @@
     var over = el('g', { class: 'arena-floor-crown__light', 'pointer-events': 'none' });
     over.appendChild(cones);
     over.appendChild(bulbs);
+
+    // Owner 2026-07-31: the travelling spot from the Enter Arena button, on the
+    // gold ring. That button does it with a conic gradient masked to its border
+    // (header.css, ce-glint-spin) and none of that transfers to SVG — a path has
+    // no background to mask. Same effect, SVG's own mechanics: one short bright
+    // dash chasing its way round the ring. pathLength = 100 normalises the
+    // octagon's perimeter, so the dash and its speed are written in percent and
+    // do not have to be recomputed when the stage is resized.
+    over.appendChild(el('path', {
+      d: octagonPathD(cx, cy, goldOuterR),
+      pathLength: '100',
+      fill: 'none',
+      class: 'arena-floor-crown__gold-spot'
+    }));
     return over;
   }
 
