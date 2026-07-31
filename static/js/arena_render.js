@@ -482,6 +482,18 @@
         if (ringAttr !== '') { attrs['data-ring'] = ringAttr; }
         cells.appendChild(el('path', attrs));
 
+        // Owner 2026-07-31: the firefly that used to circle a lamp belongs on a
+        // chef's own cell instead. It is the cell's outline traced again with one
+        // bright dash running round it, laid down immediately after the cell so
+        // CSS can light it from the cell's own occupancy — no second place has to
+        // be told who is a chef, and nothing needs re-syncing when a chef moves.
+        if (entry.kind === 'rank') {
+          cells.appendChild(el('path', {
+            d: d, pathLength: '100', fill: 'none',
+            'pointer-events': 'none', class: 'arena-cell-spark'
+          }));
+        }
+
         // AR3 — the moat is lit, not decorated. One lantern at each cell centre;
         // the glow is CSS so the light stays a token and never a literal.
         if (entry.kind === 'moat') {
@@ -509,15 +521,6 @@
             repeatCount: 'indefinite'
           }));
           cells.appendChild(lamp);
-
-          // The travelling spot: its own small orbit with one bright dash
-          // running round it, the SVG answer to the button's conic-gradient rim.
-          cells.appendChild(el('circle', {
-            cx: lampX.toFixed(2), cy: lampY.toFixed(2),
-            r: (STAGE_RADIUS * 0.075).toFixed(2),
-            pathLength: '100', fill: 'none',
-            'pointer-events': 'none', class: 'arena-lamp-orbit'
-          }));
 
           // Owner 2026-07-31: a looping strobe on each of these lamps, three
           // rings — small, medium, large — in the tricolour. It follows the same
@@ -1335,9 +1338,13 @@
     // Reach and spread are fractions of the stage radius, never fixed numbers,
     // so both survive a resize the same way the bulbs do. The outward beam is
     // longer and wider because it has the whole moat to cross before it lands.
+    // Owner 2026-07-31: the inward beam is WHITE and reaches further. Warm gold
+    // on dark green marble reads as a stain, not as a lamp; white reads as
+    // light. The outward beam keeps the warm tone — it lands on the tan rank
+    // rings, where white would vanish.
     var beams = [
-      { key: 'in', reach: -radius * 0.58 * k, half: radius * 0.115 * k },
-      { key: 'out', reach: radius * 0.78 * k, half: radius * 0.230 * k }
+      { key: 'in', reach: -radius * 0.78 * k, half: radius * 0.115 * k, white: true },
+      { key: 'out', reach: radius * 0.78 * k, half: radius * 0.230 * k, white: false }
     ].filter(function (beam) {
       // A row may light one way only — the corner lamps face the marble and
       // have nothing to say to the moat behind them.
@@ -1358,16 +1365,20 @@
         x1: bx.toFixed(2), y1: by.toFixed(2),
         x2: tipX.toFixed(2), y2: tipY.toFixed(2)
       });
-      // Same warm bulb palette as the lamp itself, faded to nothing at the far
-      // end — a beam with a hard edge reads as a painted shape, not as light.
+      // Faded to nothing at the far end — a beam with a hard edge reads as a
+      // painted shape, not as light. White for the beam that crosses the green
+      // marble, the lamp's own warm tone for the one that crosses the tans.
+      var tone = beam.white
+        ? ['#ffffff', '#f4f7ff', '#dfe8ff']
+        : ['#ffd489', '#ffb347', '#ff8c1a'];
       grad.appendChild(el('stop', {
-        offset: '0%', 'stop-color': '#ffd489', 'stop-opacity': far ? '0.5' : '0.62'
+        offset: '0%', 'stop-color': tone[0], 'stop-opacity': far ? '0.5' : '0.62'
       }));
       grad.appendChild(el('stop', {
-        offset: '45%', 'stop-color': '#ffb347', 'stop-opacity': far ? '0.16' : '0.22'
+        offset: '45%', 'stop-color': tone[1], 'stop-opacity': far ? '0.16' : '0.22'
       }));
       grad.appendChild(el('stop', {
-        offset: '100%', 'stop-color': '#ff8c1a', 'stop-opacity': '0'
+        offset: '100%', 'stop-color': tone[2], 'stop-opacity': '0'
       }));
       defs.appendChild(grad);
 
@@ -2267,7 +2278,6 @@
 
     var set = lampLayout().moat;
     var lamps = svg.querySelectorAll('.arena-lantern');
-    var orbits = svg.querySelectorAll('.arena-lamp-orbit');
     for (var i = 0; i < lamps.length; i++) {
       var a = i * Math.PI / 4 + set.deg * Math.PI / 180;
       var r = STAGE_RADIUS * set.r;
@@ -2275,10 +2285,16 @@
       var y = (TPL_CY + r * Math.sin(a)).toFixed(2);
       lamps[i].setAttribute('cx', x);
       lamps[i].setAttribute('cy', y);
-      if (orbits[i]) {
-        orbits[i].setAttribute('cx', x);
-        orbits[i].setAttribute('cy', y);
-        orbits[i].setAttribute('r', (STAGE_RADIUS * 0.075).toFixed(2));
+
+      // The three strobe rings ride with their lamp, pivot included — a ring
+      // left behind would grow out of a place with no lamp in it.
+      var rings = svg.querySelectorAll('.arena-lamp-strobe');
+      for (var s = 0; s < STROBE_RINGS.length; s++) {
+        var ring = rings[i * STROBE_RINGS.length + s];
+        if (!ring) { continue; }
+        ring.setAttribute('cx', x);
+        ring.setAttribute('cy', y);
+        ring.setAttribute('style', 'transform-origin: ' + x + 'px ' + y + 'px');
       }
     }
   }

@@ -837,7 +837,11 @@
      is what makes those numbers mean viewBox units instead of the beam's own
      bounding box, whose centre is not the lamp. */
   transform-box: view-box;
-  animation: arena-lamp-sweep 7s ease-in-out infinite;
+  /* Owner 2026-07-31: no seven-second beat — just a steady swing, right and
+     left, forever. `linear` is the whole of that instruction: ease-in-out slows
+     to a stop at each shoulder, and it is that stop, not the length of the
+     cycle, that reads as waiting. */
+  animation: arena-lamp-sweep 5s linear infinite;
 }
 
 /* Owner 2026-07-31: the beam does not stand still — it swings 90 degrees each
@@ -853,22 +857,38 @@
    masks a conic gradient into its border; a path has no background to mask, so
    the same spot is a short bright dash chasing round the outline. Every length
    is a percentage of the outline because both shapes carry pathLength="100". */
+/* Owner 2026-07-31: white and stronger. The gold token put a yellow spot on a
+   gold ring, which is the one place it could not be seen; white separates from
+   everything under it, and a wider stroke with a double glow carries across the
+   camera tilt. `screen` is what makes it read as light landing ON the gold
+   rather than as a bead lying over it. */
 .page--arena #arena-render .arena-floor-crown__gold-spot {
-  stroke: var(--arena-vip-gold);
-  stroke-width: 2.6;
+  stroke: #ffffff;
+  stroke-width: 4.2;
   stroke-linecap: round;
-  stroke-dasharray: 7 93;
-  filter: drop-shadow(0 0 3px var(--arena-vip-gold));
+  stroke-dasharray: 9 91;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 9px color-mix(in srgb, #ffffff 70%, transparent));
   animation: arena-spot-run 3.2s linear infinite;
 }
 
-.page--arena #arena-render .arena-lamp-orbit {
-  stroke: var(--arena-vip-gold);
-  stroke-width: 1.6;
+/* The firefly moved off the lamps and onto the chefs: it traces the outline of
+   the cell a chef is standing on, and only that cell. The spark path is drawn
+   immediately after its own cell, so the cell's occupancy is what switches it
+   on — there is no second list of who is a chef to keep in step. */
+.page--arena #arena-render .arena-cell-spark {
+  opacity: 0;
+  stroke: none;
+}
+
+.page--arena #arena-render .arena-cell[data-occupancy="chef"] + .arena-cell-spark {
+  opacity: 1;
+  stroke: #ffffff;
+  stroke-width: 2.4;
   stroke-linecap: round;
-  stroke-dasharray: 11 89;
-  opacity: 0.9;
-  filter: drop-shadow(0 0 2px var(--arena-vip-gold));
+  stroke-dasharray: 12 88;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 3px #ffffff);
   animation: arena-spot-run 2.4s linear infinite;
 }
 
@@ -1021,7 +1041,7 @@
   }
 
   .page--arena #arena-render .arena-floor-crown__gold-spot,
-  .page--arena #arena-render .arena-lamp-orbit {
+  .page--arena #arena-render .arena-cell[data-occupancy="chef"] + .arena-cell-spark {
     animation: none;
   }
 
