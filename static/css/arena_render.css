@@ -877,6 +877,143 @@
   to { stroke-dashoffset: 0; }
 }
 
+/* Owner 2026-07-31 — the strobe on the beamless lamps. Three rings out of every
+   lamp, small, medium and large, in the tricolour: green, white, orange.
+
+   The growth law is the chef-click ripple's, restated declaratively: out of
+   nothing, easing off as it goes, fading to nothing. Scale rather than the r
+   attribute, because scale is the one transform every engine composites cheaply
+   and the stroke is held at a constant width by vector-effect on the shape.
+
+   It is light, not a drawn outline, so it goes on in screen blend with a glow —
+   two rings that cross add up instead of stacking as paint. */
+.page--arena #arena-render .arena-lamp-strobe {
+  transform-box: view-box;
+  mix-blend-mode: screen;
+  stroke-width: 1.6;
+  animation: arena-strobe-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Tricolour, outward. The three ring sizes are set on the shape; only the
+   colour and the beat live here. */
+.page--arena #arena-render .arena-lamp-strobe--1 {
+  stroke: #169b62;
+  filter: drop-shadow(0 0 2px #169b62);
+}
+
+.page--arena #arena-render .arena-lamp-strobe--2 {
+  stroke: #ffffff;
+  filter: drop-shadow(0 0 2px #ffffff);
+  animation-delay: 0.28s;
+}
+
+.page--arena #arena-render .arena-lamp-strobe--3 {
+  stroke: #ff883e;
+  filter: drop-shadow(0 0 2px #ff883e);
+  animation-delay: 0.56s;
+}
+
+@keyframes arena-strobe-ring {
+  0% { transform: scale(0.04); opacity: 0; }
+  12% { opacity: 0.75; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+/* ---- lamp console (arena_lamp_console.js) ----
+   The Owner's own control over where the lamps stand. It lives on the arena
+   page, which is staff/superuser only, so it is not gated again here — a second
+   gate that looks like access control but is only CSS would be worse than none.
+   Collapsed to a single button until he opens it. */
+.arena-lampc {
+  position: fixed;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 60;
+  font-family: Georgia, "Playfair Display", serif;
+  color: var(--surface-soft);
+}
+
+.arena-lampc__toggle,
+.arena-lampc__actions button {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--accent-bronze);
+  border-radius: 0.5rem;
+  color: var(--surface-soft);
+  background: color-mix(in srgb, var(--ink) 82%, var(--accent-bronze));
+  cursor: pointer;
+}
+
+.arena-lampc__toggle:hover,
+.arena-lampc__actions button:hover {
+  background: color-mix(in srgb, var(--ink) 68%, var(--accent-bronze));
+}
+
+.arena-lampc__body {
+  width: 19rem;
+  margin-top: 0.5rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--accent-bronze);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--ink) 92%, var(--accent-bronze));
+  box-shadow: 0 0.6rem 1.6rem color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.arena-lampc__hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.74rem;
+  opacity: 0.8;
+}
+
+.arena-lampc__plan {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--ink) 96%, var(--accent-bronze));
+  touch-action: none;
+}
+
+.arena-lampc__dot { cursor: grab; }
+.arena-lampc__dot:active { cursor: grabbing; }
+
+.arena-lampc__row {
+  margin: 0.5rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.arena-lampc__sw {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.arena-lampc__val {
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: 0.72rem;
+  color: var(--arena-vip-gold);
+}
+
+.arena-lampc__actions { margin: 0.6rem 0 0; }
+
+.arena-lampc__copy {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 60%, transparent);
+  border-radius: 0.4rem;
+  color: var(--arena-vip-gold);
+  background: color-mix(in srgb, var(--ink) 96%, var(--accent-bronze));
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: 0.7rem;
+  resize: vertical;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page--arena #arena-render .arena-floor-crown__cone {
     animation: none;
@@ -886,6 +1023,12 @@
   .page--arena #arena-render .arena-floor-crown__gold-spot,
   .page--arena #arena-render .arena-lamp-orbit {
     animation: none;
+  }
+
+  /* A strobe is the one thing here that must not merely slow down. */
+  .page--arena #arena-render .arena-lamp-strobe {
+    animation: none;
+    opacity: 0;
   }
 }
 

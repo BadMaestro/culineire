@@ -24,6 +24,42 @@
   var OUTER_MARGIN = 26;
   // STAGE_RADIUS follows the arena octagon's crown plate (85 − gap).
   var STAGE_RADIUS = 82;
+
+  /**
+   * Where the three rings of lamps stand. Radius is a MULTIPLE of the stage
+   * radius, never a pixel count, so the whole rig follows a stage resize; angle
+   * is degrees of offset inside one 45-degree face, and eight-fold symmetry is
+   * assumed everywhere so only that offset is free.
+   *
+   * These numbers are the Owner's own, read off the lamp console on 2026-07-31.
+   * The console writes a live override into ArenaLampLayout; when he has not
+   * moved anything, or the console is not loaded at all, these apply.
+   */
+  var LAMP_DEFAULTS = {
+    outer: { r: 1.1280, deg: 0.0 },    // plate, both beams
+    inner: { r: 0.9475, deg: 22.7 },   // plate, inward beam only
+    moat: { r: 1.3161, deg: 0.2 }      // no beam — carries the travelling spot
+  };
+
+  // The three strobe rings a beamless lamp throws, as multiples of the stage
+  // radius: small, medium, large. Sized so the largest still dies well inside
+  // the rank rings instead of washing the floor.
+  var STROBE_RINGS = [0.30, 0.55, 0.85];
+
+  function lampLayout() {
+    var live = global.ArenaLampLayout || {};
+    var out = {};
+    var keys = ['outer', 'inner', 'moat'];
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      var set = live[k] || {};
+      out[k] = {
+        r: typeof set.r === 'number' && isFinite(set.r) ? set.r : LAMP_DEFAULTS[k].r,
+        deg: typeof set.deg === 'number' && isFinite(set.deg) ? set.deg : LAMP_DEFAULTS[k].deg
+      };
+    }
+    return out;
+  }
   // Crown nick capacity at name Y (dy ≈ 0.44·R, font ≈ 0.16·R): usable ≈ 130
   // SVG units. Measured live: ~14 uppercase / ~17 mixed; hard ceiling = 14.
   // Keep in lockstep with recipes.models.RecipeAuthor.PEN_NAME_MAX_LENGTH.
@@ -449,9 +485,19 @@
         // AR3 — the moat is lit, not decorated. One lantern at each cell centre;
         // the glow is CSS so the light stays a token and never a literal.
         if (entry.kind === 'moat') {
+          // Owner 2026-07-31: these eight stand on the corners and throw no
+          // beam, so they are the lamps that get the Enter Arena button's
+          // travelling spot. Their place is no longer the cell's centroid — he
+          // set it himself on the lamp console — so it is read from the layout,
+          // in the same stage-radius multiples every other lamp uses.
+          var moatSet = lampLayout().moat;
+          var moatAngle = pos * Math.PI / 4 + moatSet.deg * Math.PI / 180;
+          var moatR = STAGE_RADIUS * moatSet.r;
+          var lampX = cx + moatR * Math.cos(moatAngle);
+          var lampY = cy + moatR * Math.sin(moatAngle);
 
           var lamp = el('circle', {
-            cx: centroid.x.toFixed(2), cy: centroid.y.toFixed(2), r: '4.2',
+            cx: lampX.toFixed(2), cy: lampY.toFixed(2), r: '4.2',
             'pointer-events': 'none', class: 'arena-lantern'
           });
           // Each lantern breathes on its own clock so the ring never pulses as
@@ -463,6 +509,37 @@
             repeatCount: 'indefinite'
           }));
           cells.appendChild(lamp);
+
+          // The travelling spot: its own small orbit with one bright dash
+          // running round it, the SVG answer to the button's conic-gradient rim.
+          cells.appendChild(el('circle', {
+            cx: lampX.toFixed(2), cy: lampY.toFixed(2),
+            r: (STAGE_RADIUS * 0.075).toFixed(2),
+            pathLength: '100', fill: 'none',
+            'pointer-events': 'none', class: 'arena-lamp-orbit'
+          }));
+
+          // Owner 2026-07-31: a looping strobe on each of these lamps, three
+          // rings — small, medium, large — in the tricolour. It follows the same
+          // law as the chef-click ripple (fireRipple): a ring that grows from
+          // nothing while it fades, on a cubic ease-out. What it does NOT reuse
+          // is that function's requestAnimationFrame loop — that is right for
+          // one shot and wrong for twenty-four rings running forever, which
+          // would never idle and could not be stopped by prefers-reduced-motion.
+          // Same visual law, declarative vehicle.
+          //
+          // "It is light, so it is a ray": the rings are strokes in screen blend
+          // with a glow, never ink outlines, so two that cross add up.
+          for (var s = 0; s < STROBE_RINGS.length; s++) {
+            cells.appendChild(el('circle', {
+              cx: lampX.toFixed(2), cy: lampY.toFixed(2),
+              r: (STAGE_RADIUS * STROBE_RINGS[s]).toFixed(2),
+              fill: 'none', 'vector-effect': 'non-scaling-stroke',
+              style: 'transform-origin: ' + lampX.toFixed(2) + 'px ' + lampY.toFixed(2) + 'px',
+              'pointer-events': 'none',
+              class: 'arena-lamp-strobe arena-lamp-strobe--' + (s + 1)
+            }));
+          }
         }
 
         // A VIP box gets a gold liner set inside its own edge. A stroke sits
@@ -1372,13 +1449,21 @@
     // from the centre; a lamp on a vertex sits a full CIRCUMradius out. Using
     // one number for both would sink the vertex lamps into the plate — the same
     // mistake the apothem note above was written for, in the other direction.
+    // The two rows are no longer "on the edges" and "on the corners" — the Owner
+    // moved them on the lamp console, so they are named by which one is outside
+    // the other and nothing here assumes an angle. Both radius and angle come
+    // from lampLayout(), which is the console's value when he has set one and
+    // LAMP_DEFAULTS otherwise.
+    var layout = lampLayout();
     var rows = [
-      { key: 'face', offset: Math.PI / 8, lampR: bandMid * apothem, scale: 1, dirs: ['in', 'out'] },
-      // Owner 2026-07-31: "the lamps stand on the tip of each sharp corner and
-      // shine cones inward across the marble ring." So this row sits ON the
-      // plate's own vertices — the gold lip's circumradius, not the recess band
-      // the first row stands in — and it throws one beam only, toward the crown.
-      { key: 'vertex', offset: 0, lampR: goldOuterR, scale: 0.82, dirs: ['in'], spot: true }
+      {
+        key: 'outer', offset: layout.outer.deg * Math.PI / 180,
+        lampR: radius * layout.outer.r, scale: 1, dirs: ['in', 'out']
+      },
+      {
+        key: 'inner', offset: layout.inner.deg * Math.PI / 180,
+        lampR: radius * layout.inner.r, scale: 0.82, dirs: ['in']
+      }
     ];
     var i, r;
     for (r = 0; r < rows.length; r++) {
@@ -1407,18 +1492,6 @@
           fill: 'url(#arena-crown-bulb-grad)',
           class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
         }));
-
-        // Owner 2026-07-31: the lamps he marked on the plate's corners read as
-        // throwing no light, so they get the Enter Arena button's travelling
-        // spot — its own small orbit with one bright dash running round it.
-        if (row.spot) {
-          bulbs.appendChild(el('circle', {
-            cx: bx.toFixed(2), cy: by.toFixed(2),
-            r: (radius * 0.075).toFixed(2),
-            pathLength: '100', fill: 'none',
-            'pointer-events': 'none', class: 'arena-lamp-orbit'
-          }));
-        }
 
         if (defs) {
           addLampCones(defs, cones, bx, by, angle, radius, row.key + '-' + i, far, row.scale, row.dirs);
@@ -2180,7 +2253,43 @@
     pingTimer = global.setInterval(function () { post('/chef-battle/arena/ping/').catch(function () {}); }, PING_INTERVAL);
   }
 
-  global.ArenaRender = { init: init, buildAssignments: buildAssignments, isDisplaced: isDisplaced };
+  /**
+   * Repaint everything the lamp layout touches, and nothing else. The crown
+   * lamps live in the centre layer, which stampFloorCentre already rebuilds from
+   * scratch; the moat lanterns live in the cell grid, so they are moved in place
+   * rather than redrawing 200 floor tiles for two circles each.
+   */
+  function applyLampLayout() {
+    var svg = document.getElementById('arena-render');
+    if (!svg) { return; }
+
+    if (stageCentre) { stampFloorCentre(svg, stageCentre); }
+
+    var set = lampLayout().moat;
+    var lamps = svg.querySelectorAll('.arena-lantern');
+    var orbits = svg.querySelectorAll('.arena-lamp-orbit');
+    for (var i = 0; i < lamps.length; i++) {
+      var a = i * Math.PI / 4 + set.deg * Math.PI / 180;
+      var r = STAGE_RADIUS * set.r;
+      var x = (TPL_CX + r * Math.cos(a)).toFixed(2);
+      var y = (TPL_CY + r * Math.sin(a)).toFixed(2);
+      lamps[i].setAttribute('cx', x);
+      lamps[i].setAttribute('cy', y);
+      if (orbits[i]) {
+        orbits[i].setAttribute('cx', x);
+        orbits[i].setAttribute('cy', y);
+        orbits[i].setAttribute('r', (STAGE_RADIUS * 0.075).toFixed(2));
+      }
+    }
+  }
+
+  global.ArenaRender = {
+    init: init,
+    buildAssignments: buildAssignments,
+    isDisplaced: isDisplaced,
+    applyLampLayout: applyLampLayout,
+    lampDefaults: LAMP_DEFAULTS
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
