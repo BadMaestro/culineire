@@ -1423,14 +1423,19 @@
       class: 'arena-floor-crown__gold-lip'
     }));
 
-    // Bulbs go on TOP of the gold. Drawn under it, as they were, the lip
-    // painted over every glow and no light could reach the gold at all. The
-    // beams follow the same rule and go down first, so the lamps stay the
-    // brightest thing in their own light.
-    frame.appendChild(cones);
-    frame.appendChild(bulbs);
-
     stack.appendChild(frame);
+
+    // Bulbs go on TOP of the gold. Drawn under it, as they were, the lip
+    // painted over every glow and no light could reach the gold at all — and
+    // the same trap sits one layer further out: the marble pad is appended
+    // AFTER this frame and clipped to the plate, so anything drawn here that
+    // falls inside the plate is painted over by the marble. That is where the
+    // whole inward half of the light went. The lamps and their beams are handed
+    // back instead of appended, for the caller to lay down after the marble.
+    var over = el('g', { class: 'arena-floor-crown__light', 'pointer-events': 'none' });
+    over.appendChild(cones);
+    over.appendChild(bulbs);
+    return over;
   }
 
   function drawFloorCrown(layer, cx, cy, radius, center) {
@@ -1441,7 +1446,7 @@
       'pointer-events': 'none'
     });
 
-    drawCrownStageFrame(stack, svg, cx, cy, radius);
+    var crownLight = drawCrownStageFrame(stack, svg, cx, cy, radius);
 
     var group = el('g', {
       class: 'arena-floor-crown__inner',
@@ -1504,6 +1509,10 @@
         stack.appendChild(node);
       }
     });
+
+    // Last of all: the lamps and their beams, so the marble cannot swallow the
+    // inward half of the light and the gold lip cannot swallow the lamps.
+    if (crownLight) { stack.appendChild(crownLight); }
 
     layer.appendChild(stack);
     fitCrownName(
