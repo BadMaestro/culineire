@@ -1246,19 +1246,26 @@
    * its own, in user space, rebuilt on every draw because a stage resize moves
    * the lamps and a stale axis would leave the light pointing the wrong way.
    */
-  function addLampCones(defs, group, bx, by, angle, radius, index, far) {
+  function addLampCones(defs, group, bx, by, angle, radius, index, far, scale, dirs) {
     var ux = Math.cos(angle);
     var uy = Math.sin(angle);
     // Perpendicular to the beam: the base of the triangle is measured on it.
     var px = -uy;
     var py = ux;
+    // The second row is the quieter one: its beams are scaled down so the two
+    // rows read as a pattern rather than as sixteen equal spokes.
+    var k = typeof scale === 'number' ? scale : 1;
     // Reach and spread are fractions of the stage radius, never fixed numbers,
     // so both survive a resize the same way the bulbs do. The outward beam is
     // longer and wider because it has the whole moat to cross before it lands.
     var beams = [
-      { key: 'in', reach: -radius * 0.58, half: radius * 0.115 },
-      { key: 'out', reach: radius * 0.78, half: radius * 0.230 }
-    ];
+      { key: 'in', reach: -radius * 0.58 * k, half: radius * 0.115 * k },
+      { key: 'out', reach: radius * 0.78 * k, half: radius * 0.230 * k }
+    ].filter(function (beam) {
+      // A row may light one way only — the corner lamps face the marble and
+      // have nothing to say to the moat behind them.
+      return !dirs || dirs.indexOf(beam.key) !== -1;
+    });
 
     for (var b = 0; b < beams.length; b++) {
       var beam = beams[b];
@@ -1345,33 +1352,59 @@
     // here pushed every bulb about 7.6% of the radius too far out, past the
     // outer wall, so none of them sat in the band they belong to.
     var apothem = Math.cos(Math.PI / 8);
-    var bulbR = ((recessInnerR + recessOuterR) / 2) * apothem;
-    var i;
-    for (i = 0; i < 8; i++) {
-      var angle = i * Math.PI / 4 + Math.PI / 8;
-      var bx = cx + bulbR * Math.cos(angle);
-      var by = cy + bulbR * Math.sin(angle);
-      var far = Math.sin(angle) < -0.05;
-      // Glow reaches the gold lip: the bulb sits (bulbR - goldOuterR*apothem)
-      // away from it, so a halo smaller than that gap can never light it. Sized
-      // from the radius, not a fixed number, so it survives a stage resize.
-      var glowR = (bulbR - goldOuterR * apothem) * (far ? 1.15 : 1.45);
-      bulbs.appendChild(el('circle', {
-        cx: bx.toFixed(2),
-        cy: by.toFixed(2),
-        r: glowR.toFixed(2),
-        fill: 'url(#arena-crown-bulb-grad)',
-        class: 'arena-floor-crown__bulb-glow' + (far ? ' arena-floor-crown__bulb-glow--far' : '')
-      }));
-      bulbs.appendChild(el('circle', {
-        cx: bx.toFixed(2),
-        cy: by.toFixed(2),
-        r: (radius * (far ? 0.0104 : 0.0140)).toFixed(2),
-        fill: 'url(#arena-crown-bulb-grad)',
-        class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
-      }));
+    var bandMid = (recessInnerR + recessOuterR) / 2;
 
-      if (defs) { addLampCones(defs, cones, bx, by, angle, radius, i, far); }
+    // Owner 2026-07-31: a SECOND row of lamps, turned against the first.
+    //
+    // Row one stands on the eight flat edges, so its beams leave along the edge
+    // normals and the eight directions between them stay dark. Row two stands
+    // on the eight vertices — the same band, rotated by half a face — and fills
+    // exactly those gaps, so the light leaves the plate in sixteen directions.
+    //
+    // The two rows do NOT share a radius. A lamp on a flat edge sits an APOTHEM
+    // from the centre; a lamp on a vertex sits a full CIRCUMradius out. Using
+    // one number for both would sink the vertex lamps into the plate — the same
+    // mistake the apothem note above was written for, in the other direction.
+    var rows = [
+      { key: 'face', offset: Math.PI / 8, lampR: bandMid * apothem, scale: 1, dirs: ['in', 'out'] },
+      // Owner 2026-07-31: "the lamps stand on the tip of each sharp corner and
+      // shine cones inward across the marble ring." So this row sits ON the
+      // plate's own vertices — the gold lip's circumradius, not the recess band
+      // the first row stands in — and it throws one beam only, toward the crown.
+      { key: 'vertex', offset: 0, lampR: goldOuterR, scale: 0.82, dirs: ['in'] }
+    ];
+    var i, r;
+    for (r = 0; r < rows.length; r++) {
+      var row = rows[r];
+      var bulbR = row.lampR;
+      for (i = 0; i < 8; i++) {
+        var angle = i * Math.PI / 4 + row.offset;
+        var bx = cx + bulbR * Math.cos(angle);
+        var by = cy + bulbR * Math.sin(angle);
+        var far = Math.sin(angle) < -0.05;
+        // Glow reaches the gold lip: the bulb sits (bulbR - goldOuterR*apothem)
+        // away from it, so a halo smaller than that gap can never light it. Sized
+        // from the radius, not a fixed number, so it survives a stage resize.
+        var glowR = (bulbR - goldOuterR * apothem) * (far ? 1.15 : 1.45) * row.scale;
+        bulbs.appendChild(el('circle', {
+          cx: bx.toFixed(2),
+          cy: by.toFixed(2),
+          r: glowR.toFixed(2),
+          fill: 'url(#arena-crown-bulb-grad)',
+          class: 'arena-floor-crown__bulb-glow' + (far ? ' arena-floor-crown__bulb-glow--far' : '')
+        }));
+        bulbs.appendChild(el('circle', {
+          cx: bx.toFixed(2),
+          cy: by.toFixed(2),
+          r: (radius * (far ? 0.0104 : 0.0140) * row.scale).toFixed(2),
+          fill: 'url(#arena-crown-bulb-grad)',
+          class: 'arena-floor-crown__bulb-core' + (far ? ' arena-floor-crown__bulb-core--far' : '')
+        }));
+
+        if (defs) {
+          addLampCones(defs, cones, bx, by, angle, radius, row.key + '-' + i, far, row.scale, row.dirs);
+        }
+      }
     }
     // Soft under-edge so gold reads as a raised lip, then bright gold stroke.
     frame.appendChild(el('path', {
