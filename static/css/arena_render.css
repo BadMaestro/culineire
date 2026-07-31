@@ -865,7 +865,13 @@
 .page--arena #arena-render .arena-floor-crown__gold-spot {
   stroke: #ffffff;
   stroke-width: 4.2;
-  stroke-linecap: round;
+  /* Butt, never round. The outline is a CLOSED path, so when the running dash
+     reaches the point where the path closes it is drawn as two pieces — the tail
+     at the end of the path and the head at the start. Those two pieces are
+     geometrically adjacent, so with butt ends they read as one spot crossing the
+     seam. Round ends put a cap on each piece and that is what the Owner saw as
+     the light breaking off and starting again. */
+  stroke-linecap: butt;
   stroke-dasharray: 9 91;
   mix-blend-mode: screen;
   filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 9px color-mix(in srgb, #ffffff 70%, transparent));
@@ -873,19 +879,21 @@
 }
 
 /* The firefly moved off the lamps and onto the chefs: it traces the outline of
-   the cell a chef is standing on, and only that cell. The spark path is drawn
-   immediately after its own cell, so the cell's occupancy is what switches it
-   on — there is no second list of who is a chef to keep in step. */
+   the cell a chef is standing on, and only that cell. It lives in its own layer
+   ABOVE the occupants — drawn down in the cells layer it was invisible, because
+   a chef's portrait is clipped to that same cell and painted over it. bind()
+   lights the one whose ring and cell match the seated chef. */
 .page--arena #arena-render .arena-cell-spark {
   opacity: 0;
   stroke: none;
 }
 
-.page--arena #arena-render .arena-cell[data-occupancy="chef"] + .arena-cell-spark {
+.page--arena #arena-render .arena-cell-spark[data-lit="true"] {
   opacity: 1;
   stroke: #ffffff;
   stroke-width: 2.4;
-  stroke-linecap: round;
+  /* Butt for the same reason as the ring: a cell outline is closed too. */
+  stroke-linecap: butt;
   stroke-dasharray: 12 88;
   mix-blend-mode: screen;
   filter: drop-shadow(0 0 3px #ffffff);
@@ -1041,7 +1049,7 @@
   }
 
   .page--arena #arena-render .arena-floor-crown__gold-spot,
-  .page--arena #arena-render .arena-cell[data-occupancy="chef"] + .arena-cell-spark {
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"] {
     animation: none;
   }
 

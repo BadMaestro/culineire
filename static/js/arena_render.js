@@ -417,6 +417,11 @@
     var gap = tpl.GAP;
         var defs = el('defs', {});
     var cells = el('g', { 'data-arena-layer': 'cells' });
+    // The chef spark cannot live in the cells layer: a chef's portrait is
+    // clipped to that very cell and painted from the occupants layer above it,
+    // so an outline drawn down here is covered by the face standing on it. Its
+    // own layer, appended after the occupants, is what makes it visible at all.
+    var sparks = el('g', { 'data-arena-layer': 'sparks', 'pointer-events': 'none' });
     var stageRing = geometry.rings[0];
 
     // No cell-shadow — soft drop-shadows bled past the outer rim as junk.
@@ -483,13 +488,14 @@
         cells.appendChild(el('path', attrs));
 
         // Owner 2026-07-31: the firefly that used to circle a lamp belongs on a
-        // chef's own cell instead. It is the cell's outline traced again with one
-        // bright dash running round it, laid down immediately after the cell so
-        // CSS can light it from the cell's own occupancy — no second place has to
-        // be told who is a chef, and nothing needs re-syncing when a chef moves.
+        // chef's own cell instead — the cell's outline traced again with one
+        // bright dash running round it. It carries the same ring and cell keys
+        // as the seat it belongs to, which is how bind() finds it when a chef
+        // arrives or leaves.
         if (entry.kind === 'rank') {
-          cells.appendChild(el('path', {
+          sparks.appendChild(el('path', {
             d: d, pathLength: '100', fill: 'none',
+            'data-ring': ringAttr, 'data-cell': String(pos),
             'pointer-events': 'none', class: 'arena-cell-spark'
           }));
         }
@@ -653,6 +659,7 @@
     }));
     shell.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
     shell.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
+    shell.appendChild(sparks);
     shell.appendChild(el('g', { 'data-arena-layer': 'centre' }));
     svg.appendChild(shell);
 
@@ -1125,6 +1132,9 @@
       seat.removeAttribute('data-entity-slug');
       seat.chefRecord = null;
     });
+    Array.prototype.forEach.call(svg.querySelectorAll('.arena-cell-spark'), function (spark) {
+      spark.removeAttribute('data-lit');
+    });
 
     lightRows(svg, geometry);
 
@@ -1154,6 +1164,15 @@
       seat.setAttribute('data-state', assignment.state);
       seat.setAttribute('data-entity-slug', entity.slug || '');
       seat.chefRecord = assignment.occupancy === 'spectator' ? asSpectator(entity) : entity;
+
+      // The spark belongs to chefs, not to every occupant: a gallery spectator
+      // is atmosphere and does not get a ring of light on the floor.
+      if (assignment.occupancy === 'chef') {
+        var spark = svg.querySelector(
+          '.arena-cell-spark[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]'
+        );
+        if (spark) { spark.setAttribute('data-lit', 'true'); }
+      }
       if (entity.slug && entity.slug === viewerSlug()) { seatedRing = assignment.ring; }
 
       appendOccupant(svg, occupants, assignment);
