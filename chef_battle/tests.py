@@ -8618,6 +8618,154 @@ class GrantArtifactPermissionTests(TestCase):
         )
 
 
+class SpiritBalconyTests(TestCase):
+    """AR5: the balconies hold a count, never a person.
+
+    Every test here defends the same line from ARENA_BATTLE_PLAN §2a — a spirit
+    is atmospheric, holds no seat identity and must never stand for a real or
+    online user. The failure this guards against is not cosmetic: a spirit that
+    acquired an id, or a count that invented itself when nobody was watching,
+    would be a fake viewer on a public page.
+    """
+
+    def _anon_viewer(self, digest, seconds_ago=0):
+        from .models import BattleViewerPresence
+        return BattleViewerPresence.objects.create(
+            battle=None,
+            viewer_hash=digest,
+            is_authenticated=False,
+            last_seen_at=timezone.now() - timezone.timedelta(seconds=seconds_ago),
+        )
+
+    # ---- geometry --------------------------------------------------------
+
+    def test_balconies_stand_behind_the_author_rows(self):
+        """Behind means further out than every seat, on the same two arcs.
+
+        Measured as elliptical depth, not as raw distance from the centre. The
+        band is an ellipse (rx = R x 1.08, ry = R x 0.92), so a stand near the
+        vertical can sit at a smaller raw radius than a seat out at the
+        diagonal while still being strictly behind it. Undoing the ellipse
+        recovers R, which is the number that actually orders the rows — a raw
+        radius comparison here fails on correct geometry, which is exactly what
+        it did when this test was first written the lazy way.
+        """
+        from .selectors import get_arena_geometry
+
+        g = get_arena_geometry()
+        seats = g["spectator_oval"]["seats"]
+        stands = g["balconies"]["stands"]
+        self.assertTrue(stands)
+        self.assertEqual({s["side"] for s in stands}, {"top", "bottom"})
+
+        def depth(p):
+            return (((p["x"] / 1.08) ** 2) + ((p["y"] / 0.92) ** 2)) ** 0.5
+
+        self.assertGreater(min(depth(b) for b in stands), max(depth(s) for s in seats))
+
+    def test_a_balcony_stand_carries_no_seat_identity(self):
+        """No ring, no cell: there is deliberately nothing to store, so nothing
+        can be seated here even by a caller that tries."""
+        from .selectors import get_arena_geometry
+        from .arena_seating import seat_map
+
+        stands = get_arena_geometry()["balconies"]["stands"]
+        for stand in stands:
+            self.assertNotIn("ring", stand)
+            self.assertNotIn("cell", stand)
+
+        seat_keys = {(ring, cell) for ring, cell, _row in seat_map()}
+        self.assertEqual(len(seat_keys), 114)
+        self.assertNotIn("balconies", {k for k, _v in seat_keys})
+
+    def test_balcony_capacity_does_not_change_seating_capacity(self):
+        """The hall gained standing room, not seats. If these two ever move
+        together, a spirit has become a seat somewhere."""
+        from .selectors import balcony_capacity, spectator_capacity
+        from .arena_seating import seating_capacity
+
+        self.assertEqual(spectator_capacity(), 114)
+        self.assertEqual(seating_capacity(), 114)
+        self.assertGreater(balcony_capacity(), 0)
+
+    # ---- the count -------------------------------------------------------
+
+    def test_count_is_zero_when_nobody_is_there(self):
+        from .selectors import unauthorised_arena_viewers
+        self.assertEqual(unauthorised_arena_viewers(), 0)
+
+    def test_only_unauthorised_lobby_viewers_are_counted(self):
+        """Three ways to be excluded, and each one has been a real bug class:
+        an authenticated viewer is a person with a seat, a battle-room viewer is
+        on another surface, and a lapsed heartbeat is somebody who left."""
+        from .models import BattleViewerPresence
+        from .selectors import ARENA_ONLINE_THRESHOLD_SECONDS, unauthorised_arena_viewers
+
+        self._anon_viewer("anon-1")
+        self._anon_viewer("anon-2")
+        BattleViewerPresence.objects.create(
+            battle=None, viewer_hash="member", is_authenticated=True,
+            last_seen_at=timezone.now(),
+        )
+        self._anon_viewer("stale", seconds_ago=ARENA_ONLINE_THRESHOLD_SECONDS + 60)
+
+        author = RecipeAuthor.objects.create(
+            user=get_user_model().objects.create_user("spirit-batt", password="pw"),
+            name="Spirit Battler", slug="spirit-battler",
+        )
+        rival = RecipeAuthor.objects.create(
+            user=get_user_model().objects.create_user("spirit-rival", password="pw"),
+            name="Spirit Rival", slug="spirit-rival",
+        )
+        battle = Battle.objects.create(
+            challenger=author, opponent=rival, theme="x",
+            end_time=timezone.now() + timezone.timedelta(hours=1),
+            submission_deadline=timezone.now() + timezone.timedelta(minutes=30),
+        )
+        BattleViewerPresence.objects.create(
+            battle=battle, viewer_hash="in-a-battle-room", is_authenticated=False,
+            last_seen_at=timezone.now(),
+        )
+
+        self.assertEqual(unauthorised_arena_viewers(), 2)
+
+    def test_the_payload_sends_a_number_and_never_a_list(self):
+        """A list would be an identity leak by construction. The contract is a
+        count, and the poll must carry it or the balconies empty themselves on
+        the first refresh."""
+        from .views import PUBLIC_ARENA_STATE_KEYS, _build_arena_payload
+
+        self._anon_viewer("anon-a")
+        payload = _build_arena_payload(viewer_author=None)
+        self.assertIsInstance(payload["spirit_count"], int)
+        self.assertEqual(payload["spirit_count"], 1)
+        self.assertIn("spirit_count", PUBLIC_ARENA_STATE_KEYS)
+
+    # ---- the renderer ----------------------------------------------------
+
+    def test_the_renderer_lights_a_count_and_attaches_no_identity(self):
+        from django.conf import settings as django_settings
+        from pathlib import Path
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        spirits = source.split("function drawBalconies", 1)[1].split(
+            "function bindSpirits", 1
+        )
+        stand = spirits[0]
+        binder = spirits[1].split("\n  }", 1)[0]
+
+        # A spirit is drawn with no seat keys and nothing to identify it.
+        for forbidden in ("data-ring", "data-cell", "data-entity-slug", "clipPath", "image"):
+            self.assertNotIn(forbidden, stand)
+
+        # The count drives it, and it is clamped at both ends.
+        self.assertIn("payload.spirit_count", binder)
+        self.assertIn("count > stands.length", binder)
+        self.assertIn("if (!(count > 0)) { count = 0; }", binder)
+
+
 class VipSponsorSeatingTests(TestCase):
     """Ring 11 seats sponsors, and only the ones that are actually published.
 

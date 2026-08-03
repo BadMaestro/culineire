@@ -3107,14 +3107,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "AR5", "group": "Arena Hall", "title": "Spirit balconies + VIP sponsor ring",
-        "status": "NEXT", "owner": "GreenBear",
-        "files": "static/js/arena_render.js; scoped fighter/atmosphere CSS",
+        "status": "DONE", "owner": "GreenBear + Bolt",
+        "files": "chef_battle/selectors.py; chef_battle/views.py; static/js/arena_render.js; static/css/arena_render.css; chef_battle/tests.py",
         "depends_on": "AR4",
         "action": "Unauthorised users appear as bodiless spirits in the balconies behind the author rows; ring 11 VIP seats are reserved for sponsors.",
         "visible_result": "Balcony spirits behind the seats; VIP ring reads as sponsor seating.",
         "acceptance": "Spirits never impersonate real/online users and hold no seat identity; VIP ring styled per §2a.",
         "forbidden": "No spirit impersonation of real users.",
-        "evidence": "Pending.",
+        "evidence": "DONE. VIP ring shipped v2.5.765-768 (GreenBear): published cells only, logo by the chef-avatar rule, clickable boxes, sponsor card with a Visit link. Spirit balconies shipped v2.5.778 (Bolt): stands behind both author rows, derived capacity, live count of unauthorised lobby visitors read from the existing BattleViewerPresence heartbeat - no second presence system. A stand carries no ring, no cell and no seat-map entry, so nothing can be seated there; the renderer draws the stands once and bind() lights the count on every poll. Expect ZERO spirits on production until the Arena opens - an anonymous visitor 404s before the lobby heartbeat runs - and no placeholder crowd was substituted. 576 chef_battle tests green.",
     },
     {
         "id": "A07", "group": "Arena Hall", "title": "Stage framing and full-octagon composition",

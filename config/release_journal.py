@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.778",
+        "date": "2026-08-03",
+        "commit": "",
+        "title": "AR5 - the spirit balconies, and a count that refuses to invent itself",
+        "section": "Chef Battles / Arena",
+        "summary": "The other half of AR5. The VIP sponsor ring shipped in v2.5.765-768; this is the balconies behind the author rows, where ARENA_BATTLE_PLAN 2a puts unauthorised visitors as bodiless spirits. The design rule is one sentence and everything follows from it: a spirit is a count made visible, never a person made up. So a balcony stand carries no ring id, no cell, no seat-map entry and no ArenaSeat row - there is deliberately nothing to hold, which is what makes seating somebody there impossible rather than merely forbidden. How many are lit comes from the live payload on every poll, not from the page load, because the stands are drawn once and bind() sets occupancy exactly as it does for seats. The count itself reuses the existing DG-04 heartbeat rather than inventing a second presence system: BattleViewerPresence rows with battle NULL are the lobby surface, is_authenticated is already recorded on every upsert, and the 180 second window is the same one that decides whether anyone else is shown as online. spirit_count went into PUBLIC_ARENA_STATE_KEYS deliberately - an absent key is indistinguishable from a count of zero, and leaving it out would have emptied the balconies thirty seconds after every page load, the identical trap the sponsors key documents one line above. Expect ZERO spirits on production today and that is the honest number, not a defect: both lobby heartbeats sit behind the visibility gate, so an anonymous visitor gets a 404 before anything can record them. No placeholder crowd was put there to make the balconies look inhabited - the plan forbids fake viewers outright, and a balcony that lies is worse than one that is empty. 576 chef_battle tests green.",
+    },
+    {
         "version": "2.5.772",
         "date": "2026-08-03",
         "commit": "",

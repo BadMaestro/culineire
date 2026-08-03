@@ -257,6 +257,39 @@
 }
 #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] { fill: color-mix(in srgb, var(--ink) 55%, var(--surface)); }
 
+/* AR5 — balcony spirits (ARENA_BATTLE_PLAN §2a).
+ *
+ * Bodiless is the whole brief, so a spirit is a soft light and nothing else:
+ * no portrait, no outline that could read as a head, no label. It is
+ * deliberately fainter and smaller than an author seat, because an author is a
+ * person in the hall and a spirit is only the fact that somebody is watching.
+ *
+ * An empty stand is invisible rather than absent: the nodes stay in the DOM so
+ * a poll can light them without redrawing the balcony. Zero present is a
+ * correct picture, and today it is the expected one. */
+#arena-render .arena-spirit {
+  fill: color-mix(in srgb, var(--surface) 72%, var(--accent-bronze));
+  stroke: none;
+  opacity: 0;
+  pointer-events: none;
+}
+#arena-render .arena-spirit[data-occupancy="present"] {
+  opacity: 0.34;
+  animation: arena-spirit-breathe 5.5s ease-in-out infinite;
+}
+#arena-render .arena-spirit[data-row="1"][data-occupancy="present"] {
+  opacity: 0.24;
+}
+
+@keyframes arena-spirit-breathe {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.38; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-spirit[data-occupancy="present"] { animation: none; }
+}
+
 /* ---- state ---- */
 
 #arena-render [data-state="in-battle"] {

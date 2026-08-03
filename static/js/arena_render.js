@@ -303,6 +303,93 @@
       defs.appendChild(clip);
     });
     svg.appendChild(layer);
+    drawBalconies(svg, geometry, layer, {
+      floorR: floorR, standsOuter: standsOuter, beFloor: beFloor,
+      maxBe: maxBe, project: project
+    });
+  }
+
+  /**
+   * AR5 — the spirit balconies behind the author rows (ARENA_BATTLE_PLAN 2a).
+   *
+   * A spirit is a COUNT MADE VISIBLE, never a person made up. That is the whole
+   * design and every choice below follows from it:
+   *
+   *   - it has no face, no name, no avatar and no profile link;
+   *   - it carries no data-ring, no data-cell and no seat id, so nothing in
+   *     bind() can ever seat anybody here — the stands are not in seat_map()
+   *     and ArenaSeat has no row for them;
+   *   - how many are LIT comes from payload.spirit_count on every poll, which
+   *     is why the stands are drawn once here and occupancy is set in bind(),
+   *     exactly as the seats work. Drawing the count here instead would freeze
+   *     the balconies at whatever the page load happened to see.
+   *
+   * The nodes below are the empty balcony itself. Nothing is lit until
+   * bindSpirits() says so, and a count of zero lights nothing at all.
+   */
+  function drawBalconies(svg, geometry, seatLayer, props) {
+    var balconies = geometry.balconies || {};
+    var stands = Array.isArray(balconies.stands) ? balconies.stands : [];
+    var layer = el('g', {
+      'data-arena-layer': 'balconies',
+      'aria-hidden': 'true',
+      'pointer-events': 'none'
+    });
+    svg.insertBefore(layer, seatLayer);
+    if (!stands.length) { return; }
+
+    var depthBe = Math.max(1e-6, props.maxBe - props.beFloor);
+    var depthSvg = props.standsOuter - props.floorR;
+    var pitch = Math.max(8, props.floorR * 0.032);
+
+    // Front row first, so a small crowd gathers at the rail instead of
+    // scattering through an empty balcony. bindSpirits() lights them in this
+    // order, so the order has to be settled here, once.
+    var ordered = stands.slice().sort(function (a, b) {
+      return (a.row || 0) - (b.row || 0);
+    });
+
+    ordered.forEach(function (stand, i) {
+      var rBe = Math.hypot(stand.x || 0, stand.y || 0);
+      var ang = Math.atan2(stand.y || 0, stand.x || 0);
+      var rSvg = props.floorR + ((rBe - props.beFloor) / depthBe) * depthSvg;
+      var pt = props.project({
+        x: TPL_CX + Math.cos(ang) * rSvg,
+        y: TPL_CY + Math.sin(ang) * rSvg
+      });
+      var r = Math.max(2.8, pitch * (0.30 - 0.05 * (stand.row || 0)));
+      layer.appendChild(el('circle', {
+        cx: pt.x.toFixed(2),
+        cy: pt.y.toFixed(2),
+        r: r.toFixed(2),
+        'data-arena-spirit': 'true',
+        'data-side': stand.side || '',
+        'data-row': String(stand.row != null ? stand.row : ''),
+        'data-occupancy': 'empty',
+        style: 'animation-delay:' + ((i % 7) * 0.45).toFixed(2) + 's',
+        class: 'arena-spirit'
+      }));
+    });
+  }
+
+  /**
+   * Light exactly as many balcony stands as there are unauthorised visitors.
+   *
+   * A count of zero lights nothing, and that is the correct picture today: the
+   * lobby heartbeat sits behind the visibility gate, so an anonymous visitor
+   * 404s before anything can record them. Inventing a handful of spirits to
+   * make the balconies look inhabited would be exactly the fake viewers the
+   * plan forbids in production.
+   */
+  function bindSpirits(svg, payload) {
+    var stands = svg.querySelectorAll('.arena-spirit');
+    if (!stands.length) { return; }
+    var count = parseInt(payload && payload.spirit_count, 10);
+    if (!(count > 0)) { count = 0; }
+    if (count > stands.length) { count = stands.length; }
+    for (var i = 0; i < stands.length; i++) {
+      stands[i].setAttribute('data-occupancy', i < count ? 'present' : 'empty');
+    }
   }
 
   // The walkway, and the light along its edges.
@@ -1175,6 +1262,10 @@
   function bind(svg, payload, geometry) {
     var occupants = svg.querySelector('[data-arena-layer="occupants"]');
     while (occupants.firstChild) { occupants.removeChild(occupants.firstChild); }
+
+    // The balconies are not seats and hold no occupant records, so they are
+    // settled here, before the seat machinery runs, and never touched by it.
+    bindSpirits(svg, payload);
 
     // Clear every transient attribute first: a poll may free a cell, and a
     // stale occupancy left on it would outlive its occupant.

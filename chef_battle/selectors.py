@@ -1405,6 +1405,88 @@ def spectator_capacity() -> int:
     return len(_oval_seat_list())
 
 
+# AR5 / ARENA_BATTLE_PLAN §2a: behind the two author rows stand the balconies,
+# where unauthorised visitors appear as bodiless spirits. A balcony stand is
+# NOT a seat and must never become one: it carries no ring/cell identity, it is
+# absent from seat_map(), nothing is ever written to ArenaSeat for it, and no
+# name, avatar or profile is attached to it. A spirit is a count made visible,
+# never a person made up.
+BALCONY_ROWS = {"top": 2, "bottom": 2}
+BALCONY_COUNTS = {"top": (24, 22), "bottom": (24, 22)}
+
+
+def _balcony_stand_list(floor_outer_radius=220.0, seat_pitch=None):
+    """Plan-space balcony positions, continuing outward from the author rows.
+
+    Deliberately the same pitch, gap and ellipse as ``_oval_seat_list`` so the
+    balconies read as the next rows of the same hall rather than a second,
+    unrelated grid. They start where the author rows end: row indices continue
+    from SPECTATOR_OVAL_ROWS, so a balcony can never overlap a seat.
+
+    No ``ring`` key is returned, and that omission is the contract — there is no
+    stable id to hold, because nothing may hold one.
+    """
+    import math
+
+    pitch = seat_pitch if seat_pitch is not None else max(11.0, floor_outer_radius * 0.045)
+    gap = floor_outer_radius * 0.055
+    sides = (
+        ("top", -math.pi * 0.75, -math.pi * 0.25),
+        ("bottom", math.pi * 0.25, math.pi * 0.75),
+    )
+    out = []
+    for key, a0, a1 in sides:
+        seat_rows = SPECTATOR_OVAL_ROWS.get(key, 0)
+        counts = BALCONY_COUNTS[key]
+        for row in range(BALCONY_ROWS[key]):
+            depth = seat_rows + row
+            radius = floor_outer_radius + gap + (depth + 0.5) * pitch * 1.02
+            rx = radius * 1.08
+            ry = radius * 0.92
+            arc = a1 - a0
+            count = counts[row]
+            for cell in range(count):
+                t = (cell + 0.5) / count
+                angle = a0 + arc * t
+                out.append({
+                    "side": key,
+                    "row": row,
+                    "index": cell,
+                    "x": rx * math.cos(angle),
+                    "y": ry * math.sin(angle),
+                })
+    return out
+
+
+def balcony_capacity() -> int:
+    """How many spirits the balconies can show at once. Derived, never declared."""
+    return len(_balcony_stand_list())
+
+
+def unauthorised_arena_viewers(now=None) -> int:
+    """Live count of unauthorised visitors present in the arena lobby.
+
+    Reuses the existing DG-04 heartbeat rather than inventing a second presence
+    system: BattleViewerPresence rows with battle=NULL are the lobby surface,
+    ``is_authenticated`` is already recorded on every upsert, and the 180 s
+    window is the same one that decides whether anyone else is shown as online.
+
+    Expect ZERO on production today, and that is the honest answer rather than a
+    fault: both lobby heartbeats sit behind the visibility gate, which 404s an
+    anonymous visitor before the poll runs. The number becomes real on the day
+    the Owner opens the Arena, and nothing here has to change for that.
+    """
+    from .models import BattleViewerPresence
+
+    now = now or timezone.now()
+    cutoff = now - timezone.timedelta(seconds=ARENA_ONLINE_THRESHOLD_SECONDS)
+    return (
+        BattleViewerPresence.objects
+        .filter(battle__isnull=True, is_authenticated=False, last_seen_at__gte=cutoff)
+        .values("viewer_hash").distinct().count()
+    )
+
+
 def get_arena_geometry() -> dict:
     """Declarative arena structure for the procedural (SVG/Canvas) renderer.
 
@@ -1422,6 +1504,7 @@ def get_arena_geometry() -> dict:
             "segments": RANK_RING_SEGMENTS[i - 1],
         })
     oval = _oval_seat_list()
+    balconies = _balcony_stand_list()
     # Compact ring descriptors for oval rows (for seat maps / tests).
     oval_rings = {}
     for seat in oval:
@@ -1448,6 +1531,15 @@ def get_arena_geometry() -> dict:
             "floor_outer_radius": floor_r,
             "capacity": len(oval),
             "seats": oval,
+        },
+        # AR5: the balconies are geometry only. No ring ids, no cells, no seat
+        # map entry — the renderer is told WHERE a spirit may stand, and the
+        # live payload separately says HOW MANY are actually there.
+        "balconies": {
+            "rows_by_side": dict(BALCONY_ROWS),
+            "counts_by_side": {k: list(v) for k, v in BALCONY_COUNTS.items()},
+            "capacity": len(balconies),
+            "stands": balconies,
         },
     }
 

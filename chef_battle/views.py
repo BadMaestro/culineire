@@ -54,6 +54,7 @@ from .selectors import (
     get_arena_deadline,
     get_arena_geometry,
     get_vip_sponsors,
+    unauthorised_arena_viewers,
     spectator_capacity,
     get_starting_battle_blast,
     get_battle_vote_counts,
@@ -1122,6 +1123,11 @@ def _build_arena_payload(*, viewer_author=None):
         # Ring 11 belongs to sponsors (ARENA_BATTLE_PLAN 2a). A NEW key, never a
         # renamed one: the keys above are the frozen contract in P00_CONTRACTS.
         "vip_sponsors": get_vip_sponsors(),
+        # AR5: how many unauthorised visitors are in the lobby right now. A
+        # COUNT, never a list — a spirit has no identity to send. Expect 0 until
+        # the Owner opens the Arena, because the lobby heartbeat sits behind the
+        # visibility gate; that zero is the truth, not a missing feature.
+        "spirit_count": unauthorised_arena_viewers(),
         # Authoritative server clock at payload build so clients can reconcile
         # their own drift against deadline/phase (Ember #171). Never null.
         "server_time": timezone.now().isoformat(),
@@ -1157,6 +1163,7 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         "deadline": payload["deadline"],
         "geometry": payload["geometry"],
         "vip_sponsors": payload["vip_sponsors"],
+        "spirit_count": payload["spirit_count"],
         "server_time": payload["server_time"],
     }
 
@@ -1381,6 +1388,10 @@ PUBLIC_ARENA_STATE_KEYS = (
     # page loaded: bind() reseats from the poll payload, and a key it cannot
     # find reads as "no sponsors" rather than as "not sent".
     "vip_sponsors",
+    # AR5, and the same trap exactly: an absent count is indistinguishable from
+    # a count of zero, so leaving this out would clear the balconies on the
+    # first poll and look like everyone had left.
+    "spirit_count",
     "server_time",
 )
 
