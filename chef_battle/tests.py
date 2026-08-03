@@ -7751,6 +7751,65 @@ class RequestHashTests(TestCase):
         self.assertEqual(BattleVote._meta.get_field("hash_scheme").default, HASH_SCHEME_CURRENT)
 
 
+class ArenaFixtureDisconnectedTests(TestCase):
+    """The arena deck must not invent an audience.
+
+    This guards a switch-off, which is the kind of change that comes back by
+    accident: hydrateFixtures() is still in the file, still exported and still
+    one line from being live again, because the Owner asked for it disconnected
+    rather than deleted. Measured on production the day it was switched off, the
+    server sent zeros for viewers, votes and gifts and an empty crown ladder,
+    while the page showed 2.4K, 3.7K, 620, a full ladder and two chefs who do
+    not exist.
+
+    It is asserted against the ENTRY POINT rather than against the presence of
+    the function, because keeping the function is deliberate and testing for its
+    absence would fail the moment somebody reads the comment and does the right
+    thing.
+    """
+
+    def _deck_source(self):
+        from django.conf import settings as django_settings
+        from pathlib import Path
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_deck.js"
+        ).read_text(encoding="utf-8")
+
+    def test_the_refresh_entry_point_does_not_call_the_fixture(self):
+        """Asserted against EXECUTABLE lines only.
+
+        The first version of this test read the whole block and failed on its
+        own documentation: the comment left at the call site spells out the
+        exact line to put back, so a plain substring search found it there and
+        called the fixture live. Stripping the comments is what makes the check
+        mean 'it is not called' rather than 'it is not mentioned'.
+        """
+        source = self._deck_source()
+        entry = source.split("function refresh(data)", 1)[1].split("\n  }", 1)[0]
+        code = "\n".join(
+            line for line in entry.splitlines()
+            if not line.strip().startswith("//")
+        )
+        self.assertNotIn("hydrateFixtures(", code)
+        self.assertIn("refreshPanels(data);", code)
+
+    def test_the_fixture_is_kept_not_deleted(self):
+        """Disconnect, never delete (AGENTS.md 17.10). If this fails, somebody
+        removed the Owner's scaffold instead of leaving it switched off."""
+        source = self._deck_source()
+        self.assertIn("function hydrateFixtures(data)", source)
+        self.assertIn("hydrateFixtures: hydrateFixtures", source)
+
+    def test_the_live_marker_is_withdrawn_when_the_centre_is_not_live(self):
+        """The fixture branch had no else, so 'Live Now' survived every later
+        poll once written and only a reload cleared it."""
+        source = self._deck_source()
+        copy = source.split("function refreshBroadcastCopy(data)", 1)[1].split(
+            "\n  }", 1
+        )[0]
+        self.assertIn("liveNote.classList.remove('is-live')", copy)
+
+
 class ArenaRankColumnTests(TestCase):
     """Stage 3E — the rank floor column.
 

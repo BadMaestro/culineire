@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.782",
+        "date": "2026-08-03",
+        "commit": "",
+        "title": "The arena stops inventing its audience",
+        "section": "Chef Battles / Arena",
+        "summary": "Four loose ends closed on the Owner's order, the first of which was the only one that touched the product. THE FIXTURE IS DISCONNECTED. Measured on production the hour it was switched off: the server was sending active_viewers 0, public_votes 0, battle_gifts 0 and an empty crown ladder, and the page was showing 2.4K, 3.7K, 620, a populated ladder and a battle between two chefs who do not exist. It carried the words 'fixture until wired' on screen and was harmless only while the Arena stays staff-only; on the day it opens, the first thing a visitor would have read is an invented audience, which ARENA_BATTLE_PLAN section 2 forbids outright. Disconnected the way the constitution requires and not deleted: one line at the entry point, with the function, the constant and the export all kept, so restoring it is putting that line back. The template needs no help here - with no active battle it renders 'Crown holds the centre' and '0 watching' on its own. A second, smaller fault in the same file went with it: the fixture branch of refreshBroadcastCopy had no else, so once it had written 'Live Now' the marker survived every later poll and only a reload cleared it; the retraction is written now, while the reason is known, rather than left for whoever switches the fixture back on. Also closed: v2.5.702 had shipped with no journal row and is back-filled from commit e821096f itself rather than from memory, a board release that closed A06 and promoted A07; the A3 board card claimed a lightweight anonymous presence signal did not exist, which was already false when written - BattleViewerPresence records is_authenticated on every lobby heartbeat and is exactly what the AR5 spirit count reads; and three tests now pin the disconnection so the fixture cannot come back unnoticed.",
+    },
+    {
         "version": "2.5.779",
         "date": "2026-08-03",
         "commit": "42bbf99c",
@@ -198,6 +206,14 @@ RELEASE_JOURNAL = [
         "title": "Cooking Widget live phase card width restored",
         "section": "Chef Battles / Arena",
         "summary": "Production wide-screen verification found that a legacy phase-card width rule could collapse the reused live phase panel into a narrow vertical strip. The independent Cooking Widget now explicitly owns the full available width while retaining the existing shared panel chrome. No octagon, floor, phase, timer, polling, payload, access or battle mechanism changed. Rollback: revert the deployment commit and redeploy.",
+    },
+    {
+        "version": "2.5.702",
+        "date": "2026-07-29",
+        "commit": "e821096f",
+        "title": "Board moved: A06 closed, A07 promoted, board-first rule recorded",
+        "section": "Chef Battles / Arena",
+        "summary": "Back-filled 2026-08-03 from the commit itself, not from anybody's memory: the version shipped and then sat with no journal row between 703 and 701 for five days. e821096f is a board release and touched no product code. A06, the production/reference measurement matrix, moved to DONE with its evidence on main; A07 was promoted to NEXT in both ARENA_DESIGN_TASKS (recipes/views.py) and plan section 5; A06 was added to section 4; exactly one NEXT was kept, because two would 500 the build board. It also recorded the Owner rule that now governs every card: before taking a new one, confirm the previous card is DONE and deployed on the board first. Focused board tests were updated to A07 and passed on PostgreSQL in parallel. Nothing about the arena's appearance or behaviour changed in this release.",
     },
     {
         "version": "2.5.701",

@@ -144,6 +144,15 @@
       if (floorStrong) { floorStrong.textContent = 'Live cooking in progress'; }
       if (floorEm) { floorEm.textContent = 'One scene · live hierarchy · fixture until wired'; }
       if (tickerPhase) { tickerPhase.textContent = 'Cooking'; }
+    } else if (liveNote && !hasLiveBattleCentre(data && data.center)) {
+      // The fixture branch had no else, so once it had written "Live Now" the
+      // caption survived every later poll and only a reload cleared it. With the
+      // fixture disconnected this branch never fired, which would have hidden
+      // the fault rather than fixed it — so the retraction is written now, while
+      // the reason is known, and not left for whoever switches the fixture back
+      // on. Only the live marker is withdrawn; the floor captions belong to the
+      // template, which renders them truthfully from active_battle.
+      liveNote.classList.remove('is-live');
     }
     if (tickerWatch) { tickerWatch.textContent = viewers + ' watching'; }
   }
@@ -568,7 +577,21 @@
 
   function refresh(data) {
     if (!data) { return; }
-    data = hydrateFixtures(data);
+    // FIXTURE DISCONNECTED (Owner, 2026-08-03). One line, reversible: put
+    // `data = hydrateFixtures(data);` back here to restore it. The function, the
+    // LIVE_FIXTURE constant and the export below are all deliberately kept.
+    //
+    // What it was doing, measured on production the day it was switched off: the
+    // server sent active_viewers 0, public_votes 0, battle_gifts 0 and an empty
+    // crown ladder, while the screen showed 2.4K, 3.7K, 620, a populated ladder
+    // and a battle between two people who do not exist. It was labelled "fixture
+    // until wired" on screen, and it was harmless only while the Arena stays
+    // staff-only — on the day it opens, the first thing a visitor would read is
+    // an invented audience. ARENA_BATTLE_PLAN §2 forbids fake viewers, gifts,
+    // rankings and results in production outright.
+    //
+    // The page does not need it: with no active battle the template renders
+    // "Crown holds the centre" and "0 watching" by itself, which is the truth.
     refreshPanels(data);
     refreshReadModel(data);
     refreshDeadline(data);

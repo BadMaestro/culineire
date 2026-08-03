@@ -4073,20 +4073,39 @@ class ArenaBuildPlanTests(TestCase):
         self.assertNotContains(resp, "pending v2.5.691")
         self.assertNotContains(resp, "Verify and deploy v2.5.691")
 
-    def test_design_task_ids_are_unique_and_only_ar4_is_next(self):
+    def test_design_task_ids_are_unique_and_exactly_one_card_is_next(self):
+        """EXACTLY ONE, and the count matters more than which card it is.
+
+        _arena_build_context() runs `next(t for t in ARENA_DESIGN_TASKS if
+        t["status"] == "NEXT")` with no default, so ZERO NEXT raises
+        StopIteration and the entire build board 500s. Not hypothetical:
+        v2.5.778 closed AR5 without promoting its successor in this list - the
+        markdown plan was updated and this list was not - and the board stayed
+        down until v2.5.782 found it.
+
+        The old name pinned whichever card happened to be next, so it read as
+        bookkeeping to be hand-edited on every move rather than as the invariant
+        that keeps the page alive. The id is still asserted, because a silent
+        jump in the queue matters too, but the COUNT is asserted first and on
+        its own, with the offenders named in the message.
+        """
         from recipes.views import ARENA_DESIGN_TASKS
 
         ids = [task["id"] for task in ARENA_DESIGN_TASKS]
         self.assertEqual(len(ids), 31)
         self.assertEqual(len(ids), len(set(ids)))
+
+        nexts = [task["id"] for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"]
         self.assertEqual(
-            [task["id"] for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"],
-            ["AR4"],
+            len(nexts), 1,
+            f"the build board needs exactly one NEXT card or it 500s; found "
+            f"{len(nexts)}: {nexts}",
         )
+        self.assertEqual(nexts, ["A07"])
         self.assertEqual(
             [task["id"] for task in ARENA_DESIGN_TASKS
              if task["status"] in {"NEXT", "IN PROGRESS"}],
-            ["AR4"],
+            ["A07"],
         )
         required = {
             "id", "group", "title", "status", "owner", "files", "depends_on",

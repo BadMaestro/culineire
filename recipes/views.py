@@ -3118,7 +3118,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A07", "group": "Arena Hall", "title": "Stage framing and full-octagon composition",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "NEXT", "owner": "GreenBear",
         "files": "static/css/arena_hall.css or the final scoped Arena composition layer; templates/chef_battle/arena.html cache key",
         "depends_on": "AR5",
         "action": "Match the measured stage scale and placement so the complete octagon sits in the intended desktop frame.",
