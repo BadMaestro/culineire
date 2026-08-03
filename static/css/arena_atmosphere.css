@@ -705,8 +705,17 @@
   pointer-events: none !important;
 }
 
-.page--arena #arena-render .arena-crowd-figure {
-  /* Atmospheric stand-ins off (Owner). Paid face assets remain in static/. */
+/* Owner 2026-07-27 (v2.5.612) switched the atmospheric stand-ins off, because
+   they were portraits sitting IN EMPTY SEATS — a face where no person was. The
+   files were kept, in his words, "for a later real crowd pass", and A08 on
+   2026-08-03 is that pass.
+
+   So the switch-off is not lifted, it is aimed. A figure nested in a seat host
+   group is one of the portraits he stopped, and it stays impossible. A figure in
+   the crowd layer is scenery standing BEHIND the stands, carries no identity and
+   takes no pointer events, and that is what A08 turns on. Written this way round
+   so nothing has to out-important anything. */
+.page--arena #arena-render .arena-seat-group .arena-crowd-figure {
   display: none !important;
 }
 

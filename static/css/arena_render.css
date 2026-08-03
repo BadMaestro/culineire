@@ -819,8 +819,16 @@
    so a real spectator's own avatar reads as a lit face among them rather than
    as one more identical head. */
 #arena-render .arena-crowd-figure {
-  opacity: 0.55;
-  filter: saturate(0.5) brightness(0.72) sepia(0.28);
+  /* Depth comes in on the element as --crowd-dim, so the stylesheet still owns
+     the property and the row still owns the number. A flat opacity here would
+     beat a presentation attribute on the figure and flatten the bowl — a CSS
+     declaration outranks an SVG attribute, which is not obvious until it costs
+     an afternoon.
+
+     The saturate/brightness/sepia that used to sit here is gone rather than
+     kept as decoration: arena_atmosphere.css kills every filter on this floor
+     with an !important, so it had never once applied. */
+  opacity: var(--crowd-dim, 0.55);
 }
 
 

@@ -1100,14 +1100,112 @@
   // real crowd pass; do not delete them. fillCrowd only clears leftover
   // .arena-crowd-figure nodes so polls do not leave ghosts. Real payload
   // spectators still render via appendOccupant / occupants layer.
+  // A08 — how many atmospheric rows stand behind the real ones, and how far
+  // apart. Fractions of the distance from the floor centre, so the bowl grows
+  // with the stage instead of drifting off it at another size.
+  var CROWD_ROWS = 3;
+  var CROWD_ROW_STEP = 0.085;
+
+  /**
+   * The atmospheric crowd: the hall BEHIND the seats, never the seats.
+   *
+   * On 2026-07-27 the Owner had the crowd faces stopped (v2.5.612) because they
+   * were stand-in portraits sitting IN EMPTY SEATS — a face where a person was
+   * not. The files were kept, in his words, "for a later real crowd pass", and
+   * this is that pass. The line he drew is the one thing this function must not
+   * cross, so nothing here ever touches a seat element: the figures live in
+   * their own layer, behind the stands, carry no slug, no occupancy, no online
+   * state and no pointer events. They are scenery, and they cannot be clicked,
+   * hovered, counted or mistaken for somebody who is present.
+   *
+   * Placement is derived from the seats that were actually drawn rather than
+   * from a second copy of the seating geometry: each figure is a real seat's own
+   * position pushed further from the floor centre. So if the seat contract
+   * changes again, the crowd follows it instead of drifting behind it — which is
+   * exactly how the last seating change left a whole rank ring with no beacon.
+   *
+   * Left and right are deliberately left empty: that is where AR5 puts the
+   * spirit balconies, and painting them now would only be repainted then.
+   */
   function fillCrowd(svg, geometry, assignments) {
     var layer = svg.querySelector('[data-arena-layer="crowd"]');
-    if (layer) {
-      while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-    }
+    if (!layer) { return; }
+    while (layer.firstChild) { layer.removeChild(layer.firstChild); }
     Array.prototype.forEach.call(svg.querySelectorAll('.arena-crowd-figure'), function (figure) {
       if (figure.parentNode) { figure.parentNode.removeChild(figure); }
     });
+
+    var faces = global.ARENA_CROWD_FACES || [];
+    if (!faces.length) { return; }
+
+    // The outermost real row on each side is what the crowd stands behind.
+    var anchors = [];
+    ['top', 'bottom'].forEach(function (side) {
+      var seats = svg.querySelectorAll('[data-ring-kind="spectator"][data-side="' + side + '"]');
+      var outerRow = -1;
+      Array.prototype.forEach.call(seats, function (seat) {
+        var row = parseInt(seat.getAttribute('data-row'), 10);
+        if (isFinite(row) && row > outerRow) { outerRow = row; }
+      });
+      Array.prototype.forEach.call(seats, function (seat) {
+        if (parseInt(seat.getAttribute('data-row'), 10) !== outerRow) { return; }
+        var x = parseFloat(seat.getAttribute('cx'));
+        var y = parseFloat(seat.getAttribute('cy'));
+        var r = parseFloat(seat.getAttribute('r'));
+        if (isFinite(x) && isFinite(y)) { anchors.push({ x: x, y: y, r: isFinite(r) ? r : 5.6 }); }
+      });
+    });
+    if (!anchors.length) { return; }
+
+    var defs = svg.querySelector('defs');
+    var clipReady = svg.querySelector('#arena-crowd-face-clip') !== null;
+    if (defs && !clipReady) {
+      var clip = el('clipPath', { id: 'arena-crowd-face-clip', clipPathUnits: 'objectBoundingBox' });
+      clip.appendChild(el('circle', { cx: '0.5', cy: '0.5', r: '0.5' }));
+      defs.appendChild(clip);
+    }
+
+    var index = 0;
+    for (var row = 1; row <= CROWD_ROWS; row++) {
+      var push = 1 + row * CROWD_ROW_STEP;
+      // Further back is smaller and dimmer. Opacity, not filter: every filter on
+      // this floor is killed by an !important in arena_atmosphere.css written to
+      // stop avatar glow escaping the rim, and that is what silently swallowed
+      // the seat rows' own depth until A08 measured it.
+      var scale = 1 - row * 0.11;
+      var dim = 0.62 - (row - 1) * 0.16;
+      for (var i = 0; i < anchors.length; i++) {
+        // Alternate rows are offset by half a seat so the crowd does not read as
+        // a grid of columns marching away from the floor.
+        if (row % 2 === 1 && i === anchors.length - 1) { continue; }
+        var a = anchors[i];
+        var b = row % 2 === 1 ? anchors[i + 1] : null;
+        var ax = b ? (a.x + b.x) / 2 : a.x;
+        var ay = b ? (a.y + b.y) / 2 : a.y;
+        var x = TPL_CX + (ax - TPL_CX) * push;
+        var y = TPL_CY + (ay - TPL_CY) * push;
+        var size = a.r * 2 * scale;
+
+        var figure = el('image', {
+          href: faces[index % faces.length],
+          x: (x - size / 2).toFixed(2),
+          y: (y - size / 2).toFixed(2),
+          width: size.toFixed(2),
+          height: size.toFixed(2),
+          preserveAspectRatio: 'xMidYMid slice',
+          'clip-path': 'url(#arena-crowd-face-clip)',
+          // Depth as a custom property, not an opacity attribute: the stylesheet
+          // sets opacity from it, and a CSS declaration outranks an SVG
+          // attribute — an attribute here would simply be ignored.
+          style: '--crowd-dim: ' + dim.toFixed(2),
+          'pointer-events': 'none',
+          'aria-hidden': 'true',
+          class: 'arena-crowd-figure'
+        });
+        layer.appendChild(figure);
+        index++;
+      }
+    }
   }
 
   function initialOf(entity) {
