@@ -259,13 +259,20 @@
         not a side column — over the floor centre under the confrontation band.
       {% endcomment %}
       {% comment %}
-        Owner 2026-07-31: the rank ladder is switched OFF. Disconnected, not
-        deleted (AGENTS.md 17.10) — the markup, the data and every stylesheet
-        rule stay exactly as they were, so removing this one `hidden` puts the
-        whole ladder back. Product contract 12 asks for a rank column; the
-        Owner's instruction outranks it and the divergence is recorded here.
+        The rank ladder was switched OFF on 2026-07-31 and back ON on
+        2026-08-03, both on the Owner's word. It came back by deleting one
+        `hidden` because it was disconnected rather than deleted in the first
+        place (AGENTS.md 17.10) — markup, data and every stylesheet rule stood
+        untouched through the three days it was dark.
+
+        Worth keeping: while it was off, the media layer was restored and the
+        rule "the ladder is never display:none below 768px" became true in the
+        stylesheet and false on the screen. The test that guards it reads
+        stylesheet TEXT, so it passed throughout and could not tell those two
+        states apart. Nobody softened it; it simply answers a narrower question
+        than its name promises.
       {% endcomment %}
-      <div class="arena-rank-spine" aria-label="Kitchen rank ladder" hidden>
+      <div class="arena-rank-spine" aria-label="Kitchen rank ladder">
         <p class="arena-rank-spine__label">Kitchen rank progression</p>
         <ol class="arena-rank-spine__list">
           {% for rank, chefs in rank_groups %}
