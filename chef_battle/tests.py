@@ -8895,3 +8895,107 @@ class SetSponsorTaglineCommandTests(TestCase):
         self._run(name="Bearcave", cell_number=2, tagline="Narrowed", apply=True)
         second.refresh_from_db()
         self.assertEqual(second.sponsor_tagline, "Narrowed")
+
+
+class PruneOrphanSponsorFilesTests(TestCase):
+    """Deleting files on a live server is where a clever one-liner is worst.
+
+    What matters is not that it deletes — it is that a file named by ANY upload
+    field on either model is never a candidate, including the legacy pending
+    field that a substring-matching cleanup would forget.
+
+    MEDIA_ROOT is redirected at a temporary directory for the whole class, and
+    that is not tidiness. Written without it, the first run of these tests read
+    the developer's real media directory — 77 live files instead of the five it
+    had created — and the --apply case would have deleted them. A test that can
+    reach the real disk is not testing the command, it is using it.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        import tempfile
+
+        cls._media = tempfile.TemporaryDirectory()
+        cls._override = override_settings(MEDIA_ROOT=cls._media.name)
+        cls._override.enable()
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls._override.disable()
+        cls._media.cleanup()
+
+    def setUp(self):
+        from django.core.files.base import ContentFile
+        from django.core.files.storage import FileSystemStorage
+
+        from django.conf import settings
+
+        # A fresh handle, not default_storage: that one caches its location at
+        # import time and would still be pointing at the real media root.
+        self.storage = FileSystemStorage(location=settings.MEDIA_ROOT)
+        self.made = []
+        for name in ("kept.png", "kept_pending.png", "kept_application.png", "orphan_a.png", "orphan_b.png"):
+            path = self.storage.save(f"sponsors/applications/{name}", ContentFile(b"x" * 10))
+            self.made.append(path)
+
+    def tearDown(self):
+        for path in self.made:
+            if self.storage.exists(path):
+                self.storage.delete(path)
+
+    def _run(self, **kwargs):
+        from io import StringIO
+
+        out = StringIO()
+        call_command("prune_orphan_sponsor_files", stdout=out, **kwargs)
+        return out.getvalue()
+
+    def _seed_references(self):
+        from sponsors.models import SponsorApplication, SponsorCell
+
+        cell = SponsorCell.objects.create(
+            cell_number=1, ring=1, position_in_ring=1,
+            status=SponsorCell.Status.ACTIVE, sponsor_name="Kept Co",
+            sponsor_logo=self.made[0], logo_pending=self.made[1],
+        )
+        SponsorApplication.objects.create(
+            cell=cell, sponsor_name="Kept Co", logo=self.made[2],
+            price_net_cents=0,
+        )
+
+    def test_dry_run_deletes_nothing_and_counts_correctly(self):
+        self._seed_references()
+        out = self._run()
+        self.assertIn("DRY RUN", out)
+        for path in self.made:
+            self.assertTrue(self.storage.exists(path), path)
+
+    def test_every_upload_field_protects_its_file(self):
+        self._seed_references()
+        out = self._run()
+        # All three referencing fields must appear as survivors, the legacy
+        # pending one included.
+        for path in self.made[:3]:
+            self.assertIn(f"KEEP {path}", out)
+        for path in self.made[3:]:
+            self.assertIn(f"ORPHAN {path}", out)
+
+    def test_apply_removes_only_the_orphans(self):
+        self._seed_references()
+        self._run(apply=True)
+        for path in self.made[:3]:
+            self.assertTrue(self.storage.exists(path), f"referenced file deleted: {path}")
+        for path in self.made[3:]:
+            self.assertFalse(self.storage.exists(path), f"orphan survived: {path}")
+
+    def test_limit_caps_a_run(self):
+        self._seed_references()
+        self._run(apply=True, limit=1)
+        survivors = [p for p in self.made[3:] if self.storage.exists(p)]
+        self.assertEqual(len(survivors), 1)
+
+    def test_with_no_references_everything_is_an_orphan(self):
+        out = self._run()
+        self.assertIn("orphans=5", out)
