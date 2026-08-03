@@ -1,11 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.779",
+        "date": "2026-08-03",
+        "commit": "42bbf99c",
+        "title": "A08 - the hall behind the seats is populated",
+        "section": "Chef Battles / Arena",
+        "summary": "The crowd layer held nothing and 96 approved face assets were shipped to the page and used by nobody. The line this could not cross was already drawn: on 2026-07-27 the Owner had the crowd faces stopped because they were stand-in portraits sitting IN EMPTY SEATS, keeping the files \"for a later real crowd pass\". This is that pass, so the switch-off is aimed rather than lifted - a figure nested in a seat host group stays impossible and only the crowd layer is on. 172 figures now stand three rows deep behind the outermost real row, top and bottom only, each row smaller and dimmer, alternate rows offset by half a seat. They carry no slug, no occupancy, no online state and no pointer events. Placement is derived from the seats actually drawn - a real seat position pushed outward - so a seat contract change carries the crowd with it instead of stranding it, which is what cost a whole rank ring its beacon last time the seating moved. Left and right stay empty for AR5. Depth arrives as --crowd-dim and the stylesheet sets opacity from it: an opacity ATTRIBUTE was silently beaten by a flat 0.55 in the rule, because a CSS declaration outranks an SVG presentation attribute. Measured on production: 172 figures at 0.62/0.46/0.30, 0 in seat groups, 114 real seats intact, no console errors.",
+    },
+    {
         "version": "2.5.778",
         "date": "2026-08-03",
         "commit": "",
         "title": "AR5 - the spirit balconies, and a count that refuses to invent itself",
         "section": "Chef Battles / Arena",
         "summary": "The other half of AR5. The VIP sponsor ring shipped in v2.5.765-768; this is the balconies behind the author rows, where ARENA_BATTLE_PLAN 2a puts unauthorised visitors as bodiless spirits. The design rule is one sentence and everything follows from it: a spirit is a count made visible, never a person made up. So a balcony stand carries no ring id, no cell, no seat-map entry and no ArenaSeat row - there is deliberately nothing to hold, which is what makes seating somebody there impossible rather than merely forbidden. How many are lit comes from the live payload on every poll, not from the page load, because the stands are drawn once and bind() sets occupancy exactly as it does for seats. The count itself reuses the existing DG-04 heartbeat rather than inventing a second presence system: BattleViewerPresence rows with battle NULL are the lobby surface, is_authenticated is already recorded on every upsert, and the 180 second window is the same one that decides whether anyone else is shown as online. spirit_count went into PUBLIC_ARENA_STATE_KEYS deliberately - an absent key is indistinguishable from a count of zero, and leaving it out would have emptied the balconies thirty seconds after every page load, the identical trap the sponsors key documents one line above. Expect ZERO spirits on production today and that is the honest number, not a defect: both lobby heartbeats sit behind the visibility gate, so an anonymous visitor gets a 404 before anything can record them. No placeholder crowd was put there to make the balconies look inhabited - the plan forbids fake viewers outright, and a balcony that lies is worse than one that is empty. 576 chef_battle tests green.",
+    },
+    {
+        "version": "2.5.777",
+        "date": "2026-08-03",
+        "commit": "a3e27b34",
+        "title": "A08 - the stands stop being a pale dot ring",
+        "section": "Chef Battles / Arena",
+        "summary": "The card asks for a dark crowd bowl. The mechanism existed and had never once reached the screen: --row-light was set per row exactly as designed, 1.000 near and 0.550 far, and the computed filter on every seat was none. arena_atmosphere.css carries `.page--arena #arena-render .arena-cell { filter: none !important }`, written to stop avatar glow escaping the rim, and a stand seat carries .arena-cell too - so the fall-off was computed on every poll and thrown away by an !important meant for something else. Proved rather than reasoned: an inline brightness on the same circle also computed to none while the identical inline filter on a control div did not. The fall-off moved into the fill, which nothing holds down, and the rim protection was left untouched. Two wrong turns on the way, both caught by measuring instead of looking: v2.5.775 changed nothing because arena_deck_polish.css owns the stand colour at a higher specificity - the trap this file's own header warns about - and v2.5.776 put the depth in backwards, because the \"deeper\" token was mixed from --brand-dark, a warm brown at luminance 0.32 against a bowl at 0.16. Depth is now the light varying over a fixed floor. Live: stands #656463 to #292929, near row 11.5% brighter than far, stands 4x darker than the lit floor.",
+    },
+    {
+        "version": "2.5.774",
+        "date": "2026-08-03",
+        "commit": "85e12ced",
+        "title": "The rank ladder is back on",
+        "section": "Chef Battles / Arena",
+        "summary": "Switched off on 2026-07-31 on the Owner's word and back on 2026-08-03 on his word, by deleting a single `hidden` - which is the whole reason it was disconnected rather than deleted. Markup, data and every stylesheet rule stood untouched through the three days it was dark. It also closed a real divergence: while it was off the media layer was restored, and the rule \"the ladder is never display:none below 768px\" was true in the stylesheet and false on the screen. The test guarding it reads stylesheet TEXT, so it passed throughout and could not tell those two states apart - never softened, simply answering a narrower question than its name promises. Verified live: hidden gone, display flex, real box on screen, all eight ranks present.",
     },
     {
         "version": "2.5.772",

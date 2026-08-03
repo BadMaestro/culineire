@@ -3129,14 +3129,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A08", "group": "Arena Hall", "title": "Crowd bowl depth and atmospheric population",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "DONE", "owner": "GreenBear",
         "files": "static/css/arena_atmosphere.css; static/css/arena_render.css; approved crowd assets only",
         "depends_on": "A06",
         "action": "Complete the dark crowd bowl and atmospheric depth around the separate real 290-seat layer.",
         "visible_result": "Stands read as a dense hall around the lit floor rather than a pale dot ring.",
         "acceptance": "Real seats remain honest and clickable; atmospheric figures cannot impersonate users; centre stays clear.",
         "forbidden": "No fake interactive occupants, no seat-contract change and no removal of approved effects.",
-        "evidence": "Darkening landed v2.5.686/v2.5.688; density/reference parity remains.",
+        "evidence": "DONE v2.5.775-779. Depth: --row-light was computed per row and discarded by `filter: none !important` on every cell in arena_atmosphere.css, so the fall-off moved into the fill; stands went #656463 to #292929, near row now 11.5% brighter than far, stands 4x darker than the lit floor. Population: 172 atmospheric figures in three rows BEHIND the outermost real seat row, top and bottom only - 0 in seat groups, no slug, no pointer events, honouring the 2026-07-27 order that stopped faces in empty seats. 114 real seats intact.",
     },
     {
         "id": "A09", "group": "Arena Hall", "title": "Live challenger/opponent composition",

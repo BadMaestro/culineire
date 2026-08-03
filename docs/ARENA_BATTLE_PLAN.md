@@ -5,7 +5,7 @@ contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
 Last reconciled: 2026-08-03 · Production baseline: **v2.5.778**
-· Next assignable card: **A07** (A08 is in flight ahead of it, v2.5.775–777).
+· Next assignable card: **A07**. (A08 ran ahead of it and is DONE, v2.5.775–779.)
 
 ## 1. Current team and ownership
 
@@ -125,6 +125,7 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 | AR0 | Arena CSS/JS dead-code inventory (read-only) | ops/audits/arena/AR0_dead_code_inventory_2026-07-29.md |
 | AR1 | Arena owns its eleven-ring geometry; Sponsors grid no longer borrowed | v2.5.709–v2.5.710 |
 | AR3 | Moat lit by eight lanterns; glint on the Crown plate | v2.5.736 |
+| A08 | Crowd bowl depth, and the hall behind the seats populated | v2.5.775–779 |
 | AR4 | Author seats: two rows top, two bottom; capacity 290 → 114 | v2.5.769 |
 | AR5 | VIP sponsor ring; spirit balconies driven by a real anonymous count | v2.5.765–768, v2.5.778 |
 
@@ -148,7 +149,7 @@ forbidden changes and evidence for every row below.
 | AR4 | Arena Hall | Author seat rows (two top, two bottom) | Bolt | AR1 | DONE |
 | AR5 | Arena Hall | Spirit balconies + VIP sponsor ring | GreenBear + Bolt | AR4 | DONE |
 | **A07** | Arena Hall | Stage framing and full-octagon composition | GreenBear | AR5 | **NEXT** |
-| A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | PENDING |
+| A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | DONE |
 | A09 | Arena Hall | Live challenger/opponent composition | Ember | A07 | PENDING |
 | A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | PENDING |
 | A11 | Furniture | Phase panel reference pass | Ember | A06 | PENDING |
