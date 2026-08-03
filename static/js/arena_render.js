@@ -566,11 +566,9 @@
           }));
 
           // Every fourth box is centred exactly on an octagon vertex (32 boxes at
-          // 11.25 degrees, a face is 45), so that box is folded by the corner.
-          // The word is folded with it: half on each face, each half rotated to
-          // its own side, so SPONSORS turns the corner instead of fighting it.
-          // The three boxes between corners are flat and carry V, I and P.
-          var mid = (startAngle + endAngle) / 2;
+          // 11.25 degrees, a face is 45), so that box is folded by the corner and
+          // carries the whole word, bent around it. The three boxes between
+          // corners are flat and carry V, I and P, one letter each.
           var addLabel = function (text, a0, a1, cls) {
             var c = tpl.segmentCentroid(cx, cy, innerR + gap, outerR - gap / 2, a0, a1);
             var deg = ((a0 + a1) / 2) * 180 / Math.PI + 90;
@@ -585,8 +583,41 @@
             cells.appendChild(node);
           };
           if ((pos % 4) === 0) {
-            addLabel('SPON', startAngle, mid, 'arena-vip-label arena-vip-label--word');
-            addLabel('SORS', mid, endAngle, 'arena-vip-label arena-vip-label--word');
+            // SPONSORS had been set as two halves, SPON and SORS, each in its own
+            // <text> rotated about its own half-centroid. Two rotations about two
+            // different centres cannot meet: the word read as cut in half at the
+            // corner, which is what the Owner has been looking at since 2026-07-30.
+            //
+            // One word, one guide. The guide is the middle of the box's band,
+            // sampled along the octagon — so it TURNS at the vertex by itself,
+            // because octRadius already knows where the corner is — and the word
+            // is laid on it. It bends with the corner instead of being broken by it.
+            var guideR = ((innerR + gap) + (outerR - gap / 2)) / 2;
+            var guideId = 'arena-vip-word-' + pos;
+            var steps = 16;
+            var guide = [];
+            for (var gi = 0; gi <= steps; gi++) {
+              var ga = startAngle + (endAngle - startAngle) * (gi / steps);
+              var gp = tpl.octPoint(cx, cy, ga, guideR);
+              guide.push(gp[0].toFixed(2) + ',' + gp[1].toFixed(2));
+            }
+            defs.appendChild(el('path', {
+              id: guideId, fill: 'none', d: 'M ' + guide.join(' L ')
+            }));
+
+            var word = el('text', {
+              'dominant-baseline': 'central',
+              'pointer-events': 'none',
+              class: 'arena-vip-label arena-vip-label--word'
+            });
+            var wordPath = el('textPath', {
+              href: '#' + guideId,
+              startOffset: '50%',
+              'text-anchor': 'middle'
+            });
+            wordPath.textContent = 'SPONSORS';
+            word.appendChild(wordPath);
+            cells.appendChild(word);
           } else {
             addLabel(['', 'V', 'I', 'P'][pos % 4], startAngle, endAngle, 'arena-vip-label');
           }
