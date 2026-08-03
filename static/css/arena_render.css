@@ -49,6 +49,11 @@
      page's light surface, so it stays inside the palette. */
   --arena-vip-gold: color-mix(in srgb, var(--accent-bronze) 72%, var(--surface-soft));
   --arena-seat: var(--surface-soft);
+  /* A08 — the back of the hall. --arena-bowl and --ink are the same neutral
+     since the ink was flattened on 2026-07-30, so a bowl mixed only from those
+     two has nowhere left to go darker; the far rows had no depth to fall into.
+     Mixed from the brand's own dark rather than restated as a literal. */
+  --arena-bowl-deep: color-mix(in srgb, var(--arena-bowl) 62%, var(--brand-dark));
   --arena-seam: var(--surface);
   --arena-stage-ink: var(--brand-dark);
   /* The scheme's bronze accent (--about-accent) is declared inside .about-deck,
@@ -482,8 +487,46 @@
    cannot survive the contract changing, so the fall-off is driven from
    row / rows_total in arena_render.js instead — the same numbers the faces use,
    one mechanism, no list to forget. */
-#arena-render [data-ring-kind="spectator"] {
-  filter: brightness(var(--row-light, 1));
+/* A08. This was `filter: brightness(var(--row-light, 1))`, and it never once
+   reached the screen. arena_atmosphere.css carries
+   `.page--arena #arena-render .arena-cell { filter: none !important }` — written
+   to stop avatar glow bleeding past the rim — and a stand seat carries
+   .arena-cell too, so every row was computed in JavaScript and thrown away by
+   an !important meant for something else. Measured on production before this
+   change: --row-light 1.000 on the near row and 0.550 on the far one, and
+   computed filter `none` on both; an inline brightness on the same circle also
+   computed to none, while the identical inline filter on a control div did not.
+
+   So the fall-off stops asking for `filter` at all and lands in the fill, which
+   nothing is holding down. The near row keeps the stage light; the far row is
+   mixed toward the deep bowl by exactly the same --row-light the renderer
+   already sets, so there is still ONE mechanism and no list of ring numbers to
+   forget. The rim protection above is untouched. */
+#arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
+  fill: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--ink) 74%, var(--arena-bowl))
+      calc(var(--row-light, 1) * 100%),
+    var(--arena-bowl-deep)
+  );
+  stroke: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--ink) 88%, var(--arena-bowl-edge))
+      calc(var(--row-light, 1) * 100%),
+    var(--arena-bowl-deep)
+  );
+}
+
+/* An occupied seat is a real person and stays legible wherever they sit: the
+   fall-off touches it, but from a brighter start and by half as much, so a back
+   row never swallows someone who is actually there. */
+#arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
+  fill: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--arena-spot) 30%, var(--arena-bowl))
+      calc((0.5 + var(--row-light, 1) * 0.5) * 100%),
+    var(--arena-bowl-deep)
+  );
 }
 
 /* ----------------------------------------------------------------------------
