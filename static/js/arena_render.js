@@ -632,6 +632,17 @@
           var vipClip = el('clipPath', { id: 'arena-clip-vip-' + pos });
           vipClip.appendChild(el('path', { d: d }));
           defs.appendChild(vipClip);
+
+          // Owner 2026-08-03: a gold firefly runs around an ACTIVE box. Same
+          // outline, same running dash as a chef's — gold, because the ring is
+          // sold rather than earned. It goes in the sparks layer, above both the
+          // sponsors and the chefs, so a logo cannot bury the light that says
+          // the box is taken.
+          sparks.appendChild(el('path', {
+            d: d, pathLength: '100', fill: 'none',
+            'data-vip-spark': String(pos),
+            'pointer-events': 'none', class: 'arena-vip-spark'
+          }));
         }
 
         // Portrait clips are keyed by the seating index, so only real seat
@@ -1253,6 +1264,9 @@
     Array.prototype.forEach.call(svg.querySelectorAll('[data-vip-label]'), function (label) {
       label.removeAttribute('hidden');
     });
+    Array.prototype.forEach.call(svg.querySelectorAll('[data-vip-spark]'), function (spark) {
+      spark.removeAttribute('data-lit');
+    });
 
     var list = Array.isArray(sponsors) ? sponsors : [];
     var seats = Math.min(list.length, boxes.length);
@@ -1268,6 +1282,9 @@
       // it carries the sponsor, not the letter S of the word SPONSORS.
       var label = svg.querySelector('[data-vip-label="' + cell + '"]');
       if (label) { label.setAttribute('hidden', 'hidden'); }
+
+      var vipSpark = svg.querySelector('[data-vip-spark="' + cell + '"]');
+      if (vipSpark) { vipSpark.setAttribute('data-lit', 'true'); }
 
       // A logo goes in exactly the way a chef's face does (appendOccupant):
       // measure the box, cover its bbox with a square 8% larger, slice rather
@@ -2184,6 +2201,25 @@
         global.ArenaBattleRoom.open(stageCentre.popup_url, stageCentre.battle_url);
         return;
       }
+      // Owner 2026-08-03: every VIP box answers a click, sold or not. A sold one
+      // goes to its sponsor — that visit is what the box was bought for — and a
+      // free one goes to the page where it can be bought. Handled here rather
+      // than on a listener of its own: one interactive behaviour, one event
+      // owner (TECHNICAL_STANDARDS 6).
+      var vipBox = event.target.closest && event.target.closest('.arena-cell--vip');
+      if (vipBox) {
+        event.stopPropagation();
+        fireRipple(svg, vipBox);
+        var sponsorUrl = vipBox.getAttribute('data-sponsor-url');
+        if (sponsorUrl) {
+          // noopener: the sponsor's page must not get a handle on the arena.
+          global.open(sponsorUrl, '_blank', 'noopener,noreferrer');
+        } else if (vipBox.getAttribute('data-occupancy') !== 'sponsor') {
+          global.location.href = '/sponsors/';
+        }
+        return;
+      }
+
       var seat = event.target.closest && event.target.closest('.arena-cell[data-ring]');
       if (!seat || !seat.chefRecord) {
         // Fall back to what the viewer actually aimed at: the portrait's own

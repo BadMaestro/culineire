@@ -217,6 +217,32 @@
   filter: drop-shadow(0 0 2px color-mix(in srgb, var(--ink) 70%, transparent));
 }
 
+/* Owner 2026-08-03 — a gold firefly runs around an ACTIVE box. Same outline and
+   same running dash as a chef's spark, in gold: this ring is sold, not earned,
+   and the colour is the one difference that says so. Butt ends for the reason
+   every running spot here uses them — the outline is closed, and round caps
+   break the dash in two at the seam. */
+.page--arena #arena-render .arena-vip-spark {
+  opacity: 0;
+  stroke: none;
+}
+
+.page--arena #arena-render .arena-vip-spark[data-lit="true"] {
+  opacity: 1;
+  stroke: var(--arena-vip-gold);
+  stroke-width: 2.6;
+  stroke-linecap: butt;
+  stroke-dasharray: 10 90;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 3px var(--arena-vip-gold));
+  animation: arena-spot-run 2.8s linear infinite;
+}
+
+/* Every box answers a click, so every box says so under the pointer. */
+.page--arena #arena-render .arena-cell--vip {
+  cursor: pointer;
+}
+
 /* Spectator galleries read cooler than the floor, mixed off --ink so they stay
    inside the palette. The scheme has no blue token; if the reference's slate
    gallery becomes a brand colour, it belongs in base.css, not here. */
@@ -1158,7 +1184,8 @@
   .page--arena #arena-render .arena-cell-spark[data-lit="true"],
   .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="3"],
   .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="2"],
-  .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="1"] {
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="1"],
+  .page--arena #arena-render .arena-vip-spark[data-lit="true"] {
     animation: none;
   }
 
