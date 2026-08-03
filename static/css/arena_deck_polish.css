@@ -3818,21 +3818,24 @@
     color: var(--muted);
   }
 
-  /* The refresh countdown, demoted to the gauge it actually measures. */
+  /* The refresh countdown, demoted onto the gauge it actually measures — ONE
+     row, because two would cost more height than the card is trying to save. */
   .page--arena .arena-cooking-widget .arena-phase-refresh {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.4rem;
-    margin: 0.3rem 0 0;
-    color: var(--muted);
-    font-size: 0.55rem;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+  }
+  .page--arena .arena-cooking-widget .arena-phase-refresh .arena-phase-gauge {
+    flex: 1 1 auto;
+    margin: 0;
   }
   .page--arena .arena-cooking-widget .arena-phase-refresh > strong {
-    font-size: 0.62rem;
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-size: 0.58rem;
     font-weight: 700;
+    line-height: 1;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.04em;
   }

@@ -57,11 +57,17 @@
         <strong>{% if arena_data.deadline %}{{ arena_data.deadline.seconds_remaining }} seconds remaining{% else %}No active deadline{% endif %}</strong>
       </p>
     </header>
-    <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge" style="width:100%"></span></div>
-    <p class="arena-phase-refresh">
-      <span>Refreshing in</span>
+    {% comment %}
+      One row, not two: the gauge and its number are the same fact, and the
+      reference panel spends this space on a hairline. Giving the demoted
+      countdown a row of its own made the panel TALLER than before the card,
+      which is the opposite of what A11 asks for — measured 261.3 against 245.6
+      at 1280 before it was folded back together.
+    {% endcomment %}
+    <div class="arena-phase-refresh">
+      <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge" style="width:100%"></span></div>
       <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">00:30</strong>
-    </p>
+    </div>
     <p class="arena-phase-next" id="arena-phase-next"{% if not arena_data.phase %} hidden{% endif %}>Next: <b>
     {% if arena_data.phase and arena_data.phase_rail %}
       {% for rung in arena_data.phase_rail %}

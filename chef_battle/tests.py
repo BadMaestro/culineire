@@ -7781,7 +7781,7 @@ class ArenaPhasePanelTests(TestCase):
         source = self._template()
         self.assertIn('id="arena-refresh-timer"', source)
         self.assertIn('aria-label="Page refresh countdown"', source)
-        self.assertIn("Refreshing in", source)
+        self.assertIn('class="arena-phase-refresh"', source)
 
     def test_the_deadline_element_appears_exactly_once(self):
         """It was MOVED, not copied. Two nodes with one id would leave byId()
