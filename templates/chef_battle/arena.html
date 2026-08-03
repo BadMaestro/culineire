@@ -43,9 +43,25 @@
         <p class="arena-panel__kicker">Phase</p>
         <h2 id="arena-current-phase" class="arena-command-deck__phase-name arena-panel__heading">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</h2>
       </div>
-      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">00:30</strong>
+      {% comment %}
+        A11: this slot holds the AUTHORITATIVE clock — the deadline the server
+        is counting to, reconciled against server_time by refreshDeadline() so a
+        client with a skewed clock still shows the right number. It used to hold
+        the 30 s page-refresh countdown, which looked exactly like a battle
+        clock in the reference's clock position and counted something else
+        entirely: the poll, not the phase. The refresh countdown is not gone; it
+        moved down to the gauge, which is the thing it actually measures.
+      {% endcomment %}
+      <p id="arena-phase-deadline" class="arena-command-deck__phase-deadline{% if not arena_data.deadline %} is-empty{% endif %}" data-deadline-iso="{{ arena_data.deadline.deadline_iso|default:'' }}" data-deadline-kind="{{ arena_data.deadline.kind|default:'' }}">
+        <span id="arena-deadline-label">{{ arena_data.deadline.label|default:"Live deadline" }}</span>
+        <strong>{% if arena_data.deadline %}{{ arena_data.deadline.seconds_remaining }} seconds remaining{% else %}No active deadline{% endif %}</strong>
+      </p>
     </header>
     <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge" style="width:100%"></span></div>
+    <p class="arena-phase-refresh">
+      <span>Refreshing in</span>
+      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">00:30</strong>
+    </p>
     <p class="arena-phase-next" id="arena-phase-next"{% if not arena_data.phase %} hidden{% endif %}>Next: <b>
     {% if arena_data.phase and arena_data.phase_rail %}
       {% for rung in arena_data.phase_rail %}
@@ -68,10 +84,13 @@
         <dd id="arena-facts-viewers">{{ arena_data.metrics.active_viewers|default:0 }}</dd>
       </div>
     </dl>
-    <p id="arena-phase-deadline" class="arena-command-deck__phase-deadline{% if not arena_data.deadline %} is-empty{% endif %}" data-deadline-iso="{{ arena_data.deadline.deadline_iso|default:'' }}" data-deadline-kind="{{ arena_data.deadline.kind|default:'' }}">
-      <span id="arena-deadline-label">{{ arena_data.deadline.label|default:"Live deadline" }}</span>
-      <strong>{% if arena_data.deadline %}{{ arena_data.deadline.seconds_remaining }} seconds remaining{% else %}No active deadline{% endif %}</strong>
-    </p>
+    {% comment %}
+      A11: the deadline paragraph that used to sit here has MOVED into the phase
+      header above, where the reference panel puts its clock. It is the same
+      element with the same id, moved and not duplicated — two nodes sharing
+      arena-phase-deadline would leave byId() updating whichever came first and
+      the other one frozen on the page.
+    {% endcomment %}
   </section>
   </section>
 

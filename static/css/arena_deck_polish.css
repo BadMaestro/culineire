@@ -3772,10 +3772,69 @@
     width: clamp(15.5rem, 18vw, 19rem);
   }
 
+  /* A11: the deadline is NO LONGER hidden here. It was the one authoritative,
+     server-driven number in the panel, and hiding it on desktop is what left
+     the 30 s page-refresh countdown standing alone in the reference's clock
+     position, looking like a battle clock. Copy and compact facts stay hidden:
+     the reference panel carries neither, and the viewer count they duplicated
+     already lives in the pulse strip. */
   .page--arena .arena-cooking-widget .arena-command-deck__phase-copy,
-  .page--arena .arena-cooking-widget .arena-compact-facts,
-  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline {
+  .page--arena .arena-cooking-widget .arena-compact-facts {
     display: none;
+  }
+
+  /* The clock sits on the phase name's baseline, right-aligned, as in the
+     reference: gold, Playfair, no card chrome of its own — the panel is the
+     card, and the clock must not read as a second one inside it. */
+  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+    margin-top: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: right;
+  }
+  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline > span {
+    font-size: 0.5rem;
+    letter-spacing: 0.09em;
+  }
+  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline > strong {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--accent-bronze);
+  }
+  /* No deadline is a real state and it must not shout. The arena spends most of
+     its life with no battle running, and "No active deadline" set in a clock
+     face would read as a fault instead of as calm. */
+  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline.is-empty > strong {
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--muted);
+  }
+
+  /* The refresh countdown, demoted to the gauge it actually measures. */
+  .page--arena .arena-cooking-widget .arena-phase-refresh {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.4rem;
+    margin: 0.3rem 0 0;
+    color: var(--muted);
+    font-size: 0.55rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .page--arena .arena-cooking-widget .arena-phase-refresh > strong {
+    font-size: 0.62rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
   }
 
   .page--arena .arena-broadcast-ribbon {

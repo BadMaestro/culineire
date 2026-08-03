@@ -3162,14 +3162,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A11", "group": "Arena furniture", "title": "Phase panel reference pass",
-        "status": "PENDING", "owner": "Ember",
+        "status": "DONE", "owner": "Bolt",
         "files": "templates/chef_battle/arena.html; static/js/arena_deck.js; scoped panel CSS",
         "depends_on": "A06",
         "action": "Align phase title, authoritative countdown, progress, centre/viewer facts and next-phase copy to the reference panel.",
         "visible_result": "Top-left phase panel is compact, legible and complete.",
         "acceptance": "Server drives phase/deadline; loading and missing-deadline states remain valid.",
         "forbidden": "No client phase inference or fixture countdown.",
-        "evidence": "Panel exists; measured parity ticket pending.",
+        "evidence": "DONE v2.5.783. The panel's prominent clock was the 30s PAGE-REFRESH countdown, sitting in the reference panel's clock position and counting the poll rather than the phase; the authoritative server deadline existed, reconciled clock skew against server_time, and was display:none on desktop. The deadline is MOVED (not copied - one id) into the phase header and unhidden; the refresh countdown is kept, demoted to the gauge it measures and labelled \"Refreshing in\". Empty state is quiet: no battle running reads as calm, not as a fault. Copy and duplicate viewer facts stay hidden - the reference panel has neither. Before, at 1280: panel 248x245.6 vs reference 230x123 (A06). Server still owns phase and deadline; no client inference, no fixture countdown. Five focused tests pin the arrangement.",
     },
     {
         "id": "A12", "group": "Arena furniture", "title": "Crown ladder panel reference pass",

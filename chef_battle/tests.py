@@ -7751,6 +7751,69 @@ class RequestHashTests(TestCase):
         self.assertEqual(BattleVote._meta.get_field("hash_scheme").default, HASH_SCHEME_CURRENT)
 
 
+class ArenaPhasePanelTests(TestCase):
+    """A11 — the phase panel's big number must be the server's, not the poll's.
+
+    The panel had a 30-second page-refresh countdown sitting in the reference
+    panel's clock position, styled like a battle clock and counting the poll
+    instead of the phase. Both numbers are legitimate; the fault was which one
+    the eye lands on. These pin the arrangement, because it is the kind of thing
+    a later layout pass reverts without noticing what it means.
+    """
+
+    TEMPLATE = "templates/chef_battle/arena.html"
+
+    def _template(self):
+        from django.conf import settings as django_settings
+        from pathlib import Path
+        return (Path(django_settings.BASE_DIR) / self.TEMPLATE).read_text(encoding="utf-8")
+
+    def test_the_authoritative_clock_is_in_the_phase_header(self):
+        source = self._template()
+        header = source.split(
+            '<section class="arena-command-deck__phase-card"', 1
+        )[1].split("</header>", 1)[0]
+        self.assertIn('id="arena-phase-deadline"', header)
+        self.assertNotIn('id="arena-refresh-timer"', header)
+
+    def test_the_refresh_countdown_is_kept_and_labelled_for_what_it_counts(self):
+        """Demoted, not deleted: it still drives the reload the Owner watches by."""
+        source = self._template()
+        self.assertIn('id="arena-refresh-timer"', source)
+        self.assertIn('aria-label="Page refresh countdown"', source)
+        self.assertIn("Refreshing in", source)
+
+    def test_the_deadline_element_appears_exactly_once(self):
+        """It was MOVED, not copied. Two nodes with one id would leave byId()
+        updating the first and the second frozen on the page."""
+        source = self._template()
+        self.assertEqual(source.count('id="arena-phase-deadline"'), 1)
+        self.assertEqual(source.count('id="arena-deadline-label"'), 1)
+
+    def test_the_deadline_is_visible_on_desktop(self):
+        """Hiding it at 901px and up is what left the poll timer alone in the
+        clock position in the first place."""
+        from django.conf import settings as django_settings
+        from pathlib import Path
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+        ).read_text(encoding="utf-8")
+        desktop = css.split("@media (min-width: 901px)", 1)[1]
+        hidden = desktop.split("display: none;", 1)[0]
+        self.assertNotIn("phase-deadline", hidden)
+
+    def test_the_server_still_owns_phase_and_deadline(self):
+        """Acceptance: no client phase inference, no fixture countdown. The
+        template must read them from the payload, never compute them."""
+        source = self._template()
+        card = source.split(
+            '<section class="arena-command-deck__phase-card"', 1
+        )[1].split("</section>", 1)[0]
+        self.assertIn("arena_data.deadline.deadline_iso", card)
+        self.assertIn("arena_data.phase", card)
+        self.assertNotIn("LIVE_FIXTURE", card)
+
+
 class ArenaFixtureDisconnectedTests(TestCase):
     """The arena deck must not invent an audience.
 

@@ -152,7 +152,7 @@ forbidden changes and evidence for every row below.
 | A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | DONE |
 | A09 | Arena Hall | Live challenger/opponent composition | Ember | A07 | PENDING |
 | A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | PENDING |
-| A11 | Furniture | Phase panel reference pass | Ember | A06 | PENDING |
+| A11 | Furniture | Phase panel reference pass | Bolt | A06 | DONE |
 | A12 | Furniture | Crown ladder panel reference pass | GreenBear | A06 | PENDING |
 | A13 | Furniture | Recent gifts panel reference pass | GreenBear | A06 | PENDING |
 | A14 | Furniture | Bottom ticker and Join the Crowd composition | GreenBear | A06 | PENDING |
