@@ -196,3 +196,61 @@ class InboxNotifyTests(TransactionTestCase):
                 payloads.append(note.payload)
                 break
         self.assertEqual(payloads, ["bolt"])
+
+
+class AgentSendCommandTests(TestCase):
+    """The sender must refuse everything that silently loses a message."""
+
+    def _run(self, **kwargs):
+        from io import StringIO
+
+        out = StringIO()
+        call_command("agent_send", stdout=out, **kwargs)
+        return out.getvalue()
+
+    def _body(self, text):
+        import tempfile
+
+        handle = tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8")
+        handle.write(text)
+        handle.close()
+        return handle.name
+
+    def test_sends_a_message_from_a_file(self):
+        path = self._body("hello from a file")
+        out = self._run(from_agent="greenbear", to_agent="bolt", body_file=path, subject="Subj")
+        self.assertIn("SENT", out)
+        message = CoworkingMessage.objects.latest("id")
+        self.assertEqual(message.from_agent.agent_id, "greenbear")
+        self.assertEqual(message.to_agent.agent_id, "bolt")
+        self.assertEqual(message.body, "hello from a file")
+
+    def test_non_ascii_survives_the_file(self):
+        # The whole reason the body is a file: this text must arrive intact.
+        path = self._body("Привет, шеф")
+        self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+        self.assertEqual(
+            CoworkingMessage.objects.latest("id").body,
+            "Привет, шеф",
+        )
+
+    def test_a_capitalised_id_is_refused(self):
+        from django.core.management.base import CommandError
+
+        path = self._body("body")
+        with self.assertRaises(CommandError):
+            self._run(from_agent="GreenBear", to_agent="bolt", body_file=path)
+
+    def test_an_empty_body_is_refused(self):
+        from django.core.management.base import CommandError
+
+        path = self._body("   \n  ")
+        with self.assertRaises(CommandError):
+            self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+
+    def test_sending_to_yourself_is_refused(self):
+        from django.core.management.base import CommandError
+
+        path = self._body("body")
+        with self.assertRaises(CommandError):
+            self._run(from_agent="greenbear", to_agent="greenbear", body_file=path)
