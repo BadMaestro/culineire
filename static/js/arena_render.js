@@ -1269,31 +1269,47 @@
       var label = svg.querySelector('[data-vip-label="' + cell + '"]');
       if (label) { label.setAttribute('hidden', 'hidden'); }
 
-      var mark = sponsor.logo
-        ? el('image', {
+      // A logo goes in exactly the way a chef's face does (appendOccupant):
+      // measure the box, cover its bbox with a square 8% larger, slice rather
+      // than fit, and clip the whole thing to the box. A logo placed by its
+      // centroid instead sat in the middle of a wedge with air around it and
+      // read as a sticker; covering-and-clipping makes it the box's own surface,
+      // which is what the Owner is buying when he sells one.
+      var bbox = box.getBBox();
+      var size = Math.max(bbox.width, bbox.height) * 1.08;
+      var mark = el('g', {
+        'clip-path': 'url(#arena-clip-vip-' + cell + ')',
+        'pointer-events': 'none',
+        class: 'arena-vip-sponsor'
+      });
+
+      if (sponsor.logo) {
+        mark.appendChild(el('image', {
           href: sponsor.logo,
-          x: (Number(box.getAttribute('data-centroid-x')) - 11).toFixed(2),
-          y: (Number(box.getAttribute('data-centroid-y')) - 11).toFixed(2),
-          width: '22', height: '22',
-          preserveAspectRatio: 'xMidYMid meet',
-          'clip-path': 'url(#arena-clip-vip-' + cell + ')',
+          x: (bbox.x + bbox.width / 2 - size / 2).toFixed(2),
+          y: (bbox.y + bbox.height / 2 - size / 2).toFixed(2),
+          width: size.toFixed(2), height: size.toFixed(2),
+          preserveAspectRatio: 'xMidYMid slice',
           'pointer-events': 'none',
           class: 'arena-vip-sponsor-logo'
-        })
-        : el('text', {
-          x: box.getAttribute('data-centroid-x'),
-          y: box.getAttribute('data-centroid-y'),
+        }));
+      } else {
+        // The analogue of a chef's initial: a paid box must never read as free,
+        // whatever the record carries. A long trading name would run out of the
+        // box, so it shows what fits and the title carries the whole of it.
+        var name = el('text', {
+          x: (bbox.x + bbox.width / 2).toFixed(2),
+          y: (bbox.y + bbox.height / 2).toFixed(2),
           'text-anchor': 'middle', 'dominant-baseline': 'central',
           'pointer-events': 'none',
           class: 'arena-vip-sponsor-name'
         });
-      if (!sponsor.logo) {
-        // A long trading name would run out of a 45-unit box; the box shows
-        // what fits and the title carries the whole of it.
-        mark.textContent = sponsor.name.length > 12
+        name.textContent = sponsor.name.length > 12
           ? sponsor.name.slice(0, 11) + '…'
           : sponsor.name;
+        mark.appendChild(name);
       }
+
       var title = el('title', {});
       title.textContent = sponsor.name;
       mark.appendChild(title);
