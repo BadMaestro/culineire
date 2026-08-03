@@ -501,8 +501,16 @@
    nothing is holding down. The near row keeps the stage light; the far row is
    mixed toward the deep bowl by exactly the same --row-light the renderer
    already sets, so there is still ONE mechanism and no list of ring numbers to
-   forget. The rim protection above is untouched. */
-#arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
+   forget. The rim protection above is untouched.
+
+   Scoped .page--arena on purpose, and this is the second time that trap has been
+   paid for in this file: arena_deck_polish.css owns the stand colour with
+   `.page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"]`,
+   which outranks a plain #arena-render rule at any load order. The comment at
+   the top of this file says exactly that about the moat, and the first cut of
+   A08 walked straight past it and shipped a rule that changed nothing.
+   Matching the prefix is the fix; !important is not. */
+.page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
   fill: color-mix(
     in srgb,
     color-mix(in srgb, var(--ink) 74%, var(--arena-bowl))
@@ -520,7 +528,7 @@
 /* An occupied seat is a real person and stays legible wherever they sit: the
    fall-off touches it, but from a brighter start and by half as much, so a back
    row never swallows someone who is actually there. */
-#arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
+.page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
   fill: color-mix(
     in srgb,
     color-mix(in srgb, var(--arena-spot) 30%, var(--arena-bowl))
