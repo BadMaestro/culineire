@@ -696,3 +696,42 @@
     background: color-mix(in srgb, var(--surface) 92%, var(--accent-bronze));
   }
 
+/* Media layer, stage 1 (Owner 2026-08-03). Restored from 58efc0d4^ unchanged.
+ * Its removal in v2.5.730 left the deck's desktop grid, the overlaid rank
+ * column and the three-across metrics applying on a phone as well. The comment
+ * inside is the original one and still states the rule that matters: the rank
+ * ladder is never hidden below 768px — it leaves the floor overlay and wraps
+ * in normal flow, so all eight ranks stay present. placeRankSpine() clears its
+ * measured inline top/left/width at this width, so the stylesheet owns it. */
+@media (max-width: 767px) {
+  .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; grid-template-columns: 1fr; grid-template-areas: "header" "phase" "phase-rail" "metrics" "floor" "crowd" "ladder" "gifts"; gap: .65rem; }
+  .arena-command-deck__header, .arena-command-deck__floor-head, .arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
+  .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
+  .arena-command-deck__phase-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .arena-phase-step { min-height: 2rem; font-size: .61rem; }
+  .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
+  .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
+  .arena-metric:first-child { border-left: 0; }
+  .arena-metric span { font-size: .54rem; }
+  .arena-command-deck__floor { padding: .7rem; border-radius: .9rem; }
+  .arena-command-deck__live-stage { grid-template-columns: 1fr; gap: .55rem; text-align: center; }
+  .arena-live-chef, .arena-live-chef--opponent { justify-content: center; text-align: center; }
+  .arena-live-chef--opponent { flex-direction: row-reverse; }
+  .arena-command-deck__floor .arena-legend { max-width: 100%; justify-content: flex-start; }
+  .arena-command-deck__floor-head { gap: .55rem; }
+  /* Stage 3E: the complete rank ladder stays available on a phone. It was
+     display:none here, which removed all eight ranks below 768px. Instead of
+     hiding it, the column stops being an overlay on the floor and becomes a
+     compact wrapped row in normal flow: every rank is still present and
+     readable, nothing covers the crown, and the chips wrap rather than pushing
+     the page sideways. placeRankSpine() clears its measured inline top/left/
+     width at this width so the stylesheet, not the renderer, owns the layout. */
+  .arena-rank-spine { position: static; width: 100%; margin: .15rem 0 .4rem; transform: none; }
+  .arena-rank-spine__label { text-align: left; margin-bottom: .2rem; }
+  .arena-rank-spine__list { display: flex; flex-wrap: wrap; gap: .25rem; }
+  .arena-rank-spine__item { flex: 1 1 auto; }
+  .arena-rank-spine__step { min-height: 1.5rem; padding: .2rem .5rem; font-size: .58rem; clip-path: none; }
+  .arena-crowd-rail__actions { width: 100%; }
+  .arena-crowd-rail__actions > * { flex: 1 1 0; text-align: center; justify-content: center; }
+}
+

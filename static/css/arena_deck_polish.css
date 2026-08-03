@@ -3758,7 +3758,12 @@
   font-size: 0.6rem;
 }
 
-
+/* Media layer, stage 1 (Owner 2026-08-03). This block was never rewritten —
+ * only its wrapper was taken off in v2.5.729, which left the desktop layout
+ * applying at every width: the widget was absolutely positioned over the floor
+ * on a phone too. The rules below are the original ones, byte for byte; what
+ * is restored is the width they were always meant to be scoped to. */
+@media (min-width: 901px) {
   .page--arena .arena-cooking-widget {
     position: absolute;
     z-index: 27;
@@ -3783,6 +3788,7 @@
   .page--arena .arena-broadcast-ribbon .arena-command-deck__phase-rail {
     width: 100%;
   }
+}
 
 
 

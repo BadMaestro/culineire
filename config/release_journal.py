@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.772",
+        "date": "2026-08-03",
+        "commit": "",
+        "title": "Media layer, stage 1 - two width scopes come back",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner is rebuilding the arena's media layer from the early stages, so the first stage is the two scopes whose removal left rules applying at widths they were never written for. Neither block is new and neither was redesigned: the 901px body was still sitting in arena_deck_polish.css with its indentation intact and only its @media wrapper gone, which is why the Cooking Widget was absolutely positioned over the floor on a phone as well as on a desktop; the 767px block is restored byte for byte from the commit that removed it. What made this a defect rather than a preference is in the JavaScript: placeRankSpine() still tests both breakpoints and clears the rank column's measured inline top, left, width and transform whenever either matches - so between the removal and now, at 901px and above and at 767px and below, the renderer stood down and no stylesheet stood up. Below 768px the rank ladder leaves the floor overlay and wraps in normal flow, all eight ranks present; it is never display:none, which is the rule the restored comment has carried since stage 3E. Two tests that had been failing on main since v2.5.730 pass again, and they pass because the rules are there, not because the assertions were softened.",
+    },
+    {
         "version": "2.5.769",
         "date": "2026-08-03",
         "commit": "",
