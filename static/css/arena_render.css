@@ -888,16 +888,101 @@
   stroke: none;
 }
 
+/* Owner 2026-07-31 — rank is legible from the light alone.
+ *
+ * The spark carries its ring, and the ring IS the rank: seating index 1 is the
+ * Culinary Master and 8 is the Kitchen Porter (chef_battle/selectors.py builds
+ * the geometry from reversed(Rank.choices), so the count runs inward).
+ *
+ * Two things vary and nothing else: the colour, and an intensity level 1 to 5.
+ * The level is three numbers moving together — weight, opacity and the size of
+ * the glow — because a light that is only wider does not read as brighter. They
+ * are custom properties so a ring states its rank in one line and the shape of
+ * the light is written once.
+ *
+ *   8 Kitchen Porter   white,  1     4 Sous Chef        blue,  2
+ *   7 Prep Chef        white,  2     3 Head Chef        rose,  3  (shimmering)
+ *   6 Commis Chef      white,  3     2 Executive Chef   rose,  4  (shimmering)
+ *   5 Chef de Partie   blue,   1     1 Culinary Master  prism, 5  (red-dominant)
+ */
 .page--arena #arena-render .arena-cell-spark[data-lit="true"] {
-  opacity: 1;
-  stroke: #ffffff;
-  stroke-width: 2.4;
+  --spark-colour: #ffffff;
+  --spark-weight: 2.4;
+  --spark-alpha: 1;
+  --spark-glow: 3px;
+
+  opacity: var(--spark-alpha);
+  stroke: var(--spark-colour);
+  stroke-width: var(--spark-weight);
   /* Butt for the same reason as the ring: a cell outline is closed too. */
   stroke-linecap: butt;
   stroke-dasharray: 12 88;
   mix-blend-mode: screen;
-  filter: drop-shadow(0 0 3px #ffffff);
+  filter: drop-shadow(0 0 var(--spark-glow) var(--spark-colour));
   animation: arena-spot-run 2.4s linear infinite;
+}
+
+/* ---- intensity, 1 to 5 ---- */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="8"] {
+  --spark-weight: 1.4; --spark-alpha: 0.42; --spark-glow: 2px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="7"],
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="4"] {
+  --spark-weight: 2.1; --spark-alpha: 0.66; --spark-glow: 4px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="6"],
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="3"] {
+  --spark-weight: 2.8; --spark-alpha: 0.86; --spark-glow: 7px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="5"] {
+  --spark-weight: 1.4; --spark-alpha: 0.42; --spark-glow: 2px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="2"] {
+  --spark-weight: 3.4; --spark-alpha: 0.95; --spark-glow: 10px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="1"] {
+  --spark-weight: 4.2; --spark-alpha: 1; --spark-glow: 15px;
+}
+
+/* ---- colour ---- */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="5"],
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="4"] {
+  --spark-colour: #4db8ff;
+}
+
+/* Rose, with a shimmer: the stroke drifts between deep rose and a pale pink,
+   so the light is never one flat colour. The glow keeps the deep tone — a halo
+   that changed with it would read as flicker rather than sheen. */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="3"],
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="2"] {
+  --spark-colour: #ff4d6d;
+  animation: arena-spot-run 2.4s linear infinite,
+             arena-spark-rose 3.6s ease-in-out infinite;
+}
+
+/* The Master carries every colour, and red carries the cycle: it holds the
+   start, the middle and the end, so the ring reads red with the rest passing
+   through it rather than as a rainbow. */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="1"] {
+  --spark-colour: #ff2f3b;
+  animation: arena-spot-run 2.4s linear infinite,
+             arena-spark-prism 7s linear infinite;
+}
+
+@keyframes arena-spark-rose {
+  0%, 100% { stroke: #ff4d6d; }
+  50% { stroke: #ffa8c8; }
+}
+
+@keyframes arena-spark-prism {
+  0%, 100% { stroke: #ff2f3b; }
+  14% { stroke: #ff8a3b; }
+  26% { stroke: #ffd93b; }
+  38% { stroke: #ff2f3b; }
+  52% { stroke: #3bd77f; }
+  64% { stroke: #3bc8ff; }
+  76% { stroke: #ff2f6d; }
+  88% { stroke: #b46bff; }
 }
 
 @keyframes arena-spot-run {
@@ -1049,7 +1134,13 @@
   }
 
   .page--arena #arena-render .arena-floor-crown__gold-spot,
-  .page--arena #arena-render .arena-cell-spark[data-lit="true"] {
+  /* The shimmering ranks are named again here on purpose: their rules carry an
+     extra attribute and would outrank a plain [data-lit] selector, leaving the
+     Master shimmering for the one reader who asked for stillness. */
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"],
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="3"],
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="2"],
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="1"] {
     animation: none;
   }
 
