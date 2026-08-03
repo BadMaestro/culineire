@@ -49,11 +49,6 @@
      page's light surface, so it stays inside the palette. */
   --arena-vip-gold: color-mix(in srgb, var(--accent-bronze) 72%, var(--surface-soft));
   --arena-seat: var(--surface-soft);
-  /* A08 — the back of the hall. --arena-bowl and --ink are the same neutral
-     since the ink was flattened on 2026-07-30, so a bowl mixed only from those
-     two has nowhere left to go darker; the far rows had no depth to fall into.
-     Mixed from the brand's own dark rather than restated as a literal. */
-  --arena-bowl-deep: color-mix(in srgb, var(--arena-bowl) 62%, var(--brand-dark));
   --arena-seam: var(--surface);
   --arena-stage-ink: var(--brand-dark);
   /* The scheme's bronze accent (--about-accent) is declared inside .about-deck,
@@ -503,6 +498,14 @@
    already sets, so there is still ONE mechanism and no list of ring numbers to
    forget. The rim protection above is untouched.
 
+   Direction, learned the hard way in v2.5.776: the BOWL is the floor of the
+   range and the light is what varies. The first attempt mixed the far row
+   toward a token built from --brand-dark, and --brand-dark is a warm brown at
+   luminance 0.32 against a bowl at 0.16 — so "deeper" came out 17% LIGHTER and
+   the hall fell away toward the viewer. Now the near row is lifted toward the
+   stage light by --row-light and the far row simply keeps less of it, which is
+   what depth actually is.
+
    Scoped .page--arena on purpose, and this is the second time that trap has been
    paid for in this file: arena_deck_polish.css owns the stand colour with
    `.page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"]`,
@@ -513,27 +516,30 @@
 .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
   fill: color-mix(
     in srgb,
+    var(--arena-spot) calc(var(--row-light, 1) * 16%),
     color-mix(in srgb, var(--ink) 74%, var(--arena-bowl))
-      calc(var(--row-light, 1) * 100%),
-    var(--arena-bowl-deep)
   );
   stroke: color-mix(
     in srgb,
+    var(--arena-spot) calc(var(--row-light, 1) * 10%),
     color-mix(in srgb, var(--ink) 88%, var(--arena-bowl-edge))
-      calc(var(--row-light, 1) * 100%),
-    var(--arena-bowl-deep)
   );
 }
 
-/* An occupied seat is a real person and stays legible wherever they sit: the
-   fall-off touches it, but from a brighter start and by half as much, so a back
-   row never swallows someone who is actually there. */
+/* An occupied seat is a real person and stays legible wherever they sit: it
+   takes the same light from the same variable, but from a far brighter start
+   and with only part of the fall, so a back row dims someone without swallowing
+   them. */
 .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
   fill: color-mix(
     in srgb,
-    color-mix(in srgb, var(--arena-spot) 30%, var(--arena-bowl))
-      calc((0.5 + var(--row-light, 1) * 0.5) * 100%),
-    var(--arena-bowl-deep)
+    var(--arena-spot) calc((0.6 + var(--row-light, 1) * 0.4) * 34%),
+    var(--arena-bowl)
+  );
+  stroke: color-mix(
+    in srgb,
+    var(--arena-spot) calc((0.6 + var(--row-light, 1) * 0.4) * 45%),
+    var(--arena-bowl-edge)
   );
 }
 
