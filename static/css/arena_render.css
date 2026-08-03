@@ -179,14 +179,16 @@
 .page--arena #arena-render .arena-vip-label {
   fill: var(--arena-vip-gold);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0;
 }
 
-/* The corner boxes carry the whole word, so it is set smaller and tracked out. */
+/* The corner boxes carry the whole word. It was set at 8px back when it had to
+   fit inside HALF a box; on the bent guide it has the whole corner, 95 units,
+   and used only 46 of them. Raised with that headroom in mind, not guessed. */
 .page--arena #arena-render .arena-vip-label--word {
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.06em;
   opacity: 0.92;
 }
