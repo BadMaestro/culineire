@@ -577,6 +577,7 @@
               'text-anchor': 'middle', 'dominant-baseline': 'central',
               'pointer-events': 'none',
               transform: 'rotate(' + deg.toFixed(2) + ' ' + c.x.toFixed(2) + ' ' + c.y.toFixed(2) + ')',
+              'data-vip-label': String(pos),
               class: cls
             });
             node.textContent = text;
@@ -608,6 +609,7 @@
             var word = el('text', {
               'dominant-baseline': 'central',
               'pointer-events': 'none',
+              'data-vip-label': String(pos),
               class: 'arena-vip-label arena-vip-label--word'
             });
             var wordPath = el('textPath', {
@@ -621,6 +623,15 @@
           } else {
             addLabel(['', 'V', 'I', 'P'][pos % 4], startAngle, endAngle, 'arena-vip-label');
           }
+        }
+
+        // A VIP box needs its own clip so a sponsor's logo can be dropped into
+        // it without spilling over the brass edge. Keyed by kind, not by the
+        // seating index, because the ring deliberately carries none.
+        if (entry.kind === 'vip') {
+          var vipClip = el('clipPath', { id: 'arena-clip-vip-' + pos });
+          vipClip.appendChild(el('path', { d: d }));
+          defs.appendChild(vipClip);
         }
 
         // Portrait clips are keyed by the seating index, so only real seat
@@ -689,6 +700,7 @@
       class: 'arena-stage'
     }));
     shell.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
+    shell.appendChild(el('g', { 'data-arena-layer': 'sponsors' }));
     shell.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
     shell.appendChild(sparks);
     shell.appendChild(el('g', { 'data-arena-layer': 'centre' }));
@@ -1209,8 +1221,84 @@
       appendOccupant(svg, occupants, assignment);
     });
 
+    seatSponsors(svg, payload.vip_sponsors);
+
     markSeatable(svg, geometry);
     stampStage(svg, payload.center || { type: 'empty' });
+  }
+
+  /**
+   * Ring 11 is the sponsors' (ARENA_BATTLE_PLAN 2a). The server decides WHO is
+   * entitled to a box — only publicly active cells reach the payload — and the
+   * arena decides WHERE, because the boxes are the arena's own and share no
+   * grid with the Sponsors puzzle.
+   *
+   * Seating is by list order into box order, which is stable across polls: a
+   * sponsor whose standing has not changed must not hop around the ring every
+   * thirty seconds. Every box is cleared first, so a sponsorship that lapses
+   * empties its box instead of leaving a ghost sitting in it.
+   */
+  function seatSponsors(svg, sponsors) {
+    var layer = svg.querySelector('[data-arena-layer="sponsors"]');
+    if (!layer) { return; }
+    while (layer.firstChild) { layer.removeChild(layer.firstChild); }
+
+    var boxes = svg.querySelectorAll('.arena-cell--vip');
+    var i;
+    for (i = 0; i < boxes.length; i++) {
+      boxes[i].setAttribute('data-occupancy', 'empty');
+      boxes[i].removeAttribute('data-sponsor-url');
+      boxes[i].sponsorRecord = null;
+    }
+    Array.prototype.forEach.call(svg.querySelectorAll('[data-vip-label]'), function (label) {
+      label.removeAttribute('hidden');
+    });
+
+    var list = Array.isArray(sponsors) ? sponsors : [];
+    var seats = Math.min(list.length, boxes.length);
+    for (i = 0; i < seats; i++) {
+      var sponsor = list[i];
+      var box = boxes[i];
+      var cell = box.getAttribute('data-cell');
+      box.setAttribute('data-occupancy', 'sponsor');
+      if (sponsor.url) { box.setAttribute('data-sponsor-url', sponsor.url); }
+      box.sponsorRecord = sponsor;
+
+      // The ring signs itself only where it is unsold. A box with a sponsor in
+      // it carries the sponsor, not the letter S of the word SPONSORS.
+      var label = svg.querySelector('[data-vip-label="' + cell + '"]');
+      if (label) { label.setAttribute('hidden', 'hidden'); }
+
+      var mark = sponsor.logo
+        ? el('image', {
+          href: sponsor.logo,
+          x: (Number(box.getAttribute('data-centroid-x')) - 11).toFixed(2),
+          y: (Number(box.getAttribute('data-centroid-y')) - 11).toFixed(2),
+          width: '22', height: '22',
+          preserveAspectRatio: 'xMidYMid meet',
+          'clip-path': 'url(#arena-clip-vip-' + cell + ')',
+          'pointer-events': 'none',
+          class: 'arena-vip-sponsor-logo'
+        })
+        : el('text', {
+          x: box.getAttribute('data-centroid-x'),
+          y: box.getAttribute('data-centroid-y'),
+          'text-anchor': 'middle', 'dominant-baseline': 'central',
+          'pointer-events': 'none',
+          class: 'arena-vip-sponsor-name'
+        });
+      if (!sponsor.logo) {
+        // A long trading name would run out of a 45-unit box; the box shows
+        // what fits and the title carries the whole of it.
+        mark.textContent = sponsor.name.length > 12
+          ? sponsor.name.slice(0, 11) + '…'
+          : sponsor.name;
+      }
+      var title = el('title', {});
+      title.textContent = sponsor.name;
+      mark.appendChild(title);
+      layer.appendChild(mark);
+    }
   }
 
   function viewerSlug() {

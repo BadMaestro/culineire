@@ -53,6 +53,7 @@ from .selectors import (
     get_arena_phase_rail,
     get_arena_deadline,
     get_arena_geometry,
+    get_vip_sponsors,
     spectator_capacity,
     get_starting_battle_blast,
     get_battle_vote_counts,
@@ -1118,6 +1119,9 @@ def _build_arena_payload(*, viewer_author=None):
         "phase_rail": get_arena_phase_rail(),
         "deadline": get_arena_deadline(active_battle),
         "geometry": get_arena_geometry(),
+        # Ring 11 belongs to sponsors (ARENA_BATTLE_PLAN 2a). A NEW key, never a
+        # renamed one: the keys above are the frozen contract in P00_CONTRACTS.
+        "vip_sponsors": get_vip_sponsors(),
         # Authoritative server clock at payload build so clients can reconcile
         # their own drift against deadline/phase (Ember #171). Never null.
         "server_time": timezone.now().isoformat(),
@@ -1152,6 +1156,7 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         "phase_rail": payload["phase_rail"],
         "deadline": payload["deadline"],
         "geometry": payload["geometry"],
+        "vip_sponsors": payload["vip_sponsors"],
         "server_time": payload["server_time"],
     }
 
@@ -1372,6 +1377,10 @@ PUBLIC_ARENA_STATE_KEYS = (
     "phase_rail",
     "deadline",
     "geometry",
+    # Without this the poll would empty the VIP ring thirty seconds after the
+    # page loaded: bind() reseats from the poll payload, and a key it cannot
+    # find reads as "no sponsors" rather than as "not sent".
+    "vip_sponsors",
     "server_time",
 )
 

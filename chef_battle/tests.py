@@ -8568,3 +8568,73 @@ class GrantArtifactPermissionTests(TestCase):
         self.assertTrue(
             ChefArtifact.objects.filter(chef=self.chef, artifact=self.artifact).exists()
         )
+
+
+class VipSponsorSeatingTests(TestCase):
+    """Ring 11 seats sponsors, and only the ones that are actually published.
+
+    The gate matters more than the seating: a cell that is paid, reserved or
+    awaiting approval has not been published, and putting it in the arena would
+    show the Owner's customers a placement they have not been given yet.
+    """
+
+    def _cell(self, number, status, name="Bearcave", **extra):
+        from sponsors.models import SponsorCell
+
+        return SponsorCell.objects.create(
+            cell_number=number,
+            ring=1,
+            position_in_ring=number,
+            status=status,
+            sponsor_name=name,
+            **extra,
+        )
+
+    def test_only_published_cells_are_seated(self):
+        from sponsors.models import SponsorCell
+        from .selectors import get_vip_sponsors
+
+        self._cell(1, SponsorCell.Status.ACTIVE, "Active Co")
+        self._cell(2, SponsorCell.Status.SOLD, "Legacy Sold Co")
+        self._cell(3, SponsorCell.Status.PAID_PENDING_APPROVAL, "Paid Co")
+        self._cell(4, SponsorCell.Status.PAYMENT_PENDING, "Pending Co")
+        self._cell(5, SponsorCell.Status.RESERVED, "Reserved Co")
+        self._cell(6, SponsorCell.Status.AVAILABLE, "Nobody")
+        self._cell(7, SponsorCell.Status.EXPIRED, "Expired Co")
+        self._cell(8, SponsorCell.Status.REJECTED, "Rejected Co")
+
+        names = [row["name"] for row in get_vip_sponsors()]
+        self.assertEqual(names, ["Active Co", "Legacy Sold Co"])
+
+    def test_a_published_cell_with_no_name_is_not_seated(self):
+        from sponsors.models import SponsorCell
+        from .selectors import get_vip_sponsors
+
+        self._cell(1, SponsorCell.Status.ACTIVE, "")
+        self._cell(2, SponsorCell.Status.ACTIVE, "Real Co")
+
+        self.assertEqual([row["name"] for row in get_vip_sponsors()], ["Real Co"])
+
+    def test_order_is_stable_by_cell_number(self):
+        from sponsors.models import SponsorCell
+        from .selectors import get_vip_sponsors
+
+        self._cell(9, SponsorCell.Status.ACTIVE, "Nine")
+        self._cell(2, SponsorCell.Status.ACTIVE, "Two")
+        self._cell(31, SponsorCell.Status.ACTIVE, "ThirtyOne")
+
+        rows = get_vip_sponsors()
+        self.assertEqual([row["cell_number"] for row in rows], [2, 9, 31])
+        self.assertEqual([row["name"] for row in rows], ["Two", "Nine", "ThirtyOne"])
+
+    def test_payload_carries_the_ring_and_the_poll_does_too(self):
+        from .views import PUBLIC_ARENA_STATE_KEYS, _build_arena_payload
+        from sponsors.models import SponsorCell
+
+        self._cell(1, SponsorCell.Status.ACTIVE, "Bearcave")
+
+        payload = _build_arena_payload()
+        self.assertIn("vip_sponsors", payload)
+        self.assertEqual([row["name"] for row in payload["vip_sponsors"]], ["Bearcave"])
+        # Without this the poll would empty the ring thirty seconds after load.
+        self.assertIn("vip_sponsors", PUBLIC_ARENA_STATE_KEYS)

@@ -201,6 +201,22 @@
   stroke-width: 2;
 }
 
+/* What a seated sponsor shows: their logo where they have one, their name where
+   they do not. Both sit in the sponsors layer, under the chefs — the arena is
+   the chefs' and the ring is the sponsors' frame around it, not the other way
+   round. */
+.page--arena #arena-render .arena-vip-sponsor-name {
+  fill: var(--surface-soft);
+  font-family: var(--font-sans);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.page--arena #arena-render .arena-vip-sponsor-logo {
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--ink) 70%, transparent));
+}
+
 /* Spectator galleries read cooler than the floor, mixed off --ink so they stay
    inside the palette. The scheme has no blue token; if the reference's slate
    gallery becomes a brand colour, it belongs in base.css, not here. */

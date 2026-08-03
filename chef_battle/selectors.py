@@ -1292,6 +1292,47 @@ def get_starting_battle_blast() -> dict | None:
 # Uneven-per-side is allowed — no longer forced multiples of 8.
 RANK_RING_SEGMENTS = (9, 10, 15, 20, 25, 30, 35, 40)
 
+
+def get_vip_sponsors() -> list[dict]:
+    """The sponsors entitled to a seat in the arena's VIP ring (ring 11).
+
+    The arena shares NO code and NO grid with the Sponsors puzzle (Owner,
+    2026-07-30): the only relationship between them is the product one, that a
+    sponsor sits in the VIP ring. So this reads sponsor RECORDS and returns
+    nothing about where they sit on the puzzle — the arena seats them itself,
+    in its own boxes, in the order given here.
+
+    Only publicly active cells qualify, which is the same gate the sponsors
+    page itself uses (`is_public_active` — ACTIVE or the legacy SOLD). A cell
+    that is merely paid, reserved or pending approval has not been published
+    and must not appear anywhere; nor must a cell with no sponsor name, which
+    would seat a blank in a ring the Owner sells.
+
+    Order is by cell_number so the seating is stable between polls: a sponsor
+    who does not move must not appear to hop around the ring every 30 seconds.
+    """
+    from sponsors.models import SponsorCell
+
+    rows = (
+        SponsorCell.objects
+        .filter(
+            status__in=[SponsorCell.Status.ACTIVE, SponsorCell.Status.SOLD],
+        )
+        .exclude(sponsor_name="")
+        .order_by("cell_number")
+    )
+
+    sponsors = []
+    for cell in rows:
+        sponsors.append({
+            "cell_number": cell.cell_number,
+            "name": cell.sponsor_name,
+            "logo": cell.sponsor_logo.url if cell.sponsor_logo else "",
+            "url": cell.sponsor_url,
+            "tagline": cell.sponsor_tagline,
+        })
+    return sponsors
+
 # Spectators sit in an oval around the octagon (NOT in chef cells).
 # Rows by side match the Owner mockup: 3 left/right, 2 top/bottom.
 SPECTATOR_OVAL_ROWS = {"top": 2, "right": 3, "bottom": 2, "left": 3}
