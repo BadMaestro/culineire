@@ -8686,3 +8686,64 @@ class VipSponsorSeatingTests(TestCase):
         self.assertEqual([row["name"] for row in payload["vip_sponsors"]], ["Bearcave"])
         # Without this the poll would empty the ring thirty seconds after load.
         self.assertIn("vip_sponsors", PUBLIC_ARENA_STATE_KEYS)
+
+
+class SetSponsorTaglineCommandTests(TestCase):
+    """The command that writes a tagline must refuse every ambiguous case.
+
+    It runs against production data, so the interesting behaviour is not the
+    write — it is everything it declines to do: no match, more than one match,
+    and no write at all until it is told to apply.
+    """
+
+    def _cell(self, number, name):
+        from sponsors.models import SponsorCell
+
+        return SponsorCell.objects.create(
+            cell_number=number, ring=1, position_in_ring=number,
+            status=SponsorCell.Status.ACTIVE, sponsor_name=name,
+        )
+
+    def _run(self, **kwargs):
+        from io import StringIO
+
+        out = StringIO()
+        call_command("set_sponsor_tagline", stdout=out, **kwargs)
+        return out.getvalue()
+
+    def test_dry_run_writes_nothing(self):
+        from sponsors.models import SponsorCell
+
+        cell = self._cell(1, "Bearcave Ltd.")
+        out = self._run(name="Bearcave", tagline="New line")
+        self.assertIn("DRY RUN", out)
+        cell.refresh_from_db()
+        self.assertEqual(cell.sponsor_tagline, "")
+
+    def test_apply_writes_and_reads_back(self):
+        cell = self._cell(1, "Bearcave Ltd.")
+        out = self._run(name="Bearcave", tagline="New line", apply=True)
+        self.assertIn("APPLIED", out)
+        cell.refresh_from_db()
+        self.assertEqual(cell.sponsor_tagline, "New line")
+
+    def test_two_matches_are_refused(self):
+        from django.core.management.base import CommandError
+
+        self._cell(1, "Bearcave Ltd.")
+        self._cell(2, "Bearcave Trading")
+        with self.assertRaises(CommandError):
+            self._run(name="Bearcave", tagline="New line", apply=True)
+
+    def test_no_match_is_refused(self):
+        from django.core.management.base import CommandError
+
+        with self.assertRaises(CommandError):
+            self._run(name="Nobody", tagline="New line", apply=True)
+
+    def test_cell_number_narrows_an_ambiguous_name(self):
+        self._cell(1, "Bearcave Ltd.")
+        second = self._cell(2, "Bearcave Trading")
+        self._run(name="Bearcave", cell_number=2, tagline="Narrowed", apply=True)
+        second.refresh_from_db()
+        self.assertEqual(second.sponsor_tagline, "Narrowed")
