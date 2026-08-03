@@ -2039,6 +2039,63 @@
 
   function tooltipEl() { return document.getElementById('arena-tooltip'); }
 
+  /** The card's own label, remembered from the template on first use. */
+  var linkLabel = null;
+  function defaultLinkLabel(link) {
+    if (linkLabel === null) { linkLabel = link.textContent; }
+    return linkLabel;
+  }
+
+  /**
+   * The sponsor's card — the chef's card, carrying a sponsor.
+   *
+   * Owner 2026-08-03: a sponsor must get the same card a chef gets, with a link
+   * on it. So this fills the ONE card the arena has rather than building a
+   * second: same element, same placement, same close behaviour. Everything that
+   * belongs to a chef and not to a sponsor — rating, badges, wins and losses,
+   * the challenge button — is hidden rather than left showing a chef's numbers
+   * under a sponsor's name.
+   */
+  function showSponsorTooltip(sponsor, anchor) {
+    var tip = tooltipEl();
+    if (!tip) { return; }
+
+    tip.setAttribute('data-rank', '');
+    var avatar = tip.querySelector('.arena-tooltip__avatar');
+    if (avatar) { avatar.src = sponsor.logo || ''; avatar.alt = sponsor.name || ''; }
+    tip.querySelector('.arena-tooltip__name').textContent = sponsor.name || '';
+    tip.querySelector('.arena-tooltip__rank').textContent = sponsor.tagline || 'Arena Sponsor';
+
+    var rating = tip.querySelector('.arena-tooltip__rating');
+    rating.textContent = '';
+    rating.hidden = true;
+
+    var link = tip.querySelector('.arena-tooltip__link');
+    defaultLinkLabel(link);
+    if (sponsor.url) {
+      link.href = sponsor.url;
+      link.textContent = 'Visit sponsor';
+      // The sponsor's site opens in its own tab and gets no handle on ours.
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
+      link.hidden = false;
+    } else {
+      // A sponsor who gave no address gets a card without a dead link on it.
+      link.hidden = true;
+    }
+
+    setHidden(tip.querySelector('.arena-tooltip__badge--battle'), true);
+    setHidden(tip.querySelector('.arena-tooltip__badge--online'), true);
+    setHidden(tip.querySelector('.arena-tooltip__stats'), true);
+    var potential = tip.querySelector('.js-chef-potential');
+    if (potential) { potential.hidden = true; }
+    var challenge = tip.querySelector('.js-challenge-btn');
+    if (challenge) { challenge.hidden = true; }
+
+    tip.hidden = false;
+    position(tip, anchor);
+  }
+
   function showTooltip(chef, anchor) {
     var tip = tooltipEl();
     if (!tip) { return; }
@@ -2053,7 +2110,16 @@
     var rating = tip.querySelector('.arena-tooltip__rating');
     rating.textContent = chef.rating ? 'Rating: ' + chef.rating : '';
     rating.hidden = !chef.rating;
-    tip.querySelector('.arena-tooltip__link').href = '/chef-battle/profile/' + chef.slug + '/';
+    var link = tip.querySelector('.arena-tooltip__link');
+    link.href = '/chef-battle/profile/' + chef.slug + '/';
+    // The sponsor card borrows this same link and sends it off-site. Reset it
+    // here or a chef's profile would open in a new tab once a sponsor had been
+    // looked at, which is the kind of state a shared card leaks if nobody clears
+    // it.
+    link.textContent = defaultLinkLabel(link);
+    link.removeAttribute('target');
+    link.removeAttribute('rel');
+    link.hidden = false;
 
     setHidden(tip.querySelector('.arena-tooltip__badge--battle'), !chef.in_battle);
     setHidden(tip.querySelector('.arena-tooltip__badge--online'), !chef.is_online);
@@ -2210,11 +2276,13 @@
       if (vipBox) {
         event.stopPropagation();
         fireRipple(svg, vipBox);
-        var sponsorUrl = vipBox.getAttribute('data-sponsor-url');
-        if (sponsorUrl) {
-          // noopener: the sponsor's page must not get a handle on the arena.
-          global.open(sponsorUrl, '_blank', 'noopener,noreferrer');
-        } else if (vipBox.getAttribute('data-occupancy') !== 'sponsor') {
+        if (vipBox.sponsorRecord) {
+          // A sold box opens the same card a chef opens, carrying the sponsor.
+          // The link lives ON the card (Owner, 2026-08-03) rather than the click
+          // throwing the viewer straight off the site.
+          showSponsorTooltip(vipBox.sponsorRecord, vipBox);
+        } else {
+          hideTooltip();
           global.location.href = '/sponsors/';
         }
         return;
