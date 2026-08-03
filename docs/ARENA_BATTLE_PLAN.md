@@ -4,8 +4,8 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-07-29 · Production baseline: **v2.5.692**
-(`53c93e93`) · Next assignable card: **A06**.
+Last reconciled: 2026-08-03 · Production baseline: **v2.5.769**
+· Next assignable card: **AR5**.
 
 ## 1. Current team and ownership
 
@@ -125,6 +125,7 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 | AR0 | Arena CSS/JS dead-code inventory (read-only) | ops/audits/arena/AR0_dead_code_inventory_2026-07-29.md |
 | AR1 | Arena owns its eleven-ring geometry; Sponsors grid no longer borrowed | v2.5.709–v2.5.710 |
 | AR3 | Moat lit by eight lanterns; glint on the Crown plate | v2.5.736 |
+| AR4 | Author seats: two rows top, two bottom; capacity 290 → 114 | v2.5.769 |
 
 ## 5. Atomic dispatch queue
 
@@ -143,8 +144,8 @@ forbidden changes and evidence for every row below.
 | AR1 | Arena Hall | Eleven-ring octagon geometry (Crown, Moat, 8 ranks, VIP) | GreenBear | A06 | DONE |
 | AR2 | Arena Hall | Eleven-ring palette tokens | GreenBear | AR1 | DONE |
 | AR3 | Arena Hall | Moat ring (ring 2) with lanterns + gold-ring glints | GreenBear | AR1 | DONE |
-| **AR4** | Arena Hall | Author seat rows (two top, two bottom) | GreenBear | AR1 | **NEXT** |
-| AR5 | Arena Hall | Spirit balconies + VIP sponsor ring | GreenBear | AR4 | PENDING |
+| AR4 | Arena Hall | Author seat rows (two top, two bottom) | Bolt | AR1 | DONE |
+| **AR5** | Arena Hall | Spirit balconies + VIP sponsor ring | GreenBear | AR4 | **NEXT** |
 | A07 | Arena Hall | Stage framing and full-octagon composition | GreenBear | AR5 | PENDING |
 | A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | PENDING |
 | A09 | Arena Hall | Live challenger/opponent composition | Ember | A07 | PENDING |

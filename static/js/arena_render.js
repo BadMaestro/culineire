@@ -235,14 +235,13 @@
     var floorR = props.floorOuter;
     var standsOuter = props.standsOuter;
     var oval = geometry.spectator_oval || {};
-    // The backend owns the stable 290-seat contract. Keep its ring/cell ids
-    // intact; the fallback mirrors ArenaGeometry's frozen 2/3/2/3-row layout.
-    var rowsBySide = oval.rows_by_side || { top: 2, right: 3, bottom: 2, left: 3 };
+    // The backend owns the stable seat contract. Keep its ring/cell ids intact;
+    // the fallback mirrors ArenaGeometry's AR4 layout — two rows top, two
+    // bottom, 114 author seats. The left and right banks are gone (§2a).
+    var rowsBySide = oval.rows_by_side || { top: 2, bottom: 2 };
     var countsBySide = oval.counts_by_side || {
       top: [28, 29],
-      right: [28, 29, 31],
-      bottom: [28, 29],
-      left: [28, 29, 31]
+      bottom: [28, 29]
     };
     var beFloor = oval.floor_outer_radius || 220;
     var seats = (Array.isArray(oval.seats) && oval.seats.length)

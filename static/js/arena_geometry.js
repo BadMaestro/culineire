@@ -117,19 +117,20 @@
 
   /**
    * Spectator seats on an oval around the chef octagon (Owner mockup).
-   * rowsBySide: {top, right, bottom, left} — 2/3/2/3 on the mockup.
+   * rowsBySide: {top, bottom} — two rows each, the AR4 author seat rows.
    * Returns [{side, row, cell, ring, x, y, r}] in plan space.
    *
    * `ring` is a synthetic index: 100 + side*10 + row (stable for ArenaSeat).
    */
   function ovalSeats(centerX, centerY, floorOuterRadius, rowsBySide, seatPitch, countsBySide) {
-    rowsBySide = rowsBySide || { top: 2, right: 3, bottom: 2, left: 3 };
-    // M04: denser packing; counts frozen so ring/cell ids stay at capacity 290.
+    // AR4 (§2a): author seats are two rows top and two rows bottom. A side that
+    // is absent from rowsBySide contributes no rows, which is how the left and
+    // right banks of the former 290-seat oval stop being drawn.
+    rowsBySide = rowsBySide || { top: 2, bottom: 2 };
+    // M04: counts frozen so ring/cell ids stay stable under denser packing.
     countsBySide = countsBySide || {
       top: [28, 29],
-      right: [28, 29, 31],
-      bottom: [28, 29],
-      left: [28, 29, 31]
+      bottom: [28, 29]
     };
     seatPitch = seatPitch || Math.max(11, floorOuterRadius * 0.045);
     var gap = floorOuterRadius * 0.055;

@@ -2676,7 +2676,7 @@ class ArenaMasterConsoleAccessTests(TestCase):
         self.assertNotContains(resp, "{# Same figure")
 
     def test_unified_renderer_invokes_existing_spectator_oval(self):
-        """The 290-seat backend contract must be connected to the SVG layer."""
+        """The backend seat contract must be connected to the SVG layer."""
         from django.conf import settings as django_settings
         from pathlib import Path
 
@@ -7582,15 +7582,16 @@ class ArenaGeometryTests(TestCase):
         self.assertEqual(counts, sorted(counts))
         # Owner mockup counts need not be multiples of 8 (uneven per side).
 
-    def test_spectator_oval_rows_match_mockup(self):
+    def test_spectator_rows_are_two_top_and_two_bottom_only(self):
+        """AR4 / plan §2a: author seats are two rows top and two rows bottom.
+        The left and right banks of the former oval are gone, not just empty."""
         from .selectors import get_arena_geometry, SPECTATOR_OVAL_ROWS
         g = get_arena_geometry()
         oval = g["spectator_oval"]
-        self.assertEqual(oval["rows_by_side"]["left"], 3)
-        self.assertEqual(oval["rows_by_side"]["right"], 3)
-        self.assertEqual(oval["rows_by_side"]["top"], 2)
-        self.assertEqual(oval["rows_by_side"]["bottom"], 2)
+        self.assertEqual(oval["rows_by_side"], {"top": 2, "bottom": 2})
+        self.assertEqual({s["side"] for s in oval["seats"]}, {"top", "bottom"})
         rings = [r for r in g["rings"] if r["kind"] == "spectator"]
+        self.assertEqual({r["side"] for r in rings}, {"top", "bottom"})
         by_side = {}
         for r in rings:
             by_side.setdefault(r["side"], []).append(r["row"])
@@ -7600,8 +7601,9 @@ class ArenaGeometryTests(TestCase):
                 if r["side"] == side:
                     self.assertEqual(r["rows_total"], rows)
 
-    def test_spectator_oval_counts_frozen_for_stable_ids(self):
-        """M04: packing may densify pitch/gap, but ring/cell capacity stays 290."""
+    def test_spectator_counts_frozen_for_stable_ids(self):
+        """Packing may densify pitch/gap, but ring/cell capacity stays 114, and
+        the surviving top/bottom rings keep the ids they had under the oval."""
         from .selectors import (
             SPECTATOR_OVAL_COUNTS,
             SPECTATOR_OVAL_ROWS,
@@ -7609,13 +7611,17 @@ class ArenaGeometryTests(TestCase):
             spectator_capacity,
         )
         total = sum(sum(v) for v in SPECTATOR_OVAL_COUNTS.values())
-        self.assertEqual(total, 290)
+        self.assertEqual(total, 114)
         for side, rows in SPECTATOR_OVAL_ROWS.items():
             self.assertEqual(len(SPECTATOR_OVAL_COUNTS[side]), rows)
         oval = get_arena_geometry()["spectator_oval"]
-        self.assertEqual(oval["capacity"], 290)
-        self.assertEqual(spectator_capacity(), 290)
-        self.assertEqual(oval["counts_by_side"]["left"], [28, 29, 31])
+        self.assertEqual(oval["capacity"], 114)
+        self.assertEqual(spectator_capacity(), 114)
+        self.assertEqual(oval["counts_by_side"]["top"], [28, 29])
+        self.assertEqual(oval["counts_by_side"]["bottom"], [28, 29])
+        # Ring ids are unchanged for the rows that survived: top 100/101 and
+        # bottom 120/121, so nobody already seated there is moved by AR4.
+        self.assertEqual({s["ring"] for s in oval["seats"]}, {100, 101, 120, 121})
         # First seat on each frozen ring keeps cell 0.
         by_ring = {}
         for seat in oval["seats"]:
@@ -7642,8 +7648,8 @@ class ArenaGeometryTests(TestCase):
         self.assertEqual(len(_get_spectators(cutoff, limit=2)), 2)
         self.assertEqual(len(_get_spectators(cutoff)), 3)
         self.assertEqual(spectator_capacity(), len(seat_map()))
-        # Owner oval packing — not the legacy polar 544.
-        self.assertEqual(spectator_capacity(), 290)
+        # AR4 author rows — not the legacy polar 544, not the former oval 290.
+        self.assertEqual(spectator_capacity(), 114)
 
 class VoteIntegrityConstraintTests(TransactionTestCase):
     """The self-vote ban has to survive a caller that skips the service layer.
@@ -8266,7 +8272,7 @@ class ArenaSeatingTests(TestCase):
         self.assertEqual(seating_capacity(), drawn)
         self.assertEqual(seating_capacity(), spectator_capacity())
         self.assertEqual(len(set(seat_map())), seating_capacity())
-        self.assertEqual(seating_capacity(), 290)
+        self.assertEqual(seating_capacity(), 114)
 
     def test_seat_order_runs_front_row_first(self):
         """Front seats first is the allocation order, so it lives in the map:
@@ -8283,6 +8289,48 @@ class ArenaSeatingTests(TestCase):
             by_ring.setdefault(ring, []).append(cell)
         for cells in by_ring.values():
             self.assertEqual(cells, list(range(len(cells))))
+
+    def test_seats_the_map_no_longer_declares_are_released(self):
+        """AR4 deleted the left and right banks. Anyone still holding one of
+        those rings sits where nothing is drawn, so the hold has to end: it is
+        invisible in the hall and would otherwise eat capacity until it lapsed.
+        A seat the map still declares is never released by this path."""
+        from .arena_seating import (
+            release_lapsed_seats, claim_seat, seat_map, get_active_seat,
+        )
+        from .models import ArenaSeat
+
+        keeper = self._viewer("keeper")
+        kept = claim_seat(keeper)
+        stranded = ArenaSeat.objects.create(
+            viewer=self._viewer("stranded"), ring_index=112, seat_index=7,
+        )
+        self.assertNotIn((112, 7), {(r, c) for r, c, _row in seat_map()})
+
+        released = release_lapsed_seats()
+
+        stranded.refresh_from_db()
+        self.assertIsNotNone(stranded.released_at)
+        self.assertGreaterEqual(released, 1)
+        kept.refresh_from_db()
+        self.assertIsNone(kept.released_at)
+        self.assertIsNotNone(get_active_seat(keeper))
+
+    def test_a_stranded_holder_can_sit_again_on_a_real_seat(self):
+        """The point of releasing an off-map hold: the person gets a seat that
+        the hall actually draws, rather than being stuck in a deleted bank."""
+        from .arena_seating import claim_seat, seat_map
+        from .models import ArenaSeat
+
+        viewer = self._viewer("moved")
+        ArenaSeat.objects.create(viewer=viewer, ring_index=130, seat_index=3)
+
+        seat = claim_seat(viewer)
+
+        self.assertIn(
+            (seat.ring_index, seat.seat_index),
+            {(r, c) for r, c, _row in seat_map()},
+        )
 
     # ---- allocation ------------------------------------------------------
 

@@ -77,22 +77,41 @@ def _lapsed_seat_ids(cutoff) -> list[int]:
     )
 
 
+def _offmap_seat_ids() -> list[int]:
+    """Held seats the geometry no longer declares.
+
+    AR4 removed the left and right seat banks, so anyone holding one of those
+    rings is sitting where the hall no longer draws a seat: invisible on the
+    floor, yet still counted against capacity until their online window lapses.
+    Freeing them is the same act as freeing a lapsed seat — the seat stops
+    existing, so the hold stops with it. No seat that the map still declares is
+    ever touched here.
+    """
+    valid = {(ring, cell) for ring, cell, _row in seat_map()}
+    return [
+        pk
+        for pk, ring, cell in ArenaSeat.objects.filter(released_at__isnull=True)
+        .values_list("pk", "ring_index", "seat_index")
+        if (ring, cell) not in valid
+    ]
+
+
 def get_active_seat(viewer) -> ArenaSeat | None:
     """The seat this viewer currently holds, or None."""
     return ArenaSeat.objects.filter(viewer=viewer, released_at__isnull=True).first()
 
 
 def release_lapsed_seats() -> int:
-    """Free seats whose holders have left the arena online window.
+    """Free seats whose holders have left, and seats the map no longer has.
 
     Returns how many seats were released. Safe to call from read paths that
     need the hall to reflect current presence before listing occupants.
     """
-    lapsed = _lapsed_seat_ids(_online_cutoff())
-    if not lapsed:
+    stale = set(_lapsed_seat_ids(_online_cutoff())) | set(_offmap_seat_ids())
+    if not stale:
         return 0
     return (
-        ArenaSeat.objects.filter(pk__in=lapsed, released_at__isnull=True)
+        ArenaSeat.objects.filter(pk__in=stale, released_at__isnull=True)
         .update(released_at=timezone.now())
     )
 
@@ -112,7 +131,9 @@ def claim_seat(viewer) -> ArenaSeat:
 
     Idempotent: a viewer who already holds a seat gets that same seat back, so
     the poll that runs every twenty seconds cannot walk somebody around the
-    stands or quietly consume the hall.
+    stands or quietly consume the hall. The purge runs BEFORE that shortcut:
+    otherwise a viewer holding a seat AR4 deleted would be handed it straight
+    back, and idempotency would preserve the one hold worth breaking.
 
     Concurrency is settled by the database, not by a lock we hope covers every
     caller: two simultaneous claims may both pick the same free seat, and the
@@ -123,14 +144,23 @@ def claim_seat(viewer) -> ArenaSeat:
     if viewer is None or getattr(viewer, "pk", None) is None:
         raise ArenaSeatingError("A seat requires a saved viewer.")
 
+    seats = seat_map()
+    # Only the off-map purge runs ahead of the idempotency shortcut, and only
+    # because such a seat no longer exists to be given back. The lapsed purge
+    # stays behind it: this caller is here, now, and their own last_seen_at can
+    # trail the request that is claiming — releasing their seat on that basis
+    # would walk them to a different one, which is the thing idempotency exists
+    # to prevent.
+    offmap = _offmap_seat_ids()
+    if offmap:
+        ArenaSeat.objects.filter(pk__in=offmap).update(released_at=timezone.now())
+
     existing = get_active_seat(viewer)
     if existing is not None:
         return existing
 
-    seats = seat_map()
     with transaction.atomic():
-        cutoff = _online_cutoff()
-        lapsed = _lapsed_seat_ids(cutoff)
+        lapsed = _lapsed_seat_ids(_online_cutoff())
         if lapsed:
             ArenaSeat.objects.filter(pk__in=lapsed).update(released_at=timezone.now())
 

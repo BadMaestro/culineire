@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.769",
+        "date": "2026-08-03",
+        "commit": "",
+        "title": "AR4 - author seats are two rows top and two rows bottom",
+        "section": "Chef Battles / Arena",
+        "summary": "The seat contract in ARENA_BATTLE_PLAN 2a supersedes the four-sided 290-seat oval: real interactive seats belong to authors, in two rows above the floor and two below. The left and right banks are gone, and the space they held is where AR5 will put the spirit balconies. Capacity is derived, not declared, so it followed the geometry from 290 to 114. Nobody already seated is moved: top and bottom keep their ring ids (100, 101, 120, 121), their per-row counts (28 and 29) and their arcs, so the change is a deletion of two banks rather than a re-lay of the hall. Two seat banks disappearing under live holders is the one real hazard here, and it is handled rather than left to lapse: a seat the geometry no longer declares is released on the read path and again on claim, before the idempotency shortcut that would otherwise hand a deleted seat straight back to its holder - the lapsed purge deliberately stays behind that shortcut, because a caller's own last_seen_at can trail the request that is claiming, and releasing on that basis would walk a seated person to a different seat. Eligibility was already correct and was not touched: authors who are not enrolled chefs, front rows first, one seat per person, enforced by a partial unique constraint.",
+    },
+    {
         "version": "2.5.751",
         "date": "2026-07-31",
         "commit": "46b139ba",

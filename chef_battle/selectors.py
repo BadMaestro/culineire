@@ -1333,17 +1333,21 @@ def get_vip_sponsors() -> list[dict]:
         })
     return sponsors
 
-# Spectators sit in an oval around the octagon (NOT in chef cells).
-# Rows by side match the Owner mockup: 3 left/right, 2 top/bottom.
-SPECTATOR_OVAL_ROWS = {"top": 2, "right": 3, "bottom": 2, "left": 3}
+
+# Spectators sit around the octagon (NOT in chef cells).
+# AR4 / ARENA_BATTLE_PLAN §2a (Owner 2026-07-29): real interactive seats belong
+# to authors, in TWO ROWS TOP AND TWO ROWS BOTTOM. The former four-sided
+# 290-seat oval is superseded — the left and right banks are gone, and the
+# space they held is where AR5 puts the spirit balconies.
+SPECTATOR_OVAL_ROWS = {"top": 2, "bottom": 2}
 
 # M04: freeze per-row seat counts so ring/cell ids stay stable when packing
-# constants (pitch/gap) tighten toward the mockup crowd. Sum = 290.
+# constants (pitch/gap) tighten toward the mockup crowd. Sum = 114.
+# Top and bottom keep the counts and the ring ids they already had, so nobody
+# already seated there is moved by this change.
 SPECTATOR_OVAL_COUNTS = {
     "top": (28, 29),
-    "right": (28, 29, 31),
     "bottom": (28, 29),
-    "left": (28, 29, 31),
 }
 
 # Legacy name kept as alias for imports; capacity now comes from oval packing.
@@ -1364,11 +1368,12 @@ def _oval_seat_list(floor_outer_radius=220.0, seat_pitch=None):
     # Denser mockup packing: tighter pitch/gap than the initial oval ship.
     pitch = seat_pitch if seat_pitch is not None else max(11.0, floor_outer_radius * 0.045)
     gap = floor_outer_radius * 0.055
+    # AR4: top and bottom only. The arcs and the side indices are the ones the
+    # four-sided oval already used, so ring ids 100/101 and 120/121 keep meaning
+    # exactly the seats they meant before.
     sides = (
         ("top", SPECTATOR_OVAL_ROWS["top"], -math.pi * 0.75, -math.pi * 0.25),
-        ("right", SPECTATOR_OVAL_ROWS["right"], -math.pi * 0.25, math.pi * 0.25),
         ("bottom", SPECTATOR_OVAL_ROWS["bottom"], math.pi * 0.25, math.pi * 0.75),
-        ("left", SPECTATOR_OVAL_ROWS["left"], math.pi * 0.75, math.pi * 1.25),
     )
     side_index = {"top": 0, "right": 1, "bottom": 2, "left": 3}
     out = []
