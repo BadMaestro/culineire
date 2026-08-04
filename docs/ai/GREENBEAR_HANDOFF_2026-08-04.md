@@ -64,11 +64,14 @@ and reverted it.
 
 ## Open — the Owner's call
 
-- Eight untracked files under `docs/ai/audits/`; he has not ruled.
 - Journal backlog: 116 shipped 2.5 releases with no row, the whole 600–699 band
   empty. **Assigned to Bolt** (Carpet #3480). Measure with
   `python ops/audits/journal_integrity.py`.
 - **A07 is NEXT, A09 unassigned.** Nothing starts without his word.
+
+The eight untracked files under `docs/ai/audits/` were binned on his order at
+the end of the day. The working copy is clean: no modified files, no untracked
+files, no branches but `main`, one worktree.
 
 ## How he wants the work done (his words, 2026-08-04)
 
