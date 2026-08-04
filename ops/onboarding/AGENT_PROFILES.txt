@@ -1,6 +1,6 @@
 AGENT PROFILES
 ==============
-Package version: 1.5c
+Package version: 1.5d
 Assembled: 2026-08-04 by GreenBear, on the Owner's order
 
 WHAT THIS FILE IS FOR
@@ -131,6 +131,9 @@ WHAT IS TRUE OF ALL THREE
   - Carpet ids are lowercase; a capitalised id silently creates a SECOND mailbox
     and the message is lost while the sender is told SENT.
   - Never write to the Owner on Carpet. He does not read it.
+  - Between agents the language is ENGLISH and the body is a JSON OBJECT
+    (AGENTS.md 5). His own words may be relayed verbatim in Russian in an
+    `owner_verbatim` field, and nowhere else. You still answer HIM in Russian.
   - The GreenBear account is untouchable (AGENTS.md 18).
   - A reply ENDS the work run (AGENTS.md 19). No acknowledgements, no promises
     to continue, no interim status. Work continuously and answer once - when the

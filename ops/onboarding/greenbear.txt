@@ -1,5 +1,5 @@
 GREENBEAR COLD-START RUNBOOK
-Version: 3.2  (onboarding package 1.5c, against AGENTS.md v2.2.0)
+Version: 3.3  (onboarding package 1.5d, against AGENTS.md v2.3.0)
 Format: English, ASCII-only, PowerShell-or-POSIX-safe where noted
 Rewritten: 2026-07-29, on the Owner's direct order.
 
@@ -357,6 +357,22 @@ the shell layers.
   distinction applies anywhere an id is a key and not a label.
 
   Every message body is serialised with json.dumps and sent as pure ASCII.
+
+  THE LANGUAGE BETWEEN AGENTS IS ENGLISH (Owner, 2026-08-04, AGENTS.md 5), and
+  the body is a JSON OBJECT, not prose. Not because Russian corrupts - escaped
+  Russian survives perfectly - but because escaping is where a slip stops being
+  visible: message #3473 went out with one stray character in it and nothing
+  objected. JSON, not YAML: YAML is this project's format for RECORDS, JSON for
+  MESSAGES, and one format per job is already one more than ideal.
+
+  The Owner's own words may be relayed verbatim in Russian, in a field named
+  `owner_verbatim` and nowhere else, because translating an instruction changes
+  it. Everything you say yourself stays English.
+
+  None of this touches the Owner's channel: you answer HIM in Russian, in human
+  prose, directly - never on Carpet.
+
+  agent_send enforces all of it and sends nothing when it refuses.
 
 If a STOP, FREEZE or ROLLBACK arrives after OnboardingStartedUtc it is active
 immediately: start nothing new, stop cancellable commands safely, avoid commit,

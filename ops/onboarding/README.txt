@@ -1,7 +1,7 @@
 AGENT ONBOARDING PACKAGE
 ========================
-Package version: 1.5c
-Against: AGENTS.md v2.2.0 on origin/main
+Package version: 1.5d
+Against: AGENTS.md v2.3.0 on origin/main
 Assembled: 2026-08-04, on the Owner's order
 
 WHEN THE OWNER SAYS "ONBOARDING <NAME>"
@@ -92,7 +92,7 @@ corrected in the same task.
 THE ROSTER THIS PACKAGE COVERS
 -------------------------------
 
-AGENTS.md section 1 is the single authoritative roster. As of package 1.5c it is
+AGENTS.md section 1 is the single authoritative roster. As of package 1.5d it is
 Ember, Bolt, GreenBear — three equal peers, no roles, no director, no gate
 holder. Any agent who knows how may deploy, one at a time, after proving every
 check in section 8 on their own work.
@@ -109,12 +109,33 @@ is corrected in the same change as the constitution. A runbook still describing 
 repealed arrangement is worse than no runbook: an agent will follow it in good
 faith and cite it afterwards.
 
-Package 1.5c contents:
+Package 1.5d contents:
     README.txt            this file — the entry point and the routing
     AGENT_PROFILES.txt    who the three agents are, and what is not known
-    greenbear.txt         cold-start runbook, v3.2
-    bolt.txt              cold-start runbook, v3.2
-    ember.txt             cold-start runbook, v3.2 (Ember's own, section 0b)
+    greenbear.txt         cold-start runbook, v3.3
+    bolt.txt              cold-start runbook, v3.3
+    ember.txt             cold-start runbook, v3.3 (Ember's own, section 0b)
+
+WHAT CHANGED IN 1.5d
+--------------------
+
+The language between agents is now ENGLISH, and a Carpet body is a JSON OBJECT
+(AGENTS.md section 5, Owner 2026-08-04). The Owner asked whether the constitution
+already forbade agents writing to each other in Russian; it did not. What existed
+was an ENCODING rule — pure ASCII on the wire — and the two had been confused for
+each other, so they are now stated apart.
+
+The reason is not that Russian corrupts. Properly escaped Russian survives
+perfectly. It is that escaping is where a slip stops being visible: message #3473
+went out carrying one stray character inside a code sample and nothing objected,
+including agent_send, which had been written two days earlier specifically to
+stop encoding accidents.
+
+His own words may still be relayed verbatim in Russian, in a field named
+`owner_verbatim` and nowhere else, because translating an instruction changes it.
+His own channel is untouched: agents answer HIM in Russian, in prose, directly.
+
+agent_send now enforces all three rules and sends nothing when it refuses.
 
 WHAT CHANGED IN 1.5c
 --------------------

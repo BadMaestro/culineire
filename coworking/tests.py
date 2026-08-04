@@ -216,14 +216,73 @@ class AgentSendCommandTests(TestCase):
         handle.close()
         return handle.name
 
+    def _json_body(self, **fields):
+        import json
+
+        payload = json.dumps({"from": "GreenBear", "to": "Bolt", **fields})
+        return self._body(payload), payload
+
     def test_sends_a_message_from_a_file(self):
-        path = self._body("hello from a file")
+        path, payload = self._json_body(subject="Subj", message="hello from a file")
         out = self._run(from_agent="greenbear", to_agent="bolt", body_file=path, subject="Subj")
         self.assertIn("SENT", out)
         message = CoworkingMessage.objects.latest("id")
         self.assertEqual(message.from_agent.agent_id, "greenbear")
         self.assertEqual(message.to_agent.agent_id, "bolt")
-        self.assertEqual(message.body, "hello from a file")
+        self.assertEqual(message.body, payload)
+
+    def test_prose_is_refused_because_a_body_is_a_json_object(self):
+        """AGENTS.md 5. A JSON body satisfies the ASCII rule by construction."""
+        from django.core.management.base import CommandError
+
+        path = self._body("hello from a file")
+        with self.assertRaises(CommandError) as caught:
+            self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+        self.assertIn("not JSON", str(caught.exception))
+        self.assertFalse(CoworkingMessage.objects.exists())
+
+    def test_a_bare_json_string_is_refused(self):
+        """Valid JSON, no field names — the reader would have to guess."""
+        from django.core.management.base import CommandError
+
+        path = self._body('"just a string"')
+        with self.assertRaises(CommandError) as caught:
+            self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+        self.assertIn("not a JSON object", str(caught.exception))
+
+    def test_cyrillic_between_agents_is_refused_and_the_field_is_named(self):
+        """AGENTS.md 5: the language between agents is English."""
+        from django.core.management.base import CommandError
+
+        path, _ = self._json_body(subject="Subj", message="Привет")
+        with self.assertRaises(CommandError) as caught:
+            self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+        message = str(caught.exception)
+        self.assertIn("language between agents is English", message)
+        self.assertIn("body.message", message)      # WHERE, not just THAT
+        self.assertFalse(CoworkingMessage.objects.exists())
+
+    def test_the_owner_may_be_quoted_verbatim_in_russian(self):
+        """Translating his instruction would change it, so one field is exempt."""
+        path, payload = self._json_body(
+            message="Relaying his exact wording below.",
+            owner_verbatim="верни 42",
+        )
+        self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+        self.assertEqual(CoworkingMessage.objects.latest("id").body, payload)
+
+    def test_cyrillic_is_still_refused_alongside_a_legitimate_quote(self):
+        """The exemption is one field, not an amnesty for the whole message."""
+        from django.core.management.base import CommandError
+
+        path, _ = self._json_body(
+            message="Это мой текст",
+            owner_verbatim="верни 42",
+        )
+        with self.assertRaises(CommandError) as caught:
+            self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+        self.assertIn("body.message", str(caught.exception))
+        self.assertNotIn("owner_verbatim", str(caught.exception).split("If this is")[0])
 
     def test_a_raw_non_ascii_body_is_refused(self):
         """AGENTS.md 5: the body reaches the wire as pure ASCII.
@@ -265,16 +324,26 @@ class AgentSendCommandTests(TestCase):
         self.assertFalse(CoworkingMessage.objects.exists())
 
     def test_the_escaped_form_goes_through_the_file_intact(self):
-        """The compliant way to carry Russian, and it must not be mangled."""
+        """Escaping is necessary and no longer sufficient.
+
+        This asserted the compliant path when ASCII was the only rule: json.dumps
+        emits \\uXXXX by default, so Russian could ride through legally. The Owner
+        added the language rule on 2026-08-04 and it is not legal any more —
+        between agents the language is English, and Russian survives only as his
+        own words in `owner_verbatim`. The transport half of the claim is still
+        true and still worth pinning: the escaped form crosses the file byte for
+        byte and decodes back to the original.
+        """
         import json
 
-        payload = json.dumps({"message": "Привет, шеф"})   # ASCII by default
+        payload = json.dumps({"message": "Owner said this, verbatim:",
+                              "owner_verbatim": "Привет, шеф"})
         self.assertTrue(payload.isascii())
         path = self._body(payload)
         self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
         stored = CoworkingMessage.objects.latest("id").body
         self.assertEqual(stored, payload)
-        self.assertEqual(json.loads(stored)["message"], "Привет, шеф")
+        self.assertEqual(json.loads(stored)["owner_verbatim"], "Привет, шеф")
 
     def test_a_capitalised_id_is_refused(self):
         from django.core.management.base import CommandError

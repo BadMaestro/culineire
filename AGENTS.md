@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.2.0"
+  version: "2.3.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -310,6 +310,50 @@ FORBIDDEN: passing Cyrillic, or any non-ASCII, as a raw command-line argument to
 argument bytes to ANSI before the process sees them, and a `charset=utf-8`
 header does not save it — the corruption already happened. This is how an
 agent's cold-start lines once reached the Owner as `?????`.
+
+### Agents write to each other in English (Owner, 2026-08-04)
+
+**Between agents, on Carpet, the language is English and the body is a JSON
+object.** This is a language rule, and the encoding rule above is a separate
+one — they were confused for each other on the day this was written, so both are
+now stated apart.
+
+- **English.** Not because Russian corrupts — properly escaped Russian survives
+  perfectly — but because escaping is where a slip stops being visible. A body
+  written in Cyrillic is a body every reader must decode before they can see
+  what it says, and a single wrong character inside it looks exactly like the
+  rest. That is not hypothetical: message #3473 went out with one stray
+  character in it and nothing, including the tool built to prevent it, objected.
+- **A JSON object, not prose.** `json.dumps` produces ASCII by default, so the
+  encoding rule above is satisfied by construction rather than by attention.
+- **JSON, not YAML.** YAML is this project's format for RECORDS — the bootstrap
+  record, the full-suite record, the amendment proposal, the completion block,
+  the pre-deploy re-read. Messages are JSON. Two formats for two jobs is
+  already one more than ideal; three, or either format used for both, means two
+  parsers and a class of bug nobody needs.
+
+**The Owner's channel is not covered by this.** He writes and reads Russian, he
+is reached directly and never on Carpet, and messages to him are human prose in
+Russian. An agent that answers him in English has failed him, not obeyed this.
+
+**One exception, and it exists because the alternative is worse: the Owner's own
+words may be relayed verbatim in Russian**, inside a field named
+`owner_verbatim`. Translating an instruction changes it, and an agent relaying
+what he said must be able to hand over exactly what he said. Everything the
+agent itself says stays English, in the other fields.
+
+The shape, then:
+
+```json
+{"from": "GreenBear", "to": "Bolt", "subject": "...", "message": "...",
+ "owner_verbatim": "…его слова, если их нужно передать дословно…"}
+```
+
+`coworking/management/commands/agent_send.py` enforces this: it refuses a body
+that is not a JSON object, refuses Cyrillic anywhere except `owner_verbatim`,
+and refuses any non-ASCII on the wire, naming the line, column and escape. It
+sends nothing when it refuses. A rule the tooling does not enforce lasts exactly
+as long as the author's attention, which in this case was two days.
 
 ### Names are capitalised; ids are not (Owner, 2026-07-29)
 
