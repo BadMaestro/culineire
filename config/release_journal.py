@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.801",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "Ember is retired - the roster closes, the record does not",
+        "section": "Agents / Governance",
+        "summary": "The Owner deleted the agent Ember and said the mail to and from it may be deleted. THE MAIL WAS NOT DELETED, and the reason is his own rule: AGENTS.md section 16 preserves a retired agent's identity, connections and audit history, and section 10 forbids destroying audit evidence that has a retention reason. What a retired agent asked, reported and was told is the only record of why parts of this codebase look the way they do - Ember's #3472 is what sent me to measure the board encoding, and the execution rule now in section 19 was written in Ember's runbook hours before it became law. Permission is not an instruction: he said it MAY be deleted, not that it must, and nothing is lost by keeping it. If he says it again it goes. WHAT RETIREMENT ACTUALLY CHANGES, all in this one release: the roster in section 1 is now GreenBear and Bolt, with Ember recorded on the retired line beside Cursor and ArenaFront; the 'Onboarding Ember' route is gone from CLAUDE.md and the onboarding README; ember.txt stays in the package with a RETIRED banner at the top and is no longer routed to, because it holds the only first draft of what became section 19; AGENT_PROFILES keeps its entry marked RETIRED, since deleting it would leave six DONE cards crediting a name nobody could look up. THE BOARD IS THE PART THAT MATTERED. Eight open cards suggested Ember as owner - A09, A16, A17, A18, B01, B03, R01, R02 - and A09 is the very next card after A07. A suggestion pointing at a retired agent reads as an owner and stops the next agent from asking, so all eight are now unassigned in both the markdown plan and ARENA_DESIGN_TASKS. The six DONE cards keep Ember's name: attribution is history and is not rewritten, and a board that edits its own past is worth less than one with a retired name on it. Two stale role descriptions went with it - the stage-1 block still said 'Ember writes Arena code and hands commits; GreenBear owns the deploy gate', an arrangement abolished on 2026-07-29, now marked HISTORICAL rather than erased; and TECHNICAL_STANDARDS still asked for a CoWork round trip with an agent that no longer exists. AGENTS.md goes to 2.5.0, and section 16 gains the paragraph explaining why the mail stayed.",
+    },
+    {
         "version": "2.5.800",
         "date": "2026-08-04",
         "commit": "",

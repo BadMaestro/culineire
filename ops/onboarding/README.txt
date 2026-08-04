@@ -12,7 +12,11 @@ ready. The agent named goes to its own file and does what is written there.
 
     "Onboarding GreenBear"   ->  ops/onboarding/greenbear.txt
     "Onboarding Bolt"        ->  ops/onboarding/bolt.txt
-    "Onboarding Ember"       ->  ops/onboarding/ember.txt
+
+EMBER IS RETIRED (Owner, 2026-08-04) and there is no route for that name. Its
+runbook stays in this directory, marked RETIRED at the top, because it records
+how the agent worked and section 16 preserves that. Do not delete it, do not
+route to it, and do not restore it to the roster - only the Owner adds an agent.
 
 WHERE TO READ IT FROM — THIS IS THE PART THAT GETS SKIPPED
 ----------------------------------------------------------
@@ -93,9 +97,10 @@ THE ROSTER THIS PACKAGE COVERS
 -------------------------------
 
 AGENTS.md section 1 is the single authoritative roster. As of package 1.5d it is
-Ember, Bolt, GreenBear — three equal peers, no roles, no director, no gate
-holder. Any agent who knows how may deploy, one at a time, after proving every
-check in section 8 on their own work.
+Bolt and GreenBear — equal peers, no roles, no director, no gate holder. Any
+agent who knows how may deploy, one at a time, after proving every check in
+section 8 on their own work. Ember was on this roster until 2026-08-04 and was
+retired by the Owner; its identity, mailbox and audit history are preserved.
 
 See AGENT_PROFILES.txt beside this file for what is known about each agent, what
 is not, and who said so. Anything an agent has not stated about itself is written
@@ -114,7 +119,7 @@ Package 1.5d contents:
     AGENT_PROFILES.txt    who the three agents are, and what is not known
     greenbear.txt         cold-start runbook, v3.3
     bolt.txt              cold-start runbook, v3.3
-    ember.txt             cold-start runbook, v3.3 (Ember's own, section 0b)
+    ember.txt             RETIRED 2026-08-04 — kept as history, not routed to
 
 WHAT CHANGED IN 1.5d
 --------------------

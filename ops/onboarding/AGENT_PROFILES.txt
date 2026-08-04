@@ -93,12 +93,17 @@ BOLT
 
 
 ===============================================================================
-EMBER
+EMBER  —  RETIRED 2026-08-04
 ===============================================================================
 
-  Mailbox id      `ember` — lowercase, case sensitive
+  RETIRED by the Owner on 2026-08-04. Not on the roster, no onboarding route,
+  no cards. The entry stays because AGENTS.md section 16 preserves a retired
+  agent's record, and because the cards below are attributed to it - deleting
+  the profile would leave six DONE rows crediting a name nobody could look up.
+
+  Mailbox id      `ember` — kept, not destroyed. Do not send to it.
   Signs as        Ember
-  Roster          AGENTS.md section 1
+  Roster          removed from AGENTS.md section 1 on 2026-08-04
 
   RECORDED  Board team table: "Integration, JS, templates, backend wiring and
             focused PostgreSQL tests." docs/ARENA_BATTLE_PLAN.md section 1.

@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-04 · Production baseline: **v2.5.800**
+Last reconciled: 2026-08-04 · Production baseline: **v2.5.801**
 · Next assignable card: **A07**. (A08 ran ahead of it and is DONE, v2.5.775–779.)
 
 **A07 was built and reverted on the same day.** v2.5.792 put the Design
@@ -21,9 +21,15 @@ and the 2.375 target is not available at 42°. See v2.5.792/793 in the journal.
 | Role | Responsibility |
 |---|---|
 | **Owner** | Final authority; assigns one atomic card and accepts visible results. |
-| **Ember** | Integration, JS, templates, backend wiring and focused PostgreSQL tests. |
 | **GreenBear** | Visual CSS. |
 | **Bolt** | Measurements and independent visual/regression checks. |
+
+**Ember was retired by the Owner on 2026-08-04.** Its name stays on the DONE
+rows in §4 and §5 — attribution is history and is not rewritten — and every
+open card that suggested it is now **unassigned**: A09, A16, A17, A18, B01, B03,
+R01, R02. A suggestion pointing at a retired agent reads as an owner and stops
+the next agent from asking. Integration, JS, templates and backend wiring have
+no standing owner; the Owner assigns them.
 
 **There are no fixed roles and no deploy gate-holder.** The column above is a
 typical focus, not a lock, and the §5 "suggested owner" is a suggestion. Any
@@ -174,22 +180,22 @@ forbidden changes and evidence for every row below.
 | AR5 | Arena Hall | Spirit balconies + VIP sponsor ring | GreenBear + Bolt | AR4 | DONE |
 | **A07** | Arena Hall | Stage framing and full-octagon composition | GreenBear | AR5 | **NEXT** |
 | A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | DONE |
-| A09 | Arena Hall | Live challenger/opponent composition | Ember | A07 | PENDING |
+| A09 | Arena Hall | Live challenger/opponent composition | unassigned | A07 | PENDING |
 | A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | PENDING |
 | A11 | Furniture | Phase panel reference pass | Bolt | A06 | DONE |
 | A12 | Furniture | Crown ladder panel reference pass | GreenBear | A06 | PENDING |
 | A13 | Furniture | Recent gifts panel reference pass | GreenBear | A06 | PENDING |
 | A14 | Furniture | Bottom ticker and Join the Crowd composition | GreenBear | A06 | PENDING |
 | A15 | Arena Hall | Effects and artifacts preservation pass | GreenBear | A07–A10 | PENDING |
-| A16 | Arena Hall | CulinEire branding and K-mark audit | Ember | A11–A14 | PENDING |
-| A17 | Integrity | Truthful visual state matrix | Ember | A09–A16 | PENDING |
-| A18 | Integrity | Desktop accessibility and responsive gate | Bolt + Ember | A17 | PENDING |
+| A16 | Arena Hall | CulinEire branding and K-mark audit | unassigned | A11–A14 | PENDING |
+| A17 | Integrity | Truthful visual state matrix | unassigned | A09–A16 | PENDING |
+| A18 | Integrity | Desktop accessibility and responsive gate | Bolt + unassigned | A17 | PENDING |
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
-| B01 | Battle Broadcast | Broadcast shell and confrontation header | Ember + GreenBear | A19 | PENDING |
+| B01 | Battle Broadcast | Broadcast shell and confrontation header | unassigned | A19 | PENDING |
 | B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | PENDING |
-| B03 | Battle Broadcast | Broadcast chat and composer | Ember | B02 | PENDING |
-| R01 | Result / Winner | Champion and runner-up result shell | Ember + GreenBear | B03 | PENDING |
-| R02 | Result / Winner | Result metrics, status and chat | Ember | R01 | PENDING |
+| B03 | Battle Broadcast | Broadcast chat and composer | unassigned | B02 | PENDING |
+| R01 | Result / Winner | Champion and runner-up result shell | unassigned | B03 | PENDING |
+| R02 | Result / Winner | Result metrics, status and chat | unassigned | R01 | PENDING |
 | G01 | Release gate | Complete Design Arena regression and production evidence | Team + Owner | A19, B03, R02 | PENDING |
 
 ## 6. How to assign a card

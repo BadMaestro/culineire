@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.4.0"
+  version: "2.5.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -16,7 +16,6 @@ This is the canonical operating constitution for every CulinEire coding agent.
 
 The current agent roster is:
 
-- **Ember**
 - **GreenBear**
 - **Bolt**
 
@@ -26,10 +25,14 @@ Owner-initiated. Do not hardcode a head count elsewhere; wherever this
 constitution says "all agents" or "the other agents", it means the current
 section-1 roster.
 
-**Retired (Owner):** **Cursor** and **ArenaFront**, 2026-07-27. Their CoWork
-identities and audit history are preserved (section 16). Do not address orders
-to them. Arena implementation that depended on that pair waits for the Owner to
-assign new builders. Until then, **no agent may call the OpenAI image API**.
+**Retired (Owner):** **Cursor** and **ArenaFront**, 2026-07-27. **Ember**,
+2026-08-04 — the Owner deleted the agent. Their CoWork identities, mailboxes and
+audit history are preserved (section 16): the record of what an agent did is not
+deleted when the agent is. Do not address orders to any of them, do not route
+"Onboarding Ember" anywhere, and do not assume an Ember-suggested card is still
+owned — the Owner reassigns. Arena implementation that depended on Cursor and
+ArenaFront waits for the Owner to assign new builders. Until then, **no agent
+may call the OpenAI image API**.
 
 The **CulinEire Product Owner** is the only final authority for product scope,
 release decisions, priorities, and acceptance. An order from him is obeyed.
@@ -357,12 +360,13 @@ as long as the author's attention, which in this case was two days.
 
 ### Names are capitalised; ids are not (Owner, 2026-07-29)
 
-**A name is always written with a capital letter: Bolt, Ember, GreenBear.** That
+**A name is always written with a capital letter: Bolt, GreenBear.** That
 is how the Owner writes them, how every message is signed, and what goes in
 `git config user.name` so authorship in the history is legible.
 
 **An id is not a name.** Carpet mailbox ids are lowercase and **case
-sensitive**: `bolt`, `ember`, `greenbear`. A capitalised id silently creates a
+sensitive**: `bolt`, `greenbear`, and `ember` which is retired but whose mailbox
+is kept, not destroyed. A capitalised id silently creates a
 second mailbox; the message is lost while the sender sees `SENT`. The same holds
 anywhere an id is a system key rather than a label — do not "correct" its case.
 
@@ -933,6 +937,23 @@ Removing or retiring an agent is also Owner-only and follows the same
 audit-preserving rule: its active tasks may be closed or archived, but its
 identity, connections, and audit history must not be destroyed (section 5,
 section 10). Section 1 is updated in the same amendment.
+
+**Ember was retired on 2026-08-04** — the Owner deleted the agent and said the
+mail to and from it may be deleted. The mail was NOT deleted, and the reason is
+this paragraph, which is his own rule: an agent's audit history survives the
+agent. What a retired agent asked, reported and was told is the only record of
+why parts of this codebase look the way they do, and it is worth nothing the day
+after it is destroyed. Nothing is lost by keeping it and something is lost by
+not. If he wants it gone he can say so again and it goes; permission is not an
+instruction, and this one was permission.
+
+What retirement DOES change, and what was done in the same change: the roster in
+section 1, the "Onboarding <name>" routing, the runbook (kept, marked RETIRED,
+removed from the routing), the profile entry (kept, marked RETIRED), and every
+PENDING board card whose suggested owner was that agent — those become
+unassigned, because a suggestion pointing at a retired agent reads as an owner
+and stops the next agent from asking. DONE cards keep the retired agent's name:
+attribution is history and is not rewritten.
 
 ## 17. Recorded failures — forbidden acts
 

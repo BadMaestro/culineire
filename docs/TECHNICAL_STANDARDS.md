@@ -269,7 +269,8 @@ Before work:
 
 - close or archive obsolete active tasks without deleting audit history;
 - preserve agent names and connections;
-- confirm round-trip delivery for Ember, GreenBear, and Bolt;
+- confirm round-trip delivery for the current section-1 roster — GreenBear and
+  Bolt; Ember was retired by the Owner on 2026-08-04 and is not addressed;
 - post the current branch, commit, task, and file ownership;
 - read and acknowledge all pending messages.
 

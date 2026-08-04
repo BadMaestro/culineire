@@ -14,8 +14,8 @@ process restart, branch switch, task switch, or resumed session:
 7. Complete the cold-start bootstrap record required by `/AGENTS.md`.
 8. Do not start a poller. There are none (`/AGENTS.md` section 5).
 
-When the Owner says **"Onboarding GreenBear"** (or Bolt, or Ember), that is the
-trigger for the same cold start plus one file:
+When the Owner says **"Onboarding GreenBear"** (or Bolt), that is the trigger for
+the same cold start plus one file:
 
     git show origin/main:ops/onboarding/greenbear.txt
 

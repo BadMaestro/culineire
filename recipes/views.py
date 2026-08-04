@@ -3140,7 +3140,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A09", "group": "Arena Hall", "title": "Live challenger/opponent composition",
-        "status": "PENDING", "owner": "Ember",
+        "status": "PENDING", "owner": "unassigned",
         "files": "templates/chef_battle/arena.html; static/js/arena_render.js; scoped fighter CSS",
         "depends_on": "A07",
         "action": "Place the existing active/facing-pair fighters in the measured left/right reference composition.",
@@ -3217,7 +3217,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A16", "group": "Arena Hall", "title": "CulinEire branding and K-mark audit",
-        "status": "PENDING", "owner": "Ember",
+        "status": "PENDING", "owner": "unassigned",
         "files": "templates/chef_battle/arena.html; Arena-only assets/CSS",
         "depends_on": "A11-A14",
         "action": "Remove or replace any remaining standalone design K with existing CulinEire branding where a mark is actually required.",
@@ -3228,7 +3228,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A17", "group": "Arena integrity", "title": "Truthful visual state matrix",
-        "status": "PENDING", "owner": "Ember",
+        "status": "PENDING", "owner": "unassigned",
         "files": "chef_battle/tests.py; templates/chef_battle/arena.html; existing Arena JS/CSS",
         "depends_on": "A09-A16",
         "action": "Verify active battle, facing pair, crown-only, empty, loading, error and unauthorised states against the final composition.",
@@ -3239,7 +3239,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A18", "group": "Arena integrity", "title": "Desktop accessibility and responsive gate",
-        "status": "PENDING", "owner": "Bolt + Ember",
+        "status": "PENDING", "owner": "Bolt + unassigned",
         "files": "chef_battle/tests.py; Arena CSS/JS only where a measured defect exists",
         "depends_on": "A17",
         "action": "Verify 1280 and 1920 layouts, keyboard operation, focus, reduced motion, no horizontal overflow and rank-label contrast.",
@@ -3261,7 +3261,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "B01", "group": "Battle Broadcast", "title": "Broadcast shell and confrontation header",
-        "status": "PENDING", "owner": "Ember + GreenBear",
+        "status": "PENDING", "owner": "GreenBear",
         "files": "existing battle-room template/JS; scoped broadcast CSS",
         "depends_on": "A19",
         "action": "Port the approved challenger/VS/opponent broadcast header using existing live battle data.",
@@ -3283,7 +3283,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "B03", "group": "Battle Broadcast", "title": "Broadcast chat and composer",
-        "status": "PENDING", "owner": "Ember",
+        "status": "PENDING", "owner": "unassigned",
         "files": "existing battle chat template/JS; scoped broadcast CSS",
         "depends_on": "B02",
         "action": "Match the approved avatar/name/message/time grid and composer strip.",
@@ -3294,7 +3294,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "R01", "group": "Result / Winner", "title": "Champion and runner-up result shell",
-        "status": "PENDING", "owner": "Ember + GreenBear",
+        "status": "PENDING", "owner": "GreenBear",
         "files": "existing result template/context; scoped result CSS",
         "depends_on": "B03",
         "action": "Port champion photo/details, runner-up octagon and full-width WINNER band.",
@@ -3305,7 +3305,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "R02", "group": "Result / Winner", "title": "Result metrics, status and chat",
-        "status": "PENDING", "owner": "Ember",
+        "status": "PENDING", "owner": "unassigned",
         "files": "existing result template/JS; scoped result CSS",
         "depends_on": "R01",
         "action": "Port the six metrics, finished-status pill and final chat composition.",
@@ -3316,7 +3316,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "G01", "group": "Release gate", "title": "Complete Design Arena regression and production evidence",
-        "status": "PENDING", "owner": "GreenBear (gate) + Ember (tests) + Owner (approval)",
+        "status": "PENDING", "owner": "Whichever agent holds the card + Owner (approval)",
         "files": "Tests/evidence only unless a regression is found",
         "depends_on": "A19, B03, R02",
         "action": "Run the final PostgreSQL suite, visual matrix, Dark Launch checks, deployment postflight and rollback proof.",
@@ -3337,8 +3337,11 @@ ARENA_RELEASE_STAGES = [
         "owners": "Owner, GreenBear, Ember (Bolt weekly-limited; Cursor and ArenaFront retired)",
         "criteria": ["Production stable at v2.5.675 and rolling forward cleanly.",
                      "Rollback tag rollback/2026-07-28-stable-v2.5.675 resolves to 3b4f88ad.",
-                     "Roles fixed: Ember writes Arena code and hands commits; GreenBear owns "
-                     "the deploy gate and the CSS slices; both execute docs/ARENA_BATTLE_PLAN.md."],
+                     "HISTORICAL, both halves superseded: 'Ember writes Arena code and hands "
+                     "commits; GreenBear owns the deploy gate' described the arrangement of "
+                     "2026-07-28. Roles were abolished on 2026-07-29 (AGENTS.md 1) and Ember "
+                     "was retired on 2026-08-04. Kept as the record of what this baseline was, "
+                     "not as a rule anyone follows."],
         "dependencies": "None — this is the recovered baseline.",
         "blockers": [],
         "branch": "main", "commit": "3b4f88adea2a46f5201754728cb7417ebb4ce986",
@@ -3353,9 +3356,11 @@ ARENA_RELEASE_STAGES = [
                    "surfaces as atomic tickets. Master Console is excluded.",
         "owners": "Owner assigns one card at a time. There are no roles and no deploy "
                   "gate-holder (AGENTS.md 1, 2026-07-29): any agent deploys their own work, "
-                  "one at a time, through the full gate. Typical focus only — Ember: "
-                  "integration, JS, templates and tests. GreenBear: visual CSS. Bolt: "
-                  "measurement and regression.",
+                  "one at a time, through the full gate. Typical focus only — GreenBear: "
+                  "visual CSS. Bolt: measurement and regression. Ember was retired by the "
+                  "Owner on 2026-08-04, so integration, JS, templates and backend wiring "
+                  "have no standing owner and every card that suggested Ember is now "
+                  "unassigned — the Owner assigns them.",
         "criteria": ["Every A00-G01 card below is DONE with its own visible result and evidence.",
                      "Owner accepts the Arena Hall before Battle Broadcast starts.",
                      "Site gold/brass palette remains authoritative.",
@@ -3368,8 +3373,8 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "1dedc6cb / production v2.5.800",
-        "verification": "Production v2.5.800 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
+        "commit": "1b48aa0e / production v2.5.801",
+        "verification": "Production v2.5.801 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
                         "deployed; A07 is the next assignable card and its numbers are measured "
                         "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md). The camera "
                         "stays rotateX(42deg): the Design Template's own 57deg shipped as "
@@ -3386,7 +3391,7 @@ ARENA_RELEASE_STAGES = [
         "title": "Release readiness & full verification", "status": "NOT STARTED",
         "purpose": "Full verification and the Owner's explicit release sign-off once the visual "
                    "integration matches the reference.",
-        "owners": "Whichever agent holds the card (no gate-holder) + Ember (tests) + Owner (approval)",
+        "owners": "Whichever agent holds the card (no gate-holder) + Owner (approval)",
         "criteria": ["All A00-G01 tickets accepted and marked DONE with evidence.",
                      "Full test suite green on PostgreSQL.",
                      "Production smoke checks and rollback path verified.",
