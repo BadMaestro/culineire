@@ -27,6 +27,11 @@ The routing, the reading order and what a runbook may not do are in
 and his page are untouchable, and an agent shares his name. That section carries
 the only stated consequence in the constitution.
 
+**Before answering anything, read `/AGENTS.md` section 19.** A reply ends the
+work run, so no acknowledgement, no promise to continue, no interim status: work
+continuously and answer once, when the task is done or when a real blocker needs
+one concrete decision.
+
 `/AGENTS.md` is canonical. If this pointer and `/AGENTS.md` ever differ,
 `/AGENTS.md` wins and this file must be corrected in the same task.
 

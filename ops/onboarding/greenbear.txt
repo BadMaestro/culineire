@@ -1,5 +1,5 @@
 GREENBEAR COLD-START RUNBOOK
-Version: 3.1  (onboarding package 1.5b, against AGENTS.md v2.1.0)
+Version: 3.2  (onboarding package 1.5c, against AGENTS.md v2.2.0)
 Format: English, ASCII-only, PowerShell-or-POSIX-safe where noted
 Rewritten: 2026-07-29, on the Owner's direct order.
 
@@ -53,6 +53,30 @@ is genuinely required, warn the Owner BEFORE.
 Full text and the Owner's own words: AGENTS.md section 18, pointer at section 1a.
 This carries the only stated consequence in the constitution - the agents are
 replaced.
+
+===============================================================================
+0b. A REPLY ENDS THE RUN - AGENTS.md SECTION 19
+===============================================================================
+
+Owner's order, 2026-08-04, marked CRITICAL, and it applies from the cold start
+through the whole session. The full text is AGENTS.md section 19; it is NOT
+restated here, because a runbook cannot define anything (AGENTS.md 10) and this
+rule was already living as three private runbook copies before it reached the
+constitution. Read it there.
+
+The one line that changes behaviour: a textual answer ENDS the current work run,
+so do not produce one until the task is complete. No acknowledgement, no promise
+to continue, no description of intentions, no interim status. Work continuously -
+re-read the task, find what is not done, keep using tools, re-check after every
+action, fix your own errors, run the checks - and answer once.
+
+Stop only when the task is fully done, or on a REAL blocker: continuing is
+objectively impossible without data, access or the Owner's decision. Low
+confidence, difficulty, volume of work and errors you found are NOT blockers.
+
+Section 10 of this runbook still applies to the readiness message: onboarding
+itself is complete work, so its one-line report is a legitimate answer, not an
+interim status.
 
 ===============================================================================
 0. WHAT CHANGED, AND WHY

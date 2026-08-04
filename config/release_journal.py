@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.794",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "AGENTS.md 2.2.0 - the Owner's execution rule was law in nobody's law book",
+        "section": "Agents / Governance",
+        "summary": "The Owner gave every agent the same CRITICAL rule on 2026-08-04: a textual answer ENDS the current work run, so do not produce one until the task is complete - no acknowledgement, no promise to continue, no description of intentions, no interim status. Work continuously instead: re-read the task and its criteria, find what is not done, keep using tools, re-check after every action, fix your own errors, run the checks, repeat. Stop only when it is finished, or on a real blocker - and low confidence, difficulty, volume of work and errors you found are explicitly NOT blockers. Within the hour that rule existed as a private copy in Ember's runbook and a private copy in my own memory, and in no canonical document. AGENTS.md section 10 says a runbook cannot define anything, so a rule living only there binds nobody: that is precisely how section 18, the hardest prohibition in this project, sat formally invisible for two weeks, and it would have been the second time in one week. It is now section 19 of the constitution, which goes to v2.2.0. THE PART THAT NEEDED CARE IS THE SEAM WITH SECTION 5, because read carelessly the two contradict: section 5 requires work to be narrated in the agent's own window and says work that is not narrated does not exist, and it separately forbids an agent to wait in silence after finishing. Section 19 now states the boundary in both places - narration is the card's START and its RESULT, never the traffic between them; section 5 forbids going quiet after finishing, section 19 forbids stopping before finishing, and together they read finish, report, ask for the next card. A STOP, a failing gate or a production risk is a case-B blocker and is still raised the moment it is seen. Also carried into the same commit, because section 13 requires the bootstrap pointer to move with the constitution: CLAUDE.md gains a section 19 pointer beside the section 18 one, the onboarding package goes to 1.5c against v2.2.0, and the three runbooks point AT section 19 rather than restating it - including Ember's, whose own block written hours earlier is kept intact and marked as superseded by the canonical text if the two ever differ. Ember's wording was accurate; the problem was never its quality, only its address.",
+    },
+    {
         "version": "2.5.793",
         "date": "2026-08-04",
         "commit": "",

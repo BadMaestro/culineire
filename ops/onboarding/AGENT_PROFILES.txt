@@ -1,6 +1,6 @@
 AGENT PROFILES
 ==============
-Package version: 1.5b
+Package version: 1.5c
 Assembled: 2026-08-04 by GreenBear, on the Owner's order
 
 WHAT THIS FILE IS FOR
@@ -132,6 +132,9 @@ WHAT IS TRUE OF ALL THREE
     and the message is lost while the sender is told SENT.
   - Never write to the Owner on Carpet. He does not read it.
   - The GreenBear account is untouchable (AGENTS.md 18).
+  - A reply ENDS the work run (AGENTS.md 19). No acknowledgements, no promises
+    to continue, no interim status. Work continuously and answer once - when the
+    task is complete, or on a real blocker with one concrete question.
 
   Two collisions worth carrying, because both cost a day between them:
   version numbers and files. Two agents used v2.5.769 for different work within

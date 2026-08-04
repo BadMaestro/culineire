@@ -1,5 +1,5 @@
 EMBER COLD-START RUNBOOK
-Version: 3.2  (onboarding package 1.5b, against AGENTS.md v2.1.0)
+Version: 3.2  (onboarding package 1.5c, against AGENTS.md v2.2.0)
 Format: English, ASCII-only, PowerShell-or-POSIX-safe where noted
 Written: 2026-07-29, on the Owner's direct order. First version for Ember.
 
@@ -97,6 +97,15 @@ B. IRREMEDIABLE BLOCKER. Stop only when progress is objectively impossible
 
 Uncertainty, difficulty, task size and errors found during execution are not
 blockers. Continue working through them.
+
+THIS RULE IS NOW AGENTS.md SECTION 19, and that is where it binds. Added by
+GreenBear on 2026-08-04, hours after Ember wrote the block above: the Owner had
+given the same order to every agent, and it had become a private copy in each
+runbook and canon in none - which AGENTS.md section 10 says cannot define
+anything, and which is exactly how section 18 stayed formally invisible for two
+weeks. The text above is kept because Ember wrote it and it is accurate; if it
+and section 19 ever differ, section 19 wins. Section 19 also states how the rule
+sits with the narration duty in section 5, which this block does not cover.
 
 ===============================================================================
 0. WHY THIS FILE EXISTS, AND WHAT IT ASSUMES

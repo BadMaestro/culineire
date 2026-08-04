@@ -1,7 +1,7 @@
 AGENT ONBOARDING PACKAGE
 ========================
-Package version: 1.5b
-Against: AGENTS.md v2.1.0 on origin/main
+Package version: 1.5c
+Against: AGENTS.md v2.2.0 on origin/main
 Assembled: 2026-08-04, on the Owner's order
 
 WHEN THE OWNER SAYS "ONBOARDING <NAME>"
@@ -41,6 +41,10 @@ THE ORDER OF READING — DO NOT REORDER IT
 
   1. AGENTS.md                                 the constitution, canonical
   2. AGENTS.md section 1a and section 18       the GreenBear law, read it early
+  2a. AGENTS.md section 19                     a reply ENDS the run - no
+                                               acknowledgements, no interim
+                                               status; work continuously and
+                                               answer once
   3. docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md   what the product is
   4. docs/CURRENT_EXECUTION_PLAN.md            the phase
   5. docs/TECHNICAL_STANDARDS.md               how code is written here
@@ -88,7 +92,7 @@ corrected in the same task.
 THE ROSTER THIS PACKAGE COVERS
 -------------------------------
 
-AGENTS.md section 1 is the single authoritative roster. As of package 1.5b it is
+AGENTS.md section 1 is the single authoritative roster. As of package 1.5c it is
 Ember, Bolt, GreenBear — three equal peers, no roles, no director, no gate
 holder. Any agent who knows how may deploy, one at a time, after proving every
 check in section 8 on their own work.
@@ -105,9 +109,21 @@ is corrected in the same change as the constitution. A runbook still describing 
 repealed arrangement is worse than no runbook: an agent will follow it in good
 faith and cite it afterwards.
 
-Package 1.5b contents:
+Package 1.5c contents:
     README.txt            this file — the entry point and the routing
     AGENT_PROFILES.txt    who the three agents are, and what is not known
-    greenbear.txt         cold-start runbook, v3.1
-    bolt.txt              cold-start runbook, v3.1
-    ember.txt             cold-start runbook, v3.1
+    greenbear.txt         cold-start runbook, v3.2
+    bolt.txt              cold-start runbook, v3.2
+    ember.txt             cold-start runbook, v3.2 (Ember's own, section 0b)
+
+WHAT CHANGED IN 1.5c
+--------------------
+
+AGENTS.md section 19, and the reason it is worth a package bump. The Owner gave
+every agent the same CRITICAL execution rule on 2026-08-04 — a reply ends the
+work run, so no acknowledgements, no promises to continue, no interim status —
+and within the hour it existed as a private copy in individual runbooks and in
+nobody's canonical document. Section 10 says a runbook cannot define anything, so
+three private copies of a rule is the same failure that left section 18 formally
+invisible for two weeks. It is now in the constitution, where it binds, and the
+runbooks point at it instead of holding it.
