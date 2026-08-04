@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="529" viewBox="0 0 1300 529">
+<style>text{font-family:Inter,Segoe UI,sans-serif}.h{font-size:15px;font-weight:700;fill:#e8e4dc}.s{font-size:11px;fill:#9fafb0}.l{font-size:9px}.frame{fill:none;stroke:#4a4a4a;stroke-width:1}.cap{font-size:11px;fill:#9fafb0}</style>
+<rect width="1300" height="529" fill="#14181a"/>
+<text x="20" y="26" class="h">PRODUCTION</text>
+<text x="20" y="46" class="s">culineire.ie/chef-battle/arena/ at 1280x720</text>
+<rect x="10" y="60" width="413.3" height="232.5" class="frame"/>
+<rect x="117.0" y="152.4" width="196.2" height="151.4" fill="#c49a5c" fill-opacity="0.13" stroke="#c49a5c" stroke-width="1.2"/>
+<text x="120.0" y="164.4" class="l" fill="#c49a5c">Floor / octagon 608x469</text>
+<rect x="197.6" y="205.2" width="34.8" height="26.0" fill="#e8c37a" fill-opacity="0.13" stroke="#e8c37a" stroke-width="1.2"/>
+<text x="200.6" y="217.2" class="l" fill="#e8c37a">Crown 108x81</text>
+<rect x="183.1" y="207.2" width="13.2" height="14.3" fill="#d05050" fill-opacity="0.13" stroke="#d05050" stroke-width="1.2"/>
+<text x="186.1" y="219.2" class="l" fill="#d05050">Fighters 41x44</text>
+<rect x="180.2" y="169.0" width="69.8" height="132.5" fill="#8a7a5a" fill-opacity="0.13" stroke="#8a7a5a" stroke-width="1.2"/>
+<text x="183.2" y="181.0" class="l" fill="#8a7a5a">Rank spine 216x410</text>
+<rect x="16.5" y="112.6" width="80.1" height="79.1" fill="#5f7f6a" fill-opacity="0.13" stroke="#5f7f6a" stroke-width="1.2"/>
+<text x="19.5" y="124.6" class="l" fill="#5f7f6a">Top-left panel 248x245</text>
+<rect x="15.2" y="268.1" width="71.7" height="54.7" fill="#5f7f6a" fill-opacity="0.13" stroke="#5f7f6a" stroke-width="1.2"/>
+<text x="18.2" y="280.1" class="l" fill="#5f7f6a">Crown ladder 222x169</text>
+<rect x="343.2" y="252.4" width="71.7" height="70.4" fill="#5f7f6a" fill-opacity="0.13" stroke="#5f7f6a" stroke-width="1.2"/>
+<text x="346.2" y="264.4" class="l" fill="#5f7f6a">Recent gifts 222x218</text>
+<rect x="259.9" y="140.6" width="155.0" height="23.0" fill="#4a6b8a" fill-opacity="0.13" stroke="#4a6b8a" stroke-width="1.2"/>
+<text x="262.9" y="152.6" class="l" fill="#4a6b8a">Metrics 480x71</text>
+<rect x="10.3" y="325.1" width="409.5" height="19.0" fill="#4a6b8a" fill-opacity="0.13" stroke="#4a6b8a" stroke-width="1.2"/>
+<text x="13.3" y="337.1" class="l" fill="#4a6b8a">Ticker 1268x59</text>
+<rect x="112.4" y="109.8" width="209.9" height="14.3" fill="#4a6b8a" fill-opacity="0.13" stroke="#4a6b8a" stroke-width="1.2"/>
+<text x="115.4" y="121.8" class="l" fill="#4a6b8a">Phase rail 650x44</text>
+<text x="660" y="26" class="h">DESIGN TEMPLATE</text>
+<text x="660" y="46" class="s">same fixed 1920 composition, overflowing a 1280 viewport</text>
+<rect x="650" y="60" width="620.0" height="348.8" class="frame"/>
+<rect x="659.0" y="91.6" width="102.0" height="73.3" fill="#5f7f6a" fill-opacity="0.13" stroke="#5f7f6a" stroke-width="1.2"/>
+<text x="662.0" y="103.6" class="l" fill="#5f7f6a">Top-left panel 316x227</text>
+<rect x="659.0" y="289.9" width="102.0" height="87.8" fill="#5f7f6a" fill-opacity="0.13" stroke="#5f7f6a" stroke-width="1.2"/>
+<text x="662.0" y="301.9" class="l" fill="#5f7f6a">Crown ladder 316x272</text>
+<rect x="1154.4" y="305.7" width="106.6" height="72.0" fill="#5f7f6a" fill-opacity="0.13" stroke="#5f7f6a" stroke-width="1.2"/>
+<text x="1157.4" y="317.7" class="l" fill="#5f7f6a">Recent gifts 330x223</text>
+<text x="10" y="439" class="cap">Scaled box diagram built from the measured bounding boxes in the JSON beside this file.</text>
+<text x="10" y="455" class="cap">Both panes drawn at the same scale (0.3229 px per CSS px), so a box here is comparable to the box opposite.</text>
+<text x="10" y="471" class="cap">This is NOT a photograph and does not show colour, texture or depth. It shows position and size only.</text>
+</svg>

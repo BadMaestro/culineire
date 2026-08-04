@@ -1,0 +1,103 @@
+{
+  "source": "ops/reference/design_arena/Chef Battles Arena v2.dc.html",
+  "method": "getBoundingClientRect() at a NATIVE 1280x720 viewport, no wrapper and no scaling",
+  "session": "superuser session opened by the Owner 2026-08-04; read-only, no clicks, no form submissions",
+  "captured_by": "Bolt",
+  "captured": "2026-08-04",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "document": {
+    "scrollWidth": 1920,
+    "clientWidth": 1280,
+    "note": "the composition is fixed at 1920 and OVERFLOWS a 1280 viewport; it does not reflow"
+  },
+  "floor": {
+    "x": 167.3,
+    "y": 329.2,
+    "width": 1585.4,
+    "height": 667.5,
+    "aspect": 2.375,
+    "cx": 960.0
+  },
+  "floor_outer_band": {
+    "x": 122.5,
+    "y": 322.1,
+    "width": 1675.0,
+    "height": 699.0,
+    "aspect": 2.396,
+    "cx": 960.0
+  },
+  "panel_phase": {
+    "x": 47.0,
+    "y": 182.0,
+    "width": 278.0,
+    "height": 124.0,
+    "aspect": 2.242,
+    "cx": 186.0
+  },
+  "panel_topleft_block": {
+    "x": 28.0,
+    "y": 98.0,
+    "width": 316.0,
+    "height": 227.0,
+    "aspect": 1.392,
+    "cx": 186.0
+  },
+  "panel_ladder": {
+    "x": 28.0,
+    "y": 712.0,
+    "width": 316.0,
+    "height": 272.0,
+    "aspect": 1.162,
+    "cx": 186.0
+  },
+  "panel_gifts": {
+    "x": 1562.0,
+    "y": 761.0,
+    "width": 330.0,
+    "height": 223.0,
+    "aspect": 1.48,
+    "cx": 1727.0
+  },
+  "plinth_outer_pair": [
+    {
+      "x": 377.6,
+      "y": 665.5,
+      "width": 359.0,
+      "height": 285.8,
+      "cx": 557.2
+    },
+    {
+      "x": 1183.3,
+      "y": 665.5,
+      "width": 359.0,
+      "height": 285.8,
+      "cx": 1362.8
+    }
+  ],
+  "plinth_inner_pair": [
+    {
+      "x": 458.8,
+      "y": 649.0,
+      "width": 319.7,
+      "height": 238.6,
+      "cx": 618.7
+    },
+    {
+      "x": 1141.4,
+      "y": 649.0,
+      "width": 319.7,
+      "height": 238.6,
+      "cx": 1301.3
+    }
+  ],
+  "fighter_portrait_left": {
+    "x": 602.0,
+    "y": 478.0,
+    "width": 196.0,
+    "height": 244.0,
+    "cx": 700.0
+  }
+}

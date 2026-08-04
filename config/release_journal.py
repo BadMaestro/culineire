@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.805",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "A06 completed, and a wrong instruction of mine withdrawn from A07",
+        "section": "Chef Battles / Arena",
+        "summary": "Two jobs, and the first is a correction of my own work. A07 was carrying an instruction I put there: make the octagon about 64 percent wider and 13 percent shorter. Wrong twice over. It compared the template whole floor square against production rank cells only - like for like the aspects are 1.467 against 2.375, not 1.266 against 2.375 - and the delta is not geometry at all. v2.5.792 established the template floor is a 1120x1120 SQUARE whose 2.375 comes entirely from its camera, rotateX(57deg) at perspective 1600px, which projects our own square to 1585.4x667.5 exactly. The Owner saw 57 degrees on production and reverted to 42 (v2.5.793), so the camera is settled and the card now carries NO target aspect: inventing a replacement would repeat the very mistake being corrected. Second, A06 is finished to its acceptance rather than to the convenient part of it. Production measured live at BOTH 1920x1080 and 1280x720 under a superuser session the Owner opened, read-only, with bounding boxes for floor, crowd spirits, author seats, VIP ring, moat, crown, fighters, rank spine, all four panels, metrics, ticker and phase rail. The reference was measured at both too and does not respond to the viewport at all: a fixed 1920 composition that overflows a smaller window rather than reflowing, a different layout model from production, recorded rather than averaged away. Reference numbers were produced twice independently, by me and on the audit branch, and agree to the decimal. The one large uncontested gap is the fighter composition: four plinth blocks in two symmetric pairs against one 66.4x69.8 cell avatar at x 831 while the octagon centres at 955 - the dead-stickers report, measured, and it belongs to A09. ONE ACCEPTANCE ROW REMAINS OPEN AND THE AUDIT SAYS SO: the side-by-side files are scaled box diagrams built from the measured rectangles, not photographs, because the tools here cannot write a page screenshot to disk and the one path that can would photograph the Owner whole desktop into the repository.",
+    },
+    {
         "version": "2.5.804",
         "date": "2026-08-04",
         "commit": "",

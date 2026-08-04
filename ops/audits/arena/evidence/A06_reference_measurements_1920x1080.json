@@ -1,0 +1,102 @@
+{
+  "crowd": {
+    "count": 8,
+    "height": 1216,
+    "visible_clip": {
+      "height": 1080,
+      "width": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "width": 2200,
+    "x": -140,
+    "y": -33
+  },
+  "crown": {
+    "height": 168,
+    "width": 190,
+    "x": 865,
+    "y": 648
+  },
+  "document": {
+    "height": 1080,
+    "width": 1920
+  },
+  "fighters": {
+    "left": {
+      "height": 244,
+      "width": 196,
+      "x": 602,
+      "y": 478
+    },
+    "right": {
+      "height": 244,
+      "width": 196,
+      "x": 1122,
+      "y": 478
+    },
+    "union": {
+      "count": 2,
+      "height": 244,
+      "width": 716,
+      "x": 602,
+      "y": 478
+    }
+  },
+  "floor_grid": {
+    "height": 667.5,
+    "width": 1585.4,
+    "x": 167.3,
+    "y": 329.2
+  },
+  "floor_outer_band": {
+    "height": 699,
+    "width": 1675,
+    "x": 122.5,
+    "y": 322.1
+  },
+  "method": "getBoundingClientRect() on authored 1920x1080 canvas",
+  "panels": {
+    "gifts": {
+      "height": 223,
+      "width": 330,
+      "x": 1562,
+      "y": 761
+    },
+    "ladder": {
+      "height": 272,
+      "width": 316,
+      "x": 28,
+      "y": 712
+    },
+    "metrics": {
+      "height": 70,
+      "width": 541.4,
+      "x": 1350.6,
+      "y": 98
+    },
+    "phase": {
+      "height": 227,
+      "width": 316,
+      "x": 28,
+      "y": 98
+    }
+  },
+  "rank_spine": {
+    "height": 235,
+    "width": 198.7,
+    "x": 860.6,
+    "y": 196
+  },
+  "source": "ops/reference/design_arena/Chef Battles Arena v2.dc.html",
+  "ticker": {
+    "height": 52,
+    "width": 1076.5,
+    "x": 421.7,
+    "y": 1004
+  },
+  "viewport": {
+    "height": 1080,
+    "width": 1920
+  }
+}

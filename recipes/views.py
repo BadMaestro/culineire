@@ -3059,7 +3059,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "No production change; exact remaining deltas replace guesswork.",
         "acceptance": "Side-by-side images plus measurements for floor, crowd, rank spine, fighters, crown, four panels and ticker.",
         "forbidden": "Read-only ticket: no CSS, JS, template, database or production mutation.",
-        "evidence": "DONE 2026-07-29 (GreenBear): ops/audits/arena/A06_measurement_matrix_2026-07-29.md. Octagon aspect ~1.30 (prod) vs ~2.05 (reference); no green/red fighter plinths in production (live chefs are scattered ~40px cell-avatars). RE-MEASURED 2026-08-04 (Bolt): the original matrix cited ops/prototypes/arena_visual_shell/, which the Owner had rejected, so its headline octagon aspect of 2.05 was measured off a discarded source. Re-run against ops/reference/design_arena/Chef Battles Arena v2.dc.html on its own declared 1920x1080 canvas: the reference floor is 1585.4x667.5, aspect 2.375, confirmed three ways. See ops/audits/arena/A06_remeasure_2026-08-04.md. COMPLETE 2026-08-04: the Owner reopened the Arena session and the production column is measured too - octagon 966.9x763.7 aspect 1.266, no fighter plinths, phase panel at parity with the reference.",
+        "evidence": "DONE 2026-08-04, both columns and both viewports: ops/audits/arena/A06_remeasure_2026-08-04.md with raw JSON and images under ops/audits/arena/evidence/. Reference measured twice independently (Bolt and the audit branch), readings agreeing to the decimal - floor grid 1585.4x667.5, outer band 1675x699, crown 190x168 at (865,648). Production measured live at 1920x1080 and 1280x720 under a superuser session the Owner opened, read-only. The reference does NOT respond to the viewport: a fixed 1920 composition that overflows rather than reflows, a different layout model from production and recorded as such. The 2026-07-29 matrix stays with its SUPERSEDED banner - it cited the rejected prototype. OPEN AND STATED: the side-by-side files are scaled box diagrams built from the measured rectangles, not photographs; the tools here cannot write a page screenshot to disk and the one path that can would photograph the Owner's whole desktop.",
     },
     {
         "id": "AR1", "group": "Arena Hall", "title": "Eleven-ring octagon geometry",
@@ -3125,7 +3125,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "The full floor reads as one centred arena with the reference margins.",
         "acceptance": "Matches A06 bounds at 1280 and 1920; rotateX remains 42deg; floor colours and octagon renderer unchanged.",
         "forbidden": "No geometry-engine rewrite, perspective/camera change or floor recolour.",
-        "evidence": "UNBLOCKED 2026-08-04, both halves measured. Target aspect is 2.375, NOT the 2.05 the superseded matrix carried - that came from the rejected prototype. At 1920 the floor must go from 966.9x763.7 (production, 184 rank cells, aspect 1.266) to 1585.4x667.5 (Design Template, aspect 2.375): about 64 percent wider and 13 percent shorter, staying centred - production centres at x 955 against the reference 960. Production's own aspect is confirmed independently: the old matrix read 1.30 on 2026-07-29, this run reads 1.266 by a different route, and production was never the disputed half. Full matrix with both columns: ops/audits/arena/A06_remeasure_2026-08-04.md.",
+        "evidence": "TARGET WITHDRAWN 2026-08-04. This row previously carried a wrong instruction of Bolt's - make the floor about 64 percent wider and 13 percent shorter. It compared the template's whole floor square against production's rank cells only; like for like it is 1.467 against 2.375. Worse, the delta is not geometry: v2.5.792 established the template floor is a 1120x1120 SQUARE whose 2.375 comes entirely from its camera, rotateX(57deg) at perspective 1600px, which projects our own square to 1585.4x667.5 exactly. The Owner saw 57deg on production and reverted to 42deg (v2.5.793), so the camera is settled and A06 hands this card NO target aspect - inventing a replacement would repeat the mistake. Full matrix with both columns: ops/audits/arena/A06_remeasure_2026-08-04.md.",
     },
     {
         "id": "A08", "group": "Arena Hall", "title": "Crowd bowl depth and atmospheric population",
@@ -3373,7 +3373,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "c717365e / production v2.5.804",
+        "commit": "PENDING / production v2.5.805",
         "verification": "Production v2.5.804 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
                         "deployed; A07 is the next assignable card and its numbers are measured "
                         "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md). The camera "

@@ -1,0 +1,158 @@
+{
+  "source": "https://culineire.ie/chef-battle/arena/",
+  "method": "getBoundingClientRect() in a live authenticated browser; multi-element blocks are the union bounding box of their SVG cells",
+  "session": "superuser session opened by the Owner 2026-08-04; read-only, no clicks, no form submissions",
+  "captured_by": "Bolt",
+  "captured": "2026-08-04",
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "document": {
+    "scrollWidth": 1910,
+    "clientWidth": 1920
+  },
+  "floor": {
+    "x": 471.4,
+    "y": 373.7,
+    "width": 967.3,
+    "height": 763.9,
+    "aspect": 1.266,
+    "cx": 955.0,
+    "cells": 184
+  },
+  "crowd_spirits": {
+    "x": 480.7,
+    "y": 345.0,
+    "width": 948.5,
+    "height": 864.4,
+    "aspect": 1.097,
+    "cx": 955.0,
+    "count": 92
+  },
+  "author_seats": {
+    "x": 480.0,
+    "y": 345.9,
+    "width": 950.0,
+    "height": 861.3,
+    "aspect": 1.103,
+    "cx": 955.0,
+    "count": 114
+  },
+  "vip_ring": {
+    "x": 421.6,
+    "y": 350.3,
+    "width": 1066.8,
+    "height": 845.3,
+    "aspect": 1.262,
+    "cx": 955.0,
+    "count": 32
+  },
+  "moat": {
+    "x": 842.7,
+    "y": 594.0,
+    "width": 224.6,
+    "height": 169.3,
+    "aspect": 1.326,
+    "cx": 955.0,
+    "count": 8
+  },
+  "fighters": {
+    "x": 797.9,
+    "y": 622.5,
+    "width": 66.4,
+    "height": 69.8,
+    "aspect": 0.951,
+    "cx": 831.1,
+    "count": 1,
+    "note": "one chef cell-avatar; no plinth composition exists on production"
+  },
+  "crown": {
+    "x": 868.4,
+    "y": 613.0,
+    "width": 173.2,
+    "height": 127.8,
+    "aspect": 1.355,
+    "cx": 955.0
+  },
+  "rank_spine": {
+    "x": 847.0,
+    "y": 457.3,
+    "width": 216.0,
+    "height": 668.4,
+    "aspect": 0.323,
+    "cx": 955.0
+  },
+  "panel_phase": {
+    "x": 45.8,
+    "y": 281.1,
+    "width": 271.6,
+    "height": 119.5,
+    "aspect": 2.274,
+    "cx": 181.6
+  },
+  "panel_topleft_block": {
+    "x": 29.6,
+    "y": 163.0,
+    "width": 304.0,
+    "height": 253.8,
+    "aspect": 1.198,
+    "cx": 181.6
+  },
+  "panel_ladder": {
+    "x": 23.9,
+    "y": 1066.5,
+    "width": 248.0,
+    "height": 166.6,
+    "aspect": 1.489,
+    "cx": 147.9
+  },
+  "panel_gifts": {
+    "x": 1638.1,
+    "y": 1017.1,
+    "width": 248.0,
+    "height": 216.0,
+    "aspect": 1.148,
+    "cx": 1762.1
+  },
+  "metrics": {
+    "x": 1271.7,
+    "y": 314.1,
+    "width": 614.4,
+    "height": 72.7,
+    "aspect": 8.452,
+    "cx": 1578.9
+  },
+  "ticker": {
+    "x": 1.0,
+    "y": 1281.7,
+    "width": 1908.0,
+    "height": 58.8,
+    "aspect": 32.459,
+    "cx": 955.0
+  },
+  "phase_rail": {
+    "x": 437.2,
+    "y": 154.1,
+    "width": 1067.6,
+    "height": 44.2,
+    "aspect": 24.144,
+    "cx": 971.0
+  },
+  "svg_box": {
+    "x": 209.8,
+    "y": 331.9,
+    "width": 1490.4,
+    "height": 913.1,
+    "aspect": 1.632,
+    "cx": 955.0
+  },
+  "container": {
+    "x": 1.0,
+    "y": 147.0,
+    "width": 1908.0,
+    "height": 1193.5,
+    "aspect": 1.599,
+    "cx": 955.0
+  }
+}
