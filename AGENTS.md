@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.5.0"
+  version: "2.6.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -157,7 +157,13 @@ git branch --show-current
 git rev-parse HEAD
 git rev-parse origin/main
 git log --oneline -5
+git config user.name          # MUST be this agent's roster name, not a placeholder
+git config core.hooksPath     # MUST be .githooks — it refuses unsigned commits
 ```
+
+If either of the last two is wrong, fix it before touching anything: an unsigned
+commit cannot be repaired afterwards without rewriting history, which section 6
+forbids.
 
 Reconcile against production before claiming anything is missing. Work an agent
 remembers from a previous session may already have shipped, and branches held
@@ -174,6 +180,8 @@ bootstrap:
   branch: ""
   commit: ""
   constitution_version: ""           # read from the file, not recalled (17.16)
+  signed_as: ""                      # git config user.name — must be the roster name
+  hooks_path: ""                     # git config core.hooksPath — must be .githooks
   documents_read:
     - "AGENTS.md"
     - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
@@ -363,6 +371,31 @@ as long as the author's attention, which in this case was two days.
 **A name is always written with a capital letter: Bolt, GreenBear.** That
 is how the Owner writes them, how every message is signed, and what goes in
 `git config user.name` so authorship in the history is legible.
+
+**Every agent signs what it pushes** (Owner, 2026-08-04): «каждый агент который
+пишет в гит подписывается под тем что запушил — иначе я не вижу в гите кто пушил
+последний». The signature is the commit's AUTHOR field, and it must be the
+agent's own roster name — not a placeholder, not the Owner's name, not a shared
+identity. He reads git history to see who pushed last, and a commit authored by
+`YourName <youremail@example.com>` is an unsigned commit however good its
+message is.
+
+This sentence had been in this section since 2026-07-29 and was enforced by
+nothing. On 2026-08-04 every commit made from the GreenBear workstation carried
+that exact git placeholder while Bolt's and Ember's carried their names — a full
+day of work attributed to a stranger, found by the Owner and not by any check.
+Past commits are not rewritten to fix it (section 6 forbids history rewriting
+without his approval); they stand as the record of the gap.
+
+`.githooks/pre-commit` now refuses any commit whose `user.name` is not on the
+section-1 roster, and it READS that roster from section 1 rather than carrying
+its own copy. Turn it on once per checkout — the cold start does this:
+
+```bash
+git config core.hooksPath .githooks
+git config user.name  "<YourAgentName>"
+git config user.email "<youragent>@agents.culineire.ie"
+```
 
 **An id is not a name.** Carpet mailbox ids are lowercase and **case
 sensitive**: `bolt`, `greenbear`, and `ember` which is retired but whose mailbox
@@ -1292,6 +1325,7 @@ pre_deploy_reread:
   constitution_version: ""      # read from the file, not recalled
   sections_reread: ["8", "17"]
   rules_that_apply_here: []     # named, not "all of them"
+  signed_as: ""                 # git config user.name — the agent's own roster name
   index_read: false             # 17.15.1 - git status + diff --cached --stat
   files_in_commit: 0            # must match what the task names
   base_verified: ""             # 17.15.3 - the hash this work stands on

@@ -1,0 +1,65 @@
+#!/bin/sh
+# Refuse a commit that is not signed by an agent on the section-1 roster.
+#
+# Owner, 2026-08-04: "каждый агент который пишет в гит подписывается под тем что
+# запушил - иначе я не вижу в гите кто пушил последний."
+#
+# AGENTS.md section 5 has required the agent's own name in `git config user.name`
+# since 2026-07-29, and it was never enforced. Every commit made from this
+# workstation on 2026-08-04 was authored "YourName <youremail@example.com>" - the
+# git default placeholder - so the history says a stranger did the work, while
+# Bolt's and Ember's commits carry their names. A rule the tooling does not
+# enforce lasts exactly as long as somebody's attention, which here was zero days.
+#
+# The roster is READ FROM AGENTS.md section 1, not listed here. A hardcoded list
+# would be a second source of truth (section 7) and would still name Ember, who
+# was retired the same day this hook was written.
+#
+# Enable it once per checkout - the cold start does this:
+#     git config core.hooksPath .githooks
+
+set -e
+
+root=$(git rev-parse --show-toplevel)
+constitution="$root/AGENTS.md"
+name=$(git config user.name || true)
+
+if [ ! -f "$constitution" ]; then
+    echo "pre-commit: AGENTS.md not found; cannot read the roster. Refusing." >&2
+    exit 1
+fi
+
+# Section 1's roster bullets: "- **Name**" between "## 1. Authority" and "## 1a".
+roster=$(awk '
+    /^## 1\. Authority/    { in_section = 1; next }
+    /^## 1a\./             { in_section = 0 }
+    in_section && /^- \*\*[A-Za-z]+\*\*$/ {
+        gsub(/^- \*\*|\*\*$/, "");
+        print
+    }
+' "$constitution")
+
+if [ -z "$roster" ]; then
+    echo "pre-commit: could not parse the roster from AGENTS.md section 1. Refusing." >&2
+    exit 1
+fi
+
+for agent in $roster; do
+    if [ "$name" = "$agent" ]; then
+        exit 0
+    fi
+done
+
+echo "pre-commit: REFUSED - nothing was committed." >&2
+echo "" >&2
+echo "  git config user.name is '${name:-<unset>}'" >&2
+echo "  and the AGENTS.md section-1 roster is:" >&2
+for agent in $roster; do echo "      $agent" >&2; done
+echo "" >&2
+echo "  Sign your own work. From this checkout:" >&2
+echo "      git config user.name  \"<YourAgentName>\"" >&2
+echo "      git config user.email \"<youragent>@agents.culineire.ie\"" >&2
+echo "" >&2
+echo "  The Owner reads git history to see who pushed last. A commit authored by" >&2
+echo "  a placeholder is an unsigned commit, whatever its message says." >&2
+exit 1

@@ -300,7 +300,23 @@ Run and read all output:
   git -C $RepoRoot rev-parse origin/main
   git -C $RepoRoot log --oneline -5
   git -C $RepoRoot remote -v
+  git -C $RepoRoot config user.name       # MUST be your own roster name
+  git -C $RepoRoot config core.hooksPath  # MUST be .githooks
   hostname
+
+SIGN YOUR OWN WORK (Owner, 2026-08-04, AGENTS.md 5). He reads git history to see
+who pushed last. If user.name is a placeholder or unset, fix it BEFORE touching
+anything - an unsigned commit cannot be repaired afterwards without rewriting
+history, which section 6 forbids:
+
+  git -C $RepoRoot config core.hooksPath .githooks
+  git -C $RepoRoot config user.name  "GreenBear"
+  git -C $RepoRoot config user.email "greenbear@agents.culineire.ie"
+
+.githooks/pre-commit refuses any commit whose user.name is not on the section-1
+roster, and reads that roster from AGENTS.md rather than keeping its own copy.
+On 2026-08-04 a full day of commits went out authored
+"YourName <youremail@example.com>" while the other agents' carried their names.
 
 Interpretation:
 
