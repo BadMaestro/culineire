@@ -1,0 +1,7 @@
+# This directory is a reference, and a reference that git reformats on checkout
+# is no longer the thing that was measured. Without these lines the .html and .js
+# files get CRLF on a Windows checkout, every byte offset moves, and the README's
+# claim that they match the archive byte for byte quietly stops being true.
+#
+# -text: store and check out verbatim, no end-of-line translation, no diffing.
+* -text

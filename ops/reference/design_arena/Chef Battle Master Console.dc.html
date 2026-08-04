@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #060d0a; }
+  * { box-sizing: border-box; }
+  a { color: #d4af5f; text-decoration: none; }
+  a:hover { color: #f0d68a; }
+  @keyframes liveDot { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="width:1920px; padding:18px; background:radial-gradient(ellipse at 50% -10%, #12291d, #060d0a 70%); color:#e8e2d4; font-family:'Inter',system-ui,sans-serif">
+
+  <div style="display:flex; align-items:center; gap:14px; padding:11px 18px; border-radius:12px 12px 0 0; background:linear-gradient(90deg, rgba(19,48,33,0.95), rgba(10,22,16,0.95)); border:1px solid rgba(212,175,95,0.28); border-bottom:none">
+    <div style="font-family:'Playfair Display',Georgia,serif; font-size:19px; letter-spacing:0.06em; color:#f0d68a">ARENA MASTER CONSOLE</div>
+    <div style="font-size:11px; color:#8a9a90">CulinÉire Arena Operator Control Deck</div>
+    <div style="flex:1"></div>
+    <div style="display:flex; align-items:center; gap:8px; font-size:10.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#d4af5f"><span style="font-size:14px">♛</span>You are the hero of the arena</div>
+    <div style="padding:6px 20px; border-radius:999px; background:linear-gradient(180deg,#f0d68a,#c99f4c); color:#12271c; font-size:10.5px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase">Operator</div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:repeat(8, 1fr); gap:10px; padding:12px; background:rgba(8,17,12,0.85); border:1px solid rgba(212,175,95,0.28); border-radius:0 0 12px 12px">
+
+    <div style="display:flex; flex-direction:column; gap:9px; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(17,38,26,0.9), rgba(9,19,14,0.9)); border:1px solid rgba(212,175,95,0.22)">
+      <div style="display:flex; align-items:center; gap:7px; padding-bottom:7px; border-bottom:1px solid rgba(212,175,95,0.18)">
+        <span style="width:15px; height:15px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(212,175,95,0.5); font-size:8.5px; font-weight:700; color:#d4af5f">1</span>
+        <span style="font-size:9.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e8e2d4">Arena Control / Battle Flow</span>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#7f8f86">Phase controls</div>
+      <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:3px">
+        <sc-for list="{{ phaseIcons }}" as="p" hint-placeholder-count="7">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 1px; border-radius:7px; background:{{ p.bg }}; border:1px solid {{ p.border }}; cursor:pointer">
+            <span style="font-size:13px; line-height:1; color:{{ p.color }}">{{ p.icon }}</span>
+            <span style="font-size:6.5px; font-weight:600; letter-spacing:0.02em; color:{{ p.color }}">{{ p.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:2px">
+        <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:10px 4px; border-radius:8px; background:linear-gradient(180deg, rgba(45,120,80,0.5), rgba(20,60,40,0.6)); border:1px solid rgba(90,190,130,0.5); font-size:9.5px; font-weight:700; color:#bff0d2; cursor:pointer" style-hover="border-color:rgba(140,230,175,0.85)">★ Start Phase</div>
+        <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:10px 4px; border-radius:8px; background:rgba(12,26,19,0.8); border:1px solid rgba(212,175,95,0.3); font-size:9.5px; font-weight:600; color:#e8e2d4; cursor:pointer" style-hover="border-color:rgba(212,175,95,0.7)">🔒 Lock Ingredients</div>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px">
+        <sc-for list="{{ flowBtns }}" as="b" hint-placeholder-count="3">
+          <div onClick="{{ noop }}" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:9px 2px; border-radius:8px; background:rgba(12,26,19,0.8); border:1px solid rgba(212,175,95,0.22); text-align:center; cursor:pointer" style-hover="border-color:rgba(212,175,95,0.6)">
+            <span style="font-size:11px; color:#d4af5f">{{ b.icon }}</span>
+            <span style="font-size:7.5px; font-weight:600; line-height:1.25; color:#cfc6b6">{{ b.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:11px 4px; border-radius:8px; background:rgba(150,40,32,0.35); border:1px solid rgba(200,70,58,0.7); font-size:9.5px; font-weight:700; color:#f6c9c3; cursor:pointer" style-hover="background:rgba(180,50,40,0.5)">⊗ Emergency Stop</div>
+        <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:11px 4px; border-radius:8px; background:rgba(12,26,19,0.8); border:1px solid rgba(212,175,95,0.3); font-size:9.5px; font-weight:600; color:#e8e2d4; cursor:pointer" style-hover="border-color:rgba(212,175,95,0.7)">▪ End Battle</div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:9px; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(17,38,26,0.9), rgba(9,19,14,0.9)); border:1px solid rgba(212,175,95,0.22)">
+      <div style="display:flex; align-items:center; gap:7px; padding-bottom:7px; border-bottom:1px solid rgba(212,175,95,0.18)">
+        <span style="width:15px; height:15px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(212,175,95,0.5); font-size:8.5px; font-weight:700; color:#d4af5f">2</span>
+        <span style="font-size:9.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e8e2d4">Live Battle Monitor</span>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px">
+        <sc-for list="{{ monitorStats }}" as="m" hint-placeholder-count="4">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 2px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+            <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86; text-align:center; line-height:1.2">{{ m.label }}</span>
+            <span style="font-size:17px; font-weight:600; line-height:1; color:{{ m.color }}">{{ m.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 2px; border-radius:8px; background:rgba(10,22,16,0.75); border:1px solid rgba(212,175,95,0.2)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#7f8f86">Battle timer</span>
+          <span style="font-family:'Playfair Display',Georgia,serif; font-size:22px; line-height:1; color:#f0d68a">{{ clock }}</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 2px; border-radius:8px; background:rgba(10,22,16,0.75); border:1px solid rgba(212,175,95,0.2)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#7f8f86">Voting window</span>
+          <span style="font-family:'Playfair Display',Georgia,serif; font-size:22px; line-height:1; color:#8a9a90">00:00</span>
+          <span style="font-size:7px; color:#7f8f86">0 Closed</span>
+        </div>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Event log (live)</div>
+      <div style="display:flex; flex-direction:column; gap:5px; padding:8px; border-radius:8px; background:rgba(6,14,10,0.7); border:1px solid rgba(212,175,95,0.12)">
+        <sc-for list="{{ eventLog }}" as="e" hint-placeholder-count="5">
+          <div style="display:flex; gap:6px; font-size:8px; line-height:1.4"><span style="color:#7f8f86; font-variant-numeric:tabular-nums">{{ e.t }}</span><span style="color:#cfc6b6">{{ e.text }}</span></div>
+        </sc-for>
+      </div>
+      <div style="flex:1"></div>
+      <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; padding:8px; border-radius:8px; background:rgba(12,26,19,0.8); border:1px solid rgba(212,175,95,0.22); font-size:8.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#d4af5f; cursor:pointer" style-hover="border-color:rgba(212,175,95,0.6)">View full log ›</div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:9px; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(17,38,26,0.9), rgba(9,19,14,0.9)); border:1px solid rgba(212,175,95,0.22)">
+      <div style="display:flex; align-items:center; gap:7px; padding-bottom:7px; border-bottom:1px solid rgba(212,175,95,0.18)">
+        <span style="width:15px; height:15px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(212,175,95,0.5); font-size:8.5px; font-weight:700; color:#d4af5f">3</span>
+        <span style="font-size:9.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e8e2d4">Combat Engine</span>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Ingredient lock</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <sc-for list="{{ combatChefs }}" as="c" hint-placeholder-count="2">
+          <div style="display:flex; flex-direction:column; gap:5px; padding:6px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid {{ c.border }}">
+            <div style="text-align:center; font-size:8px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:{{ c.color }}">{{ c.name }}</div>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:3px">
+              <sc-for list="{{ c.slots }}" as="s" hint-placeholder-count="6">
+                <div style="aspect-ratio:1; display:grid; place-items:center; border-radius:5px; background:rgba(6,14,10,0.8); border:1px solid rgba(212,175,95,0.16); font-size:12px">{{ s }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px">
+        <sc-for list="{{ combatRows }}" as="r" hint-placeholder-count="3">
+          <div style="display:grid; grid-template-columns:1fr 34px 34px; gap:4px; align-items:center; padding:4px 6px; border-radius:6px; background:rgba(6,14,10,0.55)">
+            <span style="font-size:7.5px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#8a9a90">{{ r.label }}</span>
+            <span style="text-align:center; font-size:10px; font-weight:700; color:#7fd6a4">{{ r.a }}</span>
+            <span style="text-align:center; font-size:10px; font-weight:700; color:#e8867a">{{ r.b }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Biathlon — blind shots</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <sc-for list="{{ biathlon }}" as="b" hint-placeholder-count="2">
+          <div style="display:flex; flex-direction:column; gap:5px; padding:6px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+            <div style="text-align:center; font-size:7.5px; font-weight:600; color:#cfc6b6">{{ b.name }}</div>
+            <div style="display:flex; justify-content:center; gap:3px">
+              <sc-for list="{{ b.shots }}" as="s" hint-placeholder-count="5">
+                <span style="width:9px; height:9px; border-radius:50%; background:{{ s.bg }}; border:1px solid {{ s.border }}"></span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Artifacts (in use)</div>
+      <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:4px">
+        <sc-for list="{{ artifactSlots }}" as="a" hint-placeholder-count="6">
+          <div style="aspect-ratio:1; display:grid; place-items:center; border-radius:6px; background:{{ a.bg }}; border:1px solid {{ a.border }}; font-size:11px">{{ a.icon }}</div>
+        </sc-for>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Combat log (latest)</div>
+      <div style="display:flex; flex-direction:column; gap:4px; padding:7px; border-radius:8px; background:rgba(6,14,10,0.7); border:1px solid rgba(212,175,95,0.12)">
+        <sc-for list="{{ combatLog }}" as="l" hint-placeholder-count="2">
+          <div style="font-size:8px; line-height:1.4; color:#cfc6b6">{{ l }}</div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:9px; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(17,38,26,0.9), rgba(9,19,14,0.9)); border:1px solid rgba(212,175,95,0.22)">
+      <div style="display:flex; align-items:center; gap:7px; padding-bottom:7px; border-bottom:1px solid rgba(212,175,95,0.18)">
+        <span style="width:15px; height:15px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(212,175,95,0.5); font-size:8.5px; font-weight:700; color:#d4af5f">4</span>
+        <span style="font-size:9.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e8e2d4">Moderation &amp; Safety</span>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Dish photo approval</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <sc-for list="{{ dishShots }}" as="d" hint-placeholder-count="2">
+          <div style="position:relative; height:62px; border-radius:8px; overflow:hidden; background:rgba(6,14,10,0.8); border:1px solid {{ d.border }}">
+            <image-slot id="{{ d.slotId }}" shape="rect" placeholder="{{ d.hint }}"></image-slot>
+            <div style="position:absolute; left:5px; bottom:5px; padding:2px 7px; border-radius:999px; background:{{ d.tagBg }}; border:1px solid {{ d.border }}; font-size:7px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:{{ d.tagColor }}">{{ d.tag }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Live stream status</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <sc-for list="{{ streams }}" as="s" hint-placeholder-count="2">
+          <div style="display:flex; align-items:center; justify-content:center; gap:5px; padding:6px 3px; border-radius:7px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+            <span style="font-size:7.5px; color:#cfc6b6">{{ s.name }}</span>
+            <span style="display:flex; align-items:center; gap:3px; font-size:7px; font-weight:700; color:#7fd6a4"><span style="width:5px; height:5px; border-radius:50%; background:#7fd6a4; animation:liveDot 1.4s ease-in-out infinite"></span>LIVE</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Safety checklist</div>
+      <div style="display:flex; flex-direction:column; gap:5px">
+        <sc-for list="{{ safety }}" as="s" hint-placeholder-count="6">
+          <div style="display:flex; align-items:center; gap:7px">
+            <span style="width:13px; height:13px; display:grid; place-items:center; border-radius:50%; background:rgba(60,150,100,0.25); border:1px solid rgba(120,220,165,0.6); font-size:8px; color:#7fd6a4">✓</span>
+            <span style="font-size:8.5px; color:#cfc6b6">{{ s }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:9px 2px; border-radius:8px; background:linear-gradient(180deg, rgba(45,120,80,0.5), rgba(20,60,40,0.6)); border:1px solid rgba(90,190,130,0.5); font-size:8.5px; font-weight:700; color:#bff0d2; cursor:pointer" style-hover="border-color:rgba(140,230,175,0.85)">✓ Approve Dish</div>
+        <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:9px 2px; border-radius:8px; background:rgba(150,110,30,0.3); border:1px solid rgba(212,175,95,0.55); font-size:8.5px; font-weight:700; color:#f0d68a; cursor:pointer" style-hover="background:rgba(180,135,40,0.42)">⚑ Flag Stream</div>
+        <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:9px 2px; border-radius:8px; background:rgba(12,26,19,0.8); border:1px solid rgba(212,175,95,0.25); font-size:8.5px; font-weight:600; color:#e8e2d4; cursor:pointer" style-hover="border-color:rgba(212,175,95,0.6)">❚❚ Pause Stream</div>
+        <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:9px 2px; border-radius:8px; background:rgba(150,40,32,0.35); border:1px solid rgba(200,70,58,0.7); font-size:8.5px; font-weight:700; color:#f6c9c3; cursor:pointer" style-hover="background:rgba(180,50,40,0.5)">■ End Stream</div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:9px; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(17,38,26,0.9), rgba(9,19,14,0.9)); border:1px solid rgba(212,175,95,0.22)">
+      <div style="display:flex; align-items:center; gap:7px; padding-bottom:7px; border-bottom:1px solid rgba(212,175,95,0.18)">
+        <span style="width:15px; height:15px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(212,175,95,0.5); font-size:8.5px; font-weight:700; color:#d4af5f">5</span>
+        <span style="font-size:9.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e8e2d4">Voting Integrity</span>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px">
+        <sc-for list="{{ voteStats }}" as="v" hint-placeholder-count="3">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 2px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14); text-align:center">
+            <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86; line-height:1.2">{{ v.label }}</span>
+            <span style="font-size:13px; font-weight:700; line-height:1; color:{{ v.color }}">{{ v.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div style="display:flex; flex-direction:column; gap:4px; padding:7px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Suspicious activity</span>
+          <span style="display:flex; align-items:center; gap:5px; font-size:9px; font-weight:700; color:#7fd6a4"><span style="font-size:11px">🛡</span>LOW RISK</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px; padding:7px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Tie detection</span>
+          <span style="font-size:9px; font-weight:700; color:#d4af5f">NO TIE</span>
+        </div>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Community pulse</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <sc-for list="{{ pulse }}" as="p" hint-placeholder-count="2">
+          <div style="display:flex; flex-direction:column; gap:5px; padding:7px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid {{ p.border }}">
+            <span style="font-size:7.5px; font-weight:600; color:{{ p.color }}">{{ p.name }}</span>
+            <span style="font-size:16px; font-weight:700; line-height:1; color:{{ p.color }}">{{ p.pct }}</span>
+            <div style="height:16px; border-radius:4px; background:{{ p.spark }}"></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Top supporters</div>
+      <div style="display:flex; flex-direction:column; gap:4px">
+        <sc-for list="{{ supporters }}" as="s" hint-placeholder-count="3">
+          <div style="display:grid; grid-template-columns:12px 1fr auto; gap:6px; align-items:center; font-size:8.5px">
+            <span style="color:#7f8f86">{{ s.n }}</span><span style="color:#cfc6b6">{{ s.name }}</span><span style="font-weight:700; color:#d4af5f">{{ s.amt }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:1"></div>
+      <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; padding:8px; border-radius:8px; background:rgba(12,26,19,0.8); border:1px solid rgba(212,175,95,0.22); font-size:8.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#d4af5f; cursor:pointer" style-hover="border-color:rgba(212,175,95,0.6)">View vote analytics</div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:9px; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(17,38,26,0.9), rgba(9,19,14,0.9)); border:1px solid rgba(212,175,95,0.22)">
+      <div style="display:flex; align-items:center; gap:7px; padding-bottom:7px; border-bottom:1px solid rgba(212,175,95,0.18)">
+        <span style="width:15px; height:15px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(212,175,95,0.5); font-size:8.5px; font-weight:700; color:#d4af5f">6</span>
+        <span style="font-size:9.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e8e2d4">Economy / Gifts / Artifacts</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div style="display:flex; flex-direction:column; gap:6px; padding:7px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Token flow (live)</span>
+          <div style="display:flex; flex-direction:column; gap:2px"><span style="font-size:6.5px; color:#7f8f86">TOKENS IN</span><span style="font-size:12px; font-weight:700; color:#7fd6a4">1,240T</span></div>
+          <div style="display:flex; flex-direction:column; gap:2px"><span style="font-size:6.5px; color:#7f8f86">TOKENS OUT</span><span style="font-size:12px; font-weight:700; color:#e8867a">780T</span></div>
+          <div style="display:flex; flex-direction:column; gap:2px; padding-top:5px; border-top:1px solid rgba(212,175,95,0.16)"><span style="font-size:6.5px; color:#7f8f86">NET FLOW</span><span style="font-size:12px; font-weight:700; color:#f0d68a">+460T</span></div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:5px; padding:7px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Audience gifts (live)</span>
+          <sc-for list="{{ gifts }}" as="g" hint-placeholder-count="3">
+            <div style="display:flex; align-items:center; gap:5px; padding:4px 5px; border-radius:6px; background:rgba(6,14,10,0.6)">
+              <span style="font-size:11px">{{ g.icon }}</span><span style="flex:1; font-size:8px; color:#cfc6b6">{{ g.name }}</span><span style="font-size:8px; font-weight:700; color:#d4af5f">{{ g.amt }}</span>
+            </div>
+          </sc-for>
+          <div onClick="{{ noop }}" style="text-align:center; padding:5px; border-radius:6px; border:1px solid rgba(212,175,95,0.22); font-size:7.5px; font-weight:700; color:#d4af5f; cursor:pointer" style-hover="border-color:rgba(212,175,95,0.6)">VIEW ALL GIFTS ›</div>
+        </div>
+      </div>
+      <div style="font-size:8px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7f8f86">Battle gifts delivery</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div style="display:flex; flex-direction:column; gap:5px">
+          <sc-for list="{{ delivery }}" as="d" hint-placeholder-count="2">
+            <div style="display:flex; flex-direction:column; gap:3px; padding:6px; border-radius:7px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+              <span style="font-size:7px; color:#8a9a90">{{ d.to }}</span>
+              <span style="display:flex; align-items:center; gap:4px; font-size:8px; font-weight:600; color:#cfc6b6"><span style="color:#d4af5f">✦</span>{{ d.state }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px; padding:7px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Artifact drop odds</span>
+          <sc-for list="{{ odds }}" as="o" hint-placeholder-count="5">
+            <div style="display:flex; align-items:center; gap:5px">
+              <span style="width:6px; height:6px; border-radius:50%; background:{{ o.color }}"></span>
+              <span style="flex:1; font-size:7.5px; color:#cfc6b6">{{ o.tier }}</span>
+              <span style="font-size:7.5px; font-weight:700; color:#e8e2d4">{{ o.pct }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="text-align:center; font-size:7px; letter-spacing:0.06em; color:#7f8f86">ARTIFACTS: ONE-USE ONLY · IN ARENA ONLY</div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:9px; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(17,38,26,0.9), rgba(9,19,14,0.9)); border:1px solid rgba(212,175,95,0.22)">
+      <div style="display:flex; align-items:center; gap:7px; padding-bottom:7px; border-bottom:1px solid rgba(212,175,95,0.18)">
+        <span style="width:15px; height:15px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(212,175,95,0.5); font-size:8.5px; font-weight:700; color:#d4af5f">7</span>
+        <span style="font-size:9.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e8e2d4">CBR / LSR / Rewards Governance</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <sc-for list="{{ governance }}" as="g" hint-placeholder-count="2">
+          <div style="display:flex; flex-direction:column; gap:7px; padding:8px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid {{ g.border }}">
+            <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">{{ g.title }}</span>
+            <span style="font-size:13px; font-weight:700; letter-spacing:0.04em; color:{{ g.color }}">{{ g.state }}</span>
+            <span style="font-size:7.5px; color:#8a9a90">{{ g.note }}</span>
+            <div style="display:flex; flex-direction:column; gap:2px; padding-top:6px; border-top:1px solid rgba(212,175,95,0.14)">
+              <span style="font-size:6.5px; color:#7f8f86">{{ g.idLabel }}</span>
+              <span style="font-size:8px; font-weight:600; color:#cfc6b6">{{ g.id }}</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:4px">
+              <span style="font-size:6.5px; color:#7f8f86">Eligibility</span>
+              <span style="display:flex; align-items:center; gap:4px; font-size:7.5px; font-weight:600; color:{{ g.color }}">{{ g.eligibility }} ✓</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; padding:8px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+        <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Next battle unlock</span>
+        <span style="font-size:8.5px; color:#cfc6b6">Win 2 more battles to unlock</span>
+        <div style="display:flex; align-items:center; gap:7px">
+          <div style="flex:1; height:6px; border-radius:999px; background:rgba(255,255,255,0.1); overflow:hidden"><div style="height:100%; width:33%; border-radius:999px; background:linear-gradient(90deg,#c99f4c,#f0d68a)"></div></div>
+          <span style="font-size:7.5px; font-weight:700; color:#d4af5f">1 / 3</span>
+        </div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 2px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Cooldown</span>
+          <span style="font-family:'Playfair Display',Georgia,serif; font-size:15px; line-height:1; color:#f0d68a">02:15:48</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 2px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(120,220,165,0.35)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Payout eligibility</span>
+          <span style="font-size:11px; font-weight:700; color:#7fd6a4">⊙ ELIGIBLE</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:9px; padding:10px; border-radius:10px; background:linear-gradient(180deg, rgba(17,38,26,0.9), rgba(9,19,14,0.9)); border:1px solid rgba(212,175,95,0.22)">
+      <div style="display:flex; align-items:center; gap:7px; padding-bottom:7px; border-bottom:1px solid rgba(212,175,95,0.18)">
+        <span style="width:15px; height:15px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(212,175,95,0.5); font-size:8.5px; font-weight:700; color:#d4af5f">8</span>
+        <span style="font-size:9.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#e8e2d4">Ranks / Crown / Arena Authority</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div style="display:flex; flex-direction:column; gap:4px">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Rank ladder</span>
+          <sc-for list="{{ ladder }}" as="r" hint-placeholder-count="7">
+            <div style="display:flex; align-items:center; gap:5px; padding:4px 6px; border-radius:6px; background:{{ r.bg }}; border:1px solid {{ r.border }}">
+              <span style="width:5px; height:5px; border-radius:50%; background:{{ r.dot }}"></span>
+              <span style="font-size:7.5px; font-weight:{{ r.weight }}; color:{{ r.color }}">{{ r.name }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:5px; align-items:center; padding:8px 6px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.3)">
+          <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86; text-align:center">Current crown holder</span>
+          <span style="font-size:26px; line-height:1; color:#f0d68a; text-shadow:0 0 16px rgba(240,214,138,0.5)">♛</span>
+          <span style="font-size:10px; font-weight:600; text-align:center; color:#f3ece0">Aidan Byrne</span>
+          <span style="font-size:7.5px; color:#8a9a90">Head Chef</span>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:2px; padding-top:6px; border-top:1px solid rgba(212,175,95,0.16); width:100%">
+            <span style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Streak</span>
+            <span style="font-size:10px; font-weight:700; color:#d4af5f">3 WINS</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Recent winner</div>
+      <div style="display:flex; align-items:center; gap:7px; padding:6px; border-radius:8px; background:rgba(10,22,16,0.7); border:1px solid rgba(212,175,95,0.14)">
+        <div style="width:30px; height:30px; border-radius:7px; overflow:hidden; background:rgba(6,14,10,0.8)">
+          <image-slot id="mc-recent-winner" shape="rect" placeholder="Winner portrait"></image-slot>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:2px">
+          <span style="display:flex; align-items:center; gap:4px; font-size:8.5px; font-weight:600; color:#f3ece0"><span style="color:#d4af5f">♛</span>Aidan Byrne</span>
+          <span style="font-size:7px; color:#8a9a90">vs Luca Moretti · 2 days ago</span>
+        </div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="font-size:6.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#7f8f86">Operator tools</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <sc-for list="{{ opTools }}" as="t" hint-placeholder-count="4">
+          <div onClick="{{ noop }}" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 2px; border-radius:7px; background:rgba(12,26,19,0.8); border:1px solid {{ t.border }}; font-size:7.5px; font-weight:600; color:{{ t.color }}; cursor:pointer" style-hover="border-color:rgba(212,175,95,0.6)">{{ t.icon }} {{ t.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:26px; margin-top:12px; padding:13px 20px; border-radius:12px; background:linear-gradient(90deg, rgba(19,48,33,0.9), rgba(10,22,16,0.9)); border:1px solid rgba(212,175,95,0.24)">
+    <sc-for list="{{ statusBar }}" as="s" hint-placeholder-count="5">
+      <div style="display:flex; align-items:center; gap:9px">
+        <span style="font-size:15px; color:#d4af5f">{{ s.icon }}</span>
+        <div style="display:flex; flex-direction:column; gap:2px">
+          <span style="font-size:7px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#7f8f86">{{ s.label }}</span>
+          <span style="font-size:11.5px; font-weight:600; color:{{ s.color }}">{{ s.value }}</span>
+        </div>
+      </div>
+    </sc-for>
+    <div style="flex:1"></div>
+    <div style="display:flex; align-items:center; gap:9px">
+      <img src="./assets/greenbear.png" alt="" style="width:30px; height:30px; border-radius:50%; object-fit:cover; background:#f7f1e4" />
+      <div style="display:flex; flex-direction:column; gap:2px">
+        <span style="font-size:7px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#7f8f86">Operator</span>
+        <span style="font-size:11.5px; font-weight:600; color:#f3ece0">GREENBEAR</span>
+        <span style="font-size:7px; letter-spacing:0.1em; text-transform:uppercase; color:#8a9a90">Arena Hero</span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:11px; padding:8px 22px; border-radius:10px; background:linear-gradient(90deg, rgba(30,70,48,0.7), rgba(14,32,22,0.7)); border:1px solid rgba(212,175,95,0.4)">
+      <span style="font-size:20px; color:#f0d68a">♛</span>
+      <div style="display:flex; flex-direction:column; gap:2px">
+        <span style="font-family:'Playfair Display',Georgia,serif; font-size:19px; letter-spacing:0.14em; line-height:1; color:#f0d68a">CULINÉIRE</span>
+        <span style="font-size:6.5px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#8a9a90">Honouring Irish Culinary Heritage</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1920,&quot;height&quot;:520}}">
+class Component extends DCLogic {
+  state = { secs: 8 * 60 + 37 };
+  componentDidMount() { this._t = setInterval(() => this.setState(s => ({ secs: Math.max(0, s.secs - 1) })), 1000); }
+  componentWillUnmount() { clearInterval(this._t); }
+  renderVals() {
+    const gold = '#d4af5f', green = '#7fd6a4', red = '#e8867a', dim = '#7f8f86';
+    const m = Math.floor(this.state.secs / 60), s = this.state.secs % 60;
+    const phase = (icon, label, on) => ({ icon, label, bg: on ? 'rgba(60,150,100,0.28)' : 'rgba(10,22,16,0.7)', border: on ? 'rgba(120,220,165,0.65)' : 'rgba(212,175,95,0.16)', color: on ? green : '#9aa89f' });
+    const shot = k => ({ hit: { bg: '#3fb37c', border: 'rgba(140,230,175,0.7)' }, miss: { bg: 'rgba(200,70,58,0.75)', border: 'rgba(230,140,125,0.6)' }, none: { bg: 'rgba(255,255,255,0.06)', border: 'rgba(212,175,95,0.2)' } }[k]);
+    return {
+      noop: () => {},
+      clock: String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0'),
+      phaseIcons: [phase('⚔', 'Challenge'), phase('☘', 'Combat'), phase('🏹', 'Biathlon'), phase('👨‍🍳', 'Cooking', true), phase('▤', 'Review'), phase('🗳', 'Voting'), phase('♛', 'Crown')],
+      flowBtns: [{ icon: '⊙', label: 'Open Vote' }, { icon: '♛', label: 'Award Crown' }, { icon: '📣', label: 'Broadcast Notice' }],
+      monitorStats: [
+        { label: 'Active battles', value: '1', color: green },
+        { label: 'Pending', value: '0', color: '#e8e2d4' },
+        { label: 'Accepted', value: '1', color: gold },
+        { label: 'Unresolved', value: '0', color: '#e8e2d4' }
+      ],
+      eventLog: [
+        { t: '22:32', text: 'Challenge accepted: Aidan Byrne vs Luca Moretti' },
+        { t: '22:31', text: 'Phase changed: Biathlon → Cooking' },
+        { t: '22:27', text: 'Blind Shot completed: Aidan Byrne' },
+        { t: '22:25', text: 'Luca Moretti locked ingredients' },
+        { t: '22:20', text: 'Phase changed: Combat → Biathlon' }
+      ],
+      combatChefs: [
+        { name: 'Aidan Byrne', color: green, border: 'rgba(90,190,130,0.4)', slots: ['🥩', '🧅', '🍄', '🥔', '🌿', '🧄'] },
+        { name: 'Luca Moretti', color: red, border: 'rgba(200,70,58,0.4)', slots: ['🐟', '🍋', '🫒', '🌾', '🧂', '🌶'] }
+      ],
+      combatRows: [
+        { label: 'Hits landed', a: '3', b: '2' },
+        { label: 'Ingredients defeated', a: '1', b: '1' },
+        { label: 'Surviving ingredients', a: '7', b: '7' }
+      ],
+      biathlon: [
+        { name: 'Aidan Byrne', shots: [shot('hit'), shot('hit'), shot('none'), shot('none'), shot('none')] },
+        { name: 'Luca Moretti', shots: [shot('miss'), shot('hit'), shot('none'), shot('none'), shot('none')] }
+      ],
+      artifactSlots: [
+        { icon: '🛡', bg: 'rgba(60,150,100,0.25)', border: 'rgba(120,220,165,0.5)' },
+        { icon: '', bg: 'rgba(6,14,10,0.7)', border: 'rgba(212,175,95,0.14)' },
+        { icon: '', bg: 'rgba(6,14,10,0.7)', border: 'rgba(212,175,95,0.14)' },
+        { icon: '🔥', bg: 'rgba(180,60,48,0.25)', border: 'rgba(230,140,125,0.5)' },
+        { icon: '', bg: 'rgba(6,14,10,0.7)', border: 'rgba(212,175,95,0.14)' },
+        { icon: '', bg: 'rgba(6,14,10,0.7)', border: 'rgba(212,175,95,0.14)' }
+      ],
+      combatLog: ['🍄 Aidan Byrne hit Wild Mushrooms', '🐟 Luca Moretti defended with Smoked Sea Salt'],
+      dishShots: [
+        { slotId: 'mc-dish-a', hint: 'Dish A photo', tag: 'Pending', tagBg: 'rgba(150,110,30,0.5)', tagColor: '#f0d68a', border: 'rgba(212,175,95,0.45)' },
+        { slotId: 'mc-dish-b', hint: 'Dish B photo', tag: 'Approved', tagBg: 'rgba(45,120,80,0.6)', tagColor: '#bff0d2', border: 'rgba(120,220,165,0.5)' }
+      ],
+      streams: [{ name: 'Aidan Byrne' }, { name: 'Luca Moretti' }],
+      safety: ['18+ Only', 'No Minors Visible', 'Kitchen Safety', 'No Copyrighted Media', 'No Excessive Alcohol', 'Recording Enabled'],
+      voteStats: [
+        { label: 'Public votes', value: '2.4K', color: gold },
+        { label: 'Votes / min', value: '128', color: '#e8e2d4' },
+        { label: 'One vote / user', value: 'ENFORCED', color: green }
+      ],
+      pulse: [
+        { name: 'Aidan Byrne', pct: '62%', color: green, border: 'rgba(90,190,130,0.4)', spark: 'linear-gradient(90deg, rgba(60,150,100,0.15), rgba(90,200,140,0.4))' },
+        { name: 'Luca Moretti', pct: '38%', color: red, border: 'rgba(200,70,58,0.4)', spark: 'linear-gradient(90deg, rgba(160,50,42,0.15), rgba(210,100,85,0.4))' }
+      ],
+      supporters: [
+        { n: '1', name: 'Aoife K.', amt: '350T' },
+        { n: '2', name: 'Sean Murphy', amt: '280T' },
+        { n: '3', name: 'CulinÉire Fan', amt: '190T' }
+      ],
+      gifts: [
+        { icon: '☕', name: 'Coffee', amt: '20T' },
+        { icon: '💐', name: 'Flowers', amt: '80T' },
+        { icon: '🍾', name: 'Champagne', amt: '100T' }
+      ],
+      delivery: [
+        { to: 'To Aidan Byrne', state: 'Artifact Sent' },
+        { to: 'To Luca Moretti', state: 'Artifact Sent' }
+      ],
+      odds: [
+        { tier: 'Common', pct: '60%', color: '#9aa89f' },
+        { tier: 'Uncommon', pct: '25%', color: green },
+        { tier: 'Rare', pct: '10%', color: '#6fa8d4' },
+        { tier: 'Epic', pct: '4%', color: '#b58bd6' },
+        { tier: 'Legendary', pct: '1%', color: gold }
+      ],
+      governance: [
+        { title: 'CBR status', state: 'APPROVED', color: green, border: 'rgba(120,220,165,0.4)', note: 'Issued', idLabel: 'CBR', id: '#CBR-2025-0714', eligibility: 'Qualified' },
+        { title: 'LSR status', state: 'PENDING', color: gold, border: 'rgba(212,175,95,0.4)', note: 'Pending issue', idLabel: 'LSR', id: '#LSR-2025-0714', eligibility: 'Pending' }
+      ],
+      ladder: ['Kitchen Porter', 'Prep Chef', 'Commis Chef', 'Chef de Partie', 'Sous Chef', 'Head Chef', 'Executive Chef', 'Culinary Master'].map(n => {
+        const on = n === 'Head Chef';
+        return { name: n, bg: on ? 'rgba(60,150,100,0.22)' : 'rgba(10,22,16,0.6)', border: on ? 'rgba(120,220,165,0.55)' : 'rgba(212,175,95,0.12)', dot: on ? green : 'rgba(212,175,95,0.35)', color: on ? '#e8f6ee' : '#a9b4ac', weight: on ? 700 : 500 };
+      }),
+      opTools: [
+        { icon: '🎁', label: 'Grant Artifact', border: 'rgba(212,175,95,0.25)', color: '#cfc6b6' },
+        { icon: '⚠', label: 'Issue Warning', border: 'rgba(200,70,58,0.5)', color: '#f0a49c' },
+        { icon: '❄', label: 'Freeze Match', border: 'rgba(212,175,95,0.25)', color: '#cfc6b6' },
+        { icon: '▤', label: 'Review Ledger', border: 'rgba(212,175,95,0.25)', color: '#cfc6b6' }
+      ],
+      statusBar: [
+        { icon: '◈', label: 'System status', value: 'ALL SYSTEMS OPERATIONAL', color: green },
+        { icon: '◷', label: 'Server time', value: '22:33:12', color: '#f3ece0' },
+        { icon: '⌂', label: 'Arena region', value: 'EMERALD HALL', color: '#f0d68a' },
+        { icon: '⚡', label: 'Uptime', value: '99.99%', color: green }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

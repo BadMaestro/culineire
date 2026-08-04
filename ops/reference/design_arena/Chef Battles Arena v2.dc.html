@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; background: #080b0a; }
+  * { box-sizing: border-box; }
+  a { color: #c49a5c; text-decoration: none; }
+  a:hover { color: #a67c3a; }
+  @keyframes crownPulse { 0%, 100% { opacity: .55; transform: translate(-50%,-50%) scale(1); } 50% { opacity: .9; transform: translate(-50%,-50%) scale(1.08); } }
+  @keyframes liveDot { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  @keyframes tickerRun { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes shaftSway { 0%, 100% { opacity: .5; transform: translateX(-50%) rotate(var(--sr, 0deg)) scaleX(1); } 50% { opacity: .85; transform: translateX(-50%) rotate(var(--sr, 0deg)) scaleX(1.12); } }
+  @keyframes moteFloat { 0% { transform: translate(0, 0); opacity: 0; } 12% { opacity: .55; } 88% { opacity: .4; } 100% { transform: translate(18px, -220px); opacity: 0; } }
+  @keyframes giftRise { 0% { transform: translateY(0) scale(.85); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(-150px) scale(1.05); opacity: 0; } }
+  @keyframes lampFlicker { 0%, 100% { opacity: .85; } 47% { opacity: .62; } 61% { opacity: .95; } }
+  @keyframes beamBreathe { 0%, 100% { opacity: .35; } 50% { opacity: .6; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="position:relative; width:1920px; height:1080px; overflow:hidden; background:radial-gradient(ellipse at 50% 40%, #1b211d 0%, #141a17 42%, #0b0f0d 72%, #080b0a 100%); color:#faf6f0; font-family:'Inter',system-ui,sans-serif">
+
+  <div style="position:absolute; left:50%; top:58%; transform:translate(-50%,-50%); width:2400px; height:1300px; border-radius:50%; background:radial-gradient(ellipse at 50% 50%, rgba(166,124,58,0.20) 0%, rgba(40,52,45,0.16) 40%, rgba(8,11,10,0.9) 72%)"></div>
+  <div style="{{ tintStyle }}"></div>
+  <div style="position:absolute; left:960px; top:605px; width:2660px; height:1140px; transform:translate(-50%,-50%); border-radius:50%; background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(48,60,52,0.7) 0deg 4deg, rgba(11,15,13,0.92) 4deg 5.2deg, rgba(32,42,36,0.68) 5.2deg 7.4deg); z-index:0"></div>
+  <div style="position:absolute; left:960px; top:605px; width:2400px; height:1020px; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(ellipse at 50% 48%, #111613 0%, #111613 74%, rgba(17,23,20,0) 92%); z-index:0"></div>
+
+  <div style="position:absolute; left:26px; top:236px; width:118px; height:262px; z-index:2; clip-path:polygon(0% 0%, 100% 4%, 100% 88%, 50% 100%, 0% 92%); background:linear-gradient(160deg, #184c3a 0%, #123c2d 55%, #0e2a20 100%); border-left:2px solid rgba(166,124,58,0.35); box-shadow:0 18px 44px rgba(8,11,10,0.7), inset 0 0 40px rgba(0,0,0,0.4)">
+    <div style="position:absolute; left:50%; top:58px; transform:translateX(-50%); font-family:'Playfair Display',Georgia,serif; font-size:52px; line-height:1; color:rgba(166,124,58,0.55)">K</div>
+  </div>
+
+  <sc-for list="{{ tierRails }}" as="r" hint-placeholder-count="6">
+    <div style="{{ r.style }}"></div>
+  </sc-for>
+
+  <sc-for list="{{ crowd }}" as="c" hint-placeholder-count="40">
+    <div style="{{ c.style }}">
+      <div style="{{ c.body }}"></div>
+      <div style="{{ c.head }}"></div>
+    </div>
+  </sc-for>
+
+  <div style="position:absolute; left:0; right:0; top:0; height:250px; z-index:4; pointer-events:none; background:linear-gradient(180deg, #0a0805 0%, rgba(11,15,13,0.94) 34%, rgba(17,23,20,0.6) 68%, rgba(17,23,20,0) 100%)"></div>
+
+  <div style="position:absolute; left:50%; top:565px; transform:translate(-50%,-50%); width:1120px; height:1120px; perspective:1600px; z-index:5">
+    <div style="position:absolute; inset:0; transform:rotateX(57deg); transform-origin:50% 50%">
+      <div style="position:absolute; inset:-22px; clip-path:polygon(29.29% 0%, 70.71% 0%, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0% 70.71%, 0% 29.29%); background:linear-gradient(180deg, #d8b47a, #6d4f22); box-shadow:0 0 110px rgba(166,124,58,0.3)"></div>
+      <div style="position:absolute; inset:-8px; clip-path:polygon(29.29% 0%, 70.71% 0%, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0% 70.71%, 0% 29.29%); background:#131916"></div>
+      <sc-for list="{{ floorTiles }}" as="t" hint-placeholder-count="48">
+        <div style="{{ t.style }}"></div>
+      </sc-for>
+      <div style="position:absolute; left:50%; top:50%; width:338px; height:338px; transform:translate(-50%,-50%); clip-path:polygon(29.29% 0%, 70.71% 0%, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0% 70.71%, 0% 29.29%); background:linear-gradient(180deg, #fffdf9, #f5eee4); box-shadow:inset 0 0 60px rgba(166,124,58,0.45); z-index:9"></div>
+      <div style="position:absolute; left:50%; top:50%; width:352px; height:352px; transform:translate(-50%,-50%); clip-path:polygon(29.29% 0%, 70.71% 0%, 100% 29.29%, 100% 70.71%, 70.71% 100%, 29.29% 100%, 0% 70.71%, 0% 29.29%); background:rgba(125,92,40,0.55); z-index:8"></div>
+    </div>
+  </div>
+
+  <div style="position:absolute; left:960px; top:640px; width:520px; height:200px; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(ellipse at 50% 50%, rgba(166,124,58,0.22), rgba(166,124,58,0) 70%); pointer-events:none"></div>
+
+  <div style="position:absolute; left:960px; top:196px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:5px; z-index:6">
+    <sc-for list="{{ tiers }}" as="t" hint-placeholder-count="8">
+      <div style="display:flex; align-items:center; gap:10px; padding:5px 16px; border-radius:999px; background:linear-gradient(180deg, rgba(31,44,37,0.92), rgba(17,23,20,0.94)); border:1px solid {{ t.border }}; box-shadow:0 4px 14px rgba(8,11,10,0.5); color:{{ t.color }}; font-size:10.5px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; white-space:nowrap; cursor:pointer" style-hover="border-color:rgba(166,124,58,0.75)">
+        <span style="opacity:0.6; font-size:9px">✦</span>{{ t.name }}<span style="opacity:0.6; font-size:9px">✦</span>
+      </div>
+    </sc-for>
+  </div>
+
+
+  <div style="position:absolute; left:960px; top:648px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; z-index:8">
+    <div style="position:relative; width:190px; height:168px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; clip-path:polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); background:linear-gradient(180deg, #184c3a, #12251d); border:0; box-shadow:0 0 60px rgba(166,124,58,0.4)">
+      <div style="position:absolute; inset:2px; clip-path:polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); background:linear-gradient(180deg, rgba(166,124,58,0.9), rgba(168,133,61,0.7))"></div>
+      <div style="position:absolute; inset:4px; clip-path:polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); background:radial-gradient(ellipse at 50% 30%, #184c3a, #12251d 72%)"></div>
+      <div style="position:relative; font-size:52px; line-height:1; color:#c49a5c; text-shadow:0 0 26px rgba(166,124,58,0.8)">♛</div>
+      <div style="position:relative; font-size:9px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:#b4a184">Crown holder</div>
+      <div style="position:relative; font-family:'Playfair Display',Georgia,serif; font-size:22px; line-height:1.1; color:#c49a5c">GreenBear</div>
+    </div>
+  </div>
+
+  <sc-for list="{{ chefs }}" as="c" hint-placeholder-count="2">
+    <div style="position:absolute; left:{{ c.x }}; top:600px; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; z-index:9">
+      <div style="position:relative; width:196px; height:218px; overflow:visible">
+        <div style="position:absolute; inset:0; clip-path:polygon(50% 0%, 100% 26%, 100% 74%, 50% 100%, 0% 74%, 0% 26%); background:{{ c.ring }}; box-shadow:0 0 54px {{ c.glow }}"></div>
+        <div style="position:absolute; inset:3px; clip-path:polygon(50% 0%, 100% 26%, 100% 74%, 50% 100%, 0% 74%, 0% 26%); overflow:hidden; background:#0d1f17">
+          <image-slot id="{{ c.slotId }}" shape="rect" placeholder="{{ c.slotHint }}"></image-slot>
+        </div>
+        <div style="position:absolute; left:0; right:0; bottom:14px; display:flex; flex-direction:column; align-items:center; gap:3px; padding:7px 6px 5px; background:linear-gradient(180deg, rgba(12,17,15,0) 0%, rgba(12,17,15,0.86) 34%, rgba(10,14,12,0.94) 100%)">
+          <div style="font-size:14px; font-weight:600; color:#faf6f0; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,0.9)">{{ c.name }}</div>
+          <div style="display:flex; align-items:center; gap:5px">
+            <span style="width:14px; height:10px; border-radius:2px; background:linear-gradient(90deg,#169b62 0 33.3%,#ffffff 33.3% 66.6%,#ff883e 66.6% 100%); box-shadow:0 0 0 1px rgba(10,14,12,0.8)"></span>
+            <span style="font-size:10.5px; color:#cdd2cc">{{ c.country }}</span>
+          </div>
+        </div>
+        <div style="position:absolute; right:-12px; bottom:44px; width:40px; height:44px; display:grid; place-items:center; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); background:{{ c.badgeBg }}; border:0; font-size:18px; box-shadow:0 0 18px {{ c.glow }}">{{ c.badge }}</div>
+      </div>
+      <div style="width:180px; height:24px; margin-top:2px; border-radius:50%; background:radial-gradient(ellipse at 50% 50%, {{ c.glow }}, rgba(0,0,0,0) 70%)"></div>
+    </div>
+  </sc-for>
+
+  <div style="position:absolute; inset:0; pointer-events:none; z-index:20; background:radial-gradient(ellipse at 50% 52%, rgba(8,11,10,0) 52%, rgba(8,11,10,0.24) 80%, rgba(8,11,10,0.66) 100%)"></div>
+
+  <div style="position:absolute; left:0; top:0; right:0; display:flex; align-items:center; gap:26px; height:76px; padding:0 30px; background:linear-gradient(180deg, rgba(8,17,12,0.96), rgba(8,17,12,0.72)); border-bottom:1px solid rgba(166,124,58,0.14); z-index:40">
+    <div style="display:flex; align-items:center; gap:12px">
+      <div style="width:40px; height:40px; display:grid; place-items:center; border:1px solid rgba(166,124,58,0.5); border-radius:10px; color:#c49a5c; font-family:'Playfair Display',Georgia,serif; font-size:22px">K</div>
+      <div style="display:flex; flex-direction:column; gap:3px">
+        <div style="font-family:'Playfair Display',Georgia,serif; font-size:25px; line-height:1; color:#faf6f0">CulinÉire</div>
+        <div style="font-size:8px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:#9fafb0">Honouring Irish culinary heritage</div>
+      </div>
+    </div>
+    <div style="flex:1; display:flex; justify-content:center; align-items:center; gap:10px">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+        <div style="padding:8px 18px; border-radius:999px; background:{{ n.bg }}; border:1px solid {{ n.border }}; font-size:13.5px; font-weight:{{ n.weight }}; color:{{ n.color }}; cursor:pointer" style-hover="color:#c49a5c">{{ n.label }}</div>
+      </sc-for>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:7px 16px 7px 9px; border-radius:999px; background:rgba(17,23,20,0.85); border:1px solid rgba(166,124,58,0.28)">
+      <img src="./assets/greenbear.png" alt="" style="width:30px; height:30px; border-radius:50%; object-fit:cover; background:#fffdf9" />
+      <div style="display:flex; flex-direction:column; gap:2px">
+        <div style="font-size:8px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#9fafb0">Welcome back</div>
+        <div style="font-size:13.5px; font-weight:600; color:#faf6f0">GreenBear</div>
+      </div>
+      <span style="color:#a67c3a; font-size:10px">▾</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:22px; margin-left:6px">
+      <sc-for list="{{ utility }}" as="u" hint-placeholder-count="3">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:#9fafb0" style-hover="color:#c49a5c">
+          <span style="font-size:17px; line-height:1; color:#a67c3a">{{ u.icon }}</span>
+          <span style="font-size:11px; font-weight:500">{{ u.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position:absolute; left:50%; top:96px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:9px; z-index:30">
+    <div style="display:flex; align-items:center; gap:8px">
+      <sc-for list="{{ phases }}" as="p" hint-placeholder-count="7">
+        <div style="display:flex; align-items:center; gap:8px; padding:7px 15px; border-radius:999px; background:{{ p.bg }}; border:1px solid {{ p.border }}; white-space:nowrap; cursor:pointer" style-hover="border-color:rgba(166,124,58,0.7)">
+          <span style="width:19px; height:19px; display:grid; place-items:center; border-radius:50%; background:{{ p.dotBg }}; color:{{ p.dotColor }}; font-size:9.5px; font-weight:700">{{ p.n }}</span>
+          <span style="font-size:10.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:{{ p.color }}">{{ p.name }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size:11px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:#a67c3a">Live cooking in progress · Chefs earning the crowd</div>
+  </div>
+
+  <div style="position:absolute; left:28px; top:98px; width:316px; display:flex; flex-direction:column; gap:12px; padding:18px; border-radius:18px; background:linear-gradient(180deg, rgba(31,44,37,0.9), rgba(17,23,20,0.95)); border:1px solid rgba(166,124,58,0.22); box-shadow:0 18px 40px rgba(8,11,10,0.55); backdrop-filter:blur(8px); z-index:30">
+    <div style="display:flex; align-items:center; gap:10px">
+      <span style="color:#a67c3a; font-size:13px">➤</span>
+      <span style="font-family:'Playfair Display',Georgia,serif; font-size:20px; letter-spacing:0.02em; white-space:nowrap; color:#c49a5c">CHEF BATTLES ARENA</span>
+      <span style="color:#a67c3a; font-size:13px">◄</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:9px; font-size:11.5px; color:#9fafb0">
+      <span>Emerald Hall</span><span style="opacity:0.5">•</span>
+      <span style="display:flex; align-items:center; gap:6px; color:#169b62; font-weight:600"><span style="width:7px; height:7px; border-radius:50%; background:#169b62; animation:liveDot 1.5s ease-in-out infinite"></span>Live Now</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:11px; padding:15px; border-radius:12px; background:rgba(12,17,15,0.55); border:1px solid rgba(166,124,58,0.16)">
+      <div style="font-size:9px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#9fafb0">Phase</div>
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px">
+        <span style="display:flex; align-items:center; gap:10px"><span style="font-size:24px">👨‍🍳</span><span style="font-family:'Playfair Display',Georgia,serif; font-size:30px; line-height:1; color:#faf6f0">COOKING</span></span>
+        <span style="font-family:'Playfair Display',Georgia,serif; font-size:27px; line-height:1; color:#c49a5c">{{ clock }}</span>
+      </div>
+      <div style="height:1px; background:rgba(166,124,58,0.16)"></div>
+      <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; color:#9fafb0"><span style="color:#a67c3a">⧗</span>Next: Moderator Review</div>
+    </div>
+  </div>
+
+  <div style="position:absolute; right:28px; top:98px; display:flex; align-items:stretch; gap:0; padding:0 4px; border-radius:14px; background:linear-gradient(180deg, rgba(31,44,37,0.85), rgba(17,23,20,0.9)); border:1px solid rgba(166,124,58,0.2); box-shadow:0 14px 32px rgba(8,11,10,0.5); z-index:30">
+    <sc-for list="{{ pulse }}" as="p" hint-placeholder-count="4">
+      <div style="display:flex; flex-direction:column; gap:7px; padding:14px 22px; border-right:1px solid rgba(166,124,58,0.12)">
+        <span style="font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#9fafb0">{{ p.label }}</span>
+        <span style="display:flex; align-items:center; gap:8px; font-size:22px; font-weight:600; line-height:1; color:#faf6f0"><span style="font-size:15px; color:#a67c3a">{{ p.icon }}</span>{{ p.value }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position:absolute; left:28px; bottom:96px; width:316px; display:flex; flex-direction:column; gap:12px; padding:18px; border-radius:18px; background:linear-gradient(180deg, rgba(31,44,37,0.9), rgba(17,23,20,0.95)); border:1px solid rgba(166,124,58,0.22); box-shadow:0 18px 40px rgba(8,11,10,0.55); backdrop-filter:blur(8px); z-index:30">
+    <div style="font-size:9.5px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#9fafb0">Today's Crown Ladder</div>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <sc-for list="{{ ladder }}" as="l" hint-placeholder-count="4">
+        <div style="display:grid; grid-template-columns:22px 1fr auto; gap:10px; align-items:center; padding:6px 8px; border-radius:9px; background:{{ l.bg }}">
+          <span style="width:22px; height:22px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(166,124,58,0.35); font-size:10px; font-weight:700; color:#a67c3a">{{ l.n }}</span>
+          <span style="font-size:13px; font-weight:{{ l.weight }}; color:{{ l.color }}">{{ l.name }}</span>
+          <span style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#c49a5c"><span style="font-size:11px">♛</span>{{ l.crowns }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div onClick="{{ noop }}" style="margin-top:2px; padding:10px 0; text-align:center; border-radius:999px; background:rgba(12,17,15,0.6); border:1px solid rgba(166,124,58,0.28); font-size:12px; font-weight:600; color:#e6eae5; cursor:pointer" style-hover="border-color:rgba(166,124,58,0.65)">View Full Ladder</div>
+  </div>
+
+  <div style="position:absolute; right:28px; bottom:96px; width:330px; display:flex; flex-direction:column; gap:12px; padding:18px; border-radius:18px; background:linear-gradient(180deg, rgba(31,44,37,0.9), rgba(17,23,20,0.95)); border:1px solid rgba(166,124,58,0.22); box-shadow:0 18px 40px rgba(8,11,10,0.55); backdrop-filter:blur(8px); z-index:30">
+    <div style="font-size:9.5px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#9fafb0">Recent Battle Gifts</div>
+    <div style="display:flex; flex-direction:column; gap:9px">
+      <sc-for list="{{ gifts }}" as="g" hint-placeholder-count="3">
+        <div style="display:grid; grid-template-columns:30px 1fr auto; gap:11px; align-items:center">
+          <span style="width:30px; height:30px; display:grid; place-items:center; border-radius:8px; background:rgba(12,17,15,0.7); border:1px solid rgba(166,124,58,0.18); font-size:15px">{{ g.icon }}</span>
+          <span style="display:flex; flex-direction:column; gap:2px">
+            <span style="font-size:11px; color:#9fafb0">{{ g.to }}</span>
+            <span style="font-size:12.5px; font-weight:600; color:#c49a5c">{{ g.item }}</span>
+          </span>
+          <span style="font-size:12.5px; font-weight:700; color:#e6eae5">{{ g.amt }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div onClick="{{ noop }}" style="margin-top:2px; padding:10px 0; text-align:center; border-radius:999px; background:linear-gradient(180deg, rgba(166,124,58,0.22), rgba(168,133,61,0.18)); border:1px solid rgba(166,124,58,0.45); font-size:12px; font-weight:700; color:#c49a5c; cursor:pointer" style-hover="background:rgba(166,124,58,0.32)">Send a Gift</div>
+  </div>
+
+  <div style="position:absolute; left:50%; bottom:24px; transform:translateX(-50%); display:flex; align-items:center; gap:0; height:52px; padding:0 6px 0 20px; border-radius:999px; background:linear-gradient(90deg, rgba(31,44,37,0.94), rgba(17,23,20,0.96)); border:1px solid rgba(166,124,58,0.24); box-shadow:0 16px 36px rgba(8,11,10,0.6); z-index:30">
+    <div style="display:flex; align-items:center; gap:8px; padding-right:20px; border-right:1px solid rgba(166,124,58,0.16); white-space:nowrap">
+      <span style="color:#c49a5c; font-size:13px">★</span>
+      <span style="font-size:12.5px; color:#cdd2cc">Top Supporter: <span style="color:#faf6f0; font-weight:600">ChefOrla</span></span>
+      <span style="font-size:12.5px; font-weight:700; color:#c49a5c">350T</span>
+    </div>
+    <div style="width:660px; overflow:hidden; mask-image:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent)">
+      <div style="display:flex; width:max-content; animation:tickerRun 26s linear infinite">
+        <sc-for list="{{ ticker }}" as="t" hint-placeholder-count="10">
+          <span style="padding:0 20px; font-size:12.5px; color:#cdd2cc; white-space:nowrap; border-right:1px solid rgba(166,124,58,0.12)">{{ t }}</span>
+        </sc-for>
+      </div>
+    </div>
+    <div onClick="{{ noop }}" style="margin-left:16px; padding:11px 26px; border-radius:999px; background:rgba(22,155,98,0.18); border:1px solid rgba(22,155,98,0.5); font-size:12.5px; font-weight:700; color:#3cb87c; white-space:nowrap; cursor:pointer" style-hover="background:rgba(22,155,98,0.3)">Join the Crowd</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1920,&quot;height&quot;:1080},&quot;stageTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Emerald hall (canon)&quot;,&quot;options&quot;:[&quot;Emerald hall (canon)&quot;,&quot;Brass gala&quot;,&quot;Midnight slate&quot;,&quot;Ember hall&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Arena Hall&quot;},&quot;crowdDensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.4,&quot;max&quot;:1.6,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Arena Hall&quot;},&quot;activePhase&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Cooking&quot;,&quot;options&quot;:[&quot;Challenge&quot;,&quot;Combat&quot;,&quot;Biathlon&quot;,&quot;Cooking&quot;,&quot;Mod Review&quot;,&quot;Voting&quot;,&quot;Crown&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Arena Hall&quot;}}">
+class Component extends DCLogic {
+  state = { secs: 8 * 60 + 37 };
+  componentDidMount() { this._t = setInterval(() => this.setState(s => ({ secs: Math.max(0, s.secs - 1) })), 1000); }
+  componentWillUnmount() { clearInterval(this._t); }
+
+  buildCrowd() {
+    const density = this.props.crowdDensity ?? 1;
+    const cx = 960, cy = 575, topLimit = 215;
+    const rows = [
+      { rx: 602, ry: 330, n: 48, size: 15, dim: 0.55 },
+      { rx: 662, ry: 364, n: 52, size: 17, dim: 0.47 },
+      { rx: 724, ry: 399, n: 56, size: 19, dim: 0.4 },
+      { rx: 788, ry: 435, n: 60, size: 21, dim: 0.33 },
+      { rx: 854, ry: 472, n: 64, size: 23, dim: 0.26 },
+      { rx: 922, ry: 510, n: 68, size: 25, dim: 0.19 },
+      { rx: 992, ry: 549, n: 72, size: 27, dim: 0.12 },
+      { rx: 1064, ry: 589, n: 76, size: 29, dim: 0.05 }
+    ];
+    const skin = ['#c3a184', '#a68160', '#8a6a4e', '#dcc0a2', '#6d5340', '#b0906f'];
+    const cloth = ['#2b332e', '#333b35', '#3b433c', '#252d28', '#434b44', '#1e2521'];
+    const hair = ['#2a1c14', '#120d0a', '#4a3524', '#1a1512'];
+    const out = [];
+    let i = 0;
+    rows.forEach((r, ri) => {
+      const n = Math.max(8, Math.round(r.n * density));
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2 + ri * 0.21;
+        const x = cx + r.rx * Math.cos(a);
+        const y = cy + r.ry * Math.sin(a);
+        const front = Math.sin(a) > 0;
+        const t = Math.max(0, Math.min(1, (y - 250) / 660));
+        const w = r.size * (0.82 + 0.4 * t);
+        const h = w * 1.42;
+        if (y - h < topLimit) { i++; continue; }
+        const gift = i % 19 === 7;
+        const lean = ((i % 5) - 2) * 2.5;
+        const sk = skin[i % skin.length];
+        const cl = cloth[(i * 3) % cloth.length];
+        const hr = hair[(i * 5) % hair.length];
+        const bright = (0.72 + 0.5 * t).toFixed(2);
+        out.push({
+          style: [
+            'position:absolute',
+            'left:' + x.toFixed(1) + 'px',
+            'top:' + y.toFixed(1) + 'px',
+            'width:' + w.toFixed(1) + 'px',
+            'height:' + h.toFixed(1) + 'px',
+            'transform:translate(-50%,-88%) rotate(' + lean + 'deg)',
+            'filter:brightness(' + bright + ')',
+            'z-index:' + (front ? 3 : 1)
+          ].join('; '),
+          body: [
+            'position:absolute',
+            'left:0', 'right:0', 'bottom:0',
+            'height:60%',
+            'border-radius:' + (w * 0.5).toFixed(1) + 'px ' + (w * 0.5).toFixed(1) + 'px ' + (w * 0.16).toFixed(1) + 'px ' + (w * 0.16).toFixed(1) + 'px',
+            'background:linear-gradient(180deg, ' + cl + ', rgba(10,7,4,0.95))',
+            'box-shadow:inset 0 2px 0 rgba(166,124,58,0.3), 0 1px 3px rgba(0,0,0,0.6)'
+          ].join('; '),
+          head: gift
+            ? [
+                'position:absolute',
+                'top:0', 'left:50%',
+                'width:' + (w * 0.62).toFixed(1) + 'px',
+                'height:' + (w * 0.62).toFixed(1) + 'px',
+                'transform:translateX(-50%)',
+                'border-radius:3px',
+                'background:linear-gradient(180deg,#3cb87c,#184c3a)',
+                'box-shadow:0 0 12px rgba(22,155,98,0.6)'
+              ].join('; ')
+            : [
+                'position:absolute',
+                'top:0', 'left:50%',
+                'width:' + (w * 0.56).toFixed(1) + 'px',
+                'height:' + (w * 0.62).toFixed(1) + 'px',
+                'transform:translateX(-50%)',
+                'border-radius:50% 50% 46% 46%',
+                'background:linear-gradient(180deg, ' + hr + ' 0 26%, ' + sk + ' 27%)',
+                'box-shadow:inset -1px -1px 2px rgba(0,0,0,0.45), 1px 0 3px rgba(166,124,58,0.3)'
+              ].join('; ')
+        });
+        i++;
+      }
+    });
+    return out;
+  }
+
+  buildFloor() {
+    // Regular octagon, circumradius R. Six concentric tile rings + centre plate,
+    // counted off uploads/arena.png: 1 cool outer ring, 5 parchment rings, plate.
+    const rings = [
+      { out: 517, in: 452, tiles: 6, fill: '#9fafb0', edge: 'rgba(17,23,20,0.30)', lift: 'rgba(255,255,255,0.16)' },
+      { out: 452, in: 389, tiles: 6, fill: '#ebe1d2', edge: 'rgba(17,23,20,0.24)', lift: 'rgba(255,255,255,0.22)' },
+      { out: 389, in: 328, tiles: 5, fill: '#f0e8dc', edge: 'rgba(17,23,20,0.22)', lift: 'rgba(255,255,255,0.24)' },
+      { out: 328, in: 269, tiles: 5, fill: '#f5eee4', edge: 'rgba(17,23,20,0.20)', lift: 'rgba(255,255,255,0.26)' },
+      { out: 269, in: 212, tiles: 4, fill: '#faf6f0', edge: 'rgba(17,23,20,0.18)', lift: 'rgba(255,255,255,0.28)' },
+      { out: 212, in: 156, tiles: 4, fill: '#fffdf9', edge: 'rgba(17,23,20,0.16)', lift: 'rgba(255,255,255,0.30)' }
+    ];
+    const T = 0.828427; // 2*tan(22.5deg)
+    const out = [];
+    for (let side = 0; side < 8; side++) {
+      const rot = side * 45;
+      rings.forEach((r, ri) => {
+        const w = T * r.out, h = r.out - r.in, k = (r.in / r.out) * 50;
+        const seam = (100 / r.tiles).toFixed(4);
+        out.push({ style: [
+          'position:absolute', 'left:50%', 'top:50%',
+          'width:' + w.toFixed(1) + 'px', 'height:' + h.toFixed(1) + 'px',
+          'transform-origin:0 0',
+          'transform:rotate(' + rot + 'deg) translate(-50%, -' + r.out + 'px)',
+          'clip-path:polygon(0% 0%, 100% 0%, ' + (50 + k).toFixed(2) + '% 100%, ' + (50 - k).toFixed(2) + '% 100%)',
+          'background:repeating-linear-gradient(90deg, ' + r.fill + ' 0 calc(' + seam + '% - 2px), ' + r.edge + ' calc(' + seam + '% - 2px) ' + seam + '%)',
+          'box-shadow:inset 0 2px 0 ' + r.lift + ', inset 0 -2px 0 ' + r.edge,
+          'z-index:' + (2 + ri)
+        ].join('; ') });
+      });
+    }
+    return out;
+  }
+
+  renderVals() {
+    const gold = '#a67c3a', goldL = '#c49a5c', dim = '#9fafb0';
+    const m = Math.floor(this.state.secs / 60), s = this.state.secs % 60;
+    const active = this.props.activePhase ?? 'Cooking';
+    const names = ['Challenge', 'Combat', 'Biathlon', 'Cooking', 'Mod Review', 'Voting', 'Crown'];
+    return {
+      noop: () => {},
+      tintStyle: (() => {
+        const t = this.props.stageTheme ?? 'Emerald hall (canon)';
+        const tint = {
+          'Emerald hall (canon)': 'rgba(0,0,0,0)',
+          'Brass gala': 'rgba(140,96,34,0.34)',
+          'Midnight slate': 'rgba(24,40,64,0.36)',
+          'Ember hall': 'rgba(120,40,26,0.28)'
+        }[t] || 'rgba(0,0,0,0)';
+        return ['position:absolute', 'inset:0', 'pointer-events:none', 'z-index:7',
+          'mix-blend-mode:color', 'background:' + tint].join('; ');
+      })(),
+      clock: String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0'),
+      crowd: this.buildCrowd(),
+      floorTiles: this.buildFloor(),
+      lamps: Array.from({ length: 30 }, (_, i) => {
+        const a = (i / 30) * Math.PI * 2;
+        const x = 960 + 1252 * Math.cos(a), y = 605 + 528 * Math.sin(a);
+        return { style: [
+          'position:absolute', 'left:' + x.toFixed(0) + 'px', 'top:' + y.toFixed(0) + 'px',
+          'width:7px', 'height:7px', 'transform:translate(-50%,-50%)', 'border-radius:50%',
+          'background:#d8b47a',
+          'box-shadow:0 0 16px 5px rgba(166,124,58,0.45)',
+          'animation:lampFlicker ' + (3.4 + (i % 5) * 0.7).toFixed(1) + 's ease-in-out infinite',
+          'z-index:0'
+        ].join('; ') };
+      }),
+      shafts: [
+        { x: 470, rot: -13, w: 300 }, { x: 960, rot: 0, w: 380 }, { x: 1450, rot: 13, w: 300 }
+      ].map((s, i) => ({ style: [
+        'position:absolute', 'left:' + s.x + 'px', 'top:-140px',
+        'width:' + s.w + 'px', 'height:900px',
+        '--sr:' + s.rot + 'deg',
+        'transform:translateX(-50%) rotate(' + s.rot + 'deg)',
+        'transform-origin:50% 0%',
+        'background:linear-gradient(180deg, rgba(166,124,58,0.20) 0%, rgba(166,124,58,0.09) 45%, rgba(166,124,58,0) 82%)',
+        'clip-path:polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%)',
+        'filter:blur(26px)', 'pointer-events:none',
+        'animation:shaftSway ' + (11 + i * 3) + 's ease-in-out infinite',
+        'z-index:0'
+      ].join('; ') })),
+      motes: Array.from({ length: 34 }, (_, i) => {
+        const x = 220 + ((i * 137) % 1480);
+        const y = 340 + ((i * 211) % 560);
+        const sz = 2 + (i % 3);
+        return { style: [
+          'position:absolute', 'left:' + x + 'px', 'top:' + y + 'px',
+          'width:' + sz + 'px', 'height:' + sz + 'px', 'border-radius:50%',
+          'background:rgba(216,180,122,0.85)', 'box-shadow:0 0 6px rgba(166,124,58,0.6)',
+          'pointer-events:none', 'z-index:6',
+          'animation:moteFloat ' + (13 + (i % 9) * 1.7).toFixed(1) + 's linear infinite',
+          'animation-delay:' + ((i % 11) * 1.3).toFixed(1) + 's'
+        ].join('; ') };
+      }),
+      floatGifts: [
+        { icon: '🎁', x: 366, y: 742 }, { icon: '💚', x: 1602, y: 706 }, { icon: '🍾', x: 288, y: 560 },
+        { icon: '☘', x: 1682, y: 566 }, { icon: '🎁', x: 520, y: 862 }, { icon: '💚', x: 1440, y: 878 }
+      ].map((g, i) => ({ icon: g.icon, style: [
+        'position:absolute', 'left:' + g.x + 'px', 'top:' + g.y + 'px',
+        'font-size:' + (15 + (i % 3) * 3) + 'px', 'line-height:1',
+        'filter:drop-shadow(0 0 10px rgba(22,155,98,0.7))',
+        'pointer-events:none', 'z-index:3',
+        'animation:giftRise ' + (7 + i * 1.4).toFixed(1) + 's ease-out infinite',
+        'animation-delay:' + (i * 1.9).toFixed(1) + 's'
+      ].join('; ') })),
+      tierRails: [
+        { rx: 632, ry: 345 }, { rx: 693, ry: 379 }, { rx: 756, ry: 415 }, { rx: 821, ry: 452 },
+        { rx: 888, ry: 490 }, { rx: 957, ry: 529 }, { rx: 1028, ry: 568 }, { rx: 1100, ry: 608 }
+      ].map((t, i) => ({ style: [
+        'position:absolute',
+        'left:960px', 'top:575px',
+        'width:' + (t.rx * 2) + 'px',
+        'height:' + (t.ry * 2) + 'px',
+        'transform:translate(-50%,-50%)',
+        'border-radius:50%',
+        'border:1px solid rgba(166,124,58,' + (0.06 + i * 0.018).toFixed(3) + ')',
+        'background:radial-gradient(ellipse at 50% 50%, rgba(8,11,10,0) 62%, rgba(26,34,29,' + (0.34 + i * 0.06).toFixed(2) + ') 78%, rgba(8,11,10,0) 100%)',
+        'box-shadow:inset 0 -14px 26px rgba(8,11,10,0.55)',
+        'z-index:0'
+      ].join('; ') })),
+      nav: ['Arena', 'Battles', 'Chefs', 'Rankings', 'Sponsors', 'News'].map(l => {
+        const on = l === 'Arena';
+        return { label: l, bg: on ? 'rgba(22,155,98,0.14)' : 'transparent', border: on ? 'rgba(22,155,98,0.55)' : 'transparent', color: on ? '#3cb87c' : '#cdd2cc', weight: on ? 600 : 500 };
+      }),
+      utility: [{ icon: '✦', label: 'Fandom' }, { icon: '♛', label: 'Rewards' }, { icon: '◆', label: 'Shop' }],
+      phases: names.map((name, idx) => {
+        const on = name === active;
+        return { n: idx + 1, name,
+          bg: on ? 'rgba(22,155,98,0.16)' : 'rgba(17,23,20,0.72)',
+          border: on ? 'rgba(60,184,124,0.7)' : 'rgba(166,124,58,0.16)',
+          dotBg: on ? '#169b62' : 'rgba(255,255,255,0.08)',
+          dotColor: on ? '#08170f' : dim,
+          color: on ? '#c9f2da' : dim };
+      }),
+      pulse: [
+        { label: 'Active viewers', value: '2.4K', icon: '👤' },
+        { label: 'Public votes', value: '3.7K', icon: '▥' },
+        { label: 'Battle gifts', value: '620', icon: '🎁' },
+        { label: 'Crown streak', value: '3', icon: '♛' }
+      ],
+      tiers: ['Kitchen Porter', 'Prep Chef', 'Commis Chef', 'Chef de Partie', 'Sous Chef', 'Head Chef', 'Executive Chef', 'Culinary Master'].map((n, i) => ({
+        name: n,
+        border: i === 5 ? 'rgba(166,124,58,0.6)' : 'rgba(166,124,58,0.26)',
+        color: i === 5 ? goldL : '#b4a184'
+      })),
+      chefs: [
+        { name: 'Aidan Byrne', country: 'Ireland', x: '700px', slotId: 'a2-chef-left', slotHint: 'Challenger portrait',
+          ring: '#169b62', ringLight: '#3cb87c', glow: 'rgba(22,155,98,0.55)', badge: '☘', badgeBg: 'linear-gradient(180deg,#169b62,#12432f)',
+          heart: '💚', support: '2.4K', supportW: '62%' },
+        { name: 'Luca Moretti', country: 'Italy', x: '1220px', slotId: 'a2-chef-right', slotHint: 'Opponent portrait',
+          ring: '#c0492f', ringLight: '#e0a08c', glow: 'rgba(192,73,47,0.5)', badge: '🔥', badgeBg: 'linear-gradient(180deg,#c0492f,#5e2416)',
+          heart: '❤️', support: '1.8K', supportW: '38%' }
+      ],
+      ladder: [
+        { n: 1, name: 'GreenBear', crowns: '3', weight: 700, color: '#faf6f0', bg: 'rgba(166,124,58,0.1)' },
+        { n: 2, name: 'Aidan Byrne', crowns: '2', weight: 500, color: '#cdd2cc', bg: 'transparent' },
+        { n: 3, name: 'ChefOrla', crowns: '1', weight: 500, color: '#cdd2cc', bg: 'transparent' },
+        { n: 4, name: 'Fire&Steel', crowns: '1', weight: 500, color: '#cdd2cc', bg: 'transparent' }
+      ],
+      gifts: [
+        { icon: '🗡', to: 'To Aidan Byrne', item: 'Artifact Set', amt: '120T' },
+        { icon: '🍾', to: 'To Luca Moretti', item: 'Champagne', amt: '100T' },
+        { icon: '☘', to: 'To Both Chefs', item: 'Good Luck', amt: '50T' }
+      ],
+      ticker: ['Sláinte to both chefs! 🍀', 'Amazing plating! 🔥', 'This is next-level! 👏', 'Come on Aidan! 💚', 'Forza Luca! 🇮🇹',
+               'Sláinte to both chefs! 🍀', 'Amazing plating! 🔥', 'This is next-level! 👏', 'Come on Aidan! 💚', 'Forza Luca! 🇮🇹']
+    };
+  }
+}
+</script>
+</body>
+</html>

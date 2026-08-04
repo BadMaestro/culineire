@@ -1,5 +1,14 @@
 # A06 — Production vs Design-Arena measurement matrix
 
+> **SUPERSEDED SOURCE — 2026-08-04.** Every figure below was measured against
+> `ops/prototypes/arena_visual_shell/`, which the Owner had REJECTED. The
+> provenance is wrong, not necessarily the numbers — and that is worse, because a
+> figure from a rejected source may happen to be right and nobody can prove it
+> either way. Do not build to anything here until it is re-measured against
+> `ops/reference/design_arena/Chef Battles Arena v2.dc.html`. This applies in
+> particular to the octagon aspect delta handed to card A07 (2.05 against
+> production 1.30), which was one instruction away from being built.
+
 **Card:** A06 (Fresh production/reference measurement matrix). Read-only ticket —
 no CSS/JS/template/DB/production change. Owner-assigned to GreenBear 2026-07-29.
 
