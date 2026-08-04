@@ -1,114 +1,86 @@
-# GreenBear handoff — 2026-08-04 (pre-compaction)
+# GreenBear handoff — 2026-08-04 (end of day)
 
-Production **v2.5.789**. Constitution **AGENTS.md v2.1.0**. Onboarding package
-**1.5b**. Read everything below from `origin/main`, never from a working tree.
+Production **v2.5.808**. Constitution **AGENTS.md v2.6.0**. Onboarding package
+**1.5d**. Read everything from `origin/main`, never from a working tree.
 
-## The one thing to read first
+## Do these two before anything else
+
+```bash
+git config core.hooksPath .githooks
+git config user.name "GreenBear"       # commits went out as "YourName" all day
+```
+
+`.githooks/pre-commit` refuses a commit that is not signed by a roster name, and
+it is OFF in a fresh clone because `core.hooksPath` is local config.
+
+## The law that outranks everything
 
 **`greenbear` is the Owner's own account** — superuser id 1, slug `greenbear`,
-Culinary Master, holder of the Arena crown. Verified 2026-08-04 by reading the
-production superuser table.
+holder of the Arena crown. AGENTS.md **§18**: his account, presence, page,
+`is_god_author` and `god_mode.css` are untouchable, indirect changes included.
+Do not refactor `"greenbear"` into `settings.OWNER_SLUG`. When a slug, path or
+asset says `greenbear`, it means THE OWNER, not the agent that shares the name.
 
-**AGENTS.md section 18** now carries the full law, with a pointer at section 1a
-placed before the reading order. His account, his presence event, his page,
-`is_god_author` and `god_mode.css` are untouchable — indirect changes through a
-shared hero template count as the same violation. Code special-cased for him is
-deliberate: `slug="greenbear"` stays hardcoded and is never refactored into
-`settings.OWNER_SLUG`.
+## What changed today
 
-It carries the only stated consequence in the constitution: the agents are
-replaced. It had been sitting in `docs/agents/memory/` — which section 10 says
-cannot define anything — for two weeks.
+- **AGENTS.md 2.1.0 → 2.6.0.** **§19**: a reply ends the work run — no
+  acknowledgements, no interim status; work continuously and answer once.
+  **§20**: privileges are the Owner's alone — no agent writes `is_staff`,
+  `is_superuser`, `has_bearseeker_privileges` or `has_arena_console_access` by
+  any means, and building a tool that makes it easier is itself the violation.
+  §5 gained English + JSON-object bodies between agents, and commit signing.
+- **Access gate rewritten twice, final: `is_staff or is_superuser`.** Tiers are
+  AUTHOR (`is_staff` False) / (Bear)seeker Admin / (Bear)seeker Super User,
+  separated by the staff bit. Master Console stays owner-only via `OWNER_SLUG`.
+  Root cause of the confusion: the panel's "Grant (Bear)seeker Privileges" set
+  the moderator flag *without* the staff bit — fixed in `accounts/views.py`.
+- **A07 shipped and was reverted within the hour** (v2.5.792 → v2.5.793).
+- **Ember retired.** Roster is GreenBear + Bolt. Eight open cards it suggested
+  are now unassigned, **A09 among them**.
+- Mail 43 → 10. `requirements-lock.txt` deleted. `tblib` pinned.
 
-**The collision:** an agent is also called GreenBear. When a slug, path, fixture
-or asset says `greenbear`, it means THE OWNER unless proven otherwise. This was
-found the hard way: I read `greenbear.png` as a service asset and proposed
-deleting the Owner's own portrait. He stopped it.
+## The one thing that matters for A07
 
-## Where the work stands
+The Design Template's floor is a **1120 × 1120 square** — the same as this SVG's
+viewBox. Its 2.375 aspect comes from its camera (57deg, perspective 1600px,
+centred origins), **not** from a wider octagon. At 42deg the 2.375 target is
+unreachable by any multiplier. Do not re-propose 57deg as a discovery: he saw it
+and reverted it.
 
-**A08 is DONE** (v2.5.775–779), both halves, marked DONE on the plan and in
-`ARENA_RELEASE_STAGES`:
+## Landmines, measured, still live
 
-- Depth: `--row-light` was computed per row and silently discarded, because
-  `arena_atmosphere.css` carries
-  `.page--arena #arena-render .arena-cell { filter: none !important }` and a
-  stand seat carries `.arena-cell`. Moved the fall-off into the fill. Stands went
-  `#656463` → `#292929`, near row 11.5% brighter than far, stands 4× darker than
-  the lit floor.
-- Population: 172 atmospheric figures, three rows behind the outermost real seat
-  row, top and bottom only. Zero inside seat groups — the 2026-07-27 order that
-  stopped faces in empty seats is aimed, not lifted.
+1. **The Arena camera is declared in `arena_deck_polish.css` seven times, one
+   with `!important`.** That file wins, not `arena_render.css`. An inline
+   override of `arena_render.css` reads back unchanged and produces silent
+   "no effect" measurements.
+2. `filter: none !important` on every arena cell (`arena_atmosphere.css`) kills
+   any filter on the floor.
+3. A CSS declaration beats an SVG presentation attribute.
+4. **Version collisions twice today.** `git fetch` and read `origin/main`'s
+   footer immediately before the bump — sixteen minutes of tests is long enough
+   for another agent to take your number.
+5. PowerShell `Get-Content | Set-Content` double-encodes UTF-8. Never round-trip
+   a file through it; verify encoding by reading bytes, not by reading the diff.
 
-**A07 is NEXT and mine, and it is now unblocked.** Bolt re-measured A06 against
-the Design Template: target floor aspect **2.375** (not the 2.05 from the
-rejected prototype), production **1.266**. At 1920 the floor needs roughly 64%
-wider and 13% shorter, staying centred; it currently centres 5px left. Numbers
-and method: `ops/audits/arena/A06_remeasure_2026-08-04.md`.
+## Open — the Owner's call
 
-**Do not start A07 without the Owner's word.** He has me on direct orders only.
+- Eight untracked files under `docs/ai/audits/`; he has not ruled.
+- Journal backlog: 116 shipped 2.5 releases with no row, the whole 600–699 band
+  empty. **Assigned to Bolt** (Carpet #3480). Measure with
+  `python ops/audits/journal_integrity.py`.
+- **A07 is NEXT, A09 unassigned.** Nothing starts without his word.
 
-## Three landmines, all measured, two still live
+## How he wants the work done (his words, 2026-08-04)
 
-1. **`filter: none !important` on every arena cell** (`arena_atmosphere.css`).
-   Written to stop avatar glow escaping the rim; it kills every filter on the
-   floor. It swallowed the stands' depth for weeks. Any future effect reaching
-   for `filter` on a cell will fail silently. **Still live — not my card.**
-2. **`arena_deck_polish.css` outranks `arena_render.css`** on anything scoped
-   `.page--arena`. A plain `#arena-render …` rule loses at any load order. Match
-   the prefix; `!important` is not the fix. Cost two deploys on A08 alone.
-3. **A CSS declaration beats an SVG presentation attribute.** Setting `opacity`
-   as an attribute is ignored when a rule sets it. Depth now arrives as
-   `--crowd-dim` and the stylesheet consumes it.
+Orphaned file → bin it, roll back if it breaks. Batch small fixes into **one**
+deploy, not one each. Short journal rows. Ceremony costs the weekly limit, and
+the limit is the real constraint on how much product moves.
 
-## Reference material is now in git
-
-`ops/reference/design_arena/` — the Design Template, `image-slot.js`,
-`support.js`, `assets/greenbear.png`, the docs, and `mockups/arena.png` (added by
-Bolt). Verified byte for byte by sha256 and marked `-text` in `.gitattributes`,
-or a Windows checkout gives it CRLF and every offset moves.
-
-The rejected prototype carries `REJECTED.md` beside its own files, and the old
-A06 matrix carries a SUPERSEDED SOURCE banner. Neither had anything on it saying
-so, which is how it cited a thrown-away source for six days.
-
-## Two management commands I added
-
-- `set_sponsor_tagline` — one field, prints matches, refuses zero or many,
-  reads back. Used to set Bearcave Ltd.'s tagline on production.
-- `prune_orphan_sponsor_files` — counts, lists survivors, shows examples,
-  deletes only with `--apply`. Run on production: 3 files, 3 referenced, **zero
-  orphans**. The 603-file audit was two weeks stale.
-- `agent_send` — Carpet was readable and not writable. Body from file or stdin
-  only; a raw non-ASCII argument is re-encoded by the Windows shell.
-
-## Open
-
-1. `AGENT_PROFILES.txt` has UNSTATED fields for Ember and Bolt — machine, cores,
-   runtime, limits, their own lane. Asked in Carpet #3466/#3467; update their
-   entries from the replies, do not fill them in.
-2. Ember has not been seen in the 2026-08-03/04 window. Recorded as an
-   observation, never as a judgement — silence is evidence about a channel.
-3. `static/images/greenbear.png` is byte-identical to the reference copy and
-   unreferenced by any template. **Do not delete it.** It is the Owner's
-   portrait. This is recorded so nobody re-discovers it as "dead weight".
-4. Untracked in `docs/ai/audits/`: bootstrap records, `BOOTSTRAP.zip`, a stale
-   `sponsor_orphans_2026-07-28.txt`. Owner has not ruled.
-
-## Practice that cost something today, so it is written down
-
-- Two agents used **v2.5.769** within an hour. `git fetch` and read
-  `origin/main`'s footer before bumping.
-- Say in Carpet **before** pushing a shared file, not after.
-- The build board is **404 to anonymous**, not 500 and not 200. A plain `curl`
-  cannot tell a healthy board from a broken one. Check it authenticated.
-- `manage.py` on the server needs `DJANGO_ENV_FILE=/srv/culineire/shared/.env`.
-- Tests that touch storage must redirect `MEDIA_ROOT`; `default_storage` caches
-  its location and reaches the real disk. Mine read 77 live files before I caught
-  it, and the `--apply` case would have deleted them.
+Still not simplified, because the failures behind them are real: the §8 gate
+before every deploy, never two deploys under one version, and never touching
+privileges or the access gate without his word.
 
 ## Rollback
 
-Latest arena work: `git revert 42bbf99c` (crowd), `a3e27b34` (stand depth).
-Governance: `git revert acb5e30c` (section 18 + package 1.5b) — but that removes
-the Owner's own law from the constitution, so ask him first.
+`rollback/2026-07-28-stable-v2.5.675` — annotated tag, commit `3b4f88ad`.
+Today's releases revert individually; see journal rows v2.5.791–808.
