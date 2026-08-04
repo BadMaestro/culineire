@@ -3640,8 +3640,21 @@
 
 
 /* =============================================================================
-   G2 CAMERA — cascade winner (Owner restore 2026-07-27)
-   perspective + rotateX(42deg)
+   G2 CAMERA — cascade winner (A07, Owner 2026-08-04)
+   perspective + rotateX(57deg)
+
+   THIS BLOCK IS THE CAMERA. Not arena_render.css, whose own comment claims to be
+   "the only place the camera is declared" — it is not, and that claim cost a
+   measurement pass: an inline override read back unchanged because the rule
+   below carries !important. The two files are kept in step deliberately; change
+   both or neither.
+
+   57deg, 1600px and centred origins are the Design Template's own camera, read
+   off ops/reference/design_arena/Chef Battles Arena v2.dc.html: its floor is a
+   1120x1120 square, exactly like this SVG's viewBox, with no scaling in its
+   matrix. Under this camera our square projects to 1585.4 x 667.5 — the
+   reference floor, to the decimal. The previous 42deg was the Owner's restore of
+   2026-07-27 and he replaced it on 2026-08-04 for A07.
    ============================================================================= */
 
   .page--arena .arena-command-deck__floor,
@@ -3653,16 +3666,16 @@
     transform-style: preserve-3d;
   }
   .page--arena .arena-floor-stage .arena-render-container {
-    perspective: 1500px !important;
-    perspective-origin: 50% 40% !important;
+    perspective: 1600px !important;
+    perspective-origin: 50% 50% !important;
     transform-style: preserve-3d !important;
   }
   .page--arena .arena-floor-stage #arena-render {
-    transform-origin: 50% 62% !important;
+    transform-origin: 50% 50% !important;
     transform:
       translate(-50%, -50%)
       translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
+      rotateX(57deg)
       scale(var(--arena-fit, 1)) !important;
     filter: none !important;
   }

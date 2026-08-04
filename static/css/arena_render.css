@@ -630,7 +630,13 @@
 }
 
 /* ----------------------------------------------------------------------------
- * Camera — perspective + rotateX(42deg) (Owner restore 2026-07-27).
+ * Camera — perspective + rotateX(57deg) (A07, Owner 2026-08-04).
+ *
+ * THIS FILE DOES NOT WIN THE CASCADE. arena_deck_polish.css declares the camera
+ * seven times and one of those carries !important, so that file is what the page
+ * actually renders. This block is kept identical to it on purpose; change both
+ * or neither. The note further down claiming this is "the only place the camera
+ * is declared" was false and is corrected there.
  * -------------------------------------------------------------------------- */
 .page--arena .arena-render-container {
   position: relative;
@@ -642,8 +648,8 @@
   border-radius: 1rem;
   overflow: visible;
   transform-style: preserve-3d;
-  perspective: 1500px;
-  perspective-origin: 50% 40%;
+  perspective: 1600px;
+  perspective-origin: 50% 50%;
 }
 
 .page--arena #arena-render {
@@ -654,16 +660,18 @@
   height: 172%;
   aspect-ratio: 1;
   /* flat, not preserve-3d: the floor is one plane and a nested 3D context
-     under this transform broke the camera (v2.5.649). This file is the only
-     place the camera is declared — arena_atmosphere.css used to restate the
-     whole block with !important and force `flat` from there, so this line
-     said preserve-3d while the page rendered flat. */
+     under this transform broke the camera (v2.5.649). This file is NOT the only
+     place the camera is declared — that claim used to stand here and was wrong;
+     arena_deck_polish.css restates it seven times, one with !important, and that
+     is the rule the page renders. arena_atmosphere.css also used to restate the
+     whole block with !important and force `flat` from there, so this line said
+     preserve-3d while the page rendered flat. */
   transform-style: flat;
-  transform-origin: 50% 62%;
+  transform-origin: 50% 50%;
   transform:
     translate(-50%, -50%)
     translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-    rotateX(42deg)
+    rotateX(57deg)
     scale(var(--arena-fit, 1));
   filter: none;
 }

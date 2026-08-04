@@ -3118,14 +3118,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A07", "group": "Arena Hall", "title": "Stage framing and full-octagon composition",
-        "status": "NEXT", "owner": "GreenBear",
-        "files": "static/css/arena_hall.css or the final scoped Arena composition layer; templates/chef_battle/arena.html cache key",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "static/css/arena_deck_polish.css (the cascade-winning camera); static/css/arena_render.css (kept in step); static/js/arena_render.js (fitScene)",
         "depends_on": "AR5",
         "action": "Match the measured stage scale and placement so the complete octagon sits in the intended desktop frame.",
         "visible_result": "The full floor reads as one centred arena with the reference margins.",
-        "acceptance": "Matches A06 bounds at 1280 and 1920; rotateX remains 42deg; floor colours and octagon renderer unchanged.",
-        "forbidden": "No geometry-engine rewrite, perspective/camera change or floor recolour.",
-        "evidence": "UNBLOCKED 2026-08-04, both halves measured. Target aspect is 2.375, NOT the 2.05 the superseded matrix carried - that came from the rejected prototype. At 1920 the floor must go from 966.9x763.7 (production, 184 rank cells, aspect 1.266) to 1585.4x667.5 (Design Template, aspect 2.375): about 64 percent wider and 13 percent shorter, staying centred - production centres at x 955 against the reference 960. Production's own aspect is confirmed independently: the old matrix read 1.30 on 2026-07-29, this run reads 1.266 by a different route, and production was never the disputed half. Full matrix with both columns: ops/audits/arena/A06_remeasure_2026-08-04.md.",
+        "acceptance": "Full scene inside the frame at 1280 and 1920, no page overflow; floor colours and ring geometry unchanged; the fit converges to the same scale on every load.",
+        "forbidden": "No geometry-engine rewrite, no floor recolour, no fake occupants.",
+        "evidence": "DONE v2.5.792. THE TARGET WAS NEVER ABOUT THE OCTAGON'S SHAPE. The Design Template's floor is a 1120x1120 SQUARE with no scaling in its matrix - the same square as this SVG's 1100x1100 viewBox. Its 2.375 comes entirely from its camera: rotateX(57deg), perspective 1600px, both origins centred. Put that camera on our SVG and the square projects to 1585.4 x 667.5 - the reference floor to the decimal, and the multiplier was set from the element's size, not from the target. So A07 is a camera card, and the Owner replaced his own 2026-07-27 restore of 42deg for it on 2026-08-04. A06's '+64 percent wider' was an artefact of comparing their whole floor square against our RANK CELLS ONLY (no moat, VIP, stands or outer band); like for like it is 1.467 against 2.375. TWO THINGS THE CHANGE HAD TO CARRY. First, the camera lives in arena_deck_polish.css, declared SEVEN times, one with !important - arena_render.css's own comment claiming to be 'the only place the camera is declared' was false, and it cost a measurement pass that read back unchanged. Both files now carry 57deg and say so. Second, fitScene measured the rank floor while its own comment said to measure the stands: at 42deg they agreed, at 57deg they did not - fitting the rank floor to 0.64 put the scene at 2195px inside a 1908px frame, 287px of stands hanging out. It now fits the SVG's own box to the Design Template's pads (0.8257 of canvas width, 0.618 of height) and iterates to a fixed point: --arena-shift-* translates BEFORE the rotation, so centring moves the scene through the frustum and changes the projected height (measured: 667.5 to 609.6), which made a fixed pass count land wherever the oscillation happened to be - three passes gave 899, then 1915, then 1447px of width. Damped by half, stopping under 0.5 percent: six passes at 1920, seven at 1280, and damped and undamped reach the same fixed point. Measured after: 1920 scene 1576.8x630.3 (ar 2.502) against the reference 1585.4x667.5 - width within 8.6px, 0.5 percent; 1280 scene 1039.4x453.9 (ar 2.29); rank floor 1.852 and 1.847, so the shape holds across viewports. Inside the frame at both, scrollWidth 1910 of 1920 and 1270 of 1280 - no overflow. Aspect lands 2.502 not 2.375 because our scene carries stands the reference does not; that is stated rather than tuned away. Reference: ops/reference/design_arena/, matrix ops/audits/arena/A06_remeasure_2026-08-04.md.",
     },
     {
         "id": "A08", "group": "Arena Hall", "title": "Crowd bowl depth and atmospheric population",
@@ -3140,7 +3140,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A09", "group": "Arena Hall", "title": "Live challenger/opponent composition",
-        "status": "PENDING", "owner": "Ember",
+        "status": "NEXT", "owner": "Ember",
         "files": "templates/chef_battle/arena.html; static/js/arena_render.js; scoped fighter CSS",
         "depends_on": "A07",
         "action": "Place the existing active/facing-pair fighters in the measured left/right reference composition.",
@@ -3368,12 +3368,15 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "6b09a92b / production v2.5.791",
-        "verification": "Production v2.5.791 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
-                        "deployed. A07 is the next assignable card and its numbers are measured "
-                        "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md).",
+        "commit": "e9944621 / production v2.5.792",
+        "verification": "Production v2.5.792 confirmed. A00-A08 and AR0-AR5 are DONE and "
+                        "deployed. The Arena camera is now the Design Template's own: "
+                        "rotateX(57deg), perspective 1600px, centred origins (Owner, 2026-08-04, "
+                        "replacing his 42deg restore of 2026-07-27).",
         "updated": "2026-08-04T00:00:00.000Z",
-        "next_action": "Assign A07 — Stage framing and full-octagon composition.",
+        "next_action": "Assign A09 — Live challenger/opponent composition. Its numbers are "
+                       "already measured: two symmetric plinth pairs flanking the crown, "
+                       "centres x 557/1363 and 619/1301 on a 1920 canvas.",
         "workstreams": ARENA_DESIGN_TASKS,
     },
     {
