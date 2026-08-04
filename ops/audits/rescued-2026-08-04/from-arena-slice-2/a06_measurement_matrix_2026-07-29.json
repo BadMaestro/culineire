@@ -1,0 +1,105 @@
+{
+  "task": "A06",
+  "status": "IN_PROGRESS",
+  "measured_at": "2026-07-29",
+  "units": "CSS pixels",
+  "sources": {
+    "approved_reference": "work/arena-deployment/Deployment Project/mockups/arena.png",
+    "design_build": "work/arena-deployment/Deployment Project/Chef Battles Arena v2.dc.html",
+    "production_url": "https://culineire.ie/chef-battle/arena/",
+    "production_1920_capture": "C:/Users/golov/AppData/Local/Temp/codex-clipboard-f93af6d8-bf91-4b73-90e3-9d021fef1214.png"
+  },
+  "authority_notes": [
+    "Latest Owner decisions override stale archived recommendations.",
+    "Site gold/brass palette stays.",
+    "Floor colours, octagon renderer and rotateX(42deg) stay unchanged.",
+    "Existing mechanisms and approved effects stay.",
+    "No K banner; reuse CulinEire branding.",
+    "Master Console is excluded."
+  ],
+  "production": {
+    "1280x720": {
+      "measurement": "authenticated production DOM",
+      "viewport": {"x": 0, "y": 0, "w": 1280, "h": 720},
+      "document": {"w": 1270, "h": 1266},
+      "arena_surface": {"x": 1, "y": 147, "w": 1268, "h": 733},
+      "floor_svg": {"x": 258, "y": 274, "w": 753, "h": 504},
+      "real_seat_oval": {"x": 324, "y": 283, "w": 623, "h": 476, "count": 290},
+      "rank_spine": {"x": 527, "y": 338, "w": 216, "h": 410},
+      "live_fighter_band": {"x": 0, "y": 0, "w": 0, "h": 0, "display": "none"},
+      "visible_floor_occupants": [
+        {"asset": "authors/greenbear.webp", "x": 611, "y": 423, "w": 48, "h": 35},
+        {"asset": "crestedten/avatar.webp", "x": 846, "y": 602, "w": 52, "h": 39}
+      ],
+      "crown_holder": {"x": 580, "y": 449, "w": 111, "h": 83},
+      "phase_panel": {"x": 16, "y": 250, "w": 222, "h": 329},
+      "ladder_panel": {"x": 16, "y": 541, "w": 222, "h": 273},
+      "metrics_panel": {"x": 774, "y": 250, "w": 480, "h": 71},
+      "gifts_panel": {"x": 1032, "y": 490, "w": 222, "h": 324},
+      "ticker": {"x": 402, "y": 844, "w": 535, "h": 13},
+      "actions_rail": {"x": 1, "y": 821, "w": 1268, "h": 59}
+    },
+    "1920x1080": {
+      "measurement": "authenticated production DOM before viewport override",
+      "viewport": {"x": 0, "y": 0, "w": 1920, "h": 1080},
+      "document": {"w": 1910, "h": 1726},
+      "arena_surface": {"x": 1, "y": 147, "w": 1908, "h": 1194},
+      "floor_svg": {"x": 298, "y": 359, "w": 1315, "h": 821},
+      "rank_spine": {"x": 847, "y": 457, "w": 216, "h": 668},
+      "live_fighter_band": {"x": 0, "y": 0, "w": 0, "h": 0, "display": "none"},
+      "phase_panel": {"x": 24, "y": 314, "w": 248, "h": 343},
+      "ladder_panel": {"x": 24, "y": 958, "w": 248, "h": 275},
+      "metrics_panel": {"x": 1272, "y": 314, "w": 614, "h": 73},
+      "gifts_panel": {"x": 1638, "y": 907, "w": 248, "h": 326},
+      "ticker": {"x": 663, "y": 1305, "w": 914, "h": 13},
+      "actions_rail": {"x": 1, "y": 1282, "w": 1908, "h": 59},
+      "real_seat_oval": null,
+      "crown_holder": null,
+      "missing_reason": "The first 1920 DOM pass recorded the required furniture but not the two nested SVG unions; no value is inferred."
+    }
+  },
+  "approved_reference": {
+    "1920x1080": {
+      "measurement": "pixel bounds read from the approved 1920x1080 mockup; tolerance approximately 5 px",
+      "floor_octagon": {"x": 376, "y": 205, "w": 1167, "h": 804},
+      "crowd_bowl": {"x": 0, "y": 163, "w": 1920, "h": 855},
+      "rank_spine": {"x": 890, "y": 215, "w": 145, "h": 256},
+      "challenger": {"x": 625, "y": 404, "w": 176, "h": 208},
+      "opponent": {"x": 1146, "y": 402, "w": 181, "h": 208},
+      "crown_holder": {"x": 846, "y": 474, "w": 229, "h": 134},
+      "phase_panel": {"x": 20, "y": 173, "w": 309, "h": 130},
+      "ladder_panel": {"x": 17, "y": 824, "w": 240, "h": 214},
+      "metrics_panel": {"x": 1405, "y": 104, "w": 488, "h": 70},
+      "gifts_panel": {"x": 1655, "y": 820, "w": 250, "h": 216},
+      "ticker": {"x": 478, "y": 1010, "w": 1074, "h": 50}
+    },
+    "1280x720": {
+      "measurement": "two-thirds projection of the approved 1920x1080 composition",
+      "floor_octagon": {"x": 251, "y": 137, "w": 778, "h": 536},
+      "crowd_bowl": {"x": 0, "y": 109, "w": 1280, "h": 570},
+      "rank_spine": {"x": 593, "y": 143, "w": 97, "h": 171},
+      "challenger": {"x": 417, "y": 269, "w": 117, "h": 139},
+      "opponent": {"x": 764, "y": 268, "w": 121, "h": 139},
+      "crown_holder": {"x": 564, "y": 316, "w": 153, "h": 89},
+      "phase_panel": {"x": 13, "y": 115, "w": 206, "h": 87},
+      "ladder_panel": {"x": 11, "y": 549, "w": 160, "h": 143},
+      "metrics_panel": {"x": 937, "y": 69, "w": 325, "h": 47},
+      "gifts_panel": {"x": 1103, "y": 547, "w": 167, "h": 144},
+      "ticker": {"x": 319, "y": 673, "w": 716, "h": 33}
+    }
+  },
+  "confirmed_deltas": [
+    "At 1280 the production floor SVG is close to the reference width (753 vs 778) but begins 137 px lower in absolute page coordinates.",
+    "At 1280 the production rank spine is 216 px wide and 410 px tall versus the reference projection 97 px by 171 px.",
+    "The live confrontation band is hidden in the measured real state; A09 must not inject demo fighters to make the reference look populated.",
+    "At 1280 the ticker begins below the viewport at y=844; the reference ticker begins at y=673.",
+    "At both production widths the Arena document is taller than the viewport, so the entire octagon and both bottom panels cannot be judged in one viewport capture.",
+    "Production furniture preserves truthful server data and Dark Launch; visual work must move/scale the existing elements, not replace their mechanisms."
+  ],
+  "remaining_evidence": [
+    "Production screenshot capture now succeeds in the authenticated in-app browser; preserve the final clean capture without the expanded Arena navigation overlay.",
+    "Repeat nested SVG union for real seats and crown at 1920x1080 after a fresh successful 1920 browser viewport.",
+    "Create the two side-by-side comparison images required by A06 acceptance."
+  ],
+  "next_ticket_not_unlocked": "A07 remains blocked until the remaining A06 visual evidence is attached."
+}

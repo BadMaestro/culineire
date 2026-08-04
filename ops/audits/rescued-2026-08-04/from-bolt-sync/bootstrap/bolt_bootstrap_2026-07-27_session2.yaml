@@ -1,0 +1,26 @@
+bootstrap:
+  agent: "Bolt"
+  machine: "primary_8_core (Windows workstation, E:/CulinEire Project)"
+  branch: "perf/media-webp"          # worktree CulinEire-bolt-sync
+  commit: "f6639429cc5a1d9eee9da6260f32b5067dea4b3e"   # == origin/main
+  constitution_version: "1.12.4"     # read from origin/main:AGENTS.md, not recalled
+  documents_read:
+    - "AGENTS.md"
+    - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
+    - "docs/CURRENT_EXECUTION_PLAN.md"
+    - "docs/TECHNICAL_STANDARDS.md"
+  documents_source: "origin/main via git show (not the local checkout)"
+  cowork_poller_connected: true      # ops/bootstrap/bolt_poller.py, 180s, heartbeat bolt_heartbeat.json
+  cowork_round_trip_confirmed: true  # own message read back from /api/messages, Cyrillic + «» + dashes legible
+  round_trip_pings_sent_to: ["greenbear", "ember", "cursor", "arenafront"]
+  working_tree_clean: true           # bolt-sync worktree: only untracked ops/ helper files
+  deploy_ritual_understood: false    # s17.16 - sections 8 and 17 are re-read from the file before EVERY deploy
+  status: "READY"
+
+notes:
+  primary_checkout_not_mine: >
+    E:/CulinEire Project/CulinEire/CulinEire is on agent/cursor/arena-mockup-convergence,
+    dirty (8 modified files, Cursor's WIP) and 9 commits behind origin/main.
+    Not touched, not stashed, not absorbed (TECHNICAL_STANDARDS s2).
+  role_in_section_1: "Bolt - Head of the technical group; not self-assumed, awaiting the Owner's permission (s1/s16)."
+  open_question_for_owner: "Is the STOP of 2026-07-27 08:29 UTC still in force, or lifted?"

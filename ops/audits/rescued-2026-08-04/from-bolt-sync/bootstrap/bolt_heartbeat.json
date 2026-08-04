@@ -1,0 +1,10 @@
+{
+  "agent": "bolt",
+  "pid": 5980,
+  "ts": "2026-07-29T12:58:20Z",
+  "poller_restarts": 0,
+  "state": "AWAITING_ORDER",
+  "current_task": "cold start complete, waiting for the Owner's order",
+  "last_commit": "",
+  "consecutive_empty_polls": 0
+}

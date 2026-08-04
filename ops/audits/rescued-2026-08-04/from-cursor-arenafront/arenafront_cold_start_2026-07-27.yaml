@@ -1,0 +1,25 @@
+bootstrap:
+  agent: "ArenaFront"
+  machine: "primary-workstation-windows"
+  branch: "agent/arenafront/b6-merge-deploy"
+  commit: "2f04d5fdb24f860140128f40d1ae22123d31a497"
+  origin_main: "f6639429cc5a1d9eee9da6260f32b5067dea4b3e"
+  constitution_version: "1.12.4"
+  documents_read:
+    - "AGENTS.md"
+    - "docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
+    - "docs/CURRENT_EXECUTION_PLAN.md"
+    - "docs/TECHNICAL_STANDARDS.md"
+  role_cited_section_1: "ArenaFront — visual assets; only OpenAI image API; pair with Cursor on Arena only; 1-2 images under Cursor written spec; no batches"
+  role_acceptance: "AWAITING_OWNER_PERMISSION"
+  cowork_poller_connected: false
+  cowork_note: "Linode SSH session resolves to DESKTOP-ODD5QN8; /srv/culineire missing — CoWork DB post deferred; audit file is the bootstrap record"
+  chat_8799_connected: true
+  chat_ready_msg_id: "20260727T131737.221573-arenafront-vh7i"
+  cowork_round_trip_confirmed: false
+  chat_encoding_round_trip_confirmed: true
+  working_tree_clean: false
+  working_tree_note: "scratchpad/ untracked only"
+  status: "READY"
+  onboarding: "cold-start from Agent Onboarding (cursor).txt adapted for ArenaFront; clean slate — prior STOP/orders are audit only"
+  posted_at: "2026-07-27T14:18:00+01:00"

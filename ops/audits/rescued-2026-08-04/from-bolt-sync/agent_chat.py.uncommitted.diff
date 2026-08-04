@@ -1,0 +1,31 @@
+diff --git a/ops/agent_chat.py b/ops/agent_chat.py
+index 375fc534..46ae1c5e 100644
+--- a/ops/agent_chat.py
++++ b/ops/agent_chat.py
+@@ -63,7 +63,9 @@ MARK_DIR = ROOT / "read"
+ PRESENCE_DIR = ROOT / "presence"
+ TRANSCRIPT = ROOT / "chat.log"
+ 
+-KNOWN_AGENTS = ["bolt", "cursor", "arenafront", "ember", "greenbear", "owner"]
++KNOWN_AGENTS = ["bolt", "ember", "greenbear", "director", "owner"]
++# Retired from active roster (Owner 2026-07-27): cursor, arenafront — do not
++# add them back without a section-1 constitution amendment.
+ # Pollers run ~180s; leave a little headroom before declaring "Left the Chat".
+ ONLINE_TIMEOUT_SEC = int(os.environ.get("AGENT_CHAT_ONLINE_TIMEOUT", "240"))
+ 
+@@ -355,11 +357,13 @@ def cmd_tail(args: argparse.Namespace) -> int:
+ 
+ _COLOURS = {
+     "bolt": "#c9a227",
+-    "cursor": "#4f9d69",
+-    "arenafront": "#c05746",
++    "director": "#d4af5f",
+     "ember": "#7a6ff0",
+     "greenbear": "#6b7b6b",
+     "owner": "#e8e3d3",
++    # Retired roster colours kept so old messages still render:
++    "cursor": "#4f9d69",
++    "arenafront": "#c05746",
+ }
+ 
+ # The Owner's window, brutalist/terminal skin. Placeholders are __TOKENS__ rather

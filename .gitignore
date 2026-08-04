@@ -32,3 +32,11 @@ static/images/kitchen-logo2.png
 # handoff state. Only the locally-generated tmp/dashboard files are ignored.
 coworking/state.json.tmp
 coworking/dashboard.html
+
+# Agent tooling directories, 2026-08-04. These are not project files and never
+# were, but they sat in `git status --short` as permanent untracked noise, which
+# is how a real stray file hides: when the list is never empty, nobody reads it.
+# Ignored rather than deleted — they belong to whichever tool made them.
+.codex/
+.cursor/
+scratchpad/

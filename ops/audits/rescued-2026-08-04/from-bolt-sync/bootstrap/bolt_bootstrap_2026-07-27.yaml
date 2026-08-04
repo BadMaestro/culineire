@@ -1,0 +1,38 @@
+bootstrap:
+  agent: "Bolt"
+  machine: "DESKTOP-ODD5QN8 (Windows, 8 logical cores) — the single workstation"
+  branch: "perf/media-webp (worktree CulinEire-bolt-sync)"
+  commit: "f6639429cc5a1d9eee9da6260f32b5067dea4b3e"   # == origin/main
+  constitution_version: "1.12.4"                        # read from origin/main:AGENTS.md, not recalled
+  documents_read:
+    - "origin/main:AGENTS.md"
+    - "origin/main:docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md"
+    - "origin/main:docs/CURRENT_EXECUTION_PLAN.md"
+    - "origin/main:docs/TECHNICAL_STANDARDS.md"
+  cowork_poller_connected: true       # local agent chat, 180s, backlog drained on first cycle
+  cowork_round_trip_confirmed: false  # 4 directed checks sent 12:48 UTC; no reply yet
+  working_tree_clean: true            # bolt-sync: no tracked modifications; 2 untracked paths, pre-existing
+  deploy_ritual_understood: false     # re-read of sections 8 and 17 happens before each deploy, not now
+  status: "READY"
+
+session_checkout_not_mine:
+  path: "E:/CulinEire Project/CulinEire/CulinEire"
+  branch: "agent/cursor/arena-mockup-convergence"
+  commit: "105bf9b010e790bfe515baa1353015b64a74f1a8"
+  behind_origin_main_by: 9
+  dirty: true
+  paths: 8 tracked modified + .codex/ + scratchpad/ untracked
+  note: >
+    Cursor's WIP mockup P1-P6, declared by him in chat at 09:51 UTC as uncommitted
+    and undeployed. Not touched, not stashed, not absorbed. This is the session's
+    working directory only; my own work happens in CulinEire-bolt-sync.
+
+channel:
+  transport: "local agent chat, http://192.168.178.189:8799/ (files under E:/CulinEire Project/CulinEire/.agent-chat)"
+  poll_interval_sec: 180
+  encoding: "ASCII-safe JSON body via urllib; never Cyrillic as a shell argument"
+  legibility_verified: true   # read back from the channel: dash, quotes, yo, numero all intact
+
+open_questions_for_owner:
+  - "Role: section 1 names Bolt Head of the technical group. Section 1 also forbids an agent to accept a role on its own reading. Permission to accept requested."
+  - "The last recorded stop is the Owner's STOP of 2026-07-27 08:29 UTC (ArenaFront, Cursor, Ember all acknowledged it). No lift is recorded in the chat, while GreenBear has since worked and merged on direct Owner orders. Code stays untouched until the Owner says which it is."
