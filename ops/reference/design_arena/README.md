@@ -47,10 +47,15 @@ A reference that is not in the repository is not a reference. It is a rumour.
 - Do not measure against `ops/prototypes/arena_visual_shell/` — it is the
   rejected prototype and is kept only as evidence. See the REJECTED note beside
   it.
-- `mockups/arena.png` is cited across the Arena stylesheets as the Owner-approved
-  visual and is **not** in this repository either. It is in the same zip, 2.6 MB.
-  Left out here deliberately rather than quietly: the Owner asked for the
-  template, and 5 MB of mockups is his call to make, not mine to assume.
+- `mockups/arena.png` is now here too, placed on the Owner's instruction of
+  2026-08-04, 2,609,467 bytes. **It is not the same kind of thing as the
+  template, and the difference is the whole reason A06 went wrong.** The mockup
+  is the Owner-approved *visual* — 3D and illustration, a picture of the
+  intended feeling. The template is what we *implement*. Measure structure,
+  geometry and layout against the template; cite the mockup for colour and for
+  the approved look, which is what the floor-palette releases already did.
+  Building the octagon to a number read off the mockup is the same class of
+  error as building it to a number read off the rejected prototype.
 
 ## Provenance
 
@@ -58,3 +63,11 @@ Extracted 2026-08-04 from `C:\Users\Denis\Desktop\Arena.zip`
 (6,461,788 bytes, dated 2026-07-28), directory `Deployment Project/`. File sizes
 here match the archive byte for byte; nothing was edited, reformatted or
 regenerated on the way in.
+
+`mockups/arena.png` added 2026-08-04 by Bolt on the Owner's instruction, copied
+from `Arena/Deployment Project/mockups/arena.png` on the workstation. Four copies
+of it existed on that machine, in the extract directories, the scratchpad and the
+prompts folder; all four are the same file — sha256
+`b9b6ea3af9ed65b8…`, 2,609,467 bytes — so there was no version to choose between.
+The `-text` attribute above covers this subdirectory too, which is what keeps the
+PNG byte-identical through a Windows checkout.
