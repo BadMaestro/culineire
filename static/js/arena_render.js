@@ -2544,46 +2544,19 @@
       .catch(function () { /* a dropped poll is retried on the next tick */ });
   }
 
-  // Fit the tilted scene inside its frame (A07).
+  // Fit the tilted scene inside its frame (G4).
   //
-  // WHAT IS MEASURED CHANGED, AND THE OLD COMMENT SAID SO BEFORE THE CODE DID.
-  // It read "measure PROJECTED STANDS (not the rank floor): stands sit at 1.60x
-  // floor radius, so fitting the floor left them sticking out by construction" —
-  // and then the code measured `.arena-cell--sponsors-tpl`, which IS the rank
-  // floor. At rotateX(42deg) the two happened to agree closely enough that the
-  // scene stayed inside the frame. At 57deg it does not: measured on production
-  // before this change, fitting the rank floor to 0.64 put the full scene at
-  // 2195 px wide inside a 1908 px frame — 287 px of stands hanging out of both
-  // sides. So the fit now measures the SVG's own box, which contains every ring,
-  // both stand banks and the spirit balconies by construction.
-  //
-  // The pad is the Design Template's, not a taste: its floor spans 1585.4 of a
-  // 1920 canvas = 0.8257, and 667.5 of 1080 = 0.618. Width binds at desktop.
-  //
-  // ITERATE TO A FIXED POINT, DO NOT COUNT PASSES. `--arena-shift-*` translates
-  // the element BEFORE the rotation, so a vertical shift moves it through the
-  // perspective frustum and changes the projected HEIGHT — measured: 667.5 to
-  // 609.6 from the centring pass alone. Fit and centre are coupled, and a fixed
-  // number of passes lands wherever the oscillation happens to be: measured on
-  // production, three passes gave 899 -> 1915 -> 1447 px of scene width, so the
-  // scale would have differed on every load. Correction is damped by half and
-  // the loop stops when it asks for less than 0.5%: converges in six passes to
-  // fit 0.5435, and both damped and undamped runs reach the same fixed point,
-  // which is what says it is a property of the scene and not of the damping.
-  var SCENE_PAD_W = 0.8257;   // Design Template floor width / canvas width
-  var SCENE_PAD_H = 0.618;    // Design Template floor height / canvas height
-  var FIT_DAMPING = 0.5;
-  var FIT_TOLERANCE = 0.005;
-  var FIT_MAX_PASSES = 10;
-
+  // rotateX(56deg) alone is a parallel projection: vertical compression is
+  // cos(56) at every viewport. Measure PROJECTED STANDS (not the rank floor):
+  // stands sit at 1.60× floor radius, so fitting the floor left them sticking
+  // out by construction. Floor span 0.63 is an OUTPUT to verify, not the fit
+  // target. Two measure/scale passes land under 1px of drift.
   function fitScene(svg) {
     var container = svg.parentElement;
     if (!container) { return; }
 
-    // The floor the composition is centred ON is still the rank floor: the
-    // stands are deliberately asymmetric top-to-bottom and centring on them
-    // would drag the octagon off the optical centre.
-    function floorBox() {
+    for (var pass = 0; pass < 2; pass++) {
+      // Prefer the sponsors-template floor (rank cells); fall back to oval seats.
       var cells = svg.querySelectorAll('.arena-cell--sponsors-tpl');
       if (!cells.length) {
         cells = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
@@ -2591,7 +2564,8 @@
       if (!cells.length) {
         cells = svg.querySelectorAll('.arena-cell--oval-seat');
       }
-      if (!cells.length) { return null; }
+      if (!cells.length) { return; }
+
       var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
       for (var i = 0; i < cells.length; i++) {
         var box = cells[i].getBoundingClientRect();
@@ -2601,37 +2575,31 @@
         if (box.top < top) { top = box.top; }
         if (box.bottom > bottom) { bottom = box.bottom; }
       }
-      if (!(right > left) || !(bottom > top)) { return null; }
-      return { left: left, right: right, top: top, bottom: bottom };
-    }
+      if (!(right > left) || !(bottom > top)) { return; }
 
-    for (var pass = 0; pass < FIT_MAX_PASSES; pass++) {
-      var floor = floorBox();
-      if (!floor) { return; }
-
-      var scene = svg.getBoundingClientRect();
       var frame = container.getBoundingClientRect();
-      if (!(scene.width > 0) || !(scene.height > 0)) { return; }
+      var width = right - left, height = bottom - top;
+      if (!(width > 0) || !(height > 0)) { return; }
       if (!(frame.width > 0) || !(frame.height > 0)) { return; }
 
-      var byWidth = frame.width * SCENE_PAD_W / scene.width;
-      var byHeight = frame.height * SCENE_PAD_H / scene.height;
-      var wanted = Math.min(byWidth, byHeight);
-      var factor = 1 + (wanted - 1) * FIT_DAMPING;
+      // Fit stands inside the frame at 64% — Owner 2026-07-27: shrink octagon
+      // 20% from the prior 80% fit so the floor leaves more hall margin.
+      var viewPad = 0.64;
+      var byWidth = frame.width * viewPad / width;
+      var byHeight = frame.height * viewPad / height;
+      var factor = Math.min(byWidth, byHeight);
       var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
       svg.style.setProperty('--arena-fit', (current * factor).toFixed(4));
 
       // Composition centre: 0.50 W / 0.51 H of the frame (spec).
       var targetX = frame.left + frame.width * COMPOSITION_CX;
       var targetY = frame.top + frame.height * COMPOSITION_CY;
-      var driftY = targetY - (floor.top + floor.bottom) / 2;
-      var driftX = targetX - (floor.left + floor.right) / 2;
+      var driftY = targetY - (top + bottom) / 2;
+      var driftX = targetX - (left + right) / 2;
       var shiftY = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
       var shiftX = parseFloat(svg.style.getPropertyValue('--arena-shift-x')) || 0;
       svg.style.setProperty('--arena-shift-y', (shiftY + driftY).toFixed(2) + 'px');
       svg.style.setProperty('--arena-shift-x', (shiftX + driftX).toFixed(2) + 'px');
-
-      if (Math.abs(wanted - 1) < FIT_TOLERANCE) { break; }
     }
 
     billboardFaces(svg);

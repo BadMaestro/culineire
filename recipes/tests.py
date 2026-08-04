@@ -4101,11 +4101,11 @@ class ArenaBuildPlanTests(TestCase):
             f"the build board needs exactly one NEXT card or it 500s; found "
             f"{len(nexts)}: {nexts}",
         )
-        self.assertEqual(nexts, ["A09"])
+        self.assertEqual(nexts, ["A07"])
         self.assertEqual(
             [task["id"] for task in ARENA_DESIGN_TASKS
              if task["status"] in {"NEXT", "IN PROGRESS"}],
-            ["A09"],
+            ["A07"],
         )
         required = {
             "id", "group", "title", "status", "owner", "files", "depends_on",
