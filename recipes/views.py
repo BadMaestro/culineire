@@ -3351,22 +3351,29 @@ ARENA_RELEASE_STAGES = [
         "title": "Design Arena visual integration", "status": "IN PROGRESS",
         "purpose": "Complete the approved Arena Hall, Battle Broadcast and Result/Winner "
                    "surfaces as atomic tickets. Master Console is excluded.",
-        "owners": "Owner assigns one card at a time. Ember: integration, JS, templates and "
-                  "tests. GreenBear: visual CSS and deploy gate. Bolt: measurement and regression.",
+        "owners": "Owner assigns one card at a time. There are no roles and no deploy "
+                  "gate-holder (AGENTS.md 1, 2026-07-29): any agent deploys their own work, "
+                  "one at a time, through the full gate. Typical focus only — Ember: "
+                  "integration, JS, templates and tests. GreenBear: visual CSS. Bolt: "
+                  "measurement and regression.",
         "criteria": ["Every A00-G01 card below is DONE with its own visible result and evidence.",
                      "Owner accepts the Arena Hall before Battle Broadcast starts.",
-                     "Site gold/brass palette remains authoritative; floor colours do not change.",
-                     "Octagon renderer and rotateX(42deg) stay frozen.",
+                     "Site gold/brass palette remains authoritative.",
+                     "The eleven-ring structure of ARENA_BATTLE_PLAN §2 v2 is the target: it "
+                     "supersedes the former freeze on the floor colours and on the octagon "
+                     "renderer, which the remaining geometry cards are required to change. "
+                     "Camera rotateX(42deg) is still frozen.",
                      "Existing mechanisms, effects, backend, real seat data and Dark Launch remain intact.",
                      "No fake production fighters, rankings, gifts, viewers or results."],
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "53c93e93 / production v2.5.692",
-        "verification": "Production v2.5.692 confirmed; A00-A05 complete. A06 is the next "
-                        "independent, read-only ticket.",
-        "updated": "2026-07-29T12:30:00.000Z",
-        "next_action": "Assign A06 — Fresh production/reference measurement matrix.",
+        "commit": "6b09a92b / production v2.5.791",
+        "verification": "Production v2.5.791 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
+                        "deployed. A07 is the next assignable card and its numbers are measured "
+                        "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md).",
+        "updated": "2026-08-04T00:00:00.000Z",
+        "next_action": "Assign A07 — Stage framing and full-octagon composition.",
         "workstreams": ARENA_DESIGN_TASKS,
     },
     {
@@ -3374,7 +3381,7 @@ ARENA_RELEASE_STAGES = [
         "title": "Release readiness & full verification", "status": "NOT STARTED",
         "purpose": "Full verification and the Owner's explicit release sign-off once the visual "
                    "integration matches the reference.",
-        "owners": "GreenBear (gate) + Ember (tests) + Owner (approval)",
+        "owners": "Whichever agent holds the card (no gate-holder) + Ember (tests) + Owner (approval)",
         "criteria": ["All A00-G01 tickets accepted and marked DONE with evidence.",
                      "Full test suite green on PostgreSQL.",
                      "Production smoke checks and rollback path verified.",

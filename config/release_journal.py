@@ -1,5 +1,21 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.791",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "Four paper tails, and one of them was the board contradicting the plan",
+        "section": "Chef Battles / Arena",
+        "summary": "Found on a cold start, by reading the five documents from origin/main and then checking them against what is actually served. FIRST, and it is mine: v2.5.790 shipped to production with no journal row. The commit that bumped the footer to 790 was the commit that back-filled the missing 788 row, and it did not add its own - the identical defect written up against v2.5.783 two days earlier, by the agent repeating it. Its row is below, back-filled from the commit rather than from memory. SECOND: the board header still read baseline v2.5.778 against a live v2.5.790. THIRD: the A06 evidence cell in ARENA_BATTLE_PLAN section 4 still pointed at A06_measurement_matrix_2026-07-29.md - the matrix measured against the prototype the Owner rejected - while the build board in recipes/views.py had already been corrected to the re-measurement. One board saying 2.05 and the other 2.375 is worse than either alone, because whichever a future agent opens first looks authoritative. It now names the re-measurement and marks the old file superseded evidence. FOURTH, and the one that would have cost real work: the stage-2 summary block on the build board still carried the ORIGINAL freeze - \"floor colours do not change\", \"octagon renderer and rotateX stay frozen\" - which ARENA_BATTLE_PLAN section 2 v2 explicitly superseded on 2026-07-29. A07 exists to widen and flatten that octagon. An agent reading the board before the plan would have found its own card forbidden by the board, and the honest response to that is to stop. Camera rotateX(42deg) is still frozen and is now stated separately from the parts that are not. The same block claimed production v2.5.692 and \"A06 is the next ticket\" five weeks of releases later, and still named a deploy gate-holder that the Owner abolished on 2026-07-29. No code path, template, stylesheet or renderer was touched; nothing changes on the Arena itself.",
+    },
+    {
+        "version": "2.5.790",
+        "date": "2026-08-04",
+        "commit": "6b09a92b",
+        "title": "Pre-compaction handoff, and the journal row for v2.5.788 was missing",
+        "section": "Chef Battles / Arena",
+        "summary": "Back-filled from its own commit, one release late. Two items shipped under it. The v2.5.788 row was absent from the journal although the release existed and was deployed - the governance release that wrote the Owner's own account into AGENTS.md section 18 - so the hardest law in the project had shipped without a line saying it had. Its row is directly below this one. And docs/ai/GREENBEAR_HANDOFF_2026-08-04.md was written for the context boundary: production version, constitution version, where A07 and A08 stand, the three measured CSS landmines on the Arena floor (filter: none !important on every cell, arena_deck_polish.css outranking arena_render.css, a CSS declaration beating an SVG presentation attribute), what is in ops/reference/design_arena/ and why, and the open questions nobody has ruled on. Written so the next session starts from evidence rather than from recollection.",
+    },
+    {
         "version": "2.5.789",
         "date": "2026-08-04",
         "commit": "",

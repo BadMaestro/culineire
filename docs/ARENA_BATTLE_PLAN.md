@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-03 · Production baseline: **v2.5.778**
+Last reconciled: 2026-08-04 · Production baseline: **v2.5.791**
 · Next assignable card: **A07**. (A08 ran ahead of it and is DONE, v2.5.775–779.)
 
 ## 1. Current team and ownership
@@ -136,7 +136,7 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 | A04 | Cell ripple and chef card anchored to any clicked cell | v2.5.687, v2.5.691; close control v2.5.695 |
 | A05 | Independent left Cooking Widget; lifecycle rail separated; compact metrics | v2.5.689–v2.5.692; complete Cooking Widget corrected v2.5.699–v2.5.703 |
 | AR2 | Floor palette settled — Owner ramp, moat/VIP tokens, neutral ink | v2.5.704–707, 709–722, 728 |
-| A06 | Production vs Design-Arena measurement matrix (read-only) | ops/audits/arena/A06_measurement_matrix_2026-07-29.md |
+| A06 | Production vs Design-Arena measurement matrix (read-only) | ops/audits/arena/A06_remeasure_2026-08-04.md — reference floor aspect **2.375**, production **1.266**. The 2026-07-29 matrix is SUPERSEDED: it was measured against the rejected prototype and is kept as evidence only, not as a source. |
 | AR0 | Arena CSS/JS dead-code inventory (read-only) | ops/audits/arena/AR0_dead_code_inventory_2026-07-29.md |
 | AR1 | Arena owns its eleven-ring geometry; Sponsors grid no longer borrowed | v2.5.709–v2.5.710 |
 | AR3 | Moat lit by eight lanterns; glint on the Crown plate | v2.5.736 |
