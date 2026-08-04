@@ -3059,7 +3059,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "No production change; exact remaining deltas replace guesswork.",
         "acceptance": "Side-by-side images plus measurements for floor, crowd, rank spine, fighters, crown, four panels and ticker.",
         "forbidden": "Read-only ticket: no CSS, JS, template, database or production mutation.",
-        "evidence": "DONE 2026-07-29 (GreenBear): ops/audits/arena/A06_measurement_matrix_2026-07-29.md. Octagon aspect ~1.30 (prod) vs ~2.05 (reference); no green/red fighter plinths in production (live chefs are scattered ~40px cell-avatars).",
+        "evidence": "DONE 2026-07-29 (GreenBear): ops/audits/arena/A06_measurement_matrix_2026-07-29.md. Octagon aspect ~1.30 (prod) vs ~2.05 (reference); no green/red fighter plinths in production (live chefs are scattered ~40px cell-avatars). RE-MEASURED 2026-08-04 (Bolt): the original matrix cited ops/prototypes/arena_visual_shell/, which the Owner had rejected, so its headline octagon aspect of 2.05 was measured off a discarded source. Re-run against ops/reference/design_arena/Chef Battles Arena v2.dc.html on its own declared 1920x1080 canvas: the reference floor is 1585.4x667.5, aspect 2.375, confirmed three ways. See ops/audits/arena/A06_remeasure_2026-08-04.md. The production column of that re-run is BLOCKED, not skipped - the authenticated Arena session expired and agents may not log in (17.10).",
     },
     {
         "id": "AR1", "group": "Arena Hall", "title": "Eleven-ring octagon geometry",
@@ -3125,7 +3125,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "The full floor reads as one centred arena with the reference margins.",
         "acceptance": "Matches A06 bounds at 1280 and 1920; rotateX remains 42deg; floor colours and octagon renderer unchanged.",
         "forbidden": "No geometry-engine rewrite, perspective/camera change or floor recolour.",
-        "evidence": "Pending measured A06 values.",
+        "evidence": "TARGET CORRECTED 2026-08-04. Aspect to build to is 2.375, NOT the 2.05 the superseded matrix carried - that figure came from the rejected prototype. Measured on the Design Template at its own 1920x1080 canvas: floor 1585.4x667.5, centred at x 960, confirmed three ways. Direction is unchanged (production is too narrow and too round) but the target moved by about 16 percent. See ops/audits/arena/A06_remeasure_2026-08-04.md. Still open before this can be finished: the production side of that matrix needs an authenticated Arena session, which agents cannot create.",
     },
     {
         "id": "A08", "group": "Arena Hall", "title": "Crowd bowl depth and atmospheric population",

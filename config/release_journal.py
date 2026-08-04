@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.787",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "A06 re-measured - the octagon target was wrong by 16 percent",
+        "section": "Chef Battles / Arena",
+        "summary": "The A06 matrix had measured the prototype the Owner rejected, and its headline figure - widen and flatten the octagon from aspect 1.30 to 2.05 - was sitting in card A07 waiting to be built. Re-measured against the Design Template now that it is in the repository, on the canvas the file itself declares (1920x1080, where its scrollWidth is exactly 1920 and nothing is clipped): the reference floor is 1585.4 x 667.5, aspect 2.375. Confirmed three ways in one session - the 52-cell grid and both parent wrappers at 2.382 and 2.396 - and cross-checked by symmetry: both fighter plinth pairs centre on x 959.95 against a canvas midpoint of 960, which is the cleanest evidence available that these numbers came off the right file. So the direction in the old matrix survives, production really is too narrow and too round, but the TARGET was wrong by 0.325 of aspect, about 16 percent, and an octagon built to 2.05 would have been visibly rounder than the approved design with the error looking like the builder's. A07 and A09 now carry corrected numbers; nothing in the old matrix was edited, because re-measuring is not overwriting and the old figures are evidence of how a wrong source produces confident numbers. THE PRODUCTION COLUMN IS BLOCKED, NOT SKIPPED: the Arena is staff-only, the authenticated browser session expired, and agents may not log in as anyone (17.10). It was not filled in from the payload or the CSS instead - a number computed from code is not a measurement of what renders.",
+    },
+    {
         "version": "2.5.786",
         "date": "2026-08-04",
         "commit": "",
