@@ -104,8 +104,8 @@ def get_active_seat(viewer) -> ArenaSeat | None:
 def release_lapsed_seats() -> int:
     """Free seats whose holders have left, and seats the map no longer has.
 
-    Returns how many seats were released. Safe to call from read paths that
-    need the hall to reflect current presence before listing occupants.
+    Returns how many seats were released. Call only from an explicitly
+    state-changing request path; read-only render helpers must remain queries.
     """
     stale = set(_lapsed_seat_ids(_online_cutoff())) | set(_offmap_seat_ids())
     if not stale:

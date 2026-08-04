@@ -964,10 +964,8 @@ def _get_spectators(online_cutoff, limit=None, *, viewer_author=None):
     non-enrolled authors. Empty seats stay empty in the payload — atmospheric
     fillers are a renderer concern and must never appear here as people.
     """
-    from .arena_seating import public_seat, release_lapsed_seats
+    from .arena_seating import public_seat
     from .models import ArenaSeat
-
-    release_lapsed_seats()
 
     if limit is None:
         limit = spectator_capacity()
@@ -1135,12 +1133,11 @@ def _build_arena_payload(*, viewer_author=None):
 
 
 def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
-    """Read-only assembly of everything chef_battle/arena.html needs.
+    """Assemble everything chef_battle/arena.html needs.
 
-    Built purely from _build_arena_payload() with no database writes, so the
-    live arena() view and the token-gated read-only preview share one source of
-    truth for what the page shows. Only arena() does the presence writes; the
-    preview passes viewer_author=None, user_enrolled=False and allow_demo=False.
+    The shared payload builder performs queries only. The live Arena completes
+    its presence, seating, and stale-seat maintenance before calling this
+    helper; the token-gated preview can therefore reuse it without writes.
     """
     payload = _build_arena_payload(viewer_author=viewer_author)
     active_battle = payload["active_battle"]
@@ -1226,6 +1223,9 @@ def arena(request):
             ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
             user_enrolled = bool(profile.enrolled_at)
             _ensure_spectator_seat(viewer_author)
+
+    from .arena_seating import release_lapsed_seats
+    release_lapsed_seats()
 
     context = _arena_page_context(
         request, viewer_author=viewer_author, user_enrolled=user_enrolled, allow_demo=True,
@@ -1421,6 +1421,9 @@ def arena_state(request):
             profile = get_or_create_battle_profile(viewer_author)
             ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
             _ensure_spectator_seat(viewer_author)
+
+    from .arena_seating import release_lapsed_seats
+    release_lapsed_seats()
 
     payload = _build_arena_payload(viewer_author=viewer_author)
     return JsonResponse({key: payload[key] for key in PUBLIC_ARENA_STATE_KEYS})

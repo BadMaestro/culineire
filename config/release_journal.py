@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.797",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "The token-gated Arena preview is database-read-only",
+        "section": "Chef Battles / Arena / Security",
+        "summary": "The current-Arena share preview was described and tested as read-only, but its GET reached release_lapsed_seats through the shared spectator selector and could set ArenaSeat.released_at. The selector and shared payload builder now perform queries only. Stale-seat maintenance runs explicitly in the live Arena request and its POST state poll, which already update presence and seating; the preview and read-only Master Console no longer inherit that write. The regression creates a stale active seat before requesting the preview and proves released_at remains NULL, closing the gap in the old test that counted only BattleViewerPresence and ChefBattleProfile rows.",
+    },
+    {
         "version": "2.5.796",
         "date": "2026-08-04",
         "commit": "",

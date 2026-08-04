@@ -8247,12 +8247,30 @@ class ArenaPreviewShareLinkTests(TestCase):
     def test_current_arena_preview_is_read_only(self):
         """arena() records presence and may create a profile; the preview must
         do neither. A GET by an anonymous holder writes nothing."""
-        from .models import BattleViewerPresence, ChefBattleProfile
+        from .models import ArenaSeat, BattleViewerPresence, ChefBattleProfile
+
+        user = get_user_model().objects.create_user("preview-stale-seat")
+        viewer = RecipeAuthor.objects.create(
+            user=user, name="Preview Stale Seat", slug="preview-stale-seat",
+        )
+        ChefBattleProfile.objects.update_or_create(author=viewer, defaults={
+            "last_seen_at": timezone.now() - timezone.timedelta(minutes=10),
+        })
+        seat = ArenaSeat.objects.create(
+            viewer=viewer, ring_index=100, seat_index=0,
+        )
         before_presence = BattleViewerPresence.objects.count()
         before_profiles = ChefBattleProfile.objects.count()
-        self.client.get(self.current_url())
+        response = self.client.get(self.current_url())
+
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(BattleViewerPresence.objects.count(), before_presence)
         self.assertEqual(ChefBattleProfile.objects.count(), before_profiles)
+        seat.refresh_from_db()
+        self.assertIsNone(
+            seat.released_at,
+            "the read-only preview must not release a stale spectator seat",
+        )
 
     def test_current_arena_preview_rejects_a_wrong_token(self):
         self.assertEqual(self.client.get(self.current_url("nope")).status_code, 404)
