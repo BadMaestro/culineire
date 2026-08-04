@@ -455,6 +455,44 @@ class ModerationPanelRoleTests(TestCase):
 
         self.assertEqual(current_version(settings.BASE_DIR), expected)
 
+    def test_the_arena_boards_baseline_matches_the_footer_too(self):
+        """The same drift, one board over, and it went unnoticed for longer.
+
+        The build board's stage-2 block carries a hand-typed
+        `commit: "<hash> / production vX.Y.Z"`, and the markdown plan carries
+        `Production baseline: **vX.Y.Z**`. Both are written by whoever last
+        remembered. On 2026-08-04 they read v2.5.791 and v2.5.797 while
+        production served v2.5.799 - two boards, two different wrong answers,
+        and an agent reading either would reconcile against a version that was
+        never live.
+
+        The test above pins the deployment journal's header. This pins the two
+        Arena boards, because a board nobody can trust is worse than no board:
+        section 17.4 makes it the only instrument that shows the product.
+        """
+        import re
+        from recipes.views import ARENA_RELEASE_STAGES
+
+        base_html = (settings.BASE_DIR / "templates" / "base.html").read_text(encoding="utf-8")
+        footer = re.search(r'class="footer-version">\s*v?([0-9]+(?:\.[0-9]+)+)', base_html)
+        self.assertIsNotNone(footer, "base.html has no footer-version to derive from")
+        shipped = footer.group(1)
+
+        stage = next(s for s in ARENA_RELEASE_STAGES if s.get("id") == "design-arena")
+        self.assertIn(
+            shipped, stage["commit"],
+            f'build board stage-2 commit says {stage["commit"]!r}, '
+            f"footer says v{shipped}",
+        )
+
+        plan = (settings.BASE_DIR / "docs" / "ARENA_BATTLE_PLAN.md").read_text(encoding="utf-8")
+        baseline = re.search(r"Production baseline:\s*\*\*v?([0-9]+(?:\.[0-9]+)+)\*\*", plan)
+        self.assertIsNotNone(baseline, "ARENA_BATTLE_PLAN.md has no Production baseline line")
+        self.assertEqual(
+            baseline.group(1), shipped,
+            f"ARENA_BATTLE_PLAN baseline is v{baseline.group(1)}, footer is v{shipped}",
+        )
+
     def test_moderation_panel_links_to_deployment_journal(self):
         self.client.force_login(self.owner)
 

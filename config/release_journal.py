@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.800",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "Two boards were telling two different wrong versions, and now a test holds them",
+        "section": "Chef Battles / Arena",
+        "summary": "Loose-ends sweep at the Owner's request, and it found three things worth the release. FIRST, THE BOARDS LIED IN BOTH PLACES AND DIFFERENTLY: docs/ARENA_BATTLE_PLAN.md read 'Production baseline v2.5.797' while recipes/views.py's stage-2 block read 'production v2.5.791', with v2.5.799 actually served - two boards, two different wrong answers, and an agent reconciling against either would have used a version that was never live. Both are hand-typed by whoever last remembered, which is the same failure the deployment journal's header had twice before: pinned at v2.5.326 once, then reading v2.5.589 while production served v2.5.667. That one has been derived from the footer by a test since; the two ARENA boards had no such test, which is why they drifted quietly for eight releases. There is one now - it reads the footer and asserts both boards against it, and it names which board disagrees. Section 17.4 calls the board the only instrument that shows the product; an instrument nobody can trust is worse than none. SECOND, tblib IS PINNED. It was installed by hand today to diagnose a red suite and was in nobody else's virtualenv and not on the server. Without it Django's --parallel runner cannot pickle a traceback, so ANY failing test kills the run with 'cannot pickle traceback' instead of naming the failure - and section 9 requires --parallel always. That combination made a red suite undiagnosable in parallel and forced a 35-minute serial run to read one assertion. requirements.txt now carries tblib==3.2.2 with that reason written beside it. THIRD, WHAT IS DELIBERATELY NOT CLOSED, because it is the Owner's call and not mine: eight untracked files under docs/ai/audits/ - old bootstrap records, a BOOTSTRAP.zip and a stale sponsor_orphans list from 2026-07-28. They have sat untracked all session; committing or deleting another agent's audit evidence is not a housekeeping decision. Also unchanged and reported rather than fixed: the journal's historical half still carries 48 duplicated version numbers between 2.5.361 and 2.5.551, 43 ordering breaks and 12 rows with no version at all, and 116 shipped versions across the 600-769 range have no row - the whole 600-699 band is missing. The last 30 releases are complete, so the discipline holds now; back-filling 116 rows means reading 116 commits, half of them other agents', and that is a card, not a sweep.",
+    },
+    {
         "version": "2.5.799",
         "date": "2026-08-04",
         "commit": "",

@@ -3368,10 +3368,15 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "6b09a92b / production v2.5.791",
-        "verification": "Production v2.5.791 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
-                        "deployed. A07 is the next assignable card and its numbers are measured "
-                        "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md).",
+        "commit": "1dedc6cb / production v2.5.800",
+        "verification": "Production v2.5.800 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
+                        "deployed; A07 is the next assignable card and its numbers are measured "
+                        "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md). The camera "
+                        "stays rotateX(42deg): the Design Template's own 57deg shipped as "
+                        "v2.5.792 and the Owner reverted it within the hour (v2.5.793), and the "
+                        "2.375 target is not reachable at 42deg by any multiplier. Access: Chef "
+                        "Battles is visible to is_staff - (Bear)seeker Admins and Super Users - "
+                        "and to nobody below (AGENTS.md 20).",
         "updated": "2026-08-04T00:00:00.000Z",
         "next_action": "Assign A07 — Stage framing and full-octagon composition.",
         "workstreams": ARENA_DESIGN_TASKS,

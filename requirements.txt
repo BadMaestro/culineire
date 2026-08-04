@@ -6,3 +6,8 @@ python-dotenv==1.2.2
 stripe==15.1.0
 reportlab==4.2.5
 html2text==2024.2.26
+# Test tooling only. Without it Django's --parallel runner cannot pickle a
+# traceback, so ANY failing test kills the run with 'cannot pickle traceback'
+# instead of naming the failure - and AGENTS.md section 9 requires --parallel
+# always. A red suite was undiagnosable in parallel until this was added.
+tblib==3.2.2
