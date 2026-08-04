@@ -6848,8 +6848,17 @@ class ArenaSnapshotTests(TestCase):
         self.assertIn("Irish Comfort", r.content.decode())
 
 
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class BattleSetReadyTests(TestCase):
-    """Chef 'Ready' flow: both ready -> MENU_LOCKED without the create_battle_event 500."""
+    """Chef 'Ready' flow: both ready -> MENU_LOCKED without the create_battle_event 500.
+
+    The class needs CHEF_BATTLE_ENABLED because its two users are plain authors
+    and the ready endpoint is behind chef_battle_guard. Without it the POST 404s
+    at the gate and the test asserts nothing about readiness - which is what it
+    had been doing: a red assertion of 404 != 302 that looked like a lifecycle
+    bug and was an access one. Every sibling class that exercises battle
+    mechanics carries this same override; this one never did.
+    """
 
     def setUp(self):
         from django.test import Client

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.807",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "The suite is green - the last red test was never testing what it claimed",
+        "section": "Chef Battles / Tests",
+        "summary": "First full-suite run of the session: 1610 tests on PostgreSQL, --parallel 8, and one failure - BattleSetReadyTests.test_both_ready_advances_to_menu_locked, asserting 404 != 302. I had reported it as pre-existing three times today and proved it by stash, which was true and was also where I stopped. It is fixed now, and the reason it was red matters more than the fix. THE TEST WAS NEVER REACHING ITS SUBJECT. It exercises the chef 'Ready' flow - both chefs ready, battle advances to MENU_LOCKED - and its two users are plain authors with no staff bit. The ready endpoint is behind chef_battle_guard, so the POST was 404ing at the access gate and the assertion about readiness never ran. A red line that reads like a lifecycle bug and is an access one. Every sibling class that exercises battle mechanics carries @override_settings(CHEF_BATTLE_ENABLED=True); this class never did. Added, and 590 chef_battle tests are green with it. WHY THIS WAS WORTH DOING RATHER THAN REPORTING AGAIN: a permanently red suite teaches everyone to read red as normal, and this one had been red long enough that I stopped looking at it and started quoting it. It also masked a real question - whether today's access change had broken it - which I answered by stash rather than by understanding, and the stash answered 'not yours' without answering 'why'. Two different things. NOT a softened check: the assertions are untouched and now actually execute. Also verified in the same sweep and NOT changed: requirements-lock.txt is referenced by nothing, was last touched on 2026-06-08, and is missing both html2text and tblib - a file that looks authoritative, installs a different environment from the one deploy uses, and is a trap rather than a lock. Reported to the Owner rather than regenerated, because which file is the source of truth for dependencies is his decision and not a cleanup.",
+    },
+    {
         "version": "2.5.806",
         "date": "2026-08-04",
         "commit": "",
