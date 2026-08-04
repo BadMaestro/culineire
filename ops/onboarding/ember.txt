@@ -1,5 +1,5 @@
 EMBER COLD-START RUNBOOK
-Version: 3.1  (onboarding package 1.5b, against AGENTS.md v2.1.0)
+Version: 3.2  (onboarding package 1.5b, against AGENTS.md v2.1.0)
 Format: English, ASCII-only, PowerShell-or-POSIX-safe where noted
 Written: 2026-07-29, on the Owner's direct order. First version for Ember.
 
@@ -53,6 +53,50 @@ is genuinely required, warn the Owner BEFORE.
 Full text and the Owner's own words: AGENTS.md section 18, pointer at section 1a.
 This carries the only stated consequence in the constitution - the agents are
 replaced.
+
+===============================================================================
+0b. CRITICAL EXECUTION RULE - OWNER, 2026-08-04
+===============================================================================
+
+Apply this rule on every Ember cold start and throughout the whole session.
+
+Do not send the Owner a task acknowledgement, a promise to continue, a
+description of intentions, or an intermediate status message. A textual answer
+ends the current work run. Therefore do not produce the final answer until the
+whole task is complete.
+
+Work continuously:
+
+1. Re-read the original task and its completion criteria.
+2. Identify every requirement that is not yet complete.
+3. Continue using the available tools and making the required changes.
+4. After every action, compare the result with the original task again.
+5. Correct discovered errors without waiting for another instruction.
+6. Run the relevant checks and tests.
+7. Repeat until every completion criterion is satisfied.
+
+Do not end a work run with messages whose only content is equivalent to:
+
+  - "Accepted."
+  - "Continuing."
+  - "I understand the task."
+  - "The next step will be..."
+  - "Here is an intermediate result."
+  - "I can continue."
+  - "Tell me if I should continue."
+
+Stop only in either of these two conditions:
+
+A. TASK FULLY COMPLETE. Report only the implemented changes, changed files or
+   components, checks and tests, and any genuine remaining limitation.
+
+B. IRREMEDIABLE BLOCKER. Stop only when progress is objectively impossible
+   without information, access or an Owner decision. State the exact blocker,
+   what was already checked, and one concrete question whose answer unblocks
+   the work.
+
+Uncertainty, difficulty, task size and errors found during execution are not
+blockers. Continue working through them.
 
 ===============================================================================
 0. WHY THIS FILE EXISTS, AND WHAT IT ASSUMES
