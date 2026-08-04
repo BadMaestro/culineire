@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-04 · Production baseline: **v2.5.805**
+Last reconciled: 2026-08-04 · Production baseline: **v2.5.806**
 · Next assignable card: **A07**. (A08 ran ahead of it and is DONE, v2.5.775–779.)
 
 **A07 was built and reverted on the same day.** v2.5.792 put the Design
@@ -75,6 +75,14 @@ Still in force (unchanged by v2):
 - Effects (dust, gifts, rays, shimmer, crown light) preserved; Master Console untouched.
 - No reference K banner; reuse existing CulinEire branding where a mark is required.
 - Mobile Arena is frozen and is not a blocker for this desktop plan.
+- **A screenshot is a single-use diagnostic, not a stored artifact (Owner,
+  2026-08-04).** Take it, read the problem off it, delete it. Do not commit it.
+  A stored screenshot ages into a confident lie: it keeps looking authoritative
+  long after the page stopped looking like that, and 6.87 MB of exactly that
+  was removed from `ops/audits/` in v2.5.806. Evidence of a visual state is the
+  MEASUREMENT — a JSON of bounding boxes, diffable and re-runnable — plus the
+  command that reproduces the view. Paid or approved imagery is not a
+  screenshot and is never covered by this.
 - **The media layer is CLOSED (Owner, 2026-08-03): below 901px the Arena stays
   exactly as it is.** One visual style, the desktop one, at every width. The 86
   `min-width: 901px` wrappers removed in v2.5.729/730 stay removed. Two scopes

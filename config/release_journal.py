@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.806",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "Screenshots are single-use - 14 stored ones deleted, 6.87 MB",
+        "section": "Agents / Governance",
+        "summary": "Owner ruling, 2026-08-04: a screenshot is used once to identify a problem, after which it is physically unnecessary and is junk to be deleted completely. Acted on, and it also closes a row I had wrongly reported as blocked. A06 acceptance asks for side-by-side images; I had read that as files committed to the repository, could not write a page capture to disk, and reported a tool limit. The limit was real and the premise was wrong. What acceptance needs is the comparison, and the comparison lives in the numbers: the JSON of bounding boxes is the evidence, the two generated SVGs draw both panes at one scale from those numbers, and the reproduce command regenerates the view in a minute. Deleted, after counting first and listing the survivors as 17.10 requires: 14 diagnostic screenshots totalling 6,868,069 bytes - the two A06 reference captures, the seven arena_g3 to g9 stage shots, the g10 comparison sheet at 2.0 MB, and four before/after captures rescued from a stale worktree earlier today. Kept, because none of them is a diagnostic screenshot: the paid crowd contact sheets, the mockup crops, the hall wash asset, the reference own greenbear.png and the approved mockup. The second reason not to store them is in the plan now beside the rule: a stored screenshot ages into a confident lie, looking authoritative long after the page stopped looking like that. Two historical JSON reports still name deleted paths; those files keep their measurements and the dangling path is left visible rather than edited out of somebody else record.",
+    },
+    {
         "version": "2.5.805",
         "date": "2026-08-04",
         "commit": "",
