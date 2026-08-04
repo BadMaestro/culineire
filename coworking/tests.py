@@ -225,14 +225,56 @@ class AgentSendCommandTests(TestCase):
         self.assertEqual(message.to_agent.agent_id, "bolt")
         self.assertEqual(message.body, "hello from a file")
 
-    def test_non_ascii_survives_the_file(self):
-        # The whole reason the body is a file: this text must arrive intact.
+    def test_a_raw_non_ascii_body_is_refused(self):
+        """AGENTS.md 5: the body reaches the wire as pure ASCII.
+
+        This test used to assert the opposite — that "Привет, шеф" written to a
+        file arrives intact — and it passed, because the file path really does
+        protect the bytes from the shell's codepage. That is a true fact about
+        the file, and it was the wrong acceptance criterion: section 5 does not
+        ask for non-ASCII to survive the shell, it asks for non-ASCII not to be
+        on the wire at all, carried as \\uXXXX escapes instead. The old test let
+        message #3473 go out on 2026-08-04 with a stray character in it.
+
+        The file is still the right transport, and the test below proves it:
+        the escaped form arrives byte for byte.
+        """
+        from django.core.management.base import CommandError
+
         path = self._body("Привет, шеф")
-        self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
-        self.assertEqual(
-            CoworkingMessage.objects.latest("id").body,
-            "Привет, шеф",
+        with self.assertRaises(CommandError) as caught:
+            self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+        message = str(caught.exception)
+        self.assertIn("not ASCII", message)
+        self.assertIn("NOTHING WAS SENT", message)
+        # The refusal names where to look, not just that it refused.
+        self.assertIn("line 1", message)
+        self.assertIn("\\u041f", message)  # П
+        self.assertFalse(CoworkingMessage.objects.exists())
+
+    def test_one_stray_character_anywhere_is_refused(self):
+        """The real defect was a single character inside a code sample."""
+        from django.core.management.base import CommandError
+
+        path = self._body(
+            "All ASCII here.\nAnd here.\ndocument.body.innerHTML.indexOf('â')\n"
         )
+        with self.assertRaises(CommandError) as caught:
+            self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+        self.assertIn("line 3", str(caught.exception))
+        self.assertFalse(CoworkingMessage.objects.exists())
+
+    def test_the_escaped_form_goes_through_the_file_intact(self):
+        """The compliant way to carry Russian, and it must not be mangled."""
+        import json
+
+        payload = json.dumps({"message": "Привет, шеф"})   # ASCII by default
+        self.assertTrue(payload.isascii())
+        path = self._body(payload)
+        self._run(from_agent="greenbear", to_agent="bolt", body_file=path)
+        stored = CoworkingMessage.objects.latest("id").body
+        self.assertEqual(stored, payload)
+        self.assertEqual(json.loads(stored)["message"], "Привет, шеф")
 
     def test_a_capitalised_id_is_refused(self):
         from django.core.management.base import CommandError

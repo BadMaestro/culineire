@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.795",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "agent_send now refuses a non-ASCII body, because I sent one",
+        "section": "Agents / Governance",
+        "summary": "The Owner asked whether the constitution forbids agents writing to each other in Russian. It does not, and the answer is in the release note rather than only in chat because the difference matters: AGENTS.md section 5 governs ENCODING, not language. It requires every Carpet body to reach the wire as pure ASCII with anything else carried as a \\uXXXX escape, and forbids passing non-ASCII as a raw command-line argument. There is no rule choosing a language between agents and no rule mandating YAML for messages - YAML is required for RECORDS (sections 3, 9, 13, 14, 16, 17.16), which is a different thing. What did break was mine: message #3473 to Ember carried a single stray a-circumflex inside a JavaScript snippet, so it went out non-compliant, and agent_send - the command I wrote two days ago specifically to stop encoding accidents - let it through without a word. The command reads the body from a file, which protects it from the shell's codepage but not from its author. It now REFUSES a non-ASCII body and names every offender by line, column, character and the escape to use, then says NOTHING WAS SENT. It refuses rather than escapes on purpose: silently rewriting a body is how a message stops saying what its author wrote, and only the sender knows whether the character was a slip or the subject of the sentence - which in #3473 it was, since the whole message was about a mojibake report. A TEST WAS CORRECTED, NOT SOFTENED, and this is the part worth reading: coworking had test_non_ascii_survives_the_file asserting that raw Cyrillic written to a file arrives intact. It passed, and it was the wrong acceptance criterion - the file really does protect the bytes, but section 5 does not ask non-ASCII to survive the shell, it asks for non-ASCII not to be on the wire at all. A green test was standing guard over the violation. It now asserts the refusal, a second test pins the single-stray-character case that actually happened, and a third proves the compliant path still works end to end: json.dumps output is ASCII by default, goes through the file byte for byte, and decodes back to the original Russian. 22 coworking tests green. #3473 was re-sent correctly as #3476 with the correction stated at the top rather than quietly.",
+    },
+    {
         "version": "2.5.794",
         "date": "2026-08-04",
         "commit": "",
