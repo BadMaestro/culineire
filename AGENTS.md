@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.3.0"
+  version: "2.4.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -1432,3 +1432,65 @@ error found is work to do, not a reason to hand the task back.
   risk. Those are case B and are raised immediately.
 - It reinforces 17.9 and 17.15.8: do not spend the Owner's time on a message that
   does not change the output, and do not re-ask what he has already decided.
+
+## 20. Privileges are the Owner's alone — the strictest prohibition after 18
+
+Owner's order, 2026-08-04, given in these words: **проставь Admins is_staff=True,
+и запрети кому либо кроме меня менять эти настройки на сайте — пропиши в
+конституцию как строжайший запрет, приказ владельца.**
+
+### The tiers, and what defines them
+
+He states them himself, and the defining flag is `is_staff`:
+
+| Tier | `is_staff` | `is_superuser` | Moderation flag |
+|---|---|---|---|
+| **AUTHOR** | `False` | `False` | — |
+| **(Bear)seeker Admin** | **`True`** | `False` | `has_bearseeker_privileges` |
+| **(Bear)seeker Super User** | **`True`** | `True` | — |
+| **GreenBear — IDDQD** | `True` | `True` | owner of the Master Console |
+
+GreenBear is Super User, god, and owner of the Master Console. **He alone grants
+Master Console access to another Super User** (`has_arena_console_access`); the
+Owner himself is admitted by `OWNER_SLUG` and never needs the flag. See
+section 18 — his account is untouchable on top of everything below.
+
+### What no agent may do
+
+FORBIDDEN, with no exception, no "it was only a fix", and no "the data was
+inconsistent so I corrected it":
+
+- **Writing `is_staff`, `is_superuser`, `has_bearseeker_privileges` or
+  `has_arena_console_access` on any account, by any means** — ORM, shell,
+  migration, fixture, management command, admin, SQL or a test that runs against
+  a real database.
+- **Granting, revoking, blocking, unblocking, promoting or demoting any account.**
+- **Adding a tool that makes any of the above easier.** A convenient way to
+  change privileges is itself a violation, whether or not it is ever used.
+- **Widening what a tier can reach** — see section 8; the access gate needs his
+  explicit word every time, and 5169c08b is on record as the commit that
+  re-opened one under a one-line message with no decision behind it.
+
+These settings are changed **by the Owner, in the site's own moderation panel,
+and nowhere else.** That panel is the only sanctioned writer: `accounts/views.py`
+grant/revoke actions, reached by him.
+
+### What an agent does instead
+
+Report it. Name the account, the flag, the observed value and the expected one,
+and stop. If he orders the change, it is his change: carry it out exactly as
+stated, record his instruction verbatim in the release journal, and change
+nothing beyond the words of the order.
+
+Fixing the CODE that writes these flags is allowed and expected — the panel's
+"Grant (Bear)seeker Privileges" action set the moderator flag without the staff
+bit for its whole life, which is why every Admin on this site carried the label
+without the tier. Correcting that logic is engineering. Reaching into the
+database to set a person's privileges is not.
+
+### Why this is the strictest rule after 18
+
+Section 18 protects one account. This protects the shape of the site's authority
+— who may moderate, who may see the unreleased Arena, who may open the Master
+Console. An agent that can rewrite that can grant itself anything, and the
+change looks like a one-line fix in a diff nobody reads twice.

@@ -44,24 +44,29 @@ class ChefBattleGateParityTests(TestCase):
         )
 
     def test_widget_visibility_matches_page_access(self):
-        """The Owner's three tiers, 2026-08-04.
+        """The Owner's three tiers, 2026-08-04, separated by `is_staff`.
 
-        The expectations here changed in v2.5.798 and the old ones are worth
-        stating, because they were green while contradicting the product
-        contract: bearseeker authors and bare staff both expected True. The
-        contract has read `recipe_author_without_staff: false` since
-        2026-07-20, and the Owner's rule is that only a "(Bear)seeker Super
-        User" sees this application at all. A test asserting the wider gate is
-        not a test of the gate, it is a record of the drift.
+        AUTHOR is_staff False; (Bear)seeker Admin and (Bear)seeker Super User
+        is_staff True. AGENTS.md section 20.
+
+        These expectations moved twice in one day and both moves are worth
+        keeping. They first asserted that a bearseeker author gets in, which was
+        green while contradicting the contract. Then they asserted superuser
+        ONLY, which was too narrow - it read "only a Super User sees the WHOLE
+        application" as "nobody below sees any of it", and the Owner corrected
+        it the same hour. What separates the tiers is the staff bit, not the
+        moderator flag and not superuser.
         """
         users = {
             "anonymous": (AnonymousUser(), False),
-            "author without privileges": (self.plain_author_user, False),
-            # A (Bear)seeker Admin: site moderator, NOT a Chef Battles viewer.
-            "author with has_bearseeker_privileges": (self.bearseeker_user, False),
-            # Staff is not the Owner's top tier either.
-            "staff without superuser": (self.staff_user, False),
-            # A (Bear)seeker Super User, and the only tier that gets in.
+            "AUTHOR": (self.plain_author_user, False),
+            # The moderator flag ALONE is not the tier. An account carrying it
+            # without is_staff is what the panel's grant action used to produce,
+            # and it is not an Admin - it is an Author wearing a label.
+            "moderator flag but no staff bit": (self.bearseeker_user, False),
+            # (Bear)seeker Admin as the panel now creates one.
+            "staff": (self.staff_user, True),
+            # (Bear)seeker Super User.
             "superuser": (self.superuser, True),
         }
 

@@ -33,48 +33,61 @@ def is_battle_visible(request) -> bool:
     """
     Chef Battles is visible when:
     - CHEF_BATTLE_ENABLED is True (public launch), OR
-    - the user is a SUPERUSER - a "(Bear)seeker Super User" in the Owner's own
-      naming, the top of the three tiers this site has.
+    - the user is STAFF, which on this site means a "(Bear)seeker Admin" or a
+      "(Bear)seeker Super User" - everyone above the AUTHOR tier.
 
-    THE RULE, from the Owner, 2026-08-04, in his own three tiers:
+    THE RULE, from the Owner, 2026-08-04, in his own three tiers and his own
+    definition of what separates them - `is_staff`:
 
-      Author                    - sees NOTHING of Chef Battles
-      (Bear)seeker Admin        - sees NOTHING of Chef Battles
-      (Bear)seeker Super User   - sees the whole application
+      AUTHOR                    is_staff False  - sees NOTHING of Chef Battles
+      (Bear)seeker Admin        is_staff True   - sees the application
+      (Bear)seeker Super User   is_staff True   - sees the application
+      GreenBear                 IDDQD           - everything, plus the console,
+                                                  and he alone grants the
+                                                  console to another Super User
 
     The only things outside this gate are the rules page and the sitewide news.
-    Everything else in the app - arena, galleries, shop, profiles, rankings -
-    is superuser-only until he opens it.
+    Everything else - arena, galleries, shop, profiles, rankings - is behind it.
 
-    WHAT THIS CORRECTS. Until v2.5.798 this returned True for `is_staff` and
-    for any author holding `has_bearseeker_privileges`. Both were wider than
-    the product contract, which has read `recipe_author_without_staff: false`
-    since 2026-07-20. The bearseeker branch had already been removed once, on
-    2026-07-21 (f3edd724, "Arena access: staff/superuser-only"), and was put
-    back five days later by 5169c08b under a one-line commit message with no
-    rationale and no recorded decision - while AGENTS.md section 8 requires the
-    Owner's explicit word for every change to an access gate. On production it
-    was admitting two live accounts carrying no staff and no superuser bit.
+    `is_superuser` is accepted as well, defensively: a superuser is above every
+    tier by definition and must never be locked out by a missing staff bit.
 
-    The flag it trusted does not mean what the old docstring claimed either. It
-    called bearseekers "test operators"; `RecipeAuthor.has_bearseeker_privileges`
-    is labelled "Can moderate site content" - a site moderator, not a tester.
+    WHAT THIS CORRECTS, AND IT TOOK TWO PASSES ON THE SAME DAY. Until v2.5.798
+    the gate trusted `has_bearseeker_privileges`, a field labelled "Can moderate
+    site content" - a site MODERATOR flag, not a Chef Battles one - which the
+    product contract had excluded since 2026-07-20 under
+    `recipe_author_without_staff: false`. It had been removed once, on
+    2026-07-21 (f3edd724), and put back five days later by 5169c08b under a
+    one-line commit message with no rationale and no recorded decision, which
+    AGENTS.md section 8 forbids for any access gate.
 
-    `is_staff` goes for the same reason: staff is not the Owner's top tier.
+    v2.5.798 then closed it to `is_superuser` alone, and that was too narrow:
+    it read the Owner's "only a Super User sees the WHOLE application" as
+    "nobody below sees any of it". He corrected it the same hour. The tiers are
+    separated by `is_staff`, and Admins belong inside.
+
+    THE DATA DID NOT MATCH THE MODEL EITHER, which is the part worth carrying:
+    both of this site's Admins had `is_staff` FALSE while the moderation panel
+    listed them as Admins, because the panel groups on
+    `has_bearseeker_privileges` and never reads `is_staff` - and the panel's
+    "Grant (Bear)seeker Privileges" action set the moderator flag WITHOUT the
+    staff bit, while "Grant Superuser" set both. Fixed in accounts/views.py in
+    the same release; the two existing accounts were corrected by the Owner's
+    order. So the model was right all along and the code implemented half of it.
 
     Chef enrollment is a participation state and was never a visibility grant.
 
-    The Arena Master Console stays stricter still, behind
-    ``has_arena_console_access``: the Owner always, and another superuser only
-    after HE authorises that account. Being a superuser opens the application;
-    it does not open the console.
+    The Arena Master Console stays stricter than any of this, behind
+    ``has_arena_console_access``: the Owner always, by OWNER_SLUG, and another
+    Super User only after HE authorises that account. Passing this gate opens
+    the application; it does not open the console.
     """
     if getattr(settings, "CHEF_BATTLE_ENABLED", False):
         return True
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
         return False
-    return bool(user.is_superuser)
+    return bool(user.is_staff or user.is_superuser)
 
 
 def has_arena_console_access(request) -> bool:

@@ -32,6 +32,12 @@ work run, so no acknowledgement, no promise to continue, no interim status: work
 continuously and answer once, when the task is done or when a real blocker needs
 one concrete decision.
 
+**Before touching any account, read `/AGENTS.md` section 20.** `is_staff`,
+`is_superuser`, `has_bearseeker_privileges` and `has_arena_console_access` are
+the Owner's to set, in the site's own moderation panel, and nowhere else. No
+agent writes them by any means, and building a tool that makes it easier is
+itself the violation. Report what you find and stop.
+
 `/AGENTS.md` is canonical. If this pointer and `/AGENTS.md` ever differ,
 `/AGENTS.md` wins and this file must be corrected in the same task.
 

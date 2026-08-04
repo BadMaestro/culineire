@@ -341,8 +341,16 @@ def manage_author(request, slug):
             raise Http404
         author.has_bearseeker_privileges = True
         author.save(update_fields=["has_bearseeker_privileges"])
+        # is_staff comes WITH the tier. The Owner's model, stated 2026-08-04:
+        # AUTHORS are is_staff False, (Bear)seeker Admins and (Bear)seeker Super
+        # Users are is_staff True. Granting superuser above already did this;
+        # granting admin did not, so every admin ever created through this panel
+        # carried the label without the flag - both of the site's admins were
+        # is_staff False while the panel listed them as admins, because the panel
+        # groups on has_bearseeker_privileges and never consults is_staff.
+        user.is_staff = True
         user.is_active = True
-        user.save(update_fields=["is_active"])
+        user.save(update_fields=["is_staff", "is_active"])
         messages.success(request, f'Author "{author.name}" now has (Bear)seeker moderation privileges.')
         _send_moderator_granted_email(user, author.name or user.username)
 
@@ -351,6 +359,11 @@ def manage_author(request, slug):
             raise Http404
         author.has_bearseeker_privileges = False
         author.save(update_fields=["has_bearseeker_privileges"])
+        # Down to AUTHOR, so the flag goes with the tier. Safe here: the branch
+        # above this one 404s for the Owner and for any superuser, so revoking
+        # can never strip staff from either.
+        user.is_staff = False
+        user.save(update_fields=["is_staff"])
         messages.warning(request, f'(Bear)seeker privileges revoked from "{author.name}".')
         _send_moderator_revoked_email(user, author.name or user.username)
 

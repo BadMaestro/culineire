@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import TestCase, override_settings
@@ -277,3 +278,82 @@ class CaseInsensitiveLoginTests(TestCase):
             "password2": "AnotherPass123!",
         })
         self.assertTrue(form.is_valid(), form.errors)
+
+
+class BearseekerAdminTierTests(TestCase):
+    """The tier and the staff bit are one thing, not two.
+
+    AGENTS.md section 20, the Owner's model of 2026-08-04: AUTHORS are
+    `is_staff` False; (Bear)seeker Admins and (Bear)seeker Super Users are
+    `is_staff` True. The moderation panel groups people by
+    `has_bearseeker_privileges` and never reads `is_staff`, so for the whole
+    life of the "Grant (Bear)seeker Privileges" action an Admin got the label
+    and not the flag - while "Grant Superuser" set both. Both of this site's
+    Admins were `is_staff` False, which is how they lost the Arena when the gate
+    started reading the staff bit.
+
+    These tests pin the two halves together so the panel cannot produce a tier
+    that does not exist again.
+    """
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        from recipes.models import RecipeAuthor
+
+        User = get_user_model()
+        # A superuser grantor, NOT the owner account: `greenbear` is seeded by a
+        # migration, so creating it here collides on the slug - and section 18
+        # says his account is not a fixture to be conjured in a test anyway.
+        # can_grant_bearseeker_privileges accepts any superuser.
+        self.owner_user = User.objects.create_user(
+            "tier-grantor", password="pw", is_staff=True, is_superuser=True
+        )
+        RecipeAuthor.objects.create(
+            user=self.owner_user, name="Grantor", slug="tier-grantor"
+        )
+        self.target_user = User.objects.create_user("tier-target", password="pw")
+        self.target = RecipeAuthor.objects.create(
+            user=self.target_user, name="Tier Target", slug="tier-target"
+        )
+        self.url = reverse("accounts:manage_author", args=[self.target.slug])
+
+    def _act(self, action):
+        self.client.force_login(self.owner_user)
+        return self.client.post(self.url, {"action": action})
+
+    def test_granting_admin_also_grants_the_staff_bit(self):
+        self.assertFalse(self.target_user.is_staff)
+        self._act("grant_bearseeker")
+        self.target.refresh_from_db()
+        self.target_user.refresh_from_db()
+        self.assertTrue(self.target.has_bearseeker_privileges)
+        self.assertTrue(
+            self.target_user.is_staff,
+            "an Admin without is_staff is a label without a tier - AGENTS.md 20",
+        )
+        self.assertFalse(self.target_user.is_superuser, "admin is not a superuser")
+
+    def test_revoking_admin_takes_the_staff_bit_back(self):
+        self._act("grant_bearseeker")
+        self._act("revoke_bearseeker")
+        self.target.refresh_from_db()
+        self.target_user.refresh_from_db()
+        self.assertFalse(self.target.has_bearseeker_privileges)
+        self.assertFalse(
+            self.target_user.is_staff,
+            "revoked back to AUTHOR, so the staff bit goes with the tier",
+        )
+
+    def test_a_granted_admin_can_see_chef_battles(self):
+        """The whole point of the flag, and the reason this was found."""
+        from django.test import RequestFactory
+        from chef_battle.access import is_battle_visible
+
+        request = RequestFactory().get("/chef-battle/arena/")
+        request.user = self.target_user
+        with override_settings(CHEF_BATTLE_ENABLED=False):
+            self.assertFalse(is_battle_visible(request))
+            self._act("grant_bearseeker")
+            self.target_user.refresh_from_db()
+            request.user = self.target_user
+            self.assertTrue(is_battle_visible(request))

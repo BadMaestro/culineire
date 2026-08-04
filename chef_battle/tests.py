@@ -340,14 +340,10 @@ class ChefBattleAccessTests(TestCase):
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
     def test_only_a_bearseeker_super_user_sees_chef_battles(self):
-        """The Owner's three tiers, 2026-08-04.
+        """The Owner's three tiers, 2026-08-04, separated by `is_staff`.
 
-        Author -> nothing. (Bear)seeker Admin -> nothing. (Bear)seeker Super
-        User -> the whole application. This test asserted the opposite for
-        staff until v2.5.798, and the code was wider still, letting in any
-        author with has_bearseeker_privileges - a SITE MODERATOR flag, labelled
-        "Can moderate site content", which the product contract had excluded
-        under `recipe_author_without_staff: false` since 2026-07-20.
+        AUTHOR is_staff False -> nothing. (Bear)seeker Admin and (Bear)seeker
+        Super User are is_staff True -> the application. AGENTS.md section 20.
 
         Asserted with the public flag off, which is where the gate decides.
         """
@@ -359,9 +355,11 @@ class ChefBattleAccessTests(TestCase):
         request = RequestFactory().get("/")
         cases = [
             ("anonymous", AnonymousUser(), False),
-            ("Author", self.user, False),
-            ("(Bear)seeker Admin", self.moderator, False),
-            ("staff without superuser", self.staff, False),
+            ("AUTHOR", self.user, False),
+            # The moderator flag without the staff bit is not a tier: it is what
+            # the panel's grant action produced for its whole life.
+            ("moderator flag, no staff bit", self.moderator, False),
+            ("(Bear)seeker Admin", self.staff, True),
             ("(Bear)seeker Super User", self.superuser, True),
         ]
         for label, user, expected in cases:
@@ -389,8 +387,9 @@ class ChefBattleAccessTests(TestCase):
         self.assertTrue(is_battle_visible(request))
         self.assertFalse(has_arena_console_access(request))
 
+        # An Admin reaches the application and gets nowhere near the console.
         request.user = self.staff
-        self.assertFalse(is_battle_visible(request))
+        self.assertTrue(is_battle_visible(request))
         self.assertFalse(has_arena_console_access(request))
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
@@ -507,25 +506,24 @@ class ChefBattleChallengeCreateViewTests(TestCase):
             + f"?opponent={self.opponent.slug}&inspired_by={recipe.slug}"
         )
 
-        # A (Bear)seeker Super User, which since v2.5.798 is the only tier the
-        # challenge view accepts. This used to log in the STAFF user, and the
-        # test still passes for the same reason it did then: the CTA tracks the
-        # gate. What changed is the gate, so the actor moved with it.
-        self.user.is_superuser = True
-        self.user.save(update_fields=["is_superuser"])
+        # A (Bear)seeker Admin - is_staff, which is the tier line (AGENTS.md 20).
+        # The actor here has moved twice in one day and the invariant has not:
+        # the CTA shows exactly where the click works. First it was any staff
+        # user, then superuser-only for an hour, now staff again. Each time the
+        # test followed the gate, which is the point of it.
         self.client.login(username="challenge-owner", password="pw")
         shown = self.client.get(url)
         self.assertContains(shown, "Issue a Challenge")
         self.assertContains(shown, expected_href)
 
-        # Staff without superuser is NOT a viewer any more, and the CTA must
-        # follow - a shown button whose click 404s is the exact defect that got
-        # the gate widened in the first place.
-        self.user.is_superuser = False
-        self.user.save(update_fields=["is_superuser"])
+        # An AUTHOR - no staff bit - is not a viewer, and the CTA must follow.
+        # A shown button whose click 404s is the exact defect that got the gate
+        # widened in the first place.
+        self.user.is_staff = False
+        self.user.save(update_fields=["is_staff"])
         self.assertNotContains(self.client.get(url), "Issue a Challenge")
-        self.user.is_superuser = True
-        self.user.save(update_fields=["is_superuser"])
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
 
         # anonymous never sees it
         self.client.logout()
