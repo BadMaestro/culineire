@@ -397,6 +397,13 @@ git config user.name  "<YourAgentName>"
 git config user.email "<youragent>@agents.culineire.ie"
 ```
 
+**Two things this hook is NOT, stated so nobody mistakes it for a wall.**
+`core.hooksPath` is local config, not tracked, so a fresh clone starts with the
+hook off — which is why the cold start sets it and why the check is in the
+bootstrap record rather than left to the hook alone. And `git commit --no-verify`
+skips every hook by design; the hook stops the accident, not the intent. The rule
+is the rule; this only makes forgetting it loud.
+
 **An id is not a name.** Carpet mailbox ids are lowercase and **case
 sensitive**: `bolt`, `greenbear`, and `ember` which is retired but whose mailbox
 is kept, not destroyed. A capitalised id silently creates a

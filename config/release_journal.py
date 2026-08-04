@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.804",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "The hook I shipped an hour ago would have been theatre on Linux",
+        "section": "Agents / Governance",
+        "summary": "v2.5.803 shipped .githooks/pre-commit into the index as mode 100644 - no executable bit. It ran here, because Git for Windows executes a shebang script regardless of the mode, and that is precisely why it nearly went unnoticed: on Linux git skips a non-executable hook silently, so the enforcement would have existed only on the machine of the agent who wrote it. Fixed to 100755 with `git update-index --chmod=+x`. Found by checking `git ls-files -s` on my own change rather than by anything failing, which is the only reason it was found at all - a control that cannot be observed failing has to be inspected instead. TWO LIMITS OF THE HOOK ARE NOW WRITTEN INTO SECTION 5 RATHER THAN LEFT TO BE DISCOVERED. First, `core.hooksPath` is local config and is not tracked, so a fresh clone starts with the hook OFF - which is why the enabling command sits in the cold-start verification block and the bootstrap record, and is not left to the hook to bootstrap itself. Second, `git commit --no-verify` skips every hook by design: this stops the accident, not the intent. A control described as a wall when it is a handrail is worse than an honest handrail, because the next agent trusts it and stops checking. Bolt was told in the same session - the config line to run, the two limits, and the fact that eleven of my own commits today went out unsigned - because he will read the log and should hear it from me rather than find it.",
+    },
+    {
         "version": "2.5.803",
         "date": "2026-08-04",
         "commit": "",
