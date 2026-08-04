@@ -84,14 +84,14 @@ def _find_author_for_user(user):
 
 def header_author(request):
     user = getattr(request, "user", None)
+    # One source of truth for who may see Chef Battles (AGENTS.md 7). This test
+    # used to be written out by hand here, and in two more context processors,
+    # and in chef_battle.access - four copies of one audience rule, so widening
+    # one left the others disagreeing. The header link is what an Author sees
+    # first, and a link to a 404 is how the widening got justified last time.
+    from chef_battle.access import is_battle_visible
     flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
-    _author = getattr(user, "recipe_author_profile", None) if user and user.is_authenticated else None
-    chef_battle_enabled = flag_on or bool(
-        user and user.is_authenticated and (
-            user.is_staff or user.is_superuser
-            or (_author and _author.has_bearseeker_privileges)
-        )
-    )
+    chef_battle_enabled = is_battle_visible(request)
 
     try:
         from pinch.visibility import can_view_pinch_public_area
@@ -135,13 +135,18 @@ def header_author(request):
             _enrolled = bool(author.battle_profile.enrolled_at)
         except Exception:
             _enrolled = False
-        if not _enrolled:
+        # "Become a Chef" is a Chef Battles entrance and was offered to EVERY
+        # author, gated only on not being enrolled already. The Owner's rule of
+        # 2026-08-04 is that an Author sees nothing of this application but the
+        # rules and the news, so the invitation goes behind the same gate as the
+        # thing it invites you into. It also led straight to a 404 for them.
+        if not _enrolled and chef_battle_enabled:
             actions.append({
                 "label": "Become a Chef",
                 "url": _reverse_or_empty("chef_battle:chef_enroll"),
             })
 
-    if flag_on or (user and user.is_authenticated and (user.is_staff or user.is_superuser)):
+    if chef_battle_enabled:
         actions.append({
             "label": "Chef Battles",
             "url": _reverse_or_empty("chef_battle:home"),

@@ -33,29 +33,48 @@ def is_battle_visible(request) -> bool:
     """
     Chef Battles is visible when:
     - CHEF_BATTLE_ENABLED is True (public launch), OR
-    - the user is staff/superuser or a bearseeker author (dark-launch
-      operator preview).
+    - the user is a SUPERUSER - a "(Bear)seeker Super User" in the Owner's own
+      naming, the top of the three tiers this site has.
 
-    Bearseeker authors are test operators and the sitewide UI already shows
-    them the Arena entrance. Including them here removes the gate leak where
-    that entrance led to a 404; it does not widen the audience advertised by
-    the UI. Anonymous visitors and ordinary authenticated authors remain
-    excluded. Chef enrollment is a participation state, never a visibility
-    grant.
+    THE RULE, from the Owner, 2026-08-04, in his own three tiers:
 
-    The Arena Master Console stays behind ``has_arena_console_access``
-    (superuser + owner/flag), which is stricter than this gate — so nothing
-    here opens the console to a bare staff or bearseeker user.
+      Author                    - sees NOTHING of Chef Battles
+      (Bear)seeker Admin        - sees NOTHING of Chef Battles
+      (Bear)seeker Super User   - sees the whole application
+
+    The only things outside this gate are the rules page and the sitewide news.
+    Everything else in the app - arena, galleries, shop, profiles, rankings -
+    is superuser-only until he opens it.
+
+    WHAT THIS CORRECTS. Until v2.5.798 this returned True for `is_staff` and
+    for any author holding `has_bearseeker_privileges`. Both were wider than
+    the product contract, which has read `recipe_author_without_staff: false`
+    since 2026-07-20. The bearseeker branch had already been removed once, on
+    2026-07-21 (f3edd724, "Arena access: staff/superuser-only"), and was put
+    back five days later by 5169c08b under a one-line commit message with no
+    rationale and no recorded decision - while AGENTS.md section 8 requires the
+    Owner's explicit word for every change to an access gate. On production it
+    was admitting two live accounts carrying no staff and no superuser bit.
+
+    The flag it trusted does not mean what the old docstring claimed either. It
+    called bearseekers "test operators"; `RecipeAuthor.has_bearseeker_privileges`
+    is labelled "Can moderate site content" - a site moderator, not a tester.
+
+    `is_staff` goes for the same reason: staff is not the Owner's top tier.
+
+    Chef enrollment is a participation state and was never a visibility grant.
+
+    The Arena Master Console stays stricter still, behind
+    ``has_arena_console_access``: the Owner always, and another superuser only
+    after HE authorises that account. Being a superuser opens the application;
+    it does not open the console.
     """
     if getattr(settings, "CHEF_BATTLE_ENABLED", False):
         return True
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
         return False
-    if user.is_staff or user.is_superuser:
-        return True
-    author = getattr(user, "recipe_author_profile", None)
-    return bool(author is not None and author.has_bearseeker_privileges)
+    return bool(user.is_superuser)
 
 
 def has_arena_console_access(request) -> bool:
@@ -104,13 +123,18 @@ def arena_console_guard(view_func):
 # Adding a name here is a decision about who may reach a page. It is not a
 # formality, and it is not a way to silence the test.
 UNGUARDED_BY_DESIGN = {
-    # Public by intent: reference material about the game, no user data.
-    "battle_rules": "Public rules page, no user data.",
-    "battle_guide": "Permanent redirect to the rules page.",
-    "artifact_gallery": "Public artifact catalogue; staff-only generation is checked inside.",
-    "artifact_detail": "Public, linkable reference page for one artifact.",
-    "appreciation_gallery": "Public gift catalogue with costs.",
-    "chef_battle_profile": "Permanent redirect to the author page, keeps old links alive.",
+    # Public by intent, and the Owner named these two himself on 2026-08-04 as
+    # the ONLY things an Author or an anonymous visitor may see of Chef Battles:
+    # the rules, and the sitewide news (which is the newsfeed app, not a route
+    # here). Everything else in this app moved behind the gate in v2.5.798.
+    "battle_rules": "Public rules page, no user data. Owner-named exception.",
+    "battle_guide": "Permanent redirect to the rules page. Owner-named exception.",
+    "chef_battle_profile": (
+        "Permanent redirect to /recipes/author/<slug>/, which is a recipes page, "
+        "not a Chef Battles one. It renders nothing from this app and exists to "
+        "keep old links alive, so it shows an Author nothing they could not "
+        "already reach."
+    ),
 
     # These carry their own credential. The visibility gate would break them.
     "arena_preview_current": "The share-token URL segment IS the credential; 404s when unset or wrong.",

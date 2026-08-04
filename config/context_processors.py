@@ -102,15 +102,13 @@ def hero_chef_promotions(request):
 def hero_battle_panel(request):
     """Inject battle panel data into every template context (cached 60s)."""
     flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
-    user = request.user
-    _author = getattr(user, "recipe_author_profile", None) if user and user.is_authenticated else None
-    chef_battle_enabled = flag_on or bool(
-        user and user.is_authenticated and (
-            user.is_staff or user.is_superuser
-            or (_author and _author.has_bearseeker_privileges)
-        )
-    )
-    if not chef_battle_enabled:
+    # One source of truth for who may see Chef Battles (AGENTS.md 7). This test
+    # was written out by hand in four places - here, battle_widget_context,
+    # recipes.header_author and chef_battle.access - so widening one left the
+    # other three disagreeing with it. Owner, 2026-08-04: only a
+    # "(Bear)seeker Super User" sees this application.
+    from chef_battle.access import is_battle_visible
+    if not is_battle_visible(request):
         return {}
     from django.core.cache import cache
     cache_key = "hero_battle_panel_data"
@@ -153,8 +151,20 @@ def hero_battle_panel(request):
 
 
 def active_battle_pip(request):
-    """Inject the current user's active battle (if any) for the floating pip."""
+    """Inject the current user's active battle (if any) for the floating pip.
+
+    Gated on the same audience as the rest of the app. The pip renders three
+    Chef Battles URLs into the page and is the ONE sitewide battle surface whose
+    template block sits outside `{% if chef_battle_enabled %}`, so without this
+    check an Author who is a battle participant would carry battle_detail,
+    battle_state_poll and battle_combat_action links on every page - all of
+    which now 404 for them. A participant is not a viewer: enrollment is a
+    participation state and has never been a visibility grant.
+    """
     if not request.user.is_authenticated:
+        return {"active_battle_pip": None}
+    from chef_battle.access import is_battle_visible
+    if not is_battle_visible(request):
         return {"active_battle_pip": None}
     try:
         from recipes.models import RecipeAuthor
@@ -174,16 +184,13 @@ def active_battle_pip(request):
 
 def battle_widget_context(request):
     """Inject battle_widget data for the sitewide Chef Battles sidebar widget."""
-    flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
-    user = request.user
-    _author = getattr(user, "recipe_author_profile", None) if user and user.is_authenticated else None
-    enabled = flag_on or bool(
-        user and user.is_authenticated and (
-            user.is_staff or user.is_superuser
-            or (_author and _author.has_bearseeker_privileges)
-        )
-    )
-    if not enabled:
+    # Same single source as the page itself. When this widget was wider than the
+    # page, the entrance it advertised led to a 404 - and the fix chosen then was
+    # to widen the PAGE rather than narrow the widget, which is how a moderator
+    # ended up inside a staff-only application. test_gate_parity holds them
+    # together now.
+    from chef_battle.access import is_battle_visible
+    if not is_battle_visible(request):
         return {}
     cache_key = "battle_widget_v1"
     data = _cache_get(cache_key)

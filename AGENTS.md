@@ -515,10 +515,25 @@ for exactly that reason: it is how the Owner supervises. Work that stays on a
 branch is invisible to him, and invisible work looks identical to no work — which
 is why this project felt looped while agents were spending real budget.
 
-**A deploy is not a release.** Arena visibility on production stays
-staff/superuser only until the Owner separately says otherwise. This
-authorisation lets code reach the server; it does not open the Arena to the
-public, and no agent may widen that gate under it.
+**A deploy is not a release.** Chef Battles visibility on production is
+**superuser only** — a "(Bear)seeker Super User" in the Owner's naming — until
+he separately says otherwise. This authorisation lets code reach the server; it
+does not open the Arena to anyone, and no agent may widen that gate under it.
+
+The three tiers, his words, 2026-08-04: an **Author** and a **(Bear)seeker
+Admin** see nothing of Chef Battles except the rules page and the sitewide news;
+a **(Bear)seeker Super User** sees the whole application. The Arena Master
+Console is stricter still — the Owner always, and another superuser only after
+he authorises that account.
+
+It said "staff/superuser" until 2026-08-04 and the code was wider than even
+that, admitting any author holding `has_bearseeker_privileges` — a site
+moderator flag, not a Chef Battles one. It had been narrowed correctly on
+2026-07-21 and re-widened on 2026-07-26 by a commit with a one-line message, no
+rationale and no recorded decision, which is the exact act this paragraph
+forbids. Two live production accounts were passing that gate. Corrected in
+v2.5.798. **Any change to this gate needs his explicit word, every time, and a
+commit that cannot show it is a violation regardless of how it is titled.**
 
 **Every deploy still passes its gates, all of them, before it ships:**
 

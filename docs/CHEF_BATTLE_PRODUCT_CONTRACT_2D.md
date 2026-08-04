@@ -134,12 +134,35 @@ Until a separate explicit Product Owner release decision:
 
 ```yaml
 arena_visibility:
-  staff: true
-  superuser: true
+  superuser: true                    # "(Bear)seeker Super User" — the only tier
+  staff_without_superuser: false
+  bearseeker_admin: false            # has_bearseeker_privileges = site moderator
   ordinary_authenticated_user: false
   recipe_author_without_staff: false
   anonymous: false
 ```
+
+**The site has three user tiers, and the Owner named them on 2026-08-04:**
+
+| Tier | Sees Chef Battles |
+|---|---|
+| **Author** | nothing, except the rules page and the sitewide news |
+| **(Bear)seeker Admin** (`has_bearseeker_privileges`) | nothing, same as an Author |
+| **(Bear)seeker Super User** (`is_superuser`) | the whole application |
+
+A (Bear)seeker Admin is a **site moderator** — the field is labelled "Can
+moderate site content". Moderating the site is not a Chef Battles privilege.
+
+**The Arena Master Console is stricter than this table.** A (Bear)seeker Super
+User does **not** get it by being a superuser: the Owner always has it, and
+another superuser sees it only after **he** authorises that account
+(`has_arena_console_access`). Being let into the application is not being let
+into the console.
+
+`staff: true` stood here until 2026-08-04 and was wrong in both directions —
+`is_staff` is not the top tier, and the code was meanwhile admitting bearseeker
+admins whom this same block already excluded under
+`recipe_author_without_staff: false`. Corrected in v2.5.798.
 
 No code capability, test, feature flag, or historical document constitutes release approval.
 

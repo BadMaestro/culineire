@@ -306,6 +306,14 @@ class ChefBattleAccessTests(TestCase):
         self.client = Client()
         self.user = User.objects.create_user(username="regular", password="pw")
         self.staff = User.objects.create_user(username="staff", password="pw", is_staff=True)
+        self.superuser = User.objects.create_user(
+            username="bearseeker-super", password="pw", is_staff=True, is_superuser=True
+        )
+        self.moderator = User.objects.create_user(username="bearseeker-admin", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.moderator, name="Bearseeker Admin", slug="bearseeker-admin",
+            has_bearseeker_privileges=True,
+        )
 
     def test_anonymous_can_view_battle_home(self):
         response = self.client.get(reverse("chef_battle:home"))
@@ -331,40 +339,71 @@ class ChefBattleAccessTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
-    def test_battle_visible_lets_staff_in_but_never_anonymous(self):
-        """Staff see the arena during dark launch (owner decision), and the
-        button that links into it must be shown to them — battle_visible is the
-        exact predicate the guarded views enforce, so a shown button always
-        leads somewhere. Anonymous visitors never see it. Asserted with the
-        public flag off, where the gate actually decides."""
+    def test_only_a_bearseeker_super_user_sees_chef_battles(self):
+        """The Owner's three tiers, 2026-08-04.
+
+        Author -> nothing. (Bear)seeker Admin -> nothing. (Bear)seeker Super
+        User -> the whole application. This test asserted the opposite for
+        staff until v2.5.798, and the code was wider still, letting in any
+        author with has_bearseeker_privileges - a SITE MODERATOR flag, labelled
+        "Can moderate site content", which the product contract had excluded
+        under `recipe_author_without_staff: false` since 2026-07-20.
+
+        Asserted with the public flag off, which is where the gate decides.
+        """
         from django.test import RequestFactory
         from django.contrib.auth.models import AnonymousUser
         from config.context_processors import battle_visibility
+        from chef_battle.access import is_battle_visible
 
         request = RequestFactory().get("/")
-
-        request.user = self.staff
-        self.assertTrue(
-            battle_visibility(request)["battle_visible"],
-            "staff see the arena during dark launch, so the button must show for them",
-        )
-
-        request.user = AnonymousUser()
-        self.assertFalse(battle_visibility(request)["battle_visible"])
+        cases = [
+            ("anonymous", AnonymousUser(), False),
+            ("Author", self.user, False),
+            ("(Bear)seeker Admin", self.moderator, False),
+            ("staff without superuser", self.staff, False),
+            ("(Bear)seeker Super User", self.superuser, True),
+        ]
+        for label, user, expected in cases:
+            with self.subTest(tier=label):
+                request.user = user
+                self.assertEqual(is_battle_visible(request), expected)
+                # The advertised entrance must agree with the gate, or a shown
+                # button leads to a 404 - which is the argument that was used to
+                # widen the gate in the first place, instead of narrowing the UI.
+                self.assertEqual(
+                    battle_visibility(request)["battle_visible"], expected
+                )
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
-    def test_staff_see_the_arena_but_not_the_master_console(self):
-        """The two-tier rule: dark-launch staff reach the arena, but the Arena
-        Master Console (Mothership) stays behind has_arena_console_access, which
-        needs a superuser. A bare staff user must not cross that line."""
+    def test_being_let_into_the_app_is_not_being_let_into_the_console(self):
+        """A (Bear)seeker Super User reaches the application. The Arena Master
+        Console needs the Owner to authorise that account separately
+        (has_arena_console_access), so being a superuser is not enough."""
         from django.test import RequestFactory
         from chef_battle.access import is_battle_visible, has_arena_console_access
 
         request = RequestFactory().get("/")
-        request.user = self.staff
 
+        request.user = self.superuser
         self.assertTrue(is_battle_visible(request))
         self.assertFalse(has_arena_console_access(request))
+
+        request.user = self.staff
+        self.assertFalse(is_battle_visible(request))
+        self.assertFalse(has_arena_console_access(request))
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_the_rules_page_stays_open_and_the_galleries_do_not(self):
+        """The Owner named the exceptions himself: the rules, and the news.
+        The artifact and gift galleries were public by an older decision and
+        are Chef Battles content, so they moved behind the gate in v2.5.798."""
+        self.assertEqual(self.client.get(reverse("chef_battle:rules")).status_code, 200)
+        for name in ("artifact_gallery", "appreciation_gallery"):
+            with self.subTest(view=name):
+                self.assertEqual(
+                    self.client.get(reverse(f"chef_battle:{name}")).status_code, 404
+                )
 
 
 @override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
@@ -468,11 +507,25 @@ class ChefBattleChallengeCreateViewTests(TestCase):
             + f"?opponent={self.opponent.slug}&inspired_by={recipe.slug}"
         )
 
-        # staff viewer (battle_visible under dark launch), not the recipe's author
+        # A (Bear)seeker Super User, which since v2.5.798 is the only tier the
+        # challenge view accepts. This used to log in the STAFF user, and the
+        # test still passes for the same reason it did then: the CTA tracks the
+        # gate. What changed is the gate, so the actor moved with it.
+        self.user.is_superuser = True
+        self.user.save(update_fields=["is_superuser"])
         self.client.login(username="challenge-owner", password="pw")
         shown = self.client.get(url)
         self.assertContains(shown, "Issue a Challenge")
         self.assertContains(shown, expected_href)
+
+        # Staff without superuser is NOT a viewer any more, and the CTA must
+        # follow - a shown button whose click 404s is the exact defect that got
+        # the gate widened in the first place.
+        self.user.is_superuser = False
+        self.user.save(update_fields=["is_superuser"])
+        self.assertNotContains(self.client.get(url), "Issue a Challenge")
+        self.user.is_superuser = True
+        self.user.save(update_fields=["is_superuser"])
 
         # anonymous never sees it
         self.client.logout()

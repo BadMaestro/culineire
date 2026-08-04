@@ -2628,6 +2628,7 @@ def artifact_generate_image(request, pk):
         return JsonResponse({"success": False, "error": str(exc)}, status=500)
 
 
+@chef_battle_guard
 def artifact_gallery(request):
     from .models import Artifact
 
@@ -2657,14 +2658,18 @@ def artifact_gallery(request):
     })
 
 
+@chef_battle_guard
 def artifact_detail(request, pk):
-    """Public, linkable reference page for one combat artifact."""
+    """One combat artifact. Superuser-only since v2.5.798 (Owner, 2026-08-04):
+    an Author sees nothing of Chef Battles but the rules and the news."""
     artifact = get_object_or_404(Artifact, pk=pk, is_active=True)
     return render(request, "chef_battle/artifact_detail.html", {"artifact": artifact})
 
 
+@chef_battle_guard
 def appreciation_gallery(request):
-    """Public gallery of all appreciation gift types with cost and description."""
+    """Gallery of appreciation gift types with cost and description.
+    Superuser-only since v2.5.798 (Owner, 2026-08-04)."""
     from .models import (
         AppreciationGiftType,
         APPRECIATION_GIFT_COST,
