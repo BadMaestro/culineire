@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.789",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "A06 finished - the production column, and A07 unblocked",
+        "section": "Chef Battles / Arena",
+        "summary": "The half that was blocked. The Arena is staff-only and the authenticated browser session had expired mid-run; agents may not log in as anyone, so the production column was left explicitly empty rather than filled from the payload or the CSS. The Owner reopened the session and it is now measured on the live page at the same 1920x1080 canvas and by the same method. The octagon, taken as the union bounding box of all 184 rank cells, is 966.9 x 763.7, aspect 1.266, centred at x 955. Against the Design Template floor at 1585.4 x 667.5 and aspect 2.375 that is about 64 percent too narrow and 13 percent too tall, which is what A07 now has to build to. Three things the column settles. First, production aspect is confirmed independently: the superseded matrix read 1.30 on 2026-07-29 and this run reads 1.266 by a different route, and production was never the disputed half of that matrix - only the reference was. Second, the missing fighter composition is real and is not a reference dispute: the template places four plinth blocks in two symmetric pairs flanking the crown, production has a single 66.5 x 69.9 chef avatar sitting at x 831 while the octagon centres at 955, which is the dead-sticker symptom measured rather than described. Third, the phase card A11 rebuilt is at 271.6 x 119.5 against the reference 278 x 124 - parity within five pixels - while the block containing it is still 26.8 too tall, and the audit now says which of those two elements each earlier figure referred to, because the 245.6 and 245.1 in the A11 notes were the outer block at 1280 and would be wrong to read as a reference comparison.",
+    },
+    {
         "version": "2.5.787",
         "date": "2026-08-04",
         "commit": "",
