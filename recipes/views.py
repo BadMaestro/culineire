@@ -3373,8 +3373,8 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "33f2e719 / production v2.5.807",
-        "verification": "Production v2.5.807 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
+        "commit": "35e374c3 / production v2.5.808",
+        "verification": "Production v2.5.808 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
                         "deployed; A07 is the next assignable card and its numbers are measured "
                         "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md). The camera "
                         "stays rotateX(42deg): the Design Template's own 57deg shipped as "

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.808",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "requirements-lock.txt deleted - it looked authoritative and installed something else",
+        "section": "Agents / Governance",
+        "summary": "Owner's order after it was reported in the loose-ends sweep. Proven unreferenced before deleting rather than assumed: nothing in the repository, no deploy script, no CI config and nothing on the server mentions it - deploy/update.sh installs from requirements.txt and always did. Last touched 2026-06-08, two months stale, and missing BOTH html2text, which the app imports, and tblib. So an environment built from it was not a pinned copy of production, it was production minus a dependency. THAT IS THE WHOLE DANGER AND IT WAS NOT HYPOTHETICAL: the Carpet archive from 2026-07-28 records an agent bootstrapping a local venv with 'pip install requirements-lock' on a machine with no prior Django. A file named lock is read as the pinned truth; this one was a snapshot somebody stopped updating, and the name kept working long after the contents did. Deleted, not regenerated, because regenerating would have produced a second maintained dependency file with nothing installing from it - the same trap with fresher contents. requirements.txt now carries a comment saying it is the only one, why the other went, and the command that recovers it: git show 023ad512:requirements-lock.txt. Nothing is lost - git keeps it - and the thing that was actually removed is a file that could mislead somebody at 2am.",
+    },
+    {
         "version": "2.5.807",
         "date": "2026-08-04",
         "commit": "",

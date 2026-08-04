@@ -1,3 +1,10 @@
+# THE ONLY dependency file. requirements-lock.txt was deleted on the Owner's
+# order, 2026-08-04: nothing referenced it, it had not been touched since
+# 2026-06-08, and it was missing html2text and tblib - so an environment built
+# from it was missing a dependency the app imports. It looked authoritative and
+# installed something else, and the Carpet archive shows an agent bootstrapping
+# a local venv from it. deploy/update.sh installs from THIS file and always did.
+# It is recoverable if ever wanted: git show 023ad512:requirements-lock.txt
 Django==5.2.13
 Pillow==12.2.0
 django-ratelimit==4.1.0
