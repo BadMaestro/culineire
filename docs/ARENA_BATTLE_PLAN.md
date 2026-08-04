@@ -60,6 +60,21 @@ Still in force (unchanged by v2):
 - Effects (dust, gifts, rays, shimmer, crown light) preserved; Master Console untouched.
 - No reference K banner; reuse existing CulinEire branding where a mark is required.
 - Mobile Arena is frozen and is not a blocker for this desktop plan.
+- **The media layer is CLOSED (Owner, 2026-08-03): below 901px the Arena stays
+  exactly as it is.** One visual style, the desktop one, at every width. The 86
+  `min-width: 901px` wrappers removed in v2.5.729/730 stay removed. Two scopes
+  came back in v2.5.772 and only those two, because `placeRankSpine()` still
+  tested both breakpoints and cleared the rank column's inline geometry while no
+  stylesheet stood up to take over. There is no stage 2. Note also that
+  indentation in the four Arena stylesheets no longer implies a media scope: 668
+  lines sit indented at top level as the bodies of the removed wrappers, and
+  reading one of them as scoped is how that defect stayed invisible for six days.
+- **Never put fake anything in production, and that includes the audience.** The
+  arena deck's `hydrateFixtures()` was disconnected in v2.5.782 after production
+  measurement showed the server sending zeros while the page showed 2.4K viewers,
+  3.7K votes, 620 gifts and a battle between two chefs who do not exist. It is
+  switched off, not deleted, and three tests keep it that way — including one
+  that keeps the function present, so it is not dead code to be tidied away.
 
 ## 2a. Seat & spectator contract (v2)
 
