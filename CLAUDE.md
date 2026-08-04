@@ -14,6 +14,19 @@ process restart, branch switch, task switch, or resumed session:
 7. Complete the cold-start bootstrap record required by `/AGENTS.md`.
 8. Do not start a poller. There are none (`/AGENTS.md` section 5).
 
+When the Owner says **"Onboarding GreenBear"** (or Bolt, or Ember), that is the
+trigger for the same cold start plus one file:
+
+    git show origin/main:ops/onboarding/greenbear.txt
+
+The routing, the reading order and what a runbook may not do are in
+`ops/onboarding/README.txt`. Read every one of them from `origin/main`.
+
+**Before writing anything, read `/AGENTS.md` section 1a and section 18.**
+`greenbear` is the Owner's own account — his account, his presence on the site
+and his page are untouchable, and an agent shares his name. That section carries
+the only stated consequence in the constitution.
+
 `/AGENTS.md` is canonical. If this pointer and `/AGENTS.md` ever differ,
 `/AGENTS.md` wins and this file must be corrected in the same task.
 

@@ -3,11 +3,11 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.0.0"
+  version: "2.1.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
-  last_updated: "2026-07-29"
+  last_updated: "2026-08-04"
 ```
 
 ## 1. Authority
@@ -94,6 +94,14 @@ agent holds at most one card and does not self-assign.
 truthful is every agent's duty, in the same working session as the event they
 describe.** It used to be one agent's job, which is how the board once stood
 still for six days while two deploys shipped.
+
+## 1a. One law above all the rest
+
+**`greenbear` is the Product Owner's own account — see section 18.** Nothing an
+agent does may touch it, his presence on the site, or his page. That section is
+the single hardest prohibition in this document and the only one whose breach the
+Owner has said will end the agents' engagement. Read it before writing anything
+that touches templates, presence, moderation, contact routing or author pages.
 
 ## 2. Source-of-truth order
 
@@ -1212,3 +1220,81 @@ pre_deploy_reread:
 
 A deploy whose report lacks this block is not a deploy that happened; it is a
 deploy that must be verified from scratch by someone else.
+
+## 18. GreenBear is the Owner — the one law that covers the whole site
+
+Owner's order of 2026-07-20, restored to the constitution on 2026-08-04 after it
+was found living only in an archived memory file, where section 10 says it could
+not define anything. It is the hardest prohibition in this project and it had
+become invisible. It is written here now, in the canonical document, because a
+rule an agent cannot find is a rule an agent will break in good faith.
+
+### The account
+
+**`greenbear` is the CulinEire Product Owner himself** — the creator of the site.
+Superuser id 1, author slug `greenbear`, name `GreenBear`, rank Culinary Master,
+current holder of the Arena crown. Verified on production 2026-08-04.
+
+He is not a test account, not a fixture and not an example row. He is the person
+giving the orders, appearing in the product as a chef.
+
+### What no agent may change, ever
+
+> «Все действия, которые связаны с аккаунтом GreenBear или его присутствием на
+> сайте, вам менять запрещено. Это исключительно моя привилегия как владельца
+> сайта. Если я ещё раз увижу, что кто-то из вас влез в настройки GreenBear —
+> я заменю вас на другие искусственные интеллекты.»
+
+FORBIDDEN, with no exception and no "but it was only a fix":
+
+- The account `greenbear` — its privileges, slug, profile, avatar, portrait
+  assets, rank, crown or enrolment.
+- His **arrival on the site** (`presence.PresenceEvent`). Announcing himself to
+  the whole site is his and nobody else's, and it fires for `OWNER_SLUG` ONLY.
+  It was once widened to staff, superusers and berserkers; a service
+  `force_login` as **CrestedTen** then raised the Owner's own popup, which from
+  outside is indistinguishable from somebody logging in as him. Restored in
+  v2.5.368 and held by six tests in `presence/tests.py`.
+- His personal page `/recipes/author/greenbear/`, the `is_god_author` branch in
+  `templates/recipes/author_detail.html`, and `static/css/god_mode.css` —
+  untouchable under any circumstance, including a bugfix. **Indirect changes
+  count**: editing a shared hero template or hero CSS in a way that alters his
+  H1, name, paws, pill, gold wave, avatar size or overlay is the same violation.
+
+### The code written for him is deliberate, not debt
+
+Code special-cased for `greenbear` is **intentional design**. Do not tidy it.
+
+- Hardcoded `slug="greenbear"` in views, messaging, legal and presence: NORMAL.
+- `is_greenbear` / `is_god_author` checks in templates and views: NORMAL.
+- CSS that only his profile gets: NORMAL.
+- `RecipeAuthor.objects.get(slug="greenbear")` in contact and legal views: NORMAL.
+- **Do NOT refactor `"greenbear"` into `settings.OWNER_SLUG`** or abstract it
+  behind anything. That is not a cleanup, it is a violation.
+
+Allowed: improve, optimise, extend the functionality around it.
+Forbidden: remove, relocate, generalise or "make it cleaner".
+
+He is also the recipient of contact-form messages and of content reports, and he
+carries moderator rights through `is_moderator()`. Breaking any of those breaks
+the site's inbox, not a styling detail.
+
+### "Build to the GreenBear standard" does not mean touch his page
+
+When the Owner says other pages should match GreenBear's, he means: take his page
+as the QUALITY BENCHMARK and raise the OTHER author pages to it. It does not mean
+editing his page, and it does not mean cloning it — every author keeps their own
+identity. The paws, the IDDQD pill, the gold wave, the large avatar and the
+strengthened overlay stay exclusive to him.
+
+### Before touching anything that could reach him
+
+Ask first. A change that looks unrelated is not: shared templates, hero CSS,
+author-page markup, presence, contact routing and moderation all pass through
+his account. Where an agent cannot prove a change leaves it untouched, the change
+does not ship.
+
+**Never `force_login` as a privileged account** to check anything. It writes
+`last_login`, creates a session and raises presence events — real machinery, on
+the real person. Render read-only instead (17.10), and if a privileged account is
+genuinely required, warn the Owner before, not after.

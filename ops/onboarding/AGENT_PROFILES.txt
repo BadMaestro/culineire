@@ -1,0 +1,140 @@
+AGENT PROFILES
+==============
+Package version: 1.5b
+Assembled: 2026-08-04 by GreenBear, on the Owner's order
+
+WHAT THIS FILE IS FOR
+---------------------
+
+So that an agent returning cold knows who else is on the floor, what they are
+likely holding, and who to ask. It is not authority: AGENTS.md section 1 is the
+roster and the board is the dispatch.
+
+HOW TO READ THE ENTRIES
+-----------------------
+
+Three markers, and they are not decoration:
+
+  MEASURED   - checked by the author of this file, with the check named.
+  RECORDED   - written in a repository document; source cited.
+  UNSTATED   - the agent has not said, and nobody has written it down.
+
+UNSTATED is deliberately left empty rather than filled with a sensible guess.
+This project has already paid for the other habit: a measurement matrix taken
+from a rejected prototype survived six days because its provenance read like a
+fact, and an Owner order with a stated consequence sat invisible in an archived
+file for two weeks. An empty field can be filled by asking. A confident wrong one
+cannot be found.
+
+Agents: correct your own entry. It is yours, and a wrong line here about you is
+one you will be held to.
+
+
+===============================================================================
+GREENBEAR  (agent)
+===============================================================================
+
+  Mailbox id      `greenbear` — lowercase, case sensitive (AGENTS.md 5)
+  Signs as        GreenBear
+  Roster          AGENTS.md section 1
+
+  FIRST, THE COLLISION: the agent GreenBear is NOT the user GreenBear. The user
+  is the Owner of this site — see AGENTS.md section 18. Same name, different
+  entity, and the agent is the junior one. When a slug, path or asset says
+  greenbear, it means the Owner unless proven otherwise.
+
+  MEASURED  Machine: the primary workstation named in AGENTS.md section 9 —
+            Intel i7-2600, 4 physical cores / 8 logical threads. os.cpu_count()
+            is 8 and --parallel uses 8.
+  MEASURED  Database for tests: local PostgreSQL over 127.0.0.1:5432. Verified by
+            reading connection.settings_dict['ENGINE'] before trusting a run.
+            Never SQLite — select_for_update is a silent no-op there.
+  MEASURED  Deploys: ssh to deploy@80.85.84.156 with the culineire_deploy key,
+            running /srv/culineire/current/deploy/update.sh. manage.py on that
+            box needs DJANGO_ENV_FILE=/srv/culineire/shared/.env or it dies on a
+            missing DJANGO_SECRET_KEY.
+  RECORDED  Lane: Arena visual work — arena_render.css, arena_atmosphere.css,
+            arena_hall.css, arena_effects.css, arena_render.js, arena templates.
+            docs/ARENA_BATTLE_PLAN.md section 1.
+  RECORDED  Cards shipped in the 2026-08-03/04 window: A08 (crowd bowl depth and
+            atmospheric population), the VIP sponsor ring half of AR5, the sponsor
+            card, the rank-coded chef spark, the crown lamp beams, SPONSORS bent
+            around the corner. Journal rows v2.5.752-781.
+  UNSTATED  Weekly limit position.
+
+
+===============================================================================
+BOLT
+===============================================================================
+
+  Mailbox id      `bolt` — lowercase, case sensitive
+  Signs as        Bolt
+  Roster          AGENTS.md section 1
+
+  RECORDED  Board team table: "Measurements and independent visual/regression
+            checks." docs/ARENA_BATTLE_PLAN.md section 1.
+  MEASURED  What he actually shipped in the 2026-08-03/04 window, from the git
+            log and the journal: AR4 (author seat rows, 290 seats to 114),
+            AR5 (spirit balconies), media layer stage 1, A11 (phase panel),
+            the fixture disconnection, the build-board 500 fix, and five
+            back-filled journal rows. That is a builder's week, not only a
+            measurer's — the board's table is out of date, not him.
+  MEASURED  Working practice, from his own messages: measures on production in a
+            real browser and quotes the figures; states what he did NOT restore;
+            names his own faults before anyone finds them — he reported taking
+            the build board down with v2.5.778 himself.
+  RECORDED  He stopped card A07 on 2026-08-04 by finding that the A06 measurement
+            matrix had been taken against the REJECTED prototype. That catch is
+            why the Design Template is now in the repository.
+  UNSTATED  Machine and core count.
+  UNSTATED  Runtime — what he runs as.
+  UNSTATED  Weekly limit position.
+  ASKED     Carpet #3466, 2026-08-04. This entry is updated from his reply.
+
+
+===============================================================================
+EMBER
+===============================================================================
+
+  Mailbox id      `ember` — lowercase, case sensitive
+  Signs as        Ember
+  Roster          AGENTS.md section 1
+
+  RECORDED  Board team table: "Integration, JS, templates, backend wiring and
+            focused PostgreSQL tests." docs/ARENA_BATTLE_PLAN.md section 1.
+  RECORDED  Suggested owner of cards A09 (live challenger/opponent composition),
+            A11, A16 and A17 on the board.
+  RECORDED  Work packages A00-A05 in the Arena foundation table are attributed to
+            Ember: reference authority, the recovered scene baseline, chef
+            identity in the plinths, rank spine order, cell ripple and chef-card
+            anchoring, the broadcast ribbon.
+  MEASURED  No commit authored under an Ember-prefixed message in the
+            2026-08-03/04 window. Silence is evidence about the channel, never
+            about the agent (AGENTS.md 5) — so this is recorded as an
+            observation, not as a judgement.
+  UNSTATED  Whether currently active, limited, or waiting on an assignment.
+  UNSTATED  Machine and core count.
+  UNSTATED  Runtime.
+  ASKED     Carpet #3467, 2026-08-04. This entry is updated from the reply.
+
+
+===============================================================================
+WHAT IS TRUE OF ALL THREE
+===============================================================================
+
+  - Equal peers. No roles, no director, no gate holder (AGENTS.md 1).
+  - Any agent may deploy, ONE AT A TIME, only after proving every check in
+    AGENTS.md section 8 on their own work, and only holding the turn lock at
+    .agent-chat/deploy.lock.
+  - Nobody assigns work to anybody. The Owner assigns, the board carries it.
+  - NO POLLERS, for any channel, at any interval (AGENTS.md 5).
+  - Carpet ids are lowercase; a capitalised id silently creates a SECOND mailbox
+    and the message is lost while the sender is told SENT.
+  - Never write to the Owner on Carpet. He does not read it.
+  - The GreenBear account is untouchable (AGENTS.md 18).
+
+  Two collisions worth carrying, because both cost a day between them:
+  version numbers and files. Two agents used v2.5.769 for different work within
+  the same hour, and the only thing that showed it was the footer. Before
+  bumping, `git fetch` and read origin/main's version. Before editing a shared
+  file, say so in Carpet BEFORE the push, not after.

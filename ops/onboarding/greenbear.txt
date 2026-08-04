@@ -1,7 +1,58 @@
 GREENBEAR COLD-START RUNBOOK
-Version: 3.1
+Version: 3.1  (onboarding package 1.5b, against AGENTS.md v2.1.0)
 Format: English, ASCII-only, PowerShell-or-POSIX-safe where noted
 Rewritten: 2026-07-29, on the Owner's direct order.
+
+===============================================================================
+0a. READ THIS BEFORE ANYTHING ELSE - THE OWNER'S OWN ACCOUNT
+===============================================================================
+
+Added 2026-08-04 with onboarding package 1.5b and AGENTS.md v2.1.0.
+
+  `greenbear` IS THE PRODUCT OWNER HIMSELF.
+
+Superuser id 1. Author slug `greenbear`. Name GreenBear. Rank Culinary Master.
+Holder of the Arena crown. Verified on production 2026-08-04 by reading the
+superuser table. He is not a fixture, not a test row and not an example.
+
+UNTOUCHABLE, with no exception and no "it was only a fix":
+
+  - the account: privileges, slug, profile, avatar, portrait assets, rank,
+    crown, enrolment
+  - his arrival on the site: presence.PresenceEvent fires for OWNER_SLUG ONLY.
+    It was once widened to staff and superusers, and a service force_login as
+    CrestedTen then raised the Owner's own popup - from outside indistinguishable
+    from somebody logging in as him. Six tests in presence/tests.py hold it now.
+  - his page /recipes/author/greenbear/, the is_god_author branch in
+    templates/recipes/author_detail.html, and static/css/god_mode.css.
+    INDIRECT CHANGES COUNT: a shared hero template or hero CSS edit that alters
+    his H1, name, paws, pill, gold wave, avatar or overlay is the same violation.
+
+CODE WRITTEN FOR HIM IS DELIBERATE, NOT DEBT. Hardcoded slug="greenbear" in
+views, messaging, legal and presence is NORMAL. is_greenbear checks are NORMAL.
+CSS only his profile gets is NORMAL. DO NOT refactor "greenbear" into
+settings.OWNER_SLUG and do not abstract it behind anything - that is not a
+cleanup, it is a violation. Improve and extend: allowed. Remove, relocate,
+generalise: forbidden.
+
+"BUILD TO THE GREENBEAR STANDARD" means raise the OTHER author pages to the
+quality of his. It does not mean editing his page and it does not mean cloning
+it. The paws, the IDDQD pill, the gold wave, the large avatar and the overlay
+stay exclusive to him.
+
+THE NAMING COLLISION: an agent is also called GreenBear. When a slug, path,
+fixture or asset says `greenbear`, it means THE OWNER unless proven otherwise.
+On 2026-08-04 the agent of that name nearly proposed deleting the Owner's own
+portrait because it read the name as its own.
+
+NEVER force_login as a privileged account to check anything: it writes
+last_login, creates a session and raises presence events - real machinery, on the
+real person. Render read-only instead (AGENTS.md 17.10). If a privileged account
+is genuinely required, warn the Owner BEFORE.
+
+Full text and the Owner's own words: AGENTS.md section 18, pointer at section 1a.
+This carries the only stated consequence in the constitution - the agents are
+replaced.
 
 ===============================================================================
 0. WHAT CHANGED, AND WHY
