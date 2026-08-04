@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.786",
+        "date": "2026-08-04",
+        "commit": "",
+        "title": "Nine stale worktrees cleared, and the journal has no holes left",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner asked for everything fixed. Nine worktrees had accumulated on the workstation from sessions that ended without closing them, and the order of operations mattered more than the cleaning: removing a worktree loses only what is NOT in git, because committed work lives on its branch. So nothing was removed until every untracked and uncommitted file across all nine had been inventoried. Four held nothing; five held seventeen files that existed nowhere else, including the machine-readable half of the A06 matrix, four before/after screenshots, mockup crops and a retired agent's only cold-start record - all now under ops/audits/rescued-2026-08-04/ with their provenance written down. Verified after the removals rather than assumed: the six commits on impl/arena-g2-camera are intact and the 483 paid crowd faces are untouched on main. One claim in that rescue note was corrected in this release: it said the assets were safe on main without splitting the case, which was true of the faces and misleading about the hall backgrounds - those are genuinely absent, deliberately, purged as dead weight in commit ee88e451. FIVE MISSING JOURNAL ROWS back-filled from their own commits: v2.5.773, 775, 776, 780 and 781, none of them mine, none of them guessed. Ordering was fixed afterwards by swapping two adjacent pairs rather than rewriting the file, and the result was verified by parsing it: 471 entries, head strictly descending, no gap between 769 and 785. Also: .codex/, .cursor/ and scratchpad/ are gitignored rather than deleted - they belong to whichever tool made them, and their real cost was making git status permanently noisy, which is how a genuine stray file hides. A zero-byte file named v[^ in the repository root, a misfired redirect from 2026-07-27, was deleted. FOUND AND NOT FIXED, because it is outside this card: roughly fifty duplicated version numbers in the old part of the journal, around the 2.5.46x-55x range.",
+    },
+    {
         "version": "2.5.785",
         "date": "2026-08-04",
         "commit": "",
@@ -32,6 +40,22 @@ RELEASE_JOURNAL = [
         "summary": "Four loose ends closed on the Owner's order, the first of which was the only one that touched the product. THE FIXTURE IS DISCONNECTED. Measured on production the hour it was switched off: the server was sending active_viewers 0, public_votes 0, battle_gifts 0 and an empty crown ladder, and the page was showing 2.4K, 3.7K, 620, a populated ladder and a battle between two chefs who do not exist. It carried the words 'fixture until wired' on screen and was harmless only while the Arena stays staff-only; on the day it opens, the first thing a visitor would have read is an invented audience, which ARENA_BATTLE_PLAN section 2 forbids outright. Disconnected the way the constitution requires and not deleted: one line at the entry point, with the function, the constant and the export all kept, so restoring it is putting that line back. The template needs no help here - with no active battle it renders 'Crown holds the centre' and '0 watching' on its own. A second, smaller fault in the same file went with it: the fixture branch of refreshBroadcastCopy had no else, so once it had written 'Live Now' the marker survived every later poll and only a reload cleared it; the retraction is written now, while the reason is known, rather than left for whoever switches the fixture back on. Also closed: v2.5.702 had shipped with no journal row and is back-filled from commit e821096f itself rather than from memory, a board release that closed A06 and promoted A07; the A3 board card claimed a lightweight anonymous presence signal did not exist, which was already false when written - BattleViewerPresence records is_authenticated on every lobby heartbeat and is exactly what the AR5 spirit count reads; and three tests now pin the disconnection so the fixture cannot come back unnoticed.",
     },
     {
+        "version": "2.5.781",
+        "date": "2026-08-03",
+        "commit": "54e79437",
+        "title": "A counted, reversible way to prune orphan sponsor uploads",
+        "section": "Chef Battles / Arena",
+        "summary": "Back-filled 2026-08-04 by Bolt from the commit itself, never from memory or from another agent's account of it. Five releases had shipped with no journal row; this is one of them. An audit on 2026-07-28 counted 603 files under sponsors/applications/ that no database row references, 35.0 MB, mostly the same logo uploaded again. Deleting files on a live server is the one job where a clever one-liner is the worst possible tool, so this is the rule in AGENTS.md 17.10 written out as code: count first, list every survivor, show ten examples, and only then delete. Referenced means named by ANY upload field on either model, the legacy logo_pending included, and those fields are listed explicitly rather than discovered - so adding a field surfaces here as a review question instead of silently turning live files into orphans. Nothing is deleted without --apply, --limit caps a run, and a path outside sponsors/applications/ is refused whatever storage hands back. The tests found a real hazard in themselves before the command was ever run: written against default_storage they read the developer's REAL media directory - 77 live files where five fixtures were expected - and the --apply case would have deleted them. A test that can reach the real disk is not testing the command, it is using it.",
+    },
+    {
+        "version": "2.5.780",
+        "date": "2026-08-03",
+        "commit": "0f5afb2f",
+        "title": "A08 closed on the board, journal caught up, cache tokens dropped",
+        "section": "Chef Battles / Arena",
+        "summary": "Back-filled 2026-08-04 by Bolt from the commit itself, never from memory or from another agent's account of it. Five releases had shipped with no journal row; this is one of them. Three tails in one pass, none of them touching behaviour. BOARD: A08 marked DONE in both places that claim to know - the plan table and ARENA_RELEASE_STAGES, which is what actually renders at the moderation build board - with its evidence written out rather than a bare status flip, and a row in the completed-foundation table, because a card is not finished until somebody reading the board can see what it shipped. JOURNAL: rows written for v2.5.774, 777 and 779. CACHE TOKENS: the ?v= query is gone from all seven asset tags. ManifestStaticFilesStorage already puts a content hash in the filename, so a file renames itself whenever its bytes change and a hand-kept query buys nothing; it was added in v2.5.754 against a real fault, Cloudflare serving a stale file for thirty days, and then bumped by hand on every deploy since - one more thing to forget rather than a safeguard.",
+    },
+    {
         "version": "2.5.779",
         "date": "2026-08-03",
         "commit": "42bbf99c",
@@ -56,12 +80,36 @@ RELEASE_JOURNAL = [
         "summary": "The card asks for a dark crowd bowl. The mechanism existed and had never once reached the screen: --row-light was set per row exactly as designed, 1.000 near and 0.550 far, and the computed filter on every seat was none. arena_atmosphere.css carries `.page--arena #arena-render .arena-cell { filter: none !important }`, written to stop avatar glow escaping the rim, and a stand seat carries .arena-cell too - so the fall-off was computed on every poll and thrown away by an !important meant for something else. Proved rather than reasoned: an inline brightness on the same circle also computed to none while the identical inline filter on a control div did not. The fall-off moved into the fill, which nothing holds down, and the rim protection was left untouched. Two wrong turns on the way, both caught by measuring instead of looking: v2.5.775 changed nothing because arena_deck_polish.css owns the stand colour at a higher specificity - the trap this file's own header warns about - and v2.5.776 put the depth in backwards, because the \"deeper\" token was mixed from --brand-dark, a warm brown at luminance 0.32 against a bowl at 0.16. Depth is now the light varying over a fixed floor. Live: stands #656463 to #292929, near row 11.5% brighter than far, stands 4x darker than the lit floor.",
     },
     {
+        "version": "2.5.776",
+        "date": "2026-08-03",
+        "commit": "1c3d2625",
+        "title": "A08 - scope the stand depth so it actually wins",
+        "section": "Chef Battles / Arena",
+        "summary": "Back-filled 2026-08-04 by Bolt from the commit itself, never from memory or from another agent's account of it. Five releases had shipped with no journal row; this is one of them. v2.5.775 changed nothing on screen, and this is what it took to find out why. Measured after that deploy: both rows still computed the same fill, a luminance drop of 0.0 percent. arena_deck_polish.css owns the stand colour through a selector carrying a class, an id and two attributes, which outranks a plain #arena-render rule at any load order. The correction is scoping, not force. The comment at the top of that same file already said exactly this about the moat and named the fix - match the prefix, do not reach for !important - and the first cut of A08 walked straight past it, so the note now names A08 as well and the next person pays for it once instead of twice.",
+    },
+    {
+        "version": "2.5.775",
+        "date": "2026-08-03",
+        "commit": "5988b1c4",
+        "title": "A08 - the stands get their depth back",
+        "section": "Chef Battles / Arena",
+        "summary": "Back-filled 2026-08-04 by Bolt from the commit itself, never from memory or from another agent's account of it. Five releases had shipped with no journal row; this is one of them. The card asks for a dark crowd bowl instead of a pale ring of dots. The mechanism for it had been written long before and had never once reached the screen. Measured on production before the change: --row-light was set per row exactly as intended, 1.000 on the near row and 0.550 on the far one, and the computed filter on every seat was none. arena_atmosphere.css carries a filter:none !important written to stop avatar glow bleeding past the rim, and a stand seat carries the same class - so the fall-off was computed in JavaScript on every poll and thrown away by an !important meant for something else. Proved rather than reasoned: an inline brightness on the same circle also computed to none, while the identical inline filter on a control element did not. The fall-off now lands in the fill, which nothing is holding down, and the rim protection was left alone - no rule of anyone else's was weakened to make this one work.",
+    },
+    {
         "version": "2.5.774",
         "date": "2026-08-03",
         "commit": "85e12ced",
         "title": "The rank ladder is back on",
         "section": "Chef Battles / Arena",
         "summary": "Switched off on 2026-07-31 on the Owner's word and back on 2026-08-03 on his word, by deleting a single `hidden` - which is the whole reason it was disconnected rather than deleted. Markup, data and every stylesheet rule stood untouched through the three days it was dark. It also closed a real divergence: while it was off the media layer was restored, and the rule \"the ladder is never display:none below 768px\" was true in the stylesheet and false on the screen. The test guarding it reads stylesheet TEXT, so it passed throughout and could not tell those two states apart - never softened, simply answering a narrower question than its name promises. Verified live: hidden gone, display flex, real box on screen, all eight ranks present.",
+    },
+    {
+        "version": "2.5.773",
+        "date": "2026-08-03",
+        "commit": "a7f6664d",
+        "title": "The journal catches up with the day",
+        "section": "Chef Battles / Arena",
+        "summary": "Back-filled 2026-08-04 by Bolt from the commit itself, never from memory or from another agent's account of it. Five releases had shipped with no journal row; this is one of them. Twenty versions had shipped that day against a single journal entry, which is the stale-record failure this project has already been caught by twice. Eight entries were written covering v2.5.752 through v2.5.771, grouped the way the journal already groups - by what changed on the screen, not one row per deploy. The journal head was being edited from two sides at once and was resolved by hand rather than by taking a side: nothing of anyone else's was edited or dropped, and the other agent's v2.5.772 and v2.5.769 entries stand exactly as written. One thing recorded rather than tidied away: the v2.5.770 commit subject still reads v2.5.769 because it was amended after a version clash, and the footer it shipped is what the journal states.",
     },
     {
         "version": "2.5.772",

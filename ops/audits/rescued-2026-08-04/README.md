@@ -58,4 +58,17 @@ those worktrees pointed at, including the six on `impl/arena-g2-camera` that
 wired the 96 crowd faces. Branches are not worktrees. That worktree's working
 copy showed the paid face assets as **deleted** — an uncommitted state nobody
 had explained — and dropping the worktree discards that deletion rather than
-performing it. The assets are safe on `main`.
+performing it.
+
+Checked afterwards rather than asserted, and the answer comes in two halves:
+
+- The crowd faces are on `main` and untouched — 483 files under
+  `static/images/crowd/`. Those are the paid ones, and they are safe.
+- The hall backgrounds and the floor plate
+  (`static/images/chef_battle/arena/`) are **not** on `main`, and that is
+  deliberate rather than a loss: commit `ee88e451`, "emergency load purge — drop
+  dead heavy assets", removed them, and the worktree simply predated the purge.
+
+The first version of this note said "the assets are safe on main" with no such
+split. That was true of the faces and misleading about the rest, which is
+exactly the sort of sentence this directory exists to stop being written.
