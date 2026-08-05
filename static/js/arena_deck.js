@@ -252,27 +252,43 @@
       container.appendChild(empty);
       return;
     }
+    // Half a pill: avatar then name, mirrored for the opponent so the two faces
+    // sit at the outer ends with the clock between them.
+    function pillSide(chef, role) {
+      var side = document.createElement('span');
+      var face = document.createElement('img');
+      var name = document.createElement('b');
+      side.className = 'arena-next-pill__side' +
+        (role === 'opponent' ? ' arena-next-pill__side--opponent' : '');
+      face.src = (chef && chef.avatar_url) || '';
+      face.alt = '';
+      face.width = 22;
+      face.height = 22;
+      face.loading = 'lazy';
+      name.textContent = (chef && chef.name) || 'Chef';
+      side.appendChild(face);
+      side.appendChild(name);
+      return side;
+    }
+
     list.forEach(function (entry) {
       var battle = entry || {};
       var item = document.createElement('li');
       var link = document.createElement('a');
       var when = document.createElement('em');
-      var pair = document.createElement('b');
-      var versus = document.createElement('span');
+      link.className = 'arena-next-pill';
       link.href = battle.battle_url || '#';
-      versus.textContent = 'vs';
-      versus.setAttribute('aria-label', 'versus');
-      // The server sends the instant; the viewer's own machine decides how it
-      // reads. formatDateTime falls back to the server's rendering rather than
-      // to an empty cell when the string cannot be parsed.
-      when.textContent = formatDateTime(battle.start_time) || battle.start_display || '';
+      when.className = 'arena-next-pill__when';
+      when.title = "Approximate start, from the chefs' preparation timer";
+      // The server's own short form wins here. formatDateTime spells out
+      // "6 Aug 2026, 00:06", which is four times wider than a pill a third of
+      // the rail across, and the time is approximate anyway - start_display is
+      // already a clock within the day and a date beyond it.
+      when.textContent = battle.start_display || formatDateTime(battle.start_time) || '';
       if (battle.start_time) { when.setAttribute('data-start-time', battle.start_time); }
-      pair.appendChild(document.createTextNode((battle.challenger && battle.challenger.name) || 'Chef'));
-      pair.appendChild(document.createTextNode(' '));
-      pair.appendChild(versus);
-      pair.appendChild(document.createTextNode(' ' + ((battle.opponent && battle.opponent.name) || 'Chef')));
+      link.appendChild(pillSide(battle.challenger, 'challenger'));
       link.appendChild(when);
-      link.appendChild(pair);
+      link.appendChild(pillSide(battle.opponent, 'opponent'));
       item.appendChild(link);
       container.appendChild(item);
     });

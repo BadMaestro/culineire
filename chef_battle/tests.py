@@ -9559,3 +9559,71 @@ class UpcomingBattlesPayloadTests(TestCase):
         self.assertEqual(row["start_time"], start.isoformat())
         self.assertTrue(row["start_display"])
         self.assertIn(str(battle.pk), row["battle_url"])
+
+
+class UpcomingBoardShapeTests(TestCase):
+    """The board holds two rows of three pills, and no more (Owner, 2026-08-05).
+
+    Six is not a taste: the seventh pill needs a third row the ribbon has no
+    height for, and a board that silently drops a departure is worse than a
+    short one. The cap lives in the selector so both the first paint and the
+    poll obey it.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.authors = [
+            RecipeAuthor.objects.create(
+                user=User.objects.create_user(username=f"board-{i}", password="pw"),
+                name=f"Board Chef {i}", slug=f"board-{i}",
+            )
+            for i in range(16)
+        ]
+
+    def _schedule(self, count):
+        now = timezone.now()
+        for i in range(count):
+            start = now + timezone.timedelta(hours=i + 1)
+            Battle.objects.create(
+                challenger=self.authors[(2 * i) % 16],
+                opponent=self.authors[(2 * i + 1) % 16],
+                theme=f"Board theme {i}",
+                status=Battle.Status.SCHEDULED,
+                start_time=start,
+                submission_deadline=start + timezone.timedelta(hours=48),
+                end_time=start + timezone.timedelta(days=3),
+            )
+
+    def test_never_more_than_two_rows_of_three(self):
+        from .selectors import get_upcoming_battles
+
+        self._schedule(9)
+        self.assertEqual(len(get_upcoming_battles()), 6)
+
+    def test_the_six_kept_are_the_six_soonest(self):
+        from .selectors import get_upcoming_battles
+
+        self._schedule(9)
+        starts = [b.start_time for b in get_upcoming_battles()]
+        self.assertEqual(starts, sorted(starts))
+        latest_kept = starts[-1]
+        dropped = Battle.objects.filter(start_time__gt=latest_kept)
+        self.assertTrue(dropped.exists(), "nothing was dropped, so the cap proved nothing")
+
+    def test_a_pill_carries_a_face_and_a_name_for_both_chefs(self):
+        from .views import _build_arena_payload
+
+        self._schedule(1)
+        row = _build_arena_payload()["upcoming"][0]
+        for side in ("challenger", "opponent"):
+            self.assertTrue(row[side]["name"])
+            self.assertIn("avatar_url", row[side])
+
+    def test_the_clock_is_short_enough_for_a_pill(self):
+        """Within a day it is a clock; beyond it, a date. Never a full stamp."""
+        from .views import _build_arena_payload
+
+        self._schedule(1)
+        display = _build_arena_payload()["upcoming"][0]["start_display"]
+        self.assertNotIn(str(timezone.localtime().year), display)
+        self.assertLessEqual(len(display), 8)

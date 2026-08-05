@@ -825,6 +825,19 @@ def _arena_fighter_payload(author, side):
     }
 
 
+def _approx_start_display(start):
+    """A pill-sized, deliberately approximate start time.
+
+    Within a day it is a clock, because that is the only part anyone reads at a
+    glance. Beyond a day a clock alone would be a lie of omission - 19:30 says
+    nothing about which evening - so it becomes a date instead.
+    """
+    local = timezone.localtime(start)
+    if start - timezone.now() < timezone.timedelta(hours=24):
+        return date_format(local, "H:i")
+    return date_format(local, "j M")
+
+
 def _arena_upcoming():
     """The arranged-but-not-started battles, as the arena announces them (X01).
 
@@ -841,12 +854,12 @@ def _arena_upcoming():
             "battle_id": battle.pk,
             "theme": battle.theme,
             "start_time": battle.start_time.isoformat(),
-            # Rendered once here so the no-JS paint reads as a date rather than
-            # as an ISO string; arena_deck.js replaces it with the viewer's own
-            # locale format on the first poll.
-            "start_display": date_format(
-                timezone.localtime(battle.start_time), "j M Y, H:i"
-            ),
+            # APPROXIMATE, and short enough for a pill a third of the rail wide.
+            # Within a day it is a clock, because that is the only part anyone
+            # reads; beyond that a clock alone would be a lie of omission, so it
+            # becomes a date. Rendered here for the no-JS paint; arena_deck.js
+            # replaces it with the viewer's own locale format on the first poll.
+            "start_display": _approx_start_display(battle.start_time),
             "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": battle.pk}),
             "challenger": {
                 "name": battle.challenger.name,

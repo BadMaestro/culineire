@@ -190,48 +190,84 @@
   font-size:.6rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase;
   color:var(--arena-gold, var(--accent-bronze-dark));
 }
+/* Three pills to a row, at most two rows (Owner). The grid runs RIGHT TO LEFT,
+ * so the first item — the soonest battle, the selector orders by start_time —
+ * lands in the top-right corner and the later ones fall away from it, down and
+ * to the left. direction is flipped back on the pill itself so the chefs inside
+ * still read left to right. Two rows is a cap, not a wish: the seventh pill
+ * would need height the composition does not have, so the selector stops at six.
+ */
 .arena-next-board__list {
-  list-style:none; margin:0; padding:0; min-width:0;
-  display:flex; align-items:center; gap:.55rem;
-  overflow:hidden;
+  list-style:none; margin:0; padding:0; min-width:0; flex:1;
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  grid-auto-rows:max-content;
+  gap:.3rem .35rem;
+  direction:rtl;
 }
-.arena-next-board__list li { min-width:0; }
-/* Entries are separated by a rule rather than a bullet, the way a board splits
- * its rows — one line, so a long pairing clips instead of pushing the strip
- * into a second row and stealing height A07 fought for. */
-.arena-next-board__list li + li {
-  padding-left:.55rem;
-  border-left:1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
-}
-.arena-next-board__list li a {
-  display:flex; align-items:baseline; gap:.4rem; min-width:0;
+.arena-next-board__list li { min-width:0; direction:ltr; }
+
+/* The pill: two halves with the clock on the seam. The seam is a real divider,
+ * not a gap — it is what makes it read as one object holding two chefs rather
+ * than as two chips that happen to touch. */
+.arena-next-pill {
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items:center;
+  gap:.3rem;
+  padding:.2rem .4rem;
+  border-radius:999px;
+  border:1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  background:color-mix(in srgb, var(--accent-bronze) 8%, transparent);
   text-decoration:none; color:inherit;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-/* The clock is the thing you scan for, so it leads and it is tabular. */
-.arena-next-board__list li em {
+.arena-next-pill__side {
+  display:flex; align-items:center; gap:.28rem; min-width:0;
+}
+/* The opponent's half mirrors the challenger's, so the two avatars sit at the
+ * outer ends and the clock keeps the middle. */
+.arena-next-pill__side--opponent { flex-direction:row-reverse; }
+.arena-next-pill__side img {
+  flex:none; width:1.15rem; height:1.15rem;
+  border-radius:50%; object-fit:cover;
+  border:1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+}
+.arena-next-pill__side b {
+  min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:.68rem; font-weight:700;
+}
+/* Approximate, and it says so by being a time and nothing else — tabular so a
+ * column of pills lines its clocks up. */
+.arena-next-pill__when {
   flex:none;
-  font-style:normal; font-size:.72rem; font-weight:800;
+  font-style:normal; font-size:.64rem; font-weight:800;
   font-variant-numeric:tabular-nums;
   color:var(--arena-gold, var(--accent-bronze-dark));
+  padding:0 .3rem;
+  border-left:1px solid color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  border-right:1px solid color-mix(in srgb, var(--accent-bronze) 28%, transparent);
 }
-.arena-next-board__list li b {
-  min-width:0; overflow:hidden; text-overflow:ellipsis;
-  font-size:.74rem; font-weight:700;
-}
-/* "vs" is the separator, not a word to read at name weight. */
-.arena-next-board__list li b span {
-  font-weight:600; font-size:.66rem; text-transform:uppercase; letter-spacing:.06em;
-  opacity:.72;
+/* The nearest battle is the one worth noticing, so the first pill carries a
+ * little more weight. It is the same accent, not a second colour. */
+.arena-next-board__list li:first-child .arena-next-pill {
+  background:color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+  border-color:color-mix(in srgb, var(--accent-bronze) 55%, transparent);
 }
 .arena-next-board__empty {
+  grid-column:1 / -1; direction:ltr;
   font-size:.72rem; opacity:.72;
 }
 /* The ribbon is a three-column grid — identity, phase rail, actions. The board
  * belongs under the RAIL, so it is placed in that column's second row rather
  * than allowed to fall into the first column where the grid would put a fourth
  * child by default. */
-.page--arena .arena-broadcast-ribbon .arena-next-board { grid-column:2; }
+/* The ribbon is a three-column grid — identity, phase rail, actions. The board
+ * takes a full row of its own directly under the steps, so its right edge
+ * reaches the ribbon's right edge: that is the corner the soonest pill climbs
+ * towards, under the header's own Issue a Challenge control. Left to itself the
+ * grid would drop this fourth child into the first column, under the identity
+ * block, which is the wrong end of the strip entirely. */
+.page--arena .arena-broadcast-ribbon .arena-next-board { grid-column:1 / -1; }
 
 /* ── Gifts (A12) ── */
 .arena-command-deck__gift-copy { color:var(--ad-ink2); font-size:.8rem; margin:.2rem 0 0; }

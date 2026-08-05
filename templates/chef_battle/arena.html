@@ -13,7 +13,7 @@
 <link href="{% static 'css/arena_effects.css' %}?v=20260727-kill-stage-aura" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260727-tilt42" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay / kill rules last #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260730-no-rank-caption" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260805-next-pills" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260730-no-spine-label" rel="stylesheet">
 {% endblock %}
 
@@ -138,10 +138,23 @@
     <span class="arena-next-board__label" aria-hidden="true">Next</span>
     <ol id="arena-upcoming" class="arena-next-board__list">
       {% for battle in upcoming %}
+        {% comment %}
+          One pill, two halves, a chef in each. The soonest battle is FIRST in
+          this list and the grid lays the list out right to left, so it lands in
+          the top-right corner and the rest fall away from it - the Owner's
+          "the closer to the fight, the higher and further right".
+        {% endcomment %}
         <li>
-          <a href="{{ battle.battle_url }}">
-            <em data-start-time="{{ battle.start_time }}">{{ battle.start_display }}</em>
-            <b>{{ battle.challenger.name }} <span aria-label="versus">vs</span> {{ battle.opponent.name }}</b>
+          <a class="arena-next-pill" href="{{ battle.battle_url }}">
+            <span class="arena-next-pill__side">
+              <img src="{{ battle.challenger.avatar_url }}" alt="" width="22" height="22" loading="lazy">
+              <b>{{ battle.challenger.name }}</b>
+            </span>
+            <em class="arena-next-pill__when" data-start-time="{{ battle.start_time }}" title="Approximate start, from the chefs' preparation timer">{{ battle.start_display }}</em>
+            <span class="arena-next-pill__side arena-next-pill__side--opponent">
+              <img src="{{ battle.opponent.avatar_url }}" alt="" width="22" height="22" loading="lazy">
+              <b>{{ battle.opponent.name }}</b>
+            </span>
           </a>
         </li>
       {% empty %}

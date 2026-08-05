@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.825",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "The next battles are pills now - two halves, a chef in each, soonest to the top right",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner's design for the X01 board: a pill split in two, an avatar and a name in each half, the approximate start on the seam. Three to a row, two rows at most, and the closer a battle is the higher and further right its pill sits. The order is live - the selector sorts by start_time and the poll repaints, so a pill climbs towards the top-right corner on its own as its timer runs down. The grid lays the list out right to left so the soonest lands in that corner; direction flips back inside each pill so the chefs still read left to right. Six is the cap and it is in the selector, not the CSS: a seventh pill needs a third row the ribbon has no height for, and a board that silently drops a departure is worse than a short one. The clock is deliberately approximate and pill-sized - a time within the day, a date beyond it - because the full stamp is four times wider than the pill. MEASURED AT 1920: pill 338px, both names in full, board 63px tall for two rows, inside the ribbon. IF REVERTED: the arena stops saying what is on next.",
+    },
+    {
         "version": "2.5.824",
         "date": "2026-08-05",
         "commit": "",
