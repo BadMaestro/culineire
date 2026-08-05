@@ -2744,6 +2744,41 @@ class ArenaMasterConsoleAccessTests(TestCase):
             source.index("drawSpectatorOval(svg, geometry, step, defs);"),
         )
 
+    def test_the_vs_preview_survives_the_poll_that_used_to_wipe_it(self):
+        """?demo=vs was staged on the page and erased by the very next poll.
+
+        The page rendered the demo battle; ten seconds later the poll built its
+        payload straight from the database, returned the real crown, and the
+        renderer wiped the fighters. Because a chef in the centre vacates their
+        ring cell, the two chefs also vanished from the octagon and came back —
+        which read as an arena bug and was a preview that only half existed.
+
+        Both surfaces now go through _demo_vs_centre(), and the poll URL carries
+        the flag so the server can see it.
+        """
+        from django.conf import settings as django_settings
+        from pathlib import Path
+
+        views = (
+            Path(django_settings.BASE_DIR) / "chef_battle" / "views.py"
+        ).read_text(encoding="utf-8")
+        js = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+        # One implementation, two callers — not a second copy in the poll.
+        # Count the assignments, not the name: the `def` line matches too.
+        self.assertEqual(views.count("def _demo_vs_centre("), 1)
+        self.assertEqual(views.count("= _demo_vs_centre(request"), 2)
+
+        # The poll can only honour it if the flag reaches the server.
+        self.assertIn("demo=vs", js)
+        self.assertIn("post(stateUrl())", js)
+
+        # Still moderator-gated, still read-only. A preview that anyone can
+        # switch on is a fake battle in production (v2.5.782).
+        self.assertIn('request.GET.get("demo") != "vs" or not is_moderator', views)
+
     def test_fighter_offset_is_derived_from_the_measured_reference_gap(self):
         """A09: the pads sit at a MEASURED distance, not a hand-tuned multiplier.
 

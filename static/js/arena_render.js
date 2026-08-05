@@ -2570,8 +2570,21 @@
     });
   }
 
+  /**
+   * The poll URL carries ?demo=vs when the page was opened with it.
+   *
+   * The poll is a POST to a bare path, so the server could not see the query
+   * string the page was rendered with — it answered with the real centre and
+   * wiped the preview on the first tick. The flag is only ever honoured for a
+   * moderator, server-side; passing it here grants nothing.
+   */
+  function stateUrl() {
+    var base = '/chef-battle/arena/state/';
+    return /(^|[?&])demo=vs(&|$)/.test(global.location.search) ? base + '?demo=vs' : base;
+  }
+
   function poll(svg) {
-    post('/chef-battle/arena/state/')
+    post(stateUrl())
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (payload) {
         if (!payload) { return; }

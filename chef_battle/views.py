@@ -1132,6 +1132,36 @@ def _build_arena_payload(*, viewer_author=None):
     }
 
 
+def _demo_vs_centre(request, enrolled):
+    """Moderator-only preview of the active-battle centre, or None.
+
+    /chef-battle/arena/?demo=vs stages the two-cell VS centre from two REAL
+    enrolled chefs so the Owner can see and tune the composition without an
+    active battle. No DB writes, never for non-moderators, never on the share
+    link. It is not a fixture: the chefs are real rows, which is why it is
+    allowed where hydrateFixtures() is not.
+
+    IT LIVES HERE BECAUSE TWO SURFACES NEED IT. It used to sit inline in
+    _arena_page_context, so the page was rendered with the demo battle and the
+    very next poll — which builds its payload straight from the database —
+    returned the real crown and wiped it. The preview flickered once and died,
+    and because a chef in the centre vacates their ring cell, the two chefs
+    disappeared from the octagon and came back a second later. That read as an
+    arena bug and was a preview that only half existed.
+    """
+    if request.GET.get("demo") != "vs" or not is_moderator(request.user):
+        return None
+    pair = list(enrolled[:2])
+    if len(pair) < 2:
+        return None
+    return {
+        "type": "active_battle",
+        "battle_url": "#",
+        "challenger": _arena_fighter_payload(pair[0].author, "challenger"),
+        "opponent": _arena_fighter_payload(pair[1].author, "opponent"),
+    }
+
+
 def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
     """Assemble everything chef_battle/arena.html needs.
 
@@ -1164,19 +1194,9 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         "server_time": payload["server_time"],
     }
 
-    # Moderator-only preview of the active-battle centre (Phase 1 choreography).
-    # /chef-battle/arena/?demo=vs stages the two-cell VS centre using two real
-    # enrolled chefs, so the owner can see and tune it without an active battle.
-    # No DB writes; never shown to non-moderators, and never on the share link.
-    if allow_demo and request.GET.get("demo") == "vs" and is_moderator(request.user):
-        demo_pair = list(enrolled[:2])
-        if len(demo_pair) >= 2:
-            arena_data["center"] = {
-                "type": "active_battle",
-                "battle_url": "#",
-                "challenger": _arena_fighter_payload(demo_pair[0].author, "challenger"),
-                "opponent": _arena_fighter_payload(demo_pair[1].author, "opponent"),
-            }
+    demo_centre = _demo_vs_centre(request, enrolled) if allow_demo else None
+    if demo_centre:
+        arena_data["center"] = demo_centre
 
     rank_groups = [
         (rank, chefs_by_rank[rank.value])
@@ -1426,6 +1446,11 @@ def arena_state(request):
     release_lapsed_seats()
 
     payload = _build_arena_payload(viewer_author=viewer_author)
+    # The poll must stage the same preview the page was rendered with, or it
+    # overwrites it on the first tick — see _demo_vs_centre().
+    demo_centre = _demo_vs_centre(request, payload["enrolled"])
+    if demo_centre:
+        payload["center"] = demo_centre
     return JsonResponse({key: payload[key] for key in PUBLIC_ARENA_STATE_KEYS})
 
 

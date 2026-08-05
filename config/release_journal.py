@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.816",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "The chefs that appeared and vanished - the VS preview was wiped by its own poll",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner's report: after a restart, cells with chefs appeared on the arena and disappeared again, and the page seemed to update oddly even though he had already taken the full reload from 30 seconds to 300. Reproduced and timed on production rather than reasoned about: with /chef-battle/arena/?demo=vs open, the stage renders active_battle with two fighters and zero chef cells, and by the next sample it is crown with zero fighters and two chef cells back. THE CAUSE. The moderator-only VS preview was applied in _arena_page_context only, so it existed on the server-rendered paint and nowhere else. The poll builds its payload straight from the database, returned the real crown, and the renderer wiped the centre layer - and because a chef fighting the battle shown in the centre vacates their ring cell by design, both chefs left the octagon on load and walked back in when the poll landed. Exactly the appear-and-vanish he saw, and it had nothing to do with the reload interval or with presence. TWO PARTS, BOTH SMALL. The preview is now one function, _demo_vs_centre(), called by the page and by the poll instead of living inline in one of them; and the poll URL carries ?demo=vs when the page was opened with it, because the poll is a POST to a bare path and the server could not otherwise see the query string the page was rendered with. The flag grants nothing - it is honoured only for a moderator, server-side, with no writes, and never on the share link. This is not a fixture and does not reopen v2.5.782: the two chefs are real enrolled rows, which is the whole difference between a preview and an invented audience. WHAT IT UNBLOCKS. A09's visible result could not be photographed while the centre is a crown, and injecting a battle is what the card forbids. With the preview stable, the fighter composition can be measured on the real page against the reference. Presence is NOT implicated and was checked in passing: three enrolled chefs, two seen within nine seconds, one offline for thirty-five hours, and a chef leaves the ring when last_seen_at passes the 180-second window. That is by design and is a separate question if he wants it changed.",
+    },
+    {
         "version": "2.5.815",
         "date": "2026-08-05",
         "commit": "",
