@@ -107,15 +107,27 @@ def main():
         print(f"duplicate version numbers    {len(dupes)}  "
               f"({sum(dupes.values())} rows, {ordered[0]} -> {ordered[-1]})")
 
+    # Two different things used to be counted as one number here, and the sum
+    # was misleading in both directions: a run that genuinely ascends is
+    # disorder, while two adjacent rows carrying the SAME version are the
+    # collisions above sitting where they belong. Counting them together
+    # reported 43 "ordering breaks" when 20 were real, and made a correctly
+    # sorted list score worse than the unsorted one.
     keys = [key(v) for v in versions]
-    breaks = [
+    ascending = [
         (versions[i], versions[i + 1])
         for i in range(len(keys) - 1)
-        if keys[i] and keys[i + 1] and keys[i] <= keys[i + 1]
+        if keys[i] and keys[i + 1] and keys[i] < keys[i + 1]
     ]
-    print(f"ordering breaks              {len(breaks)}   (list is not strictly descending)")
-    for before, after in breaks[:5]:
+    adjacent_dupes = sum(
+        1 for i in range(len(keys) - 1)
+        if keys[i] and keys[i + 1] and keys[i] == keys[i + 1]
+    )
+    print(f"ordering breaks              {len(ascending)}   (places where the list ascends)")
+    for before, after in ascending[:5]:
         print(f"   {before} then {after}")
+    print(f"adjacent same-version rows   {adjacent_dupes}   "
+          f"not disorder: the collisions above, sitting together")
 
     if placeholders:
         print(f"rows with no version number  {len(placeholders)}  {dict(Counter(placeholders))}")
