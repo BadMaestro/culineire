@@ -7843,6 +7843,32 @@ class ArenaPhasePanelTests(TestCase):
         self.assertIn('aria-label="Page refresh countdown"', source)
         self.assertIn('class="arena-phase-refresh"', source)
 
+    def test_the_full_reload_is_five_minutes_and_the_polls_are_not(self):
+        """Owner 2026-08-05: the page reload moves from 30 s to 5 minutes.
+
+        Pinned because the two numbers are easy to confuse and only one of them
+        changed. The RELOAD throws the page away; the POLLS refresh the data in
+        place. Slowing the polls to match would leave the floor, the seats and
+        the metrics stale for five minutes, which is the opposite of the point.
+        """
+        source = self._template()
+        boot = source.split("function boot()", 1)[1].split("function csrfToken", 1)[0]
+        self.assertIn("var TOTAL = 300;", boot)
+        self.assertNotIn("var TOTAL = 30;", boot)
+        self.assertIn("window.location.reload()", boot)
+        self.assertIn('aria-label="Page refresh countdown">05:00</strong>', source)
+
+        from pathlib import Path
+        from django.conf import settings as dj_settings
+        render = (
+            Path(dj_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        # Measured, not assumed: the state poll is 10 s and the presence ping is
+        # 20 s. An earlier draft of this test asserted 20 s for both and failed,
+        # which is the test being wrong about the code rather than the reverse.
+        self.assertIn("var POLL_INTERVAL = 10000;", render)
+        self.assertIn("var PING_INTERVAL = 20000;", render)
+
     def test_the_deadline_element_appears_exactly_once(self):
         """It was MOVED, not copied. Two nodes with one id would leave byId()
         updating the first and the second frozen on the page."""

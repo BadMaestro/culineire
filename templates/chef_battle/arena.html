@@ -66,7 +66,7 @@
     {% endcomment %}
     <div class="arena-phase-refresh">
       <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge" style="width:100%"></span></div>
-      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">00:30</strong>
+      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">05:00</strong>
     </div>
     <p class="arena-phase-next" id="arena-phase-next"{% if not arena_data.phase %} hidden{% endif %}>Next: <b>
     {% if arena_data.phase and arena_data.phase_rail %}
@@ -362,9 +362,16 @@
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   /* Owner 2026-07-24: visible mockup-style countdown + Arena full reload.
-     Must carry CSP nonce — bare <script> is blocked and the timer freezes at 00:30. */
+     Must carry CSP nonce — bare <script> is blocked and the timer freezes.
+
+     Owner 2026-08-05: the full reload moves from 30 seconds to 5 minutes.
+     ONLY the reload changes. The 20-second state poll and the 20-second
+     presence ping in arena_render.js are untouched, so the floor, the seats,
+     the metrics and who is online still update on their own clock. What stops
+     is the page throwing itself away every half minute underneath whoever is
+     reading it. */
   function boot() {
-    var TOTAL = 30;
+    var TOTAL = 300;
     var left = TOTAL;
     var timerEl = document.getElementById('arena-refresh-timer');
     var gaugeEl = document.getElementById('arena-refresh-gauge');

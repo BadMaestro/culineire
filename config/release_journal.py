@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.811",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "The Arena reloads every 5 minutes, not every 30 seconds",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner order, 2026-08-05. The full page reload goes from 30 seconds to 300. ONLY the reload changed, and that distinction is the whole care in this release: the reload throws the page away and takes the reader with it, while the polls refresh the data in place. The state poll stays at 10 seconds and the presence ping at 20, both in arena_render.js, so the floor, the seats, the metrics and who is online still update on their own clock - slowing those to match would have left the page stale for five minutes, which is the opposite of what was asked. The visible countdown starts at 05:00 to match the timer it belongs to; it is the same demoted counter that moved onto its gauge in A11, and it still drives the reload the Owner supervises by. A test pins both numbers together, because they are easy to confuse and only one of them moved. Measured while writing it: POLL_INTERVAL is 10000, not the 20000 the first draft of that test asserted - the test was wrong about the code, not the code about itself.",
+    },
+    {
         "version": "2.5.810",
         "date": "2026-08-05",
         "commit": "",
