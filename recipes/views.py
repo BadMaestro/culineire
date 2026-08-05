@@ -2448,8 +2448,22 @@ def moderation_panel(request):
         .order_by("-created_at")
     )
 
+    # Withdrawal requests waiting for the final word (Owner's rule, 2026-08-05).
+    # The chefs answer each other first; a moderator closes it either way.
+    try:
+        from chef_battle.models import BattleWithdrawal
+        pending_withdrawals = list(
+            BattleWithdrawal.objects
+            .select_related("battle", "requester", "opponent")
+            .filter(status=BattleWithdrawal.Status.AWAITING_MODERATOR)
+            .order_by("created_at")
+        )
+    except Exception:
+        pending_withdrawals = []
+
     return render(request, "moderation/panel.html", {
         "pending_clans": pending_clans,
+        "pending_withdrawals": pending_withdrawals,
         "pending_recipes": pending_recipes,
         "needs_changes_recipes": needs_changes_recipes,
         "rejected_recipes": rejected_recipes,

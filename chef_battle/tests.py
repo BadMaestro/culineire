@@ -634,6 +634,7 @@ class ChefBattleRulesViewTests(TestCase):
         ):
             self.assertContains(response, rank_and_range, html=False)
         self.assertContains(response, "Losing a battle costs a Chef nothing")
+        self.assertContains(response, "three times in the life of the account")
         self.assertNotContains(response, "a loss deducts 15")
         self.assertContains(response, reverse("chef_battle:rankings"))
         self.assertContains(response, "CulinEire Hero is a unique site-owner status")
@@ -9761,3 +9762,200 @@ class DemoNextBoardPreviewTests(TestCase):
         before = Battle.objects.count()
         _demo_upcoming(self._request("next", moderator=True), self._enrolled())
         self.assertEqual(Battle.objects.count(), before)
+
+
+class BattleWithdrawalTests(TestCase):
+    """Withdrawing from an accepted battle - the Owner's rule of 2026-08-05.
+
+    The site punishes nobody on its own. The other chef answers, a moderator has
+    the final word, and the allowance is three per account for life.
+    """
+
+    def setUp(self):
+        from .models import BattleWithdrawal
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="wd-a", password="pw")
+        self.user_b = User.objects.create_user(username="wd-b", password="pw")
+        self.moderator = User.objects.create_user(username="wd-mod", password="pw", is_staff=True)
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Withdrawer", slug="wd-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Other Chef", slug="wd-b")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="Withdrawal theme",
+            status=Battle.Status.SCHEDULED, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=12),
+            end_time=now + timezone.timedelta(days=1),
+        )
+        self.W = BattleWithdrawal
+
+    def _profile(self, author):
+        from .services import get_or_create_battle_profile
+        return get_or_create_battle_profile(author)
+
+    def test_a_fresh_account_carries_three_withdrawals(self):
+        self.assertEqual(self._profile(self.chef_a).withdrawals_remaining, 3)
+
+    def test_asking_spends_the_allowance_and_waits_for_the_other_chef(self):
+        from .withdrawal_service import request_withdrawal
+
+        withdrawal = request_withdrawal(
+            battle=self.battle, author=self.chef_a, reason="Kitchen fire.")
+
+        self.assertEqual(withdrawal.status, self.W.Status.AWAITING_OPPONENT)
+        self.assertEqual(withdrawal.opponent, self.chef_b)
+        # Spent on the ASKING, not the outcome: otherwise a request that is
+        # waved through costs nothing and the fixed three mean nothing.
+        self.assertEqual(self._profile(self.chef_a).withdrawals_remaining, 2)
+
+    def test_a_reason_is_required(self):
+        from .withdrawal_service import request_withdrawal, WithdrawalNotAllowed
+
+        with self.assertRaises(WithdrawalNotAllowed):
+            request_withdrawal(battle=self.battle, author=self.chef_a, reason="   ")
+        self.assertEqual(self._profile(self.chef_a).withdrawals_remaining, 3)
+
+    def test_the_button_goes_dark_when_the_three_are_gone(self):
+        from .withdrawal_service import can_withdraw
+
+        profile = self._profile(self.chef_a)
+        profile.withdrawals_remaining = 0
+        profile.save(update_fields=["withdrawals_remaining"])
+
+        self.assertFalse(can_withdraw(self.battle, self.chef_a))
+
+    def test_asking_for_the_penalty_obliges_the_other_chef_to_say_why(self):
+        from .withdrawal_service import (decide_withdrawal, request_withdrawal,
+                                         WithdrawalNotAllowed)
+
+        withdrawal = request_withdrawal(
+            battle=self.battle, author=self.chef_a, reason="Family emergency.")
+
+        with self.assertRaises(WithdrawalNotAllowed):
+            decide_withdrawal(withdrawal=withdrawal, author=self.chef_b,
+                              with_penalty=True, opponent_reason="")
+
+        # Waiving it needs no explanation at all - nobody has to justify
+        # letting someone off.
+        decide_withdrawal(withdrawal=withdrawal, author=self.chef_b, with_penalty=False)
+        withdrawal.refresh_from_db()
+        self.assertEqual(withdrawal.opponent_decision, self.W.OpponentDecision.WITHOUT_PENALTY)
+        self.assertEqual(withdrawal.status, self.W.Status.AWAITING_MODERATOR)
+
+    def test_only_the_other_chef_may_answer(self):
+        from .withdrawal_service import (decide_withdrawal, request_withdrawal,
+                                         WithdrawalNotAllowed)
+
+        withdrawal = request_withdrawal(
+            battle=self.battle, author=self.chef_a, reason="Illness.")
+        with self.assertRaises(WithdrawalNotAllowed):
+            decide_withdrawal(withdrawal=withdrawal, author=self.chef_a, with_penalty=False)
+
+    def test_nothing_moves_until_the_moderator_speaks(self):
+        """The chefs answer is a recommendation. Only the moderator is final."""
+        from .withdrawal_service import decide_withdrawal, request_withdrawal
+
+        profile = self._profile(self.chef_a)
+        profile.rating, profile.reputation = 100, 50
+        profile.save(update_fields=["rating", "reputation"])
+
+        withdrawal = request_withdrawal(
+            battle=self.battle, author=self.chef_a, reason="Force majeure.")
+        decide_withdrawal(withdrawal=withdrawal, author=self.chef_b,
+                          with_penalty=True, opponent_reason="He does this every time.")
+
+        profile.refresh_from_db()
+        self.assertEqual(profile.rating, 100)
+        self.assertEqual(profile.reputation, 50)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.SCHEDULED)
+
+    def test_the_moderator_upholds_the_penalty(self):
+        from .withdrawal_service import (decide_withdrawal, request_withdrawal,
+                                         resolve_withdrawal)
+
+        profile = self._profile(self.chef_a)
+        profile.rating, profile.reputation = 100, 50
+        profile.save(update_fields=["rating", "reputation"])
+
+        withdrawal = request_withdrawal(
+            battle=self.battle, author=self.chef_a, reason="Overslept, honestly.")
+        decide_withdrawal(withdrawal=withdrawal, author=self.chef_b,
+                          with_penalty=True, opponent_reason="Third time this season.")
+        resolve_withdrawal(withdrawal=withdrawal, moderator=self.moderator,
+                           uphold_penalty=True, note="Agreed.")
+
+        profile.refresh_from_db()
+        self.assertEqual(profile.rating, 85)      # the Owner's figure: 15
+        self.assertEqual(profile.reputation, 47)  # and 3
+        # A withdrawal is not a defeat: no loss is recorded and the battle is
+        # cancelled rather than lost.
+        self.assertEqual(profile.losses, 0)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
+        self.assertIsNone(self.battle.winner)
+        withdrawal.refresh_from_db()
+        self.assertEqual(withdrawal.status, self.W.Status.CLOSED)
+        self.assertTrue(withdrawal.penalty_applied)
+
+    def test_the_moderator_may_overrule_the_chef_who_asked_for_a_penalty(self):
+        from .withdrawal_service import (decide_withdrawal, request_withdrawal,
+                                         resolve_withdrawal)
+
+        profile = self._profile(self.chef_a)
+        profile.rating, profile.reputation = 100, 50
+        profile.save(update_fields=["rating", "reputation"])
+
+        withdrawal = request_withdrawal(
+            battle=self.battle, author=self.chef_a, reason="Hospital.")
+        decide_withdrawal(withdrawal=withdrawal, author=self.chef_b,
+                          with_penalty=True, opponent_reason="I do not believe him.")
+        resolve_withdrawal(withdrawal=withdrawal, moderator=self.moderator,
+                           uphold_penalty=False, note="Discharge letter checked.")
+
+        profile.refresh_from_db()
+        self.assertEqual(profile.rating, 100)
+        self.assertEqual(profile.reputation, 50)
+        withdrawal.refresh_from_db()
+        self.assertFalse(withdrawal.penalty_applied)
+        self.assertEqual(withdrawal.status, self.W.Status.CLOSED)
+
+    def test_the_owners_account_pays_no_withdrawal_penalty(self):
+        """Section 18: nothing the game does may take anything from him."""
+        from django.conf import settings as dj_settings
+        from .withdrawal_service import (decide_withdrawal, request_withdrawal,
+                                         resolve_withdrawal)
+
+        # The Owner's author row already exists - a data migration creates it -
+        # so this takes the real one rather than making a second.
+        owner = RecipeAuthor.objects.filter(slug=dj_settings.OWNER_SLUG).first()
+        if owner is None:
+            User = get_user_model()
+            owner = RecipeAuthor.objects.create(
+                user=User.objects.create_user(username="wd-owner", password="pw"),
+                name="Owner", slug=dj_settings.OWNER_SLUG)
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=owner, opponent=self.chef_b, theme="Owner withdrawal",
+            status=Battle.Status.SCHEDULED, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=12),
+            end_time=now + timezone.timedelta(days=1),
+        )
+        profile = self._profile(owner)
+        rating_before, reputation_before = profile.rating, profile.reputation
+
+        withdrawal = request_withdrawal(battle=battle, author=owner, reason="Away.")
+        decide_withdrawal(withdrawal=withdrawal, author=self.chef_b,
+                          with_penalty=True, opponent_reason="Penalty please.")
+        resolve_withdrawal(withdrawal=withdrawal, moderator=self.moderator,
+                           uphold_penalty=True)
+
+        profile.refresh_from_db()
+        self.assertEqual(profile.rating, rating_before)
+        self.assertEqual(profile.reputation, reputation_before)
+
+    def test_a_second_request_cannot_open_while_one_is_being_judged(self):
+        from .withdrawal_service import can_withdraw, request_withdrawal
+
+        request_withdrawal(battle=self.battle, author=self.chef_a, reason="Reason.")
+        self.assertFalse(can_withdraw(self.battle, self.chef_a))
+        self.assertFalse(can_withdraw(self.battle, self.chef_b))

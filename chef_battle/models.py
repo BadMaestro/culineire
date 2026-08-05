@@ -61,6 +61,13 @@ class ChefBattleProfile(models.Model):
     wins = models.PositiveIntegerField(default=0)
     losses = models.PositiveIntegerField(default=0)
     refused_battles = models.PositiveIntegerField(default=0)
+    # Owner's rule, 2026-08-05: a chef may pull out of an ACCEPTED battle for a
+    # genuine force majeure. Three per account, for the life of the account, and
+    # when they are gone the button goes dark.
+    withdrawals_remaining = models.PositiveSmallIntegerField(
+        default=3,
+        help_text="Force-majeure withdrawals left. Fixed allowance of 3 per account.",
+    )
     ignored_battles = models.PositiveIntegerField(default=0)
     win_streak = models.PositiveIntegerField(default=0)
     best_win_streak = models.PositiveIntegerField(default=0)
@@ -2102,3 +2109,87 @@ class BattleReaction(models.Model):
 
     def __str__(self):
         return f"heart {self.side} on battle {self.battle_id}"
+
+
+class BattleWithdrawal(models.Model):
+    """A chef asks to be let out of a battle he has already accepted.
+
+    THE OWNER'S RULE, 2026-08-05. Pulling out is not punished by the site: the
+    reasons can be anything, force majeure included, and the machine cannot tell
+    them apart. So the decision is shared between the other chef and a human
+    moderator, and the site itself decides nothing.
+
+        1. The withdrawing chef states his reason - in his own words, required,
+           the same shape as the contact form.
+        2. The other chef answers: WITHOUT penalty, or WITH one (15 rating and 3
+           reputation). Choosing the penalty obliges him to say why; waiving it
+           needs no explanation at all.
+        3. Either answer goes to a moderator, who is the FINAL judge. He may
+           uphold the chef's answer or replace it with his own.
+
+    The allowance is three per account. When it runs out the button goes dark
+    and the chef is back to answering for a no-show.
+    """
+
+    class OpponentDecision(models.TextChoices):
+        PENDING = "pending", "Waiting for the other chef"
+        WITHOUT_PENALTY = "without_penalty", "Accepted without penalty"
+        WITH_PENALTY = "with_penalty", "Accepted with penalty"
+
+    class Status(models.TextChoices):
+        AWAITING_OPPONENT = "awaiting_opponent", "Waiting for the other chef"
+        AWAITING_MODERATOR = "awaiting_moderator", "Waiting for a moderator"
+        CLOSED = "closed", "Closed"
+
+    PENALTY_RATING = 15
+    PENALTY_REPUTATION = 3
+
+    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="withdrawals")
+    requester = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="battle_withdrawals_requested"
+    )
+    opponent = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="battle_withdrawals_received"
+    )
+    reason = models.TextField(help_text="The withdrawing chef's own account of what happened.")
+
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.AWAITING_OPPONENT, db_index=True
+    )
+    opponent_decision = models.CharField(
+        max_length=16, choices=OpponentDecision.choices, default=OpponentDecision.PENDING, db_index=True
+    )
+    opponent_reason = models.TextField(
+        blank=True, help_text="Required only when the other chef asks for the penalty."
+    )
+    opponent_decided_at = models.DateTimeField(null=True, blank=True)
+
+    # The moderator is the final judge: he may uphold the other chef's answer or
+    # rule against it. `penalty_applied` is what actually happened to the chef.
+    moderator_note = models.TextField(blank=True)
+    penalty_applied = models.BooleanField(default=False)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="reviewed_battle_withdrawals",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                check=~Q(requester=models.F("opponent")),
+                name="chef_battle_withdrawal_distinct_authors",
+            ),
+            # One open request per battle: a second one would let a chef spend a
+            # second allowance on a battle already being judged.
+            models.UniqueConstraint(
+                fields=["battle"],
+                condition=~Q(status="closed"),
+                name="chef_battle_one_open_withdrawal_per_battle",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Withdrawal #{self.pk}: {self.requester} from battle #{self.battle_id} ({self.status})"

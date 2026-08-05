@@ -56,6 +56,10 @@ urlpatterns = [
     path("battles/<int:pk>/", views.battle_detail, name="battle_detail"),
     path("battles/<int:pk>/submit/", views.battle_entry_submit, name="battle_entry_submit"),
     path("battles/<int:pk>/vote/", views.battle_vote, name="battle_vote"),
+    # Withdrawing from an accepted battle — Owner's rule, 2026-08-05
+    path("battles/<int:pk>/withdraw/", views.battle_withdraw, name="battle_withdraw"),
+    path("withdrawals/<int:pk>/decide/", views.battle_withdraw_decide, name="battle_withdraw_decide"),
+    path("withdrawals/<int:pk>/resolve/", views.battle_withdraw_resolve, name="battle_withdraw_resolve"),
     path("my-moves/", views.my_moves, name="my_moves"),
     path("poll/", views.notifications_poll, name="notifications_poll"),
     path("notifications/", views.notifications_inbox, name="notifications_inbox"),

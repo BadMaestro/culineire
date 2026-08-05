@@ -112,6 +112,53 @@
     </div>
     {% endif %}
 
+    {# Withdrawing from an accepted battle — Owner's rule, 2026-08-05.
+       The button goes dark when the three-per-account allowance is gone. #}
+    {% if is_participant %}
+      {% if open_withdrawal %}
+      <div class="bd-withdrawal">
+        {% if withdrawal_is_mine %}
+        <p class="bd-withdrawal__title">You have asked to withdraw from this battle.</p>
+        <p class="bd-withdrawal__body">
+          {{ open_withdrawal.opponent.name }} is reading your reason. A moderator
+          has the final word.
+        </p>
+        {% elif open_withdrawal.status == "awaiting_opponent" %}
+        <p class="bd-withdrawal__title">{{ open_withdrawal.requester.name }} asks to withdraw from this battle.</p>
+        <blockquote class="bd-withdrawal__reason">{{ open_withdrawal.reason|linebreaksbr }}</blockquote>
+        <p class="bd-withdrawal__body">
+          You decide whether it costs them anything: a penalty is 15 rating and
+          3 reputation. Either way a moderator has the last word, and if you ask
+          for the penalty you must say why.
+        </p>
+        <form method="post" action="{% url 'chef_battle:battle_withdraw_decide' open_withdrawal.pk %}">
+          {% csrf_token %}
+          <textarea class="cr-textarea" name="opponent_reason" rows="4"
+                    placeholder="Only needed if you ask for the penalty — why is it deserved?"></textarea>
+          <div class="cr-form-actions">
+            <button class="btn-primary" type="submit" name="decision" value="without_penalty">Let them go, no penalty</button>
+            <button class="btn-secondary" type="submit" name="decision" value="with_penalty">Ask for the penalty</button>
+          </div>
+        </form>
+        {% else %}
+        <p class="bd-withdrawal__title">Your answer is with a moderator.</p>
+        {% endif %}
+      </div>
+      {% elif can_withdraw %}
+      <div class="bd-withdrawal">
+        <a class="btn-secondary" href="{% url 'chef_battle:battle_withdraw' battle.pk %}">Withdraw from this battle</a>
+        <p class="bd-withdrawal__body">{{ withdrawals_left }} of 3 left.</p>
+      </div>
+      {% elif withdrawals_left == 0 and battle.status in active_statuses %}
+      <div class="bd-withdrawal">
+        <p class="bd-withdrawal__body">
+          You have used all three withdrawals. Failing to appear for a battle is
+          answered for as usual.
+        </p>
+      </div>
+      {% endif %}
+    {% endif %}
+
     {# Dates row #}
     <div class="battle-room-meta" aria-label="Battle schedule">
       <span>Start {{ battle.start_time|date:"j M Y H:i" }}</span>

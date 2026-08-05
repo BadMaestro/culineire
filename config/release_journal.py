@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.830",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "A chef can walk away from a battle he accepted, and the site does not judge him for it",
+        "section": "Chef Battles / Withdrawal",
+        "summary": "THE OWNER'S NEW RULE, 2026-08-06: a chef who pulls out of an ACCEPTED battle is not penalised by the site. The reasons can be anything, force majeure included, and no machine can tell one from an excuse - so the responsibility is shared between the other chef and a human, and the site decides nothing on its own. Three steps: the withdrawing chef presses Withdraw and writes his reason on a contact-form-shaped page (required); the other chef answers WITHOUT a penalty or WITH one (15 rating, 3 reputation), and asking for it obliges him to say why while waiving it needs no explanation at all; then either answer goes to a MODERATOR, who is the final judge and may rule against the chef. Nothing moves until he speaks - a test holds that. The allowance is three per account for the life of the account, and when it is gone the button goes dark and a no-show is answered for as before. A withdrawal is NOT a defeat: no loss, no broken streak, no win for the other chef; the battle is CANCELLED. The penalty passes through penalise(), so section 18 keeps the Owner's account whole here too. New model BattleWithdrawal, ChefBattleProfile.withdrawals_remaining, chef_battle/withdrawal_service.py, a queue in the moderation panel, and the rule on the public rules page and in battle_rules.md. THIS RELEASE CARRIES A MIGRATION (0085). 11 new tests, 41 focused green. STILL HIS TO SETTLE: the other chef loses his battle through no fault of his own and currently gets nothing for it. IF REVERTED: withdrawal disappears and only a no-show is left.",
+    },
+    {
         "version": "2.5.829",
         "date": "2026-08-05",
         "commit": "",

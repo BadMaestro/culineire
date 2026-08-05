@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Withdraw from {{ battle.theme }} | Chef Battles{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260805-withdraw" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    {% include '_enter_arena_btn.html' %}
+    <p class="battle-kicker">&#x1F91D; Withdraw from the battle</p>
+    <h1 class="battle-room-title">{{ battle.theme }}</h1>
+    <p class="battle-room-meta">vs {{ other_chef.name }}</p>
+  </div>
+</section>
+
+<div class="container battle-room-body">
+
+  {% if messages %}
+  <div class="battle-messages">
+    {% for msg in messages %}
+    <div class="battle-message battle-message--{{ msg.tags }}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="bd-phase-panel">
+    <p class="bd-phase-panel__icon">&#x1F91D;</p>
+    <h2 class="bd-phase-panel__title">Tell {{ other_chef.name }} what happened</h2>
+    <p class="bd-phase-panel__body">
+      Things happen &mdash; illness, family, a kitchen that catches fire on the
+      wrong day. Say what happened in your own words. <strong>{{ other_chef.name }}</strong>
+      reads it and decides whether it costs you anything, and a moderator has
+      the final word either way.
+    </p>
+    <p class="bd-phase-panel__body">
+      A penalty, if it is asked for and upheld, is
+      <strong>15 rating and 3 reputation</strong>. You keep everything else: no
+      loss is recorded and the battle is cancelled, not lost.
+    </p>
+    <p class="bd-phase-panel__body">
+      This is withdrawal <strong>{{ withdrawals_left }}</strong> of the three
+      your account will ever have. When they are gone the button goes dark, and
+      failing to appear for a battle is answered for as usual.
+    </p>
+
+    <form method="post" class="cr-form">
+      {% csrf_token %}
+      <label class="cr-label" for="withdraw-reason">Your reason</label>
+      <textarea class="cr-textarea" id="withdraw-reason" name="reason" rows="7" required
+                placeholder="What happened?"></textarea>
+      <div class="cr-form-actions">
+        <button class="btn-primary" type="submit">Send to {{ other_chef.name }}</button>
+        <a class="btn-secondary" href="{% url 'chef_battle:battle_detail' battle.pk %}">Never mind</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

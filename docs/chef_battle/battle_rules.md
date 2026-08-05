@@ -40,6 +40,35 @@ Defined by project creator.
 **Floor rule**: battle count can never go below 0. If a chef has 0 battles
 and incurs a penalty, it stays at 0.
 
+### Withdrawing from an accepted battle — Owner, 2026-08-05
+
+A chef who pulls out of a battle he has already accepted is **not punished by
+the site**. The reasons can be anything, force majeure included, and no machine
+can tell one from an excuse — so the responsibility is shared between the other
+chef and a human, and the site itself decides nothing.
+
+1. The withdrawing chef presses **Withdraw** and writes his reason, in his own
+   words, on a page shaped like the contact form. The reason is required.
+2. The other chef answers: **without a penalty**, or **with one — 15 rating and
+   3 reputation**. Asking for it obliges him to say why; waiving it needs no
+   explanation, because nobody has to justify letting someone off.
+3. **Either answer goes to a moderator, who is the final judge.** He may uphold
+   the chef's answer or replace it with his own.
+
+The allowance is **three per account, for the life of the account**. When they
+are gone the button goes dark and a no-show is answered for as before.
+
+A withdrawal is **not a defeat**: no loss, no broken streak, no win for the
+other chef. The battle is CANCELLED. Only the moderator's word moves any number,
+and the penalty passes through `penalise()`, so section 18 holds here too.
+
+Code: `chef_battle/withdrawal_service.py`, model `BattleWithdrawal`, allowance on
+`ChefBattleProfile.withdrawals_remaining`.
+
+**STILL HIS TO SETTLE:** the other chef loses their battle through no fault of
+their own and currently receives nothing for it. Whether they should take the
+second-place share is not decided.
+
 ### Losing a fought battle is not a penalty — Owner, 2026-08-05
 
 Turning up and cooking is experience whichever way the vote goes: this is a

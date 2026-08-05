@@ -1844,6 +1844,16 @@ def battle_detail(request, pk):
         and not (battle.challenger_ready if viewer_is_challenger else battle.opponent_ready)
     )
 
+    # Withdrawing from an accepted battle (Owner's rule, 2026-08-05). The button
+    # goes dark once the three-per-account allowance is gone.
+    from .withdrawal_service import can_withdraw, open_withdrawal_for, withdrawals_left
+    can_withdraw_battle = can_withdraw(battle, viewer_author) if is_participant else False
+    viewer_withdrawals_left = withdrawals_left(viewer_author) if is_participant else 0
+    open_withdrawal = open_withdrawal_for(battle) if is_participant else None
+    withdrawal_is_mine = bool(
+        open_withdrawal and viewer_author and open_withdrawal.requester_id == viewer_author.pk
+    )
+
     try:
         from sponsors.services import get_sponsor_of_month
         central_sponsor = get_sponsor_of_month()
@@ -1877,6 +1887,10 @@ def battle_detail(request, pk):
         "opponent_profile": opponent_profile,
         "user_available_artifacts": user_available_artifacts,
         "opponent_active_ingredients": opponent_active_ingredients,
+        "can_withdraw": can_withdraw_battle,
+        "withdrawals_left": viewer_withdrawals_left,
+        "open_withdrawal": open_withdrawal,
+        "withdrawal_is_mine": withdrawal_is_mine,
     })
 
 
@@ -3593,3 +3607,96 @@ def arena_react(request):
     except PermissionError:
         return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
     return JsonResponse({"ok": True, "side": side, "count": count})
+
+
+# ── Withdrawing from an accepted battle (Owner's rule, 2026-08-05) ────────────
+
+
+@chef_battle_guard
+@login_required
+def battle_withdraw(request, pk):
+    """The withdrawing chef writes his reason on a contact-form-shaped page."""
+    from .withdrawal_service import can_withdraw, request_withdrawal, WithdrawalNotAllowed, withdrawals_left
+
+    author = get_author_for_user(request.user)
+    battle = get_object_or_404(Battle.objects.select_related("challenger", "opponent"), pk=pk)
+    if not battle.author_is_participant(author):
+        raise PermissionDenied
+
+    if not can_withdraw(battle, author):
+        messages.error(request, "You cannot withdraw from this battle.")
+        return redirect(battle.get_absolute_url())
+
+    if request.method == "POST":
+        try:
+            request_withdrawal(battle=battle, author=author, reason=request.POST.get("reason", ""))
+        except WithdrawalNotAllowed as exc:
+            messages.error(request, str(exc))
+            return redirect(battle.get_absolute_url())
+        messages.success(
+            request,
+            "Your request has been sent to the other chef. A moderator has the final word.",
+        )
+        return redirect(battle.get_absolute_url())
+
+    return render(request, "chef_battle/battle_withdraw.html", {
+        "battle": battle,
+        "other_chef": battle.opponent_for(author),
+        "withdrawals_left": withdrawals_left(author),
+    })
+
+
+@chef_battle_guard
+@login_required
+@require_POST
+def battle_withdraw_decide(request, pk):
+    """The other chef answers: with a penalty, or without one."""
+    from .models import BattleWithdrawal
+    from .withdrawal_service import decide_withdrawal, WithdrawalNotAllowed
+
+    author = get_author_for_user(request.user)
+    withdrawal = get_object_or_404(
+        BattleWithdrawal.objects.select_related("battle"), pk=pk
+    )
+    with_penalty = request.POST.get("decision") == "with_penalty"
+    try:
+        decide_withdrawal(
+            withdrawal=withdrawal,
+            author=author,
+            with_penalty=with_penalty,
+            opponent_reason=request.POST.get("opponent_reason", ""),
+        )
+    except WithdrawalNotAllowed as exc:
+        messages.error(request, str(exc))
+        return redirect(withdrawal.battle.get_absolute_url())
+
+    messages.success(request, "Your answer has been sent to a moderator for the final word.")
+    return redirect(withdrawal.battle.get_absolute_url())
+
+
+@login_required
+@require_POST
+def battle_withdraw_resolve(request, pk):
+    """The moderator has the last word, and only he moves the numbers."""
+    from .models import BattleWithdrawal
+    from .withdrawal_service import resolve_withdrawal, WithdrawalNotAllowed
+
+    if not is_moderator(request.user):
+        raise Http404
+
+    withdrawal = get_object_or_404(
+        BattleWithdrawal.objects.select_related("battle", "requester", "opponent"), pk=pk
+    )
+    try:
+        resolve_withdrawal(
+            withdrawal=withdrawal,
+            moderator=request.user,
+            uphold_penalty=request.POST.get("verdict") == "penalty",
+            note=request.POST.get("note", ""),
+        )
+    except WithdrawalNotAllowed as exc:
+        messages.error(request, str(exc))
+        return redirect(reverse("recipes:moderation_panel") + "#withdrawals")
+
+    messages.success(request, "The withdrawal is settled.")
+    return redirect(reverse("recipes:moderation_panel") + "#withdrawals")

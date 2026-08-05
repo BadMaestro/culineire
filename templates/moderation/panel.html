@@ -276,6 +276,49 @@
             </div>
         </div>
 
+        <div class="moderation-block" id="withdrawals">
+            <h2 class="moderation-block__title">
+                Battle withdrawals
+                {% if pending_withdrawals %}<span class="moderation-badge moderation-badge--pending">{{ pending_withdrawals|length }} waiting</span>{% endif %}
+            </h2>
+
+            <div class="moderation-scroll">
+            {% if not pending_withdrawals %}
+            <div class="moderation-empty">All clear &mdash; no withdrawals awaiting a decision.</div>
+            {% endif %}
+
+            {% for w in pending_withdrawals %}
+            <div class="moderation-card">
+                <div class="moderation-card__body">
+                    <div class="moderation-card__meta">
+                        <span class="author-studio-status author-studio-status--pending">
+                            {% if w.opponent_decision == "with_penalty" %}Penalty asked for{% else %}No penalty asked for{% endif %}
+                        </span>
+                        <a class="moderation-card__author" href="{{ w.requester.get_absolute_url }}">{{ w.requester.name }}</a>
+                        <span class="moderation-card__date">{{ w.created_at|date:"j M Y H:i" }}</span>
+                    </div>
+                    <h3 class="moderation-card__title">
+                        <a href="{% url 'chef_battle:battle_detail' w.battle.pk %}">{{ w.battle.theme }}</a>
+                    </h3>
+                    <p class="moderation-card__note"><strong>{{ w.requester.name }}:</strong> {{ w.reason|linebreaksbr }}</p>
+                    {% if w.opponent_decision == "with_penalty" %}
+                    <p class="moderation-card__note"><strong>{{ w.opponent.name }} asks for the penalty:</strong> {{ w.opponent_reason|linebreaksbr }}</p>
+                    {% else %}
+                    <p class="moderation-card__note">{{ w.opponent.name }} waived the penalty. No explanation is required of them.</p>
+                    {% endif %}
+                </div>
+                <div class="moderation-card__actions">
+                    <form action="{% url 'chef_battle:battle_withdraw_resolve' w.pk %}" method="post">{% csrf_token %}
+                        <input type="text" name="note" placeholder="Your note (optional)">
+                        <button class="mod-btn mod-btn--approve" name="verdict" type="submit" value="none">Close, no penalty</button>
+                        <button class="mod-btn mod-btn--reject" name="verdict" type="submit" value="penalty">Close with the penalty</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+
         <div class="moderation-block">
             <h2 class="moderation-block__title">
                 Clans
