@@ -3,11 +3,11 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.9.0"
+  version: "2.10.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
-  last_updated: "2026-08-04"
+  last_updated: "2026-08-05"
 ```
 
 ## 1. Authority
@@ -611,8 +611,47 @@ policy, database migrations, and any change to a schema or a public access gate.
 - If real production behaviour allows wider access, report it as a release-gate defect and do not widen access further.
 - Server work must use the approved non-root deployment account and the repository-approved deployment procedure.
 - Never use `root` for routine deployment.
-- Never run destructive or data-writing production diagnostics merely to prove a visual result.
 - Payment, payout, legal, privacy, moderation, or migration changes require explicit risk reporting and rollback planning.
+
+### Arena test data on production is EXPECTED — repealed 2026-08-05
+
+This list carried one more line for weeks: *"Never run destructive or
+data-writing production diagnostics merely to prove a visual result."* **The
+Owner repealed it on 2026-08-05, in these words:**
+
+> «я никогда не запрещал писать в прод чтоб доказать визуальный результат - это
+> прямо противоречит нашей работе - иначе я бы никогда не пускал тесты на прод а
+> работали бы мы на локале боясь сломать прод - Я ОТМЕНЯЮ ЭТО ПРАВИЛО - НАМ
+> НУЖНО ДЕЛАТЬ ТЕСТЫ АРЕНЫ ПОСТОЯННО НА ВЕСЬ ЕЁ ФУНКЦИОНАЛ»
+
+It was written as a guard against reckless diagnostics and had grown into the
+opposite: an agent refusing to create a scheduled battle on production and
+inventing a moderator-only preview flag instead, so that the Owner could look at
+a board that could simply have been filled with real rows. That is the exact
+contradiction he names — production is the only place appearance is judged
+(17.14), and forbidding the data that makes appearance visible left agents
+proving nothing.
+
+**The rule now: arena functionality is exercised on production, continuously and
+across the whole of it.** Create the battles, the challenges, the schedule and
+the states the feature needs in order to be seen working. Test data on the arena
+is not damage; it is the work.
+
+What did NOT change, and what the repealed line was really about:
+
+- **The excluded list above still stands.** Payment, payout, Stripe, legal,
+  privacy, moderation policy, migrations, schemas and access gates are not
+  arena test data and still need his word every time.
+- **Nothing touches `greenbear`** (section 18) and no agent writes privilege
+  flags (section 20). Neither is an arena state.
+- **Destructive is still destructive.** Creating rows is expected; deleting or
+  overwriting somebody else's is not, and a mass delete still counts first and
+  shows examples (17.10).
+- **Clean up what was for the picture alone**, and say plainly in the report
+  what was created and what was left behind. A live arena full of forgotten test
+  battles is its own defect.
+- **The 50% load ceiling of section 9 still applies** to anything heavy. Making
+  six rows is not heavy.
 
 ## 9. Test constitution
 
