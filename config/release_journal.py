@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.819",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "The roadmap was selling five token packages; the shop has eight",
+        "section": "Chef Battles / Governance",
+        "summary": "Audit finding X04, closed. The Battlefield roadmap at /chef-battle/roadmap/ carried, as a COMPLETED item, the sentence '5 packages live: Starter 100T/EUR10 to Executive 1400T/EUR80'. token_config.py has carried EIGHT for some time, doubling from Starter 100T/EUR10 to Legend Chef 12800T/EUR768. Wrong count and wrong top package, by a factor of nine on the price, on a page the Owner reads to know what shipped. VERIFIED BEFORE FIXING, not taken from the report: the catalogue was counted (8 entries) and both ends read off it. THE FIX IS THE DERIVATION, NOT THE NEW SENTENCE. Rewriting the numbers by hand would have bought a correct board today and the same defect at the next price change, which is how this one arrived. The row is now computed from TOKEN_PACKAGES - count, cheapest and dearest - so the claim cannot drift from the prices it describes. Three tests pin it: the count matches the catalogue length, both ends are quoted from the catalogue, and the old sentence is absent. NOTHING ABOUT MONEY MOVED. No price, no package, no token value was touched; this changes a description of them.",
+    },
+    {
         "version": "2.5.818",
         "date": "2026-08-05",
         "commit": "",

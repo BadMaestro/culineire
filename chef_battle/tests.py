@@ -9346,3 +9346,41 @@ class PruneOrphanSponsorFilesTests(TestCase):
     def test_with_no_references_everything_is_an_orphan(self):
         out = self._run()
         self.assertIn("orphans=5", out)
+
+
+class BattlefieldTokenPackageClaimTests(TestCase):
+    """The roadmap's token-package sentence is derived, not written by hand.
+
+    It read "5 packages live: Starter 100T/EUR10 to Executive 1400T/EUR80"
+    while token_config.py carried eight, topping out at Legend Chef
+    12800T/EUR768 - wrong count and wrong top package, on a board the Owner
+    reads to know what shipped (Carpet 3489, finding C1). A sentence that
+    restates a catalogue drifts from it; these tests fail if it ever does again.
+    """
+
+    def _detail(self):
+        from .views import _build_battlefield_progress
+        for phase in _build_battlefield_progress()["phases"]:
+            for item in phase["items"]:
+                if item["label"] == "Token package pricing":
+                    return item["detail"]
+        self.fail("the 'Token package pricing' row is gone from the roadmap")
+
+    def test_the_count_is_the_catalogue_count(self):
+        from .token_config import TOKEN_PACKAGES
+        self.assertIn(f"{len(TOKEN_PACKAGES)} packages live", self._detail())
+
+    def test_both_ends_come_from_the_catalogue(self):
+        from .token_config import TOKEN_PACKAGES
+        packages = sorted(TOKEN_PACKAGES, key=lambda spec: spec["tokens"])
+        detail = self._detail()
+        for spec in (packages[0], packages[-1]):
+            self.assertIn(
+                f"{spec['name']} {spec['tokens']}T/EUR{spec['final_price_cents'] // 100}",
+                detail,
+            )
+
+    def test_the_stale_sentence_is_gone(self):
+        detail = self._detail()
+        self.assertNotIn("5 packages live", detail)
+        self.assertNotIn("Executive 1400T", detail)

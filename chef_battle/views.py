@@ -122,6 +122,24 @@ def _build_battlefield_progress():
     hero_count = ChefBattleProfile.objects.filter(is_hero=True).count()
     feature_enabled = getattr(settings, "CHEF_BATTLE_ENABLED", False)
 
+    # The board used to state the token shop from a hand-written sentence, and it
+    # went stale: it read "5 packages live: Starter 100T/EUR10 to Executive
+    # 1400T/EUR80" while token_config.py carried eight, topping out at Legend
+    # Chef 12800T/EUR768 (Carpet 3489, C1). Neither the count nor the top package
+    # matched, on a page the Owner reads to know what shipped. It is derived from
+    # the catalogue now, so the sentence cannot drift from the prices again.
+    from .token_config import TOKEN_PACKAGES
+    _packages = sorted(TOKEN_PACKAGES, key=lambda spec: spec["tokens"])
+    _cheapest, _dearest = _packages[0], _packages[-1]
+
+    def _package_label(spec):
+        return f"{spec['name']} {spec['tokens']}T/EUR{spec['final_price_cents'] // 100}"
+
+    token_package_detail = (
+        f"{len(_packages)} packages live: {_package_label(_cheapest)} "
+        f"to {_package_label(_dearest)}. Token Shop at /chef-battle/tokens/."
+    )
+
     phases = [
         {
             "title": "Phase 0 - Sandbox Gate And Branch Discipline",
@@ -185,7 +203,7 @@ def _build_battlefield_progress():
                 {"label": "200 combat artifacts", "detail": f"{artifact_count} artifact(s) loaded: 100 attack and 100 defence across 5 rarities (Common 10T to Legendary 400T).", "status": "done" if artifact_count >= 200 else _battlefield_status(artifact_count), "completed_at": "2026-06-12"},
                 {"label": "Viewer gifts and appreciation", "detail": "Audience can send appreciation gifts and battle artifact gifts. Gift catalogue and pricing require update to new spec (§9 addendum).", "status": "done", "completed_at": "2026-06-11"},
                 {"label": "Battle live chat", "detail": f"Live chat on battle pages with 8s polling. {chat_message_count} message(s) sent so far. Works for logged-in and anonymous viewers.", "status": "done", "completed_at": "2026-06-12"},
-                {"label": "Token package pricing", "detail": "5 packages live: Starter 100T/EUR10 to Executive 1400T/EUR80. Token Shop at /chef-battle/tokens/.", "status": "done", "completed_at": "2026-06-13"},
+                {"label": "Token package pricing", "detail": token_package_detail, "status": "done", "completed_at": "2026-06-13"},
                 {"label": "Artifact drop after battle", "detail": "Winner always drops 1 artifact. Loser 50% chance. Same rarity table: Common 30% to Legendary 8%.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "Arena Rules page", "detail": "Full arena rules at /chef-battle/rules/ with artifact drop odds table and gift pricing.", "status": "done", "completed_at": "2026-06-13"},
                 {"label": "Stripe token purchase", "detail": "Stripe checkout UI built. Live key, webhook and extended payment data storage moved to Phase 7.", "status": "done", "completed_at": "2026-06-13"},
