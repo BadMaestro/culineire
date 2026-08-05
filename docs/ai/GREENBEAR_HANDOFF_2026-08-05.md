@@ -1,6 +1,6 @@
 # GreenBear handoff — 2026-08-05
 
-Production **v2.5.813**. Constitution **AGENTS.md v2.6.0**. Onboarding package
+Production **v2.5.814**. Constitution **AGENTS.md v2.6.0**. Onboarding package
 **1.5d**. Read everything from `origin/main`, never from a working tree.
 
 ## Do this before anything else
@@ -114,4 +114,4 @@ poller runs anywhere: no process, no cron, no unit.
 ## Rollback
 
 `rollback/2026-07-28-stable-v2.5.675` — annotated tag, commit `3b4f88ad`.
-Today's releases revert individually; see journal rows v2.5.807–813.
+Today's releases revert individually; see journal rows v2.5.807–814.

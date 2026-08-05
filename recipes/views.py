@@ -3373,17 +3373,22 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "fa307680 / production v2.5.813",
-        "verification": "Production v2.5.808 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
-                        "deployed; A07 is the next assignable card and its numbers are measured "
-                        "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md). The camera "
-                        "stays rotateX(42deg): the Design Template's own 57deg shipped as "
+        "commit": "50e5ee5d / production v2.5.814",
+        "verification": "Production v2.5.814 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
+                        "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
+                        "numbers are already measured on both sides "
+                        "(ops/audits/arena/A06_remeasure_2026-08-04.md): the reference puts four "
+                        "plinth blocks in two symmetric pairs flanking the crown, centres at "
+                        "x 557/1363 and 619/1301 with portraits 196x244, against production's one "
+                        "66.4x69.8 cell avatar at cx 831 while the octagon centres at 955. The "
+                        "camera stays rotateX(42deg): the Design Template's own 57deg shipped as "
                         "v2.5.792 and the Owner reverted it within the hour (v2.5.793), and the "
-                        "2.375 target is not reachable at 42deg by any multiplier. Access: Chef "
-                        "Battles is visible to is_staff - (Bear)seeker Admins and Super Users - "
-                        "and to nobody below (AGENTS.md 20).",
-        "updated": "2026-08-04T00:00:00.000Z",
-        "next_action": "Assign A07 — Stage framing and full-octagon composition.",
+                        "2.375 target is not reachable at 42deg by any multiplier. A07 closed at "
+                        "v2.5.812 as a framing card instead: the arena now fits the screen whole "
+                        "at every width. Access: Chef Battles is visible to is_staff - "
+                        "(Bear)seeker Admins and Super Users - and to nobody below (AGENTS.md 20).",
+        "updated": "2026-08-05T00:00:00.000Z",
+        "next_action": "Assign A09 — Live challenger/opponent composition (unassigned).",
         "workstreams": ARENA_DESIGN_TASKS,
     },
     {

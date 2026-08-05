@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.814",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "The build board's own header was still telling agents to take A07",
+        "section": "Chef Battles / Arena",
+        "summary": "Found by opening the deployed page instead of trusting the change that had just shipped. v2.5.813 aligned every CARD row on the board and left the STAGE HEADER above them untouched, so the page read 'Production v2.5.808 confirmed' and 'A07 is the next assignable card' directly above a list showing A07 DONE and A09 NEXT. Two answers on one screen, which is the exact failure v2.5.800 closed once already, one level up. The header now names A09, says plainly that it is UNASSIGNED, and carries the numbers A09 actually needs rather than a pointer to them: four plinth blocks in two symmetric pairs flanking the crown, centres at x 557/1363 and 619/1301 with portraits 196x244, against production's single 66.4x69.8 cell avatar at cx 831 while the octagon centres at 955. It also records what A07 became - a framing card, closed at v2.5.812, the arena fitting the screen whole at every width - because the header still described the geometry card it stopped being. THE LESSON, and it is not the first time this file has taught it: a board is one page with several sources behind it, and updating the rows is not updating the board. The card list, the stage header, the markdown plan and the footer are four places a version number lives, and a test pins only two of them. This was caught by eye, on the live page, half a minute after the deploy that caused it.",
+    },
+    {
         "version": "2.5.813",
         "date": "2026-08-05",
         "commit": "",
