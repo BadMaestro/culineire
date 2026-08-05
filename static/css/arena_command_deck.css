@@ -297,11 +297,21 @@
 
   .arena-command-deck {
     display: block;
-    /* Oval stands (Owner mockup) need more vertical room than the old polar
-       rings — grow the stage past one viewport so fitScene can keep the full
-       octagon + oval readable; the page scrolls rather than clipping. */
-    height: calc((100svh - var(--arena-header-h, 146px)) * 1.28);
-    min-height: 42rem;
+    /* A07, Owner 2026-08-05: the arena fits the screen whole, on every screen.
+       This line used to read `* 1.28` with `min-height: 42rem`, deliberately
+       growing the stage PAST one viewport so the octagon and its oval stayed
+       large, and letting the page scroll. He has reversed that trade: the deck
+       is now exactly the space under the header, so nothing sits below the
+       fold, and fitScene() rescales the octagon into whatever that turns out
+       to be. The 42rem floor went with the multiplier — a minimum taller than
+       a short screen is the same overflow under another name.
+
+       `svh` and not `dvh`: the SMALL viewport height is the one that holds
+       while a mobile browser still shows its chrome, so the arena never has to
+       reflow when the address bar hides. `--arena-header-h` is measured and
+       set by arena_render.js; the 146px fallback is the desktop header and is
+       only correct there, which is why it is no longer left to do the job. */
+    height: calc(100svh - var(--arena-header-h, 146px));
     overflow: hidden;
     color: var(--ink);
   }

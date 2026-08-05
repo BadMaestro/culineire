@@ -4,17 +4,32 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-05 · Production baseline: **v2.5.811**
-· Next assignable card: **A07**. (A08 ran ahead of it and is DONE, v2.5.775–779.)
+Last reconciled: 2026-08-05 · Production baseline: **v2.5.812**
+· Next assignable card: **A09**, unassigned.
 
-**A07 was built and reverted on the same day.** v2.5.792 put the Design
-Template's own camera on the Arena — `rotateX(57deg)`, `perspective 1600px`,
-centred origins — and the Owner reverted it within the hour. The camera stays
-`rotateX(42deg)`. What the attempt established stands and is worth reading
-before anyone re-opens the card: the reference floor is a 1120×1120 **square**,
-the same as this SVG's viewBox, so its aspect of 2.375 is produced by its camera
-and not by a wider octagon. A07 cannot be reached by scale and placement alone,
-and the 2.375 target is not available at 42°. See v2.5.792/793 in the journal.
+**A07 is DONE (v2.5.812) and it was one multiplier.** The Owner defined the card
+on 2026-08-05: *the arena fits the screen whole, on every screen.*
+`arena_command_deck.css` was sizing the deck at `(100svh − header) * 1.28` with a
+`min-height: 42rem`, deliberately growing the stage past one viewport so the
+octagon stayed large and the page scrolled. That trade is reversed. Measured live
+on production at 2133×958 — deck bottom **1187 → 959**, crowd rail **1186 → 958**
+against a 958 viewport — at the cost he chose: the octagon goes 848×665 → 671×520.
+
+**Its earlier attempt, kept because it settles the camera.** v2.5.792 put the
+Design Template's camera on the Arena — `rotateX(57deg)`, `perspective 1600px` —
+and the Owner reverted it within the hour. The camera stays `rotateX(42deg)`. The
+reference floor is a 1120×1120 **square**, the same as this SVG's viewBox, so its
+2.375 aspect is produced by that camera and not by a wider octagon; the target is
+not available at 42°, which is why A07 shipped as a framing card and not a
+geometry one. See v2.5.792/793 in the journal.
+
+**Two cascade facts A09 will need, measured on the live page, not read off the
+source.** The camera is set by `arena_deck_polish.css:3666` — last one wins — and
+two blocks above it (1912, 2277) drop `rotateX` altogether; `arena_render.css`
+does not own it. The floor container's `clamp(480px, 56vw, 94vh)` in
+`arena_render.css` loses to `height: auto` from `arena_atmosphere.css` at higher
+specificity, and the container is absolute with `top/bottom: 0`, so it fills its
+grid cell and nothing more.
 
 ## 1. Current team and ownership
 
@@ -164,6 +179,7 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 | AR1 | Arena owns its eleven-ring geometry; Sponsors grid no longer borrowed | v2.5.709–v2.5.710 |
 | AR3 | Moat lit by eight lanterns; glint on the Crown plate | v2.5.736 |
 | A08 | Crowd bowl depth, and the hall behind the seats populated | v2.5.775–779 |
+| A07 | The arena fits the screen whole — deck bottom 1187 → 959 at 958 viewport | v2.5.812 |
 | AR4 | Author seats: two rows top, two bottom; capacity 290 → 114 | v2.5.769 |
 | AR5 | VIP sponsor ring; spirit balconies driven by a real anonymous count | v2.5.765–768, v2.5.778 |
 
@@ -186,9 +202,9 @@ forbidden changes and evidence for every row below.
 | AR3 | Arena Hall | Moat ring (ring 2) with lanterns + gold-ring glints | GreenBear | AR1 | DONE |
 | AR4 | Arena Hall | Author seat rows (two top, two bottom) | Bolt | AR1 | DONE |
 | AR5 | Arena Hall | Spirit balconies + VIP sponsor ring | GreenBear + Bolt | AR4 | DONE |
-| **A07** | Arena Hall | Stage framing and full-octagon composition | GreenBear | AR5 | **NEXT** |
+| A07 | Arena Hall | Stage framing and full-octagon composition | GreenBear | AR5 | DONE |
 | A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | DONE |
-| A09 | Arena Hall | Live challenger/opponent composition | unassigned | A07 | PENDING |
+| **A09** | Arena Hall | Live challenger/opponent composition | unassigned | A07 | **NEXT** |
 | A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | PENDING |
 | A11 | Furniture | Phase panel reference pass | Bolt | A06 | DONE |
 | A12 | Furniture | Crown ladder panel reference pass | Bolt | A06 | DONE |

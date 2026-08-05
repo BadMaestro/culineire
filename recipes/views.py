@@ -3118,14 +3118,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A07", "group": "Arena Hall", "title": "Stage framing and full-octagon composition",
-        "status": "NEXT", "owner": "GreenBear",
-        "files": "static/css/arena_hall.css or the final scoped Arena composition layer; templates/chef_battle/arena.html cache key",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "static/css/arena_command_deck.css; static/js/arena_render.js; templates/chef_battle/arena.html cache key",
         "depends_on": "AR5",
-        "action": "Match the measured stage scale and placement so the complete octagon sits in the intended desktop frame.",
-        "visible_result": "The full floor reads as one centred arena with the reference margins.",
-        "acceptance": "Matches A06 bounds at 1280 and 1920; rotateX remains 42deg; floor colours and octagon renderer unchanged.",
+        "action": "The arena fits the screen whole, on every screen (Owner, 2026-08-05).",
+        "visible_result": "Nothing of the arena sits below the fold: the crowd rail, its last element, ends exactly at the viewport bottom.",
+        "acceptance": "Deck height is the space under the header at any width; rotateX stays 42deg; floor colours and the octagon renderer unchanged; no media query added.",
         "forbidden": "No geometry-engine rewrite, perspective/camera change or floor recolour.",
-        "evidence": "TARGET WITHDRAWN 2026-08-04. This row previously carried a wrong instruction of Bolt's - make the floor about 64 percent wider and 13 percent shorter. It compared the template's whole floor square against production's rank cells only; like for like it is 1.467 against 2.375. Worse, the delta is not geometry: v2.5.792 established the template floor is a 1120x1120 SQUARE whose 2.375 comes entirely from its camera, rotateX(57deg) at perspective 1600px, which projects our own square to 1585.4x667.5 exactly. The Owner saw 57deg on production and reverted to 42deg (v2.5.793), so the camera is settled and A06 hands this card NO target aspect - inventing a replacement would repeat the mistake. Full matrix with both columns: ops/audits/arena/A06_remeasure_2026-08-04.md.",
+        "evidence": "v2.5.812. THE WHOLE CARD WAS ONE MULTIPLIER. arena_command_deck.css read `height: calc((100svh - var(--arena-header-h, 146px)) * 1.28)` with `min-height: 42rem`, and its own comment said why: grow the stage PAST one viewport so the octagon and oval stay large, and let the page scroll rather than clip. The Owner reversed that trade, so the 1.28 and the 42rem floor are gone - a minimum taller than a short screen is the same overflow under another name. Measured live on production, same viewport 2133x958, before -> after: deck bottom 1187 -> 959, crowd rail bottom 1186 -> 958 against a 958 viewport, page scrollHeight 1571 -> 1344 with the remaining 385 being the site footer. The cost is real and is the trade he chose: the octagon goes 848.3x664.8 -> 670.6x519.6, about 21 percent narrower. TWO THINGS FOUND ON THE WAY, both measured on the live page rather than read off the source. The camera is NOT owned by arena_render.css: arena_deck_polish.css:3666 sets it last, and two blocks above it (1912, 2277) drop rotateX entirely. The container height is not owned by arena_render.css either - its `clamp(480px, 56vw, 94vh)` loses to `height: auto` from arena_atmosphere.css at higher specificity, and the container is absolute with top/bottom 0, so it simply fills its grid cell. Also fixed: --arena-header-h was never set by anything, so the subtraction ran on a 146px fallback that is only true of the desktop header; arena_render.js measures the header now and re-fits when it changes. NOT VERIFIED IN THIS SESSION: narrow-viewport behaviour. The browser would not resize below the desktop window, so the claim for phones rests on the units (svh, and a measured header) and not on a measurement.",
     },
     {
         "id": "A08", "group": "Arena Hall", "title": "Crowd bowl depth and atmospheric population",
@@ -3140,7 +3140,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A09", "group": "Arena Hall", "title": "Live challenger/opponent composition",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "NEXT", "owner": "unassigned",
         "files": "templates/chef_battle/arena.html; static/js/arena_render.js; scoped fighter CSS",
         "depends_on": "A07",
         "action": "Place the existing active/facing-pair fighters in the measured left/right reference composition.",
@@ -3373,7 +3373,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "PENDING / production v2.5.811",
+        "commit": "efc558ad / production v2.5.812",
         "verification": "Production v2.5.808 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
                         "deployed; A07 is the next assignable card and its numbers are measured "
                         "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md). The camera "

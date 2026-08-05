@@ -92,6 +92,8 @@
   var STANDS_RATIO = 1.60 * 1.60 / 1.7541;
   var COMPOSITION_CX = 0.50;
   var COMPOSITION_CY = 0.51;
+  // The site header the deck's height is measured against — see measureHeader().
+  var HEADER_SELECTOR = '.ce-header';
 
   var pollTimer = null;
   var pingTimer = null;
@@ -2551,6 +2553,32 @@
   // stands sit at 1.60× floor radius, so fitting the floor left them sticking
   // out by construction. Floor span 0.63 is an OUTPUT to verify, not the fit
   // target. Two measure/scale passes land under 1px of drift.
+  /**
+   * Publish the real header height as --arena-header-h.
+   *
+   * A07, Owner 2026-08-05: the arena fits the screen whole, on every screen.
+   * arena_command_deck.css sizes the deck as `100svh - var(--arena-header-h)`,
+   * and that variable had never been set by anything — the rule ran on its
+   * 146px fallback, which is the DESKTOP header and is wrong by whatever the
+   * header actually measures anywhere else. A fit computed from a constant
+   * that only holds at one width is not a fit.
+   *
+   * Returns true when the value changed, so the caller can avoid a redundant
+   * re-fit: fitScene is a two-pass measure-and-scale and is not free.
+   */
+  function measureHeader() {
+    var header = document.querySelector(HEADER_SELECTOR);
+    if (!header) { return false; }
+    var height = Math.round(header.getBoundingClientRect().height);
+    if (!(height > 0)) { return false; }
+    var next = height + 'px';
+    if (document.documentElement.style.getPropertyValue('--arena-header-h') === next) {
+      return false;
+    }
+    document.documentElement.style.setProperty('--arena-header-h', next);
+    return true;
+  }
+
   function fitScene(svg) {
     var container = svg.parentElement;
     if (!container) { return; }
@@ -2698,10 +2726,19 @@
     drawGrid(svg, geometry);
     bind(svg, payload, geometry);
     attachEvents(svg);
+    measureHeader();
     fitScene(svg);
     // The frame is fluid, so the fit is re-measured whenever it changes size.
     if (global.ResizeObserver && svg.parentElement) {
       new global.ResizeObserver(function () { fitScene(svg); }).observe(svg.parentElement);
+    }
+    // The header is what the deck's height is subtracted FROM, and it is not a
+    // constant: it wraps at narrow widths and its social strip is not always
+    // there. Re-measure it whenever the window changes, then re-fit.
+    if (global.ResizeObserver && document.querySelector(HEADER_SELECTOR)) {
+      new global.ResizeObserver(function () {
+        if (measureHeader()) { fitScene(svg); }
+      }).observe(document.querySelector(HEADER_SELECTOR));
     }
     if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
     if (global.ArenaBattleRoom) { global.ArenaBattleRoom.init(payload.latest_result); }
