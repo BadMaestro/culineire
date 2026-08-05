@@ -241,6 +241,38 @@
     });
   }
 
+  function refreshUpcoming(list) {
+    var container = byId('arena-upcoming');
+    if (!container || !Array.isArray(list)) { return; }
+    clearPanel(container);
+    if (!list.length) {
+      appendPanelEmpty(container, 'No battles are scheduled yet.');
+      return;
+    }
+    list.forEach(function (entry) {
+      var battle = entry || {};
+      var item = document.createElement('li');
+      var link = document.createElement('a');
+      var when = document.createElement('em');
+      var versus = document.createElement('span');
+      link.href = battle.battle_url || '#';
+      versus.textContent = 'vs';
+      versus.setAttribute('aria-label', 'versus');
+      link.appendChild(document.createTextNode((battle.challenger && battle.challenger.name) || 'Chef'));
+      link.appendChild(document.createTextNode(' '));
+      link.appendChild(versus);
+      link.appendChild(document.createTextNode(' ' + ((battle.opponent && battle.opponent.name) || 'Chef')));
+      // The server sends the instant; the viewer's own machine decides how it
+      // reads. formatDateTime falls back to the server's rendering rather than
+      // to an empty cell when the string cannot be parsed.
+      when.textContent = formatDateTime(battle.start_time) || battle.start_display || '';
+      if (battle.start_time) { when.setAttribute('data-start-time', battle.start_time); }
+      item.appendChild(link);
+      item.appendChild(when);
+      container.appendChild(item);
+    });
+  }
+
   function refreshPanels(data) {
     if (!data) { return; }
     if (Object.prototype.hasOwnProperty.call(data, 'crown_streak')) {
@@ -250,6 +282,7 @@
     if (Object.prototype.hasOwnProperty.call(data, 'crown_ladder')) { refreshCrownLadder(data.crown_ladder); }
     if (Object.prototype.hasOwnProperty.call(data, 'recent_gifts')) { refreshRecentGifts(data.recent_gifts); }
     if (Object.prototype.hasOwnProperty.call(data, 'top_supporter')) { refreshTopSupporter(data.top_supporter); }
+    if (Object.prototype.hasOwnProperty.call(data, 'upcoming')) { refreshUpcoming(data.upcoming); }
   }
 
   function refreshTopSupporter(top) {

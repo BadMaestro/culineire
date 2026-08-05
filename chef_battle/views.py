@@ -16,6 +16,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateformat import format as date_format
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
@@ -48,6 +49,7 @@ from .fraud import (
 from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleIngredient, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet, VoteIntegrityEvent
 from .selectors import (
     get_active_battles,
+    get_upcoming_battles,
     get_arena_metrics,
     get_arena_phase,
     get_arena_phase_rail,
@@ -823,6 +825,44 @@ def _arena_fighter_payload(author, side):
     }
 
 
+def _arena_upcoming():
+    """The arranged-but-not-started battles, as the arena announces them (X01).
+
+    One row is one battle: the two chefs by name, the theme, when it starts and
+    where to read it. No result, no rating and no phase - none of that exists
+    yet, and inventing a placeholder for it is how a panel starts lying.
+
+    The time goes out as an ISO string, not as a rendered "in 3 hours": the
+    payload already carries server_time for exactly this reason, and a duration
+    baked on the server is wrong the moment it is cached or polled.
+    """
+    return [
+        {
+            "battle_id": battle.pk,
+            "theme": battle.theme,
+            "start_time": battle.start_time.isoformat(),
+            # Rendered once here so the no-JS paint reads as a date rather than
+            # as an ISO string; arena_deck.js replaces it with the viewer's own
+            # locale format on the first poll.
+            "start_display": date_format(
+                timezone.localtime(battle.start_time), "j M Y, H:i"
+            ),
+            "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": battle.pk}),
+            "challenger": {
+                "name": battle.challenger.name,
+                "slug": battle.challenger.slug,
+                "avatar_url": battle.challenger.display_avatar_url,
+            },
+            "opponent": {
+                "name": battle.opponent.name,
+                "slug": battle.opponent.slug,
+                "avatar_url": battle.opponent.display_avatar_url,
+            },
+        }
+        for battle in get_upcoming_battles()
+    ]
+
+
 def _arena_center(active_battle):
     """Centre-cell payload: active battle takes priority, then the current
     Crown holder (if any), else empty. Shared by arena() and arena_state()."""
@@ -1126,6 +1166,10 @@ def _build_arena_payload(*, viewer_author=None):
         },
         "spectators": _get_spectators(online_cutoff, viewer_author=viewer_author),
         "center": _arena_center(active_battle),
+        # X01: half of the arena's stated purpose, and it had no key at all.
+        # A LIST, and an empty one is the honest answer when nothing is booked -
+        # the panel says so rather than borrowing a row from anywhere else.
+        "upcoming": _arena_upcoming(),
         "latest_result": _arena_latest_result(),
         "crown_streak": get_crown_streak(),
         "crown_ladder": get_crown_ladder(),
@@ -1197,6 +1241,7 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         "rings": payload["rings"],
         "spectators": spectators,
         "center": payload["center"],
+        "upcoming": payload["upcoming"],
         "latest_result": payload["latest_result"],
         "crown_streak": payload["crown_streak"],
         "crown_ladder": payload["crown_ladder"],
@@ -1234,6 +1279,10 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         "crown_streak": arena_data["crown_streak"],
         "crown_ladder": arena_data["crown_ladder"],
         "recent_gifts": arena_data["recent_gifts"],
+        # X01, and the same reason as the three above: without it at top level
+        # the first server-rendered paint shows an empty schedule and only the
+        # poll, seconds later, fills it in.
+        "upcoming": arena_data["upcoming"],
         "viewer_author": viewer_author,
         "user_enrolled": user_enrolled,
     }
@@ -1412,6 +1461,10 @@ PUBLIC_ARENA_STATE_KEYS = (
     "rings",
     "spectators",
     "center",
+    # X01. Same trap as vip_sponsors and spirit_count below: bind() repaints
+    # from the poll payload, so a key that is not sent reads as "nothing is
+    # booked" and would empty the schedule thirty seconds after the page loaded.
+    "upcoming",
     "latest_result",
     "crown_streak",
     "crown_ladder",

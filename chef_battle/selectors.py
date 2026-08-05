@@ -28,6 +28,32 @@ def get_active_battles(limit: int = 12) -> QuerySet:
     )
 
 
+def get_upcoming_battles(limit: int = 5) -> QuerySet:
+    """Battles that have been arranged and have not started yet (card X01).
+
+    The Owner, 2026-08-05: the arena exists so chefs, sponsors, spectators, VIPs
+    and spirits can see each other AND to show the list of upcoming battles.
+    Nothing answered the second half - there was no key in the payload and no
+    selector behind it.
+
+    UPCOMING IS A NARROWER SET THAN "NOT FINISHED", and the difference is why
+    this is not get_active_battles() with a filter bolted on. ACTIVE_STATUSES
+    deliberately includes SCHEDULED so a battle about to begin still draws on
+    the floor; here SCHEDULED alone is not enough, because a scheduled battle
+    whose start_time has passed is one the arena is already showing, not one it
+    is announcing. The boundary is the clock, so it is applied here rather than
+    left to the caller to remember.
+
+    WAITING is excluded on purpose: that battle started, and is sitting out the
+    grace period for its second chef. It is late, not forthcoming.
+    """
+    return (
+        Battle.objects.select_related("challenger", "opponent")
+        .filter(status=Battle.Status.SCHEDULED, start_time__gt=timezone.now())
+        .order_by("start_time")[:limit]
+    )
+
+
 def get_recent_completed_battles(limit: int = 10) -> QuerySet:
     return (
         Battle.objects.select_related("challenger", "opponent", "winner")

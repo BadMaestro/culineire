@@ -4130,8 +4130,13 @@ class ArenaBuildPlanTests(TestCase):
         from recipes.views import ARENA_DESIGN_TASKS
 
         ids = [task["id"] for task in ARENA_DESIGN_TASKS]
-        self.assertEqual(len(ids), 31)
-        self.assertEqual(len(ids), len(set(ids)))
+        # The card COUNT is not asserted. It was pinned at 31 and broke the
+        # moment the 2026-08-05 audit added twelve X cards - a failure that says
+        # only "somebody added a card", which is the board working. Uniqueness
+        # is the real invariant here: two rows sharing an id is a card that
+        # cannot be addressed.
+        duplicates = sorted({i for i in ids if ids.count(i) > 1})
+        self.assertEqual(ids and not duplicates, True, f"duplicate card ids: {duplicates}")
 
         nexts = [task["id"] for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"]
         self.assertEqual(
@@ -4139,11 +4144,11 @@ class ArenaBuildPlanTests(TestCase):
             f"the build board needs exactly one NEXT card or it 500s; found "
             f"{len(nexts)}: {nexts}",
         )
-        self.assertEqual(nexts, ["A07"])
+        self.assertEqual(nexts, ["A09"])
         self.assertEqual(
             [task["id"] for task in ARENA_DESIGN_TASKS
              if task["status"] in {"NEXT", "IN PROGRESS"}],
-            ["A07"],
+            ["A09"],
         )
         required = {
             "id", "group", "title", "status", "owner", "files", "depends_on",

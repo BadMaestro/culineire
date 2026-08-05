@@ -9413,3 +9413,119 @@ class BattlefieldTokenPackageClaimTests(TestCase):
         detail = self._detail()
         self.assertNotIn("5 packages live", detail)
         self.assertNotIn("Executive 1400T", detail)
+
+
+class UpcomingBattlesSelectorTests(TestCase):
+    """X01: the arena's list of upcoming battles, and what counts as upcoming.
+
+    The Owner named this as half of what the arena is for and nothing answered
+    it - no key in the payload, no selector, no block in the template. These
+    tests pin the boundary, because "upcoming" is narrower than "not finished"
+    and the difference is easy to lose in a later edit.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="upc-a", password="pw"),
+            name="Upcoming Chef A", slug="upc-a",
+        )
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="upc-b", password="pw"),
+            name="Upcoming Chef B", slug="upc-b",
+        )
+
+    def _battle(self, *, status, starts_in_hours, theme="Scheduled theme"):
+        start = timezone.now() + timezone.timedelta(hours=starts_in_hours)
+        return Battle.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme=theme,
+            status=status,
+            start_time=start,
+            submission_deadline=start + timezone.timedelta(hours=48),
+            end_time=start + timezone.timedelta(days=3),
+        )
+
+    def test_a_scheduled_future_battle_is_upcoming(self):
+        from .selectors import get_upcoming_battles
+
+        battle = self._battle(status=Battle.Status.SCHEDULED, starts_in_hours=3)
+        self.assertEqual([b.pk for b in get_upcoming_battles()], [battle.pk])
+
+    def test_a_scheduled_battle_whose_time_has_passed_is_not_upcoming(self):
+        """The arena is already showing it; announcing it would be a lie."""
+        from .selectors import get_upcoming_battles
+
+        self._battle(status=Battle.Status.SCHEDULED, starts_in_hours=-1)
+        self.assertEqual(list(get_upcoming_battles()), [])
+
+    def test_a_battle_in_progress_is_not_upcoming(self):
+        from .selectors import get_upcoming_battles
+
+        self._battle(status=Battle.Status.ACTIVE, starts_in_hours=2)
+        self._battle(status=Battle.Status.VOTING, starts_in_hours=2)
+        self._battle(status=Battle.Status.COMPLETED, starts_in_hours=2)
+        self.assertEqual(list(get_upcoming_battles()), [])
+
+    def test_waiting_is_late_rather_than_forthcoming(self):
+        from .selectors import get_upcoming_battles
+
+        self._battle(status=Battle.Status.WAITING, starts_in_hours=1)
+        self.assertEqual(list(get_upcoming_battles()), [])
+
+    def test_the_soonest_battle_comes_first(self):
+        from .selectors import get_upcoming_battles
+
+        later = self._battle(status=Battle.Status.SCHEDULED, starts_in_hours=9, theme="Later")
+        sooner = self._battle(status=Battle.Status.SCHEDULED, starts_in_hours=2, theme="Sooner")
+        self.assertEqual([b.pk for b in get_upcoming_battles()], [sooner.pk, later.pk])
+
+
+class UpcomingBattlesPayloadTests(TestCase):
+    """The key reaches the poll, or the panel empties thirty seconds in.
+
+    This is the trap vip_sponsors and spirit_count already fell into: bind()
+    repaints from the poll payload, so a key that is not in
+    PUBLIC_ARENA_STATE_KEYS reads as "nothing is booked" rather than as "not
+    sent", and the schedule would clear itself on the first tick.
+    """
+
+    def test_the_key_is_in_the_public_state_contract(self):
+        from .views import PUBLIC_ARENA_STATE_KEYS
+
+        self.assertIn("upcoming", PUBLIC_ARENA_STATE_KEYS)
+
+    def test_the_payload_carries_the_key_even_when_empty(self):
+        from .views import _build_arena_payload
+
+        payload = _build_arena_payload()
+        self.assertIn("upcoming", payload)
+        self.assertEqual(payload["upcoming"], [])
+
+    def test_a_row_names_both_chefs_and_when_it_starts(self):
+        from .views import _build_arena_payload
+
+        User = get_user_model()
+        chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="upp-a", password="pw"),
+            name="Payload Chef A", slug="upp-a",
+        )
+        chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="upp-b", password="pw"),
+            name="Payload Chef B", slug="upp-b",
+        )
+        start = timezone.now() + timezone.timedelta(hours=5)
+        battle = Battle.objects.create(
+            challenger=chef_a, opponent=chef_b, theme="Payload theme",
+            status=Battle.Status.SCHEDULED, start_time=start,
+            submission_deadline=start + timezone.timedelta(hours=48),
+            end_time=start + timezone.timedelta(days=3),
+        )
+        row = _build_arena_payload()["upcoming"][0]
+        self.assertEqual(row["battle_id"], battle.pk)
+        self.assertEqual(row["challenger"]["name"], "Payload Chef A")
+        self.assertEqual(row["opponent"]["name"], "Payload Chef B")
+        self.assertEqual(row["start_time"], start.isoformat())
+        self.assertTrue(row["start_display"])
+        self.assertIn(str(battle.pk), row["battle_url"])

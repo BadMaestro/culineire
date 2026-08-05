@@ -168,6 +168,43 @@
 .page--arena .arena-command-deck__ladder > .btn-secondary {
   display:block; width:100%; text-align:center;
 }
+/* ── X01: upcoming battles ────────────────────────────────────────────────
+ * The same plate the crown ladder uses, one column shorter: there is no badge
+ * to lead with, so it is the pairing and then the time. Built on the ladder's
+ * shape deliberately rather than as a panel of its own — two lists in the same
+ * rail that looked different would read as two different kinds of thing.
+ *
+ * The time column is tabular and sizes to its content so the times stack on one
+ * axis, which is the whole reason A12 moved off flexbox.
+ */
+.arena-upcoming-list { list-style:none; margin:0; padding:0; display:grid; gap:.5rem; }
+.arena-upcoming-list li {
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) auto;
+  align-items:center;
+  gap:.6rem;
+  padding:.4rem .55rem;
+  border-radius:9px;
+  font-size:.82rem;
+  color:var(--ad-ink2);
+  background:color-mix(in srgb, var(--accent-bronze) 7%, transparent);
+}
+.arena-upcoming-list li a { font-weight:700; text-decoration:none; color:inherit; }
+/* "vs" is the separator, not a word to read at name weight. */
+.arena-upcoming-list li a span {
+  font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--accent-bronze-dark);
+}
+.arena-upcoming-list li em {
+  font-style:normal; font-size:.76rem; font-weight:700;
+  font-variant-numeric:tabular-nums;
+  color:var(--accent-bronze-dark);
+}
+/* Same rule as the ladder: the empty state keeps the panel's shape. */
+.arena-upcoming-list li.arena-panel__empty {
+  display:block; background:none; padding:.4rem .1rem;
+}
+
 /* ── Gifts (A12) ── */
 .arena-command-deck__gift-copy { color:var(--ad-ink2); font-size:.8rem; margin:.2rem 0 0; }
 /* ── Crowd rail (A13) ── */

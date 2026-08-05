@@ -4,8 +4,19 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-05 · Production baseline: **v2.5.821**
+Last reconciled: 2026-08-05 · Production baseline: **v2.5.822**
 · Next assignable card: **A09**, unassigned.
+
+**X01 is DONE (v2.5.822, Bolt).** The arena now shows who is fighting whom next.
+The Owner named the upcoming-battles list as half of what the arena is for and
+nothing answered it — no payload key, no selector, no template block. Upcoming
+is narrower than "not finished": `SCHEDULED` **and** `start_time` still ahead.
+A scheduled battle whose time has passed is one the arena is already showing,
+and `WAITING` is a battle that started and is late, not one that is coming. The
+key is in `PUBLIC_ARENA_STATE_KEYS`, or the poll would have emptied the panel
+thirty seconds after load. Its placement — left rail, under the crown ladder —
+is provisional: the approved reference has no such panel, so there was nothing
+to measure against, and moving it is CSS only.
 
 **A07 is DONE (v2.5.812) and it was one multiplier.** The Owner defined the card
 on 2026-08-05: *the arena fits the screen whole, on every screen.*

@@ -153,6 +153,36 @@
     </ol>
     <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View Full Ladder</a>
   </aside>
+
+  {% comment %}
+    X01: the list of upcoming battles. The Owner named it as half of what the
+    arena is for, and nothing in the page answered it.
+
+    Real scheduled battles only, from get_upcoming_battles() - no fixture, no
+    placeholder pair, and an empty schedule says so in words. The start time is
+    printed by the server for the first paint and rewritten by arena_deck.js
+    against server_time on every poll, so the row never drifts with the
+    viewer's own clock.
+  {% endcomment %}
+  <aside class="arena-command-deck__upcoming" aria-label="Upcoming battles">
+    <header class="arena-panel__title">
+      <div>
+        <p class="arena-panel__kicker">Next in the hall</p>
+        <h2 class="arena-panel__heading">Upcoming battles</h2>
+      </div>
+      <svg class="arena-ico" aria-hidden="true"><use href="#ad-vs"></use></svg>
+    </header>
+    <ol id="arena-upcoming" class="arena-upcoming-list">
+      {% for battle in upcoming %}
+        <li>
+          <a href="{{ battle.battle_url }}">{{ battle.challenger.name }} <span aria-label="versus">vs</span> {{ battle.opponent.name }}</a>
+          <em data-start-time="{{ battle.start_time }}">{{ battle.start_display }}</em>
+        </li>
+      {% empty %}
+        <li class="arena-panel__empty">No battles are scheduled yet.</li>
+      {% endfor %}
+    </ol>
+  </aside>
   </div>
 
   <div class="arena-interface-rail arena-interface-rail--right" role="group" aria-label="Arena broadcast rail">

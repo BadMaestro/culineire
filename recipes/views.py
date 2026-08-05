@@ -3327,14 +3327,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "X01", "group": "Audit 2026-08-05", "title": "The list of upcoming battles does not exist",
-        "status": "NEXT", "owner": "Bolt",
+        "status": "DONE", "owner": "Bolt",
         "files": "chef_battle/views.py payload + selector; templates/chef_battle/arena.html",
         "depends_on": "none",
         "action": "Add the upcoming-battles list the arena is half-built for.",
         "visible_result": "The arena shows who is fighting whom next.",
         "acceptance": "Real scheduled battles only, server-selected; empty state truthful; the key joins PUBLIC_ARENA_STATE_KEYS so the poll carries it.",
         "forbidden": "No invented battles and no fixture data (v2.5.782).",
-        "evidence": "Owner, 2026-08-05: the arena exists so chefs, sponsors, spectators, VIPs and spirits can see each other AND to show the list of upcoming battles. Measured absent: no 'upcoming' key among the 16 in PUBLIC_ARENA_STATE_KEYS (views.py:1393), no selector returning scheduled battles for the arena, and zero occurrences of 'scheduled' in arena.html. Half the arena's stated purpose. RISK OF WAITING: none - nothing regresses, the feature is simply not there, and it is arena work that belongs with the arena.",
+        "evidence": "DONE v2.5.822 (Bolt). Owner, 2026-08-05: the arena exists so chefs, sponsors, spectators, VIPs and spirits can see each other AND to show the list of upcoming battles. The second half had no key, no selector and no block - confirmed by counting the 16 keys in PUBLIC_ARENA_STATE_KEYS before touching anything. WHAT UPCOMING MEANS, AND IT IS NARROWER THAN 'NOT FINISHED': get_upcoming_battles() takes SCHEDULED with start_time still in the future. ACTIVE_STATUSES deliberately includes SCHEDULED so an imminent battle still draws on the floor, but a scheduled battle whose time has passed is one the arena is already SHOWING, not one it is announcing - announcing it would be the panel lying about the floor below it. WAITING is excluded too: that battle started and is sitting out the grace period for its second chef, which is late rather than forthcoming. Five tests pin exactly that boundary. THE KEY IS IN THE POLL CONTRACT, which is the trap vip_sponsors and spirit_count already fell into: bind() repaints from the payload, so a key that is not sent reads as 'nothing is booked' and would have cleared the panel thirty seconds after load. Two more tests pin the key and its shape. NO FIXTURE: real rows only, and an empty schedule says so in words - the panel keeps its shape empty, as the ladder does. The time goes out as an instant plus a server-rendered fallback; arena_deck.js reformats it in the viewer's own locale rather than the server baking 'in 3 hours' into a cached string. PLACEMENT IS PROVISIONAL AND IS THE OWNER'S: the panel sits in the left rail under the crown ladder, built on the ladder's own plate so two lists in one rail do not read as two kinds of thing. The approved reference has no such panel, so there was nothing to measure against - moving it is a CSS-only change.",
     },
     {
         "id": "X02", "group": "Audit 2026-08-05", "title": "Ignoring a challenge is free; refusing one costs",
