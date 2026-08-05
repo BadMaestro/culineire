@@ -4,10 +4,39 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-05 · Production baseline: **v2.5.830**
+Last reconciled: 2026-08-06 · Production baseline: **v2.5.832**
 · Next assignable card: **A09**, unassigned.
 
-**X01 is DONE (v2.5.822, Bolt).** The arena now shows who is fighting whom next.
+**Bolt's session of 2026-08-05/06, in order.** X04: the roadmap advertised five
+token packages topping out at Executive 1400T/EUR80 while `token_config.py` has
+eight, to Legend Chef 12800T/EUR768 — the row is derived from the catalogue now
+(v2.5.819). X01: the upcoming-battles list, absent from the payload, the
+selectors and the template, built and then rebuilt twice to the Owner's design —
+a sub-line under the phase steps, then pills of two halves with a face and a
+name in each, three to a row, two rows, soonest climbing to the top right
+(v2.5.822 → v2.5.825). `?demo=next` fills both rows from real enrolled chefs for
+inspection (v2.5.827) and is now largely redundant, see the repeal below.
+**AGENTS.md 2.10.0** (v2.5.829): the Owner repealed the line forbidding
+data-writing on production to prove a visual result — arena functionality is
+exercised on production, continuously and across all of it, with his words
+recorded verbatim in section 8. Console mirror (v2.5.831): the console built its
+own `arena_data` from a hand-listed copy that had lost `vip_sponsors`,
+`spirit_count` and `upcoming`, and loaded one stylesheet where the arena loads
+five — one assembly and one set of sheets now, flat and effect-free by his
+instruction, twelve panels each carrying an `i` that explains itself after a
+two-second rest.
+
+**Open, and his to rule on: browser zoom.** Above 100% the arena appears to
+shrink while everything else grows, and below 100% the reverse. Measured on the
+same window, 966×918 against 644×612 (what 1.5× zoom leaves of it): the deck
+goes 746px → 660px physical, −11%, while a `rem`-sized phase step goes 35 → 52,
++50%. The cause is A07 itself — the deck is `calc(100svh - header)`, and a box
+measured by the viewport cannot scale with zoom because the viewport does not.
+He has parked it as-is for now. The candidate fix is
+`min(100svh - header, N rem)`: zoom works until the arena fills the screen, then
+stops, and A07's no-scroll rule still holds.
+
+**X01 is DONE (v2.5.822 → v2.5.825, Bolt).** The arena now shows who is fighting whom next.
 The Owner named the upcoming-battles list as half of what the arena is for and
 nothing answered it — no payload key, no selector, no template block. Upcoming
 is narrower than "not finished": `SCHEDULED` **and** `start_time` still ahead.

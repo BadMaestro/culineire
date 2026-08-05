@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.832",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "Session summary - X04, X01 twice rebuilt, the repeal, and the console mirror",
+        "section": "Agents / Governance",
+        "summary": "Board and journal reconciled at the end of Bolt's session, on the Owner's instruction. WHAT SHIPPED, in order. v2.5.819 X04: the roadmap advertised five token packages topping out at Executive 1400T/EUR80 while token_config.py has eight, to Legend Chef 12800T/EUR768; the row is computed from the catalogue now so it cannot drift again. v2.5.822 X01: the upcoming-battles list, which existed in no selector, no payload key and no template block, although the Owner names it as half of what the arena is for. v2.5.824 and v2.5.825: X01 rebuilt twice to his design - first a sub-line under the phase steps, then pills of two halves with a face and a name in each, three to a row and two rows, the soonest climbing to the top right as its timer runs down. v2.5.827: ?demo=next fills both rows from real enrolled chefs. v2.5.829: AGENTS.md 2.10.0 - he repealed the line forbidding data-writing on production to prove a visual result, in words recorded verbatim, and arena functionality is now exercised on production continuously; the ?demo=next flag of an hour earlier is the monument to the rule that made it necessary. v2.5.831: the console arena became a mirror - it had been building its own arena_data from a hand-listed copy missing vip_sponsors, spirit_count and upcoming, and loading one stylesheet where the arena loads five; one assembly and one set of sheets now, flat and effect-free as he asked, twelve panels each with an i that explains itself after a two-second rest. WHAT I GOT WRONG AND HE CAUGHT: v2.5.822 shipped a panel with no box and no position, rendering on top of the arena, because I built it without ever looking at the page - the arena is staff-only and I had not found the read-only preview route that solves that. Everything since was measured on a rendered page. OPEN AND HIS: browser zoom. Above 100% the arena appears to shrink while the page grows, below 100% the reverse - the deck is calc(100svh - header) and a box measured by the viewport cannot scale with zoom. Measured 746px to 660px physical at 1.5x while a rem-sized element goes 35 to 52. Parked as-is by him; the candidate is min(100svh - header, N rem).",
+    },
+    {
         "version": "2.5.831",
         "date": "2026-08-06",
         "commit": "",
