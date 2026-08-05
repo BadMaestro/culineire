@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.817",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "The battle choreography was written down two months ago, in a file that governs nothing",
+        "section": "Chef Battles / Arena",
+        "summary": "Nothing visible changed. The Owner told an agent - me - that the arena lifecycle had been specified a million times and to read the documentation before asking him anything. He was right, and the file is docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/ARENA_HALL_PLAN.md, headed 'APPROVED PLAN - Owner decisions recorded 2026-07-02'. All four of his points are in it: a chef stands in his own rank ring; a challenge accepted teleports the pair into facing cells INSIDE their own rings, same rank opposite cells, different ranks a vertical pair across rings; battle time moves both to the centre with VS between them, disappearing from their ring cells, move and not duplicate; completion returns them. THE REASON IT WAS NEVER BUILT IS THE PART WORTH KEEPING. That file is ARCHIVED, and section 10 says an archived document cannot define current scope. So the rules existed and governed nothing, and an agent could read the whole active canon without meeting them. That is precisely how section 18 - the hardest prohibition in the project - stayed formally invisible for two weeks. They are now ARENA_BATTLE_PLAN section 2b, where they are law, with the archive cited as their origin. THE DELTA, MEASURED NOT ASSUMED. Standing in the rank ring holds. The rank window holds: check_rank_matchup() in services.py already limits a challenge to the same or an adjacent rank, hero unrestricted. Moving to the centre at battle time holds. THE APPROACH STAGE IS MISSING: _arena_center() distinguishes facing_pair from active_battle, but stampFloorCentre() handles both in one identical branch and draws both at the centre, while isDisplaced() empties a chef ring cell the moment chef.battle_id equals center.battle_id - so a chef leaves his ring when the battle is merely SCHEDULED and jumps straight to the middle. Recorded on card A09 with its acceptance rewritten. ONE SUPERSEDED LINE, NAMED SO NOBODY RESTORES IT: the 2026-07-02 record approved the centre opening a popup ON the arena, explicitly not a link to a separate page. His instruction today reverses that - it is a link to a separate battle page - and the later word wins. _arena_center() already emits both battle_url and popup_url.",
+    },
+    {
         "version": "2.5.816",
         "date": "2026-08-05",
         "commit": "",

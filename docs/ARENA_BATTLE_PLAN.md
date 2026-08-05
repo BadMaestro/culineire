@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-05 · Production baseline: **v2.5.816**
+Last reconciled: 2026-08-05 · Production baseline: **v2.5.817**
 · Next assignable card: **A09**, unassigned.
 
 **A07 is DONE (v2.5.812) and it was one multiplier.** The Owner defined the card
@@ -129,6 +129,65 @@ Approved by the Owner 2026-07-29. Replaces the "290 real-viewer oval" model.
   geometry, front rows first.
 - Chefs occupy rank rings 3–10 by rank; the Crown Holder holds ring 1; the
   **Moat (ring 2) has no occupants** — lanterns only.
+
+## 2b. Battle lifecycle choreography — where a chef stands, and when
+
+**Owner, 2026-08-05, restating decisions he first recorded on 2026-07-02.** They
+were written down all along, in
+`docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/ARENA_HALL_PLAN.md`
+("Status: APPROVED PLAN — Owner decisions recorded 2026-07-02"). That file is
+ARCHIVED, and §10 says an archived document cannot define current scope — so the
+rules existed and governed nothing, which is why stage B2 below was never built
+and why an agent asked him to repeat himself. They are moved here to be law
+again. The same failure hid §18 for two weeks.
+
+**1. Standing.** A chef who enters the arena stands in **his own ring**, the one
+labelled with his rank. That is what the rank ladder beside the cells is for.
+
+**2. Challenge.** A challenge may only be thrown at your **own rank or one rank
+above or below** — already enforced server-side by
+`check_rank_matchup()` in `chef_battle/services.py`, with the site Hero
+unrestricted. When it is accepted, the two avatars **move towards each other
+inside their own rings**: same rank — opposite cells of that ring; different
+ranks — a vertically aligned pair across the two rings. They have NOT reached
+the centre yet.
+
+**3. Battle time.** Only when the battle's time arrives do both avatars leave
+the ring for **two placeholders beside the centre**, and they stay there for the
+duration. The centre carries **VS** and a **link to the battle page** — a
+separate page the spectators go to in order to watch the fight. Chefs move, they
+are never drawn twice.
+
+**4. On completion** both return to their own ring cells.
+
+**What the arena is for, and it is only this:** so that chefs, sponsors,
+spectators, VIPs and spirits can **see each other**, and to show the **list of
+upcoming battles**.
+
+### One superseded line, named so nobody restores it
+
+The 2026-07-02 record approved the centre opening a **popup embedded on the
+arena**, explicitly "not a link to a separate page". **His instruction of
+2026-08-05 reverses that: it is a link to a separate battle page.** The later
+word wins (§2 of the constitution, source-of-truth order). `_arena_center()`
+already emits both `battle_url` and `popup_url`; the link is the one that counts.
+
+### The delta against the code, measured 2026-08-05
+
+| Stage | Specified | Code today |
+|---|---|---|
+| Standing in own rank ring | yes | **holds** |
+| Challenge limited to rank ±1 | yes | **holds** — `check_rank_matchup()` |
+| Approach INSIDE the rings on accept | yes | **MISSING** |
+| Move to the centre at battle time | yes | holds |
+| Return to ring cells after | yes | holds |
+
+`_arena_center()` returns `facing_pair` for `SCHEDULED`/`MENU_LOCKED` and
+`active_battle` otherwise — but `stampFloorCentre()` handles both in **one
+identical branch**, drawing both at the centre, and `isDisplaced()` empties a
+chef's ring cell as soon as `chef.battle_id === center.battle_id`. So a chef
+leaves his ring the moment a battle is scheduled and jumps straight to the
+centre. **The approach stage does not exist.** It belongs to A09.
 
 ## 3. Slice gate
 
