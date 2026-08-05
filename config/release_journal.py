@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.824",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "The next battle now reads like a departures board, under the phase steps",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner's placement for X01: a sub-line under the battle phases, like an airport board showing the next departure - it must be obvious where to look. Time first, then the pairing, one line under the phase rail. It also fixes what he saw: v2.5.822 shipped the list as its own panel and it rendered with no box and no position on top of the arena, because arena_command_deck.css places every deck panel by naming its class in three separate lists and .arena-interface-rail is display:contents. Measured on a rendered page this time - three rows are 23px tall and clip rather than wrap, board bottom 248 inside a ribbon bottom of 256, no sideways scroll. IF REVERTED: the arena stops saying what is on next, and the earlier panel version comes back with it.",
+    },
+    {
         "version": "2.5.823",
         "date": "2026-08-05",
         "commit": "",
