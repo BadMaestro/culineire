@@ -94,6 +94,9 @@
   var COMPOSITION_CY = 0.51;
   // The site header the deck's height is measured against — see measureHeader().
   var HEADER_SELECTOR = '.ce-header';
+  // A09: clear floor between the crown block and a fighter block, as a fraction
+  // of the floor's width. Measured off the reference — see fighterOffset().
+  var REFERENCE_FIGHTER_GAP = 0.044153;
 
   var pollTimer = null;
   var pingTimer = null;
@@ -1592,6 +1595,41 @@
     return pts;
   }
 
+  /**
+   * A09: how far from the arena centre each fighter pad sits, in plan units.
+   *
+   * MEASURED OFF THE REFERENCE, 2026-08-05, not copied from a summary. Its two
+   * fighters are `image-slot` elements 190 x 212, centred at x 700 and x 1220 on
+   * a 1920 canvas — exactly 260px either side of centre, symmetric to the pixel.
+   * Its crown block is 190 wide. So the CLEAR FLOOR between the crown's edge and
+   * a fighter's edge is 260 - 95 - 95 = 70px against a 1585.4-wide floor grid:
+   *
+   *     gap / floor width = 70 / 1585.4 = 0.044153
+   *
+   * That fraction is what transfers, and it is camera-free because rotateX
+   * leaves x untouched. What does NOT transfer is the reference's y: that block
+   * is taller than it is wide and stands upright above the crown, while our
+   * fighters lie flat on the floor plane on purpose (v2.5.649 — a nested 3D
+   * billboard shattered the camera). Reading its y as a floor offset is exactly
+   * the mistake that produced A07's withdrawn target, so the pads stay on the
+   * crown's own plane and only their x moves.
+   *
+   * WHY THE GAP AND NOT THE OFFSET. Copying the offset directly — 0.164 of the
+   * floor width, 154 plan units here — is not merely different, it is
+   * impossible: our crown half-width (82) plus a pad half-width (94) is 176,
+   * so the pads would overlap the crown. Both of our centre blocks are larger
+   * relative to the floor than the reference's, and the card asks for placement,
+   * not resizing. The gap is the part of the composition that can be honoured
+   * without touching either block.
+   */
+  function fighterOffset(padR) {
+    var tpl = global.ArenaOctagon;
+    var floorOuter = tpl ? tpl.OUTER : 515;
+    // Octagon width across the flats, which is what the rank grid spans.
+    var floorWidth = 2 * floorOuter * Math.cos(Math.PI / 8);
+    return STAGE_RADIUS + REFERENCE_FIGHTER_GAP * floorWidth + padR;
+  }
+
   function stampFloorCentre(svg, center) {
     var layer = svg.querySelector('[data-arena-layer="centre"]');
     if (!layer) { return; }
@@ -1604,7 +1642,7 @@
     var cy = TPL_CY;
     var type = center.type;
     var padR = STAGE_RADIUS * 1.15;
-    var offset = STAGE_RADIUS * 2.35;
+    var offset = fighterOffset(padR);
     var stage = svg.querySelector('.arena-stage');
     if (stage) {
       stage.setAttribute('data-state', type);

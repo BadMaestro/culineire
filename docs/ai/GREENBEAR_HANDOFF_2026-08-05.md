@@ -1,6 +1,6 @@
 # GreenBear handoff — 2026-08-05
 
-Production **v2.5.814**. Constitution **AGENTS.md v2.6.0**. Onboarding package
+Production **v2.5.815**. Constitution **AGENTS.md v2.6.0**. Onboarding package
 **1.5d**. Read everything from `origin/main`, never from a working tree.
 
 ## Do this before anything else
@@ -37,11 +37,25 @@ assigns it; no agent self-assigns and no agent assigns another.
 Everything before it is DONE: A00–A08, AR0–AR5, A11, A12. A13/A14 depend only on
 A06 and are startable. A07 closed at v2.5.812.
 
-**A09 already has its numbers**, from the A06 re-measure: the reference puts four
-plinth blocks in two symmetric pairs flanking the crown, centres at x 557/1363
-and 619/1301 on the 1920 canvas, portraits 196×244. Production has ONE
-66.4 × 69.8 cell avatar at cx 831 while the octagon centres at 955. That is the
-Owner's "dead stickers" report, measured, and it does not depend on the camera.
+**A09 has its number, and it is not the one A06 first gave.** Re-measured on the
+served reference 2026-08-05: the fighters are **two blocks, 190 × 212, centred at
+x 700 and x 1220** — exactly 260 px either side of the 1920 canvas centre,
+symmetric to the pixel. A06's "four plinth blocks in two symmetric pairs" were
+**cells of the reference's own 52-cell floor grid**, verified by matching each
+block against the children of the element that has exactly 52 of them. The real
+fighters are the two `image-slot` elements, which sit outside that grid. A06 §6a
+carries the correction.
+
+**Only x transfers.** 260 px is camera-free — `rotateX` leaves x alone. The y
+does not: that block is 212 tall against 190 wide and stands upright above the
+crown, while our floor fighters lie flat on the floor plane on purpose. Reading
+its y as a floor offset is the same error that produced A07's withdrawn target.
+
+Production draws floor fighters only while the centre is an `active_battle` or a
+`facing_pair`. The centre has been a crown on every measurement day so far, so
+there are none to photograph, and injecting one is forbidden by the card. What
+A06 measured as "fighters" — one 66.4 × 69.8 cell avatar at cx 831 — was a chef
+seated in a rank ring.
 
 ## What A07 established, because A09 works in the same files
 
@@ -142,4 +156,4 @@ after: `/`, `/recipes/` and `/chef-battle/rules/` all 200, unit active, load
 ## Rollback
 
 `rollback/2026-07-28-stable-v2.5.675` — annotated tag, commit `3b4f88ad`.
-Today's releases revert individually; see journal rows v2.5.807–814.
+Today's releases revert individually; see journal rows v2.5.807–815.

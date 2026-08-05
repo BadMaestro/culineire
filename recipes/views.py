@@ -3147,7 +3147,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Challenger is left/green and opponent right/red around the live centre.",
         "acceptance": "Real server-selected chefs only; identity remains inside each plinth; empty/crown-only states remain truthful.",
         "forbidden": "No demo fighter injection, backend selection rewrite or separate support panel.",
-        "evidence": "Identity layer exists; reference placement parity pending.",
+        "evidence": "Identity layer exists and is complete - drawFloorFighter draws the hex pad, the avatar clipped to it, the identity shade, the name and the country, with the challenger green and the opponent red in arena_render.css. What is pending is PLACEMENT. The target was corrected on 2026-08-05 and the old one would have sent this card to the wrong place: A06 read four plinth blocks in two symmetric pairs at x 557/1363 and 619/1301, and those are cells of the reference's own 52-cell floor grid, verified by matching each block against the children of the element that has exactly 52 of them. The fighters are the two image-slot elements OUTSIDE that grid: 190x212, centres x 700 and 1220, exactly 260px either side of the canvas centre. ONLY X TRANSFERS - rotateX leaves x untouched, but the block is 212 tall against 190 wide and stands upright above the crown, while our floor fighters lie flat on the floor plane by deliberate choice (v2.5.649: a nested 3D billboard shattered the camera). Reading its y as a floor offset repeats the error that produced A07's withdrawn target. ALSO TRUE AND IT SHAPES THE EVIDENCE: production draws floor fighters only while the centre is an active_battle or a facing_pair, and the centre has been a crown on every measurement day, so there are none on the live page and injecting one is forbidden by this card. The populated state can only be probed in a detached clone, never shipped and never touching server state.",
     },
     {
         "id": "A10", "group": "Arena Hall", "title": "Crown-holder hub composition",
@@ -3373,14 +3373,19 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "50e5ee5d / production v2.5.814",
-        "verification": "Production v2.5.814 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
+        "commit": "0d49b13b / production v2.5.815",
+        "verification": "Production v2.5.815 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
-                        "numbers are already measured on both sides "
-                        "(ops/audits/arena/A06_remeasure_2026-08-04.md): the reference puts four "
-                        "plinth blocks in two symmetric pairs flanking the crown, centres at "
-                        "x 557/1363 and 619/1301 with portraits 196x244, against production's one "
-                        "66.4x69.8 cell avatar at cx 831 while the octagon centres at 955. The "
+                        "number is measured and was CORRECTED on 2026-08-05 "
+                        "(ops/audits/arena/A06_remeasure_2026-08-04.md section 6a): the fighters "
+                        "are TWO blocks, 190x212, centred at x 700 and x 1220 - exactly 260px "
+                        "either side of the 1920 canvas centre, symmetric to the pixel. The "
+                        "'four plinth blocks in two symmetric pairs' this card carried until "
+                        "today were cells of the reference's own 52-cell floor grid, matched "
+                        "against the children of the element that has exactly 52 of them. Only "
+                        "the x transfers: rotateX leaves x alone, but that block is 212 tall "
+                        "against 190 wide and stands upright, while our floor fighters lie flat "
+                        "on the floor plane on purpose. The "
                         "camera stays rotateX(42deg): the Design Template's own 57deg shipped as "
                         "v2.5.792 and the Owner reverted it within the hour (v2.5.793), and the "
                         "2.375 target is not reachable at 42deg by any multiplier. A07 closed at "

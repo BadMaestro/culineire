@@ -2744,6 +2744,42 @@ class ArenaMasterConsoleAccessTests(TestCase):
             source.index("drawSpectatorOval(svg, geometry, step, defs);"),
         )
 
+    def test_fighter_offset_is_derived_from_the_measured_reference_gap(self):
+        """A09: the pads sit at a MEASURED distance, not a hand-tuned multiplier.
+
+        The offset was `STAGE_RADIUS * 2.35` — a number with no source. It is now
+        derived from the one thing the reference can actually lend us: the clear
+        floor between the crown block and a fighter block, 70px against a
+        1585.4-wide grid, which is camera-free because rotateX leaves x alone.
+
+        This test exists because that derivation is invisible at the call site
+        and a later edit would 'simplify' it straight back to a multiplier. It
+        asserts the constant, the derivation, and the absence of the old literal.
+        """
+        from django.conf import settings as django_settings
+        from pathlib import Path
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("REFERENCE_FIGHTER_GAP = 0.044153", source)
+        self.assertIn("offset = fighterOffset(padR)", source)
+        self.assertIn(
+            "return STAGE_RADIUS + REFERENCE_FIGHTER_GAP * floorWidth + padR;",
+            source,
+        )
+        # The width across the flats, not the circumradius: the rank grid spans
+        # the former, and using OUTER directly would push the pads 8% too far.
+        self.assertIn("2 * floorOuter * Math.cos(Math.PI / 8)", source)
+        self.assertNotIn("STAGE_RADIUS * 2.35", source)
+
+        # The y stays on the crown's plane. The reference's fighter block is
+        # upright and taller than wide; converting its y through the camera is
+        # the error that produced A07's withdrawn target.
+        self.assertIn("{ x: cx - offset, y: cy }", source)
+        self.assertIn("{ x: cx + offset, y: cy }", source)
+
     def test_floor_fighter_identity_stays_inside_existing_plinth(self):
         """Name and static country belong inside the existing floor fighter."""
         from django.conf import settings as django_settings
