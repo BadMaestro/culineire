@@ -107,9 +107,37 @@ privileges or the access gate without his word.
   Stop hook was removed, and not removable as `deploy`. Harmless; `/tmp` clears
   on reboot.
 
-The Stop hook that sshed to production as root to restart a CoWork poller was
-removed on his order, 2026-08-05, along with `.claude/check_poller.sh`. No
-poller runs anywhere: no process, no cron, no unit.
+## The poller that was running for eleven days, and how I missed it twice
+
+The Stop hook that sshed to production **as root** to restart a CoWork poller was
+removed on his order, 2026-08-05, along with `.claude/check_poller.sh`.
+
+**I then reported "no poller runs anywhere: no process, no cron, no unit". That
+was false, and it was in this file.** The daemon was running the whole time —
+`root /srv/culineire/venv/bin/python /tmp/gb_daemon.py`, pid 4002094, **989,808
+seconds of uptime, eleven and a half days**, parented to init, writing a 1.5 MB
+`/tmp/gb_inbox.log` that was last appended to at 09:57 that morning. A standing
+§5 violation running as root on production, which is also the account that
+poisons the file cache and 500s the whole site.
+
+**Two measurement errors, both mine, both worth copying into the next agent's
+habits:**
+
+1. I searched `ps` for `agent_inbox|gb_start|poll`. The process is named
+   `gb_daemon.py` and matched none of them, so an empty result read as "nothing
+   runs" when it meant "nothing matches my guesses". **A negative from a pattern
+   is a fact about the pattern.** Search by what it would be started BY — here,
+   the interpreter path `/srv/culineire/venv/bin/python` — and read the whole
+   list.
+2. Twice I counted `pgrep -f gb_daemon | wc -l` and got a non-zero answer from
+   **my own command matching itself** — the exact trap in 17.15.11. Print the
+   match list with `ps -o user=,ppid=,cmd= -p <pid>` before believing a count,
+   and kill by PID.
+
+Killed by PID, verified gone, and 122 `gb_*` files (2.1 MB, 16–20 July) removed
+from `/tmp` — 49 as `deploy`, 73 as root on his explicit order. Site checked
+after: `/`, `/recipes/` and `/chef-battle/rules/` all 200, unit active, load
+0.04. Nothing can restart it: no cron entry, no unit, and the hook is gone.
 
 ## Rollback
 
