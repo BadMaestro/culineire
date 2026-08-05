@@ -99,16 +99,72 @@ def rank_for_wins(wins: int) -> str:
     return ChefBattleProfile.Rank.KITCHEN_PORTER
 
 
-def promote_rank(profile) -> None:
-    """Set the profile's rank from its wins, unless the profile is exempt.
+def is_immortal(profile) -> bool:
+    """True for the Owner's account.
 
-    `infinite_moves` marks the Owner's own account, whose rank, crown and
-    enrolment are his alone (AGENTS.md section 18). The main result path already
-    guarded on it; the three forfeit and no-show paths did not, so a walkover
-    could have recomputed his rank behind his back. One helper now, so the
-    exemption cannot be forgotten at a fourth call site.
+    Touching that account without his permission is forbidden — AGENTS.md
+    section 18 — and nothing the game does may take anything from it.
+
+    THE MARKER IS THE OWNER'S SLUG, NOT `infinite_moves`. v2.5.820 guarded on
+    that flag and it was wrong twice over: production carries it on THREE
+    accounts, so the guard silently froze two ordinary chefs' ranks as well, and
+    it described a moves exemption rather than the identity it stood in for.
+    `get_or_create_battle_profile()` has always keyed his profile off
+    `settings.OWNER_SLUG`; this reads the same thing, in one place, so no
+    penalty path can invent its own answer.
+
+    NOT a generalisation of the hardcoded "greenbear" that section 18 forbids
+    abstracting: those are slugs in views, templates and presence, and they stay.
+    This is the existing OWNER_SLUG check, given a name.
     """
-    if getattr(profile, "infinite_moves", False):
+    from django.conf import settings as _settings
+    author = getattr(profile, "author", None)
+    slug = getattr(author, "slug", None)
+    return bool(slug) and slug == getattr(_settings, "OWNER_SLUG", None)
+
+
+def penalise(profile, *, losses=0, reputation=0, rating=0, reset_streak=False,
+             refused=0, ignored=0) -> list[str]:
+    """Apply a penalty to a chef, or nothing at all to the Owner.
+
+    Nothing the game does may take anything from his account: no loss, no rating
+    drop, no reputation hit, no broken streak, no counter. Every path that takes
+    something away from a chef comes through here so the exemption cannot be
+    forgotten at the seventh call site —
+    which is exactly how a walkover was able to recompute the Owner's own rank
+    until today (AGENTS.md section 18).
+
+    Returns the update_fields the caller should save; empty when nothing moved.
+    """
+    if is_immortal(profile):
+        return []
+    touched = []
+    if losses:
+        profile.losses += losses
+        touched.append("losses")
+    if reset_streak:
+        profile.win_streak = 0
+        touched.append("win_streak")
+    if reputation:
+        profile.reputation = max(-1000, profile.reputation + reputation)
+        touched.append("reputation")
+    if rating:
+        profile.rating = max(0, profile.rating + rating)
+        touched.append("rating")
+    if refused:
+        profile.refused_battles += refused
+        touched.append("refused_battles")
+    if ignored:
+        profile.ignored_battles += ignored
+        touched.append("ignored_battles")
+    if touched:
+        touched.append("updated_at")
+    return touched
+
+
+def promote_rank(profile) -> None:
+    """Set the profile's rank from its wins. The Owner's rank is his alone."""
+    if is_immortal(profile):
         return
     profile.rank = rank_for_wins(profile.wins)
 
@@ -281,24 +337,28 @@ def refuse_challenge(challenge: BattleChallenge) -> None:
         challenge.save(update_fields=["status", "refused_at"])
 
         profile = get_or_create_battle_profile(challenge.opponent)
-        profile.refused_battles += 1
-        profile.reputation -= 5
-        profile.save(update_fields=["refused_battles", "reputation", "updated_at"])
+        fields = penalise(profile, refused=1, reputation=-5)
+        if fields:
+            profile.save(update_fields=fields)
 
-        # Live rules 2026-07-10: refusing costs 15 Battle Moves
-        from .energy_service import spend_moves as _spend_moves, InsufficientEnergy
-        from .models import BattleMoveTransaction
-        try:
-            _spend_moves(
-                challenge.opponent,
-                MOVES_REFUSE_PENALTY,
-                BattleMoveTransaction.TxType.CHALLENGE_REFUSED,
-            )
-        except InsufficientEnergy:
-            # Floor at zero: drain remaining moves, never go negative
-            if profile.battle_moves > 0:
-                profile.battle_moves = 0
-                profile.save(update_fields=["battle_moves", "updated_at"])
+        # Live rules 2026-07-10: refusing costs 15 Battle Moves — never the
+        # god's. spend_moves() already exempts an infinite-moves balance, but
+        # the InsufficientEnergy branch below drains the balance to zero on its
+        # own and would have reached him regardless. One guard around both.
+        if not is_immortal(profile):
+            from .energy_service import spend_moves as _spend_moves, InsufficientEnergy
+            from .models import BattleMoveTransaction
+            try:
+                _spend_moves(
+                    challenge.opponent,
+                    MOVES_REFUSE_PENALTY,
+                    BattleMoveTransaction.TxType.CHALLENGE_REFUSED,
+                )
+            except InsufficientEnergy:
+                # Floor at zero: drain remaining moves, never go negative
+                if profile.battle_moves > 0:
+                    profile.battle_moves = 0
+                    profile.save(update_fields=["battle_moves", "updated_at"])
 
         create_battle_event(
             event_type=BattleEvent.EventType.CHALLENGE_REFUSED,
@@ -332,37 +392,19 @@ def expire_stale_challenges() -> int:
         challenge.status = BattleChallenge.Status.EXPIRED
         challenge.save(update_fields=["status"])
 
-        # X02, audit of 2026-08-05: ignoring a challenge used to be FREE while
-        # refusing one cost fifteen Battle Moves, five reputation and a mark on
-        # the public profile. So the chef who answered honestly was the only one
-        # punished, and silence was the dominant strategy. battle_rules.md gives
-        # the two the same weight, and `ignored_battles` had been sitting on the
-        # profile and in the admin since the first migration without a single
-        # line writing to it.
+        # AN UNANSWERED CHALLENGE COSTS NOTHING. Owner's ruling, 2026-08-05:
+        # silence is not an offence. A chef who never answered may be busy, away,
+        # or simply never saw it, and the site cannot tell that from contempt.
         #
-        # The penalty mirrors refuse_challenge() exactly, so the two outcomes
-        # cost the same thing. It lands on the OPPONENT — the chef who was asked
-        # and never answered — never on the challenger, who did nothing wrong.
-        opponent_profile = get_or_create_battle_profile(challenge.opponent)
-        opponent_profile.ignored_battles += 1
-        opponent_profile.reputation = max(-1000, opponent_profile.reputation - 5)
-        opponent_profile.save(
-            update_fields=["ignored_battles", "reputation", "updated_at"]
-        )
-        from .energy_service import spend_moves as _spend_moves, InsufficientEnergy
-        from .models import BattleMoveTransaction
-        try:
-            _spend_moves(
-                challenge.opponent,
-                MOVES_REFUSE_PENALTY,
-                BattleMoveTransaction.TxType.CHALLENGE_REFUSED,
-            )
-        except InsufficientEnergy:
-            # Floor at zero, exactly as refuse_challenge does: drain what is
-            # there, never go negative.
-            if opponent_profile.battle_moves > 0:
-                opponent_profile.battle_moves = 0
-                opponent_profile.save(update_fields=["battle_moves", "updated_at"])
+        # This block briefly DID penalise silence, in v2.5.820, on the strength
+        # of battle_rules.md giving an ignored challenge the same weight as a
+        # refusal. Overturned the same day.
+        #
+        # Irresponsibility is ACCEPTING and then not turning up, and that is
+        # already paid for — _award_walkover(), _award_forfeit_win() and the
+        # both-absent path take the loss, the streak and the reputation. Nothing
+        # is added here. `ignored_battles` stays unwritten by design; the doc has
+        # been corrected rather than the code bent to it.
         create_battle_event(
             event_type=BattleEvent.EventType.CHALLENGE_EXPIRED,
             challenge=challenge,
@@ -443,11 +485,10 @@ def _award_walkover_win(battle: Battle, *, winner, loser) -> None:
     is penalised. Mirrors the established forfeit mechanic — reputation hit for
     the absentee, no rating change, since no dishes were ever judged."""
     loser_profile = get_or_create_battle_profile(loser)
-    loser_profile.losses += 1
-    loser_profile.win_streak = 0
-    loser_profile.reputation = max(-1000, loser_profile.reputation - 10)
-    promote_rank(loser_profile)
-    loser_profile.save(update_fields=["losses", "win_streak", "reputation", "rank", "updated_at"])
+    fields = penalise(loser_profile, losses=1, reset_streak=True, reputation=-10)
+    if fields:
+        promote_rank(loser_profile)
+        loser_profile.save(update_fields=fields + ["rank"])
 
     winner_profile = get_or_create_battle_profile(winner)
     winner_profile.wins += 1
@@ -482,10 +523,10 @@ def _void_battle_no_show(battle: Battle) -> None:
     (owner decision 2026-07-17: 'оба теряют очки')."""
     for author in (battle.challenger, battle.opponent):
         profile = get_or_create_battle_profile(author)
-        profile.win_streak = 0
-        profile.reputation = max(-1000, profile.reputation - 10)
-        promote_rank(profile)
-        profile.save(update_fields=["win_streak", "reputation", "rank", "updated_at"])
+        fields = penalise(profile, reset_streak=True, reputation=-10)
+        if fields:
+            promote_rank(profile)
+            profile.save(update_fields=fields + ["rank"])
 
     battle.status = Battle.Status.VOID
     battle.waiting_until = None
@@ -586,11 +627,10 @@ def resolve_start_rituals() -> int:
 
 def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
     loser_profile = get_or_create_battle_profile(loser)
-    loser_profile.losses += 1
-    loser_profile.win_streak = 0
-    loser_profile.reputation = max(-1000, loser_profile.reputation - 10)
-    promote_rank(loser_profile)
-    loser_profile.save(update_fields=["losses", "win_streak", "reputation", "rank", "updated_at"])
+    fields = penalise(loser_profile, losses=1, reset_streak=True, reputation=-10)
+    if fields:
+        promote_rank(loser_profile)
+        loser_profile.save(update_fields=fields + ["rank"])
 
     winner_profile = get_or_create_battle_profile(winner)
     winner_profile.wins += 1
@@ -780,11 +820,9 @@ def _score_battle(battle: Battle) -> Battle:
         promote_rank(winner_profile)
         winner_profile.save()
 
-        loser_profile.losses += 1
-        loser_profile.win_streak = 0
-        loser_profile.rating = max(0, loser_profile.rating - 15)
-        loser_profile.reputation = max(-1000, loser_profile.reputation - 3)
-        promote_rank(loser_profile)
+        if penalise(loser_profile, losses=1, reset_streak=True, rating=-15,
+                    reputation=-3):
+            promote_rank(loser_profile)
         loser_profile.save()
 
         # Award moves with typed transaction records

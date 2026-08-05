@@ -26,6 +26,9 @@ The routing, the reading order and what a runbook may not do are in
 `ops/onboarding/README.txt`. Read every one of them from `origin/main`.
 
 **Before writing anything, read `/AGENTS.md` section 1a and section 18.**
+`greenbear` is the Owner's own account. **Touching it without his permission is
+forbidden** — the account, his presence on the site, and his page. Indirect
+changes count, and nothing the game does may take anything from it.
 `greenbear` is the Owner's own account — his account, his presence on the site
 and his page are untouchable, and an agent shares his name. That section carries
 the only stated consequence in the constitution.

@@ -3,6 +3,27 @@
 ## Author note
 Defined by project creator.
 
+> **RESTORED TO ACTIVE STATUS 2026-08-05** (AGENTS.md section 10, v2.7.0). This
+> file was archived, and an archived document defines nothing — which is how the
+> code and these rules drifted apart unopposed. It is binding again, and it is
+> NOT yet reconciled: parts of it lost an argument to the Owner months ago and
+> were never updated. Where it contradicts the code, say so and ask him; do not
+> change code to match it.
+>
+> **CORRECTED BY THE OWNER, 2026-08-05 — silence is not an offence.** The tables
+> below charge a chef for letting a challenge expire unanswered. He overturned
+> that: a chef who never answered may be busy, away, or may simply never have
+> seen it, and the site cannot tell that from contempt. An unanswered challenge
+> frees the slot and costs the non-responder NOTHING. What IS paid for is
+> **accepting and then not turning up** — already handled by the walkover,
+> forfeit and both-absent paths. The struck-through rows below are kept, not
+> deleted, so the change stays legible.
+>
+> **STILL DISPUTED AND HIS TO SETTLE:** the acceptance window (this file says 12
+> hours in one place and 48 in another; the code and the live rules page say 48)
+> and the 24-hour battle window with its `battle_deadline` field, which does not
+> exist — board cards X05 and X06.
+
 ---
 
 ## Battle count & progression
@@ -12,8 +33,9 @@ Defined by project creator.
 | Win | +1 `wins` (counts toward level) |
 | Loss | +1 `losses` (display only, does not affect level) |
 | Refuse a challenge (manual) | **−1 battle** (floor at 0) |
-| Auto-refuse (48h timeout) | **−1 battle** (floor at 0) |
-| Slot auto-expire (12h no response) | **−1 battle** (floor at 0) |
+| ~~Auto-refuse (48h timeout)~~ | ~~−1 battle~~ — **NO PENALTY** (Owner, 2026-08-05) |
+| ~~Slot auto-expire (no response)~~ | ~~−1 battle~~ — **NO PENALTY** (Owner, 2026-08-05) |
+| Accepted, then failed to appear | loss, streak reset, reputation — this is the irresponsibility |
 
 **Floor rule**: battle count can never go below 0. If a chef has 0 battles
 and incurs a penalty, it stays at 0.
@@ -44,7 +66,7 @@ Battle completes → slot freed; chef can accept or issue a new challenge
 - **Occupied slot**: a chef with an active battle cannot accept or issue
   new challenges until the slot is free
 - Manual refuse → −1 battle (floor 0)
-- Slot auto-expires (12h no response) → −1 battle (floor 0)
+- ~~Slot auto-expires → −1 battle~~ — **no penalty**; silence is not an offence (Owner, 2026-08-05)
 
 ### "Ready" button — scheduling combat within the 24h window
 
@@ -59,7 +81,7 @@ Battle completes → slot freed; chef can accept or issue a new challenge
 
 | Trigger | Action |
 |---------|--------|
-| Challenge not accepted in 12h | Slot freed; **−1 battle** to non-responder (floor 0) |
+| Challenge not accepted in the window | Slot freed. **No penalty** (Owner, 2026-08-05) |
 | Manual refuse | −1 battle to refuser; slot freed |
 | 24h window expires without completion | Auto-cancel; non-compliant party −1 battle |
 | Win recorded | +1 battle count; recalculate level |
@@ -93,5 +115,5 @@ def has_active_battle(profile):
 ```
 
 ### Auto-tasks (cron / celery beat — run every 30 min)
-- Find `declared` battles where `created_at < now() - 12h` → expire; −1 to non-responder
+- Find `declared` battles past their window → expire. No penalty to anyone.
 - Find active battles where `battle_deadline < now()` → auto-cancel; −1 to non-compliant party

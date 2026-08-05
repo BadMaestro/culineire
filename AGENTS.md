@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.7.0"
+  version: "2.9.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -1402,49 +1402,45 @@ pre_deploy_reread:
 A deploy whose report lacks this block is not a deploy that happened; it is a
 deploy that must be verified from scratch by someone else.
 
-## 18. GreenBear is the Owner — the one law that covers the whole site
+## 18. The Owner's account — the one law that covers the whole site
 
-Owner's order of 2026-07-20, restored to the constitution on 2026-08-04 after it
-was found living only in an archived memory file, where section 10 says it could
-not define anything. It is the hardest prohibition in this project and it had
-become invisible. It is written here now, in the canonical document, because a
-rule an agent cannot find is a rule an agent will break in good faith.
+**`greenbear` is the CulinEire Product Owner himself.** Superuser id 1, author
+slug `greenbear`, rank Culinary Master, holder of the Arena crown. Not a test
+account, not a fixture, not an example row — the person giving the orders,
+appearing in the product as a chef.
 
-### The account
+### The rule
 
-**`greenbear` is the CulinEire Product Owner himself** — the creator of the site.
-Superuser id 1, author slug `greenbear`, name `GreenBear`, rank Culinary Master,
-current holder of the Arena crown. Verified on production 2026-08-04.
+**TOUCHING THAT ACCOUNT WITHOUT THE OWNER'S PERMISSION IS FORBIDDEN.**
 
-He is not a test account, not a fixture and not an example row. He is the person
-giving the orders, appearing in the product as a chef.
+No exception, and no "it was only a fix". It covers the account itself — its
+privileges, slug, profile, avatar, portrait assets, rank, crown, enrolment,
+statistics and balances; his arrival on the site (`presence.PresenceEvent`,
+which fires for `OWNER_SLUG` only); and his page
+`/recipes/author/greenbear/` with the `is_god_author` branch in
+`templates/recipes/author_detail.html` and `static/css/god_mode.css`.
 
-### What no agent may change, ever
+**Indirect changes count.** Editing a shared hero template, or hero CSS, in a
+way that alters his page is the same violation as editing his page.
 
-> «Все действия, которые связаны с аккаунтом GreenBear или его присутствием на
-> сайте, вам менять запрещено. Это исключительно моя привилегия как владельца
-> сайта. Если я ещё раз увижу, что кто-то из вас влез в настройки GreenBear —
-> я заменю вас на другие искусственные интеллекты.»
+**Nothing the game does may take anything from him** — no loss, no broken win
+streak, no rating drop, no reputation hit, no rank recomputation, no refusal or
+ignore counter, no Battle Move spent or drained. He may still gain.
 
-FORBIDDEN, with no exception and no "but it was only a fix":
+This is enforced in one place: `is_immortal()` and `penalise()` in
+`chef_battle/services.py`. Every path that subtracts from a chef goes through
+them, because an exemption written inline gets copied into one call site and
+forgotten in the next five — which is exactly what happened before v2.5.823.
+The marker is `OWNER_SLUG`, never `infinite_moves`: that flag is on three
+production accounts and does not mean "the Owner".
 
-- The account `greenbear` — its privileges, slug, profile, avatar, portrait
-  assets, rank, crown or enrolment.
-- His **arrival on the site** (`presence.PresenceEvent`). Announcing himself to
-  the whole site is his and nobody else's, and it fires for `OWNER_SLUG` ONLY.
-  It was once widened to staff, superusers and berserkers; a service
-  `force_login` as **CrestedTen** then raised the Owner's own popup, which from
-  outside is indistinguishable from somebody logging in as him. Restored in
-  v2.5.368 and held by six tests in `presence/tests.py`.
-- His personal page `/recipes/author/greenbear/`, the `is_god_author` branch in
-  `templates/recipes/author_detail.html`, and `static/css/god_mode.css` —
-  untouchable under any circumstance, including a bugfix. **Indirect changes
-  count**: editing a shared hero template or hero CSS in a way that alters his
-  H1, name, paws, pill, gold wave, avatar size or overlay is the same violation.
+**Never `force_login` as a privileged account** to check anything. It writes
+`last_login`, creates a session and raises presence events — real machinery on
+the real person. Render read-only instead (17.10).
 
 ### The code written for him is deliberate, not debt
 
-Code special-cased for `greenbear` is **intentional design**. Do not tidy it.
+Code special-cased for `greenbear` is intentional design. Do not tidy it.
 
 - Hardcoded `slug="greenbear"` in views, messaging, legal and presence: NORMAL.
 - `is_greenbear` / `is_god_author` checks in templates and views: NORMAL.
@@ -1471,14 +1467,14 @@ strengthened overlay stay exclusive to him.
 ### Before touching anything that could reach him
 
 Ask first. A change that looks unrelated is not: shared templates, hero CSS,
-author-page markup, presence, contact routing and moderation all pass through
-his account. Where an agent cannot prove a change leaves it untouched, the change
+author-page markup, presence, contact routing and moderation all pass through his
+account. Where an agent cannot prove a change leaves it untouched, the change
 does not ship.
 
-**Never `force_login` as a privileged account** to check anything. It writes
-`last_login`, creates a session and raises presence events — real machinery, on
-the real person. Render read-only instead (17.10), and if a privileged account is
-genuinely required, warn the Owner before, not after.
+### The naming collision
+
+An agent is also called GreenBear. When a slug, path, fixture or asset says
+`greenbear`, it means THE OWNER unless proven otherwise.
 
 ## 19. A reply ends the run — work continuously until the task is done
 

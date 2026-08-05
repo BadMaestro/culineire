@@ -654,26 +654,56 @@ class ChefBattleRulesViewTests(TestCase):
             with self.subTest(wins=wins):
                 self.assertEqual(rank_for_wins(wins), expected_rank)
 
-    def test_promote_rank_never_touches_the_owners_account(self):
-        """AGENTS.md section 18: his rank, crown and enrolment are his alone.
+    def test_the_god_is_immortal_and_nobody_else_is(self):
+        """AGENTS.md section 18: nothing the game does may take anything from
+        the Owner's account.
 
-        The main result path guarded on `infinite_moves`; the three forfeit and
-        no-show paths did not, so a walkover could have recomputed his rank
-        behind his back. promote_rank() is now the single exemption point.
+        Two things are asserted, and the second is the one that bit. Nothing may
+        be taken from him - no loss, no rating drop, no reputation hit, no broken
+        streak, no counter, no rank recomputation. And the exemption must key on
+        HIM, not on `infinite_moves`: production carries that flag on three
+        accounts, so v2.5.820's guard silently froze two ordinary chefs' ranks
+        as well.
         """
-        from chef_battle.services import promote_rank
+        from django.conf import settings as dj_settings
+        from chef_battle.services import is_immortal, penalise, promote_rank
 
-        profile = ChefBattleProfile(
-            rank=ChefBattleProfile.Rank.EXECUTIVE_CHEF, wins=0, infinite_moves=True
+        god = ChefBattleProfile(
+            author=RecipeAuthor(slug=dj_settings.OWNER_SLUG, name="GreenBear"),
+            rank=ChefBattleProfile.Rank.EXECUTIVE_CHEF,
+            wins=0, losses=0, rating=9999, reputation=100, win_streak=7,
+            refused_battles=0, ignored_battles=0, infinite_moves=True,
         )
-        promote_rank(profile)
-        self.assertEqual(profile.rank, ChefBattleProfile.Rank.EXECUTIVE_CHEF)
+        self.assertTrue(is_immortal(god))
+        self.assertEqual(
+            penalise(god, losses=1, reset_streak=True, rating=-15,
+                     reputation=-10, refused=1, ignored=1),
+            [],
+        )
+        self.assertEqual(god.losses, 0)
+        self.assertEqual(god.rating, 9999)
+        self.assertEqual(god.reputation, 100)
+        self.assertEqual(god.win_streak, 7)
+        self.assertEqual(god.refused_battles, 0)
+        self.assertEqual(god.ignored_battles, 0)
+        promote_rank(god)
+        self.assertEqual(god.rank, ChefBattleProfile.Rank.EXECUTIVE_CHEF)
 
-        ordinary = ChefBattleProfile(
-            rank=ChefBattleProfile.Rank.KITCHEN_PORTER, wins=6, infinite_moves=False
+        # An ordinary chef who happens to carry infinite_moves is NOT immortal.
+        mortal = ChefBattleProfile(
+            author=RecipeAuthor(slug="crestedten", name="CrestedTen"),
+            rank=ChefBattleProfile.Rank.KITCHEN_PORTER,
+            wins=6, losses=0, rating=500, reputation=50, win_streak=3,
+            infinite_moves=True,
         )
-        promote_rank(ordinary)
-        self.assertEqual(ordinary.rank, ChefBattleProfile.Rank.COMMIS_CHEF)
+        self.assertFalse(is_immortal(mortal))
+        touched = penalise(mortal, losses=1, reset_streak=True, reputation=-10)
+        self.assertIn("losses", touched)
+        self.assertEqual(mortal.losses, 1)
+        self.assertEqual(mortal.win_streak, 0)
+        self.assertEqual(mortal.reputation, 40)
+        promote_rank(mortal)
+        self.assertEqual(mortal.rank, ChefBattleProfile.Rank.COMMIS_CHEF)
 
 
 class ChefBattleAntiAbuseTests(TestCase):

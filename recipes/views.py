@@ -3337,15 +3337,15 @@ ARENA_DESIGN_TASKS = [
         "evidence": "DONE v2.5.822 (Bolt). Owner, 2026-08-05: the arena exists so chefs, sponsors, spectators, VIPs and spirits can see each other AND to show the list of upcoming battles. The second half had no key, no selector and no block - confirmed by counting the 16 keys in PUBLIC_ARENA_STATE_KEYS before touching anything. WHAT UPCOMING MEANS, AND IT IS NARROWER THAN 'NOT FINISHED': get_upcoming_battles() takes SCHEDULED with start_time still in the future. ACTIVE_STATUSES deliberately includes SCHEDULED so an imminent battle still draws on the floor, but a scheduled battle whose time has passed is one the arena is already SHOWING, not one it is announcing - announcing it would be the panel lying about the floor below it. WAITING is excluded too: that battle started and is sitting out the grace period for its second chef, which is late rather than forthcoming. Five tests pin exactly that boundary. THE KEY IS IN THE POLL CONTRACT, which is the trap vip_sponsors and spirit_count already fell into: bind() repaints from the payload, so a key that is not sent reads as 'nothing is booked' and would have cleared the panel thirty seconds after load. Two more tests pin the key and its shape. NO FIXTURE: real rows only, and an empty schedule says so in words - the panel keeps its shape empty, as the ladder does. The time goes out as an instant plus a server-rendered fallback; arena_deck.js reformats it in the viewer's own locale rather than the server baking 'in 3 hours' into a cached string. PLACEMENT IS PROVISIONAL AND IS THE OWNER'S: the panel sits in the left rail under the crown ladder, built on the ladder's own plate so two lists in one rail do not read as two kinds of thing. The approved reference has no such panel, so there was nothing to measure against - moving it is a CSS-only change.",
     },
     {
-        "id": "X02", "group": "Audit 2026-08-05", "title": "Ignoring a challenge is free; refusing one costs",
+        "id": "X02", "group": "Audit 2026-08-05", "title": "Silence is not an offence - the ignore penalty is withdrawn",
         "status": "DONE", "owner": "GreenBear",
         "files": "chef_battle/services.py expire_stale_challenges()",
         "depends_on": "none",
-        "action": "Wire the expiry penalty, once the Owner has settled the window in X05.",
-        "visible_result": "Nothing visible until a challenge actually expires.",
-        "acceptance": "Floor at zero; the counter that already exists is the one used; no second field invented.",
+        "action": "None. The Owner ruled that an unanswered challenge costs nothing.",
+        "visible_result": "None.",
+        "acceptance": "expire_stale_challenges() takes nothing from anyone; battle_rules.md says so too.",
         "forbidden": "Do not change the window itself here - that is X05 and it is the Owner's.",
-        "evidence": "DONE v2.5.819. expire_stale_challenges() now mirrors refuse_challenge() exactly: ignored_battles +1, reputation -5 floored at -1000, and MOVES_REFUSE_PENALTY of 15 Battle Moves with the same drain-to-zero fallback. It lands on the OPPONENT - the chef who was asked and never answered - never on the challenger. Before this, ignoring was free and refusing cost, so silence was the dominant strategy and the honest answer was the only punished one; ignored_battles had sat on the profile and in the admin since the first migration with no line writing to it. The 48-hour window itself is untouched: that is X05 and it is the Owner's. 598 chef_battle tests green.",
+        "evidence": "CLOSED BY THE OWNER'S RULING, 2026-08-05: silence is not an offence - a chef who never answered may be busy, away, or may simply never have seen it. The audit had reported that ignoring a challenge was free while refusing one cost fifteen Battle Moves and five reputation, and read that asymmetry as a defect because battle_rules.md gave the two the same weight. IT IS NOT A DEFECT. Not answering is not a choice a chef made - it is a message he may never have seen, and the site cannot tell contempt from a holiday. IRRESPONSIBILITY IS ACCEPTING AND THEN NOT TURNING UP, and that is already paid for by _award_walkover(), _award_forfeit_win() and the both-absent path: the loss, the broken streak and the reputation. v2.5.820 briefly shipped the penalty; v2.5.823 took it out again, and battle_rules.md - now an ACTIVE document - carries the correction with the old rows struck through rather than deleted. ChefBattleProfile.ignored_battles therefore stays unwritten by design and joins ChefBattleProfile.level as a dead column awaiting his word on a migration.",
     },
     {
         "id": "X03", "group": "Audit 2026-08-05", "title": "level is never recalculated - every chef is level 1 forever",
@@ -3422,7 +3422,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "None until the ruling.",
         "acceptance": "His answer recorded verbatim in the release journal, then the losing side corrected.",
         "forbidden": "Do not 'fix' this by editing code to match an archived doc; several of these are money.",
-        "evidence": "OWNER'S RULING 2026-08-05, VERBATIM: 'X09 - победы продвигают ранг.' Implemented in v2.5.819. Rank was derived from rating, an Elo-style number moving by 25 a battle, so the ladder a chef could see (wins) and the ladder that actually moved them (rating) were different things. RANK_THRESHOLDS is now keyed to wins at 0/3/6/9/12/15/18/21 - the step of three wins is chef_levels.md's own cadence, not a number invented for this, and it puts Head Chef at the fifteen wins that document calls the top. rating is NOT removed: it stays a published statistic and still moves on every result, it simply no longer decides anyone's rank. The documented CulinEire Hero tier is buried with this - rank does the progression and is_hero has meant the Owner's own account since it was written. ALSO FIXED IN THE SAME CHANGE, and it was a live section 18 exposure: the main result path guarded rank recomputation on infinite_moves, but the three forfeit and no-show paths did not, so a walkover could have recomputed the OWNER'S OWN RANK behind his back. promote_rank() is now the single exemption point and a test holds it. 598 chef_battle tests green.",
+        "evidence": "OWNER'S RULING 2026-08-05: wins promote rank. Implemented in v2.5.819. Rank was derived from rating, an Elo-style number moving by 25 a battle, so the ladder a chef could see (wins) and the ladder that actually moved them (rating) were different things. RANK_THRESHOLDS is now keyed to wins at 0/3/6/9/12/15/18/21 - the step of three wins is chef_levels.md's own cadence, not a number invented for this, and it puts Head Chef at the fifteen wins that document calls the top. rating is NOT removed: it stays a published statistic and still moves on every result, it simply no longer decides anyone's rank. The documented CulinEire Hero tier is buried with this - rank does the progression and is_hero has meant the Owner's own account since it was written. ALSO FIXED IN THE SAME CHANGE, and it was a live section 18 exposure: the main result path guarded rank recomputation on infinite_moves, but the three forfeit and no-show paths did not, so a walkover could have recomputed the OWNER'S OWN RANK behind his back. promote_rank() is now the single exemption point and a test holds it. 598 chef_battle tests green.",
     },
     {
         "id": "X10", "group": "Audit 2026-08-05 - Owner decides", "title": "Matchmaking axis: level or rank",
@@ -3455,7 +3455,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "None until the ruling.",
         "acceptance": "His answer recorded verbatim in the release journal, then the losing side corrected.",
         "forbidden": "Do not 'fix' this by editing code to match an archived doc; several of these are money.",
-        "evidence": "OWNER'S RULING 2026-08-05, VERBATIM: 'X12 - True.' The doubled artifact price stands: send_battle_artifact() (services.py) charges artifact.token_cost * 2 - the artifact plus an equal delivery fee - and that is the intended economics, not a defect. The live catalogue also stands: six appreciation gifts at 20-100 tokens against the archived document's five at 5-20. No code change; this row exists so nobody 'corrects' the price towards audience_gifts.md later.",
+        "evidence": "OWNER'S RULING 2026-08-05: X12 approved. The doubled artifact price stands: send_battle_artifact() (services.py) charges artifact.token_cost * 2 - the artifact plus an equal delivery fee - and that is the intended economics, not a defect. The live catalogue also stands: six appreciation gifts at 20-100 tokens against the archived document's five at 5-20. No code change; this row exists so nobody 'corrects' the price towards audience_gifts.md later.",
     },
 ]
 
@@ -3505,8 +3505,8 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "95165eb7 / production v2.5.821",
-        "verification": "Production v2.5.821 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
+        "commit": "e5dc01ee / production v2.5.823",
+        "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
                         "(ops/audits/arena/A06_remeasure_2026-08-04.md section 6a): the fighters "
