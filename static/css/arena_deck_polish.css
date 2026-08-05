@@ -168,42 +168,70 @@
 .page--arena .arena-command-deck__ladder > .btn-secondary {
   display:block; width:100%; text-align:center;
 }
-/* ── X01: upcoming battles ────────────────────────────────────────────────
- * The same plate the crown ladder uses, one column shorter: there is no badge
- * to lead with, so it is the pairing and then the time. Built on the ladder's
- * shape deliberately rather than as a panel of its own — two lists in the same
- * rail that looked different would read as two different kinds of thing.
+/* ── X01: the departures board ─────────────────────────────────────────────
+ * Owner, 2026-08-05: a sub-line under the battle phases, "like an airport board
+ * showing the next departure". One horizontal strip, scanned rather than read:
+ * the time leads, the pairing follows.
  *
- * The time column is tabular and sizes to its content so the times stack on one
- * axis, which is the whole reason A12 moved off flexbox.
+ * It rides inside the ribbon, which is already positioned full width at the top
+ * of the stage. v2.5.822 gave it its own <aside> and it rendered unstyled on top
+ * of the arena — every deck panel in arena_command_deck.css is placed by naming
+ * its class in three separate lists (chrome, coordinates, colour), and
+ * .arena-interface-rail is display:contents, so a class in none of those lists
+ * has no box and nowhere to stand.
  */
-.arena-upcoming-list { list-style:none; margin:0; padding:0; display:grid; gap:.5rem; }
-.arena-upcoming-list li {
-  display:grid;
-  grid-template-columns:minmax(0, 1fr) auto;
-  align-items:center;
-  gap:.6rem;
-  padding:.4rem .55rem;
-  border-radius:9px;
-  font-size:.82rem;
-  color:var(--ad-ink2);
-  background:color-mix(in srgb, var(--accent-bronze) 7%, transparent);
+.arena-next-board {
+  display:flex; align-items:center; gap:.6rem;
+  min-width:0;
+  padding:.28rem .1rem 0;
 }
-.arena-upcoming-list li a { font-weight:700; text-decoration:none; color:inherit; }
-/* "vs" is the separator, not a word to read at name weight. */
-.arena-upcoming-list li a span {
-  font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em;
-  color:var(--accent-bronze-dark);
+.arena-next-board__label {
+  flex:none;
+  font-size:.6rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--arena-gold, var(--accent-bronze-dark));
 }
-.arena-upcoming-list li em {
-  font-style:normal; font-size:.76rem; font-weight:700;
+.arena-next-board__list {
+  list-style:none; margin:0; padding:0; min-width:0;
+  display:flex; align-items:center; gap:.55rem;
+  overflow:hidden;
+}
+.arena-next-board__list li { min-width:0; }
+/* Entries are separated by a rule rather than a bullet, the way a board splits
+ * its rows — one line, so a long pairing clips instead of pushing the strip
+ * into a second row and stealing height A07 fought for. */
+.arena-next-board__list li + li {
+  padding-left:.55rem;
+  border-left:1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+}
+.arena-next-board__list li a {
+  display:flex; align-items:baseline; gap:.4rem; min-width:0;
+  text-decoration:none; color:inherit;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* The clock is the thing you scan for, so it leads and it is tabular. */
+.arena-next-board__list li em {
+  flex:none;
+  font-style:normal; font-size:.72rem; font-weight:800;
   font-variant-numeric:tabular-nums;
-  color:var(--accent-bronze-dark);
+  color:var(--arena-gold, var(--accent-bronze-dark));
 }
-/* Same rule as the ladder: the empty state keeps the panel's shape. */
-.arena-upcoming-list li.arena-panel__empty {
-  display:block; background:none; padding:.4rem .1rem;
+.arena-next-board__list li b {
+  min-width:0; overflow:hidden; text-overflow:ellipsis;
+  font-size:.74rem; font-weight:700;
 }
+/* "vs" is the separator, not a word to read at name weight. */
+.arena-next-board__list li b span {
+  font-weight:600; font-size:.66rem; text-transform:uppercase; letter-spacing:.06em;
+  opacity:.72;
+}
+.arena-next-board__empty {
+  font-size:.72rem; opacity:.72;
+}
+/* The ribbon is a three-column grid — identity, phase rail, actions. The board
+ * belongs under the RAIL, so it is placed in that column's second row rather
+ * than allowed to fall into the first column where the grid would put a fourth
+ * child by default. */
+.page--arena .arena-broadcast-ribbon .arena-next-board { grid-column:2; }
 
 /* ── Gifts (A12) ── */
 .arena-command-deck__gift-copy { color:var(--ad-ink2); font-size:.8rem; margin:.2rem 0 0; }

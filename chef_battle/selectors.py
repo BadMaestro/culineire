@@ -28,7 +28,7 @@ def get_active_battles(limit: int = 12) -> QuerySet:
     )
 
 
-def get_upcoming_battles(limit: int = 5) -> QuerySet:
+def get_upcoming_battles(limit: int = 3) -> QuerySet:
     """Battles that have been arranged and have not started yet (card X01).
 
     The Owner, 2026-08-05: the arena exists so chefs, sponsors, spectators, VIPs
@@ -46,6 +46,10 @@ def get_upcoming_battles(limit: int = 5) -> QuerySet:
 
     WAITING is excluded on purpose: that battle started, and is sitting out the
     grace period for its second chef. It is late, not forthcoming.
+
+    THREE, because the panel it feeds sits inside the crown-ladder plate and the
+    whole composition was fitted to one viewport in A07. A longer list would buy
+    depth nobody asked for and spend the height that fit cost.
     """
     return (
         Battle.objects.select_related("challenger", "opponent")

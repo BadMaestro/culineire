@@ -116,6 +116,39 @@
       <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 7 %} is-active{% endif %}" data-phase-step="7" data-phase-key="crown">7 <b>Crown</b></span>
     {% endif %}
   </section>
+
+  {% comment %}
+    X01 — the departures board (Owner, 2026-08-05: "как табло в аэропорту,
+    показывающее следующий вылет"). A sub-line directly under the phase steps,
+    because that is where a viewer already looks to find out what the hall is
+    doing: the steps say what is happening now, this line says what is next.
+
+    It sits INSIDE the ribbon rather than in a panel of its own. Every deck
+    panel in arena_command_deck.css is positioned by naming its class in three
+    separate lists — chrome, coordinates, colour — and .arena-interface-rail is
+    display:contents, so a new class in none of those lists gets no box and no
+    place to stand. That is what shipped in v2.5.822 and what the Owner saw on
+    his screen. The ribbon is already placed, full width, at the top.
+
+    Time first, like a departures board: the clock is what you scan, the pairing
+    is what you read once you have found your row. Real scheduled battles only,
+    and an empty board says so.
+  {% endcomment %}
+  <div class="arena-next-board" aria-label="Upcoming battles">
+    <span class="arena-next-board__label" aria-hidden="true">Next</span>
+    <ol id="arena-upcoming" class="arena-next-board__list">
+      {% for battle in upcoming %}
+        <li>
+          <a href="{{ battle.battle_url }}">
+            <em data-start-time="{{ battle.start_time }}">{{ battle.start_display }}</em>
+            <b>{{ battle.challenger.name }} <span aria-label="versus">vs</span> {{ battle.opponent.name }}</b>
+          </a>
+        </li>
+      {% empty %}
+        <li class="arena-next-board__empty">No battles are scheduled yet.</li>
+      {% endfor %}
+    </ol>
+  </div>
   </section>
 
   {% comment %}
@@ -152,36 +185,6 @@
       {% endfor %}
     </ol>
     <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View Full Ladder</a>
-  </aside>
-
-  {% comment %}
-    X01: the list of upcoming battles. The Owner named it as half of what the
-    arena is for, and nothing in the page answered it.
-
-    Real scheduled battles only, from get_upcoming_battles() - no fixture, no
-    placeholder pair, and an empty schedule says so in words. The start time is
-    printed by the server for the first paint and rewritten by arena_deck.js
-    against server_time on every poll, so the row never drifts with the
-    viewer's own clock.
-  {% endcomment %}
-  <aside class="arena-command-deck__upcoming" aria-label="Upcoming battles">
-    <header class="arena-panel__title">
-      <div>
-        <p class="arena-panel__kicker">Next in the hall</p>
-        <h2 class="arena-panel__heading">Upcoming battles</h2>
-      </div>
-      <svg class="arena-ico" aria-hidden="true"><use href="#ad-vs"></use></svg>
-    </header>
-    <ol id="arena-upcoming" class="arena-upcoming-list">
-      {% for battle in upcoming %}
-        <li>
-          <a href="{{ battle.battle_url }}">{{ battle.challenger.name }} <span aria-label="versus">vs</span> {{ battle.opponent.name }}</a>
-          <em data-start-time="{{ battle.start_time }}">{{ battle.start_display }}</em>
-        </li>
-      {% empty %}
-        <li class="arena-panel__empty">No battles are scheduled yet.</li>
-      {% endfor %}
-    </ol>
   </aside>
   </div>
 

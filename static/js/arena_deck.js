@@ -246,7 +246,10 @@
     if (!container || !Array.isArray(list)) { return; }
     clearPanel(container);
     if (!list.length) {
-      appendPanelEmpty(container, 'No battles are scheduled yet.');
+      var empty = document.createElement('li');
+      empty.className = 'arena-next-board__empty';
+      empty.textContent = 'No battles are scheduled yet.';
+      container.appendChild(empty);
       return;
     }
     list.forEach(function (entry) {
@@ -254,21 +257,23 @@
       var item = document.createElement('li');
       var link = document.createElement('a');
       var when = document.createElement('em');
+      var pair = document.createElement('b');
       var versus = document.createElement('span');
       link.href = battle.battle_url || '#';
       versus.textContent = 'vs';
       versus.setAttribute('aria-label', 'versus');
-      link.appendChild(document.createTextNode((battle.challenger && battle.challenger.name) || 'Chef'));
-      link.appendChild(document.createTextNode(' '));
-      link.appendChild(versus);
-      link.appendChild(document.createTextNode(' ' + ((battle.opponent && battle.opponent.name) || 'Chef')));
       // The server sends the instant; the viewer's own machine decides how it
       // reads. formatDateTime falls back to the server's rendering rather than
       // to an empty cell when the string cannot be parsed.
       when.textContent = formatDateTime(battle.start_time) || battle.start_display || '';
       if (battle.start_time) { when.setAttribute('data-start-time', battle.start_time); }
+      pair.appendChild(document.createTextNode((battle.challenger && battle.challenger.name) || 'Chef'));
+      pair.appendChild(document.createTextNode(' '));
+      pair.appendChild(versus);
+      pair.appendChild(document.createTextNode(' ' + ((battle.opponent && battle.opponent.name) || 'Chef')));
+      link.appendChild(when);
+      link.appendChild(pair);
       item.appendChild(link);
-      item.appendChild(when);
       container.appendChild(item);
     });
   }
