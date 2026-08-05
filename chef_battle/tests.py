@@ -7440,6 +7440,8 @@ class ArenaCenterConfrontationContractTests(TestCase):
             opponent=b,
             theme="3R3 Facing",
             status=Battle.Status.SCHEDULED,
+            challenger_ready=True,
+            opponent_ready=True,
             submission_deadline=timezone.now(),
             end_time=timezone.now(),
         )
@@ -7447,6 +7449,37 @@ class ArenaCenterConfrontationContractTests(TestCase):
         self.assertEqual(c["type"], "facing_pair")
         self._assert_fighter(c["challenger"], author=a, side="challenger")
         self._assert_fighter(c["opponent"], author=b, side="opponent")
+
+    def test_an_agreed_battle_does_not_move_anyone_to_the_centre(self):
+        """Owner, 2026-08-06: accepting a challenge pulled both chefs out of
+        their rank rings and into the facing cells while the battle room still
+        read "Awaiting readiness" and neither had pressed the button.
+
+        The centre is for a battle that is HAPPENING. A battle that has merely
+        been agreed is two chefs standing in their own rings.
+        """
+        from chef_battle.views import _arena_center
+        from .models import Battle
+
+        a, b = self._pair()
+        battle = Battle.objects.create(
+            challenger=a,
+            opponent=b,
+            theme="Agreed, not started",
+            status=Battle.Status.SCHEDULED,
+            submission_deadline=timezone.now(),
+            end_time=timezone.now(),
+        )
+        self.assertEqual(_arena_center(battle)["type"], "empty")
+
+        # One chef alone is not enough either.
+        battle.challenger_ready = True
+        battle.save(update_fields=["challenger_ready"])
+        self.assertEqual(_arena_center(battle)["type"], "empty")
+
+        battle.opponent_ready = True
+        battle.save(update_fields=["opponent_ready"])
+        self.assertEqual(_arena_center(battle)["type"], "facing_pair")
 
     def test_empty_and_crown_states_still_valid(self):
         from chef_battle.views import _arena_center

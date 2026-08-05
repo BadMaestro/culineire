@@ -879,6 +879,18 @@ def _arena_upcoming():
 def _arena_center(active_battle):
     """Centre-cell payload: active battle takes priority, then the current
     Crown holder (if any), else empty. Shared by arena() and arena_state()."""
+    # NOBODY IS TELEPORTED TO THE CENTRE BEFORE THEY SAY THEY ARE READY.
+    # Owner, 2026-08-06: accepting a challenge moved both avatars out of their
+    # rank rings and into the facing cells by the centre while the battle room
+    # was still showing "Awaiting readiness" and neither chef had pressed the
+    # button. The centre is for a battle that is HAPPENING; a battle that has
+    # been agreed is still two chefs standing in their own rings. The readiness
+    # gate was listed as pending work in this same file (Stage E3) and the
+    # centre never waited for it.
+    if active_battle and active_battle.status == Battle.Status.SCHEDULED:
+        if not (active_battle.challenger_ready and active_battle.opponent_ready):
+            active_battle = None
+
     if active_battle:
         is_facing = active_battle.status in {Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED}
         return {

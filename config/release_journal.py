@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.834",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "Nobody is teleported to the centre before they say they are ready, and the next battle sits beside its own label",
+        "section": "Chef Battles / Arena",
+        "summary": "FOUR THINGS THE OWNER SAW ON THE LIVE ARENA, 2026-08-06. (1) Accepting a challenge threw both avatars out of their rank rings into the facing cells by the centre while the battle room still read AWAITING READINESS and neither chef had pressed the button. _arena_center() returned facing_pair for SCHEDULED with no readiness gate at all - and this file has carried Stage E3, a both-ready gate before the centre teleport, as PENDING work since 2026-07-02. A SCHEDULED battle now reaches the centre only when challenger_ready AND opponent_ready; until then the two chefs stand in their own rings, which is what he has said the arena is for. (2) The pill was enormous and full of air: the board was a three-column grid of equal thirds, so a single scheduled battle - the normal case - got a third of the ribbon whether it needed it or not and sat at the far right, a screen away from the label naming it. The list is a content-sized flex row now and the halves are auto-width, not 1fr, so a pill is as wide as the two names in it. (3) The label reads NEXT BATTLE: rather than NEXT. (4) The soonest battle sits against that label by default, which follows from (2) - the right-to-left grid that used to push it into the far corner is gone. Names longer than 14ch are trimmed rather than allowed to stretch the board. Two new tests hold the readiness gate, including the half case where one chef is ready and the other is not. IF REVERTED: chefs teleport to the centre on acceptance again and the board goes back to one pill in three columns.",
+    },
+    {
         "version": "2.5.833",
         "date": "2026-08-06",
         "commit": "",

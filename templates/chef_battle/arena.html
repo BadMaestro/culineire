@@ -13,7 +13,7 @@
 <link href="{% static 'css/arena_effects.css' %}?v=20260727-kill-stage-aura" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260727-tilt42" rel="stylesheet">
 {# polish then atmosphere: deck chrome first; page-level hall underlay / kill rules last #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260805-next-pills" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260806-next-beside-label" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260730-no-spine-label" rel="stylesheet">
 {% endblock %}
 
@@ -135,7 +135,7 @@
     and an empty board says so.
   {% endcomment %}
   <div class="arena-next-board" aria-label="Upcoming battles">
-    <span class="arena-next-board__label" aria-hidden="true">Next</span>
+    <span class="arena-next-board__label" aria-hidden="true">Next Battle:</span>
     <ol id="arena-upcoming" class="arena-next-board__list">
       {% for battle in upcoming %}
         {% comment %}
