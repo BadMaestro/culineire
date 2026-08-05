@@ -1,0 +1,29 @@
+# Git author map — Owner's order, 2026-08-05: "перепиши на GreenBear, закройте
+# уже её раз и навсегда".
+#
+# THE PROBLEM. 507 commits on main are authored `YourName <youremail@example.com>`
+# — git's out-of-the-box placeholder, left on a machine where nobody had run
+# `git config user.name`. 124 in June 2026, 352 in July, 31 in August. The
+# placeholder is not a person and never carried authorship information: it says
+# only that the tool was unconfigured that day.
+#
+# WHAT THIS FILE DOES. Maps that placeholder to GreenBear, so `git log`,
+# `git shortlog` and `git blame` show the Owner's account instead of a stranger.
+# This is the attribution the Owner instructed, and it is recorded here as HIS
+# decision rather than presented as a measurement — no measurement could recover
+# what the placeholder threw away.
+#
+# WHY NOT REWRITE THE COMMITS THEMSELVES. Rewriting authorship for real means
+# rewriting all 1681 commits from the oldest placeholder forward, with a new
+# hash for every one. 358 commit hashes in config/release_journal.py alone would
+# stop resolving, along with the board evidence, the audits and AGENTS.md, and
+# every other checkout of this repository would need a hard reset. Mailmap is
+# git's own answer to this exact question and costs none of that. Section 6
+# forbids history rewriting without the Owner's word; this route does not need
+# it and reaches the same visible result.
+#
+# Verified when added: `git log --use-mailmap` over main returns zero commits
+# authored YourName, against 507 before.
+#
+# Format: canonical name <canonical email> <email to replace>
+GreenBear <bearcaveltd@gmail.com> <youremail@example.com>
