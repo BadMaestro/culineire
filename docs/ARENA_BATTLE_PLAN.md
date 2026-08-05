@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-06 · Production baseline: **v2.5.832**
+Last reconciled: 2026-08-06 · Production baseline: **v2.5.833**
 · Next assignable card: **A09**, unassigned.
 
 **Bolt's session of 2026-08-05/06, in order.** X04: the roadmap advertised five
@@ -314,6 +314,7 @@ forbidden changes and evidence for every row below.
 | A17 | Integrity | Truthful visual state matrix | unassigned | A09–A16 | PENDING |
 | A18 | Integrity | Desktop accessibility and responsive gate | Bolt + unassigned | A17 | PENDING |
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
+| MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | PENDING |
 | B01 | Battle Broadcast | Broadcast shell and confrontation header | unassigned | A19 | PENDING |
 | B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | PENDING |
 | B03 | Battle Broadcast | Broadcast chat and composer | unassigned | B02 | PENDING |

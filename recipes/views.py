@@ -3340,6 +3340,20 @@ ARENA_DESIGN_TASKS = [
         "evidence": "Not started.",
     },
     {
+        "id": "MC01",
+        "group": "Master Console",
+        "title": "Battle Cancellation Simulation - walk the withdrawal through, step by step",
+        "status": "PENDING",
+        "owner": "Bolt",
+        "files": "templates/chef_battle/arena_master_console.html; chef_battle/withdrawal_service.py (READ ONLY - reuse, do not re-implement)",
+        "depends_on": "v2.5.830",
+        "action": "Add a scenario to the Master Console Panel that steps through a battle withdrawal exactly as it will look on the real arena: (1) the chef presses Withdraw and writes his reason; (2) the other chef reads it and answers - without a penalty, or with one, which obliges him to say why; (3) a moderator has the final word and may rule against either of them. Nothing moves until the moderator speaks.",
+        "visible_result": "Pressing the scenario in the console plays the three stages with what each actor sees at each one.",
+        "acceptance": "The simulation calls the real service or mirrors it exactly; the penalty shown is 15 rating and 3 reputation; the battle ends CANCELLED with no loss and no winner; the three-per-account allowance and the dark button are shown.",
+        "forbidden": "Do not re-implement the rule in the console - every guard is in withdrawal_service.py and covered by BattleWithdrawalTests. Do not merge it with the operator CANCEL action in P03_TRANSITION_MATRIX: that is an operator acting from above, this is a chef asking and a moderator answering. Nothing may route around penalise() (section 18).",
+        "evidence": "OWNER'S INSTRUCTION, 2026-08-06: the withdrawal flow shipped in v2.5.830 must also exist inside the Master Console Panel as a Battle Cancellation Simulation, showing every step as it will look on the real arena. Handed to Bolt on the Carpet as message #3491, together with the full synchronisation of current work the Owner asked for.",
+    },
+    {
         "id": "X01", "group": "Audit 2026-08-05", "title": "The list of upcoming battles does not exist",
         "status": "DONE", "owner": "Bolt",
         "files": "chef_battle/views.py payload + selector; templates/chef_battle/arena.html",
@@ -3519,7 +3533,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "e5dc01ee / production v2.5.823",
+        "commit": "3fa10983 / production v2.5.833",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

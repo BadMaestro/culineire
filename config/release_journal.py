@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.833",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "The withdrawal gets a seat in the Master Console - MC01 handed to Bolt",
+        "section": "Chef Battles / Board",
+        "summary": "OWNER'S INSTRUCTION, 2026-08-06: the withdrawal flow shipped in v2.5.830 must also live inside the Master Console Panel as a Battle Cancellation Simulation, and pressing that scenario must walk through every step exactly as it will look on the real arena. Board card MC01, owner Bolt, group Master Console, depends on v2.5.830. He also ordered a full synchronisation between the two of us on current work, which went over the Carpet as message #3491: what I shipped tonight (rank never demotes, second place paid, withdrawal), the migration now applied on production, the files I hold open, the four things I need back from him, and the warning that any console panel still showing a loser losing rating is wrong as of tonight. The card forbids two things explicitly - re-implementing the rule instead of calling withdrawal_service, and merging it with the operator CANCEL action, which is somebody acting from above rather than a chef asking and a moderator answering. IF REVERTED: the instruction survives only in a message.",
+    },
+    {
         "version": "2.5.832",
         "date": "2026-08-06",
         "commit": "",
