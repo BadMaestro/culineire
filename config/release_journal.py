@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.828",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "Losing a battle stops costing anything - second place takes half of everything",
+        "section": "Chef Battles / Rewards",
+        "summary": "THE OWNER'S RULING, 2026-08-05: a chef is not punished for losing. Cooking the battle is experience whichever way the vote goes - this is a battle of chefs for the fun of it, not Mortal Kombat - so second place is paid, not fined, in the same half-share shape the prizes already use. The loser of a decisive vote used to give up 15 rating and 3 reputation and take a single Battle Move; they now take 12 rating, 7 reputation, 5 seasonal score and 6 moves, half of the winner's 25/15/10/11, and nothing is deducted anywhere. AND A DRAW PAID BOTH CHEFS NOTHING AT ALL for a battle they had both cooked - no rating, no reputation, no moves; each now takes the same second-place share. `losses` and the broken win streak stay, because they record what happened rather than fine anyone, and both still pass through penalise() where section 18 keeps the Owner's account whole. The no-show paths are untouched: accepting and then not appearing is the irresponsibility, and it is still answered for. The rules page and battle_rules.md carry the ruling. The loser's whole share is booked as one BATTLE_PARTICIPATION transaction - a new transaction type would have been a migration. 32 focused tests green. IF REVERTED: losing costs rating and reputation again and a draw pays nobody.",
+    },
+    {
         "version": "2.5.827",
         "date": "2026-08-05",
         "commit": "",

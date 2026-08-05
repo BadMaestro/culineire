@@ -166,6 +166,27 @@ def penalise(profile, *, losses=0, reputation=0, rating=0, reset_streak=False,
     return touched
 
 
+# What a decisive win pays, and what the other chef takes for showing up and
+# cooking. THE OWNER'S RULING, 2026-08-05: a loss is not punished. Half the
+# reward for second place - the same shape the prizes already use - because
+# fighting the battle is experience whichever way the vote goes. Nothing is
+# deducted from a chef for losing, and the halves are integer division, so the
+# winner's share is always the larger one.
+RATING_WIN = 25
+REPUTATION_WIN = 15
+SEASONAL_WIN = 10
+
+
+def award_second_place(profile) -> None:
+    """Half of a win, for the chef who lost the vote or drew.
+
+    Also used by the draw path, which until now paid both chefs nothing at all.
+    """
+    profile.rating += RATING_WIN // 2
+    profile.reputation += REPUTATION_WIN // 2
+    profile.seasonal_score += SEASONAL_WIN // 2
+
+
 def promote_rank(profile) -> None:
     """Raise the profile's rank to what its wins have earned.
 
@@ -756,6 +777,24 @@ def calculate_battle_result(battle: Battle) -> Battle:
         return _score_battle(battle)
 
 
+def _award_draw_shares(battle: Battle) -> None:
+    """Both chefs take the second-place share of a drawn battle."""
+    from .models import BattleMoveTransaction
+    from .energy_service import ENERGY_CAP
+
+    moves = MOVES_BATTLE_PARTICIPATION + MOVES_BATTLE_WIN // 2
+    for author in (battle.challenger, battle.opponent):
+        profile = get_or_create_battle_profile(author)
+        award_second_place(profile)
+        profile.battle_moves = min(ENERGY_CAP, profile.battle_moves + moves)
+        profile.save()
+        BattleMoveTransaction.objects.create(
+            chef=author,
+            amount=moves,
+            transaction_type=BattleMoveTransaction.TxType.BATTLE_PARTICIPATION,
+        )
+
+
 def _score_battle(battle: Battle) -> Battle:
     if battle.status == Battle.Status.COMPLETED:
         return battle
@@ -769,6 +808,11 @@ def _score_battle(battle: Battle) -> Battle:
 
     if challenger_votes == opponent_votes:
         _release_battle_artifacts_on_finish(battle)
+        # A draw used to pay both chefs NOTHING - no rating, no reputation, no
+        # moves - for a battle they both cooked. Under the Owner's ruling of
+        # 2026-08-05 each takes the second-place share, the same one the loser
+        # of a decisive vote gets.
+        _award_draw_shares(battle)
         battle.result_reason = "Draw by public vote"
         battle.status = Battle.Status.COMPLETED
         battle.save(update_fields=["status", "result_reason", "updated_at"])
@@ -815,21 +859,29 @@ def _score_battle(battle: Battle) -> Battle:
 
         old_winner_rank = winner_profile.rank
 
-        rating_delta = 25
+        rating_delta = RATING_WIN
         winner_profile.wins += 1
         winner_profile.win_streak += 1
         if winner_profile.win_streak > winner_profile.best_win_streak:
             winner_profile.best_win_streak = winner_profile.win_streak
         winner_profile.rating += rating_delta
-        winner_profile.reputation += 15
-        winner_profile.seasonal_score += 10
+        winner_profile.reputation += REPUTATION_WIN
+        winner_profile.seasonal_score += SEASONAL_WIN
         winner_profile.crown_count += 1
         winner_profile.crown_until = timezone.now() + timezone.timedelta(hours=24)
         promote_rank(winner_profile)
         winner_profile.save()
 
-        penalise(loser_profile, losses=1, reset_streak=True, rating=-15,
-                 reputation=-3)
+        # A LOSS IS NOT A PUNISHMENT. The Owner's ruling, 2026-08-05: turning up
+        # and cooking is experience too, and this is a battle of chefs for the
+        # fun of it, not Mortal Kombat. The loser takes HALF of everything the
+        # winner takes - the same shape as the prizes - and nothing at all is
+        # deducted. `losses` and the broken win streak stay because they are
+        # RECORDS of what happened, not fines: a run of wins simply is not
+        # running any more. Both still go through penalise(), which is where
+        # section 18 keeps the Owner's account whole.
+        award_second_place(loser_profile)
+        penalise(loser_profile, losses=1, reset_streak=True)
         loser_profile.save()
 
         # Award moves with typed transaction records
@@ -840,16 +892,19 @@ def _score_battle(battle: Battle) -> Battle:
             ENERGY_CAP,
             winner_profile.battle_moves + MOVES_BATTLE_WIN + MOVES_BATTLE_PARTICIPATION,
         )
+        loser_moves = MOVES_BATTLE_PARTICIPATION + MOVES_BATTLE_WIN // 2
         loser_profile.battle_moves = min(
             ENERGY_CAP,
-            loser_profile.battle_moves + MOVES_BATTLE_PARTICIPATION,
+            loser_profile.battle_moves + loser_moves,
         )
         winner_profile.save(update_fields=["battle_moves", "updated_at"])
         loser_profile.save(update_fields=["battle_moves", "updated_at"])
+        # The loser's whole share is booked as BATTLE_PARTICIPATION: it is one
+        # award, and a new transaction type would be a migration (section 8).
         BattleMoveTransaction.objects.bulk_create([
             BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_WIN, transaction_type=TxType.BATTLE_WON),
             BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_PARTICIPATION, transaction_type=TxType.BATTLE_PARTICIPATION),
-            BattleMoveTransaction(chef=loser, amount=MOVES_BATTLE_PARTICIPATION, transaction_type=TxType.BATTLE_PARTICIPATION),
+            BattleMoveTransaction(chef=loser, amount=loser_moves, transaction_type=TxType.BATTLE_PARTICIPATION),
         ])
 
         # Battle-derived faction contribution (Phase 6): gated by same-faction=0
@@ -861,7 +916,7 @@ def _score_battle(battle: Battle) -> Battle:
                 winner, loser, MOVES_BATTLE_WIN + MOVES_BATTLE_PARTICIPATION, battle=battle
             )
             award_battle_faction_contribution(
-                loser, winner, MOVES_BATTLE_PARTICIPATION, battle=battle
+                loser, winner, loser_moves, battle=battle
             )
         except Exception:
             logger.exception("Battle faction contribution failed for battle pk=%s", battle.pk)

@@ -172,8 +172,17 @@ class ChefBattleServiceTests(TestCase):
         loser_profile.refresh_from_db()
         self.assertEqual(winner_profile.wins, 1)
         self.assertEqual(winner_profile.battle_moves, 11)  # MOVES_BATTLE_WIN(10) + MOVES_BATTLE_PARTICIPATION(1)
-        self.assertEqual(loser_profile.battle_moves, 1)    # MOVES_BATTLE_PARTICIPATION(1)
+        self.assertEqual(loser_profile.battle_moves, 6)    # PARTICIPATION(1) + half of WIN(10)
         self.assertEqual(loser_profile.losses, 1)
+
+        # THE OWNER'S RULING, 2026-08-05: a loss is not punished. Second place
+        # takes half of everything first place takes, and nothing is deducted.
+        self.assertEqual(winner_profile.rating, 25)
+        self.assertEqual(loser_profile.rating, 12)
+        self.assertEqual(winner_profile.reputation, 15)
+        self.assertEqual(loser_profile.reputation, 7)
+        self.assertEqual(winner_profile.seasonal_score, 10)
+        self.assertEqual(loser_profile.seasonal_score, 5)
 
     def test_calculate_battle_result_is_idempotent_under_a_repeat_call(self):
         """A cron run and an operator click (or two overlapping cron runs) can
@@ -624,6 +633,8 @@ class ChefBattleRulesViewTests(TestCase):
             "Culinary Master (21+ wins)",
         ):
             self.assertContains(response, rank_and_range, html=False)
+        self.assertContains(response, "Losing a battle costs a Chef nothing")
+        self.assertNotContains(response, "a loss deducts 15")
         self.assertContains(response, reverse("chef_battle:rankings"))
         self.assertContains(response, "CulinEire Hero is a unique site-owner status")
         self.assertContains(response, "same or an adjacent rank")
@@ -7137,6 +7148,18 @@ class DrawRewardUnlockTests(TestCase):
 
         self.assertEqual(battle.status, Battle.Status.COMPLETED)
         self.assertEqual(reward.status, RewardRecord.Status.QUEUED)
+
+        # A drawn battle used to pay both chefs nothing at all for a battle they
+        # both cooked. The Owner's ruling of 2026-08-05 gives each of them the
+        # second-place share: half of a win, and no deduction anywhere.
+        for author in (challenger, opponent):
+            profile = ChefBattleProfile.objects.get(author=author)
+            self.assertEqual(profile.rating, 12)
+            self.assertEqual(profile.reputation, 7)
+            self.assertEqual(profile.seasonal_score, 5)
+            self.assertEqual(profile.battle_moves, 6)
+            self.assertEqual(profile.losses, 0)
+            self.assertEqual(profile.wins, 0)
 
 
 class BiathlonRecipeSourceIndexTests(TestCase):

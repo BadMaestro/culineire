@@ -40,6 +40,26 @@ Defined by project creator.
 **Floor rule**: battle count can never go below 0. If a chef has 0 battles
 and incurs a penalty, it stays at 0.
 
+### Losing a fought battle is not a penalty — Owner, 2026-08-05
+
+Turning up and cooking is experience whichever way the vote goes: this is a
+battle of chefs for the fun of it, not Mortal Kombat. **Second place is paid,
+not fined** — half of everything first place takes, the same shape the prizes
+already use:
+
+| | Winner | Second place |
+|---|---|---|
+| Rating | +25 | +12 |
+| Reputation | +15 | +7 |
+| Seasonal score | +10 | +5 |
+| Battle Moves | 11 | 6 |
+
+Nothing is deducted for a result. `losses` and the broken win streak stay,
+because they are records of what happened rather than fines. **A DRAW pays both
+chefs that same second-place share** — until v2.5.828 it paid them nothing at
+all. This does not touch the no-show paths above: accepting and then failing to
+appear is the irresponsibility, and it is still answered for.
+
 Only victories count toward level progression (10 wins = level up, not 10 participations).
 
 ---
