@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-05 · Production baseline: **v2.5.809**
+Last reconciled: 2026-08-05 · Production baseline: **v2.5.810**
 · Next assignable card: **A07**. (A08 ran ahead of it and is DONE, v2.5.775–779.)
 
 **A07 was built and reverted on the same day.** v2.5.792 put the Design
@@ -191,7 +191,7 @@ forbidden changes and evidence for every row below.
 | A09 | Arena Hall | Live challenger/opponent composition | unassigned | A07 | PENDING |
 | A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | PENDING |
 | A11 | Furniture | Phase panel reference pass | Bolt | A06 | DONE |
-| A12 | Furniture | Crown ladder panel reference pass | GreenBear | A06 | PENDING |
+| A12 | Furniture | Crown ladder panel reference pass | Bolt | A06 | DONE |
 | A13 | Furniture | Recent gifts panel reference pass | GreenBear | A06 | PENDING |
 | A14 | Furniture | Bottom ticker and Join the Crowd composition | GreenBear | A06 | PENDING |
 | A15 | Arena Hall | Effects and artifacts preservation pass | GreenBear | A07–A10 | PENDING |

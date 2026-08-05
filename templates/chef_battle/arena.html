@@ -133,10 +133,19 @@
     </header>
     <ol id="arena-crown-ladder" class="arena-ladder-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
       {% for chef in crown_ladder %}
+        {% comment %}
+          A12: the crown count reads as a COUNT, the way the reference panel
+          shows it — the crown mark and the number, not the sentence "3 crowns"
+          set in caption type. The word stays for anyone not looking at the
+          screen: aria-label carries it, using the labelling convention already
+          used throughout this template rather than a visually-hidden utility
+          the site does not have. The icon reuses the existing #ad-crown symbol
+          rather than adding a glyph of its own.
+        {% endcomment %}
         <li>
           <span>{{ forloop.counter }}</span>
           <a href="{% url 'chef_battle:chef_profile' slug=chef.slug %}">{{ chef.name }}</a>
-          <em>{{ chef.crowns }} crown{{ chef.crowns|pluralize }}</em>
+          <em aria-label="{{ chef.crowns }} crown{{ chef.crowns|pluralize }}"><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>{{ chef.crowns }}</em>
         </li>
       {% empty %}
         <li class="arena-panel__empty">No crowns have been awarded today.</li>

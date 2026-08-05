@@ -3173,14 +3173,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A12", "group": "Arena furniture", "title": "Crown ladder panel reference pass",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "DONE", "owner": "Bolt",
         "files": "static/css/arena_deck_polish.css; existing ladder template markup",
         "depends_on": "A06",
         "action": "Match top-four row density, crown counts, panel position and View Full Ladder action.",
         "visible_result": "Bottom-left ladder matches the approved furniture hierarchy.",
         "acceptance": "Existing links/data remain live; four rows fit without truncation at 1280 and 1920.",
         "forbidden": "No fake rankings and no ranking-query rewrite.",
-        "evidence": "Furniture exists; final visual pass pending.",
+        "evidence": "DONE v2.5.810 (Bolt). Rows were a flex line divided by a border, so the name column decided the widths and the crown counts on the right never lined up with each other. Now a three-column grid - 1.35rem badge, flexible name, auto count - so every count sits on one axis whether it reads 1 or 12; rows separated by space on a faint accent ground with a 9px corner, leader's row a shade stronger, as the reference marks first place by weight rather than a second colour. The count reads as a count: the existing #ad-crown symbol plus the number in the accent, tabular, with the word carried to a screen reader by aria-label instead of set in caption type. View Full Ladder stays the site's own btn-secondary, full width and centred - no pill invented for this panel. The empty state keeps the panel's shape. FORBIDDEN CHANGES AVOIDED: get_crown_ladder is untouched - real crowns awarded today, ordered by count, limit 8 - and a test pins that. Scoped .page--arena rather than !important, which is the trap this file's own header describes.",
     },
     {
         "id": "A13", "group": "Arena furniture", "title": "Recent gifts panel reference pass",
@@ -3373,7 +3373,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "44e3aafc / production v2.5.809",
+        "commit": "PENDING / production v2.5.810",
         "verification": "Production v2.5.808 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
                         "deployed; A07 is the next assignable card and its numbers are measured "
                         "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md). The camera "

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.810",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "A12 - the crown ladder rows line up",
+        "section": "Chef Battles / Arena",
+        "summary": "The ladder rows were a flex line divided by a border, which meant the name column decided the widths and the crown counts down the right never lined up with each other. They are a three-column grid now - a fixed 1.35rem badge, a flexible name, an auto count - so every count sits on the same axis whether it reads 1 or 12. Rows are separated by space rather than a rule and sit on a faint accent ground with a 9px corner, and the leader gets a shade more of the same accent because the reference marks first place by weight, not by introducing a second colour. The count reads as a count: the existing ad-crown symbol and the number, in the accent, tabular, with the word crowns carried to a screen reader by aria-label rather than set in caption type beside it - shorter to read, no shorter in meaning. View Full Ladder stays the site btn-secondary, full width and centred; the reference pill was not copied, because the button system is already settled. The empty state is left holding the panel shape so it does not jump the moment the first crown of the day is awarded. What the card forbids was avoided and is pinned by a test: get_crown_ladder is untouched - real crowns awarded today, ordered by count, limit 8 - and nothing invents a row. Scoped under .page--arena rather than reaching for important, which is the trap this stylesheet own header describes.",
+    },
+    {
         "version": "2.5.809",
         "date": "2026-08-05",
         "commit": "",

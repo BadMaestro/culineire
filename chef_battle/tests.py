@@ -7991,6 +7991,56 @@ class ArenaRankColumnTests(TestCase):
             "Sous Chef", "Head Chef", "Executive Chef", "Culinary Master",
         ])
 
+    def test_a12_ladder_rows_are_a_three_column_grid(self):
+        """A12: rank badge, name and crown count on one axis.
+
+        The rows were a flex line divided by a border, so the name decided the
+        widths and the counts on the right never lined up with each other. A
+        fixed badge column and an auto right column is what puts every count on
+        the same axis whether it reads 1 or 12.
+        """
+        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        row = css.split(".page--arena .arena-ladder-list li {", 1)[1].split("}", 1)[0].replace(" ", "")
+        self.assertIn("display:grid", row)
+        self.assertIn("grid-template-columns:1.35remminmax(0,1fr)auto", row)
+        self.assertIn("border-bottom:0", row)
+
+    def test_a12_crown_count_is_a_count_not_a_caption(self):
+        """The reference shows the crown mark and the number. The word survives
+        for a screen reader through aria-label, so nothing is lost by taking it
+        out of the visible row."""
+        from pathlib import Path
+        from django.conf import settings as dj_settings
+        source = (
+            Path(dj_settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+        ).read_text(encoding="utf-8")
+        ladder = source.split('id="arena-crown-ladder"', 1)[1].split("</ol>", 1)[0]
+        self.assertIn('aria-label="{{ chef.crowns }} crown{{ chef.crowns|pluralize }}"', ladder)
+        self.assertIn('<use href="#ad-crown">', ladder)
+        self.assertNotIn("{{ chef.crowns }} crown{{ chef.crowns|pluralize }}</em>", ladder)
+
+    def test_a12_ladder_query_is_untouched(self):
+        """Forbidden by the card: no ranking-query rewrite, no invented rows."""
+        import inspect
+        from .selectors import get_crown_ladder
+        src = inspect.getsource(get_crown_ladder)
+        self.assertIn("crown_awarded=True", src)
+        self.assertIn('order_by("-crowns", "winner__name")', src)
+        self.assertIn("limit: int = 8", src)
+
+    def test_a12_view_full_ladder_stays_the_site_button(self):
+        """One full-width action using the site's own secondary button, not a
+        pill invented for this panel."""
+        from pathlib import Path
+        from django.conf import settings as dj_settings
+        source = (
+            Path(dj_settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn('<a class="btn-secondary" href="{% url \'chef_battle:rankings\' %}">View Full Ladder</a>', source)
+        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        cta = css.split(".page--arena .arena-command-deck__ladder > .btn-secondary {", 1)[1].split("}", 1)[0]
+        self.assertIn("width:100%", cta.replace(" ", ""))
+
     def test_ladder_is_marked_up_as_an_ordered_progression(self):
         response = self.client.get(reverse("chef_battle:arena"))
         spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</div>", 1)[0]
