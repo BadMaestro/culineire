@@ -49,14 +49,30 @@ def _notify_chef(sender_author, recipient_author, subject: str, body: str) -> No
         logger.exception("Failed to send battle notification")
 
 
+# X09, Owner's ruling 2026-08-05: "победы продвигают ранг" — WINS promote rank.
+#
+# Rank used to be derived from `rating`, an Elo-style number that moved by ±25 a
+# battle, so the ladder a chef could see (wins) and the ladder that actually
+# moved them (rating) were different things. The audit of 2026-08-05 also found
+# `ChefBattleProfile.level` — a THIRD ladder, specified in chef_levels.md,
+# shipped as a column and never once assigned. One ladder now: wins.
+#
+# THE STEP IS THREE WINS, AND IT IS NOT INVENTED HERE. chef_levels.md sets the
+# project's own cadence at three wins per step, so the eight ranks land on
+# 0/3/6/9/12/15/18/21 — which also puts Head Chef at the fifteen wins that
+# document calls the top of the ladder. The old rating thresholds were eight
+# steps of 100; this is eight steps of 3.
+#
+# `rating` is NOT removed. It stays as a published statistic and still moves on
+# every result; it simply no longer decides anyone's rank.
 RANK_THRESHOLDS = [
-    (700, ChefBattleProfile.Rank.CULINARY_MASTER),
-    (600, ChefBattleProfile.Rank.EXECUTIVE_CHEF),
-    (500, ChefBattleProfile.Rank.HEAD_CHEF),
-    (400, ChefBattleProfile.Rank.SOUS_CHEF),
-    (300, ChefBattleProfile.Rank.CHEF_DE_PARTIE),
-    (200, ChefBattleProfile.Rank.COMMIS_CHEF),
-    (100, ChefBattleProfile.Rank.PREP_COOK),
+    (21, ChefBattleProfile.Rank.CULINARY_MASTER),
+    (18, ChefBattleProfile.Rank.EXECUTIVE_CHEF),
+    (15, ChefBattleProfile.Rank.HEAD_CHEF),
+    (12, ChefBattleProfile.Rank.SOUS_CHEF),
+    (9, ChefBattleProfile.Rank.CHEF_DE_PARTIE),
+    (6, ChefBattleProfile.Rank.COMMIS_CHEF),
+    (3, ChefBattleProfile.Rank.PREP_COOK),
     (0, ChefBattleProfile.Rank.KITCHEN_PORTER),
 ]
 
@@ -75,11 +91,26 @@ def get_or_create_battle_profile(author):
     return profile
 
 
-def rank_for_rating(rating: int) -> str:
+def rank_for_wins(wins: int) -> str:
+    """The rank a chef's win count earns them. X09, Owner 2026-08-05."""
     for threshold, rank in RANK_THRESHOLDS:
-        if rating >= threshold:
+        if wins >= threshold:
             return rank
     return ChefBattleProfile.Rank.KITCHEN_PORTER
+
+
+def promote_rank(profile) -> None:
+    """Set the profile's rank from its wins, unless the profile is exempt.
+
+    `infinite_moves` marks the Owner's own account, whose rank, crown and
+    enrolment are his alone (AGENTS.md section 18). The main result path already
+    guarded on it; the three forfeit and no-show paths did not, so a walkover
+    could have recomputed his rank behind his back. One helper now, so the
+    exemption cannot be forgotten at a fourth call site.
+    """
+    if getattr(profile, "infinite_moves", False):
+        return
+    profile.rank = rank_for_wins(profile.wins)
 
 
 def hash_request_value(value: str) -> str:
@@ -300,6 +331,38 @@ def expire_stale_challenges() -> int:
     for challenge in stale:
         challenge.status = BattleChallenge.Status.EXPIRED
         challenge.save(update_fields=["status"])
+
+        # X02, audit of 2026-08-05: ignoring a challenge used to be FREE while
+        # refusing one cost fifteen Battle Moves, five reputation and a mark on
+        # the public profile. So the chef who answered honestly was the only one
+        # punished, and silence was the dominant strategy. battle_rules.md gives
+        # the two the same weight, and `ignored_battles` had been sitting on the
+        # profile and in the admin since the first migration without a single
+        # line writing to it.
+        #
+        # The penalty mirrors refuse_challenge() exactly, so the two outcomes
+        # cost the same thing. It lands on the OPPONENT — the chef who was asked
+        # and never answered — never on the challenger, who did nothing wrong.
+        opponent_profile = get_or_create_battle_profile(challenge.opponent)
+        opponent_profile.ignored_battles += 1
+        opponent_profile.reputation = max(-1000, opponent_profile.reputation - 5)
+        opponent_profile.save(
+            update_fields=["ignored_battles", "reputation", "updated_at"]
+        )
+        from .energy_service import spend_moves as _spend_moves, InsufficientEnergy
+        from .models import BattleMoveTransaction
+        try:
+            _spend_moves(
+                challenge.opponent,
+                MOVES_REFUSE_PENALTY,
+                BattleMoveTransaction.TxType.CHALLENGE_REFUSED,
+            )
+        except InsufficientEnergy:
+            # Floor at zero, exactly as refuse_challenge does: drain what is
+            # there, never go negative.
+            if opponent_profile.battle_moves > 0:
+                opponent_profile.battle_moves = 0
+                opponent_profile.save(update_fields=["battle_moves", "updated_at"])
         create_battle_event(
             event_type=BattleEvent.EventType.CHALLENGE_EXPIRED,
             challenge=challenge,
@@ -383,13 +446,13 @@ def _award_walkover_win(battle: Battle, *, winner, loser) -> None:
     loser_profile.losses += 1
     loser_profile.win_streak = 0
     loser_profile.reputation = max(-1000, loser_profile.reputation - 10)
-    loser_profile.rank = rank_for_rating(loser_profile.rating)
+    promote_rank(loser_profile)
     loser_profile.save(update_fields=["losses", "win_streak", "reputation", "rank", "updated_at"])
 
     winner_profile = get_or_create_battle_profile(winner)
     winner_profile.wins += 1
     winner_profile.win_streak += 1
-    winner_profile.rank = rank_for_rating(winner_profile.rating)
+    promote_rank(winner_profile)
     winner_profile.save(update_fields=["wins", "win_streak", "rank", "updated_at"])
 
     battle.winner = winner
@@ -421,7 +484,7 @@ def _void_battle_no_show(battle: Battle) -> None:
         profile = get_or_create_battle_profile(author)
         profile.win_streak = 0
         profile.reputation = max(-1000, profile.reputation - 10)
-        profile.rank = rank_for_rating(profile.rating)
+        promote_rank(profile)
         profile.save(update_fields=["win_streak", "reputation", "rank", "updated_at"])
 
     battle.status = Battle.Status.VOID
@@ -526,13 +589,13 @@ def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
     loser_profile.losses += 1
     loser_profile.win_streak = 0
     loser_profile.reputation = max(-1000, loser_profile.reputation - 10)
-    loser_profile.rank = rank_for_rating(loser_profile.rating)
+    promote_rank(loser_profile)
     loser_profile.save(update_fields=["losses", "win_streak", "reputation", "rank", "updated_at"])
 
     winner_profile = get_or_create_battle_profile(winner)
     winner_profile.wins += 1
     winner_profile.win_streak += 1
-    winner_profile.rank = rank_for_rating(winner_profile.rating)
+    promote_rank(winner_profile)
     winner_profile.save(update_fields=["wins", "win_streak", "rank", "updated_at"])
 
     battle.winner = winner
@@ -714,16 +777,14 @@ def _score_battle(battle: Battle) -> Battle:
         winner_profile.seasonal_score += 10
         winner_profile.crown_count += 1
         winner_profile.crown_until = timezone.now() + timezone.timedelta(hours=24)
-        if not winner_profile.infinite_moves:
-            winner_profile.rank = rank_for_rating(winner_profile.rating)
+        promote_rank(winner_profile)
         winner_profile.save()
 
         loser_profile.losses += 1
         loser_profile.win_streak = 0
         loser_profile.rating = max(0, loser_profile.rating - 15)
         loser_profile.reputation = max(-1000, loser_profile.reputation - 3)
-        if not loser_profile.infinite_moves:
-            loser_profile.rank = rank_for_rating(loser_profile.rating)
+        promote_rank(loser_profile)
         loser_profile.save()
 
         # Award moves with typed transaction records

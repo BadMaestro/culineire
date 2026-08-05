@@ -36,7 +36,7 @@ from .services import (
     check_rank_matchup,
     expire_stale_challenges,
     handle_no_show_battles,
-    rank_for_rating,
+    rank_for_wins,
     refuse_challenge,
     submit_battle_entry,
 )
@@ -630,21 +630,50 @@ class ChefBattleRulesViewTests(TestCase):
         self.assertNotContains(response, "A win streak bonus")
 
     def test_rank_threshold_boundaries(self):
+        """X09, Owner 2026-08-05: WINS promote rank, not rating.
+
+        Rank was derived from `rating`, an Elo-style number moving by 25 a
+        battle, so the ladder a chef could see and the one that moved them were
+        different. The step is three wins, which is chef_levels.md's own cadence
+        rather than a number invented here.
+        """
         expected_boundaries = (
             (0, ChefBattleProfile.Rank.KITCHEN_PORTER),
-            (99, ChefBattleProfile.Rank.KITCHEN_PORTER),
-            (100, ChefBattleProfile.Rank.PREP_COOK),
-            (199, ChefBattleProfile.Rank.PREP_COOK),
-            (200, ChefBattleProfile.Rank.COMMIS_CHEF),
-            (300, ChefBattleProfile.Rank.CHEF_DE_PARTIE),
-            (400, ChefBattleProfile.Rank.SOUS_CHEF),
-            (500, ChefBattleProfile.Rank.HEAD_CHEF),
-            (600, ChefBattleProfile.Rank.EXECUTIVE_CHEF),
-            (700, ChefBattleProfile.Rank.CULINARY_MASTER),
+            (2, ChefBattleProfile.Rank.KITCHEN_PORTER),
+            (3, ChefBattleProfile.Rank.PREP_COOK),
+            (5, ChefBattleProfile.Rank.PREP_COOK),
+            (6, ChefBattleProfile.Rank.COMMIS_CHEF),
+            (9, ChefBattleProfile.Rank.CHEF_DE_PARTIE),
+            (12, ChefBattleProfile.Rank.SOUS_CHEF),
+            (15, ChefBattleProfile.Rank.HEAD_CHEF),
+            (18, ChefBattleProfile.Rank.EXECUTIVE_CHEF),
+            (21, ChefBattleProfile.Rank.CULINARY_MASTER),
+            (999, ChefBattleProfile.Rank.CULINARY_MASTER),
         )
-        for rating, expected_rank in expected_boundaries:
-            with self.subTest(rating=rating):
-                self.assertEqual(rank_for_rating(rating), expected_rank)
+        for wins, expected_rank in expected_boundaries:
+            with self.subTest(wins=wins):
+                self.assertEqual(rank_for_wins(wins), expected_rank)
+
+    def test_promote_rank_never_touches_the_owners_account(self):
+        """AGENTS.md section 18: his rank, crown and enrolment are his alone.
+
+        The main result path guarded on `infinite_moves`; the three forfeit and
+        no-show paths did not, so a walkover could have recomputed his rank
+        behind his back. promote_rank() is now the single exemption point.
+        """
+        from chef_battle.services import promote_rank
+
+        profile = ChefBattleProfile(
+            rank=ChefBattleProfile.Rank.EXECUTIVE_CHEF, wins=0, infinite_moves=True
+        )
+        promote_rank(profile)
+        self.assertEqual(profile.rank, ChefBattleProfile.Rank.EXECUTIVE_CHEF)
+
+        ordinary = ChefBattleProfile(
+            rank=ChefBattleProfile.Rank.KITCHEN_PORTER, wins=6, infinite_moves=False
+        )
+        promote_rank(ordinary)
+        self.assertEqual(ordinary.rank, ChefBattleProfile.Rank.COMMIS_CHEF)
 
 
 class ChefBattleAntiAbuseTests(TestCase):

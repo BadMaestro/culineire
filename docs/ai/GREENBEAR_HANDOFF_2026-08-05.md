@@ -1,6 +1,6 @@
 # GreenBear handoff — 2026-08-05
 
-Production **v2.5.818**. Constitution **AGENTS.md v2.6.0**. Onboarding package
+Production **v2.5.820**. Constitution **AGENTS.md v2.6.0**. Onboarding package
 **1.5d**. Read everything from `origin/main`, never from a working tree.
 
 ## Do this before anything else

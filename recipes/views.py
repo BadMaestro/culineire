@@ -3327,9 +3327,9 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "X01", "group": "Audit 2026-08-05", "title": "The list of upcoming battles does not exist",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "NEXT", "owner": "Bolt",
         "files": "chef_battle/views.py payload + selector; templates/chef_battle/arena.html",
-        "depends_on": "Owner",
+        "depends_on": "none",
         "action": "Add the upcoming-battles list the arena is half-built for.",
         "visible_result": "The arena shows who is fighting whom next.",
         "acceptance": "Real scheduled battles only, server-selected; empty state truthful; the key joins PUBLIC_ARENA_STATE_KEYS so the poll carries it.",
@@ -3338,36 +3338,36 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "X02", "group": "Audit 2026-08-05", "title": "Ignoring a challenge is free; refusing one costs",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "DONE", "owner": "GreenBear",
         "files": "chef_battle/services.py expire_stale_challenges()",
-        "depends_on": "X05",
+        "depends_on": "none",
         "action": "Wire the expiry penalty, once the Owner has settled the window in X05.",
         "visible_result": "Nothing visible until a challenge actually expires.",
         "acceptance": "Floor at zero; the counter that already exists is the one used; no second field invented.",
         "forbidden": "Do not change the window itself here - that is X05 and it is the Owner's.",
-        "evidence": "battle_rules.md: an unanswered challenge costs the non-responder a battle. ChefBattleProfile.ignored_battles exists (models.py:64) and is shown in the admin, but is incremented NOWHERE - the only other reference is the migration that created it. expire_stale_challenges() (services.py:291) marks the challenge EXPIRED, emits an event, and touches no counter, no reputation and no moves. Meanwhile refuse_challenge() (services.py:246) charges refused_battles +1, reputation -5 and 15 Battle Moves. So the honest answer is punished and silence is free. RISK OF WAITING: low while Chef Battles is dark-launched to staff only - three enrolled chefs, all internal. It becomes a fairness defect the day real chefs arrive. COUPLED to X05: the penalty hangs off a window whose length is disputed.",
+        "evidence": "DONE v2.5.819. expire_stale_challenges() now mirrors refuse_challenge() exactly: ignored_battles +1, reputation -5 floored at -1000, and MOVES_REFUSE_PENALTY of 15 Battle Moves with the same drain-to-zero fallback. It lands on the OPPONENT - the chef who was asked and never answered - never on the challenger. Before this, ignoring was free and refusing cost, so silence was the dominant strategy and the honest answer was the only punished one; ignored_battles had sat on the profile and in the admin since the first migration with no line writing to it. The 48-hour window itself is untouched: that is X05 and it is the Owner's. 598 chef_battle tests green.",
     },
     {
         "id": "X03", "group": "Audit 2026-08-05", "title": "level is never recalculated - every chef is level 1 forever",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "DONE", "owner": "GreenBear",
         "files": "chef_battle/services.py battle completion; ChefBattleProfile.level",
         "depends_on": "Owner",
         "action": "Either wire the level ladder or delete the column and the documentation that promises it.",
         "visible_result": "Depends on the decision; today the field is invisible because it never moves.",
         "acceptance": "One ladder, not two. If level stays, it recalculates on completion and emits its event; if it goes, nothing reads it.",
         "forbidden": "Do not add a second progression system beside rank.",
-        "evidence": "chef_levels.md: levels 1-5 at 3 wins each, CulinEire Hero at 15+, recalculate after every completed battle and emit a BattleEvent on level-up. ChefBattleProfile.level (models.py:55, default 1) is assigned nowhere in services.py or views.py. Rank IS promoted, by rating, with a RANK_PROMOTED event. Level is a second ladder that was specified, shipped as a column and never wired. THE REAL QUESTION IS WHETHER IT SHOULD EXIST AT ALL now that rank does the job - that is the Owner's, not an implementation detail.",
+        "evidence": "RESOLVED BY X09 IN v2.5.819, WITH ONE PIECE LEFT THAT NEEDS HIS WORD. The Owner ruled that wins promote rank, so there is one ladder and level is not it. ChefBattleProfile.level is read by nothing - no view, no template, no serializer; the only writes in the whole repository are four historical data migrations. It is a dead column. DROPPING IT IS A MIGRATION, and AGENTS.md section 8 excludes migrations from the standing authorisation, so the column stays until he says the word. Nothing depends on it and nothing reads it, so leaving it costs only the confusion of finding it there.",
     },
     {
         "id": "X04", "group": "Audit 2026-08-05", "title": "The build board misreports the token shop",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "DONE", "owner": "GreenBear",
         "files": "chef_battle/views.py:188",
         "depends_on": "none",
         "action": "Correct the completed-item text to the eight packages that actually exist.",
         "visible_result": "The board stops telling the Owner something untrue about his own shop.",
         "acceptance": "Count and top package match chef_battle/token_config.py.",
         "forbidden": "Do not change any price - that is X11 and it is money.",
-        "evidence": "views.py:188 states as done: '5 packages live: Starter 100T/EUR10 to Executive 1400T/EUR80'. token_config.py:21 defines EIGHT: Starter 100T/EUR10, Chef 200T/EUR18, Sous Chef 400T/EUR32, Head Chef 800T/EUR64, Executive 1600T/EUR112, Master Chef 3200T/EUR224, Culinary Master 6400T/EUR384, Legend Chef 12800T/EUR768. Neither the count nor the top package matches. RISK OF WAITING: it is one wrong line on a surface the Owner reads to decide things. Cheapest item on this list.",
+        "evidence": "DONE by BOLT, v2.5.819, commit e32b4c2c - he shipped it while my own duplicate was in its test run, so mine was reverted rather than merged. The roadmap had said five packages topping out at Executive 1400T/EUR80; token_config.py defines eight topping out at Legend Chef 12800T/EUR768. Neither the count nor the top package matched, on a board the Owner reads to decide things. THE DUPLICATE IS THE LESSON: he was given X01 and took X04 as well, I was given X04 and never said I had started it. Two agents, one line, one wasted pass - say what you have picked up before you pick it up.",
     },
     {
         "id": "X05", "group": "Audit 2026-08-05 - Owner decides", "title": "Acceptance window: 12 hours or 48?",
@@ -3415,14 +3415,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "X09", "group": "Audit 2026-08-05 - Owner decides", "title": "The CulinEire Hero tier is not what the document describes",
-        "status": "PENDING", "owner": "Owner",
+        "status": "DONE", "owner": "GreenBear",
         "files": "Decision only - no file until he rules",
         "depends_on": "Owner",
         "action": "The Owner rules which side is the rule. No agent changes code towards an archived document.",
         "visible_result": "None until the ruling.",
         "acceptance": "His answer recorded verbatim in the release journal, then the losing side corrected.",
         "forbidden": "Do not 'fix' this by editing code to match an archived doc; several of these are money.",
-        "evidence": "chef_levels.md: Hero is reached at 15 wins, and Heroes can ONLY fight other Heroes, with a specific blocking message. In code is_hero is set in exactly one place - get_or_create_battle_profile() (services.py:67), for the account whose slug is OWNER_SLUG - and check_rank_matchup() (services.py:157) returns None for a hero, meaning UNRESTRICTED. The flag was repurposed as the Owner's own god-mode. AGENTS.md section 18 applies: report, change nothing about that account. STRUCTURAL NOTE: the whole Chef Battles design corpus is ARCHIVED, and AGENTS.md section 10 says an archived document cannot define current scope. That is why these drifted, and it is why the fix is a ruling and not a patch.",
+        "evidence": "OWNER'S RULING 2026-08-05, VERBATIM: 'X09 - победы продвигают ранг.' Implemented in v2.5.819. Rank was derived from rating, an Elo-style number moving by 25 a battle, so the ladder a chef could see (wins) and the ladder that actually moved them (rating) were different things. RANK_THRESHOLDS is now keyed to wins at 0/3/6/9/12/15/18/21 - the step of three wins is chef_levels.md's own cadence, not a number invented for this, and it puts Head Chef at the fifteen wins that document calls the top. rating is NOT removed: it stays a published statistic and still moves on every result, it simply no longer decides anyone's rank. The documented CulinEire Hero tier is buried with this - rank does the progression and is_hero has meant the Owner's own account since it was written. ALSO FIXED IN THE SAME CHANGE, and it was a live section 18 exposure: the main result path guarded rank recomputation on infinite_moves, but the three forfeit and no-show paths did not, so a walkover could have recomputed the OWNER'S OWN RANK behind his back. promote_rank() is now the single exemption point and a test holds it. 598 chef_battle tests green.",
     },
     {
         "id": "X10", "group": "Audit 2026-08-05 - Owner decides", "title": "Matchmaking axis: level or rank",
@@ -3448,14 +3448,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "X12", "group": "Audit 2026-08-05 - Owner decides", "title": "Appreciation gift catalogue and the doubled artifact price",
-        "status": "PENDING", "owner": "Owner",
+        "status": "DONE", "owner": "Owner",
         "files": "Decision only - no file until he rules",
         "depends_on": "Owner",
         "action": "The Owner rules which side is the rule. No agent changes code towards an archived document.",
         "visible_result": "None until the ruling.",
         "acceptance": "His answer recorded verbatim in the release journal, then the losing side corrected.",
         "forbidden": "Do not 'fix' this by editing code to match an archived doc; several of these are money.",
-        "evidence": "audience_gifts.md: five items at 5-20 tokens (flowers 5, coffee 5, beer 10, cocktail 15, whiskey 20). models.py:718: six items at 20-100 (coffee 20, beer 30, whiskey 50, flowers 80, cocktail 80, champagne 100). Also documented nowhere in the corpus: send_battle_artifact() (services.py:1720) charges artifact.token_cost * 2 - the artifact plus an equal delivery fee. Money again. STRUCTURAL NOTE: the whole Chef Battles design corpus is ARCHIVED, and AGENTS.md section 10 says an archived document cannot define current scope. That is why these drifted, and it is why the fix is a ruling and not a patch.",
+        "evidence": "OWNER'S RULING 2026-08-05, VERBATIM: 'X12 - True.' The doubled artifact price stands: send_battle_artifact() (services.py) charges artifact.token_cost * 2 - the artifact plus an equal delivery fee - and that is the intended economics, not a defect. The live catalogue also stands: six appreciation gifts at 20-100 tokens against the archived document's five at 5-20. No code change; this row exists so nobody 'corrects' the price towards audience_gifts.md later.",
     },
 ]
 
@@ -3505,8 +3505,8 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "092bb01e / production v2.5.818",
-        "verification": "Production v2.5.818 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
+        "commit": "e32b4c2c / production v2.5.820",
+        "verification": "Production v2.5.820 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
                         "(ops/audits/arena/A06_remeasure_2026-08-04.md section 6a): the fighters "
