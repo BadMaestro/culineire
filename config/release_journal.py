@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.826",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "A rank, once earned, is not taken back - and the rules page now says the ladder the code applies",
+        "section": "Chef Battles / Ranks",
+        "summary": "Two defects found by re-reading my own work of the last three hours. FIRST: X09 was 'wins promote rank', but v2.5.820 called promote_rank() on the LOSER of every walkover, no-show and completed battle as well. rank_for_wins() reads wins alone, so a chef sitting above their win count - any account carrying a rank from the rating era - was dropped by a single defeat, and _complete_battle published 'dropped to Kitchen Porter' to the news feed. chef_levels.md is explicit that losses are 'display only, no effect on level'. promote_rank() now raises and never lowers (RANK_ORDER), the loser paths no longer call it, and the demotion event is gone. SECOND: the public rules page still sold the rating ladder - Kitchen Porter 0-99, Culinary Master 700+ - while the code had ranked by wins since v2.5.820, and the test asserting that page locked the lie in. The page now publishes 0-2/3-5/6-8/9-11/12-14/15-17/18-20/21+ wins and says plainly that a rank is never taken away; rating is described as the Rankings score it now is. 55 focused tests green. IF REVERTED: losses demote again and the published ladder goes back to contradicting the code.",
+    },
+    {
         "version": "2.5.825",
         "date": "2026-08-05",
         "commit": "",

@@ -609,16 +609,19 @@ class ChefBattleRulesViewTests(TestCase):
         response = self.client.get(reverse("chef_battle:rules"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Every new Chef starts with 0 rating points")
+        self.assertContains(response, "Every new Chef starts at Kitchen Porter with 0 wins")
+        # The published ladder must be the one the code applies. Until v2.5.826
+        # this page still sold the old rating ranges while `rank_for_wins()` was
+        # already promoting on wins, so the rules lied to every player.
         for rank_and_range in (
-            "Kitchen Porter (0&ndash;99)",
-            "Prep Chef (100&ndash;199)",
-            "Commis Chef (200&ndash;299)",
-            "Chef de Partie (300&ndash;399)",
-            "Sous Chef (400&ndash;499)",
-            "Head Chef (500&ndash;599)",
-            "Executive Chef (600&ndash;699)",
-            "Culinary Master (700+)",
+            "Kitchen Porter (0&ndash;2 wins)",
+            "Prep Chef (3&ndash;5 wins)",
+            "Commis Chef (6&ndash;8 wins)",
+            "Chef de Partie (9&ndash;11 wins)",
+            "Sous Chef (12&ndash;14 wins)",
+            "Head Chef (15&ndash;17 wins)",
+            "Executive Chef (18&ndash;20 wins)",
+            "Culinary Master (21+ wins)",
         ):
             self.assertContains(response, rank_and_range, html=False)
         self.assertContains(response, reverse("chef_battle:rankings"))
@@ -704,6 +707,33 @@ class ChefBattleRulesViewTests(TestCase):
         self.assertEqual(mortal.reputation, 40)
         promote_rank(mortal)
         self.assertEqual(mortal.rank, ChefBattleProfile.Rank.COMMIS_CHEF)
+
+    def test_a_rank_once_earned_is_never_taken_back(self):
+        """X09 promotes on wins; nothing demotes.
+
+        chef_levels.md: losses are "display only, no effect on level". Between
+        v2.5.820 and v2.5.826 every loss recomputed the loser's rank from their
+        wins, so a chef sitting above their win count - an older account carrying
+        a rating-era rank - was dropped by a single defeat, and the drop was
+        published to the news feed.
+        """
+        from chef_battle.services import promote_rank
+
+        veteran = ChefBattleProfile(
+            author=RecipeAuthor(slug="veteran", name="Veteran"),
+            rank=ChefBattleProfile.Rank.HEAD_CHEF,
+            wins=1,
+        )
+        promote_rank(veteran)
+        self.assertEqual(veteran.rank, ChefBattleProfile.Rank.HEAD_CHEF)
+
+        climber = ChefBattleProfile(
+            author=RecipeAuthor(slug="climber", name="Climber"),
+            rank=ChefBattleProfile.Rank.PREP_COOK,
+            wins=9,
+        )
+        promote_rank(climber)
+        self.assertEqual(climber.rank, ChefBattleProfile.Rank.CHEF_DE_PARTIE)
 
 
 class ChefBattleAntiAbuseTests(TestCase):

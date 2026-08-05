@@ -76,6 +76,10 @@ RANK_THRESHOLDS = [
     (0, ChefBattleProfile.Rank.KITCHEN_PORTER),
 ]
 
+# Lowest to highest, so a promotion can be told from a demotion.
+RANK_ORDER = {rank: position for position, (_, rank)
+              in enumerate(reversed(RANK_THRESHOLDS))}
+
 
 def get_or_create_battle_profile(author):
     from django.conf import settings as _settings
@@ -163,10 +167,18 @@ def penalise(profile, *, losses=0, reputation=0, rating=0, reset_streak=False,
 
 
 def promote_rank(profile) -> None:
-    """Set the profile's rank from its wins. The Owner's rank is his alone."""
+    """Raise the profile's rank to what its wins have earned.
+
+    CALL THIS ON A WINNER ONLY. It never lowers a rank: chef_levels.md records
+    losses as "display only, no effect on level", so a chef who sits above what
+    their wins alone would give them — an older account, a hand-set rank — keeps
+    it. The Owner's rank is his own (section 18).
+    """
     if is_immortal(profile):
         return
-    profile.rank = rank_for_wins(profile.wins)
+    earned = rank_for_wins(profile.wins)
+    if RANK_ORDER[earned] > RANK_ORDER.get(profile.rank, -1):
+        profile.rank = earned
 
 
 def hash_request_value(value: str) -> str:
@@ -487,8 +499,7 @@ def _award_walkover_win(battle: Battle, *, winner, loser) -> None:
     loser_profile = get_or_create_battle_profile(loser)
     fields = penalise(loser_profile, losses=1, reset_streak=True, reputation=-10)
     if fields:
-        promote_rank(loser_profile)
-        loser_profile.save(update_fields=fields + ["rank"])
+        loser_profile.save(update_fields=fields)
 
     winner_profile = get_or_create_battle_profile(winner)
     winner_profile.wins += 1
@@ -525,8 +536,7 @@ def _void_battle_no_show(battle: Battle) -> None:
         profile = get_or_create_battle_profile(author)
         fields = penalise(profile, reset_streak=True, reputation=-10)
         if fields:
-            promote_rank(profile)
-            profile.save(update_fields=fields + ["rank"])
+            profile.save(update_fields=fields)
 
     battle.status = Battle.Status.VOID
     battle.waiting_until = None
@@ -629,8 +639,7 @@ def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
     loser_profile = get_or_create_battle_profile(loser)
     fields = penalise(loser_profile, losses=1, reset_streak=True, reputation=-10)
     if fields:
-        promote_rank(loser_profile)
-        loser_profile.save(update_fields=fields + ["rank"])
+        loser_profile.save(update_fields=fields)
 
     winner_profile = get_or_create_battle_profile(winner)
     winner_profile.wins += 1
@@ -805,7 +814,6 @@ def _score_battle(battle: Battle) -> Battle:
         loser.battle_profile = loser_profile
 
         old_winner_rank = winner_profile.rank
-        old_loser_rank = loser_profile.rank
 
         rating_delta = 25
         winner_profile.wins += 1
@@ -820,9 +828,8 @@ def _score_battle(battle: Battle) -> Battle:
         promote_rank(winner_profile)
         winner_profile.save()
 
-        if penalise(loser_profile, losses=1, reset_streak=True, rating=-15,
-                    reputation=-3):
-            promote_rank(loser_profile)
+        penalise(loser_profile, losses=1, reset_streak=True, rating=-15,
+                 reputation=-3)
         loser_profile.save()
 
         # Award moves with typed transaction records
@@ -906,14 +913,11 @@ def _score_battle(battle: Battle) -> Battle:
                 message=f"{winner.name} reached {winner_profile.get_rank_display()} rank.",
                 publish_to_news=True,
             )
-        if loser_profile.rank != old_loser_rank:
-            create_battle_event(
-                event_type=BattleEvent.EventType.RANK_PROMOTED,
-                battle=battle,
-                actor=loser,
-                message=f"{loser.name} dropped to {loser_profile.get_rank_display()} rank.",
-                publish_to_news=True,
-            )
+        # No demotion event: a rank, once won, is not taken back. chef_levels.md
+        # says losses are "display only, no effect on level", and the Owner's
+        # X09 ruling was that WINS promote rank — it said nothing about losses
+        # taking one away. Until v2.5.826 a loss recomputed the loser's rank from
+        # their wins and could publish "dropped to Kitchen Porter" to the news.
 
     try:
         battle_url = f"{settings.SITE_SCHEME}://{settings.SITE_DOMAIN}{battle.get_absolute_url()}"
