@@ -1,6 +1,6 @@
-# GreenBear handoff — 2026-08-04 (end of day)
+# GreenBear handoff — 2026-08-04, updated 2026-08-05
 
-Production **v2.5.808**. Constitution **AGENTS.md v2.6.0**. Onboarding package
+Production **v2.5.809**. Constitution **AGENTS.md v2.6.0**. Onboarding package
 **1.5d**. Read everything from `origin/main`, never from a working tree.
 
 ## Do these two before anything else
@@ -62,12 +62,29 @@ and reverted it.
 5. PowerShell `Get-Content | Set-Content` double-encodes UTF-8. Never round-trip
    a file through it; verify encoding by reading bytes, not by reading the diff.
 
+## 2026-08-05 — the journal backlog is closed (v2.5.809)
+
+On the Owner's order I took the card back from Bolt and closed it. All 116 rows
+backfilled, every band at zero, order restored in the 20 places the list
+ascended. The rows are reconstructions and say so in a `notes` field.
+`ops/audits/journal_backfill.py` is the tool; measure with
+`ops/audits/journal_integrity.py`. NOT repaired, deliberately: the 48 duplicated
+version numbers (two deploys really did ship under one number — renumbering
+would invent versions) and the twelve rows that predate release numbering in the
+commit subject. Bolt told on Carpet #3482.
+
+**A live violation found while doing it, and it is the Owner's to remove.**
+`.claude/settings.local.json` runs `.claude/check_poller.sh` on the **Stop**
+hook — on every single reply. It sshes to production **as root** and restarts a
+CoWork poller daemon. Both halves are forbidden now: AGENTS.md §5 abolished
+pollers outright, and root-run Django on that box poisons the file cache and
+500s the whole site. The script predates both rules (18 July). Key and
+`/tmp/gb_start.sh` both exist, so it is live, not dead config.
+
 ## Open — the Owner's call
 
-- Journal backlog: 116 shipped 2.5 releases with no row, the whole 600–699 band
-  empty. **Assigned to Bolt** (Carpet #3480). Measure with
-  `python ops/audits/journal_integrity.py`.
 - **A07 is NEXT, A09 unassigned.** Nothing starts without his word.
+- The Stop hook above.
 
 The eight untracked files under `docs/ai/audits/` were binned on his order at
 the end of the day. The working copy is clean: no modified files, no untracked
