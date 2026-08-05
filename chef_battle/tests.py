@@ -9657,3 +9657,84 @@ class UpcomingBoardShapeTests(TestCase):
         display = _build_arena_payload()["upcoming"][0]["start_display"]
         self.assertNotIn(str(timezone.localtime().year), display)
         self.assertLessEqual(len(display), 8)
+
+
+class DemoNextBoardPreviewTests(TestCase):
+    """?demo=next fills both rows for a moderator, and for nobody else.
+
+    Same contract as the VS preview it copies: real chefs, no writes, moderator
+    only, never on the share link, and the poll must be given the flag or it
+    repaints the board empty on the first tick.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        from .services import get_or_create_battle_profile
+
+        self.chefs = []
+        for i in range(4):
+            author = RecipeAuthor.objects.create(
+                user=User.objects.create_user(username=f"demo-next-{i}", password="pw"),
+                name=f"Demo Chef {i}", slug=f"demo-next-{i}",
+            )
+            profile = get_or_create_battle_profile(author)
+            profile.enrolled_at = timezone.now()
+            profile.save(update_fields=["enrolled_at"])
+            self.chefs.append(author)
+
+    def _request(self, flag=None, moderator=False):
+        from django.test import RequestFactory
+
+        User = get_user_model()
+        request = RequestFactory().get("/", {"demo": flag} if flag else {})
+        request.user = User.objects.create_user(
+            username="demo-next-viewer", password="pw",
+            is_staff=moderator, is_superuser=moderator,
+        )
+        return request
+
+    def _enrolled(self):
+        return list(
+            ChefBattleProfile.objects.select_related("author")
+            .filter(enrolled_at__isnull=False).order_by("-rating")
+        )
+
+    def test_a_moderator_gets_six_pills(self):
+        from .views import _demo_upcoming
+
+        rows = _demo_upcoming(self._request("next", moderator=True), self._enrolled())
+        self.assertEqual(len(rows), 6)
+
+    def test_the_pills_are_ordered_soonest_first(self):
+        from .views import _demo_upcoming
+
+        rows = _demo_upcoming(self._request("next", moderator=True), self._enrolled())
+        starts = [row["start_time"] for row in rows]
+        self.assertEqual(starts, sorted(starts))
+
+    def test_every_pill_names_two_different_real_chefs(self):
+        from .views import _demo_upcoming
+
+        real = {c.name for c in self.chefs}
+        rows = _demo_upcoming(self._request("next", moderator=True), self._enrolled())
+        for row in rows:
+            self.assertIn(row["challenger"]["name"], real)
+            self.assertIn(row["opponent"]["name"], real)
+            self.assertNotEqual(row["challenger"]["name"], row["opponent"]["name"])
+
+    def test_an_ordinary_viewer_gets_nothing(self):
+        from .views import _demo_upcoming
+
+        self.assertIsNone(_demo_upcoming(self._request("next"), self._enrolled()))
+
+    def test_without_the_flag_a_moderator_gets_nothing(self):
+        from .views import _demo_upcoming
+
+        self.assertIsNone(_demo_upcoming(self._request(moderator=True), self._enrolled()))
+
+    def test_the_preview_writes_nothing(self):
+        from .views import _demo_upcoming
+
+        before = Battle.objects.count()
+        _demo_upcoming(self._request("next", moderator=True), self._enrolled())
+        self.assertEqual(Battle.objects.count(), before)

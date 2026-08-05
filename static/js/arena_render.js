@@ -2580,7 +2580,8 @@
    */
   function stateUrl() {
     var base = '/chef-battle/arena/state/';
-    return /(^|[?&])demo=vs(&|$)/.test(global.location.search) ? base + '?demo=vs' : base;
+    var flag = /(^|[?&])demo=(vs|next)(&|$)/.exec(global.location.search);
+    return flag ? base + '?demo=' + flag[2] : base;
   }
 
   function poll(svg) {

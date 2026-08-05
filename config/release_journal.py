@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.827",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "A full departures board on demand - ?demo=next fills both rows",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner asked to see the X01 board with both rows filled, and production has nothing scheduled. Seeding six battles into the live database to produce a picture is exactly what section 8 forbids, so this copies the mechanism already accepted for the VS centre in v2.5.816: /chef-battle/arena/?demo=next composes six pills from REAL enrolled chefs at render time. No DB writes, moderator only, never on the share link, and the poll is given the flag too or it repaints the board empty on the first tick - the bug v2.5.816 was written to fix. It is a preview, not a fixture: every face and name is a real enrolled chef; the pairing and the clock are invented and neither is stored nor can become a battle. Six tests hold the contract, including that an ordinary viewer gets nothing and that the call writes nothing. arena_render.js now forwards demo=vs and demo=next to the poll URL rather than only the first.",
+    },
+    {
         "version": "2.5.826",
         "date": "2026-08-05",
         "commit": "",

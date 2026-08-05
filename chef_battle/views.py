@@ -1237,6 +1237,52 @@ def _demo_vs_centre(request, enrolled):
     }
 
 
+def _demo_upcoming(request, enrolled):
+    """Moderator-only preview of a FULL departures board, or None.
+
+    /chef-battle/arena/?demo=next fills both rows of X01's board - six pills -
+    from REAL enrolled chefs, so the composition can be seen while production
+    has nothing scheduled. Same contract as _demo_vs_centre(), for the same
+    reasons: no DB writes, moderator only, never on the share link, and the poll
+    has to be given the flag too or it repaints the board empty on the first
+    tick.
+
+    It is a PREVIEW, not a fixture. Every face and name is a real enrolled chef;
+    what is invented is the pairing and the clock, and neither is stored, shown
+    to anyone else, or capable of becoming a battle. With fewer than two chefs
+    enrolled there is nothing honest to draw, so it returns None.
+    """
+    if request.GET.get("demo") != "next" or not is_moderator(request.user):
+        return None
+    chefs = [p.author for p in enrolled]
+    if len(chefs) < 2:
+        return None
+    now = timezone.now()
+    rows = []
+    for index in range(6):
+        left = chefs[(2 * index) % len(chefs)]
+        right = chefs[(2 * index + 1) % len(chefs)]
+        if left.pk == right.pk:
+            right = chefs[(2 * index + 2) % len(chefs)]
+        start = now + timezone.timedelta(minutes=40 + index * 260)
+        rows.append({
+            "battle_id": 0,
+            "theme": "Preview",
+            "start_time": start.isoformat(),
+            "start_display": _approx_start_display(start),
+            "battle_url": "#",
+            "challenger": {
+                "name": left.name, "slug": left.slug,
+                "avatar_url": left.display_avatar_url,
+            },
+            "opponent": {
+                "name": right.name, "slug": right.slug,
+                "avatar_url": right.display_avatar_url,
+            },
+        })
+    return rows
+
+
 def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
     """Assemble everything chef_battle/arena.html needs.
 
@@ -1273,6 +1319,10 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
     demo_centre = _demo_vs_centre(request, enrolled) if allow_demo else None
     if demo_centre:
         arena_data["center"] = demo_centre
+
+    demo_next = _demo_upcoming(request, enrolled) if allow_demo else None
+    if demo_next:
+        arena_data["upcoming"] = demo_next
 
     rank_groups = [
         (rank, chefs_by_rank[rank.value])
@@ -1535,6 +1585,9 @@ def arena_state(request):
     demo_centre = _demo_vs_centre(request, payload["enrolled"])
     if demo_centre:
         payload["center"] = demo_centre
+    demo_next = _demo_upcoming(request, payload["enrolled"])
+    if demo_next:
+        payload["upcoming"] = demo_next
     return JsonResponse({key: payload[key] for key in PUBLIC_ARENA_STATE_KEYS})
 
 
