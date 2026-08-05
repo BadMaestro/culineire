@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.6.0"
+  version: "2.7.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -148,6 +148,13 @@ Before reading or modifying code, the agent must read, in order:
 
 Read all five from `origin/main`, never from the local working tree, and never
 from memory.
+
+These five are the COLD-START set — enough to know how the work is done and what
+is next. They are not the whole of the active documentation: section 10 also
+lists the game rules under `/docs/chef_battle/`, restored to active status on
+2026-08-05. Those are read when a task touches them, not at every start, and a
+task that changes battle mechanics, ranks, moves, tokens or gifts touches them
+by definition.
 
 Then the agent must verify:
 
@@ -757,13 +764,61 @@ production_check:
 
 ## 10. Documentation authority and archive law
 
-Only these five Markdown files are active project instructions:
+**Amended 2026-08-05 on the Owner's order: "Правило 10, архив — нужно
+восстановить и доделать."** The amendment and the reason for it are below the
+lists; read them before archiving anything.
+
+These Markdown files are active project instructions.
+
+**The governance set** — how the work is done:
 
 1. `/AGENTS.md`
 2. `/CLAUDE.md`
 3. `/docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md`
 4. `/docs/TECHNICAL_STANDARDS.md`
 5. `/docs/CURRENT_EXECUTION_PLAN.md`
+6. `/docs/ARENA_BATTLE_PLAN.md` — the board, named as the dispatch contract in
+   section 1 and treated as authoritative there since 2026-07-29. It was never
+   on this list, which is its own small proof of the problem this amendment
+   fixes.
+
+**The game-rules set** — what the product IS, under `/docs/chef_battle/`:
+
+`battle_rules.md`, `battle_lifecycle.md`, `chef_levels.md`, `moves_economy.md`,
+`token_economy.md`, `audience_gifts.md`, `combat_items.md`,
+`ingredient_combat.md`, `battle_chat.md`, `clans_design.md`,
+`clans_alliances_rules.md`, `cuisines_design.md`, `hall_of_fame.md`,
+`chef_journey_map.md`, `artifact_3_models_rules.md`, `ARENA_HALL_PLAN.md`,
+`arena_data_layer_spec.md`, `arena_mockup_spec.md`, `tz_main.md`.
+
+### Why this list grew, and what it cost to keep it at five
+
+Every one of those game-rules files was written by the Owner or to his
+dictation, and every one of them was ARCHIVED — which under the paragraph below
+meant it defined nothing. The rules of his own game therefore governed nothing,
+and the code drifted away from them unopposed. The audit of 2026-08-05 measured
+the result: twelve findings, four of them defects, including a battle
+choreography he had approved on 2026-07-02 that no agent had built because no
+agent could find it in an active document, and an ignore penalty that had sat
+unwired since the first migration.
+
+The same mechanism had already hidden section 18 — the hardest prohibition in
+this project — for two weeks, in an archived memory file.
+
+**An archived document is not a weaker document. It is a document that has been
+switched off.** Nothing may be archived because it is old, or long, or
+inconvenient to reconcile. Archive what is genuinely spent: audit reports,
+worklogs, superseded plans, incident evidence.
+
+### These files are restored, not finished
+
+Restoring them makes them binding; it does not make them true. Each one is
+currently a mixture of live rule, superseded rule and open question, and where
+one contradicts the code the CODE IS NOT AUTOMATICALLY WRONG — several of these
+documents lost an argument to the Owner months ago and were never updated. No
+agent changes code to match one of these files without his word; the reconciling
+of each document against the implementation is ongoing work, tracked on the
+board.
 
 All other project-owned Markdown files are:
 
@@ -785,7 +840,7 @@ Do not delete legal, accounting, audit, or incident evidence that has a retentio
 Do not create replacement Markdown summaries during archival. Use a machine-readable JSON manifest if an inventory is required.
 
 A rule from an archived file may return only through an owner-approved amendment
-to one of the five active documents.
+to one of the active documents listed above.
 
 ## 11. Design constitution
 

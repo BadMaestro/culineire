@@ -3505,8 +3505,8 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "e32b4c2c / production v2.5.820",
-        "verification": "Production v2.5.820 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
+        "commit": "95165eb7 / production v2.5.821",
+        "verification": "Production v2.5.821 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
                         "(ops/audits/arena/A06_remeasure_2026-08-04.md section 6a): the fighters "

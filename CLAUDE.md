@@ -10,7 +10,10 @@ process restart, branch switch, task switch, or resumed session:
 3. Read `/docs/CURRENT_EXECUTION_PLAN.md`.
 4. Read `/docs/TECHNICAL_STANDARDS.md`.
 5. Read `/docs/ARENA_BATTLE_PLAN.md` — the board.
-6. Read all five from `origin/main`, never from the local working tree.
+6. Read all five of the above from `origin/main`, never from the local
+   working tree. They are the COLD-START set. `/AGENTS.md` section 10 lists
+   every active document, including the game rules under `/docs/chef_battle/`,
+   which are read when a task touches them rather than at every start.
 7. Complete the cold-start bootstrap record required by `/AGENTS.md`.
 8. Do not start a poller. There are none (`/AGENTS.md` section 5).
 
