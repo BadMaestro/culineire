@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.818",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "Twelve audit findings on the board - the design corpus and the code have drifted apart",
+        "section": "Chef Battles / Governance",
+        "summary": "Owner's order: read every Chef Battles document, scan the application for bugs and mismatches, list them, hand them to the other agent. Read-only throughout - nothing in the application was edited while scanning. Read: the archived corpus at docs/archive/pre-constitution-reset-2026-07-20/docs/chef_battle/, 31 files and 7571 lines, plus the 15 master-console reports, the active canon, the build board and the public rules page. THE STRUCTURAL CAUSE, WHICH EXPLAINS MOST OF IT: that entire corpus is ARCHIVED, and section 10 says an archived document cannot define current scope. These specifications have governed nothing for weeks, which is why they drifted - the same mechanism that hid section 18 for two weeks and hid the arena choreography until he had to repeat it out loud. FOUR DEFECTS. X01: the list of upcoming battles, half of the arena's stated purpose, does not exist anywhere - no key among the 16 in PUBLIC_ARENA_STATE_KEYS, no selector, no template block. X02: ignored_battles exists on the profile and in the admin and is incremented NOWHERE, so ignoring a challenge is free while refusing one costs refused_battles, five reputation and fifteen moves - the honest answer is the punished one. X03: ChefBattleProfile.level is assigned nowhere, so every chef on the site is level 1 forever while rank does the real work; whether that ladder should exist at all is his call. X04: the build board tells him the token shop has five packages topping out at Executive 1400T for EUR80, and token_config.py defines eight, topping out at Legend Chef 12800T for EUR768. EIGHT DECISIONS, X05 TO X12, MARKED HIS. The acceptance window (12h in the doc, 48h in code and on the live rules page, and the doc contradicts itself), the battle window and a battle_deadline field that does not exist, moves earned per action, combat moves per round, the CulinEire Hero tier (the flag was repurposed as his own god-mode), the matchmaking axis (the doc says level, the code says rank, and his own words today say rank so the doc is the stale side), the token packages and the appreciation gift catalogue with its undocumented doubling of artifact price as a delivery fee. Four of those touch money. No agent changes code towards an archived document. Sent to Bolt as Carpet #3489 with the file and line of every claim.",
+    },
+    {
         "version": "2.5.817",
         "date": "2026-08-05",
         "commit": "",
