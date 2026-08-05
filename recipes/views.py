@@ -3052,7 +3052,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A06", "group": "Arena Hall", "title": "Fresh production/reference measurement matrix",
-        "status": "DONE", "owner": "GreenBear (measurement)",
+        "status": "DONE", "owner": "GreenBear",
         "files": "docs/ARENA_BATTLE_PLAN.md; new evidence under ops/audits/arena/",
         "depends_on": "A05",
         "action": "Capture authenticated production and Design Arena at 1280x720 and 1920x1080 and record bounding boxes for every required furniture block.",
@@ -3261,7 +3261,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "B01", "group": "Battle Broadcast", "title": "Broadcast shell and confrontation header",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "PENDING", "owner": "unassigned",
         "files": "existing battle-room template/JS; scoped broadcast CSS",
         "depends_on": "A19",
         "action": "Port the approved challenger/VS/opponent broadcast header using existing live battle data.",
@@ -3294,7 +3294,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "R01", "group": "Result / Winner", "title": "Champion and runner-up result shell",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "PENDING", "owner": "unassigned",
         "files": "existing result template/context; scoped result CSS",
         "depends_on": "B03",
         "action": "Port champion photo/details, runner-up octagon and full-width WINNER band.",
@@ -3316,7 +3316,7 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "G01", "group": "Release gate", "title": "Complete Design Arena regression and production evidence",
-        "status": "PENDING", "owner": "Whichever agent holds the card + Owner (approval)",
+        "status": "PENDING", "owner": "Team + Owner",
         "files": "Tests/evidence only unless a regression is found",
         "depends_on": "A19, B03, R02",
         "action": "Run the final PostgreSQL suite, visual matrix, Dark Launch checks, deployment postflight and rollback proof.",
@@ -3373,7 +3373,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "efc558ad / production v2.5.812",
+        "commit": "fa307680 / production v2.5.813",
         "verification": "Production v2.5.808 confirmed. A00-A06, AR0-AR5 and A08 are DONE and "
                         "deployed; A07 is the next assignable card and its numbers are measured "
                         "on both sides (ops/audits/arena/A06_remeasure_2026-08-04.md). The camera "

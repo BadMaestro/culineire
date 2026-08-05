@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.813",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "Three tails closed - the handoff, four board owners, and a stale card list",
+        "section": "Agents / Governance",
+        "summary": "Housekeeping batched into one deploy rather than three, which is the Owner's own rule about not firing a cannon at sparrows. ONE: docs/ai/GREENBEAR_HANDOFF_2026-08-04.md still said production v2.5.809 and carried the journal backlog as open, so a cold start would have read four releases of stale truth. Replaced by GREENBEAR_HANDOFF_2026-08-05.md, which carries what A09 needs: its measured numbers from the A06 re-measure, what A07 established, and seven landmines - two of them new and both about arena_render.css not owning what it appears to own, neither the camera (arena_deck_polish.css:3666 wins) nor the floor container's height (arena_atmosphere.css wins at higher specificity). TWO: four cards disagreed between the plan and the build board about who owns them. B01 and R01 read GreenBear on the board and unassigned in the plan - the plan is right, they were Ember's and his retirement left them unassigned, and a suggestion pointing at an owner stops the next agent from asking. A06 and G01 differed only in wording. All four aligned to the plan, which section 1 names as the board. THREE: two Carpet messages read and cleared - Bolt's A12 report, which needed nothing from me, and his earlier request for a card, which the Owner has since answered. Also recorded here because it is the reason a number moved under me today: the deploy lock is claimed BEFORE the version bump, not after the work is finished. A lock written after the bump reserves nothing. The Owner's ruling on the incident, in his words, is that a number taken twice is not a collision but an agent who did not check the queue - and that agents do not put each other in the account of their own missed checks.",
+    },
+    {
         "version": "2.5.812",
         "date": "2026-08-05",
         "commit": "",
