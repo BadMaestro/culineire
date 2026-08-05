@@ -1,0 +1,145 @@
+/* Arena mirror inside the Master Console — X02 (Owner, 2026-08-05/06)
+ * ---------------------------------------------------------------------------
+ * "в Master Console вставляем зеркало арены - но без градуса наклона и без спец
+ *  эффектов ради экономии ресурсов - но на живой арене весь функционал 100%
+ *  рабочий."
+ *
+ * So this file does exactly two things and nothing else:
+ *
+ *   1. flattens the camera — the public arena's rotateX(42deg) is a real cost
+ *      on a machine that also has an operator console open on top of it;
+ *   2. switches off the atmosphere and effects layers.
+ *
+ * IT CHANGES NO DATA AND NO BEHAVIOUR. Same markup, same ids, same payload,
+ * same JavaScript, same handlers. If a control works here and not on the arena,
+ * or the other way round, that is a defect and not this file's doing.
+ *
+ * It is loaded LAST on the console and nowhere else. Nothing here may be
+ * scoped to .page--arena alone, or it would reach the public arena and undo
+ * A07's composition; every rule is under .page--arena-mirror.
+ */
+
+/* ── 1. The camera is flat here ──────────────────────────────────────────── */
+/* The public rule is set last by arena_deck_polish.css:3666, so the mirror has
+ * to be later still rather than more specific. It is: this file is the last
+ * stylesheet on the console. */
+.page--arena-mirror .arena-floor,
+.page--arena-mirror .arena-stage,
+.page--arena-mirror .arena-command-deck__floor,
+.page--arena-mirror .arena-render-ring,
+.page--arena-mirror [data-arena-camera] {
+  transform: none !important;
+  perspective: none !important;
+  transform-style: flat !important;
+}
+
+/* ── 2. Atmosphere and effects are off ───────────────────────────────────── */
+/* The stylesheets themselves are not loaded by the console template; these
+ * rules cover the layers the renderer creates in JS, which would otherwise
+ * paint unstyled shapes over the mirror. */
+.page--arena-mirror .arena-effects,
+.page--arena-mirror .arena-dust,
+.page--arena-mirror .arena-rays,
+.page--arena-mirror .arena-lamp-shimmer,
+.page--arena-mirror .arena-crown-light,
+.page--arena-mirror .arena-gift-burst,
+.page--arena-mirror [data-arena-layer="effects"],
+.page--arena-mirror [data-arena-layer="atmosphere"] {
+  display: none !important;
+}
+
+/* Backdrop filters are the other quiet cost — every panel on the deck runs one.
+ * The mirror keeps the panels and drops the blur. */
+.page--arena-mirror .arena-command-deck__header,
+.page--arena-mirror .arena-command-deck__phase-card,
+.page--arena-mirror .arena-command-deck__metrics,
+.page--arena-mirror .arena-command-deck__ladder,
+.page--arena-mirror .arena-command-deck__gifts,
+.page--arena-mirror .arena-command-deck__phase-rail,
+.page--arena-mirror .arena-command-deck__crowd-rail,
+.page--arena-mirror .arena-broadcast-ribbon {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ── 3. The mirror lives in a box, not a page ────────────────────────────── */
+/* The public deck sizes itself to the viewport (A07: the arena fits the screen
+ * whole). Inside the console it is one panel among several, so it fills the
+ * slot the console gives it and scrolls nothing. */
+.page--arena-mirror .amc-ring {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.page--arena-mirror .amc-ring .arena-command-deck {
+  height: 100%;
+  min-height: 0;
+}
+
+/* ── 4. The "i" markers ──────────────────────────────────────────────────── */
+/* Every mirrored control carries one. The hint appears after a deliberate
+ * pause — the Owner asked for two seconds — so it never flashes at a cursor
+ * crossing the panel on its way somewhere else. The delay is on the
+ * transition, not on a timer, so leaving the marker cancels it for free.
+ *
+ * The marker is a <button> in the markup, not a span: a hint that only a mouse
+ * can reach is a hint half the operators cannot read, and :focus-visible opens
+ * it from the keyboard on the same rules. */
+.amc-i {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.05rem; height: 1.05rem; margin-left: .35rem;
+  padding: 0; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--centre-gold, #D6A64B) 55%, transparent);
+  background: transparent;
+  color: var(--centre-gold, #D6A64B);
+  font: 700 .62rem/1 var(--font-sans, system-ui);
+  cursor: help;
+  position: relative;
+  vertical-align: middle;
+}
+.amc-i:hover,
+.amc-i:focus-visible {
+  background: color-mix(in srgb, var(--centre-gold, #D6A64B) 18%, transparent);
+}
+
+.amc-i__hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + .45rem);
+  transform: translateX(-50%);
+  z-index: 40;
+  width: max-content;
+  max-width: 22rem;
+  padding: .45rem .6rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--centre-gold, #D6A64B) 40%, transparent);
+  background: #171514;
+  color: #EEE1CA;
+  font: 500 .72rem/1.45 var(--font-sans, system-ui);
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+
+  /* Closed by default, and it fades rather than appears: opacity carries the
+   * two-second wait, visibility carries the fact that a transparent tooltip
+   * still covers what is under it. */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .28s ease, visibility 0s linear .28s;
+}
+.amc-i:hover .amc-i__hint,
+.amc-i:focus-visible .amc-i__hint {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .45s ease 2s, visibility 0s linear 2s;
+}
+
+/* Reduced motion keeps the delay and drops the fade: the pause is the point,
+ * the animation is decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .amc-i__hint { transition: opacity 0s linear .28s, visibility 0s linear .28s; }
+  .amc-i:hover .amc-i__hint,
+  .amc-i:focus-visible .amc-i__hint {
+    transition: opacity 0s linear 2s, visibility 0s linear 2s;
+  }
+}

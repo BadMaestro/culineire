@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block body_attrs %} class="page--amc"{% endblock %}
+{% comment %}
+  page--arena rides along with page--amc so the mirrored arena is styled by the
+  SAME rules as the public one - a large part of the deck styling is scoped
+  .page--arena, and without it the console was rendering the same markup through
+  a different stylesheet and calling it the arena.
+{% endcomment %}
+{% block body_attrs %} class="page--amc page--arena page--arena-mirror"{% endblock %}
 
 {% block title %}Arena Master Console | Chef Battles | CulinEire{% endblock %}
 {% block meta_description %}Arena Master Console — operator control deck for Chef Battles.{% endblock %}
@@ -9,8 +15,21 @@
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
 <link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">
-<link href="{% static 'css/arena.css' %}?v=20260722-stage3b" rel="stylesheet">
+{% comment %}
+  The mirror loads the arena's OWN stylesheets, in the arena's own order. The
+  console used to load arena.css alone and nothing else, which is why the two
+  arenas looked like different products: same markup, different rules.
+
+  arena_atmosphere.css and arena_effects.css are deliberately NOT loaded - the
+  Owner asked for the mirror without the tilt and without the effects, to save
+  the operator's machine. arena_console_mirror.css flattens the camera last.
+{% endcomment %}
+<link href="{% static 'css/arena.css' %}?v=20260729-tooltip-anchor" rel="stylesheet">
+<link href="{% static 'css/arena_command_deck.css' %}?v=20260805-a07-fit" rel="stylesheet">
+<link href="{% static 'css/arena_hall.css' %}?v=20260727-tilt42" rel="stylesheet">
+<link href="{% static 'css/arena_deck_polish.css' %}?v=20260805-next-pills" rel="stylesheet">
 <link href="{% static 'css/arena_master_console.css' %}?v=20260705a" rel="stylesheet">
+<link href="{% static 'css/arena_console_mirror.css' %}?v=20260806-mirror" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -45,7 +64,7 @@
   <section class="amc-overview" aria-label="Arena overview">
 
     <article class="amc-status" aria-label="Battle status">
-      <h2 class="amc-panel__title">Battle Status</h2>
+      <h2 class="amc-panel__title">Battle Status{% include "chef_battle/_amc_i.html" with hint="The phase the primary battle is in right now, straight from the server. It is the same phase the public arena shows on its lifecycle rail - if the two disagree, one of them is stale and the console is the copy to trust." %}</h2>
       <dl class="amc-status__list">
         <div class="amc-status__row">
           <dt>State</dt>
@@ -68,7 +87,7 @@
     </article>
 
     <article class="amc-chef amc-chef--one" aria-label="Chef 1 slot" id="amc-chef-1">
-      <h2 class="amc-panel__title">Chef #1</h2>
+      <h2 class="amc-panel__title">Chef #1{% include "chef_battle/_amc_i.html" with hint="The challenger in the primary battle: identity, rank, rating, record and whether they have pressed Ready. Empty when no battle is running, which is a state and not a fault." %}</h2>
       {% if primary_battle %}
       <div class="amc-chef__card">
         <img class="amc-chef__avatar" src="{{ primary_battle.challenger.avatar_url }}" alt="" width="84" height="84">
@@ -90,7 +109,7 @@
     </div>
 
     <article class="amc-chef amc-chef--two" aria-label="Chef 2 slot" id="amc-chef-2">
-      <h2 class="amc-panel__title">Chef #2</h2>
+      <h2 class="amc-panel__title">Chef #2{% include "chef_battle/_amc_i.html" with hint="The opponent in the primary battle, on the same fields as Chef #1. Both cards read the live battle rows - nothing here is a placeholder." %}</h2>
       {% if primary_battle %}
       <div class="amc-chef__card">
         <img class="amc-chef__avatar" src="{{ primary_battle.opponent.avatar_url }}" alt="" width="84" height="84">
@@ -108,7 +127,7 @@
     </article>
 
     <article class="amc-audience" aria-label="Audience summary">
-      <h2 class="amc-panel__title">Audience</h2>
+      <h2 class="amc-panel__title">Audience{% include "chef_battle/_amc_i.html" with hint="Who is watching: seated authors, spectators and the anonymous count. The same numbers the arena puts in its metrics panel, so a gap between them means a poll is not landing." %}</h2>
       <dl class="amc-audience__list">
         <div class="amc-audience__row">
           <dt>Battle viewers (3&nbsp;min)</dt>
@@ -160,7 +179,7 @@
     <div class="amc-deck__grid">
 
       <article class="amc-panel" aria-label="Arena control and battle flow">
-        <h3 class="amc-panel__title"><span class="amc-panel__num">1</span> Arena Control / Battle Flow</h3>
+        <h3 class="amc-panel__title"><span class="amc-panel__num">1</span> Arena Control / Battle Flow{% include "chef_battle/_amc_i.html" with hint="Force a battle from one phase to the next, pause it, resume it or cancel it. Every action is transactional, guarded against a stale expected_status and written to the audit trail as an operator action." %}</h3>
         {% if operator_is_owner %}
         <p class="amc-panel__hint">Owner controls. Every action is confirmed, audited and idempotency-guarded.</p>
         <div class="amc-panel__actions" id="amc-controls">
@@ -203,7 +222,7 @@
       </article>
 
       <article class="amc-panel" aria-label="Live battle monitor">
-        <h3 class="amc-panel__title"><span class="amc-panel__num">2</span> Live Battle Monitor</h3>
+        <h3 class="amc-panel__title"><span class="amc-panel__num">2</span> Live Battle Monitor{% include "chef_battle/_amc_i.html" with hint="The running battle as the server sees it - phase, deadlines, readiness and submissions. Read-only: it reports, it does not steer." %}</h3>
         <dl class="amc-panel__kv amc-panel__kv--row" id="amc-monitor-counts">
           <div><dt>Active</dt><dd data-amc-count="battles_active">{{ master_state.monitor.counts.battles_active }}</dd></div>
           <div><dt>Pending</dt><dd data-amc-count="challenges_pending">{{ master_state.monitor.counts.challenges_pending }}</dd></div>
@@ -228,7 +247,7 @@
       </article>
 
       <article class="amc-panel" aria-label="Combat engine">
-        <h3 class="amc-panel__title"><span class="amc-panel__num">3</span> Combat Engine</h3>
+        <h3 class="amc-panel__title"><span class="amc-panel__num">3</span> Combat Engine{% include "chef_battle/_amc_i.html" with hint="Ingredient locks, hits and the biathlon shots. This is where a combat step is inspected when a battle behaves in a way the arena cannot explain." %}</h3>
         <ul class="amc-panel__list" id="amc-combat-list">
           {% for c in master_state.monitor.detail %}
           {% if c.kind == "combat" %}
@@ -254,7 +273,7 @@
       </article>
 
       <article class="amc-panel" aria-label="Moderation and safety">
-        <h3 class="amc-panel__title"><span class="amc-panel__num">4</span> Moderation &amp; Safety</h3>
+        <h3 class="amc-panel__title"><span class="amc-panel__num">4</span> Moderation &amp; Safety{% include "chef_battle/_amc_i.html" with hint="Emergency Stop, dispute handling and the checks that hold a battle back from the public. Owner-only actions, refused early with a clear answer for anyone else." %}</h3>
         <dl class="amc-panel__kv amc-panel__kv--row">
           <div><dt>Queue</dt><dd id="amc-mod-cooking">{{ master_state.moderation.cooking_queue }}</dd></div>
           <div><dt>Reports</dt><dd id="amc-mod-reports">{{ master_state.moderation.content_reports_pending }}</dd></div>
@@ -346,7 +365,7 @@
       </article>
 
       <article class="amc-panel" aria-label="Voting integrity">
-        <h3 class="amc-panel__title"><span class="amc-panel__num">5</span> Voting Integrity</h3>
+        <h3 class="amc-panel__title"><span class="amc-panel__num">5</span> Voting Integrity{% include "chef_battle/_amc_i.html" with hint="Vote counts with the fraud gates beside them: self-votes, duplicates and suspicious patterns. A rejected attempt is kept as evidence and never becomes a vote." %}</h3>
         <ul class="amc-panel__list" id="amc-voting-list">
           {% for v in master_state.voting %}
           <li>
@@ -365,7 +384,7 @@
       </article>
 
       <article class="amc-panel" aria-label="Economy, gifts and artifacts">
-        <h3 class="amc-panel__title"><span class="amc-panel__num">6</span> Economy / Gifts / Artifacts</h3>
+        <h3 class="amc-panel__title"><span class="amc-panel__num">6</span> Economy / Gifts / Artifacts{% include "chef_battle/_amc_i.html" with hint="Tokens, gifts and artifact drops for this battle. Money-adjacent, so it reports rather than acts - price and package changes need the Owner's word every time." %}</h3>
         <dl class="amc-panel__kv amc-panel__kv--row">
           <div><dt>In (24h)</dt><dd id="amc-eco-in">{{ master_state.economy.tokens_in_24h }}</dd></div>
           <div><dt>Out (24h)</dt><dd id="amc-eco-out">{{ master_state.economy.tokens_out_24h }}</dd></div>
@@ -417,7 +436,7 @@
       </article>
 
       <article class="amc-panel" aria-label="CBR, LSR and rewards governance">
-        <h3 class="amc-panel__title"><span class="amc-panel__num">7</span> CBR / LSR / Rewards Governance</h3>
+        <h3 class="amc-panel__title"><span class="amc-panel__num">7</span> CBR / LSR / Rewards Governance{% include "chef_battle/_amc_i.html" with hint="Reward records and their unlock state. They are not money and not a balance: they become payout-eligible only after checks and approval." %}</h3>
 
         <h4 class="amc-panel__subtitle">Rewards</h4>
         <ul class="amc-panel__list" id="amc-gov-rewards">
@@ -470,7 +489,7 @@
       </article>
 
       <article class="amc-panel" aria-label="Ranks, crown and arena authority">
-        <h3 class="amc-panel__title"><span class="amc-panel__num">8</span> Ranks / Crown / Arena Authority</h3>
+        <h3 class="amc-panel__title"><span class="amc-panel__num">8</span> Ranks / Crown / Arena Authority{% include "chef_battle/_amc_i.html" with hint="Ranks, the 24-hour crown and who may reach the console. Privilege flags are the Owner's alone and are shown here, never written from here." %}</h3>
         <dl class="amc-panel__kv">
           <div><dt>Enrolled chefs</dt><dd id="amc-rank-enrolled">{{ master_state.arena.enrolled_count }}</dd></div>
           <div><dt>Online now</dt><dd id="amc-rank-online">{{ master_state.arena.online_count }}</dd></div>

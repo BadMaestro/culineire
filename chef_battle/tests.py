@@ -9959,3 +9959,88 @@ class BattleWithdrawalTests(TestCase):
         request_withdrawal(battle=self.battle, author=self.chef_a, reason="Reason.")
         self.assertFalse(can_withdraw(self.battle, self.chef_a))
         self.assertFalse(can_withdraw(self.battle, self.chef_b))
+@override_settings(CHEF_BATTLE_ENABLED=True, ARENA_MASTER_CONSOLE_ENABLED=True)
+class ConsoleArenaMirrorTests(TestCase):
+    """The console's arena is a MIRROR of the public one, not a second arena.
+
+    The Owner, 2026-08-05: "наша арена и моя арена которую я вижу внутри панели -
+    разные, и я не могу достоверно получать информацию". The cause was a
+    hand-listed copy of the payload contract in master_console(): by then it was
+    missing vip_sponsors, spirit_count and upcoming, so his copy had no sponsor
+    ring, no balconies and no departures board. Nobody broke it - the second
+    list simply stopped being updated, which is what a second list does.
+
+    These tests fail the next time the two drift.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        # A flagged operator, not the Owner: section 18 says his row is not a
+        # fixture to create or overwrite, and the flagged path is the one every
+        # other console test uses.
+        user = User.objects.create_superuser("amc-operator", password="pw")
+        RecipeAuthor.objects.create(
+            user=user, name="Console Operator", slug="amc-operator",
+            has_arena_console_access=True,
+        )
+        self.client.login(username="amc-operator", password="pw")
+
+    def test_the_console_carries_every_key_the_arena_polls(self):
+        from .views import PUBLIC_ARENA_STATE_KEYS
+
+        resp = self.client.get(reverse("chef_battle:master_console"))
+        self.assertEqual(resp.status_code, 200)
+        arena_data = resp.context["arena_data"]
+        missing = [k for k in PUBLIC_ARENA_STATE_KEYS if k not in arena_data]
+        self.assertEqual(
+            missing, [],
+            f"the console arena is missing {missing} - it has drifted from the public payload",
+        )
+
+    def test_the_two_pages_build_the_same_arena_data(self):
+        """Identical keys, from the identical assembly - not two lists that agree today."""
+        from .views import _build_arena_payload
+
+        resp = self.client.get(reverse("chef_battle:master_console"))
+        console_keys = set(resp.context["arena_data"])
+        payload = _build_arena_payload()
+        # Everything the console shows must exist in the payload it claims to mirror.
+        stray = console_keys - set(payload) - {"upcoming"}
+        self.assertEqual(stray, set(), f"console invented keys the arena does not have: {stray}")
+        self.assertIn("upcoming", console_keys)
+
+    def test_the_mirror_is_flagged_flat(self):
+        """The body class is what turns the camera and the effects off."""
+        resp = self.client.get(reverse("chef_battle:master_console"))
+        self.assertTrue(resp.context["console_mirror"])
+        self.assertContains(resp, "page--arena-mirror")
+
+    def test_the_mirror_does_not_load_the_effects_stylesheets(self):
+        """Owner: mirror without the tilt and without the effects, to save resources."""
+        resp = self.client.get(reverse("chef_battle:master_console"))
+        body = resp.content.decode()
+        self.assertNotIn("arena_effects.css", body)
+        self.assertNotIn("arena_atmosphere.css", body)
+        self.assertIn("arena_console_mirror.css", body)
+
+    def test_every_console_panel_carries_an_i_marker(self):
+        resp = self.client.get(reverse("chef_battle:master_console"))
+        body = resp.content.decode()
+        titles = body.count('class="amc-panel__title"')
+        markers = body.count('class="amc-i"')
+        self.assertEqual(
+            markers, titles,
+            f"{titles} panels but {markers} i markers - every panel is labelled and explained",
+        )
+
+    def test_each_hint_actually_says_something(self):
+        import re
+
+        resp = self.client.get(reverse("chef_battle:master_console"))
+        hints = re.findall(r'class="amc-i__hint"[^>]*>(.*?)</span>', resp.content.decode(), re.S)
+        self.assertTrue(hints)
+        for hint in hints:
+            self.assertGreater(
+                len(hint.strip()), 40,
+                f"a hint that short explains nothing: {hint!r}",
+            )

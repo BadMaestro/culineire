@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.831",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "The console's arena is a mirror now, not a second arena - and every panel explains itself",
+        "section": "Chef Battles / Master Console",
+        "summary": "Owner, 2026-08-05: the arena in his console and the real arena are different, so he cannot get reliable information from it; put a MIRROR in the console, flat and without effects to save resources, while the live arena keeps everything. TWO CAUSES, BOTH MEASURED. First, master_console() built its own arena_data by hand-listing fourteen keys, and by today that list was missing vip_sponsors, spirit_count and upcoming - his copy had no sponsor ring, no balconies and no departures board while the public page had all three. Nobody broke it; a second list simply stops being updated, which is what second lists do. It now uses the SAME assembly as the public page, so a key added to the arena reaches the console with no second edit. Second, the console loaded arena.css and nothing else while the arena loads five stylesheets - the same markup through different rules, which is why they looked like different products. The console now loads the arena's own stylesheets in the arena's own order. WHAT IS DELIBERATELY DIFFERENT, and only this: arena_atmosphere.css and arena_effects.css are not loaded, and arena_console_mirror.css flattens the 42-degree camera and drops the backdrop blur under the panels. Data, ids, handlers and behaviour are identical - if a control works in one and not the other, that is a defect, not the mirror. EVERY PANEL IS LABELLED AND EXPLAINED: twelve panels, each with an i marker that fades in a line after a two-second rest, saying what the panel is and what it does. The delay is a CSS transition-delay rather than a timer, so leaving the marker cancels it for free, and the marker is a button so the hint opens from the keyboard too. Six tests hold the mirror: the console must carry every key the arena polls, must invent none of its own, must flag itself flat, must not load the effects sheets, must have exactly one i per panel, and no hint may be a stub.",
+    },
+    {
         "version": "2.5.830",
         "date": "2026-08-06",
         "commit": "",

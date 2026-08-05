@@ -3144,37 +3144,35 @@ def master_console(request):
     from .selectors import get_master_state
 
     author = get_author_for_user(request.user)
-    payload = _build_arena_payload(viewer_author=author)
     state = get_master_state()
-    return render(request, "chef_battle/arena_master_console.html", {
+
+    # THE CONSOLE ARENA IS A MIRROR, NOT A SECOND ARENA (Owner, 2026-08-05:
+    # "наша арена и моя арена которую я вижу внутри панели - разные, и я не могу
+    # достоверно получать информацию").
+    #
+    # It used to build its own arena_data by hand-listing fourteen keys, and a
+    # hand-copied contract drifts by definition: by the time he said this it was
+    # missing vip_sponsors, spirit_count and upcoming, so the sponsors ring, the
+    # balconies and the departures board were simply absent from his copy while
+    # the public arena had them. Nobody had to break anything; the second list
+    # just stopped being updated. It is now the SAME assembly the public page
+    # uses, so a key added to the arena reaches the console with no second edit.
+    #
+    # What differs is only the rendering, and only to save the operator's
+    # machine: the mirror runs flat (no 42-degree camera) with the atmosphere
+    # and effects layers off. The data, the ids and the behaviour are identical.
+    context = _arena_page_context(
+        request, viewer_author=author, user_enrolled=False, allow_demo=True,
+    )
+    context.update({
         "operator_author": author,
         "operator_is_owner": bool(author and author.slug == settings.OWNER_SLUG),
         "console_test_mode": not settings.CHEF_BATTLE_ENABLED,
         "master_state": state,
         "primary_battle": state["battles"][0] if state["battles"] else None,
-        # Full payload, same shape the public arena embeds: the console now
-        # renders the procedural arena fragment too, and arena_render.js bails
-        # early without `geometry` while arena_deck.js needs the metric/phase/
-        # deadline/crown keys. A subset here would leave the console arena blank.
-        "arena_data": {
-            "rings": payload["rings"],
-            "spectators": payload["spectators"],
-            "center": payload["center"],
-            "latest_result": payload["latest_result"],
-            "crown_streak": payload["crown_streak"],
-            "crown_ladder": payload["crown_ladder"],
-            "recent_gifts": payload["recent_gifts"],
-            "top_supporter": payload["top_supporter"],
-            "metrics": payload["metrics"],
-            "phase": payload["phase"],
-            "phase_rail": payload["phase_rail"],
-            "deadline": payload["deadline"],
-            "geometry": payload["geometry"],
-            "server_time": payload["server_time"],
-        },
-        "viewer_author": author,
-        "user_enrolled": False,
+        "console_mirror": True,
     })
+    return render(request, "chef_battle/arena_master_console.html", context)
 
 
 @arena_console_guard

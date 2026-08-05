@@ -1,0 +1,14 @@
+{% comment %}
+  One "i" marker and its hint (Owner, 2026-08-05: every piece of functionality
+  in the console is labelled and carries an i; resting on it for two seconds
+  fades in a line saying what it is and what it does).
+
+  Usage:  {% include "chef_battle/_amc_i.html" with hint="..." %}
+
+  It is a <button>, not a <span>: a hint only a mouse can open is a hint half
+  the operators never read, and a button gets it from the keyboard on the same
+  rules. The two-second wait and the fade live in arena_console_mirror.css - a
+  CSS transition-delay cancels itself when the cursor leaves, where a JS timer
+  has to be cleaned up and eventually is not.
+{% endcomment %}
+<button type="button" class="amc-i" aria-label="What this does">i<span class="amc-i__hint" role="tooltip">{{ hint }}</span></button>
