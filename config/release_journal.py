@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.829",
+        "date": "2026-08-05",
+        "commit": "",
+        "title": "The Owner repeals the rule that stopped agents putting test data on the arena",
+        "section": "Agents / Governance",
+        "summary": "AGENTS.md goes to 2.10.0. Section 8 carried the line 'Never run destructive or data-writing production diagnostics merely to prove a visual result' and the Owner repealed it, in words recorded verbatim in the section: he never forbade writing to production to prove a visual result, it contradicts how this project works, and arena functionality is to be exercised on production continuously and across all of it. WHAT PROVOKED IT IS MY OWN DOING: he asked to see the upcoming-battles board with both rows filled; I refused to schedule six battles on production, cited that line, and built a moderator-only ?demo=next preview instead - so he was shown a simulation of a board that could simply have been filled with real rows. That is the contradiction he names: production is the only place appearance is judged (17.14), and forbidding the data that makes appearance visible left agents proving nothing. WHAT DID NOT CHANGE, written into the same section so the repeal is not read as a blank cheque: the excluded list stands (payment, payout, Stripe, legal, privacy, moderation policy, migrations, schemas, access gates); nothing touches greenbear (18); no agent writes privilege flags (20); creating rows is expected but deleting or overwriting somebody else's is still destructive and still counts first; test data made for a picture is cleaned up and the report says what was left behind; the 50 percent load ceiling of section 9 still applies to anything heavy.",
+    },
+    {
         "version": "2.5.828",
         "date": "2026-08-05",
         "commit": "",
