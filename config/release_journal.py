@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.853",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "A10 - the crown hub was a third too wide, and now it is the reference share of the floor",
+        "section": "Chef Battles / Arena",
+        "summary": "MEASURED, NOT ADJUSTED BY EYE. The approved Design Template puts the crown block at 190 wide on a floor grid 1585.4 wide - 0.1198 of the floor (A06_remeasure_2026-08-04). Production drew the hub from STAGE_RADIUS, which is the octagon geometry crown PLATE at 82, so it spanned 164 against a floor of 1030: 0.159, a third too wide. It now takes the reference share, 61.7 radius against 82, everything inside it - pad, glyph, CROWN HOLDER label and the fitted name - scaling with it because they were all already derived from that one number. IT IS DELIBERATELY NOT DONE BY MOVING CROWN_OUTER: that constant is the inner edge of the moat and the base of rankStep, so shrinking it would widen all eight rank rings - a change to the floor the Owner froze in ARENA_BATTLE_PLAN section 2, made in passing while fixing the crown. The plate keeps its size and the hub is drawn smaller inside it, which is the recess the card asks for in the same sentence as the size. STAGE_RADIUS is untouched for the same reason: the fighter plinths, the VS and the lamp strobes are all measured off it, and the fighters 260px either side of centre came off the same reference file. Bolt cleared this card and the file before I started - he holds nothing in arena_deck_polish.css and nothing of his reads the crown radius. IF REVERTED: the crown hub goes back to a third wider than the reference.",
+    },
+    {
         "version": "2.5.851",
         "date": "2026-08-07",
         "commit": "",

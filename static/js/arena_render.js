@@ -1742,6 +1742,37 @@
     return STAGE_RADIUS + REFERENCE_FIGHTER_GAP * floorWidth + padR;
   }
 
+  /**
+   * A10 — HOW BIG THE CROWN HUB IS, TAKEN FROM THE REFERENCE AND NOT INVENTED.
+   *
+   * Measured off the approved Design Template in
+   * ops/audits/arena/A06_remeasure_2026-08-04.md: the crown block is 190 wide on
+   * a floor grid 1585.4 wide, which is 0.1198 of the floor. Production drew it
+   * from STAGE_RADIUS - the crown PLATE of the octagon geometry - which is 82,
+   * so the hub spanned 164 against a floor of 1030: 0.159, a third too wide.
+   * That is the whole of the size half of this card.
+   *
+   * It is deliberately NOT done by moving CROWN_OUTER. That constant is the
+   * inner edge of the moat and the base of rankStep, so shrinking it would
+   * widen every one of the eight rank rings - a change to the floor the Owner
+   * froze in ARENA_BATTLE_PLAN section 2, made in passing, to fix the crown.
+   * The plate keeps its size; the hub is drawn smaller inside it, which is the
+   * recess this card also asks for.
+   *
+   * STAGE_RADIUS is untouched for the same reason: the fighter plinths, the VS
+   * and the lamp strobes are all measured off it, and the fighters' 260px
+   * either side of centre came off the same reference file.
+   */
+  var REFERENCE_CROWN_SHARE = 0.1198;
+
+  function crownRadius() {
+    var tpl = global.ArenaOctagon;
+    var floorOuter = tpl ? tpl.OUTER : 515;
+    // The reference share is of the floor's full span; span = 2 * outer, so the
+    // radius is the share of the outer radius.
+    return REFERENCE_CROWN_SHARE * floorOuter;
+  }
+
   function stampFloorCentre(svg, center) {
     var layer = svg.querySelector('[data-arena-layer="centre"]');
     if (!layer) { return; }
@@ -1771,7 +1802,7 @@
     if (type === 'crown') {
       // Reference: centre octagon holds crown glyph + nick only — never the
       // holder avatar (that would cover / mis-read the stage pad).
-      drawFloorCrown(layer, cx, cy, STAGE_RADIUS, center);
+      drawFloorCrown(layer, cx, cy, crownRadius(), center);
     }
   }
 
