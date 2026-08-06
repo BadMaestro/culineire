@@ -182,6 +182,13 @@ UNGUARDED_BY_DESIGN = {
     "battle_chat_poll": "Calls is_battle_visible directly; previously leaked chat to anonymous.",
     "cooking_moderation": "Moderator-only, checked with is_moderator in the view.",
     "cooking_moderation_approve": "Moderator-only, checked with is_moderator in the view.",
+    "battle_withdraw_resolve": (
+        "login_required + require_POST, and moderator-only: the view raises "
+        "Http404 through is_moderator before it reads anything. It is listed "
+        "here rather than decorated because it is reached from the moderation "
+        "panel, not from a battle page, and chef_battle_guard would answer a "
+        "moderator's POST with the battle-visibility banner."
+    ),
 }
 
 

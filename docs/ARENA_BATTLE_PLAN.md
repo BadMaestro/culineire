@@ -4,8 +4,17 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-06 · Production baseline: **v2.5.837**
+Last reconciled: 2026-08-06 · Production baseline: **v2.5.838**
 · Next assignable card: **A09**, unassigned.
+
+**MC01 is DONE (v2.5.838).** The Battle Cancellation Simulation is panel 9 of
+the Master Console: seven steps on one spine, three routes, saying at each step
+who acts, on which page, what is on their screen, what the site enforces and
+what moves. It re-implements nothing — the allowance and the 15/3 penalty are
+imported from `withdrawal_service` and `BattleWithdrawal`, and four tests run
+the real service down all three routes and assert the panel's promises match the
+outcome. It writes nothing at all, which is what makes it safe against the live
+battle on production, and a test counts the tables to keep it that way.
 
 **Bolt's session of 2026-08-05/06, in order.** X04: the roadmap advertised five
 token packages topping out at Executive 1400T/EUR80 while `token_config.py` has
@@ -314,7 +323,7 @@ forbidden changes and evidence for every row below.
 | A17 | Integrity | Truthful visual state matrix | unassigned | A09–A16 | PENDING |
 | A18 | Integrity | Desktop accessibility and responsive gate | Bolt + unassigned | A17 | PENDING |
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
-| MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | PENDING |
+| MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | DONE |
 | B01 | Battle Broadcast | Broadcast shell and confrontation header | unassigned | A19 | PENDING |
 | B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | PENDING |
 | B03 | Battle Broadcast | Broadcast chat and composer | unassigned | B02 | PENDING |

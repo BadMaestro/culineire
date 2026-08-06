@@ -601,3 +601,163 @@ body.page--amc #site-battle-widget {
     transition: none !important;
   }
 }
+
+/* ── 9. Battle Cancellation Simulation (MC01) ─────────────────────────────
+ * The panel is full width because it is a walkthrough, and the deck grid gives
+ * each ordinary panel one eighth of a row. Everything below is scoped to
+ * .amc-sim so it cannot reach the eight panels beside it, and every colour is a
+ * console token - no raw hex.
+ */
+.amc-sim {
+  grid-column: 1 / -1;
+  margin-top: 0.75rem;
+}
+
+.amc-sim__stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+/* The track is the row of step numbers. It is built by the stepper rather than
+ * the template, because which steps exist depends on the path chosen at the
+ * fork, and a track that lists steps the run will never reach is a lie. */
+.amc-sim__track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.amc-sim__track li {
+  min-width: 1.5rem;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--amc-line-soft);
+  border-radius: 999px;
+  color: var(--amc-muted);
+  font-size: 0.68rem;
+  text-align: center;
+}
+
+.amc-sim__track li[data-state="done"] {
+  border-color: var(--amc-line);
+  color: var(--amc-gold);
+}
+
+.amc-sim__track li[data-state="current"] {
+  border-color: var(--amc-gold);
+  background: var(--amc-gold-soft);
+  color: var(--amc-gold-light);
+  font-weight: 700;
+}
+
+.amc-sim__head {
+  border-left: 2px solid var(--amc-gold);
+  padding-left: 0.6rem;
+}
+
+.amc-sim__actor {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--amc-gold);
+}
+
+.amc-sim__title {
+  margin: 0.1rem 0;
+  font-size: 0.98rem;
+  color: var(--amc-ink);
+}
+
+.amc-sim__where {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--amc-muted);
+  overflow-wrap: anywhere;
+}
+
+.amc-sim__cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.amc-sim__col {
+  background: var(--amc-surface-soft);
+  border: 1px solid var(--amc-line-soft);
+  border-radius: var(--amc-radius);
+  padding: 0.6rem 0.7rem;
+}
+
+.amc-sim__col-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--amc-muted);
+}
+
+.amc-sim__list {
+  margin: 0;
+  padding-left: 1rem;
+  overflow-wrap: anywhere;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--amc-ink);
+}
+
+/* The third column is what MOVES, and it is the one an operator is really
+ * reading, so it is marked rather than left to look like prose. */
+.amc-sim__list--effects li {
+  color: var(--amc-gold-light);
+}
+
+.amc-sim__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.2rem;
+}
+
+.amc-btn--sim {
+  cursor: pointer;
+  border-color: var(--amc-line);
+  color: var(--amc-gold-light);
+}
+
+.amc-btn--sim:hover:not(:disabled) {
+  background: var(--amc-gold-soft);
+}
+
+.amc-sim__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  border-top: 1px solid var(--amc-line-soft);
+  padding-top: 0.55rem;
+}
+
+.amc-sim__nav .amc-btn {
+  cursor: pointer;
+}
+
+.amc-sim__path {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--amc-muted);
+}
+
+@media (max-width: 900px) {
+  .amc-sim__cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

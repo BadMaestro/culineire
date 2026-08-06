@@ -3153,10 +3153,23 @@ def master_console(request):
     values come from documented selectors (P02_DATA_DICTIONARY.yaml); no
     operator writes exist until P03. Access: DG-01 gate.
     """
+    from .console_simulations import build_cancellation_simulation
     from .selectors import get_master_state
 
     author = get_author_for_user(request.user)
     state = get_master_state()
+
+    # MC01. get_master_state() hands back dictionaries, and the simulation wants
+    # the two chefs' real names, so the primary battle is fetched once as a row.
+    # It is READ. The simulation writes nothing, which is what lets the operator
+    # run it against the live battle on production as often as he likes.
+    sim_battle = None
+    if state["battles"]:
+        sim_battle = (
+            Battle.objects.select_related("challenger", "opponent")
+            .filter(pk=state["battles"][0]["id"])
+            .first()
+        )
 
     # THE CONSOLE ARENA IS A MIRROR, NOT A SECOND ARENA (Owner, 2026-08-05:
     # "наша арена и моя арена которую я вижу внутри панели - разные, и я не могу
@@ -3183,6 +3196,7 @@ def master_console(request):
         "master_state": state,
         "primary_battle": state["battles"][0] if state["battles"] else None,
         "console_mirror": True,
+        "cancellation_simulation": build_cancellation_simulation(sim_battle),
     })
     return render(request, "chef_battle/arena_master_console.html", context)
 

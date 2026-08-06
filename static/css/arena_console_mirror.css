@@ -109,7 +109,10 @@
   transform: translateX(-50%);
   z-index: 40;
   width: max-content;
-  max-width: 22rem;
+  /* 22rem is the reading width; the second term is what stops the hint hanging
+   * off the edge of a narrow screen, where 22rem is wider than the panel it is
+   * anchored in. Measured at 375px: the box was 352 wide inside a 343 panel. */
+  max-width: min(22rem, 80vw);
   padding: .45rem .6rem;
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--centre-gold, #D6A64B) 40%, transparent);
