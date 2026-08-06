@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.840",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "The emulation bots stand on the arena and stay there",
+        "section": "Chef Battles / Arena",
+        "summary": "OWNER, 2026-08-06, after a rehearsal battle he could not see: the two test chefs were in the payload - in chefs_by_rank, ranked, flagged in_battle with battle 16 - and absent from rings, the structure the octagon is actually drawn from. That filter seats only a chef whose last_seen_at is inside the three-minute online window, and a test chef has no browser: nothing ever sends his heartbeat, so he is offline from the second he is created and can never be seen. Testing the arena meant hand-writing last_seen_at every three minutes, which is a poller by another name and this project has none. The window no longer applies to the emulation bots. The exemption list is the emulation module's own EMU_CHEFS rather than a second copy of it - the console has been bitten by a hand-copied list before - so it can only ever name accounts that exist to be driven from the Master Console, hold no tokens and can take no payout. Presence still means presence for every real chef: four tests hold that, including one that a human with no heartbeat is NOT seated and appears the moment he is seen. NOT FIXED, and reported instead because it is A09's and A09 is unassigned: the two fighters of an ACTIVE battle still vanish from the arena entirely when they are offline - the bout is running and nobody is standing in the ring. IF REVERTED: an emulation battle can be driven from the console and watched nowhere.",
+    },
+    {
         "version": "2.5.841",
         "date": "2026-08-06",
         "commit": "",

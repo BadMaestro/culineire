@@ -10301,3 +10301,72 @@ class SimulationMatchesTheRealFlowTests(TestCase):
 
         _start, _spent, after, _w = self._walk(with_penalty=True, uphold=True)
         self.assertEqual(after.rating, 0, "a fresh profile cannot go negative")
+
+
+class EmulationBotsStayOnTheArenaTests(TestCase):
+    """The three-minute online window does not apply to the emulation bots.
+
+    THE OWNER, 2026-08-06. A test chef has no browser, so nothing ever sends his
+    heartbeat: under the online rule he is offline from the second he is created
+    and never appears in a ring cell. Testing the arena then means somebody
+    writing last_seen_at by hand every three minutes - a poller by another name.
+
+    The exemption is exactly the emulation module's own bot list, so it cannot
+    reach a real account, and presence still means presence for people.
+    """
+
+    def setUp(self):
+        from .emulation import EMU_CHEFS
+        from .services import get_or_create_battle_profile
+
+        self.bots = []
+        User = get_user_model()
+        for slug, name in EMU_CHEFS:
+            user = User.objects.create_user(username=slug, password="pw")
+            author = RecipeAuthor.objects.create(user=user, name=name, slug=slug)
+            profile = get_or_create_battle_profile(author)
+            profile.enrolled_at = timezone.now()
+            profile.last_seen_at = None          # never seen, and never will be
+            profile.save(update_fields=["enrolled_at", "last_seen_at"])
+            self.bots.append(profile)
+
+        user = User.objects.create_user(username="real-chef", password="pw")
+        self.human = RecipeAuthor.objects.create(
+            user=user, name="Real Chef", slug="real-chef",
+        )
+        p = get_or_create_battle_profile(self.human)
+        p.enrolled_at = timezone.now()
+        p.last_seen_at = None
+        p.save(update_fields=["enrolled_at", "last_seen_at"])
+
+    def _seated(self):
+        from .views import _build_arena_payload
+        rings = _build_arena_payload()["rings"]
+        return {c["slug"] for cells in rings.values() for c in cells}
+
+    def test_a_bot_is_seated_without_ever_being_seen(self):
+        seated = self._seated()
+        for profile in self.bots:
+            self.assertIn(
+                profile.author.slug, seated,
+                "an emulation bot fell out of the ring - the arena cannot be tested",
+            )
+
+    def test_a_real_chef_still_has_to_be_present(self):
+        """The exemption must not become a way for anybody to stand there."""
+        self.assertNotIn("real-chef", self._seated())
+
+    def test_a_real_chef_appears_once_he_is_seen(self):
+        from .services import get_or_create_battle_profile
+
+        p = get_or_create_battle_profile(self.human)
+        p.last_seen_at = timezone.now()
+        p.save(update_fields=["last_seen_at"])
+        self.assertIn("real-chef", self._seated())
+
+    def test_the_list_is_the_emulation_modules_own(self):
+        """Not a second copy that drifts - the trap this console has hit before."""
+        from .emulation import EMU_CHEFS
+        from .views import _always_on_the_arena
+
+        self.assertEqual(_always_on_the_arena(), {slug for slug, _ in EMU_CHEFS})

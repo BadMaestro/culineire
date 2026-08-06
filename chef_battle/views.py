@@ -803,6 +803,29 @@ def battle_home(request):
 
 
 _ARENA_ONLINE_THRESHOLD = 180  # seconds — chef counts as online if seen within 3 min
+
+
+def _always_on_the_arena() -> set[str]:
+    """Author slugs the online window does not apply to.
+
+    THE OWNER, 2026-08-06: the emulation bots are to stand on the arena and stay
+    there. A test chef is not a person with a browser - nothing sends his
+    heartbeat, so under the three-minute rule he is offline the moment he is
+    created and can never be seen. Testing the arena then means somebody
+    hand-writing last_seen_at every three minutes, which is a poller by another
+    name and this project has none.
+
+    The list is the emulation module's own EMU_CHEFS, not a second copy: these
+    are exactly the accounts that exist to be driven from the Master Console,
+    they hold no tokens and can take no payout, and if a bot is ever added or
+    renamed there it becomes visible here with no second edit.
+
+    Real chefs are untouched. Presence still means presence for everybody who
+    is a person.
+    """
+    from .emulation import EMU_CHEFS
+
+    return {slug for slug, _name in EMU_CHEFS}
 _ARENA_STATIC_COUNTRY = "Ireland"
 _ARENA_STATIC_FLAG = "\U0001F1EE\U0001F1EA"
 
@@ -1132,6 +1155,7 @@ def _build_arena_payload(*, viewer_author=None):
         in_battle_map[battle.opponent_id] = info
 
     online_cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
+    always_on = _always_on_the_arena()
 
     enrolled = list(
         ChefBattleProfile.objects
@@ -1173,7 +1197,10 @@ def _build_arena_payload(*, viewer_author=None):
             "battle_id": battle_info["battle_id"] if battle_info else None,
             "battle_phase": battle_info["battle_phase"] if battle_info else None,
             "battle_url": battle_info["battle_url"] if battle_info else None,
-            "is_online": bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff),
+            "is_online": (
+                profile.author.slug in always_on
+                or bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff)
+            ),
         })
 
     return {
