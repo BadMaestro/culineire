@@ -351,6 +351,9 @@ forbidden changes and evidence for every row below.
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
 | MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | **DELETED by the Owner** |
 | MC02 | Arena | The withdrawal seen LIVE on the arena, not described — see `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md` | unassigned | A09 | **OPEN, awaiting the Owner's steps** |
+| SA-A2 | Arena | An accepted challenge seats the pair in adjacent cells, each in his own ring | Bolt | — | DONE v2.5.844 |
+| SA-A4 | Arena | That pairing is stable across leaving and returning | Bolt | SA-A2 | DONE v2.5.844 |
+| SA-A6 | Arena | Both Ready pulls the match in to 15 minutes and the pill climbs the queue | Bolt | — | DONE v2.5.844 |
 | B01 | Battle Broadcast | Broadcast shell and confrontation header | unassigned | A19 | PENDING |
 | B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | PENDING |
 | B03 | Battle Broadcast | Broadcast chat and composer | unassigned | B02 | PENDING |

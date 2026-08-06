@@ -7022,7 +7022,13 @@ class ArenaSnapshotTests(TestCase):
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
 class BattleSetReadyTests(TestCase):
-    """Chef 'Ready' flow: both ready -> MENU_LOCKED without the create_battle_event 500.
+    """Chef 'Ready' flow: both ready -> the start is pulled in, and no 500.
+
+    REWRITTEN 2026-08-06 for the Owner's scenario A6. Ready used to advance the
+    battle straight into MENU_LOCKED, which took it off the Next Battle board
+    the instant both chefs turned up. His rule: both ready means the match is
+    fifteen minutes away and the pill climbs the queue. The battle stays
+    SCHEDULED and resolve_start_rituals begins it when the clock runs out.
 
     The class needs CHEF_BATTLE_ENABLED because its two users are plain authors
     and the ready endpoint is behind chef_battle_guard. Without it the POST 404s
@@ -7045,8 +7051,9 @@ class BattleSetReadyTests(TestCase):
             status=Battle.Status.SCHEDULED,
             submission_deadline=timezone.now(), end_time=timezone.now())
 
-    def test_both_ready_advances_to_menu_locked(self):
+    def test_both_ready_pulls_the_start_in_and_keeps_it_on_the_board(self):
         from .models import Battle, BattleEvent
+        from .services import READY_HEAD_START
         c = Client()
         c.force_login(self.uc)
         r1 = c.post(f"/chef-battle/battles/{self.battle.pk}/ready/")
@@ -7060,10 +7067,15 @@ class BattleSetReadyTests(TestCase):
         r2 = c2.post(f"/chef-battle/battles/{self.battle.pk}/ready/")
         self.assertEqual(r2.status_code, 302)  # no 500
         self.battle.refresh_from_db()
-        self.assertEqual(self.battle.status, Battle.Status.MENU_LOCKED)
+        self.assertEqual(self.battle.status, Battle.Status.SCHEDULED)
+        self.assertLessEqual(
+            self.battle.start_time - timezone.now(), READY_HEAD_START,
+        )
         self.assertTrue(
-            BattleEvent.objects.filter(battle=self.battle,
-                                       event_type=BattleEvent.EventType.MENU_LOCKED).exists())
+            BattleEvent.objects.filter(
+                battle=self.battle,
+                event_type=BattleEvent.EventType.BATTLE_STARTED,
+            ).exists())
 
 
 class BattleEntrySubmitGuardTests(TestCase):
@@ -10146,3 +10158,131 @@ class EmulationBotsStayOnTheArenaTests(TestCase):
         from .views import _always_on_the_arena
 
         self.assertEqual(_always_on_the_arena(), {slug for slug, _ in EMU_CHEFS})
+
+
+class ReadyPullsTheMatchForwardTests(TestCase):
+    """Scenario A6 - the Owner, 2026-08-06: "оба готовы - таймер до матча 15 минут".
+
+    The twelve hours are a deadline, not an appointment. Two chefs who are both
+    standing there should not wait out somebody else's clock, and because the
+    Next Battle board is ordered strictly by time remaining, pulling the start
+    in is also what moves their pill to the front of the queue.
+    """
+
+    def setUp(self):
+        from .services import get_or_create_battle_profile
+
+        User = get_user_model()
+        self.u_a = User.objects.create_user(username="rdy-a", password="pw")
+        self.u_b = User.objects.create_user(username="rdy-b", password="pw")
+        self.a = RecipeAuthor.objects.create(user=self.u_a, name="Ready A", slug="rdy-a")
+        self.b = RecipeAuthor.objects.create(user=self.u_b, name="Ready B", slug="rdy-b")
+        for author in (self.a, self.b):
+            p = get_or_create_battle_profile(author)
+            p.enrolled_at = timezone.now()
+            p.save(update_fields=["enrolled_at"])
+        self.now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Ten hours away",
+            status=Battle.Status.SCHEDULED,
+            start_time=self.now + timezone.timedelta(hours=10),
+            submission_deadline=self.now + timezone.timedelta(hours=22),
+            end_time=self.now + timezone.timedelta(days=1),
+        )
+
+    def _press(self, user):
+        self.client.force_login(user)
+        return self.client.post(
+            reverse("chef_battle:battle_set_ready", args=[self.battle.pk])
+        )
+
+    def test_one_chef_alone_changes_nothing(self):
+        original = self.battle.start_time
+        self._press(self.u_a)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.start_time, original, "one chef must not move the clock")
+        self.assertEqual(self.battle.status, Battle.Status.SCHEDULED)
+
+    def test_both_ready_pulls_the_start_in_to_fifteen_minutes(self):
+        from .services import READY_HEAD_START
+
+        self._press(self.u_a)
+        self._press(self.u_b)
+        self.battle.refresh_from_db()
+        remaining = self.battle.start_time - timezone.now()
+        self.assertLessEqual(remaining, READY_HEAD_START)
+        self.assertGreater(remaining, READY_HEAD_START - timezone.timedelta(minutes=1))
+
+    def test_the_battle_stays_scheduled_and_announced(self):
+        """It must NOT jump into menu declaration: it is still an upcoming battle,
+        and the board only lists what is still scheduled."""
+        from .selectors import get_upcoming_battles
+
+        self._press(self.u_a)
+        self._press(self.u_b)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.SCHEDULED)
+        self.assertIn(self.battle, list(get_upcoming_battles()))
+
+    def test_a_ready_pair_climbs_over_a_battle_that_is_further_out(self):
+        """The point of the rule, stated as the Owner stated it: last in the
+        queue at ten hours, near the front once both press Ready."""
+        from .selectors import get_upcoming_battles
+        from .services import get_or_create_battle_profile
+
+        User = get_user_model()
+        others = []
+        for i, hours in enumerate((1, 2, 3)):
+            u = User.objects.create_user(username=f"q-{i}a", password="pw")
+            v = User.objects.create_user(username=f"q-{i}b", password="pw")
+            ca = RecipeAuthor.objects.create(user=u, name=f"Q{i}A", slug=f"q-{i}a")
+            cb = RecipeAuthor.objects.create(user=v, name=f"Q{i}B", slug=f"q-{i}b")
+            for author in (ca, cb):
+                p = get_or_create_battle_profile(author)
+                p.enrolled_at = timezone.now()
+                p.save(update_fields=["enrolled_at"])
+            others.append(Battle.objects.create(
+                challenger=ca, opponent=cb, theme=f"In {hours}h",
+                status=Battle.Status.SCHEDULED,
+                start_time=self.now + timezone.timedelta(hours=hours),
+                submission_deadline=self.now + timezone.timedelta(hours=hours + 12),
+                end_time=self.now + timezone.timedelta(days=2),
+            ))
+
+        before = list(get_upcoming_battles())
+        self.assertEqual(before[-1], self.battle, "ten hours out should start last")
+
+        self._press(self.u_a)
+        self._press(self.u_b)
+
+        after = list(get_upcoming_battles())
+        self.assertEqual(after[0], self.battle, "a ready pair should lead the queue")
+
+    def test_a_battle_already_sooner_is_not_delayed(self):
+        """Never push a start LATER - that would reorder the board against the
+        chefs who were already nearest."""
+        self.battle.start_time = self.now + timezone.timedelta(minutes=4)
+        self.battle.save(update_fields=["start_time"])
+        self._press(self.u_a)
+        self._press(self.u_b)
+        self.battle.refresh_from_db()
+        self.assertLess(
+            self.battle.start_time, timezone.now() + timezone.timedelta(minutes=5),
+            "a battle four minutes away must not be pushed out to fifteen",
+        )
+
+    def test_the_ready_pair_still_starts_when_the_clock_runs_out(self):
+        """The sweeper is what begins the battle, and it must still fire on the
+        new time - otherwise Ready would strand the pair forever."""
+        from .services import resolve_start_rituals
+
+        self._press(self.u_a)
+        self._press(self.u_b)
+        self.battle.refresh_from_db()
+        self.battle.start_time = timezone.now() - timezone.timedelta(seconds=1)
+        self.battle.save(update_fields=["start_time"])
+
+        resolve_start_rituals()
+        self.battle.refresh_from_db()
+        self.assertNotEqual(self.battle.status, Battle.Status.SCHEDULED)
+        self.assertNotEqual(self.battle.status, Battle.Status.VOID)

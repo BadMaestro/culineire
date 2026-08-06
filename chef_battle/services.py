@@ -511,6 +511,35 @@ def handle_no_show_battles() -> int:
 #: start timer has run out (owner spec: "ВЭЙТИНГ 10 МИНУТ").
 START_RITUAL_GRACE = timezone.timedelta(minutes=10)
 
+#: How soon a battle starts once BOTH chefs have pressed Ready (owner spec,
+#: scenario A6, 2026-08-06: "оба готовы - таймер до матча 15 минут").
+#:
+#: The twelve-hour window is a deadline, not an appointment. Two chefs who are
+#: both standing there should not wait out somebody else's clock, and the queue
+#: on the arena is ordered strictly by time remaining - so pulling the start in
+#: is also what moves their pill up the Next Battle board. resolve_start_rituals
+#: has always said this in its own docstring ("pressing Ready only lets them
+#: start sooner"); until now nothing implemented it.
+READY_HEAD_START = timezone.timedelta(minutes=15)
+
+
+def pull_start_forward_when_both_ready(battle) -> bool:
+    """Bring a ready pair's start time in to READY_HEAD_START from now.
+
+    Returns True when the battle's start actually moved, so the caller knows
+    whether to save it. Never pushes a start LATER: a battle already due inside
+    the window keeps its own earlier time, because the queue is ordered by that
+    time and delaying a match nobody asked to delay would reorder the board
+    behind the Owner's back.
+    """
+    if not (battle.challenger_ready and battle.opponent_ready):
+        return False
+    target = timezone.now() + READY_HEAD_START
+    if battle.start_time and battle.start_time <= target:
+        return False
+    battle.start_time = target
+    return True
+
 
 def _award_walkover_win(battle: Battle, *, winner, loser) -> None:
     """The start ritual expired with only one chef present. No cooking happened:

@@ -3058,15 +3058,38 @@ def battle_set_ready(request, pk):
         battle.opponent_ready = True
 
     if battle.challenger_ready and battle.opponent_ready:
-        battle.status = Battle.Status.MENU_LOCKED
-        battle.save(update_fields=["challenger_ready", "opponent_ready", "status", "updated_at"])
+        # OWNER, scenario A6, 2026-08-06: "оба готовы - таймер до матча 15 минут".
+        #
+        # Ready no longer teleports the battle into menu declaration. The twelve
+        # hours are a deadline, not an appointment: two chefs who are both
+        # standing there have their start pulled in to fifteen minutes, the
+        # battle STAYS scheduled and announced, and its pill climbs the Next
+        # Battle board because that board is ordered strictly by time remaining.
+        # resolve_start_rituals() then begins the battle when the clock runs
+        # out - which is the path it was always written for, docstring included.
+        from .services import READY_HEAD_START, pull_start_forward_when_both_ready
+
+        moved = pull_start_forward_when_both_ready(battle)
+        fields = ["challenger_ready", "opponent_ready", "updated_at"]
+        if moved:
+            fields.insert(2, "start_time")
+        battle.save(update_fields=fields)
         create_battle_event(
-            event_type=BattleEvent.EventType.MENU_LOCKED,
+            event_type=BattleEvent.EventType.BATTLE_STARTED,
             battle=battle,
             actor=author,
-            message="Both chefs ready — battle advanced to menu declaration phase.",
+            message=(
+                f"Both chefs are ready for '{battle.theme}'. The battle starts in "
+                f"{int(READY_HEAD_START.total_seconds() // 60)} minutes."
+            ),
+            is_public=True,
         )
-        messages.success(request, "Both chefs are ready! Declare your ingredients now.")
+        messages.success(
+            request,
+            "Both chefs are ready. Your battle starts in "
+            f"{int(READY_HEAD_START.total_seconds() // 60)} minutes — watch it "
+            "climb the arena board.",
+        )
     else:
         battle.save(update_fields=["challenger_ready", "opponent_ready", "updated_at"])
         messages.success(request, "You're ready! Waiting for your opponent.")

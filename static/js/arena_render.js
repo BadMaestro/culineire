@@ -919,10 +919,112 @@
       capacity[ring.index] = ring.segments;
     });
 
+    /* OWNER, scenario A2 and A4, 2026-08-06.
+     *
+     * "шефы сближаются внутри своего кольца, либо шеф который на 1 ранг выше
+     *  занимает позицию рядом со вторым шефом но всё ещё в своём кольце -
+     *  получается что всё равно две соты стоят рядом друг с другом", and once
+     * the challenge is accepted "они всегда стоят друг с другом - пока идет
+     * подготовка к баттлу".
+     *
+     * So a pair bound by an accepted challenge is seated FIRST, together, and
+     * the scatter below then works around them. Three properties matter:
+     *
+     *   - NOBODY LEAVES HIS OWN RING. Ranks may differ by one (the ±1 challenge
+     *     rule), and a ring is a rank. The pair is aligned across the boundary
+     *     instead: the same angular position, which on an octagon is the same
+     *     fraction of the way round, so the two cells face each other.
+     *   - IT IS STABLE. The seat comes from the battle id, not from the poll,
+     *     the slug order or the time. Either chef can leave the site and come
+     *     back and the pair is in the same two cells - which is exactly what
+     *     "не появляются в рандомных сотах" asks for.
+     *   - IT IS THE BATTLE THAT PAIRS THEM, not the challenge. While a
+     *     challenge is only pending (A3) neither chef carries a battle_id, so
+     *     they scatter like anyone else and may come and go.
+     */
+    var pairedSlugs = {};
+    (function seatBattlePairs() {
+      var byBattle = {};
+      var ringByKey = {};
+      geometry.rings.forEach(function (r) {
+        if (r.kind === 'rank') { ringByKey[r.key] = r; }
+      });
+      Object.keys(ringByKey).forEach(function (key) {
+        ((payload.rings && payload.rings[key]) || []).forEach(function (chef) {
+          if (!chef || isDisplaced(chef, center) || !chef.battle_id) { return; }
+          var id = String(chef.battle_id);
+          (byBattle[id] = byBattle[id] || []).push({ chef: chef, ring: ringByKey[key] });
+        });
+      });
+
+      Object.keys(byBattle).sort().forEach(function (id) {
+        var pair = byBattle[id];
+        if (pair.length !== 2) { return; }
+        // Fix WHICH of the two takes the first cell, by slug. Without this the
+        // pair still lands on the same two cells but the chefs swap between
+        // them whenever the payload happens to list them in the other order -
+        // the seat would be stable and the chef would not, which is the jitter
+        // A4 exists to forbid.
+        pair.sort(function (x, y) {
+          return String(x.chef.slug || '').localeCompare(String(y.chef.slug || ''));
+        });
+        var a = pair[0], b = pair[1];
+        var capA = capacity[a.ring.index], capB = capacity[b.ring.index];
+        if (!capA || !capB) { return; }
+
+        var seed = chefSeatHash('battle-' + id, a.ring.index);
+        var cellA = seed % capA;
+        var cellB;
+
+        function free(ringIndex, cell) {
+          return !occupiedByRing[ringIndex][cell];
+        }
+
+        var step;
+        if (a.ring.index === b.ring.index) {
+          // Same rank, same ring: neighbouring cells. Walk together until a
+          // pair of free neighbours exists, so a busy ring cannot split them.
+          for (step = 0; step < capA; step++) {
+            var c = (cellA + step) % capA;
+            var n = (c + 1) % capA;
+            if (free(a.ring.index, c) && free(a.ring.index, n)) {
+              cellA = c; cellB = n; break;
+            }
+          }
+        } else {
+          // One rank apart: each keeps his own ring, aligned by angle. Rings
+          // hold different numbers of cells, so the position is carried as a
+          // fraction of the way round rather than as an index.
+          for (step = 0; step < capA; step++) {
+            var ca = (cellA + step) % capA;
+            var cb = Math.round(ca / capA * capB) % capB;
+            if (free(a.ring.index, ca) && free(b.ring.index, cb)) {
+              cellA = ca; cellB = cb; break;
+            }
+          }
+        }
+        if (cellB === undefined) { return; }
+
+        occupiedByRing[a.ring.index][cellA] = true;
+        occupiedByRing[b.ring.index][cellB] = true;
+        pairedSlugs[a.chef.slug] = true;
+        pairedSlugs[b.chef.slug] = true;
+        [[a, cellA], [b, cellB]].forEach(function (seat) {
+          assignments.push({
+            ring: seat[0].ring.index, cell: seat[1], entity: seat[0].chef,
+            occupancy: 'chef',
+            state: seat[0].chef.in_battle
+              ? 'in-battle'
+              : (seat[0].chef.is_online ? 'online' : 'idle')
+          });
+        });
+      });
+    })();
+
     geometry.rings.forEach(function (ring) {
       if (ring.kind !== 'rank') { return; }
       var chefs = ((payload.rings && payload.rings[ring.key]) || []).filter(function (chef) {
-        return chef && !isDisplaced(chef, center);
+        return chef && !isDisplaced(chef, center) && !pairedSlugs[chef.slug];
       });
       // Stable order so hash collisions resolve the same way every poll.
       chefs.sort(function (a, b) {
