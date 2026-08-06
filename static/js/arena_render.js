@@ -2705,6 +2705,7 @@
         // decision and may change between polls.
         if (payload.geometry) { bind(svg, payload, payload.geometry); fitScene(svg); }
         if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
+        paintRunway(payload.runway || null);
         if (global.ArenaBattleRoom) { global.ArenaBattleRoom.maybeCelebrate(payload.latest_result); }
       })
       .catch(function () { /* a dropped poll is retried on the next tick */ });
@@ -2905,9 +2906,11 @@
       }).observe(document.querySelector(HEADER_SELECTOR));
     }
     if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
+    paintRunway(payload.runway || null);
     if (global.ArenaBattleRoom) { global.ArenaBattleRoom.init(payload.latest_result); }
 
     pollTimer = global.setInterval(function () { poll(svg); }, POLL_INTERVAL);
+    arenaSvg = svg;
     pingTimer = global.setInterval(function () { post('/chef-battle/arena/ping/').catch(function () {}); }, PING_INTERVAL);
   }
 
@@ -2917,6 +2920,97 @@
    * scratch; the moat lanterns live in the cell grid, so they are moved in place
    * rather than redrawing 200 floor tiles for two circles each.
    */
+  /* ── The runway: countdown, pace, and one line of narration ─────────────
+   * OWNER, 2026-08-06: "перед началом эмуляции выводи на живую арену - 3 - 2 -
+   * 1 - и поехали, с шагом в 5 секунд".
+   *
+   * The server does NOT send the digits. It sends the moment the run begins,
+   * once, and this counts down to it off the browser's own clock - three ticks
+   * cannot be delivered by a ten-second poll, and a watcher who arrives late
+   * must see the right number rather than a stale one.
+   *
+   * And while a run is live the poll speeds up, because a five-second step seen
+   * through a ten-second poll is a step the Owner is TOLD about and never
+   * watches. The arena drops back to ten seconds the moment the server stops
+   * sending a runway - the fast cadence cannot outlive the run.
+   */
+  var arenaSvg = null;
+  var runwayTimer = null;
+  var runwayPollMs = null;
+
+  function runwayLayer() {
+    var el = document.getElementById('arena-runway');
+    if (el) { return el; }
+    var host = document.querySelector('.arena-render-container')
+      || document.querySelector('.arena-command-deck__floor')
+      || document.body;
+    el = document.createElement('div');
+    el.id = 'arena-runway';
+    el.className = 'arena-runway';
+    el.setAttribute('aria-live', 'assertive');
+    host.appendChild(el);
+    return el;
+  }
+
+  function paintRunway(runway) {
+    var layer = runwayLayer();
+
+    if (!runway) {
+      layer.className = 'arena-runway';
+      layer.textContent = '';
+      if (runwayTimer) { global.clearInterval(runwayTimer); runwayTimer = null; }
+      if (runwayPollMs !== null) {
+        // Back to the ordinary cadence.
+        runwayPollMs = null;
+        if (pollTimer) { global.clearInterval(pollTimer); }
+        pollTimer = global.setInterval(function () { poll(arenaSvg); }, POLL_INTERVAL);
+      }
+      return;
+    }
+
+    var wanted = Number(runway.poll_ms) || POLL_INTERVAL;
+    if (wanted !== runwayPollMs) {
+      runwayPollMs = wanted;
+      if (pollTimer) { global.clearInterval(pollTimer); }
+      pollTimer = global.setInterval(function () { poll(arenaSvg); }, wanted);
+    }
+
+    var startsAt = runway.starts_at ? new Date(runway.starts_at).getTime() : 0;
+    var countFrom = Number(runway.count_from) || 3;
+
+    function tick() {
+      var left = Math.ceil((startsAt - Date.now()) / 1000);
+      if (left > countFrom) {
+        // Armed but not counting yet: say nothing, show nothing.
+        layer.className = 'arena-runway';
+        layer.textContent = '';
+        return;
+      }
+      if (left > 0) {
+        layer.className = 'arena-runway is-counting';
+        layer.textContent = String(left);
+        return;
+      }
+      if (left > -3) {
+        layer.className = 'arena-runway is-go';
+        layer.textContent = runway.label || 'GO';
+        return;
+      }
+      // The off has passed: the digits give way to whatever the run is saying.
+      if (runway.note) {
+        layer.className = 'arena-runway is-note';
+        layer.textContent = runway.note;
+      } else {
+        layer.className = 'arena-runway';
+        layer.textContent = '';
+      }
+    }
+
+    if (runwayTimer) { global.clearInterval(runwayTimer); }
+    tick();
+    runwayTimer = global.setInterval(tick, 250);
+  }
+
   function applyLampLayout() {
     var svg = document.getElementById('arena-render');
     if (!svg) { return; }

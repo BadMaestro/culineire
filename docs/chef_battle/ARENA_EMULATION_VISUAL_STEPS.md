@@ -105,6 +105,33 @@ Two halves, and only the second is new:
   somebody else is sooner still, and then they are second, or third.
   **TO BUILD.**
 
+## How a run is watched — the Owner's pacing rule
+
+> «перед началом эмуляции выводи на живую арену - 3 - 2 - 1 - и поехали, с шагом
+> в 5 секунд»
+
+    manage.py run_scenario_a          # the run
+    manage.py run_scenario_a --clear  # remove what it left
+
+Two things had to be solved together, and the second is why the first was not
+enough on its own.
+
+**The digits are counted by the browser, not sent by the server.** The arena
+polls every ten seconds; three ticks inside three seconds cannot be delivered.
+The server sends the MOMENT of the off, once, and the page counts down to it off
+its own clock — so a watcher who arrives late sees the right number instead of a
+stale one.
+
+**The poll speeds up while a run is live.** A five-second step seen through a
+ten-second poll is a step the Owner is TOLD about and never watches, which is
+the complaint this whole file came from. During a run the arena polls every two
+seconds and drops back to ten the moment the server stops sending a runway. The
+window expires by itself: a crashed script cannot leave every open tab
+hammering the site, and a test holds that.
+
+Each step also puts one line on the arena saying what is happening WHILE it
+happens, rather than the Owner being told afterwards what he should have seen.
+
 ## Facts the build stands on — measured, not assumed
 
 - `expire_stale_battles` runs on production **every 15 minutes**, from the

@@ -4014,3 +4014,85 @@
 
 
 
+
+/* ── The runway: 3 - 2 - 1 - GO, on the arena itself ──────────────────────
+ * Owner, 2026-08-06. The digits sit over the middle of the floor because that
+ * is where he is already looking when a battle is about to start, and they are
+ * big enough to be read from across a room - this is a starting pistol, not a
+ * status line.
+ *
+ * pointer-events: none throughout. A countdown that swallowed a click on the
+ * arena underneath it would be a defect wearing a feature's clothes.
+ */
+.arena-runway {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  z-index: 60;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-family: var(--font-display, Georgia, serif);
+  color: var(--centre-gold, #D6A64B);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .55), 0 0 40px rgba(214, 166, 75, .35);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+
+.arena-runway.is-counting,
+.arena-runway.is-go,
+.arena-runway.is-note {
+  opacity: 1;
+}
+
+/* Each digit lands with a beat of its own - the animation is re-keyed by the
+ * text change, so 3, 2 and 1 each get their own pulse rather than one long fade. */
+.arena-runway.is-counting {
+  font-size: clamp(4rem, 14vmin, 11rem);
+  font-weight: 700;
+  line-height: 1;
+  animation: arena-runway-beat .9s ease-out;
+}
+
+.arena-runway.is-go {
+  font-size: clamp(2rem, 7vmin, 5rem);
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  animation: arena-runway-go .8s ease-out;
+}
+
+/* Mid-run narration: one line, small, out of the way of the floor. */
+.arena-runway.is-note {
+  top: 30%;
+  max-width: min(46ch, 70vw);
+  padding: .45rem .8rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--centre-gold, #D6A64B) 45%, transparent);
+  background: rgba(23, 21, 20, .82);
+  color: #EEE1CA;
+  font-family: var(--font-sans, system-ui);
+  font-size: clamp(.78rem, 1.6vmin, 1rem);
+  font-weight: 600;
+  text-shadow: none;
+}
+
+@keyframes arena-runway-beat {
+  0%   { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+  25%  { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(.92); opacity: .75; }
+}
+
+@keyframes arena-runway-go {
+  0%   { transform: translate(-50%, -50%) scale(.7); opacity: 0; }
+  30%  { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* The pulse is decoration; the number is the information. */
+@media (prefers-reduced-motion: reduce) {
+  .arena-runway.is-counting,
+  .arena-runway.is-go { animation: none; }
+}

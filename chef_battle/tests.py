@@ -10342,3 +10342,82 @@ class ArenaFighterStaysOnTheFloorTests(TestCase):
         battle.status = Battle.Status.COMPLETED
         battle.save(update_fields=["status"])
         self.assertNotIn("a09-a", self._ring_slugs())
+
+
+class ArenaRunwayTests(TestCase):
+    """The countdown and the pace, and the two things that must not go wrong.
+
+    OWNER, 2026-08-06: a 3-2-1 on the arena and a five-second step. The server
+    never sends the digits - three ticks cannot cross a ten-second poll - it
+    sends the moment of the off and the browser counts to it. What the server
+    owns, and what these tests hold, is that the runway EXPIRES: a fast poll
+    that outlived its run would leave every open tab hammering the site.
+    """
+
+    def setUp(self):
+        from chef_battle import arena_runway
+        arena_runway.clear()
+
+    def tearDown(self):
+        from chef_battle import arena_runway
+        arena_runway.clear()
+
+    def test_nothing_is_running_by_default(self):
+        from chef_battle.arena_runway import current
+        self.assertIsNone(current())
+
+    def test_arming_gives_the_arena_a_moment_to_count_to(self):
+        from chef_battle.arena_runway import LIVE_POLL_MS, current, start_countdown
+
+        start_countdown(lead_seconds=12, label="POEHALI", steps=6)
+        state = current()
+        self.assertIsNotNone(state)
+        self.assertTrue(state["starts_at"])
+        self.assertEqual(state["label"], "POEHALI")
+        self.assertEqual(state["poll_ms"], LIVE_POLL_MS)
+        self.assertEqual(state["count_from"], 3)
+
+    def test_the_fast_poll_cannot_outlive_the_run(self):
+        """The one that matters. A stuck runway means every arena tab polls
+        every two seconds forever."""
+        from django.core.cache import cache
+        from chef_battle.arena_runway import RUNWAY_KEY, current, start_countdown
+
+        start_countdown(lead_seconds=1, steps=1)
+        stale = cache.get(RUNWAY_KEY)
+        stale["until"] = (timezone.now() - timezone.timedelta(seconds=1)).isoformat()
+        cache.set(RUNWAY_KEY, stale, 900)
+
+        self.assertIsNone(current(), "an expired runway must stop being served")
+        self.assertIsNone(cache.get(RUNWAY_KEY), "and must clean itself up")
+
+    def test_clear_ends_it_at_once(self):
+        from chef_battle.arena_runway import clear, current, start_countdown
+
+        start_countdown(lead_seconds=30, steps=6)
+        clear()
+        self.assertIsNone(current())
+
+    def test_a_note_shows_briefly_and_then_stops(self):
+        from django.core.cache import cache
+        from chef_battle.arena_runway import RUNWAY_KEY, announce, current, start_countdown
+
+        start_countdown(lead_seconds=5, steps=6)
+        announce("A2 - the pair takes two cells side by side.", seconds=6)
+        self.assertIn("A2", current()["note"])
+
+        stale = cache.get(RUNWAY_KEY)
+        stale["note_until"] = (timezone.now() - timezone.timedelta(seconds=1)).isoformat()
+        cache.set(RUNWAY_KEY, stale, 900)
+        self.assertNotIn("note", current(), "a note must not stick to the arena")
+
+    def test_the_arena_payload_carries_it_and_polls_it(self):
+        """A key missing from PUBLIC_ARENA_STATE_KEYS reads as 'nothing' rather
+        than 'not sent' - this arena has been bitten by that three times."""
+        from chef_battle.arena_runway import start_countdown
+        from chef_battle.views import PUBLIC_ARENA_STATE_KEYS, _build_arena_payload
+
+        self.assertIn("runway", PUBLIC_ARENA_STATE_KEYS)
+        self.assertIsNone(_build_arena_payload()["runway"])
+        start_countdown(lead_seconds=20, label="POEHALI", steps=6)
+        self.assertIsNotNone(_build_arena_payload()["runway"])

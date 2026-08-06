@@ -805,6 +805,13 @@ def battle_home(request):
 _ARENA_ONLINE_THRESHOLD = 180  # seconds — chef counts as online if seen within 3 min
 
 
+def _arena_runway():
+    """The countdown and pace for a scenario run, or None."""
+    from .arena_runway import current
+
+    return current()
+
+
 def _always_on_the_arena() -> set[str]:
     """Author slugs the online window does not apply to.
 
@@ -1229,6 +1236,10 @@ def _build_arena_payload(*, viewer_author=None):
         },
         "spectators": _get_spectators(online_cutoff, viewer_author=viewer_author),
         "center": _arena_center(active_battle),
+        # The runway: a countdown before a scenario run, and the faster poll
+        # that makes a five-second step visible at all (Owner, 2026-08-06).
+        # None when nothing is running, which is almost always.
+        "runway": _arena_runway(),
         # X01: half of the arena's stated purpose, and it had no key at all.
         # A LIST, and an empty one is the honest answer when nothing is booked -
         # the panel says so rather than borrowing a row from anywhere else.
@@ -1346,25 +1357,16 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
     chefs_by_rank = payload["chefs_by_rank"]
     spectators = payload["spectators"]
 
-    arena_data = {
-        "rings": payload["rings"],
-        "spectators": spectators,
-        "center": payload["center"],
-        "upcoming": payload["upcoming"],
-        "latest_result": payload["latest_result"],
-        "crown_streak": payload["crown_streak"],
-        "crown_ladder": payload["crown_ladder"],
-        "recent_gifts": payload["recent_gifts"],
-        "top_supporter": payload["top_supporter"],
-        "metrics": payload["metrics"],
-        "phase": payload["phase"],
-        "phase_rail": payload["phase_rail"],
-        "deadline": payload["deadline"],
-        "geometry": payload["geometry"],
-        "vip_sponsors": payload["vip_sponsors"],
-        "spirit_count": payload["spirit_count"],
-        "server_time": payload["server_time"],
-    }
+    # THE THIRD HAND-WRITTEN COPY OF THE CONTRACT, and it drifted the same day
+    # it was written: `runway` was added to the payload and to the poll, and
+    # this list did not hear about it, so the console had no countdown while the
+    # public arena did. That is exactly the failure the console mirror was built
+    # to end (v2.5.831) - a second list stops being updated, nobody breaks
+    # anything, and the two surfaces quietly diverge.
+    #
+    # So the page's data is DERIVED from the poll contract now. Whatever the
+    # arena polls, the first server-rendered paint has, with no second edit.
+    arena_data = {key: payload[key] for key in PUBLIC_ARENA_STATE_KEYS}
 
     demo_centre = _demo_vs_centre(request, enrolled) if allow_demo else None
     if demo_centre:
@@ -1572,6 +1574,7 @@ def arena_take_seat(request):
 # nobody could read any more. One list, three readers, no memory required.
 PUBLIC_ARENA_STATE_KEYS = (
     "rings",
+    "runway",
     "spectators",
     "center",
     # X01. Same trap as vip_sponsors and spirit_count below: bind() repaints
