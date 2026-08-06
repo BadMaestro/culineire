@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.839",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "The arena is a tabloid - the battle has its own page, and the reference for it was already built",
+        "section": "Chef Battles / Arena",
+        "summary": "OWNER, 2026-08-06: the arena is a BOARD, not the show. It says who is here, who fights whom and what is coming; the fight itself happens on a page of its own, and the way in is the centre cell - when a battle starts, a click there takes every spectator off the arena and onto that page. THE APPROVED REFERENCE FOR IT IS ALREADY BUILT AND SERVED: /chef-battle/master/live-arena/preview/, templates/chef_battle/live_arena_preview.html, added 5c457b98 on 2026-07-14 - the CHEF #1 / VS / CHEF #2 header with rank, clan and country, two stream panes with viewer, like and comment chips, the supporter strip, the central TIME REMAINING countdown and the three-column chat with its composer. It is console-gated and its data is a LABELLED DEV FIXTURE because it is a build canvas, and I had read that as a stale mockup an hour before he corrected me - the standing rule that an orphaned file gets binned would have killed the reference for three unbuilt cards. Recorded as ARENA_BATTLE_PLAN section 2c and written into the evidence of B01, B02 and B03, which build that composition against real battle data. Today the centre click opens the ArenaBattleRoom overlay over the arena floor; that is the placeholder those cards replace. Nothing else in this release: no behaviour changed. IF REVERTED: the target for the battle page exists only in one chat message.",
+    },
+    {
         "version": "2.5.838",
         "date": "2026-08-06",
         "commit": "",

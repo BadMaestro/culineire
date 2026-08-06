@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-06 · Production baseline: **v2.5.838**
+Last reconciled: 2026-08-06 · Production baseline: **v2.5.839**
 · Next assignable card: **A09**, unassigned.
 
 **MC01 is DONE (v2.5.838).** The Battle Cancellation Simulation is panel 9 of
@@ -237,6 +237,39 @@ identical branch**, drawing both at the centre, and `isDisplaced()` empties a
 chef's ring cell as soon as `chef.battle_id === center.battle_id`. So a chef
 leaves his ring the moment a battle is scheduled and jumps straight to the
 centre. **The approach stage does not exist.** It belongs to A09.
+
+## 2c. The arena is a tabloid; the battle has its own page
+
+**Owner, 2026-08-06.** The arena is **a board, not the show**: it says who is
+here, who is fighting whom and what is coming. The fight itself happens on a page
+of its own.
+
+**The entry point is the centre cell.** When a battle STARTS, a click on the
+centre takes every spectator off the arena and onto the battle's own page. Today
+that click opens `ArenaBattleRoom` — an overlay popup over the arena floor
+(`arena_render.js`, `stageCentre.popup_url`). That is a placeholder, and the
+target is a page.
+
+**The approved reference for that page already exists and is served:**
+
+    /chef-battle/master/live-arena/preview/
+    templates/chef_battle/live_arena_preview.html   (added 5c457b98, 2026-07-14)
+
+It is console-gated and its data is a **labelled DEV FIXTURE** — invented chefs,
+invented viewer counts — because it is a build canvas, not a live surface. **It
+is not an orphan and it is not to be tidied away.** It carries the composition:
+the CHEF #1 / VS / CHEF #2 header with rank, clan and country; two live stream
+panes with viewer, like and comment chips; the supporter strip and Support Chef
+buttons; the central TIME REMAINING countdown; and the three-column live chat
+with its composer.
+
+That composition is what cards **B01, B02 and B03** build against, with real
+battle data replacing the fixture field by field. B02 is GreenBear's; B01 and B03
+are unassigned.
+
+What follows from "the arena is a tabloid": the arena keeps the ladder, the
+upcoming board, the seats and the octagon, and does NOT grow a second copy of the
+broadcast. Anything that belongs to watching a fight belongs on the battle page.
 
 ## 3. Slice gate
 

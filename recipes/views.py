@@ -3282,7 +3282,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Green left chef, neutral centre and red right chef match broadcast.jpg.",
         "acceptance": "Real participants and theme only; site tokens; no second battle engine.",
         "forbidden": "Do not touch Master Console or infer battle state.",
-        "evidence": "Reference available; implementation audit pending.",
+        "evidence": "OWNER, 2026-08-06: THE ARENA IS A TABLOID AND THE BATTLE HAS ITS OWN PAGE. When a battle starts, a click on the centre cell takes every spectator off the arena and onto that page. The approved reference is already built and served: /chef-battle/master/live-arena/preview/, templates/chef_battle/live_arena_preview.html, added 5c457b98 on 2026-07-14. Console-gated, and its data is a LABELLED DEV FIXTURE because it is a build canvas - it is not an orphan and it is not to be tidied away. Today the centre click opens the ArenaBattleRoom overlay instead (arena_render.js, stageCentre.popup_url); that is the placeholder this card replaces. See ARENA_BATTLE_PLAN section 2c. Reference available; implementation audit pending.",
     },
     {
         "id": "B02", "group": "Battle Broadcast", "title": "Streams, countdown and support furniture",
@@ -3293,7 +3293,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Broadcast body matches the approved two-sided composition.",
         "acceptance": "Existing stream/support actions remain authoritative and operable.",
         "forbidden": "No fake stream, vote or token events.",
-        "evidence": "Reference available; pending.",
+        "evidence": "OWNER, 2026-08-06: THE ARENA IS A TABLOID AND THE BATTLE HAS ITS OWN PAGE. When a battle starts, a click on the centre cell takes every spectator off the arena and onto that page. The approved reference is already built and served: /chef-battle/master/live-arena/preview/, templates/chef_battle/live_arena_preview.html, added 5c457b98 on 2026-07-14. Console-gated, and its data is a LABELLED DEV FIXTURE because it is a build canvas - it is not an orphan and it is not to be tidied away. Today the centre click opens the ArenaBattleRoom overlay instead (arena_render.js, stageCentre.popup_url); that is the placeholder this card replaces. See ARENA_BATTLE_PLAN section 2c. Reference available; pending.",
     },
     {
         "id": "B03", "group": "Battle Broadcast", "title": "Broadcast chat and composer",
@@ -3304,7 +3304,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Live chat is visually integrated with the broadcast.",
         "acceptance": "Existing moderation, polling and posting behaviour preserved.",
         "forbidden": "No duplicate polling/listeners and no chat backend rewrite.",
-        "evidence": "Reference available; pending.",
+        "evidence": "OWNER, 2026-08-06: THE ARENA IS A TABLOID AND THE BATTLE HAS ITS OWN PAGE. When a battle starts, a click on the centre cell takes every spectator off the arena and onto that page. The approved reference is already built and served: /chef-battle/master/live-arena/preview/, templates/chef_battle/live_arena_preview.html, added 5c457b98 on 2026-07-14. Console-gated, and its data is a LABELLED DEV FIXTURE because it is a build canvas - it is not an orphan and it is not to be tidied away. Today the centre click opens the ArenaBattleRoom overlay instead (arena_render.js, stageCentre.popup_url); that is the placeholder this card replaces. See ARENA_BATTLE_PLAN section 2c. Reference available; pending.",
     },
     {
         "id": "R01", "group": "Result / Winner", "title": "Champion and runner-up result shell",
@@ -3533,7 +3533,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "3fa10983 / production v2.5.837",
+        "commit": "3fa10983 / production v2.5.839",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
