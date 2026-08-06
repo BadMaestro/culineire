@@ -28,7 +28,7 @@
 <link href="{% static 'css/arena_command_deck.css' %}?v=20260805-a07-fit" rel="stylesheet">
 <link href="{% static 'css/arena_hall.css' %}?v=20260727-tilt42" rel="stylesheet">
 <link href="{% static 'css/arena_deck_polish.css' %}?v=20260805-next-pills" rel="stylesheet">
-<link href="{% static 'css/arena_master_console.css' %}?v=20260806-mc01" rel="stylesheet">
+<link href="{% static 'css/arena_master_console.css' %}?v=20260806-mc01-removed" rel="stylesheet">
 <link href="{% static 'css/arena_console_mirror.css' %}?v=20260806-hint-fit" rel="stylesheet">
 {% endblock %}
 
@@ -502,8 +502,6 @@
 
     </div>
 
-    {# ── 9. Scenario rehearsals (MC01) ────────────────────────────── #}
-    {% include "chef_battle/_amc_sim_cancellation.html" %}
   </section>
 
   {# ── System footer ──────────────────────────────────────────────── #}
@@ -532,5 +530,5 @@
 
 {{ master_state|json_script:"amc-state-json" }}
 <script nonce="{{ request.csp_nonce }}">window.AMC_OPERATOR = { isOwner: {{ operator_is_owner|yesno:"true,false" }} };</script>
-<script src="{% static 'js/arena_master_console.js' %}?v=20260806-mc01"></script>
+<script src="{% static 'js/arena_master_console.js' %}?v=20260806-mc01-removed"></script>
 {% endblock %}

@@ -7,14 +7,7 @@ agent returns its exact commit, files, visible result, checks and evidence.
 Last reconciled: 2026-08-06 · Production baseline: **v2.5.843**
 · Next assignable card: **A09**, unassigned.
 
-**MC01 is DONE (v2.5.838).** The Battle Cancellation Simulation is panel 9 of
-the Master Console: seven steps on one spine, three routes, saying at each step
-who acts, on which page, what is on their screen, what the site enforces and
-what moves. It re-implements nothing — the allowance and the 15/3 penalty are
-imported from `withdrawal_service` and `BattleWithdrawal`, and four tests run
-the real service down all three routes and assert the panel's promises match the
-outcome. It writes nothing at all, which is what makes it safe against the live
-battle on production, and a test counts the tables to keep it that way.
+**MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. Several of them are blocked on A09: a fighter who is offline still vanishes from the arena entirely, so the bout runs with nobody in the ring.
 
 **Bolt's session of 2026-08-05/06, in order.** X04: the roadmap advertised five
 token packages topping out at Executive 1400T/EUR80 while `token_config.py` has
@@ -356,7 +349,8 @@ forbidden changes and evidence for every row below.
 | A17 | Integrity | Truthful visual state matrix | unassigned | A09–A16 | PENDING |
 | A18 | Integrity | Desktop accessibility and responsive gate | Bolt + unassigned | A17 | PENDING |
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
-| MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | DONE |
+| MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | **DELETED by the Owner** |
+| MC02 | Arena | The withdrawal seen LIVE on the arena, not described — see `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md` | unassigned | A09 | **OPEN, awaiting the Owner's steps** |
 | B01 | Battle Broadcast | Broadcast shell and confrontation header | unassigned | A19 | PENDING |
 | B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | PENDING |
 | B03 | Battle Broadcast | Broadcast chat and composer | unassigned | B02 | PENDING |

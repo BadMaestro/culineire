@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.842",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "The step-card simulation is deleted - the Owner wants the arena, not a description of it",
+        "section": "Chef Battles / Master Console",
+        "summary": "OWNER, 2026-08-06, on the panel shipped a few hours earlier: delete it and never show him anything like it again. MC01 walked the withdrawal through the console as step cards - three columns per step saying what was on the screen, what the site enforced and what changed. Nothing in it was factually wrong; BEING A DESCRIPTION was the whole problem. He checks the product by looking at the arena, he wrote the rules himself, and prose reading them back to him proves nothing and costs him time. Deleted entire, with no dead code left behind: console_simulations.py, _amc_sim_cancellation.html, the CSS block, the stepper in arena_master_console.js, the context key, the include, and both test classes. The button-count guard goes back to counting every amc-btn because there are no scenario buttons left to skip. What replaces it is a SPECIFICATION that is never rendered to him - docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md, nine rows naming the ONE thing he must be able to SEE at each step of an emulation, to be performed by the existing emulation.py (start_emulation, emulation_step) driving real services on the live arena. Row 1 is already landed by v2.5.840, the rest are TO SPEC and stay that way until he says what they look like - what is on the screen is his. Several rows are blocked on A09, which is unassigned: a fighter who is offline still vanishes from the arena entirely, so the bout runs with nobody in the ring. Board: MC01 marked DELETED, MC02 opened. IF REVERTED: a panel the Owner has explicitly refused comes back onto his console.",
+    },
+    {
         "version": "2.5.843",
         "date": "2026-08-06",
         "commit": "",
