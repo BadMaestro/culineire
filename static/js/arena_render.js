@@ -1777,20 +1777,28 @@
     var layer = svg.querySelector('[data-arena-layer="centre"]');
     if (!layer) { return; }
     while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-    if (!center || !center.type) { return; }
 
     // Plan coords — CSS rotateX(42deg) on #arena-render tilts the whole floor
     // including these pads, so they share the octagon plane (mockup M07).
     var cx = TPL_CX;
     var cy = TPL_CY;
-    var type = center.type;
+    var type = (center && center.type) || '';
     var padR = STAGE_RADIUS * 1.15;
     var offset = fighterOffset(padR);
     var stage = svg.querySelector('.arena-stage');
     if (stage) {
-      stage.setAttribute('data-state', type);
+      stage.setAttribute('data-state', type || 'empty');
       stage.setAttribute('data-occupancy', type === 'crown' ? 'crown' : 'stage');
     }
+
+    // The pads belong to the floor and are drawn whatever the centre is doing -
+    // including when it is doing nothing at all, which is the state an empty
+    // arena is in most of the time.
+    if (type !== 'active_battle' && type !== 'facing_pair') {
+      drawEmptyFighterPad(layer, { x: cx - offset, y: cy }, padR, 'challenger');
+      drawEmptyFighterPad(layer, { x: cx + offset, y: cy }, padR, 'opponent');
+    }
+    if (!type) { return; }
 
     if (type === 'active_battle' || type === 'facing_pair') {
       drawFloorFighter(svg, layer, center.challenger, { x: cx - offset, y: cy }, padR, 'challenger');
@@ -2310,6 +2318,29 @@
       theme.textContent = center.theme;
       group.appendChild(theme);
     }
+    layer.appendChild(group);
+  }
+
+  /**
+   * The pad with nobody on it. Same hex, same place, same plane as the filled
+   * one - it is the floor's own shape and must not come and go with a battle.
+   * No avatar, no name shade, no label: an empty seat, not a ghost of a chef.
+   */
+  function drawEmptyFighterPad(layer, centre, radius, side) {
+    if (!layer || !centre) { return; }
+    var points = hexPoints(centre.x, centre.y, radius).map(pointString).join(' ');
+    var group = el('g', {
+      class: 'arena-floor-fighter arena-floor-fighter--' + side
+        + ' arena-floor-fighter--empty',
+      'data-floor-side': side,
+      'data-floor-state': 'empty',
+      'pointer-events': 'none'
+    });
+    group.appendChild(el('polygon', {
+      points: points,
+      class: 'arena-floor-fighter__tile',
+      'vector-effect': 'non-scaling-stroke'
+    }));
     layer.appendChild(group);
   }
 

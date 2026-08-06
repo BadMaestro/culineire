@@ -112,7 +112,10 @@ class Command(BaseCommand):
         fields = ["opponent_ready", "updated_at"] + (["start_time"] if moved else [])
         battle.save(update_fields=fields)
 
-        beat("The pill climbs the queue, and the pair steps into the centre.")
+        # v2.5.849 (GreenBear, on the Owner's tightened rule): the centre is for
+        # a battle that has STARTED. The pair does NOT step out there on Ready
+        # any more, so this line stopped being true the moment that shipped.
+        beat("The pill climbs the queue. The pair stays in the rings until the battle begins.")
 
         arena_runway.clear()
         battle.refresh_from_db()

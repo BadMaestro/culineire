@@ -10442,3 +10442,166 @@ class ArenaRunwayTests(TestCase):
         self.assertIsNone(_build_arena_payload()["runway"])
         start_countdown(lead_seconds=20, label="POEHALI", steps=6)
         self.assertIsNotNone(_build_arena_payload()["runway"])
+
+
+class FighterPadsBelongToTheFloorTests(TestCase):
+    """OWNER, 2026-08-07: the two cells beside the centre are part of the design
+    and stay put.
+
+    They used to be drawn only while a bout was on, so clearing a battle took
+    two holes out of the arena's composition and the floor changed shape
+    depending on whether anyone happened to be fighting.
+
+    Asserted against the renderer source, the way this suite already checks the
+    balcony counts: there is no JS runner here, and a rule that lives only in a
+    comment is a rule that comes back.
+    """
+
+    def _source(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+    def test_an_empty_pad_is_drawn_at_all(self):
+        self.assertIn("function drawEmptyFighterPad", self._source())
+
+    def test_the_pads_do_not_wait_for_a_centre(self):
+        """The early return on an empty centre used to skip them entirely, which
+        is the state an idle arena is in most of the time."""
+        source = self._source()
+        body = source.split("function stampFloorCentre", 1)[1].split(
+            "function octagonPathD", 1
+        )[0]
+        pads_at = body.index("drawEmptyFighterPad")
+        bail_at = body.index("if (!type) { return; }")
+        self.assertLess(
+            pads_at, bail_at,
+            "the pads are drawn after the bail-out, so an idle arena loses them",
+        )
+
+    def test_a_battle_still_fills_them_rather_than_stacking_on_them(self):
+        """Occupied and empty are exclusive - two pads, never four."""
+        source = self._source()
+        body = source.split("function stampFloorCentre", 1)[1].split(
+            "function octagonPathD", 1
+        )[0]
+        self.assertIn("if (type !== 'active_battle' && type !== 'facing_pair')", body)
+
+    def test_the_empty_pad_invents_no_identity(self):
+        """No avatar, no name, no shade. An empty seat, not a ghost of a chef."""
+        source = self._source()
+        pad = source.split("function drawEmptyFighterPad", 1)[1].split(
+            "function drawFloorFighter", 1
+        )[0]
+        for forbidden in ("avatar_url", "__identity-shade", "fighter.name"):
+            self.assertNotIn(forbidden, pad, f"the empty pad draws {forbidden}")
+
+
+class RehearsalBattlesTakeNothingTests(TestCase):
+    """OWNER, 2026-08-07: a TEST battle must not carry the side effects a real
+    one does, and on production the rule stays exactly as it is for real ones.
+
+    It came out of a real incident: a scenario battle was left running, the
+    fifteen-minute sweeper picked it up, nobody submitted a dish, and the
+    no-show path took ten reputation off both emulation bots for failing to
+    cook a dinner nobody was ever going to cook. Alpha went 15 to 5 and Beta
+    -3 to -13. The numbers on the arena stopped being true, which is the one
+    thing a rehearsal must never do.
+
+    The exemption lives inside penalise(), at the single gate every penalty
+    already passes through - the same place the Owner's own exemption lives,
+    and for the same reason.
+    """
+
+    def setUp(self):
+        from .emulation import EMU_CHEFS
+        from .services import get_or_create_battle_profile
+
+        User = get_user_model()
+        self.bots = []
+        for slug, name in EMU_CHEFS:
+            u = User.objects.create_user(username=slug, password="pw")
+            a = RecipeAuthor.objects.create(user=u, name=name, slug=slug)
+            p = get_or_create_battle_profile(a)
+            p.reputation = 15
+            p.rating = 100
+            p.save(update_fields=["reputation", "rating"])
+            self.bots.append(a)
+
+        u = User.objects.create_user(username="real-one", password="pw")
+        self.human = RecipeAuthor.objects.create(user=u, name="Real One", slug="real-one")
+        p = get_or_create_battle_profile(self.human)
+        p.reputation = 15
+        p.rating = 100
+        p.save(update_fields=["reputation", "rating"])
+
+    def _battle(self, challenger, opponent):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=challenger, opponent=opponent, theme="T",
+            status=Battle.Status.SCHEDULED, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(days=1),
+        )
+
+    def test_a_bot_versus_bot_battle_is_a_rehearsal(self):
+        from .services import is_rehearsal_battle
+        self.assertTrue(is_rehearsal_battle(self._battle(self.bots[0], self.bots[1])))
+
+    def test_a_bot_against_a_person_is_NOT_a_rehearsal(self):
+        """His numbers are real, so the battle is real. This is the line that
+        keeps the exemption from becoming a way to escape a penalty."""
+        from .services import is_rehearsal_battle
+        self.assertFalse(is_rehearsal_battle(self._battle(self.bots[0], self.human)))
+        self.assertFalse(is_rehearsal_battle(self._battle(self.human, self.bots[0])))
+
+    def test_no_show_takes_nothing_from_a_rehearsal(self):
+        """The exact incident, reproduced."""
+        from .services import _void_battle_no_show, get_or_create_battle_profile
+
+        battle = self._battle(self.bots[0], self.bots[1])
+        _void_battle_no_show(battle)
+        for author in self.bots:
+            p = get_or_create_battle_profile(author)
+            self.assertEqual(p.reputation, 15, f"{author.slug} was penalised in a rehearsal")
+
+    def test_no_show_STILL_takes_from_a_real_battle(self):
+        """The half that matters more: the rule is untouched for real chefs."""
+        from .services import _void_battle_no_show, get_or_create_battle_profile
+
+        battle = self._battle(self.human, self.bots[0])
+        _void_battle_no_show(battle)
+        self.assertEqual(
+            get_or_create_battle_profile(self.human).reputation, 5,
+            "a real chef must still answer for a no-show",
+        )
+
+    def test_a_forfeit_takes_nothing_from_a_rehearsal(self):
+        from .services import _award_forfeit_win, get_or_create_battle_profile
+
+        battle = self._battle(self.bots[0], self.bots[1])
+        _award_forfeit_win(battle, winner=self.bots[0], loser=self.bots[1])
+        p = get_or_create_battle_profile(self.bots[1])
+        self.assertEqual(p.reputation, 15)
+        self.assertEqual(p.losses, 0, "a rehearsal must not record a loss either")
+
+    def test_a_forfeit_STILL_takes_from_a_real_chef(self):
+        from .services import _award_forfeit_win, get_or_create_battle_profile
+
+        battle = self._battle(self.bots[0], self.human)
+        _award_forfeit_win(battle, winner=self.bots[0], loser=self.human)
+        p = get_or_create_battle_profile(self.human)
+        self.assertEqual(p.reputation, 5)
+        self.assertEqual(p.losses, 1)
+
+    def test_penalise_without_a_battle_is_unchanged(self):
+        """Refusing a challenge is not a battle and must keep costing."""
+        from .services import get_or_create_battle_profile, penalise
+
+        p = get_or_create_battle_profile(self.human)
+        fields = penalise(p, refused=1, reputation=-5)
+        self.assertTrue(fields)
+        self.assertEqual(p.reputation, 10)

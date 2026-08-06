@@ -155,6 +155,7 @@ def resolve_withdrawal(*, withdrawal: BattleWithdrawal, moderator, uphold_penalt
             profile = get_or_create_battle_profile(withdrawal.requester)
             fields = penalise(
                 profile,
+                battle=battle,
                 rating=-BattleWithdrawal.PENALTY_RATING,
                 reputation=-BattleWithdrawal.PENALTY_REPUTATION,
             )

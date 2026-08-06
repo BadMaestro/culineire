@@ -127,8 +127,37 @@ def is_immortal(profile) -> bool:
     return bool(slug) and slug == getattr(_settings, "OWNER_SLUG", None)
 
 
-def penalise(profile, *, losses=0, reputation=0, rating=0, reset_streak=False,
-             refused=0, ignored=0) -> list[str]:
+def is_rehearsal_battle(battle) -> bool:
+    """A battle between the two emulation bots and nobody else.
+
+    OWNER, 2026-08-07: a test battle must not carry the side effects a real one
+    does, and on production the rule stays exactly as it is for real battles.
+
+    It came out of a real one: a scenario battle was left running, the sweeper
+    picked it up, nobody submitted a dish, and the no-show path took ten
+    reputation off both bots for failing to cook a dinner nobody was ever going
+    to cook. The numbers on the arena stopped being true, which is the one thing
+    a rehearsal must never do.
+
+    Keyed on EMU_CHEFS - the emulation module's own list, the same one the arena
+    exemption uses - so it can only ever name accounts that exist to be driven
+    from the console. BOTH sides must be bots: a bot facing a person is a real
+    battle for that person, and his numbers are real.
+    """
+    if battle is None:
+        return False
+    from .emulation import EMU_CHEFS
+
+    bots = {slug for slug, _name in EMU_CHEFS}
+    challenger = getattr(battle, "challenger", None)
+    opponent = getattr(battle, "opponent", None)
+    if not challenger or not opponent:
+        return False
+    return challenger.slug in bots and opponent.slug in bots
+
+
+def penalise(profile, *, battle=None, losses=0, reputation=0, rating=0,
+             reset_streak=False, refused=0, ignored=0) -> list[str]:
     """Apply a penalty to a chef, or nothing at all to the Owner.
 
     Nothing the game does may take anything from his account: no loss, no rating
@@ -141,6 +170,12 @@ def penalise(profile, *, losses=0, reputation=0, rating=0, reset_streak=False,
     Returns the update_fields the caller should save; empty when nothing moved.
     """
     if is_immortal(profile):
+        return []
+    # A rehearsal takes nothing from anybody. The check lives HERE, at the one
+    # gate every penalty already comes through, for the same reason the Owner's
+    # exemption does: an exemption at the call site is an exemption somebody
+    # forgets at the seventh call site.
+    if battle is not None and is_rehearsal_battle(battle):
         return []
     touched = []
     if losses:
@@ -547,7 +582,8 @@ def _award_walkover_win(battle: Battle, *, winner, loser) -> None:
     is penalised. Mirrors the established forfeit mechanic — reputation hit for
     the absentee, no rating change, since no dishes were ever judged."""
     loser_profile = get_or_create_battle_profile(loser)
-    fields = penalise(loser_profile, losses=1, reset_streak=True, reputation=-10)
+    fields = penalise(loser_profile, battle=battle, losses=1, reset_streak=True,
+                      reputation=-10)
     if fields:
         loser_profile.save(update_fields=fields)
 
@@ -584,7 +620,7 @@ def _void_battle_no_show(battle: Battle) -> None:
     (owner decision 2026-07-17: 'оба теряют очки')."""
     for author in (battle.challenger, battle.opponent):
         profile = get_or_create_battle_profile(author)
-        fields = penalise(profile, reset_streak=True, reputation=-10)
+        fields = penalise(profile, battle=battle, reset_streak=True, reputation=-10)
         if fields:
             profile.save(update_fields=fields)
 
@@ -687,7 +723,8 @@ def resolve_start_rituals() -> int:
 
 def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
     loser_profile = get_or_create_battle_profile(loser)
-    fields = penalise(loser_profile, losses=1, reset_streak=True, reputation=-10)
+    fields = penalise(loser_profile, battle=battle, losses=1, reset_streak=True,
+                      reputation=-10)
     if fields:
         loser_profile.save(update_fields=fields)
 
@@ -910,7 +947,7 @@ def _score_battle(battle: Battle) -> Battle:
         # running any more. Both still go through penalise(), which is where
         # section 18 keeps the Owner's account whole.
         award_second_place(loser_profile)
-        penalise(loser_profile, losses=1, reset_streak=True)
+        penalise(loser_profile, battle=battle, losses=1, reset_streak=True)
         loser_profile.save()
 
         # Award moves with typed transaction records
