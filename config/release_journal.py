@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.835",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "Two agents stop drawing from the same sequence - odd numbers are GreenBear, even are Bolt",
+        "section": "Governance",
+        "summary": "OWNER'S RULE, 2026-08-06: take the next version by adding TWO to your own last one, never one. GreenBear takes the odd numbers, Bolt the even ones - 835, 837, 839 against 836, 838, 840. A gap does not matter and a number out of order does not matter; what matters is that two agents preparing a release at the same moment cannot reach for the same number, because they are no longer drawing from the same sequence. He made the rule after 2026-08-05, on which six numbers were taken twice between us - 811, 819, 822, 823, 825, 832 - each costing a rebase, a journal conflict and a re-run of the tests. The deploy lock was claimed before the bump every time and did not stop it: a lock stops a second DEPLOY, it never stopped a second agent writing the same number into his own tree an hour earlier. The lock stays; the parity is what makes the collision impossible rather than merely detectable. AGENTS.md goes to 2.11.0, and check 5 of the deploy gate now reads bumped BY TWO, on your own parity. Sent to Bolt on the Carpet. IF REVERTED: we go back to guessing which number the other one already took.",
+    },
+    {
         "version": "2.5.834",
         "date": "2026-08-06",
         "commit": "",

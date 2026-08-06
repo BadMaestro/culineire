@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.10.0"
+  version: "2.11.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -515,6 +515,27 @@ is stale. A lock older than 60 minutes is reported to the Owner, naming the
 agent in it, and cleared only with his word. Never clear another agent's lock
 silently.
 
+### Each agent has his own numbers — Owner, 2026-08-06
+
+**Take your next version number by adding TWO to your own last one, never one.**
+GreenBear takes the **odd** numbers, Bolt takes the **even** ones. From v2.5.835
+onwards GreenBear goes 835, 837, 839; Bolt goes 836, 838, 840.
+
+A gap does not matter and a number out of order does not matter. What matters is
+that two agents preparing a release at the same moment cannot reach for the same
+number, because they are not drawing from the same sequence at all.
+
+The Owner made this rule after 2026-08-05, on which six numbers were taken twice
+between two agents — 811, 819, 822, 823, 825 and 832 — every one of them costing
+a rebase, a journal conflict and a re-run of the tests. The deploy lock was
+already claimed before the bump each time and did not stop it, because a lock
+only stops a second DEPLOY; it never stopped a second agent writing the same
+number into his own working tree an hour earlier.
+
+This does not replace the lock. Claim `.agent-chat/deploy.lock` before the bump,
+as before; the parity is what makes a collision impossible rather than merely
+detectable.
+
 **The checks, every time, with no exceptions and no shortcuts:**
 
 1. **The index was read.** `git status --short` and `git diff --cached --stat`,
@@ -526,8 +547,9 @@ silently.
    from the deployed commit — not assumed absent.
 4. **The gates are green.** Image-weight test, focused tests for what changed,
    `git diff --check`.
-5. **The version is bumped**, and it differs from whatever is live. Two deploys
-   under one version number make production unidentifiable.
+5. **The version is bumped BY TWO, on your own parity** (above), and it
+   differs from whatever is live. Two deploys under one version number make
+   production unidentifiable.
 6. **`collectstatic` will run** if CSS, JS or images changed. A restart alone
    serves the old file.
 7. **A rollback command is stated** and it resolves.

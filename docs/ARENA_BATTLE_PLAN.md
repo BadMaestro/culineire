@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-06 · Production baseline: **v2.5.834**
+Last reconciled: 2026-08-06 · Production baseline: **v2.5.835**
 · Next assignable card: **A09**, unassigned.
 
 **Bolt's session of 2026-08-05/06, in order.** X04: the roadmap advertised five
