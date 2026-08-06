@@ -53,8 +53,11 @@ chef and a human, and the site itself decides nothing.
 
 1. The withdrawing chef presses **Withdraw** and writes his reason, in his own
    words, on a page shaped like the contact form. The reason is required.
-2. The other chef answers: **without a penalty**, or **with one — 15 rating and
-   3 reputation**. Asking for it obliges him to say why; waiving it needs no
+2. The other chef answers: **without a penalty**, or **with one — up to 15
+   rating and 3 reputation**. Both are floored at zero by `penalise()`, so a
+   chef who has none loses nothing; the figures are a ceiling, not a fine.
+   (Caught by Bolt on 2026-08-06, cross-checking his console panel against
+   the service: every surface here had stated a flat 15.) Asking for it obliges him to say why; waiving it needs no
    explanation, because nobody has to justify letting someone off.
 3. **Either answer goes to a moderator, who is the final judge.** He may uphold
    the chef's answer or replace it with his own.

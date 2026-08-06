@@ -127,8 +127,8 @@
         <p class="bd-withdrawal__title">{{ open_withdrawal.requester.name }} asks to withdraw from this battle.</p>
         <blockquote class="bd-withdrawal__reason">{{ open_withdrawal.reason|linebreaksbr }}</blockquote>
         <p class="bd-withdrawal__body">
-          You decide whether it costs them anything: a penalty is 15 rating and
-          3 reputation. Either way a moderator has the last word, and if you ask
+          You decide whether it costs them anything: a penalty is up to 15 rating
+          and 3 reputation, and neither can take a Chef below zero. Either way a moderator has the last word, and if you ask
           for the penalty you must say why.
         </p>
         <form method="post" action="{% url 'chef_battle:battle_withdraw_decide' open_withdrawal.pk %}">

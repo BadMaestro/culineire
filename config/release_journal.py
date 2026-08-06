@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.851",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The withdrawal penalty is a ceiling, not a fine - four surfaces were promising a flat fifteen",
+        "section": "Chef Battles / Rules",
+        "summary": "BOLT CAUGHT THIS cross-checking his console panel against my service, and it was live on four surfaces of mine. penalise() floors rating at zero, so the upheld withdrawal penalty takes UP TO 15 rating and 3 reputation - and a chef sitting on nothing, which is every new account, loses nothing at all. The public rules page, the withdrawal page, the panel the other chef answers on and battle_rules.md all stated a flat 15, which is a promise the code does not keep and which would have taught an operator something untrue. All four now say up to, with the floor stated; the document credits him by name. Reputation carries the same floor at -1000 and no chef is anywhere near it, so the sentence does not carry it. Also the synchronisation the Owner asked for, sent on the Carpet: my state, the four surfaces, what changed under him since v2.5.838 - the two crowd faces on the floor, A09 closed, and the centre now refusing everything that has not begun, which means facing_pair is never produced any more and no panel of his will ever see one. Next card chosen and stated: A10, the crown hub, CSS only. 15 focused tests green. IF REVERTED: the site promises a fine it does not always charge.",
+    },
+    {
         "version": "2.5.849",
         "date": "2026-08-07",
         "commit": "",
