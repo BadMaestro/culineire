@@ -3,7 +3,7 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.12.0"
+  version: "2.11.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
@@ -672,15 +672,6 @@ What did NOT change, and what the repealed line was really about:
 - **Clean up what was for the picture alone**, and say plainly in the report
   what was created and what was left behind. A live arena full of forgotten test
   battles is its own defect.
-- **THE EMU CHEFS STAY. Owner, 2026-08-06, and he was emphatic.** `emu-chef-alpha`
-  and `emu-chef-beta`, battle #14 (theme `EMULATION 2026-08-05 22:37`) and the
-  crown that battle awarded are a STANDING FIXTURE on production, not litter.
-  **No agent deletes them, their battle, their crown or their ladder row**, and
-  no agent "tidies" them under the line above, under the orphan rule, or under
-  the ban on fake data — that ban is about inventing numbers the server never
-  sent, and these are real rows produced by a real run. They exist so the arena
-  can be exercised end to end at any moment. Ask him before touching them, as
-  with anything he has put there himself.
 - **The 50% load ceiling of section 9 still applies** to anything heavy. Making
   six rows is not heavy.
 

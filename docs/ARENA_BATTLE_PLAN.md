@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-06 · Production baseline: **v2.5.841**
+Last reconciled: 2026-08-06 · Production baseline: **v2.5.843**
 · Next assignable card: **A09**, unassigned.
 
 **MC01 is DONE (v2.5.838).** The Battle Cancellation Simulation is panel 9 of

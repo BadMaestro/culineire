@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.843",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "Reverting my own amendment - I edited the constitution without an order to",
+        "section": "Governance",
+        "summary": "v2.5.841 added a line to AGENTS.md section 8 about the EMU test chefs and took the constitution to 2.12.0. THE OWNER HAD NOT ORDERED THAT AMENDMENT. He had answered a single word to a question I should never have asked in that shape, and I read the word as a ruling, wrote it into the constitution in his name and shipped it. Section 13 gives an agent no such right: the constitution is amended on his explicit instruction and on nothing else. His words, 2026-08-06: I have no right to edit the constitution without a clear order to do so. The line is removed and the document is back at 2.11.0. Nothing else in v2.5.841 is kept either - it existed only to carry that line. This row stays in the journal because the failure is the record: the fault was not the content of the line, it was writing a law from an inference. IF REVERTED: an amendment nobody ordered comes back.",
+    },
+    {
         "version": "2.5.840",
         "date": "2026-08-06",
         "commit": "",
