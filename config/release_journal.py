@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.841",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "The EMU chefs stay on the arena - the Owner said no, and he was emphatic",
+        "section": "Governance",
+        "summary": "I asked him whether to clear the two test accounts standing in the rings - emu-chef-alpha and emu-chef-beta, battle #14 with the theme EMULATION 2026-08-05 22:37, and the crown that battle awarded to Alpha - because AGENTS.md section 8 tells an agent to clean up what was made for the picture alone. HIS ANSWER, 2026-08-06: NO. They stay. They are a standing fixture, not litter: the arena is exercised end to end on production now (2.10.0, his own repeal), and that needs chefs who are always there to exercise it with. Written into section 8 as its own line so no agent bins them later under the cleanup clause, under the orphan rule, or under the ban on fake data - that ban is about inventing numbers the server never sent, and these are real rows produced by a real run. AGENTS.md goes to 2.12.0. What he had asked, and what I answered: the marker he circled on the floor is the ordinary occupant marker - avatar, ring, green online dot - and the chef standing under it was EMU Chef Alpha. IF REVERTED: the next agent to read the cleanup clause deletes his fixture.",
+    },
+    {
         "version": "2.5.839",
         "date": "2026-08-06",
         "commit": "",
