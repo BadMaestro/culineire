@@ -1157,7 +1157,7 @@
         var x = parseFloat(seat.getAttribute('cx'));
         var y = parseFloat(seat.getAttribute('cy'));
         var r = parseFloat(seat.getAttribute('r'));
-        if (isFinite(x) && isFinite(y)) { anchors.push({ x: x, y: y, r: isFinite(r) ? r : 5.6 }); }
+        if (isFinite(x) && isFinite(y)) { anchors.push({ x: x, y: y, r: isFinite(r) ? r : 5.6, side: side }); }
       });
     });
     if (!anchors.length) { return; }
@@ -1185,6 +1185,16 @@
         if (row % 2 === 1 && i === anchors.length - 1) { continue; }
         var a = anchors[i];
         var b = row % 2 === 1 ? anchors[i + 1] : null;
+        // NEVER PAIR ACROSS THE TWO BANKS. Owner, 2026-08-06: he circled a
+        // smudge on the floor at three o'clock. The anchors are the top bank
+        // followed by the bottom bank in one list, so on an offset row the pair
+        // (i, i+1) at the seam was the LAST seat of the top row and the FIRST of
+        // the bottom one — and the midpoint of a seat above the floor and a seat
+        // below it lands in the middle of the floor. Three rows, two of them
+        // offset, so it put exactly two faces on the boards: measured at radius
+        // 420, inside the rank rings, and 485, on the sponsors' ring, both at
+        // angle 0. A crowd figure belongs behind the seats and nowhere else.
+        if (b && b.side !== a.side) { continue; }
         var ax = b ? (a.x + b.x) / 2 : a.x;
         var ay = b ? (a.y + b.y) / 2 : a.y;
         var x = TPL_CX + (ax - TPL_CX) * push;
