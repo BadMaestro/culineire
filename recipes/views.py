@@ -3399,14 +3399,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "X05", "group": "Audit 2026-08-05 - Owner decides", "title": "Acceptance window: 12 hours or 48?",
-        "status": "PENDING", "owner": "Owner",
+        "status": "DONE", "owner": "Owner",
         "files": "Decision only - no file until he rules",
         "depends_on": "Owner",
         "action": "The Owner rules which side is the rule. No agent changes code towards an archived document.",
         "visible_result": "None until the ruling.",
         "acceptance": "His answer recorded verbatim in the release journal, then the losing side corrected.",
         "forbidden": "Do not 'fix' this by editing code to match an archived doc; several of these are money.",
-        "evidence": "battle_rules.md says 12 hours. forms.py:46 sets expires_at to now + 48h. The public rules page (rules.html:200) tells users 48 hours. The document CONTRADICTS ITSELF - its first table says 'Auto-refuse (48h timeout)' while its slot lifecycle says 12h. Code and the live rules agree with each other; only the archived doc dissents. STRUCTURAL NOTE: the whole Chef Battles design corpus is ARCHIVED, and AGENTS.md section 10 says an archived document cannot define current scope. That is why these drifted, and it is why the fix is a ruling and not a patch.",
+        "evidence": "battle_rules.md says 12 hours. forms.py:46 sets expires_at to now + 48h. The public rules page (rules.html:200) tells users 48 hours. The document CONTRADICTS ITSELF - its first table says 'Auto-refuse (48h timeout)' while its slot lifecycle says 12h. Code and the live rules agree with each other; only the archived doc dissents. CLOSED BY THE OWNER, 2026-08-06: TWELVE HOURS. Shipped v2.5.837 - CHALLENGE_ACCEPTANCE_WINDOW in chef_battle/forms.py, the challenge form, the public rules page and battle_rules.md all now say twelve, and the doc contradiction is struck through rather than deleted. A challenge nobody answers frees the slot the same day instead of two days later, and it still costs the challenged chef nothing (X02).",
     },
     {
         "id": "X06", "group": "Audit 2026-08-05 - Owner decides", "title": "Battle window: 24 hours and a field that does not exist",
@@ -3533,7 +3533,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "3fa10983 / production v2.5.835",
+        "commit": "3fa10983 / production v2.5.837",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

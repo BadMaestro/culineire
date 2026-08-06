@@ -8,6 +8,10 @@ from recipes.models import Recipe, RecipeAuthor
 from .models import BattleChallenge, BattleEntry
 
 
+# X05, Owner 2026-08-06: twelve hours to answer a challenge, not forty-eight.
+CHALLENGE_ACCEPTANCE_WINDOW = timezone.timedelta(hours=12)
+
+
 class BattleChallengeForm(forms.ModelForm):
     class Meta:
         model = BattleChallenge
@@ -43,7 +47,12 @@ class BattleChallengeForm(forms.ModelForm):
     def save(self, commit=True):
         challenge = super().save(commit=False)
         challenge.challenger = self.challenger
-        challenge.expires_at = timezone.now() + timezone.timedelta(hours=48)
+        # X05, Owner 2026-08-06: A CHALLENGE STANDS FOR TWELVE HOURS.
+        # battle_rules.md said 12 in its slot lifecycle and 48 in its own
+        # first table; the code and the public rules page both said 48. He
+        # ruled for 12: a challenge nobody answers should free the slot the
+        # same day, not two days later.
+        challenge.expires_at = timezone.now() + CHALLENGE_ACCEPTANCE_WINDOW
         if commit:
             challenge.save()
         return challenge

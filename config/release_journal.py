@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.837",
+        "date": "2026-08-06",
+        "commit": "",
+        "title": "A challenge stands for twelve hours, not forty-eight",
+        "section": "Chef Battles / Rules",
+        "summary": "OWNER'S RULING ON X05, 2026-08-06: the acceptance window is TWELVE HOURS. battle_rules.md said twelve in its slot lifecycle and forty-eight in its own first table, while the code and the live rules page both said forty-eight - the audit could only report the contradiction, because an archived document cannot define scope and only he could say which side was the rule. Twelve is now both: CHALLENGE_ACCEPTANCE_WINDOW in chef_battle/forms.py, the challenge form, the public rules page and battle_rules.md, with the doc's own contradiction struck through rather than deleted so the change stays legible. A challenge nobody answers now frees the slot the same day instead of two days later, and it still costs the challenged chef nothing - X02, silence is not an offence. This is the FIRST of his six open rulings to close; X06, X07, X08, X10 and X11 remain. Note this is not the 48-hour SUBMISSION deadline, which is a different window and untouched. 30 focused tests green. IF REVERTED: challenges sit unanswered for two days again.",
+    },
+    {
         "version": "2.5.835",
         "date": "2026-08-06",
         "commit": "",

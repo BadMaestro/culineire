@@ -88,8 +88,8 @@ class ChefBattleServiceTests(TestCase):
         self.assertIsNone(entry.dish_submitted_at)
 
     def test_accept_challenge_leaves_off_a_theme_recipe_that_lost_approval(self):
-        """A challenge stands for 48 hours and moderation can act inside that
-        window, so the recipe is re-checked when the battle is actually made."""
+        """A challenge stands for twelve hours and moderation can act inside
+        that window, so the recipe is re-checked when the battle is made."""
         from recipes.models import Recipe
         recipe = Recipe.objects.create(
             title="Withdrawn dish", slug="withdrawn-dish", author=self.chef_a,
@@ -557,7 +557,7 @@ class ChefBattleChallengeCreateViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "battle-challenge-layout")
         self.assertContains(response, "Challenge checklist")
-        self.assertContains(response, "Pending challenges expire after 48 hours.")
+        self.assertContains(response, "Pending challenges expire after 12 hours.")
         self.assertContains(response, "Challenge Opponent")
         self.assertContains(response, 'name="opponent"', html=False)
         self.assertContains(response, 'name="battle_type"', html=False)

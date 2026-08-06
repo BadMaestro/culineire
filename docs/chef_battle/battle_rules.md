@@ -19,10 +19,14 @@ Defined by project creator.
 > forfeit and both-absent paths. The struck-through rows below are kept, not
 > deleted, so the change stays legible.
 >
-> **STILL DISPUTED AND HIS TO SETTLE:** the acceptance window (this file says 12
-> hours in one place and 48 in another; the code and the live rules page say 48)
-> and the 24-hour battle window with its `battle_deadline` field, which does not
-> exist — board cards X05 and X06.
+> **SETTLED, X05, Owner 2026-08-06: THE ACCEPTANCE WINDOW IS TWELVE HOURS.**
+> This file said 12 in its slot lifecycle and 48 in its own first table, while the
+> code and the live rules page both said 48. Twelve is now the rule and the code:
+> `CHALLENGE_ACCEPTANCE_WINDOW` in `chef_battle/forms.py`, shipped v2.5.837. An
+> unanswered challenge expires and costs the challenged chef nothing.
+>
+> **STILL HIS TO SETTLE:** the 24-hour battle window with its `battle_deadline`
+> field, which does not exist — board card X06.
 
 ---
 

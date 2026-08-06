@@ -318,7 +318,7 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
         # not the same event as submitting the cooked dish.
         #
         # Re-check the status here rather than trusting the choice made at
-        # challenge time: a challenge stands for 48 hours, and moderation can
+        # challenge time: a challenge stands for twelve hours (X05), and moderation can
         # withdraw a recipe inside that window.  A battle carrying a recipe the
         # audience cannot open is worse than one whose challenger has to attach
         # an approved recipe again, so an unapproved theme recipe is left off.
