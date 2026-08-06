@@ -10286,3 +10286,59 @@ class ReadyPullsTheMatchForwardTests(TestCase):
         self.battle.refresh_from_db()
         self.assertNotEqual(self.battle.status, Battle.Status.SCHEDULED)
         self.assertNotEqual(self.battle.status, Battle.Status.VOID)
+class ArenaFighterStaysOnTheFloorTests(TestCase):
+    """A09: a fighter is never filtered out of his own battle.
+
+    The ring payload keeps only chefs whose heartbeat is inside the 180-second
+    online window. A chef who closed the tab therefore disappeared from the
+    floor in the middle of his own bout, and the battle ran with an empty ring -
+    which is the one thing the arena exists to show (ARENA_BATTLE_PLAN 2b).
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.a = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="a09-a", password="pw"),
+            name="A09 Challenger", slug="a09-a")
+        self.b = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="a09-b", password="pw"),
+            name="A09 Opponent", slug="a09-b")
+        stale = timezone.now() - timezone.timedelta(hours=3)
+        for author in (self.a, self.b):
+            profile = ChefBattleProfile.objects.create(
+                author=author, enrolled_at=timezone.now(), last_seen_at=stale)
+            profile.rank = ChefBattleProfile.Rank.KITCHEN_PORTER
+            profile.save(update_fields=["rank"])
+
+    def _battle(self, status):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="A09 ring presence",
+            status=status, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=12),
+            end_time=now + timezone.timedelta(days=1),
+        )
+
+    def _ring_slugs(self):
+        from .views import _build_arena_payload
+        payload = _build_arena_payload()
+        slugs = []
+        for chefs in payload["rings"].values():
+            slugs.extend(c["slug"] for c in chefs)
+        return set(slugs)
+
+    def test_an_offline_chef_with_no_battle_is_still_not_on_the_floor(self):
+        self.assertNotIn("a09-a", self._ring_slugs())
+
+    def test_both_fighters_hold_their_cells_while_the_battle_runs(self):
+        self._battle(Battle.Status.COOKING)
+        slugs = self._ring_slugs()
+        self.assertIn("a09-a", slugs)
+        self.assertIn("a09-b", slugs)
+
+    def test_they_leave_the_floor_again_once_the_battle_is_over(self):
+        battle = self._battle(Battle.Status.COOKING)
+        self.assertIn("a09-a", self._ring_slugs())
+        battle.status = Battle.Status.COMPLETED
+        battle.save(update_fields=["status"])
+        self.assertNotIn("a09-a", self._ring_slugs())

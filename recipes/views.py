@@ -3154,18 +3154,18 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A09", "group": "Arena Hall", "title": "Live challenger/opponent composition",
-        "status": "NEXT", "owner": "unassigned",
+        "status": "DONE", "owner": "Bolt + GreenBear",
         "files": "templates/chef_battle/arena.html; static/js/arena_render.js; scoped fighter CSS",
         "depends_on": "A07",
         "action": "Two stages, not one — ARENA_BATTLE_PLAN section 2b. (a) ON CHALLENGE ACCEPT the two chefs approach each other INSIDE their own rank rings: same rank, opposite cells of that ring; different ranks, a vertically aligned pair across the two rings. They do not reach the centre yet. (b) AT BATTLE TIME both leave the ring for the two placeholders beside the centre, at the measured offset, and stay for the duration; the centre carries VS and the link to the separate battle page. On completion both return to their ring cells.",
         "visible_result": "Challenger is left/green and opponent right/red around the live centre.",
         "acceptance": "Real server-selected chefs only; identity remains inside each plinth; empty/crown-only states remain truthful; a chef vacates his ring cell ONLY at battle time, never on challenge accept; the centre link goes to the battle page. Verify in the moderator preview /chef-battle/arena/?demo=vs, which is stable since v2.5.816.",
         "forbidden": "No demo fighter injection, backend selection rewrite or separate support panel.",
-        "evidence": "THE APPROACH STAGE IS MISSING AND THAT IS THE CARD. Measured 2026-08-05: _arena_center() returns facing_pair for SCHEDULED/MENU_LOCKED and active_battle otherwise, but stampFloorCentre() handles BOTH IN ONE IDENTICAL BRANCH and draws both at the centre, while isDisplaced() empties a chef ring cell as soon as chef.battle_id equals center.battle_id. So a chef leaves his ring the moment a battle is scheduled and jumps straight to the centre - stage B2 of the approved 2026-07-02 plan does not exist. It was never built because the plan was archived, and section 10 says an archived document defines nothing; the rules are now in ARENA_BATTLE_PLAN section 2b where they govern. Identity layer exists and is complete - drawFloorFighter draws the hex pad, the avatar clipped to it, the identity shade, the name and the country, with the challenger green and the opponent red in arena_render.css. What is pending is PLACEMENT. The target was corrected on 2026-08-05 and the old one would have sent this card to the wrong place: A06 read four plinth blocks in two symmetric pairs at x 557/1363 and 619/1301, and those are cells of the reference's own 52-cell floor grid, verified by matching each block against the children of the element that has exactly 52 of them. The fighters are the two image-slot elements OUTSIDE that grid: 190x212, centres x 700 and 1220, exactly 260px either side of the canvas centre. ONLY X TRANSFERS - rotateX leaves x untouched, but the block is 212 tall against 190 wide and stands upright above the crown, while our floor fighters lie flat on the floor plane by deliberate choice (v2.5.649: a nested 3D billboard shattered the camera). Reading its y as a floor offset repeats the error that produced A07's withdrawn target. ALSO TRUE AND IT SHAPES THE EVIDENCE: production draws floor fighters only while the centre is an active_battle or a facing_pair, and the centre has been a crown on every measurement day, so there are none on the live page and injecting one is forbidden by this card. The populated state can only be probed in a detached clone, never shipped and never touching server state.",
+        "evidence": "CLOSED IN TWO HALVES BY TWO AGENTS, AND THE SECOND HALF WAS BUILT TWICE. (a) THE APPROACH: Bolt shipped it as scenario A in v2.5.844 straight from the Owner's words - a pair bound by an accepted challenge is seated first and together, same ring adjacent, different ranks one directly outside the other, and the scatter works around them. I had written the same stage independently the same hour and DROPPED MY VERSION on the rebase rather than argue two implementations of one rule into the same file (section 7, existing-code-first). His is the one that stands. (b) A FIGHTER IS NEVER FILTERED OUT OF HIS OWN BATTLE, v2.5.847: the ring payload kept only chefs inside the 180-second heartbeat window, so a chef who closed the tab vanished from the floor MID-BOUT and his battle ran with an empty ring - the one thing the arena exists to show (2b: so they can see each other). Being in an active battle is now itself enough to hold a cell. Three tests hold it, including the case that the floor still empties when the battle finishes. STILL OPEN AND IT IS THE OWNER'S: the MOVE itself. Emulation step 2 asks for the pair to WALK to the centre rather than jump, and what that looks like - how long, what path, what happens to the cell they leave - is his to say, not an agent's.",
     },
     {
         "id": "A10", "group": "Arena Hall", "title": "Crown-holder hub composition",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "NEXT", "owner": "GreenBear",
         "files": "static/css/arena_deck_polish.css; existing crown assets",
         "depends_on": "A07",
         "action": "Match the central crown hub size, recess, label hierarchy and spacing below the rank spine.",
@@ -3533,7 +3533,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "3fa10983 / production v2.5.845",
+        "commit": "3fa10983 / production v2.5.847",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

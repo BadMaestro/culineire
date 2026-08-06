@@ -4,10 +4,10 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-06 · Production baseline: **v2.5.845**
-· Next assignable card: **A09**, unassigned.
+Last reconciled: 2026-08-06 · Production baseline: **v2.5.847**
+· Next assignable card: **A10**, GreenBear.
 
-**MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. Several of them are blocked on A09: a fighter who is offline still vanishes from the arena entirely, so the bout runs with nobody in the ring.
+**MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
 
 **Bolt's session of 2026-08-05/06, in order.** X04: the roadmap advertised five
 token packages topping out at Executive 1400T/EUR80 while `token_config.py` has
@@ -229,7 +229,7 @@ already emits both `battle_url` and `popup_url`; the link is the one that counts
 identical branch**, drawing both at the centre, and `isDisplaced()` empties a
 chef's ring cell as soon as `chef.battle_id === center.battle_id`. So a chef
 leaves his ring the moment a battle is scheduled and jumps straight to the
-centre. **The approach stage does not exist.** It belongs to A09.
+centre. **The approach stage was missing; it landed in v2.5.844 (A09).**
 
 ## 2c. The arena is a tabloid; the battle has its own page
 
@@ -338,8 +338,8 @@ forbidden changes and evidence for every row below.
 | AR5 | Arena Hall | Spirit balconies + VIP sponsor ring | GreenBear + Bolt | AR4 | DONE |
 | A07 | Arena Hall | Stage framing and full-octagon composition | GreenBear | AR5 | DONE |
 | A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | DONE |
-| **A09** | Arena Hall | Live challenger/opponent composition | unassigned | A07 | **NEXT** |
-| A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | PENDING |
+| A09 | Arena Hall | Live challenger/opponent composition | Bolt + GreenBear | A07 | DONE |
+| **A10** | Arena Hall | Crown-holder hub composition | GreenBear | A07 | **NEXT** |
 | A11 | Furniture | Phase panel reference pass | Bolt | A06 | DONE |
 | A12 | Furniture | Crown ladder panel reference pass | Bolt | A06 | DONE |
 | A13 | Furniture | Recent gifts panel reference pass | GreenBear | A06 | PENDING |

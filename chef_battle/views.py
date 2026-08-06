@@ -1213,7 +1213,18 @@ def _build_arena_payload(*, viewer_author=None):
             # next arena poll once their heartbeat marks them online again.
             # chefs_by_rank stays complete so the legend/roster counts still
             # reflect every enrolled chef.
-            rank.value: [c for c in chefs_by_rank[rank.value] if c["is_online"]]
+            #
+            # A09: A FIGHTER IS NEVER FILTERED OUT OF HIS OWN BATTLE. The online
+            # window is 180 seconds of heartbeat, and a chef who closes the tab
+            # disappeared from the floor mid-bout — his own battle ran with an
+            # empty ring, which is the one thing the arena exists to show
+            # (ARENA_BATTLE_PLAN 2b: so that they can see each other). Being in
+            # an active battle is itself a state worth drawing, whether or not
+            # the man is looking at the page.
+            rank.value: [
+                c for c in chefs_by_rank[rank.value]
+                if c["is_online"] or c["in_battle"]
+            ]
             for rank in ChefBattleProfile.Rank
         },
         "spectators": _get_spectators(online_cutoff, viewer_author=viewer_author),
