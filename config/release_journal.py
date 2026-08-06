@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.849",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The cells by the centre stay empty until the battle actually begins",
+        "section": "Chef Battles / Arena",
+        "summary": "OWNER, 2026-08-06, tightening his own rule of the same day: THE PAIR JUMPS TO THE CENTRE ONLY WHEN THEIR BATTLE STARTS, and until then - with no other battle running - the cells by the centre are EMPTY. v2.5.834 had made readiness the gate; that was still too early, because since v2.5.844 pressing Ready only pulls the start in to fifteen minutes, and those fifteen minutes are spent standing in the rings where the pair can be seen approaching. _arena_center() now refuses SCHEDULED and MENU_LOCKED whatever the ready flags say, and refuses any battle whose start_time is still ahead. The centre falls back to the crown holder, or to empty when there is none - the plinths themselves carry nobody. The facing_pair type is therefore never produced any more; the renderer, the deck and the template keep their branches because the type stays part of the payload contract (arena_data_layer_spec). Four centre tests hold the whole ladder now: agreed is not the centre, one chef ready is not, both ready is not, and only a started battle is. IF REVERTED: two chefs stand at the centre for fifteen minutes before their fight.",
+    },
+    {
         "version": "2.5.847",
         "date": "2026-08-06",
         "commit": "",

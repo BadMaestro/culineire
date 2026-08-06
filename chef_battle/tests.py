@@ -7442,7 +7442,14 @@ class ArenaCenterConfrontationContractTests(TestCase):
         self._assert_fighter(c["challenger"], author=a, side="challenger")
         self._assert_fighter(c["opponent"], author=b, side="opponent")
 
-    def test_facing_pair_fighters_match_3r3_contract(self):
+    def test_a_ready_pair_whose_hour_has_not_come_is_still_not_at_the_centre(self):
+        """Owner, 2026-08-06: the pair jumps to the centre only when their
+        battle BEGINS, and until then the cells by the centre are empty.
+
+        Pressing Ready is not the beginning. Since v2.5.844 it pulls the start
+        in to fifteen minutes, and those fifteen minutes are spent standing in
+        the rings.
+        """
         from chef_battle.views import _arena_center
         from .models import Battle
 
@@ -7450,15 +7457,27 @@ class ArenaCenterConfrontationContractTests(TestCase):
         battle = Battle.objects.create(
             challenger=a,
             opponent=b,
-            theme="3R3 Facing",
+            theme="Ready, not started",
             status=Battle.Status.SCHEDULED,
             challenger_ready=True,
             opponent_ready=True,
+            start_time=timezone.now() + timezone.timedelta(minutes=15),
             submission_deadline=timezone.now(),
             end_time=timezone.now(),
         )
+        self.assertEqual(_arena_center(battle)["type"], "empty")
+
+        # Menu locked is still not begun.
+        battle.status = Battle.Status.MENU_LOCKED
+        battle.save(update_fields=["status"])
+        self.assertEqual(_arena_center(battle)["type"], "empty")
+
+        # The hour arrives and the battle is under way: now the centre has them.
+        battle.status = Battle.Status.ACTIVE
+        battle.start_time = timezone.now() - timezone.timedelta(seconds=1)
+        battle.save(update_fields=["status", "start_time"])
         c = _arena_center(battle)
-        self.assertEqual(c["type"], "facing_pair")
+        self.assertEqual(c["type"], "active_battle")
         self._assert_fighter(c["challenger"], author=a, side="challenger")
         self._assert_fighter(c["opponent"], author=b, side="opponent")
 
@@ -7489,9 +7508,11 @@ class ArenaCenterConfrontationContractTests(TestCase):
         battle.save(update_fields=["challenger_ready"])
         self.assertEqual(_arena_center(battle)["type"], "empty")
 
+        # And both of them ready is STILL not the centre — that is the second
+        # half of his rule: readiness schedules the fight, it does not start it.
         battle.opponent_ready = True
         battle.save(update_fields=["opponent_ready"])
-        self.assertEqual(_arena_center(battle)["type"], "facing_pair")
+        self.assertEqual(_arena_center(battle)["type"], "empty")
 
     def test_empty_and_crown_states_still_valid(self):
         from chef_battle.views import _arena_center

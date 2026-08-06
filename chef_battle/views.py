@@ -909,22 +909,31 @@ def _arena_upcoming():
 def _arena_center(active_battle):
     """Centre-cell payload: active battle takes priority, then the current
     Crown holder (if any), else empty. Shared by arena() and arena_state()."""
-    # NOBODY IS TELEPORTED TO THE CENTRE BEFORE THEY SAY THEY ARE READY.
-    # Owner, 2026-08-06: accepting a challenge moved both avatars out of their
-    # rank rings and into the facing cells by the centre while the battle room
-    # was still showing "Awaiting readiness" and neither chef had pressed the
-    # button. The centre is for a battle that is HAPPENING; a battle that has
-    # been agreed is still two chefs standing in their own rings. The readiness
-    # gate was listed as pending work in this same file (Stage E3) and the
-    # centre never waited for it.
-    if active_battle and active_battle.status == Battle.Status.SCHEDULED:
-        if not (active_battle.challenger_ready and active_battle.opponent_ready):
+    # THE CENTRE IS FOR A BATTLE THAT HAS STARTED, AND FOR NOTHING ELSE.
+    #
+    # Owner, 2026-08-06, twice in one day. First: accepting a challenge threw
+    # both avatars out of their rings into the cells by the centre while the
+    # battle room still read "Awaiting readiness". Then, when readiness became
+    # the gate: THE PAIR JUMPS TO THE CENTRE ONLY WHEN THEIR BATTLE BEGINS, and
+    # until then, with no other battle running, THE CELLS BY THE CENTRE ARE
+    # EMPTY. Pressing Ready is not the beginning — since v2.5.844 it only pulls
+    # the start in to fifteen minutes, and those fifteen minutes are still spent
+    # standing in the rings.
+    #
+    # So SCHEDULED and MENU_LOCKED never reach the centre, whatever the ready
+    # flags say, and a battle whose start_time is still ahead does not either.
+    # `facing_pair` is therefore no longer produced; the renderer keeps the
+    # branch because the type remains part of the payload contract.
+    if active_battle:
+        not_begun = active_battle.status in {
+            Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED,
+        }
+        if not_begun or active_battle.start_time > timezone.now():
             active_battle = None
 
     if active_battle:
-        is_facing = active_battle.status in {Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED}
         return {
-            "type": "facing_pair" if is_facing else "active_battle",
+            "type": "active_battle",
             "battle_id": active_battle.pk,
             # NOTE: status is a plain str when the battle is loaded from the
             # DB (TextChoices only wraps in-memory assignments) — .value here
