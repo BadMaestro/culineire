@@ -2035,10 +2035,24 @@
         var bx = cx + bulbR * Math.cos(angle);
         var by = cy + bulbR * Math.sin(angle);
         var far = Math.sin(angle) < -0.05;
-        // Glow reaches the gold lip: the bulb sits (bulbR - goldOuterR*apothem)
-        // away from it, so a halo smaller than that gap can never light it. Sized
-        // from the radius, not a fixed number, so it survives a stage resize.
-        var glowR = (bulbR - goldOuterR * apothem) * (far ? 1.15 : 1.45) * row.scale;
+        // Glow reaches the gold lip: the halo is sized by the DISTANCE between
+        // the bulb and the lip, so a halo smaller than that gap could never
+        // light it. Sized from the radius, not a fixed number, so it survives a
+        // stage resize.
+        //
+        // THE DISTANCE, not the difference. The lamp rows are positioned from
+        // the lamp console - the Owner's own numbers - and he has moved the
+        // inner row INSIDE the gold lip, where bulbR is smaller than the lip
+        // radius and the subtraction goes negative. SVG refuses a negative r,
+        // so every repaint threw 34 console errors and both halo rings were
+        // dropped: the lamps were lit and their glow was silently missing. It
+        // is a distance in both directions - a bulb inside the lip lights it
+        // just as a bulb outside does - with a floor so a bulb sitting exactly
+        // on the lip still glows. The floor is keyed to the radius for the same
+        // reason the rest of this block is.
+        var lipGap = Math.abs(bulbR - goldOuterR * apothem);
+        var glowR = Math.max(radius * 0.006,
+                             lipGap * (far ? 1.15 : 1.45) * row.scale);
         bulbs.appendChild(el('circle', {
           cx: bx.toFixed(2),
           cy: by.toFixed(2),

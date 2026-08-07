@@ -10644,3 +10644,34 @@ class EmptyFighterPadIsMutedTests(TestCase):
             re.findall(r"#[0-9A-Fa-f]{3,6}\b", block), [],
             "a raw hex colour was introduced for the empty pad",
         )
+
+
+class CrownBulbGlowIsNeverNegativeTests(TestCase):
+    """34 console errors on every repaint, found by the Owner in his devtools.
+
+    The crown bulb halo was sized by (bulbR - goldOuterR * apothem) - a
+    DIFFERENCE, which goes negative the moment a lamp row sits inside the gold
+    lip. The lamp rows come from the lamp console, the Owner's own numbers, and
+    he had moved the inner row inside it. SVG refuses a negative r, so both halo
+    rings were dropped on every poll: the lamps were lit and their glow was
+    silently missing, ten times a minute.
+    """
+
+    def _block(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        return source.split("var lipGap", 1)[1].split("bulb-core", 1)[0]
+
+    def test_the_halo_is_a_distance_not_a_difference(self):
+        self.assertIn("Math.abs(bulbR - goldOuterR * apothem)", self._block())
+
+    def test_it_has_a_floor_so_a_bulb_on_the_lip_still_glows(self):
+        block = self._block()
+        self.assertIn("Math.max(", block)
+        # Keyed to the radius, like everything else in that block, so it
+        # survives a stage resize.
+        self.assertIn("radius * 0.006", block)
