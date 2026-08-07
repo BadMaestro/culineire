@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.884",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The ring numerals stand on one line and are big enough to read",
+        "section": "Chef Battles / Arena",
+        "summary": "Two corrections to v2.5.882, both found by looking at the live page rather than at the DOM. The numerals took BOTH coordinates from the cell they sit in, and the rings hold different numbers of cells, so no two centroids land at the same height: measured on production, eight numerals scattered over 44px of stagger where the thing being numbered is a row of concentric rings. X still comes from the cell - it cannot land in a seam that way - and Y comes from the octagon's own centre line, so they read as one row stepping outward. And 13px user units measured out at NINE physical pixels once the fit had scaled the octagon down, which is present in the DOM and unreadable on the screen; 19px measures 14. IF REVERTED: the numbers are there and nobody can read them or see that they belong to one series.",
+    },
+    {
         "version": "2.5.882",
         "date": "2026-08-07",
         "commit": "f832d7b9",

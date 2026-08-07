@@ -2979,8 +2979,13 @@
         var lum = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
         onDark = lum < 0.55 ? 'true' : 'false';
       }
+      // X from the cell, Y from the octagon's own centre line. Taking both from
+      // the cell staggered the eight numerals over 44px of scatter, because the
+      // rings hold different numbers of cells and no two centroids land at the
+      // same height. On the centre line they read as one row stepping outward,
+      // which is the thing being numbered.
       var numeral = el('text', {
-        x: seat.x.toFixed(2), y: seat.y.toFixed(2),
+        x: seat.x.toFixed(2), y: cy.toFixed(2),
         'text-anchor': 'middle', 'dominant-baseline': 'central',
         'pointer-events': 'none',
         'data-ring-numeral': ring,

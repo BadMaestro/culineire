@@ -186,7 +186,9 @@
 .page--arena #arena-render .arena-ring-numeral {
   fill: var(--ink);
   font-family: var(--font-sans);
-  font-size: 13px;
+  /* 13px measured out at nine physical pixels once the fit had scaled the
+     octagon down - present in the DOM, unreadable on the screen. */
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: 0.04em;
   opacity: 0.42;

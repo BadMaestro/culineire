@@ -11310,3 +11310,11 @@ class ArenaRingNumberingTests(TestCase):
         drawing = self._js().split("function numberTheRings(", 1)[1].split("\n  }", 1)[0]
         self.assertIn("querySelectorAll('[data-ring-numeral]')", drawing)
         self.assertIn("remove()", drawing)
+
+    def test_the_numerals_sit_on_one_line(self):
+        """Taking both coordinates from the cell scattered the eight numerals
+        over 44px, because the rings hold different numbers of cells and no two
+        centroids land at the same height."""
+        drawing = self._js().split("function numberTheRings(", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("y: cy.toFixed(2)", drawing)
+        self.assertNotIn("y: seat.y.toFixed(2)", drawing)
