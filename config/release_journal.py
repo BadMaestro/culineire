@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.904",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "One pixel, which was the whole difference between three lines and two",
+        "section": "Chef Battles / Arena",
+        "summary": "The band came out 49 and the caption measured 49, and the caption still dropped its kicker: both numbers are fractions, and reserving the exact figure lands them equal, where a rounding either way costs a line. The reserve asks for one pixel more than it needs and the fit ladder allows half a pixel of tolerance. Measured on the Owner's window afterwards: all three lines, the octagon top at 318, the floor clear of the crowd rail. IF REVERTED: the arena moves down to make room and the caption drops a line for a fraction of a pixel.",
+    },
+    {
         "version": "2.5.902",
         "date": "2026-08-07",
         "commit": "ac1dbdd0",

@@ -2927,7 +2927,10 @@
       caption.removeAttribute('data-fit');
       caption.style.width = '';
       var natural = caption.getBoundingClientRect();
-      var needed = natural.height + CAPTION_GAP * 2;
+      // One pixel over, deliberately: the band and the caption are measured to
+      // fractions, and reserving the exact number lands them equal - 49 against
+      // 49 - where a rounding either way costs the caption a line.
+      var needed = natural.height + CAPTION_GAP * 2 + 1;
 
       var span = { left: centre - natural.width / 2, right: centre + natural.width / 2 };
       var ceiling = frame.top;
@@ -2964,7 +2967,7 @@
       var width = Math.min(natural.width, free);
       if (width > 120) {
         caption.style.width = Math.round(width) + 'px';
-        needed = caption.getBoundingClientRect().height + CAPTION_GAP * 2;
+        needed = caption.getBoundingClientRect().height + CAPTION_GAP * 2 + 1;
       }
 
       var reservedTop = ceiling + needed;
@@ -3108,7 +3111,9 @@
     for (var f = 0; f < order.length; f++) {
       if (order[f] === 'full') { caption.removeAttribute('data-fit'); }
       else { caption.setAttribute('data-fit', order[f]); }
-      if (caption.getBoundingClientRect().height <= room) { chosen = order[f]; break; }
+      // Half a pixel of tolerance: both sides of this comparison are fractions,
+      // and a caption that fits by a fifth of a pixel fits.
+      if (caption.getBoundingClientRect().height <= room + 0.5) { chosen = order[f]; break; }
     }
     if (!chosen) {
       caption.setAttribute('data-fit', 'none');
