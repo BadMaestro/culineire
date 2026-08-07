@@ -3025,11 +3025,34 @@
     // The header is what the deck's height is subtracted FROM, and it is not a
     // constant: it wraps at narrow widths and its social strip is not always
     // there. Re-measure it whenever the window changes, then re-fit.
-    if (global.ResizeObserver && document.querySelector(HEADER_SELECTOR)) {
-      new global.ResizeObserver(function () {
-        if (measureHeader()) { fitScene(svg); }
-      }).observe(document.querySelector(HEADER_SELECTOR));
+    //
+    // A18, MEASURED AT 1920x1080 ON PRODUCTION: --arena-header-h was stuck at
+    // 134px while everything above the deck actually measured 146, so the deck
+    // ran 12px past the bottom of the screen and A07 - the whole arena on one
+    // screen - was false again by a different route.
+    //
+    // The observer alone could not catch it. measureHeader() returns
+    // (header.top + header.height), so the number changes when anything ABOVE
+    // the header changes height - the utility bar - and in that case the
+    // header's OWN box does not resize at all. A ResizeObserver on the header
+    // watches the one thing that did not move. Web fonts do the same on first
+    // load: they land after init, the header grows, and by then nothing asks
+    // again.
+    //
+    // So: the header, the window, and the moment the fonts settle.
+    function remeasure() {
+      if (measureHeader()) { fitScene(svg); }
     }
+    if (global.ResizeObserver && document.querySelector(HEADER_SELECTOR)) {
+      new global.ResizeObserver(remeasure).observe(document.querySelector(HEADER_SELECTOR));
+    }
+    global.addEventListener('resize', remeasure);
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(remeasure).catch(function () {});
+    }
+    // One late pass for anything that lands after paint without announcing
+    // itself - a lazy banner, a consent strip, an image above the fold.
+    global.setTimeout(remeasure, 1200);
     if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
     paintRunway(payload.runway || null);
     if (global.ArenaBattleRoom) { global.ArenaBattleRoom.init(payload.latest_result); }

@@ -10959,3 +10959,44 @@ class EmulationWithdrawalScenarioTests(TestCase):
         with self.assertRaises(OperatorActionError):
             emulation_withdrawal_step(
                 battle_id=real.pk, operator_author=self.owner, step="ask")
+
+
+class ArenaHeaderMeasurementTests(TestCase):
+    """A18. The deck is sized 100svh minus everything above it, and "everything
+    above it" is not a constant.
+
+    Measured at 1920x1080, 1440x900 and 1280x800 on production: the variable
+    said 134px while the true height above the deck was 146, so the arena ran
+    twelve pixels past the bottom of the screen at every one of them - and A07,
+    which promises the whole arena on one screen, was false again by a route
+    nobody had watched.
+
+    The ResizeObserver could not catch it. measureHeader() returns
+    (header.top + header.height), so the number changes when anything ABOVE the
+    header changes height - and in that case the header's own box does not
+    resize at all. The observer was watching the one element that had not moved.
+    """
+
+    def _init_block(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        return source.split("measureHeader();", 1)[1].split("ArenaBattleRoom", 1)[0]
+
+    def test_the_window_retriggers_the_measurement(self):
+        self.assertIn("addEventListener('resize', remeasure)", self._init_block())
+
+    def test_web_fonts_retrigger_it(self):
+        """Fonts land after init and grow the header; by then nothing asked again."""
+        self.assertIn("document.fonts.ready", self._init_block())
+
+    def test_the_header_observer_is_still_there(self):
+        """The narrower signal stays - it is the only one that fires when the
+        header wraps at a width the window did not change to."""
+        self.assertIn("observe(document.querySelector(HEADER_SELECTOR))", self._init_block())
+
+    def test_there_is_a_late_pass_for_what_lands_silently(self):
+        self.assertIn("setTimeout(remeasure", self._init_block())

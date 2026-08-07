@@ -112,8 +112,16 @@
     </div>
     {% endif %}
 
-    {# Withdrawing from an accepted battle — Owner's rule, 2026-08-05.
-       The button goes dark when the three-per-account allowance is gone. #}
+    {% comment %}
+      Withdrawing from an accepted battle - Owner's rule, 2026-08-05.
+      The button goes dark when the three-per-account allowance is gone.
+
+      {% comment %}, not {# #}: the short form is a SINGLE-LINE comment in
+      Django, so the second line of a two-line one is page output. This is the
+      second instance of that mistake in two days - the first printed eight
+      lines above the header of every page on the site - and config.tests
+      TemplateCommentHygieneTests is the guard that found this one.
+    {% endcomment %}
     {% if is_participant %}
       {% if open_withdrawal %}
       <div class="bd-withdrawal">

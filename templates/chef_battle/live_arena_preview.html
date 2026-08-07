@@ -9,9 +9,11 @@
 
 {% block content %}
 {% include "chef_battle/_live_arena_svg.html" %}
-{# R01/R02: on the real page the RESULT decides which frame is shown, not a
-   query string. The ?state=complete toggle stays for the build canvas, where
-   there is no battle to ask. #}
+{% comment %}
+  R01/R02: on the real page the RESULT decides which frame is shown, not a
+  query string. The ?state=complete toggle stays for the build canvas, where
+  there is no battle to ask.
+{% endcomment %}
 {% with complete=result_frame %}
 <div class="lap {% if complete == 'complete' %}lap--winner{% endif %}"
      data-battle-id="{{ fx.battle_id|default:'' }}"
