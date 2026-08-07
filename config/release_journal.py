@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.898",
         "date": "2026-08-07",
-        "commit": "",
+        "commit": "0103f937",
         "title": "The octagon gives up the height, and the writing above it keeps all three lines",
         "section": "Chef Battles / Arena",
         "summary": "The Owner: lower the octagon and the ladder with it, and make as much room above as the writing needs to look right. It inverts everything before it - the band above the floor had been a fact to be measured and lived with, so when 22px was left the caption lost two of its three lines, and he called that losing the writing. The writing is the fixed quantity now and the floor moves. The floor cannot simply drop: the crowd rail is nine pixels under it and A07 puts the whole arena on one screen, so the band comes out of the octagon's own height. reserveCaptionBand() measures what the caption needs at full three lines and natural width, finds the lowest thing ending above the floor IN THE CAPTION'S COLUMN and the first thing starting below the floor, then scales the octagon about its centre and shifts it down onto the reserved line - the two together spend the octagon's height, not the deck's. Measured on his window, 1170x820: octagon 462px tall becomes 426, its top goes 277 to 317, the caption gets 62px for the 61 it needs, and the floor still clears the crowd rail by six. The ladder needs no part of it: placeRankSpine() measures the cells and runs after, so it follows the floor down by construction. IF REVERTED: the caption sheds its kicker and subtitle at any window where the ribbon grows.",
