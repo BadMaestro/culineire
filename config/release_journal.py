@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.857",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The rank ladder goes where the mockup puts it - a compact stack above the floor, not a column down it",
+        "section": "Chef Battles / Arena",
+        "summary": "OWNER, 2026-08-07: the ladders are not in their places, put them where the mockup has them. They were stretched down the entire floor - top 26 per cent, bottom 18 per cent, space-between - so the eight titles spread across the rings and the middle two, Commis Chef and Chef de Partie, lay across the crown hub at 483 and 544 while the hub spanned 457 to 584. THE REFERENCE DOES NOT STRETCH THEM. Its ladder is one compact stack at the top centre: left 960 which is the canvas centre, top 196, flex column, 5px gaps, chips at 10.5px with 5 by 16 padding. The block measures 198.7 x 235 on a floor grid 1585.4 x 667.5 whose top edge is at 329.2 - so the stack begins 133.2 ABOVE the floor's top edge, which is 0.1995 of the floor's height, is 0.1253 of the floor wide, and is centred on the floor's own centre line. Those three ratios are what placeRankSpine() now applies, measured off the floor rather than off the deck, because our floor scales with the viewport and the reference's does not. The CSS no longer sets the height at all: the stack is content-sized with a 0.25rem gap, which is the reference's 5px at our floor height. Below 767px nothing changed, by his instruction of 2026-08-03. The crown is clear of every title now, which also closes the one thing A10 could not decide for itself. IF REVERTED: the ladder lies back across the crown.",
+    },
+    {
         "version": "2.5.855",
     },
     {

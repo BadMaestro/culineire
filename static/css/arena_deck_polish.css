@@ -2845,24 +2845,40 @@
     letter-spacing: 0.02em;
   }
 
+  /* OWNER, 2026-08-07: "the ladders are not in their places - put them where the
+   * mockup has them". They were stretched down the whole floor - top 26%,
+   * bottom 18%, space-between - so the eight titles spread across the rings and
+   * the middle two, Commis Chef and Chef de Partie, lay across the crown hub.
+   *
+   * The reference does not stretch them. Its ladder is ONE COMPACT STACK at the
+   * top centre: left 960 (canvas centre), top 196, flex column, gap 5px, each
+   * chip 5px/16px padding at 10.5px type. Block 198.7 x 235 on a floor 1585.4 x
+   * 667.5 whose top edge is at 329 - so the stack starts a fifth of the floor's
+   * height ABOVE the floor and ends 217px clear of the crown.
+   *
+   * Height and position are therefore NOT percentages of the deck any more:
+   * placeRankSpine() measures the floor and applies the reference's own ratios.
+   * The rules here only make the stack compact so it can be placed. */
   .arena-rank-spine {
-    top: 26%;
-    bottom: 18%;
-    width: min(13.5rem, 28%);
+    bottom: auto;
+    width: max-content;
+    max-width: 28%;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     pointer-events: none;
   }
   .arena-rank-spine__label {
     display: none;
   }
   .arena-rank-spine__list {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: 0;
+    justify-content: flex-start;
+    /* 5px on the reference's 667.5-tall floor = 0.0075 of it; at our floor
+     * height that lands near 4px, which is what this evaluates to. */
+    gap: 0.25rem;
     min-height: 0;
   }
   .arena-rank-spine__item {

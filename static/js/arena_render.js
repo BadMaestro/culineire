@@ -2892,12 +2892,9 @@
     var container = svg.parentElement;
     if (!spine || !container) { return; }
 
-    // Clear inline geometry wherever CSS owns layout, so measured placement
-    // cannot fight the stylesheet (inline style beats CSS).
-    if (window.matchMedia && (
-      window.matchMedia('(max-width: 767px)').matches ||
-      window.matchMedia('(min-width: 901px)').matches
-    )) {
+    // Below 767 the arena is untouched by the Owner's own instruction of
+    // 2026-08-03, so CSS keeps layout there and nothing is measured.
+    if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
       spine.style.top = '';
       spine.style.left = '';
       spine.style.width = '';
@@ -2918,19 +2915,28 @@
     }
     if (!(right > left)) { return; }
 
-    var stage = svg.querySelector('.arena-stage');
-    var crownTop = stage ? stage.getBoundingClientRect().top : (top + bottom) / 2;
     var frame = container.getBoundingClientRect();
-    var height = spine.getBoundingClientRect().height;
+    var floorH = bottom - top;
+    var floorW = right - left;
 
-    // Sit in the band between the floor's near edge and the crown, centred in
-    // it, so the column never covers the centre it is a legend for.
-    var band = crownTop - top;
-    var offset = top - frame.top + Math.max(6, (band - height) / 2);
+    // THE REFERENCE'S OWN NUMBERS. Design Template, 1920 x 1080: the ladder
+    // block is 198.7 x 235 at top 196, the floor grid is 1585.4 x 667.5 with
+    // its top edge at 329.2. So the stack starts 133.2 ABOVE the floor's top
+    // edge - 0.1995 of the floor's height - is 0.1253 of the floor wide, and
+    // is centred on the floor's own centre line. Read as ratios of the floor
+    // rather than of the canvas, because our floor scales and the reference's
+    // does not.
+    var LADDER_TOP_ABOVE_FLOOR = 0.1995;
+    var LADDER_WIDTH_SHARE = 0.1253;
+
+    var offset = top - frame.top - LADDER_TOP_ABOVE_FLOOR * floorH;
+    // Never off the top of the deck: at very short viewports the floor's own
+    // top edge is the floor for this stack too.
+    if (offset < 0) { offset = 0; }
 
     spine.style.top = offset.toFixed(1) + 'px';
     spine.style.left = ((left + right) / 2 - frame.left).toFixed(1) + 'px';
-    spine.style.width = Math.min(0.34 * (right - left), 190).toFixed(1) + 'px';
+    spine.style.width = Math.max(96, LADDER_WIDTH_SHARE * floorW).toFixed(1) + 'px';
   }
 
   // Billboarding: a face lying on the tilted floor plane is squashed, and a
