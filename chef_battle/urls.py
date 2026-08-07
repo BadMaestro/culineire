@@ -56,6 +56,8 @@ urlpatterns = [
     path("battles/<int:pk>/", views.battle_detail, name="battle_detail"),
     path("battles/<int:pk>/submit/", views.battle_entry_submit, name="battle_entry_submit"),
     path("battles/<int:pk>/vote/", views.battle_vote, name="battle_vote"),
+    # The fight has its own page - ARENA_BATTLE_PLAN section 2c.
+    path("battles/<int:pk>/broadcast/", views.battle_broadcast, name="battle_broadcast"),
     # Withdrawing from an accepted battle — Owner's rule, 2026-08-05
     path("battles/<int:pk>/withdraw/", views.battle_withdraw, name="battle_withdraw"),
     path("withdrawals/<int:pk>/decide/", views.battle_withdraw_decide, name="battle_withdraw_decide"),

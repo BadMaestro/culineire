@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.869",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The fight has its own page now - B02, B03, R01 and R02",
+        "section": "Chef Battles / Broadcast",
+        "summary": "ARENA_BATTLE_PLAN section 2c made real: the arena is a tabloid and the battle happens on a page of its own, which the centre cell now links to. NONE OF THE COMPOSITION WAS BUILT FOR THESE CARDS. It has existed since 2026-07-14 as the console build canvas, and arena_snapshot.py has been feeding it real data for just as long - viewers from BattleViewerPresence, likes from the reaction service, comments from BattleChatMessage, supporters from ViewerBattleGift, the stream URL from LiveStreamSession, the clan from an active ClanMembership. What was missing was a public route, a battle to point it at, and a result. All three landed: /chef-battle/battles/<pk>/broadcast/ behind the same dark-launch guard as the battle room, and _arena_center() now emits that URL instead of the battle room's. R01 WAS A REAL DEFECT, not a port: the canvas always crowned fx.left because a fixture has no result, so on a real battle the wrong chef would have been congratulated whenever the opponent won. Champion and runner-up come from battle.winner now, and a battle with NO winner - a draw, a void, a withdrawal - says so and claims nobody, because inventing a champion is the fake data this plan forbids. Six tests, including one that crowns the OPPONENT and fails if the left-hand chef appears in the champion block, and one that proves the page writes nothing to the battle it shows. B01, the header itself, stays open and unassigned. IF REVERTED: the centre goes back to the battle room and the result frame crowns whoever is on the left.",
+    },
+    {
         "version": "2.5.867",
         "date": "2026-08-07",
         "commit": "",

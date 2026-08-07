@@ -9,7 +9,10 @@
 
 {% block content %}
 {% include "chef_battle/_live_arena_svg.html" %}
-{% with complete=request.GET.state %}
+{# R01/R02: on the real page the RESULT decides which frame is shown, not a
+   query string. The ?state=complete toggle stays for the build canvas, where
+   there is no battle to ask. #}
+{% with complete=result_frame %}
 <div class="lap {% if complete == 'complete' %}lap--winner{% endif %}"
      data-battle-id="{{ fx.battle_id|default:'' }}"
      data-sequence="{{ fx.sequence|default:0 }}"
@@ -18,40 +21,48 @@
   {% if complete == 'complete' %}<div class="lap__confetti" id="lap-confetti"></div>{% endif %}
 
   <div class="lap__ribbon">
+    {% if is_broadcast %}
+    <span>&#9679; {{ fx.status_display }}{% if fx.theme %} &middot; {{ fx.theme }}{% endif %}</span>
+    <span class="lap__state-toggle">
+      <a href="{% url 'chef_battle:arena' %}">&#8592; Arena</a>
+      <a href="{% url 'chef_battle:battle_detail' fx.battle_id %}">Battle room</a>
+    </span>
+    {% else %}
     <span>&#9679; Live Arena — build preview{% if fx.is_fixture %} · DEV FIXTURE data{% endif %}</span>
     <span class="lap__state-toggle">
       <a href="?" class="{% if complete != 'complete' %}is-on{% endif %}">Live</a>
       <a href="?state=complete" class="{% if complete == 'complete' %}is-on{% endif %}">Winner</a>
     </span>
+    {% endif %}
   </div>
 
   {% if complete == 'complete' %}
   {# ── Battle Complete / Winner (reference frame 2) ── #}
   <div class="lap__winner">
     <div class="lap__winner-hero">
-      {% if fx.left.avatar_url %}<img class="lap__winner-portrait" src="{{ fx.left.avatar_url }}" alt="{{ fx.left.name }}">{% else %}<div class="lap__winner-portrait"></div>{% endif %}
+      {% with champ=fx.champion|default:fx.left %}{% if champ.avatar_url %}<img class="lap__winner-portrait" src="{{ champ.avatar_url }}" alt="{{ champ.name }}">{% else %}<div class="lap__winner-portrait"></div>{% endif %}{% endwith %}
       <div>
         <svg class="lap__shield" viewBox="0 0 120 140" aria-label="Champion"><use href="#la-shield"></use></svg>
         <div class="lap__congrats">Congratulations,</div>
-        <div class="lap__champ-name">{{ fx.left.name }}</div>
-        <div class="lap__champ-meta">&#127859; <b>{{ fx.left.rank }}</b><br>&#127807; <b>{{ fx.left.clan }}</b><br>&#127482;&#127480; <b>{{ fx.left.country }}</b></div>
+        <div class="lap__champ-name">{{ fx.champion.name|default:fx.left.name }}</div>
+        <div class="lap__champ-meta">&#127859; <b>{{ fx.champion.rank|default:fx.left.rank }}</b><br>&#127807; <b>{{ fx.champion.clan|default:fx.left.clan }}</b><br>&#127482;&#127480; <b>{{ fx.champion.country|default:fx.left.country }}</b></div>
       </div>
     </div>
     <div class="lap__runner">
       <small>Runner-up</small>
-      <div class="lap__runner-name">{{ fx.right.name }}</div>
-      <div class="lap__runner-meta">{{ fx.right.rank }} &middot; {{ fx.right.clan }} &middot; {{ fx.right.country }}</div>
+      <div class="lap__runner-name">{{ fx.runner_up.name|default:fx.right.name }}</div>
+      <div class="lap__runner-meta">{{ fx.runner_up.rank|default:fx.right.rank }} &middot; {{ fx.runner_up.clan|default:fx.right.clan }} &middot; {{ fx.runner_up.country|default:fx.right.country }}</div>
     </div>
   </div>
 
   <div class="lap__winner-banner">WINNER</div>
 
   <div class="lap__finalmetrics">
-    <div class="lap__fm lap__fm--win"><b>{{ fx.left.name|truncatewords:1 }} wins</b><small>Final result</small></div>
-    <div class="lap__fm"><b>{{ fx.left.likes }}</b><small>Likes</small></div>
-    <div class="lap__fm"><b>{{ fx.left.comments }}</b><small>Comments</small></div>
-    <div class="lap__fm"><b>{{ fx.left.viewers }}</b><small>Viewers</small></div>
-    <div class="lap__fm"><b>+{{ fx.left.supporters }}</b><small>Supports</small></div>
+    <div class="lap__fm lap__fm--win"><b>{% if fx.champion %}{{ fx.champion.name|truncatewords:1 }} wins{% else %}{{ fx.result_reason|default:"No winner" }}{% endif %}</b><small>Final result</small></div>
+    <div class="lap__fm"><b>{{ fx.champion.likes|default:fx.left.likes }}</b><small>Likes</small></div>
+    <div class="lap__fm"><b>{{ fx.champion.comments|default:fx.left.comments }}</b><small>Comments</small></div>
+    <div class="lap__fm"><b>{{ fx.champion.viewers|default:fx.left.viewers }}</b><small>Viewers</small></div>
+    <div class="lap__fm"><b>+{{ fx.champion.supporters|default:fx.left.supporters }}</b><small>Supports</small></div>
     <div class="lap__fm lap__fm--win"><b>&#10003;</b><small>Victory confirmed</small></div>
   </div>
 

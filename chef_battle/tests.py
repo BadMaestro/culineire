@@ -10736,3 +10736,102 @@ class ArenaPageHasNoBlockedOrUnlabelledResourcesTests(TestCase):
         block = source.split("arena-lampc__copy", 1)[1][:200]
         self.assertIn("aria-label", block)
         self.assertIn('id="arena-lamp-copy"', source)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class BattleBroadcastPageTests(TestCase):
+    """B02, B03, R01, R02 - the fight has its own page.
+
+    ARENA_BATTLE_PLAN section 2c: the arena is a tabloid and the battle happens
+    on a page of its own, reached from the centre cell. The composition has
+    existed since 2026-07-14 as a console build canvas fed by a fixture; these
+    cards are what turned it into a real page on a real battle.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.staff = User.objects.create_user(username="bc-staff", password="pw", is_staff=True)
+        self.a = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="bc-a", password="pw"),
+            name="Broadcast Challenger", slug="bc-a")
+        self.b = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="bc-b", password="pw"),
+            name="Broadcast Opponent", slug="bc-b")
+        for author in (self.a, self.b):
+            ChefBattleProfile.objects.create(author=author, enrolled_at=timezone.now())
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Broadcast theme",
+            status=Battle.Status.COOKING, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=6),
+            end_time=now + timezone.timedelta(hours=12),
+        )
+
+    def _get(self):
+        self.client.force_login(self.staff)
+        return self.client.get(
+            reverse("chef_battle:battle_broadcast", kwargs={"pk": self.battle.pk}))
+
+    def test_the_page_renders_the_real_battle(self):
+        response = self._get()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Broadcast Challenger")
+        self.assertContains(response, "Broadcast Opponent")
+        self.assertContains(response, "Broadcast theme")
+        # and it is NOT the fixture the console canvas falls back to
+        self.assertNotContains(response, "DEV FIXTURE")
+        self.assertNotContains(response, "Chef Aidan Byrne")
+
+    def test_a_live_battle_shows_the_live_frame_not_the_winner_frame(self):
+        response = self._get()
+
+        self.assertNotContains(response, "lap--winner")
+        self.assertNotContains(response, "BATTLE FINISHED")
+
+    def test_the_champion_is_the_chef_who_won_not_the_one_on_the_left(self):
+        """R01. The canvas always crowned fx.left, because a fixture has no
+        result. On a real battle the winner can be either side."""
+        self.battle.status = Battle.Status.COMPLETED
+        self.battle.winner = self.b          # the OPPONENT, the right-hand side
+        self.battle.loser = self.a
+        self.battle.result_reason = "Public vote: 3-2"
+        self.battle.save(update_fields=["status", "winner", "loser", "result_reason"])
+
+        response = self._get()
+        body = response.content.decode()
+
+        self.assertIn("lap--winner", body)
+        champion_block = body.split("lap__champ-name")[1][:200]
+        self.assertIn("Broadcast Opponent", champion_block)
+        runner_block = body.split("lap__runner-name")[1][:200]
+        self.assertIn("Broadcast Challenger", runner_block)
+
+    def test_a_battle_with_no_winner_claims_none(self):
+        """R02. A draw, a void or a withdrawal has no champion, and inventing
+        one would be exactly the fake data the arena plan forbids."""
+        self.battle.status = Battle.Status.VOID
+        self.battle.result_reason = "Void: neither chef appeared for the battle."
+        self.battle.save(update_fields=["status", "result_reason"])
+
+        response = self._get()
+
+        self.assertContains(response, "Void: neither chef appeared")
+        self.assertNotContains(response, "wins</b>")
+
+    def test_the_arena_centre_links_to_the_broadcast_page(self):
+        from chef_battle.views import _arena_center
+
+        centre = _arena_center(self.battle)
+        self.assertEqual(
+            centre["battle_url"],
+            reverse("chef_battle:battle_broadcast", kwargs={"pk": self.battle.pk}),
+        )
+
+    def test_the_page_writes_nothing_to_the_battle(self):
+        """A spectator reads. Nothing on this page may move a result."""
+        before = (self.battle.status, self.battle.winner_id, self.battle.result_reason)
+        self._get()
+        self.battle.refresh_from_db()
+        self.assertEqual(
+            (self.battle.status, self.battle.winner_id, self.battle.result_reason), before)

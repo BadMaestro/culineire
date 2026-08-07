@@ -941,7 +941,9 @@ def _arena_center(active_battle):
             "battle_phase": str(active_battle.status),
             "status_display": active_battle.get_status_display(),
             "theme": active_battle.theme,
-            "battle_url": reverse("chef_battle:battle_detail", kwargs={"pk": active_battle.pk}),
+            # Section 2c: the arena is a tabloid and the fight has its own page.
+            # This is the link the centre cell carries.
+            "battle_url": reverse("chef_battle:battle_broadcast", kwargs={"pk": active_battle.pk}),
             "popup_url": reverse("chef_battle:arena_battle_popup"),
             "challenger": _arena_fighter_payload(active_battle.challenger, "challenger"),
             "opponent": _arena_fighter_payload(active_battle.opponent, "opponent"),
@@ -3621,8 +3623,42 @@ def live_arena_preview(request):
     }
     from .arena_snapshot import build_arena_snapshot, get_current_arena_battle
     battle = get_current_arena_battle()
-    fx = _snapshot_to_fx(build_arena_snapshot(battle)) if battle is not None else fixture
-    return render(request, "chef_battle/live_arena_preview.html", {"fx": fx})
+    fx = _snapshot_to_fx(build_arena_snapshot(battle), battle) if battle is not None else fixture
+    return render(request, "chef_battle/live_arena_preview.html", {
+        "fx": fx,
+        "result_frame": request.GET.get("state", ""),
+    })
+
+
+@chef_battle_guard
+def battle_broadcast(request, pk):
+    """B02/B03/R01/R02 — the battle's own page, the one the arena sends a
+    spectator to when the fight starts (ARENA_BATTLE_PLAN section 2c).
+
+    It is the same composition the build canvas has carried since 2026-07-14,
+    on real data and behind the same visibility rules as the battle room: the
+    canvas was never a mockup to copy, it was this page waiting for a battle.
+    Nothing here writes; a spectator reads.
+    """
+    from .arena_snapshot import build_arena_snapshot
+
+    battle = get_object_or_404(
+        Battle.objects.select_related("challenger", "opponent", "winner", "loser"),
+        pk=pk,
+    )
+    # chef_battle_guard already applies the dark-launch tier rule; the import
+    # is the same one battle_detail uses for its own presence heartbeat.
+    from .services import record_viewer_presence as _record
+    _record(request, battle=battle)
+    fx = _snapshot_to_fx(build_arena_snapshot(battle), battle)
+    return render(request, "chef_battle/live_arena_preview.html", {
+        "fx": fx,
+        "battle": battle,
+        "is_broadcast": True,
+        # R01/R02: the RESULT decides which frame the page shows. The build
+        # canvas keeps its query-string toggle because it has no battle to ask.
+        "result_frame": "complete" if fx.get("finished") else "",
+    })
 
 
 def _fmt_hms(seconds) -> str:
@@ -3630,9 +3666,15 @@ def _fmt_hms(seconds) -> str:
     return f"{seconds // 3600:02d}:{(seconds % 3600) // 60:02d}:{seconds % 60:02d}"
 
 
-def _snapshot_to_fx(snap: dict) -> dict:
-    """Map an arena snapshot onto the frontend fixture shape (same keys)."""
-    return {
+def _snapshot_to_fx(snap: dict, battle=None) -> dict:
+    """Map an arena snapshot onto the frontend fixture shape (same keys).
+
+    R01/R02: when the battle is over, the page must show the REAL champion and
+    the REAL runner-up, not whichever chef happens to be on the left. The
+    snapshot already knows both sides; the result is the one thing it does not
+    carry, because it describes a battle in progress.
+    """
+    fx = {
         "is_fixture": False,
         "battle_id": snap["battle"]["id"],
         "theme": snap["battle"]["theme"],
@@ -3641,7 +3683,28 @@ def _snapshot_to_fx(snap: dict) -> dict:
         "left": snap["left"],
         "right": snap["right"],
         "chat": snap["chat"],
+        "finished": False,
     }
+    if battle is None:
+        return fx
+
+    finished = battle.status in {
+        Battle.Status.COMPLETED, Battle.Status.WALKOVER, Battle.Status.VOID,
+        Battle.Status.CANCELLED,
+    }
+    fx["finished"] = finished
+    fx["status_display"] = battle.get_status_display()
+    fx["result_reason"] = battle.result_reason or ""
+    if finished and battle.winner_id:
+        champion_is_challenger = battle.winner_id == battle.challenger_id
+        fx["champion"] = snap["left"] if champion_is_challenger else snap["right"]
+        fx["runner_up"] = snap["right"] if champion_is_challenger else snap["left"]
+    elif finished:
+        # A draw, a void or a withdrawal has no champion, and saying otherwise
+        # would be the fake data the arena plan forbids.
+        fx["champion"] = None
+        fx["runner_up"] = None
+    return fx
 
 
 @arena_console_guard
