@@ -2817,7 +2817,16 @@
   function measureHeader() {
     var header = document.querySelector(HEADER_SELECTOR);
     if (!header) { return false; }
-    var height = Math.round(header.getBoundingClientRect().height);
+    // A18, measured at 1920x1080 on production: the deck is sized
+    // 100svh - var(--arena-header-h), and this measured the HEADER ELEMENT
+    // alone - 146px - while the header itself starts 77px down the page,
+    // under the site utility bar. So the arena overflowed the screen by
+    // exactly the height of that bar at every width where it shows, and A07,
+    // which promises the whole arena on one screen, was quietly false.
+    // What the deck needs is not the header height but everything above it:
+    // the header box top plus its height, read from the viewport.
+    var box = header.getBoundingClientRect();
+    var height = Math.round(Math.max(0, box.top + window.scrollY) + box.height);
     if (!(height > 0)) { return false; }
     var next = height + 'px';
     if (document.documentElement.style.getPropertyValue('--arena-header-h') === next) {

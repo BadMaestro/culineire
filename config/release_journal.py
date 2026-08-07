@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.861",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The arena was overflowing the screen by the height of the utility bar - and four cards close",
+        "section": "Chef Battles / Arena",
+        "summary": "THE DEFECT, found by A18's own measurement at 1920x1080 and fixed because it was mine: the deck is sized 100svh minus var(--arena-header-h), and measureHeader() set that variable from the HEADER ELEMENT alone - 146px - while the header itself starts 77px down the page, under the site utility bar. So the arena overflowed the viewport by exactly the height of that bar, and A07's promise of the whole arena on one screen was quietly false wherever the bar shows. It now measures everything above the deck rather than the header's own height. CARDS CLOSED: A10 (hub 0.1202 of the floor against the reference 0.1198, recess without moving a single rank ring, glyph brought to the reference share, and the ladder moved off the crown on the Owner's instruction). A13 (the gifts panel was 30 per cent too tall and the excess was one paragraph the reference has no equivalent for; 0.208 against 0.207 after). A14 (the bottom strip ran edge to edge where the reference centres a band; content now 0.221 to 0.559 against 0.220 / 0.561). A15, verification only: layer order intact - shell, cells, crowd, sponsors, occupants, sparks, centre, walkway, balconies, oval - with 8 lanterns, 24 strobes, 41 crown light elements animating and 184 cell sparks with exactly the four seated chefs lit; the CSS floor dust is deliberately off and was before this work; the light rays exist as the crown cones. A16, audit only: zero standalone design K anywhere on the deck, the only mark on the page being the header's own CulinEire logo. LEFT OPEN ON A18, WHICH IS NOT MINE: two of the first six focusable controls show no focus ring at all, and the rank chips render at 9.2px. Reported rather than fixed - two agents on one card is what built A09's approach stage twice. IF REVERTED: the arena hangs 77px off the bottom of the screen again.",
+    },
+    {
         "version": "2.5.859",
         "date": "2026-08-07",
         "commit": "",

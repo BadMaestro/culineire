@@ -4,8 +4,8 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-06 · Production baseline: **v2.5.859**
-· Next assignable card: **A10**, GreenBear.
+Last reconciled: 2026-08-06 · Production baseline: **v2.5.861**
+· Next assignable card: **B01**, unassigned.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
 
@@ -339,13 +339,13 @@ forbidden changes and evidence for every row below.
 | A07 | Arena Hall | Stage framing and full-octagon composition | GreenBear | AR5 | DONE |
 | A08 | Arena Hall | Crowd bowl depth and atmospheric population | GreenBear | A06 | DONE |
 | A09 | Arena Hall | Live challenger/opponent composition | Bolt + GreenBear | A07 | DONE |
-| **A10** | Arena Hall | Crown-holder hub composition | GreenBear | A07 | **NEXT** |
+| A10 | Arena Hall | Crown-holder hub composition | GreenBear | A07 | DONE |
 | A11 | Furniture | Phase panel reference pass | Bolt | A06 | DONE |
 | A12 | Furniture | Crown ladder panel reference pass | Bolt | A06 | DONE |
-| A13 | Furniture | Recent gifts panel reference pass | GreenBear | A06 | PENDING |
-| A14 | Furniture | Bottom ticker and Join the Crowd composition | GreenBear | A06 | PENDING |
-| A15 | Arena Hall | Effects and artifacts preservation pass | GreenBear | A07–A10 | PENDING |
-| A16 | Arena Hall | CulinEire branding and K-mark audit | unassigned | A11–A14 | PENDING |
+| A13 | Furniture | Recent gifts panel reference pass | GreenBear | A06 | DONE |
+| A14 | Furniture | Bottom ticker and Join the Crowd composition | GreenBear | A06 | DONE |
+| A15 | Arena Hall | Effects and artifacts preservation pass | GreenBear | A07–A10 | DONE |
+| A16 | Arena Hall | CulinEire branding and K-mark audit | unassigned | A11–A14 | DONE |
 | A17 | Integrity | Truthful visual state matrix | unassigned | A09–A16 | PENDING |
 | A18 | Integrity | Desktop accessibility and responsive gate | Bolt + unassigned | A17 | PENDING |
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
@@ -354,7 +354,7 @@ forbidden changes and evidence for every row below.
 | SA-A2 | Arena | An accepted challenge seats the pair in adjacent cells, each in his own ring | Bolt | — | DONE v2.5.844 |
 | SA-A4 | Arena | That pairing is stable across leaving and returning | Bolt | SA-A2 | DONE v2.5.844 |
 | SA-A6 | Arena | Both Ready pulls the match in to 15 minutes and the pill climbs the queue | Bolt | — | DONE v2.5.844 |
-| B01 | Battle Broadcast | Broadcast shell and confrontation header | unassigned | A19 | PENDING |
+| **B01** | Battle Broadcast | Broadcast shell and confrontation header | unassigned | A19 | **NEXT** |
 | B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | PENDING |
 | B03 | Battle Broadcast | Broadcast chat and composer | unassigned | B02 | PENDING |
 | R01 | Result / Winner | Champion and runner-up result shell | unassigned | B03 | PENDING |
