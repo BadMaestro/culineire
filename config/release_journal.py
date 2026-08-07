@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.871",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "MC01 - the withdrawal is performed on the arena, not described; and the flaky event test is fixed",
+        "section": "Chef Battles / Emulation",
+        "summary": "MC01, second attempt, built the way his deletion of the first one taught. The original panel walked the withdrawal through the console as step cards and he deleted it the day it shipped: being a DESCRIPTION was the whole problem, because he checks the product by looking at the arena. So the three steps are PERFORMED now - emulation_withdrawal_step() drives ask, answer and verdict through the real withdrawal_service on the emulation battle. The allowance is really spent, the penalty is really applied through penalise(), the battle really ends CANCELLED with no loss and no winner. Four tests, including that nothing moves until the moderator speaks and that any battle which is not an emulation is refused. WHAT IS DELIBERATELY NOT BUILT is what it LOOKS like: those rows of ARENA_EMULATION_VISUAL_STEPS.md stay TO SPEC, and that file's own rule is that nobody guesses on his behalf. AND THE FLAKY TEST IS DEAD. ArenaMasterMonitorTests.test_event_log_append_only_ordering failed under --parallel and passed alone for weeks, on nobody's card, which made every green suite a coin toss. Cause: the monitor ordered an APPEND-ONLY log by -created_at alone, and auto_now_add can stamp several rows inside one clock tick, so three events written in a loop tie and Postgres may return them in any order. Ordering by -created_at then -id - the id IS the append order. Ran three times in a row, green each time. IF REVERTED: the log ties again and the withdrawal goes back to being narrated.",
+    },
+    {
         "version": "2.5.869",
         "date": "2026-08-07",
         "commit": "",

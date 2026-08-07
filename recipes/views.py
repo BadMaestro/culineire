@@ -3344,14 +3344,14 @@ ARENA_DESIGN_TASKS = [
         "group": "Master Console",
         "title": "Battle Cancellation Simulation - walk the withdrawal through, step by step",
         "status": "PENDING",
-        "owner": "Bolt",
+        "owner": "GreenBear",
         "files": "templates/chef_battle/arena_master_console.html; chef_battle/withdrawal_service.py (READ ONLY - reuse, do not re-implement)",
         "depends_on": "v2.5.830",
         "action": "Add a scenario to the Master Console Panel that steps through a battle withdrawal exactly as it will look on the real arena: (1) the chef presses Withdraw and writes his reason; (2) the other chef reads it and answers - without a penalty, or with one, which obliges him to say why; (3) a moderator has the final word and may rule against either of them. Nothing moves until the moderator speaks.",
         "visible_result": "Pressing the scenario in the console plays the three stages with what each actor sees at each one.",
         "acceptance": "The simulation calls the real service or mirrors it exactly; the penalty shown is 15 rating and 3 reputation; the battle ends CANCELLED with no loss and no winner; the three-per-account allowance and the dark button are shown.",
         "forbidden": "Do not re-implement the rule in the console - every guard is in withdrawal_service.py and covered by BattleWithdrawalTests. Do not merge it with the operator CANCEL action in P03_TRANSITION_MATRIX: that is an operator acting from above, this is a chef asking and a moderator answering. Nothing may route around penalise() (section 18).",
-        "evidence": "OWNER'S INSTRUCTION, 2026-08-06: the withdrawal flow shipped in v2.5.830 must also exist inside the Master Console Panel as a Battle Cancellation Simulation, showing every step as it will look on the real arena. Handed to Bolt on the Carpet as message #3491, together with the full synchronisation of current work the Owner asked for.",
+        "evidence": "MECHANISM SHIPPED v2.5.871; THE PICTURE IS STILL THE OWNER'S. The first MC01 was a console panel that walked the withdrawal through in step cards, and he deleted it the day it shipped - being a DESCRIPTION was the whole problem, because he checks the product by looking at the arena. So the three steps are PERFORMED now instead of narrated: emulation_withdrawal_step() drives ask, answer and verdict through the real withdrawal_service on the emulation battle, so the allowance is really spent, the penalty is really applied by penalise(), and the battle really ends CANCELLED with no loss and no winner. Four tests hold it, including that NOTHING moves until the moderator speaks and that it refuses any battle which is not an emulation. WHAT IS DELIBERATELY NOT BUILT: what any of it LOOKS like on the arena. ARENA_EMULATION_VISUAL_STEPS.md keeps those rows TO SPEC, and its own rule is that nobody guesses on his behalf. The states exist now; he says how they read. OWNER'S INSTRUCTION, 2026-08-06: the withdrawal flow shipped in v2.5.830 must also exist inside the Master Console Panel as a Battle Cancellation Simulation, showing every step as it will look on the real arena. Handed to Bolt on the Carpet as message #3491, together with the full synchronisation of current work the Owner asked for.",
     },
     {
         "id": "X01", "group": "Audit 2026-08-05", "title": "The list of upcoming battles does not exist",
@@ -3533,7 +3533,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "3fa10983 / production v2.5.869",
+        "commit": "3fa10983 / production v2.5.871",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

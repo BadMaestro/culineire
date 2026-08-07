@@ -10835,3 +10835,127 @@ class BattleBroadcastPageTests(TestCase):
         self.battle.refresh_from_db()
         self.assertEqual(
             (self.battle.status, self.battle.winner_id, self.battle.result_reason), before)
+
+
+class EmulationWithdrawalScenarioTests(TestCase):
+    """MC01, scenario B: the withdrawal PERFORMED on the emulation battle.
+
+    The first MC01 was a console panel describing the flow in step cards, and
+    the Owner deleted it the day it shipped - being a description was the whole
+    problem. These steps do it instead: the real service, the real allowance,
+    the real penalty, the real CANCELLED battle. What it should LOOK like on the
+    arena is still his to dictate, and nothing here guesses.
+    """
+
+    def setUp(self):
+        from django.conf import settings as dj_settings
+        from .models import BattleWithdrawal
+        User = get_user_model()
+        self.W = BattleWithdrawal
+        owner = RecipeAuthor.objects.filter(slug=dj_settings.OWNER_SLUG).first()
+        if owner is None:
+            owner = RecipeAuthor.objects.create(
+                user=User.objects.create_user(username="emu-owner", password="pw",
+                                              is_staff=True, is_superuser=True),
+                name="Owner", slug=dj_settings.OWNER_SLUG)
+        if owner.user is None:
+            owner.user = User.objects.create_user(
+                username="emu-owner-user", password="pw", is_staff=True, is_superuser=True)
+            owner.save(update_fields=["user"])
+        self.owner = owner
+
+        self.alpha = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="emu-w-a", password="pw"),
+            name="EMU W Alpha", slug="emu-w-a")
+        self.beta = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="emu-w-b", password="pw"),
+            name="EMU W Beta", slug="emu-w-b")
+        for author in (self.alpha, self.beta):
+            ChefBattleProfile.objects.create(
+                author=author, enrolled_at=timezone.now(), rating=100, reputation=50)
+
+        from .emulation import EMU_THEME_PREFIX
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.alpha, opponent=self.beta,
+            theme=f"{EMU_THEME_PREFIX} withdrawal",
+            status=Battle.Status.SCHEDULED, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=6),
+            end_time=now + timezone.timedelta(hours=12),
+        )
+
+    def _step(self, step, **kw):
+        from .emulation import emulation_withdrawal_step
+        return emulation_withdrawal_step(
+            battle_id=self.battle.pk, operator_author=self.owner, step=step, **kw)
+
+    def test_the_three_steps_run_the_real_service_end_to_end(self):
+        from .services import get_or_create_battle_profile
+
+        asked = self._step("ask")
+        self.assertEqual(asked["allowance_left"], 2)          # really spent
+        self.assertEqual(
+            self.W.objects.get(battle=self.battle).status,
+            self.W.Status.AWAITING_OPPONENT)
+
+        answered = self._step("answer", with_penalty=True)
+        self.assertIn("with_penalty", answered["note"])
+        self.assertEqual(
+            self.W.objects.get(battle=self.battle).status,
+            self.W.Status.AWAITING_MODERATOR)
+
+        # Nothing has moved yet: only the moderator moves numbers.
+        profile = get_or_create_battle_profile(self.alpha)
+        self.assertEqual(profile.rating, 100)
+
+        verdict = self._step("verdict")
+        self.assertTrue(verdict["penalty_applied"])
+        profile.refresh_from_db()
+        self.assertEqual(profile.rating, 85)         # the Owner's 15
+        self.assertEqual(profile.reputation, 47)     # and his 3
+        self.assertEqual(profile.losses, 0)          # a withdrawal is not a defeat
+
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
+        self.assertIsNone(self.battle.winner)
+
+    def test_the_waived_route_takes_nothing(self):
+        from .services import get_or_create_battle_profile
+
+        self._step("ask")
+        self._step("answer", with_penalty=False)
+        self._step("verdict")
+
+        profile = get_or_create_battle_profile(self.alpha)
+        self.assertEqual(profile.rating, 100)
+        self.assertEqual(profile.reputation, 50)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
+
+    def test_the_steps_cannot_be_run_out_of_order(self):
+        from .services import OperatorActionError
+
+        with self.assertRaises(OperatorActionError):
+            self._step("answer")
+        with self.assertRaises(OperatorActionError):
+            self._step("verdict")
+        self._step("ask")
+        with self.assertRaises(OperatorActionError):
+            self._step("verdict")          # the other chef has not answered
+        with self.assertRaises(OperatorActionError):
+            self._step("ask")              # one open request at a time
+
+    def test_it_refuses_a_battle_that_is_not_an_emulation(self):
+        from .services import OperatorActionError
+        from .emulation import emulation_withdrawal_step
+
+        now = timezone.now()
+        real = Battle.objects.create(
+            challenger=self.alpha, opponent=self.beta, theme="A real battle",
+            status=Battle.Status.SCHEDULED, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=6),
+            end_time=now + timezone.timedelta(hours=12),
+        )
+        with self.assertRaises(OperatorActionError):
+            emulation_withdrawal_step(
+                battle_id=real.pk, operator_author=self.owner, step="ask")

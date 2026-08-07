@@ -639,7 +639,14 @@ def get_master_monitor(battles=None) -> dict:
     battle_ids = [b.pk for b in battles]
     events = list(
         BattleEvent.objects.filter(battle_id__in=battle_ids)
-        .order_by("-created_at")
+        # -id after -created_at, and it is not decoration. auto_now_add can
+        # stamp several rows inside the same clock tick, so three events written
+        # in one loop tie and Postgres is free to return them in any order -
+        # which is why ArenaMasterMonitorTests.test_event_log_append_only_ordering
+        # failed under --parallel and passed alone, for weeks, on nobody's card.
+        # The id is the append order, and an append-only log ordered by anything
+        # else is not append-only.
+        .order_by("-created_at", "-id")
         .values("id", "battle_id", "event_type", "message", "created_at", "is_public")[:20]
     )
     for e in events:

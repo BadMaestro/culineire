@@ -272,3 +272,101 @@ def emulation_step(*, battle_id, operator_author, correlation_id="") -> dict:
     )
     return {"battle_id": battle.pk, "before": before,
             "after": battle.status, **detail}
+
+
+# ── MC01, scenario B: the withdrawal, run for real ───────────────────────────
+#
+# The Owner deleted the first MC01 on the day it shipped: it walked the
+# withdrawal through the console as step cards, three columns of text per step,
+# and being a DESCRIPTION was the whole problem. He checks the product by
+# looking at the arena.
+#
+# So this is the same three steps as `withdrawal_service`, performed rather than
+# narrated: the bot asks, the other bot answers, a moderator rules. Everything
+# goes through the real service - the allowance is really spent, the battle
+# really ends CANCELLED, the penalty is really applied by penalise() - so what
+# he sees on the arena is what a chef would cause.
+#
+# WHAT IT DELIBERATELY DOES NOT DO: decide what any of it LOOKS like. The rows
+# of ARENA_EMULATION_VISUAL_STEPS.md for this scenario are TO SPEC and stay that
+# way until he says what should appear on the screen. This builds the states; he
+# says how they read.
+
+WITHDRAWAL_STEPS = ("ask", "answer", "verdict")
+
+
+def emulation_withdrawal_step(*, battle_id, operator_author, step,
+                              with_penalty=True, correlation_id="") -> dict:
+    """Perform one step of a withdrawal on the emulation battle.
+
+    step="ask"     - the challenger bot asks to withdraw, spending an allowance
+    step="answer"  - the opponent bot answers, with or without a penalty
+    step="verdict" - the operator, as moderator, closes it
+    """
+    from .models import BattleWithdrawal
+    from .withdrawal_service import (
+        decide_withdrawal, open_withdrawal_for, request_withdrawal,
+        resolve_withdrawal, withdrawals_left, WithdrawalNotAllowed,
+    )
+
+    _require_owner(operator_author)
+    if step not in WITHDRAWAL_STEPS:
+        raise OperatorActionError(f"Unknown withdrawal step '{step}'.")
+    try:
+        battle = Battle.objects.select_related("challenger", "opponent").get(pk=battle_id)
+    except Battle.DoesNotExist:
+        raise OperatorActionError("Battle not found.")
+    if not battle.theme.startswith(EMU_THEME_PREFIX):
+        raise OperatorActionError("Not an emulation battle.")
+
+    before = battle.status
+    open_request = open_withdrawal_for(battle)
+
+    try:
+        if step == "ask":
+            if open_request is not None:
+                raise OperatorActionError("This battle already has an open withdrawal.")
+            withdrawal = request_withdrawal(
+                battle=battle, author=battle.challenger,
+                reason="Emulation: the kitchen flooded an hour before service.",
+            )
+            detail = {
+                "note": "withdrawal asked for",
+                "allowance_left": withdrawals_left(battle.challenger),
+            }
+        elif step == "answer":
+            if open_request is None:
+                raise OperatorActionError("Nothing to answer - ask first.")
+            withdrawal = decide_withdrawal(
+                withdrawal=open_request, author=battle.opponent,
+                with_penalty=bool(with_penalty),
+                opponent_reason=("Emulation: this is the third time." if with_penalty else ""),
+            )
+            detail = {"note": f"other chef answered: {withdrawal.opponent_decision}"}
+        else:
+            if open_request is None:
+                raise OperatorActionError("Nothing to rule on.")
+            if open_request.status != BattleWithdrawal.Status.AWAITING_MODERATOR:
+                raise OperatorActionError("The other chef has not answered yet.")
+            uphold = open_request.opponent_decision == BattleWithdrawal.OpponentDecision.WITH_PENALTY
+            withdrawal = resolve_withdrawal(
+                withdrawal=open_request,
+                moderator=getattr(operator_author, "user", None),
+                uphold_penalty=uphold,
+                note="Emulation: moderator upheld the other chef's answer.",
+            )
+            detail = {
+                "note": "moderator closed it",
+                "penalty_applied": withdrawal.penalty_applied,
+            }
+    except WithdrawalNotAllowed as exc:
+        raise OperatorActionError(str(exc)) from exc
+
+    battle.refresh_from_db()
+    _operator_event(
+        battle=battle, operator_author=operator_author,
+        action=f"emulation_withdrawal_{step}", before=before, after=battle.status,
+        reason=detail.get("note", ""), correlation_id=correlation_id, extra=detail,
+    )
+    return {"battle_id": battle.pk, "step": step, "before": before,
+            "after": battle.status, **detail}
