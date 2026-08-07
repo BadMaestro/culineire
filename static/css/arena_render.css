@@ -176,29 +176,6 @@
 }
 
 /* The ring signs itself once per octagon face, gold on velvet. */
-/* THE RINGS CARRY THEIR NUMBERS — Owner, 2026-08-07: "красиво и элегантно
-   пронумеровать кольца и лестницу." One to eight from the centre out, the same
-   value data-ring already carries, drawn by numberTheRings() into the ring's
-   own leftmost cell so the eight numerals face the eight rungs across the
-   octagon. Quiet on purpose: this is a key, not a label, and the floor's job is
-   to show chefs. The ink flips on the ramp's dark half - the same luminance
-   test the ladder uses, on the same fill. */
-.page--arena #arena-render .arena-ring-numeral {
-  fill: var(--ink);
-  font-family: var(--font-sans);
-  /* 13px measured out at nine physical pixels once the fit had scaled the
-     octagon down - present in the DOM, unreadable on the screen. */
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  opacity: 0.42;
-  paint-order: stroke fill;
-}
-.page--arena #arena-render .arena-ring-numeral[data-on-dark="true"] {
-  fill: var(--surface);
-  opacity: 0.55;
-}
-
 .page--arena #arena-render .arena-vip-label {
   fill: var(--arena-vip-gold);
   font-family: var(--font-sans);
@@ -753,16 +730,6 @@
  * which is the whole job. No new colour is introduced - the same two tokens,
  * mixed further back.
  */
-#arena-render .arena-floor-fighter--empty .arena-floor-fighter__tile {
-  stroke-opacity: .5;
-  stroke-width: 1.6;
-}
-#arena-render .arena-floor-fighter--empty.arena-floor-fighter--challenger .arena-floor-fighter__tile {
-  fill: color-mix(in srgb, var(--hall-green) 7%, var(--surface));
-}
-#arena-render .arena-floor-fighter--empty.arena-floor-fighter--opponent .arena-floor-fighter__tile {
-  fill: color-mix(in srgb, var(--hall-red) 7%, var(--surface));
-}
 #arena-render .arena-floor-fighter__name {
   fill: var(--surface);
   font-family: var(--font-serif, "Playfair Display", serif);

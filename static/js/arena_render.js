@@ -1791,13 +1791,15 @@
       stage.setAttribute('data-occupancy', type === 'crown' ? 'crown' : 'stage');
     }
 
-    // The pads belong to the floor and are drawn whatever the centre is doing -
-    // including when it is doing nothing at all, which is the state an empty
-    // arena is in most of the time.
-    if (type !== 'active_battle' && type !== 'facing_pair') {
-      drawEmptyFighterPad(layer, { x: cx - offset, y: cy }, padR, 'challenger');
-      drawEmptyFighterPad(layer, { x: cx + offset, y: cy }, padR, 'opponent');
-    }
+    // THE PADS APPEAR WHEN THE FIGHT DOES. Owner, 2026-08-07: "скрой ячейки для
+    // шефов перед боем - пусть они появляются только когда шефы начинают бой."
+    //
+    // This reverses v2.5.848, which drew them permanently and then muted them on
+    // his instruction of the same day. The muting was the half-measure; the
+    // decision now is that an idle floor has no fighting cells on it at all, and
+    // the two hexes ARE the announcement that a bout has started. Nothing else
+    // in stampFloorCentre changes: an occupied centre still draws them through
+    // drawFloorFighter, which is the only path that ever put a chef on one.
     if (!type) { return; }
 
     if (type === 'active_battle' || type === 'facing_pair') {
@@ -2342,29 +2344,6 @@
     layer.appendChild(group);
   }
 
-  /**
-   * The pad with nobody on it. Same hex, same place, same plane as the filled
-   * one - it is the floor's own shape and must not come and go with a battle.
-   * No avatar, no name shade, no label: an empty seat, not a ghost of a chef.
-   */
-  function drawEmptyFighterPad(layer, centre, radius, side) {
-    if (!layer || !centre) { return; }
-    var points = hexPoints(centre.x, centre.y, radius).map(pointString).join(' ');
-    var group = el('g', {
-      class: 'arena-floor-fighter arena-floor-fighter--' + side
-        + ' arena-floor-fighter--empty',
-      'data-floor-side': side,
-      'data-floor-state': 'empty',
-      'pointer-events': 'none'
-    });
-    group.appendChild(el('polygon', {
-      points: points,
-      class: 'arena-floor-fighter__tile',
-      'vector-effect': 'non-scaling-stroke'
-    }));
-    layer.appendChild(group);
-  }
-
   function drawFloorFighter(svg, layer, fighter, centre, radius, side) {
     if (!fighter || !centre) { return; }
     var pts = hexPoints(centre.x, centre.y, radius);
@@ -2890,7 +2869,6 @@
     billboardFaces(svg);
     placeRankSpine(svg);
     paintRankLadder(svg);
-    numberTheRings(svg);
   }
 
   // THE LADDER WEARS ITS RINGS' OWN COLOURS. Owner, 2026-08-07.
@@ -2925,82 +2903,12 @@
       var rgb = fill.match(/\d+(\.\d+)?/g);
       if (!rgb || rgb.length < 3) { continue; }
       var lum = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
-      var onDark = lum < 0.55 ? 'true' : 'false';
-      steps[i].setAttribute('data-on-dark', onDark);
-      // The rim is drawn by the item BEHIND the chip - see the stylesheet for
-      // why it cannot be drawn by the chip itself - so the item needs the same
-      // answer about how dark it is standing on.
-      var item = steps[i].closest('.arena-rank-spine__item');
-      if (item) { item.setAttribute('data-on-dark', onDark); }
+      // The chip needs this for its ink and its lift. The ITEM behind it, which
+      // draws the rim, deliberately does not: the Owner ruled on 2026-08-07
+      // that all eight rims are one colour, so nothing there varies with the
+      // fill and the attribute was stamped on it for nobody.
+      steps[i].setAttribute('data-on-dark', lum < 0.55 ? 'true' : 'false');
     }
-  }
-
-  // AND THE RINGS CARRY THE SAME NUMBERS. Owner, 2026-08-07: number the rings
-  // and the ladder. One to eight from the centre outward, which is what
-  // data-ring already counts, so the numeral on the floor and the numeral on
-  // the rung are the same value from the same source.
-  //
-  // The numeral sits in the ring's own leftmost cell, opposite the ladder,
-  // which puts eight numerals down the left of the octagon facing eight rungs
-  // down the right. It is placed in a CELL rather than at a computed radius so
-  // it cannot land in a seam, and it is drawn into the SVG so it takes the
-  // camera and the fit with everything else instead of floating over them.
-  function numberTheRings(svg) {
-    var old = svg.querySelectorAll('[data-ring-numeral]');
-    for (var o = 0; o < old.length; o++) { old[o].remove(); }
-
-    var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
-    if (!cells.length) { return; }
-
-    var byRing = {};
-    var sumX = 0, sumY = 0, n = 0;
-    for (var i = 0; i < cells.length; i++) {
-      var ring = cells[i].getAttribute('data-ring');
-      var x = parseFloat(cells[i].getAttribute('data-centroid-x'));
-      var y = parseFloat(cells[i].getAttribute('data-centroid-y'));
-      if (!ring || isNaN(x) || isNaN(y)) { continue; }
-      if (!byRing[ring]) { byRing[ring] = []; }
-      byRing[ring].push({ node: cells[i], x: x, y: y });
-      sumX += x; sumY += y; n++;
-    }
-    if (!n) { return; }
-    var cx = sumX / n, cy = sumY / n;
-
-    Object.keys(byRing).forEach(function (ring) {
-      var candidates = byRing[ring];
-      var best = null;
-      for (var j = 0; j < candidates.length; j++) {
-        if (candidates[j].x >= cx) { continue; }
-        var off = Math.abs(candidates[j].y - cy);
-        if (!best || off < best.off) { best = { seat: candidates[j], off: off }; }
-      }
-      if (!best) { return; }
-      var seat = best.seat;
-      // Same luminance test as the ladder, on the same fill, so a numeral and
-      // its rung are never one light and one dark for the same ring.
-      var onDark = 'false';
-      var fill = global.getComputedStyle(seat.node).fill;
-      var rgb = fill ? fill.match(/\d+(\.\d+)?/g) : null;
-      if (rgb && rgb.length >= 3) {
-        var lum = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
-        onDark = lum < 0.55 ? 'true' : 'false';
-      }
-      // X from the cell, Y from the octagon's own centre line. Taking both from
-      // the cell staggered the eight numerals over 44px of scatter, because the
-      // rings hold different numbers of cells and no two centroids land at the
-      // same height. On the centre line they read as one row stepping outward,
-      // which is the thing being numbered.
-      var numeral = el('text', {
-        x: seat.x.toFixed(2), y: cy.toFixed(2),
-        'text-anchor': 'middle', 'dominant-baseline': 'central',
-        'pointer-events': 'none',
-        'data-ring-numeral': ring,
-        'data-on-dark': onDark,
-        class: 'arena-ring-numeral'
-      });
-      numeral.textContent = ring;
-      seat.node.parentNode.appendChild(numeral);
-    });
   }
 
   // 3G R4 (Owner D1 Option B): desktop centred stack is CSS-owned
@@ -3122,8 +3030,16 @@
 
     spine.style.transformOrigin = 'top left';
     spine.style.transform = scale < 1 ? 'scale(' + scale.toFixed(3) + ')' : 'none';
-    spine.style.top = y.toFixed(1) + 'px';
-    spine.style.left = x.toFixed(1) + 'px';
+    // WHOLE PIXELS. Owner, 2026-08-07: the rungs look like different heights
+    // and the type inside them sits at different levels. Measured: they are
+    // identical to the hundredth - 21.59px each, text centred with zero offset,
+    // no rotation and no skew anywhere above them. What differs is where each
+    // one LANDS: a fractional top puts every rung on a different subpixel, so
+    // the browser renders one 1px rim as 1px and the next as 2px and rasterises
+    // the type against a different grid each time. Rounding here, and an
+    // integer row pitch in the stylesheet, put every edge on a device pixel.
+    spine.style.top = Math.round(y) + 'px';
+    spine.style.left = Math.round(x) + 'px';
     // WIDTH IS NOT SET HERE. It was 0.1253 of the floor - the reference's own
     // share - and at his window that clipped CULINARY MASTER and EXECUTIVE CHEF
     // mid-word, because the reference's share is a consequence of ITS type size

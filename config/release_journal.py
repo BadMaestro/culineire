@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.890",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The numbers come off the octagon, the empty pads go, one rim for all eight, and the ladder lands on whole pixels",
+        "section": "Chef Battles / Arena",
+        "summary": "Five instructions from the Owner in one deploy. ONE RIM: rungs 3, 2 and 1 take the same bronze as the rest - they had a pale rim on the reasoning that a dark line on a dark chip would vanish, and it does not, because those three fill #52422e through #9b8467 against a light deck and have a shape whatever their rim does; the pale line only announced that three of eight were built differently. THE NUMBERS COME OFF THE FLOOR: the ladder stands to the RIGHT of the octagon and the numerals were landing on the LEFT, naming the rings from the opposite side of the floor. numberTheRings(), its stylesheet rules and its three tests are removed whole, not switched off. THE EMPTY PADS GO: v2.5.848 drew the two centre cells permanently and muted them the same day; the muting was the half-measure and an idle floor now has no fighting cells at all, so the two hexes ARE the announcement that a bout has started. THE DIVIDER COMES BACK: it was a border on the numeral and went absolute with it, which was never asked for; it is a rule of its own at a fixed offset now, standing in one place on all eight rungs. AND THE LADDER LANDS ON WHOLE PIXELS: he asked whether a rotation or a skew was being applied to it. Neither - measured, every rung is 21.59px with its text centred to zero offset and no transform anywhere above it. The row pitch was 26.39px, so each rung after the first sat on a different subpixel and the browser drew one 1px rim as 1px and the next as 2px. Gap 0.15rem (2.4px) becomes 4px, the rung becomes 22px, placeRankSpine rounds its own top and left, and the eight tops measure 322, 350, 378, 406, 434, 462, 490, 518. IF REVERTED: numerals on the wrong side of the floor, two grey cells on an idle arena, and eight identical chips rendering as eight slightly different ones.",
+    },
+    {
         "version": "2.5.888",
         "date": "2026-08-07",
         "commit": "1d041665",

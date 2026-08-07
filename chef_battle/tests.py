@@ -10475,13 +10475,14 @@ class ArenaRunwayTests(TestCase):
         self.assertIsNotNone(_build_arena_payload()["runway"])
 
 
-class FighterPadsBelongToTheFloorTests(TestCase):
-    """OWNER, 2026-08-07: the two cells beside the centre are part of the design
-    and stay put.
+class FighterPadsAppearWithTheFightTests(TestCase):
+    """OWNER, 2026-08-07: "скрой ячейки для шефов перед боем - пусть они
+    появляются только когда шефы начинают бой."
 
-    They used to be drawn only while a bout was on, so clearing a battle took
-    two holes out of the arena's composition and the floor changed shape
-    depending on whether anyone happened to be fighting.
+    This reverses v2.5.848, which drew the two pads permanently and then muted
+    them on his instruction the same day. The muting was the half-measure: an
+    idle floor has no fighting cells on it at all now, and the two hexes ARE the
+    announcement that a bout has started.
 
     Asserted against the renderer source, the way this suite already checks the
     balcony counts: there is no JS runner here, and a rule that lives only in a
@@ -10496,39 +10497,37 @@ class FighterPadsBelongToTheFloorTests(TestCase):
             Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
         ).read_text(encoding="utf-8")
 
-    def test_an_empty_pad_is_drawn_at_all(self):
-        self.assertIn("function drawEmptyFighterPad", self._source())
+    def test_nothing_draws_an_empty_pad_any_more(self):
+        """Removed rather than switched off - a dormant drawer of fake floor
+        furniture is the kind of thing that gets called again by accident."""
+        self.assertNotIn("drawEmptyFighterPad", self._source())
 
-    def test_the_pads_do_not_wait_for_a_centre(self):
-        """The early return on an empty centre used to skip them entirely, which
-        is the state an idle arena is in most of the time."""
-        source = self._source()
-        body = source.split("function stampFloorCentre", 1)[1].split(
+    def test_an_idle_centre_leaves_the_floor_alone(self):
+        """The bail-out on an empty centre is now the FIRST thing that happens
+        after the stage attributes, so an idle arena paints no pads."""
+        body = self._source().split("function stampFloorCentre", 1)[1].split(
             "function octagonPathD", 1
         )[0]
-        pads_at = body.index("drawEmptyFighterPad")
         bail_at = body.index("if (!type) { return; }")
-        self.assertLess(
-            pads_at, bail_at,
-            "the pads are drawn after the bail-out, so an idle arena loses them",
-        )
+        fighters_at = body.index("drawFloorFighter(")
+        self.assertLess(bail_at, fighters_at)
 
-    def test_a_battle_still_fills_them_rather_than_stacking_on_them(self):
-        """Occupied and empty are exclusive - two pads, never four."""
-        source = self._source()
-        body = source.split("function stampFloorCentre", 1)[1].split(
+    def test_a_battle_still_draws_both_of_them(self):
+        """The only path that ever put a chef on a pad is untouched."""
+        body = self._source().split("function stampFloorCentre", 1)[1].split(
             "function octagonPathD", 1
         )[0]
-        self.assertIn("if (type !== 'active_battle' && type !== 'facing_pair')", body)
+        self.assertIn("if (type === 'active_battle' || type === 'facing_pair')", body)
+        self.assertEqual(body.count("drawFloorFighter("), 2)
 
-    def test_the_empty_pad_invents_no_identity(self):
-        """No avatar, no name, no shade. An empty seat, not a ghost of a chef."""
-        source = self._source()
-        pad = source.split("function drawEmptyFighterPad", 1)[1].split(
-            "function drawFloorFighter", 1
-        )[0]
-        for forbidden in ("avatar_url", "__identity-shade", "fighter.name"):
-            self.assertNotIn(forbidden, pad, f"the empty pad draws {forbidden}")
+    def test_the_stylesheet_keeps_no_orphan_rules_for_them(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_render.css"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("arena-floor-fighter--empty", css)
 
 
 class RehearsalBattlesTakeNothingTests(TestCase):
@@ -11281,14 +11280,6 @@ class ArenaRingNumberingTests(TestCase):
         self.assertIn("getComputedStyle(cell).fill", body)
         self.assertIn('[data-ring-kind="rank"][data-ring="', body)
 
-    def test_the_ladder_and_the_floor_read_the_same_attribute(self):
-        """The numeral drawn on the ring and the numeral on the rung must come
-        from one source, or the two halves of a key disagree."""
-        js = self._js()
-        drawing = js.split("function numberTheRings(", 1)[1].split("\n  }", 1)[0]
-        self.assertIn("getAttribute('data-ring')", drawing)
-        self.assertIn("'data-ring-numeral': ring", drawing)
-
     def test_the_ink_flips_on_the_dark_half_of_the_ramp(self):
         """The ramp runs from #52422e to near-white. One fixed text colour is
         unreadable at one end of it, whichever end is chosen."""
@@ -11303,21 +11294,6 @@ class ArenaRingNumberingTests(TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn('.arena-rank-spine__step[data-on-dark="true"]', css)
         self.assertIn('.arena-rank-spine__step[data-on-dark="false"]', css)
-
-    def test_the_numerals_are_redrawn_rather_than_piled_up(self):
-        """The scene is rebuilt on resize. Without the sweep the octagon
-        collects a numeral per re-fit."""
-        drawing = self._js().split("function numberTheRings(", 1)[1].split("\n  }", 1)[0]
-        self.assertIn("querySelectorAll('[data-ring-numeral]')", drawing)
-        self.assertIn("remove()", drawing)
-
-    def test_the_numerals_sit_on_one_line(self):
-        """Taking both coordinates from the cell scattered the eight numerals
-        over 44px, because the rings hold different numbers of cells and no two
-        centroids land at the same height."""
-        drawing = self._js().split("function numberTheRings(", 1)[1].split("\n  }", 1)[0]
-        self.assertIn("y: cy.toFixed(2)", drawing)
-        self.assertNotIn("y: seat.y.toFixed(2)", drawing)
 
     def test_the_edge_is_drawn_after_the_clip_not_before_it(self):
         """Owner, 2026-08-07: "границы лестницы плохо видны."
@@ -11366,3 +11342,62 @@ class ArenaRingNumberingTests(TestCase):
         self.assertIn("left:", ring)
         name = block.split(".arena-rank-spine__name {", 1)[1].split("}", 1)[0]
         self.assertIn("text-align: center", name)
+
+    def test_the_divider_is_back_and_stands_on_its_own(self):
+        """Owner, 2026-08-07: the line between the numeral and the name comes
+        back. It was a border on the numeral, so going absolute took it away;
+        as a rule of its own it stands at one offset on all eight rungs instead
+        of following the width of a digit."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+        ).read_text(encoding="utf-8")
+        rule = css.split(".arena-rank-spine__step::before {", 1)[1].split("}", 1)[0]
+        self.assertIn("width: 1px", rule)
+        self.assertIn("position: absolute", rule)
+
+    def test_the_floor_carries_no_numerals(self):
+        """Owner, 2026-08-07: take the numbers off the octagon. The ladder is on
+        the right and the numerals were landing on the left, which named the
+        rings from the wrong side of the floor."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        js = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("numberTheRings", js)
+        self.assertNotIn("data-ring-numeral", js)
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_render.css"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("arena-ring-numeral", css)
+
+    def test_the_ladder_lands_on_whole_pixels(self):
+        """Owner, 2026-08-07: the rungs look like different heights and the type
+        inside them sits at different levels.
+
+        They are identical to the hundredth and nothing above them is rotated or
+        skewed. What differed was where each one LANDED: 0.15rem measured 2.4px,
+        so every rung after the first sat on a fraction of a pixel, one 1px rim
+        rendered as 1px and the next as 2px, and the type rasterised against a
+        different grid each time.
+        """
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        js = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        place = js.split("function placeRankSpine(", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("Math.round(y)", place)
+        self.assertIn("Math.round(x)", place)
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("gap: 0.15rem;", css)
+        self.assertIn("min-height: 1.375rem;", css)

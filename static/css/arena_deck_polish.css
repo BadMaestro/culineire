@@ -2823,7 +2823,11 @@
     color: var(--accent-bronze-dark);
   }
   .arena-rank-spine__list {
-    gap: 0.15rem;
+    /* 0.15rem measured 2.4px, which put every rung after the first on a
+       fraction of a pixel and made eight identical chips render as eight
+       slightly different ones. Four whole pixels; the rung itself is 22 plus
+       two of rim, so the pitch is 28. */
+    gap: 4px;
   }
   .arena-rank-spine__step {
     justify-content: space-between;
@@ -2894,7 +2898,10 @@
   }
   .arena-rank-spine__step {
     justify-content: center;
-    min-height: 1.35rem;
+    /* 1.375rem = 22px on a 16px root, so a rung plus its two rim pixels plus
+       the 0.25rem gap is 28 whole pixels. 1.35rem measured 21.59 and every rung
+       landed on a different subpixel - see placeRankSpine for the rest of it. */
+    min-height: 1.375rem;
     padding: 0.16rem 0.85rem;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 72%, var(--ink));
     border-radius: 0;
@@ -2999,12 +3006,15 @@
       0 50%
     );
   }
-  /* On the ramp's dark half a dark rim is the same nothing the pale rim was up
-   * top, so it lifts toward the surface. paintRankLadder() puts the same
-   * answer on the item that it puts on the chip. */
-  .arena-rank-spine__item[data-on-dark="true"] {
-    --rim: color-mix(in srgb, var(--surface) 62%, transparent);
-  }
+  /* ONE RIM, ALL EIGHT. Owner, 2026-08-07: rungs 3, 2 and 1 take the same rim
+   * as the rest - the difference was the thing the eye landed on.
+   *
+   * They briefly had a pale rim on the reasoning that a dark line on a dark
+   * chip would vanish the way the bronze one vanished on the two palest. It
+   * does not: those chips are #52422e through #9b8467 against a light deck, so
+   * they have a shape whatever their rim does, and the pale line only announced
+   * that three of eight were built differently. The rim is one colour now
+   * because the ladder is one object. */
 
   /* Owner, 2026-08-07: "выравнивание цифр по левому краю а статусы по центру
    * ячейки лестницы."
@@ -3019,6 +3029,20 @@
   .arena-rank-spine__step {
     position: relative;
     padding-inline: 1.45rem;
+  }
+  /* The divider comes back (Owner, 2026-08-07). It was a border on the numeral
+   * while the numeral sat in the text flow; once the numeral went absolute the
+   * border went with it, which was not asked for. It is a rule of its own now,
+   * at a fixed offset, so it stands in one place on all eight rungs instead of
+   * following the width of a digit. */
+  .arena-rank-spine__step::before {
+    content: "";
+    position: absolute;
+    left: 1.15rem;
+    top: 0.18rem;
+    bottom: 0.18rem;
+    width: 1px;
+    background: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
   }
   .arena-rank-spine__ring {
     position: absolute;
