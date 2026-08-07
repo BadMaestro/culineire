@@ -56,14 +56,22 @@
 
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"CulinEire","url":"{{ SITE_URL }}","logo":"{{ SITE_URL }}{% static 'images/logo.png' %}","sameAs":["https://www.instagram.com/culineire/","https://www.tiktok.com/@culineire.ie","https://t.me/CULINEIRE"]}</script>
 
-    {# Bootstrap Icons was linked here from a CDN and blocked by our own CSP on
-       every Chef Battles page - style-src is 'self' plus fonts.googleapis.com,
-       and jsdelivr is on neither list. It rendered nothing, because nothing
-       used it: a sweep of every template and script found not one icon class
-       from that font. Removed rather than allowlisted - adding a third-party origin to
-       the CSP to serve icons nobody asks for buys a supply-chain risk for no
-       pixels. If icons are wanted later they are self-hosted, like every other
-       asset on this site. #}
+    {% comment %}
+      Bootstrap Icons was linked here from a CDN and blocked by our own CSP on
+      every Chef Battles page - style-src is 'self' plus fonts.googleapis.com,
+      and jsdelivr is on neither list. It rendered nothing, because nothing used
+      it: a sweep of every template and script found not one icon class from
+      that font. Removed rather than allowlisted - adding a third-party origin
+      to the CSP to serve icons nobody asks for buys a supply-chain risk for no
+      pixels. If icons are wanted later they are self-hosted, like every other
+      asset on this site.
+
+      THIS TEXT WAS PRINTING ON EVERY PAGE OF THE SITE, in a band above the
+      header, until 2026-08-07. {# #} is a SINGLE-LINE comment in Django: the
+      parser closes it at the end of its own line, so everything from the second
+      line down was template output. The Owner found it in a screenshot.
+      A comment that spans lines is {% comment %}, always.
+    {% endcomment %}
     {% block extra_head %}{% endblock %}
     {% if chef_battle_enabled %}<link href="{% static 'css/chef_battle.css' %}?v=20260618-hero-menu" rel="stylesheet">{% endif %}
     {% if chef_battle_enabled %}<link href="{% static 'css/battle_vfx.css' %}" rel="stylesheet">{% endif %}
@@ -437,7 +445,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.5.861</span>
+                <span class="footer-version">v2.5.863</span>
             </div>
         </div>
     </div>

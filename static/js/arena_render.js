@@ -2926,7 +2926,6 @@
 
     var frame = container.getBoundingClientRect();
     var floorH = bottom - top;
-    var floorW = right - left;
 
     // THE REFERENCE'S OWN NUMBERS. Design Template, 1920 x 1080: the ladder
     // block is 198.7 x 235 at top 196, the floor grid is 1585.4 x 667.5 with
@@ -2936,16 +2935,29 @@
     // rather than of the canvas, because our floor scales and the reference's
     // does not.
     var LADDER_TOP_ABOVE_FLOOR = 0.1995;
-    var LADDER_WIDTH_SHARE = 0.1253;
 
-    var offset = top - frame.top - LADDER_TOP_ABOVE_FLOOR * floorH;
-    // Never off the top of the deck: at very short viewports the floor's own
-    // top edge is the floor for this stack too.
+    // THE STACK MUST NOT LIE ON THE FLOOR. The Owner's screenshot of 2026-08-07
+    // showed it doing exactly that: the reference offset is measured from a
+    // 1080-tall canvas with room above its floor, and our deck has less, so
+    // 0.1995 of the floor height above the floor's top edge still landed inside
+    // the octagon. Two rules, in this order: take the reference offset when
+    // there is room for it, and otherwise sit directly above the floor's top
+    // edge, never on it. The clamp to the deck's own top stays last.
+    var ladderH = spine.getBoundingClientRect().height;
+    var GAP = 8;
+    var wanted = top - frame.top - LADDER_TOP_ABOVE_FLOOR * floorH;
+    var highest = top - frame.top - ladderH - GAP;
+    var offset = Math.min(wanted, highest);
     if (offset < 0) { offset = 0; }
 
     spine.style.top = offset.toFixed(1) + 'px';
     spine.style.left = ((left + right) / 2 - frame.left).toFixed(1) + 'px';
-    spine.style.width = Math.max(96, LADDER_WIDTH_SHARE * floorW).toFixed(1) + 'px';
+    // WIDTH IS NOT SET HERE ANY MORE. It was 0.1253 of the floor - the
+    // reference's own share - and at his window that clipped CULINARY MASTER
+    // and EXECUTIVE CHEF mid-word, because the reference's share is a
+    // consequence of ITS type size and ours is larger. The stylesheet sizes the
+    // stack by its content now, which is what a nowrap chip needs.
+    spine.style.width = '';
   }
 
   // Billboarding: a face lying on the tilted floor plane is squashed, and a

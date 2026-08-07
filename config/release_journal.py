@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.863",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "A comment was printing on every page of the site, and the rank ladder was lying on the floor",
+        "section": "Site / Arena",
+        "summary": "BOTH FOUND BY THE OWNER IN ONE SCREENSHOT. (1) A nine-line note about the Bootstrap Icons CDN sat in base.html wrapped in curly-hash, and eight of those lines were PRINTING IN A BAND ABOVE THE HEADER ON EVERY PAGE OF THE SITE - not the arena, the whole site. Curly-hash is a SINGLE-LINE comment in Django: the parser closes it at the end of its own line and everything below is template output. It is a comment block now, and the note carries the lesson so the next author does not repeat it. Nobody had looked at a page after writing it. (2) The rank ladder was standing ON the octagon with its names clipped mid-word - CULINARY MAST, EXECUTIVE CHE. Two separate faults in my own v2.5.857: the vertical rule took the reference's offset of 0.1995 of the floor height above the floor's top edge, but the reference measures that on a 1080-tall canvas with room above its floor and our deck has less, so the stack still landed inside the octagon; and the width was pinned to the reference's own 0.1253 share, which is a consequence of ITS type size, not ours, so longer titles were cut. The stack now sits ABOVE the floor's top edge whenever the reference offset would not clear it, and its width is left to its content. WHAT THIS SAYS ABOUT MY OWN CHECKING: I measured boxes and ratios on the live page and reported them as verification. Boxes do not show clipped text or a band of prose above the header. IF REVERTED: the site prints a comment at the reader and the ladder goes back on the floor.",
+    },
+    {
         "version": "2.5.861",
         "date": "2026-08-07",
         "commit": "",
