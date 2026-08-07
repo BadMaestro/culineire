@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.876",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The rank ladder leaves the octagon and stands beside it",
+        "section": "Chef Battles / Arena",
+        "summary": "OWNER, 2026-08-07: take the rank ladder off the octagon completely and stand it to the right of it, centred. That instruction dissolves the defect he photographed rather than patching it - SOUS CHEF, then Crown holds the centre, then its subtitle, then EXECUTIVE CHEF, four text blocks in one strip because the ladder and the floor caption were competing for the same band above the floor. Every previous rule tried to fit the stack into that band: the reference offset of 0.1995 of the floor height, then a rule to sit directly above the floor edge when the offset would land inside the octagon, then a shrink when even that was too thin. On a short deck the band ran out, the offset clamped to zero, and the stack stood on the caption. It is placed against the floor's right edge and the floor's own vertical middle now, clamped into the frame at both ends and shrinking on the same 0.85 floor as before - below that it is his call whether to abbreviate the titles. TWO WRONG TURNS ARE RECORDED HERE BECAUSE THEY COST REAL TIME. First, two max-height media queries in the stylesheet, which made the overlap WORSE - from 3px to 34px - because hiding the caption's subtitle does not move the caption, and what had moved was the LADDER, positioned inline by JavaScript where no media query can see it. Second, a JS helper that made the caption give way by measuring the overlap: correct, and made unnecessary within the hour by his instruction. It was deleted with this change rather than left behind as dead code. IF REVERTED: the ladder returns to the band above the floor and stands on the caption on any short window.",
+    },
+    {
         "version": "2.5.874",
         "date": "2026-08-07",
         "commit": "",

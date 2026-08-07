@@ -2927,53 +2927,61 @@
     var frame = container.getBoundingClientRect();
     var floorH = bottom - top;
 
-    // THE REFERENCE'S OWN NUMBERS. Design Template, 1920 x 1080: the ladder
-    // block is 198.7 x 235 at top 196, the floor grid is 1585.4 x 667.5 with
-    // its top edge at 329.2. So the stack starts 133.2 ABOVE the floor's top
-    // edge - 0.1995 of the floor's height - is 0.1253 of the floor wide, and
-    // is centred on the floor's own centre line. Read as ratios of the floor
-    // rather than of the canvas, because our floor scales and the reference's
-    // does not.
-    var LADDER_TOP_ABOVE_FLOOR = 0.1995;
+    // THE LADDER STANDS BESIDE THE OCTAGON, NOT ON IT.
+    //
+    // OWNER, 2026-08-07: "убери лестницу рангов с октагона совсем - пусть
+    // стоит справа от октагона по центру."
+    //
+    // Everything before this tried to fit the stack into the band ABOVE the
+    // floor: the reference's 0.1995-of-floor-height offset, then a rule to sit
+    // directly above the floor's top edge when that offset would land inside
+    // the octagon, then a shrink when even that band was too thin. On a short
+    // deck the band ran out, the offset clamped to zero, and the stack ended up
+    // at the very top of the deck standing on the floor caption - four text
+    // blocks in one strip, which is the pile he photographed.
+    //
+    // There is no band to fight over now. The stack sits to the RIGHT of the
+    // floor and is centred on the floor's own vertical middle, where the space
+    // is horizontal and there is far more of it.
+    var GAP = 16;
+    var ladderBox = spine.getBoundingClientRect();
+    var ladderH = ladderBox.height;
+    var ladderW = ladderBox.width;
 
-    // THE STACK MUST NOT LIE ON THE FLOOR. The Owner's screenshot of 2026-08-07
-    // showed it doing exactly that: the reference offset is measured from a
-    // 1080-tall canvas with room above its floor, and our deck has less, so
-    // 0.1995 of the floor height above the floor's top edge still landed inside
-    // the octagon. Two rules, in this order: take the reference offset when
-    // there is room for it, and otherwise sit directly above the floor's top
-    // edge, never on it. The clamp to the deck's own top stays last.
-    var ladderH = spine.getBoundingClientRect().height;
-    var GAP = 8;
-    var wanted = top - frame.top - LADDER_TOP_ABOVE_FLOOR * floorH;
-    var highest = top - frame.top - ladderH - GAP;
-    var offset = Math.min(wanted, highest);
-    if (offset < 0) { offset = 0; }
+    // Horizontal: just clear of the floor's right edge, and never past the
+    // frame. If the room to the right is narrower than the stack, it is pulled
+    // back to the frame's edge rather than allowed to leave the deck.
+    var x = right - frame.left + GAP;
+    if (x + ladderW > frame.width) { x = frame.width - ladderW; }
+    if (x < 0) { x = 0; }
 
-    // AND WHEN THERE IS STILL NOT ENOUGH ROOM, THE STACK SHRINKS RATHER THAN
-    // LYING ON THE RINGS. A07 fits the whole arena into one screen, so the band
-    // above the floor is whatever is left after the header and the ribbon - at
-    // 1920x1080 that is 149px for a stack that wants 201. Scaled from its own
-    // top centre, floored at 0.85 so the titles stay readable; below that it is
-    // the Owner's call whether to abbreviate them, not an agent's to decide by
-    // shrinking type until it fits.
-    var room = top - frame.top - offset - GAP;
-    var scale = room > 0 && ladderH > 0 ? Math.min(1, room / ladderH) : 1;
+    // Vertical: centred on the floor. Clamped into the frame at both ends so a
+    // tall stack on a short deck is trimmed by the deck rather than hanging out
+    // of it.
+    var y = (top + bottom) / 2 - frame.top - ladderH / 2;
+    if (y + ladderH > frame.height) { y = frame.height - ladderH; }
+    if (y < 0) { y = 0; }
+
+    // And it shrinks rather than overflowing, on the same floor of 0.85 the
+    // vertical band used: below that it is the Owner's call whether to
+    // abbreviate the titles, not an agent's to decide by shrinking type.
+    var scale = 1;
+    if (ladderH > frame.height) { scale = frame.height / ladderH; }
     if (scale < 0.85) { scale = 0.85; }
-    spine.style.transformOrigin = 'top center';
-    spine.style.transform = scale < 1
-      ? 'translateX(-50%) scale(' + scale.toFixed(3) + ')'
-      : '';
 
-    spine.style.top = offset.toFixed(1) + 'px';
-    spine.style.left = ((left + right) / 2 - frame.left).toFixed(1) + 'px';
-    // WIDTH IS NOT SET HERE ANY MORE. It was 0.1253 of the floor - the
-    // reference's own share - and at his window that clipped CULINARY MASTER
-    // and EXECUTIVE CHEF mid-word, because the reference's share is a
-    // consequence of ITS type size and ours is larger. The stylesheet sizes the
-    // stack by its content now, which is what a nowrap chip needs.
+    spine.style.transformOrigin = 'top left';
+    spine.style.transform = scale < 1 ? 'scale(' + scale.toFixed(3) + ')' : 'none';
+    spine.style.top = y.toFixed(1) + 'px';
+    spine.style.left = x.toFixed(1) + 'px';
+    // WIDTH IS NOT SET HERE. It was 0.1253 of the floor - the reference's own
+    // share - and at his window that clipped CULINARY MASTER and EXECUTIVE CHEF
+    // mid-word, because the reference's share is a consequence of ITS type size
+    // and ours is larger. The stylesheet sizes the stack by its content, which
+    // is what a nowrap chip needs.
     spine.style.width = '';
   }
+
+
 
   // Billboarding: a face lying on the tilted floor plane is squashed, and a
   // person in a hall looks at the camera instead. The old fix pre-stretched

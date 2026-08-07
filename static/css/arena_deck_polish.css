@@ -4162,37 +4162,18 @@
   gap: 0.75rem;
 }
 
-/* ── The floor caption must not land on the rank spine ────────────────────
- * Owner, 2026-08-07, with a screenshot of the pile: SOUS CHEF, then "Crown
- * holds the centre", then the subtitle, then EXECUTIVE CHEF - four text blocks
- * in one band, none of them winning.
+/* ── The rank ladder stands beside the octagon ────────────────────────────
+ * Owner, 2026-08-07: take it off the octagon completely and stand it to the
+ * right, centred.
  *
- * Measured on production at 1280 wide: the gap between the caption's bottom and
- * the spine's top is 9px at 620 viewport height, 2px at 560, and MINUS 3 at
- * 520. Both are positioned as a percentage of the floor, so they scale
- * together - but the caption is two lines of type at a fixed size, and type
- * does not shrink with the floor. The share it eats grows as the floor gets
- * shorter until it is standing on the ladder. Both carry z-index 24, so
- * neither can win; they just overlap.
+ * Its position is measured in arena_render.js (placeRankSpine) against the
+ * floor's own right edge and vertical middle, so the rules here that place it
+ * over the floor - top percentages, left 50%, translateX(-50%) - are overridden
+ * inline on every fit. They are left in place as the pre-measurement fallback
+ * for the moment before the first fit runs.
  *
- * The same answer the ladder got in v2.5.865: give way rather than collide.
- * The subtitle goes first - it is the decorative half and it buys the 15px
- * that the collision costs - and the whole caption goes when even that is not
- * enough. Nothing moves on a screen that has room for both.
- *
- * min-width 901px on every block: below that the Owner froze the arena on
- * 2026-08-03 and mobile is a separate scene. Written as explicit media blocks
- * at top level, not as indentation inside somebody else's - 668 lines in these
- * stylesheets are indented as if scoped and are not.
+ * There is no longer any collision between the ladder and the floor caption:
+ * they were competing for the band above the octagon, and the ladder has left
+ * it. The JS helper that made the caption give way was deleted with this
+ * change rather than left behind as dead code.
  */
-@media (min-width: 901px) and (max-height: 600px) {
-  .page--arena .arena-floor-caption em {
-    display: none;
-  }
-}
-
-@media (min-width: 901px) and (max-height: 470px) {
-  .page--arena .arena-floor-caption {
-    display: none;
-  }
-}
