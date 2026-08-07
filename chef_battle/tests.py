@@ -11479,3 +11479,24 @@ class FloorCaptionTakesTheFreeSpaceTests(TestCase):
         reset = body.split("caption.removeAttribute('data-fit');", 1)[0]
         self.assertIn("getBoundingClientRect", body)
         self.assertIn("caption.style.width = '';", body)
+
+    def test_width_is_decided_before_height(self):
+        """They are not independent: a caption squeezed sideways WRAPS, and a
+        wrapped title is taller than the band it was being squeezed into.
+        v2.5.892 measured heights first, narrowed the box to 154px, and the
+        title came back 33px tall and printed through the octagon - a correct
+        measurement of the wrong box."""
+        body = self._body()
+        self.assertLess(
+            body.index("caption.style.width"),
+            body.index("var order = ['full'"),
+            "the fit ladder must be measured at the width the caption will have",
+        )
+
+    def test_a_panel_in_the_way_shifts_it_rather_than_shrinking_it(self):
+        """The free span beside the metrics card is 664px and the caption wants
+        416: there is room, just not centred."""
+        body = self._body()
+        self.assertIn("var width = Math.min(natural.width, free);", body)
+        self.assertIn("if (x < leftBound + HGAP)", body)
+        self.assertIn("if (x + width > rightBound - HGAP)", body)

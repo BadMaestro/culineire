@@ -2955,9 +2955,37 @@
       if (!sharesColumn || box.bottom > octTop) { sideways.push(box); }
     }
 
-    // What is left, and what will fit in it. The title is never the line that
-    // goes; if even the title cannot stand clear, the caption stands down
-    // rather than printing through the octagon.
+    // WIDTH BEFORE HEIGHT. The two are not independent: a caption squeezed
+    // sideways WRAPS, and a wrapped title is taller than the band it was being
+    // squeezed to fit. v2.5.892 measured the heights first, then narrowed the
+    // box to 154px, and the title came back 33px tall and printed through the
+    // octagon - a correct measurement of the wrong box.
+    //
+    // And the answer to a panel in the way is to SHIFT, not to shrink. The free
+    // span beside the metrics card is 664px and the caption wants 416: there is
+    // room, just not centred. It moves the least it can, and only shrinks when
+    // the free span is genuinely narrower than the text.
+    var leftBound = frame.left;
+    var rightBound = frame.right;
+    for (var s = 0; s < sideways.length; s++) {
+      var sb = sideways[s];
+      if (sb.bottom <= ceiling || sb.top >= octTop) { continue; }
+      if (sb.right <= centre && sb.right > leftBound) { leftBound = sb.right; }
+      if (sb.left >= centre && sb.left < rightBound) { rightBound = sb.left; }
+    }
+    var free = (rightBound - HGAP) - (leftBound + HGAP);
+    var width = Math.min(natural.width, free);
+    if (width < 120) { width = Math.min(280, frame.width); }
+    caption.style.width = Math.round(width) + 'px';
+
+    var x = centre - width / 2;
+    if (x < leftBound + HGAP) { x = leftBound + HGAP; }
+    if (x + width > rightBound - HGAP) { x = rightBound - HGAP - width; }
+
+    // What is left, and what will fit in it, measured at the width it will
+    // actually have. The title is never the line that goes; if even the title
+    // cannot stand clear, the caption stands down rather than printing through
+    // the octagon.
     var top = ceiling + VGAP;
     var room = (octTop - VGAP) - top;
     var order = ['full', 'no-kicker', 'title-only'];
@@ -2974,26 +3002,8 @@
     if (chosen === 'full') { caption.removeAttribute('data-fit'); }
     else { caption.setAttribute('data-fit', chosen); }
 
-    var height = caption.getBoundingClientRect().height;
-    var band = { top: top, bottom: top + height };
-
-    // Horizontal: centred on the octagon, then pulled in by whatever stands in
-    // the same band. On his window that is the metrics card on the right.
-    var leftBound = frame.left;
-    var rightBound = frame.right;
-    for (var s = 0; s < sideways.length; s++) {
-      var sb = sideways[s];
-      if (sb.bottom <= band.top || sb.top >= band.bottom) { continue; }
-      if (sb.right <= centre && sb.right > leftBound) { leftBound = sb.right; }
-      if (sb.left >= centre && sb.left < rightBound) { rightBound = sb.left; }
-    }
-    var half = Math.min(centre - leftBound, rightBound - centre) - HGAP;
-    var width = Math.max(0, half * 2);
-    if (width < 140) { width = Math.min(280, frame.width); }
-
     caption.style.transform = 'none';
-    caption.style.width = Math.round(width) + 'px';
-    caption.style.left = Math.round(centre - width / 2 - frame.left) + 'px';
+    caption.style.left = Math.round(x - frame.left) + 'px';
     caption.style.top = Math.round(top - frame.top) + 'px';
   }
 

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.896",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "Width before height, and a panel in the way moves the caption instead of squeezing it",
+        "section": "Chef Battles / Arena",
+        "summary": "v2.5.892 measured the caption's heights first and narrowed the box afterwards, and the two are not independent: squeezed to 154px the title WRAPPED and came back 33px tall in an 18px band, printing straight through the octagon. A correct measurement of the wrong box. The width is decided first now, and the fit ladder is measured at the width the caption will actually have. The second half is that a panel standing in the way SHIFTS the caption rather than shrinking it: the free span beside the metrics card is 664px and the caption wants 416, so there is room, just not centred - it moves the least it can and only narrows when the free span is genuinely narrower than the text. IF REVERTED: the caption wraps into the octagon at any window where a side panel reaches its band.",
+    },
+    {
         "version": "2.5.894",
         "date": "2026-08-07",
         "commit": "c90c43b7",
