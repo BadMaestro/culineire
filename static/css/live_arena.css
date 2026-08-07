@@ -232,3 +232,28 @@
   .lap__cta, .lap__send, .lap__tab, .lap__react { min-height:44px; }
   .lap__composer input { min-height:44px; }
 }
+
+/* B01 — the document's own heading, off screen.
+ *
+ * The broadcast page had no h1 at all: a page whose whole subject is a
+ * confrontation had nothing a screen reader or an outline could take as its
+ * title. The confrontation header that a sighted visitor reads is the
+ * composition below, and neither its shape nor its place is mine to change, so
+ * the heading is given to the document rather than drawn on the page.
+ *
+ * Not display:none and not visibility:hidden - both remove it from the
+ * accessibility tree as well, which would leave the page exactly as it was.
+ * This is the clip-rect pattern: present, announced, and occupying nothing.
+ */
+.lap__doc-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

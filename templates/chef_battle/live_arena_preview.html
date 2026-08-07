@@ -1,10 +1,35 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Live Arena (Preview) | CulinEire{% endblock %}
-{% block meta_description %}Live Arena broadcast preview — under construction.{% endblock %}
+{% comment %}
+  B01 - THE SHELL.
+
+  One template serves two surfaces: the console's build canvas, which has been
+  carrying this composition on a labelled fixture since 2026-07-14, and the
+  public broadcast page a spectator lands on when the arena sends them to a
+  fight. Until now both wore the canvas's clothes, so the real page told a
+  spectator's browser tab, their bookmark and every shared link that they were
+  looking at something "under construction".
+
+  Everything below branches on is_broadcast. The canvas keeps saying preview,
+  because that is what it is.
+{% endcomment %}
+{% block title %}{% if is_broadcast %}{{ fx.left.name }} vs {{ fx.right.name }}{% if fx.theme %} — {{ fx.theme }}{% endif %} | Chef Battles | CulinEire{% else %}Live Arena (Preview) | CulinEire{% endif %}{% endblock %}
+{% block meta_description %}{% if is_broadcast %}{{ fx.left.name }} against {{ fx.right.name }} in the CulinEire Chef Battles arena{% if fx.theme %}, cooking {{ fx.theme }}{% endif %}. {{ fx.status_display }}.{% else %}Live Arena broadcast preview — under construction.{% endif %}{% endblock %}
+
+{% comment %}
+  The condition goes INSIDE each block, never around it. A {% if %} wrapped
+  around a {% block %} does nothing: blocks are collected when the template is
+  compiled, before any condition is evaluated, so the block is always defined
+  and always overrides the parent. Written the wrong way round first, and the
+  build canvas duly advertised the fixture's two chefs to every link preview.
+  {{ block.super }} is what hands the page back to base.html's default.
+{% endcomment %}
+{% block og_type %}{% if is_broadcast %}article{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_title %}{% if is_broadcast %}{{ fx.left.name }} vs {{ fx.right.name }} — Chef Battles{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block og_description %}{% if is_broadcast %}{% if fx.theme %}{{ fx.theme }}. {% endif %}{{ fx.status_display }} in the CulinEire arena.{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/live_arena.css' %}?v=20260714b" rel="stylesheet">
+<link href="{% static 'css/live_arena.css' %}?v=20260807-b01-shell" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -20,6 +45,18 @@
      data-sequence="{{ fx.sequence|default:0 }}"
      data-remaining="{{ fx.remaining_seconds|default:0 }}"
      data-csrf="{{ csrf_token }}">
+  {% comment %}
+    The page had NO h1 at all - measured on a real battle. A page whose whole
+    subject is a confrontation had no heading naming it, which is what a screen
+    reader reaches for first and what an outline is built from.
+
+    It is off-screen rather than drawn: the confrontation header below is
+    GreenBear's composition and what appears on the screen is the Owner's, so
+    this fixes the document without touching either.
+  {% endcomment %}
+  <h1 class="lap__doc-title">
+    {% if is_broadcast %}{{ fx.left.name }} versus {{ fx.right.name }}{% if fx.theme %}, cooking {{ fx.theme }}{% endif %}{% else %}Live Arena build preview{% endif %}
+  </h1>
   {% if complete == 'complete' %}<div class="lap__confetti" id="lap-confetti"></div>{% endif %}
 
   <div class="lap__ribbon">
@@ -79,7 +116,9 @@
         <div class="lap__num lap__num--l">{{ fx.left.num }}</div>
         <div class="lap__name">{{ fx.left.name }}</div>
         <div class="lap__row">Rank: <b>{{ fx.left.rank }}</b></div>
-        <div class="lap__row">Clan: <b>{{ fx.left.clan }}</b></div>
+        {% comment %}A chef with no clan showed "Clan:" and then nothing. An empty
+        label is a statement that the value is missing, not that the field is.{% endcomment %}
+        {% if fx.left.clan %}<div class="lap__row">Clan: <b>{{ fx.left.clan }}</b></div>{% endif %}
         <div class="lap__row">Country: <b>{{ fx.left.country }}</b></div>
       </div>
     </div>
@@ -101,7 +140,9 @@
         <div class="lap__num lap__num--r">{{ fx.right.num }}</div>
         <div class="lap__name">{{ fx.right.name }}</div>
         <div class="lap__row">Rank: <b>{{ fx.right.rank }}</b></div>
-        <div class="lap__row">Clan: <b>{{ fx.right.clan }}</b></div>
+        {% comment %}A chef with no clan showed "Clan:" and then nothing. An empty
+        label is a statement that the value is missing, not that the field is.{% endcomment %}
+        {% if fx.right.clan %}<div class="lap__row">Clan: <b>{{ fx.right.clan }}</b></div>{% endif %}
         <div class="lap__row">Country: <b>{{ fx.right.country }}</b></div>
       </div>
     </div>

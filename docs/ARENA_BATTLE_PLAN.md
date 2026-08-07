@@ -4,8 +4,8 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-07 · Production baseline: **v2.5.873**
-· Next assignable card: **B01**, unassigned.
+Last reconciled: 2026-08-07 · Production baseline: **v2.5.874**
+· Next assignable card: none — B01 went to Bolt on the Owner's word, 2026-08-07.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
 
@@ -354,7 +354,7 @@ forbidden changes and evidence for every row below.
 | SA-A2 | Arena | An accepted challenge seats the pair in adjacent cells, each in his own ring | Bolt | — | DONE v2.5.844 |
 | SA-A4 | Arena | That pairing is stable across leaving and returning | Bolt | SA-A2 | DONE v2.5.844 |
 | SA-A6 | Arena | Both Ready pulls the match in to 15 minutes and the pill climbs the queue | Bolt | — | DONE v2.5.844 |
-| **B01** | Battle Broadcast | Broadcast shell and confrontation header | unassigned | A19 | **NEXT** |
+| **B01** | Battle Broadcast | Broadcast shell and confrontation header | **Bolt** | A19 | **IN PROGRESS** |
 | B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | DONE |
 | B03 | Battle Broadcast | Broadcast chat and composer | GreenBear | B02 | DONE |
 | R01 | Result / Winner | Champion and runner-up result shell | GreenBear | B03 | DONE |

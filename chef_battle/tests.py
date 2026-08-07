@@ -11035,3 +11035,113 @@ class ArenaHeaderMeasurementTests(TestCase):
 
     def test_there_is_a_late_pass_for_what_lands_silently(self):
         self.assertIn("setTimeout(remeasure", self._init_block())
+
+
+@override_settings(
+    CHEF_BATTLE_ENABLED=True,
+    SECURE_SSL_REDIRECT=False,
+    # The build canvas sits behind DG-01, which wants superuser AND the author
+    # flag AND this kill switch. Naming all three here rather than hunting one
+    # at a time through 404s, which is what the first run of this class did.
+    ARENA_MASTER_CONSOLE_ENABLED=True,
+)
+class BroadcastShellTests(TestCase):
+    """B01 - the broadcast page's own shell.
+
+    One template serves two surfaces: the console's build canvas, a labelled
+    fixture since 2026-07-14, and the public page a spectator lands on when the
+    arena sends them to a fight. Both wore the canvas's clothes, so the REAL
+    page told a spectator's browser tab, their bookmark and every shared link
+    that they were looking at something "under construction" - measured on a
+    real battle before this card, not inferred.
+    """
+
+    def setUp(self):
+        from .services import get_or_create_battle_profile
+
+        User = get_user_model()
+        # Staff reaches the broadcast page; the build canvas sits behind
+        # arena_console_guard and needs the console flag as well. A flagged
+        # NON-Owner account, which is what every other console test uses -
+        # section 18 keeps the Owner's row out of fixtures.
+        staff = User.objects.create_superuser("b01-staff", password="pw")
+        RecipeAuthor.objects.create(
+            user=staff, name="B01 Staff", slug="b01-staff",
+            has_arena_console_access=True,
+        )
+        self.client.force_login(staff)
+
+        def chef(slug, name):
+            u = User.objects.create_user(username=slug, password="pw")
+            a = RecipeAuthor.objects.create(user=u, name=name, slug=slug)
+            p = get_or_create_battle_profile(a)
+            p.enrolled_at = timezone.now()
+            p.save(update_fields=["enrolled_at"])
+            return a
+
+        self.left = chef("b01-l", "Saoirse Mulcahy")
+        self.right = chef("b01-r", "Cormac Devlin")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.left, opponent=self.right, theme="Dublin Coddle",
+            status=Battle.Status.ACTIVE, start_time=now - timezone.timedelta(minutes=5),
+            submission_deadline=now + timezone.timedelta(hours=2),
+            end_time=now + timezone.timedelta(hours=3),
+        )
+
+    def _page(self):
+        resp = self.client.get(
+            reverse("chef_battle:battle_broadcast", args=[self.battle.pk])
+        )
+        self.assertEqual(resp.status_code, 200)
+        return resp.content.decode()
+
+    def test_the_tab_names_the_fight_and_not_a_preview(self):
+        html = self._page()
+        self.assertIn("Saoirse Mulcahy vs Cormac Devlin", html)
+        self.assertNotIn("<title>Live Arena (Preview)", html)
+
+    def test_a_shared_link_says_who_is_fighting(self):
+        """og:title fell back to the site default, so sharing a fight shared
+        nothing about it."""
+        html = self._page()
+        self.assertIn(
+            '<meta content="Saoirse Mulcahy vs Cormac Devlin — Chef Battles" '
+            'property="og:title">',
+            html,
+        )
+        self.assertIn('content="article" property="og:type"', html)
+
+    def test_the_description_is_not_under_construction(self):
+        html = self._page()
+        self.assertNotIn("under construction", html)
+        self.assertIn("Saoirse Mulcahy against Cormac Devlin", html)
+
+    def test_the_page_has_a_heading(self):
+        """It had none at all. A page whose subject is a confrontation had
+        nothing a screen reader or an outline could take as its title."""
+        html = self._page()
+        self.assertIn("lap__doc-title", html)
+        self.assertIn("Saoirse Mulcahy versus Cormac Devlin", html)
+
+    def test_an_empty_clan_prints_no_row(self):
+        """A chef with no clan showed 'Clan:' and then nothing, which reads as
+        a missing value rather than an absent field."""
+        html = self._page()
+        self.assertNotIn("Clan: <b></b>", html)
+
+    def test_the_build_canvas_keeps_saying_preview(self):
+        """The other half, and the one that caught a real mistake: a {% if %}
+        wrapped AROUND a {% block %} does nothing, because blocks are collected
+        at compile time. Written that way first, the canvas advertised the
+        fixture's two chefs to every link preview."""
+        resp = self.client.get(reverse("chef_battle:live_arena_preview"))
+        self.assertEqual(resp.status_code, 200)
+        html = resp.content.decode()
+        self.assertIn("Live Arena (Preview)", html)
+        self.assertIn("under construction", html)
+        self.assertIn(
+            'content="CulinEire - Irish Recipes and Food Stories" property="og:title"',
+            html,
+        )
+        self.assertNotIn("Saoirse Mulcahy vs", html)
