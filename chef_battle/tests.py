@@ -10181,8 +10181,18 @@ class EmulationBotsStayOnTheArenaTests(TestCase):
         self.assertEqual(_always_on_the_arena(), {slug for slug, _ in EMU_CHEFS})
 
 
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class ReadyPullsTheMatchForwardTests(TestCase):
     """Scenario A6 - the Owner, 2026-08-06: "оба готовы - таймер до матча 15 минут".
+
+    THE OVERRIDE IS NOT DECORATION. battle_set_ready carries @chef_battle_guard,
+    CHEF_BATTLE_ENABLED defaults to FALSE in settings.py, and my own local .env
+    happens to set it True - so these six passed on my machine and three of them
+    were red for GreenBear, on main, on a clean checkout, and would be red on
+    any CI. They were not testing the rule; they were testing my .env.
+
+    Every other view-level class in this file already carries this override. It
+    was the one that did not.
 
     The twelve hours are a deadline, not an appointment. Two chefs who are both
     standing there should not wait out somebody else's clock, and because the
@@ -10212,10 +10222,26 @@ class ReadyPullsTheMatchForwardTests(TestCase):
         )
 
     def _press(self, user):
+        """Press Ready, and REFUSE to continue if the press did not land.
+
+        This is the half that matters more than the override. Without it a 404
+        from the visibility guard is indistinguishable from a rule that did
+        nothing: the clock stays where setUp put it and the failure reads as
+        "the start time never moved", which sends the next reader into the
+        service instead of into the settings. It cost GreenBear a full-suite
+        run and a hypothesis to work out from the outside.
+        """
         self.client.force_login(user)
-        return self.client.post(
+        response = self.client.post(
             reverse("chef_battle:battle_set_ready", args=[self.battle.pk])
         )
+        self.assertEqual(
+            response.status_code, 302,
+            f"the Ready POST did not land ({response.status_code}). A 404 here "
+            "means the chef_battle visibility guard refused it - the rule under "
+            "test was never reached.",
+        )
+        return response
 
     def test_one_chef_alone_changes_nothing(self):
         original = self.battle.start_time
