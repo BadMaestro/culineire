@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.867",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "My ladder CSS was reaching below 901px, where the arena is frozen",
+        "section": "Chef Battles / Arena",
+        "summary": "Found while trying to photograph the five closed cards for the Owner, which is the second time today that looking at the page has caught what measuring it did not. The rules that made the rank stack content-sized in v2.5.857 were written at TOP LEVEL of arena_deck_polish.css, so they applied at every width - including below 901px, where the Owner froze the arena on 2026-08-03 and where the layout is a different one. At 563px the stack became 117px of content width while the base rule still translated it minus fifty per cent, so it hung 57 pixels off the LEFT EDGE of the screen with its titles cut by the viewport. Now scoped to min-width 901px, verified by parsing the file's braces rather than by reading its indentation - the arena stylesheets carry 668 lines that are indented as if they were in a media query and are not, which is exactly how this was missed. Below 901px the arena is byte-for-byte what it was before v2.5.857. IF REVERTED: the ladder hangs off the left edge of every narrow screen.",
+    },
+    {
         "version": "2.5.865",
         "date": "2026-08-07",
         "commit": "",

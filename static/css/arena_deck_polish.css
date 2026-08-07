@@ -2845,6 +2845,12 @@
     letter-spacing: 0.02em;
   }
 
+@media (min-width: 901px) {
+  /* SCOPED TO THE DESKTOP ARENA. The first version of this sat at top level and
+   * therefore applied below 901px too, where the Owner froze the arena on
+   * 2026-08-03: at 563px it made the stack content-width while the base rule
+   * still translated it -50 per cent, so it hung 57px off the LEFT EDGE of the
+   * screen with its titles cut by the viewport. Found in his own screenshot. */
   /* OWNER, 2026-08-07: "the ladders are not in their places - put them where the
    * mockup has them". They were stretched down the whole floor - top 26%,
    * bottom 18%, space-between - so the eight titles spread across the rings and
@@ -2881,6 +2887,8 @@
     gap: 0.25rem;
     min-height: 0;
   }
+}
+
   .arena-rank-spine__item {
     flex: 0 0 auto;
   }
