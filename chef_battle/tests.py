@@ -11500,3 +11500,41 @@ class FloorCaptionTakesTheFreeSpaceTests(TestCase):
         self.assertIn("var width = Math.min(natural.width, free);", body)
         self.assertIn("if (x < leftBound + HGAP)", body)
         self.assertIn("if (x + width > rightBound - HGAP)", body)
+
+    def test_the_octagon_gives_up_the_height_for_it(self):
+        """OWNER, 2026-08-07: lower the octagon and the ladder with it, and make
+        as much room above as the writing needs.
+
+        The band above the floor used to be a fact to be lived with, and at 22px
+        the caption lost two of its three lines. The writing is the fixed
+        quantity now.
+        """
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn("reserveCaptionBand(svg);", source)
+        body = source.split("function reserveCaptionBand(", 1)[1].split("\n  }", 1)[0]
+        # It spends the octagon's height, not the deck's: the crowd rail is nine
+        # pixels under the floor and A07 puts the whole arena on one screen.
+        self.assertIn("--arena-fit", body)
+        self.assertIn("--arena-shift-y", body)
+        self.assertIn("floorLimit", body)
+        # And it reserves what the caption needs at FULL three lines.
+        self.assertIn("caption.removeAttribute('data-fit');", body)
+        self.assertIn("natural.height + CAPTION_GAP * 2", body)
+
+    def test_the_ladder_follows_the_floor_by_construction(self):
+        """No second mover: placeRankSpine measures the cells and runs after."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        self.assertLess(
+            source.index("reserveCaptionBand(svg);"),
+            source.index("placeRankSpine(svg);\n    paintRankLadder"),
+        )

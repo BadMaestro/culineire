@@ -90,6 +90,10 @@
   // live camera is rotateX(42deg), so that acceptance figure never described
   // what ships; keeping it in the source implied otherwise.
   var STANDS_RATIO = 1.60 * 1.60 / 1.7541;
+  // The clear air kept above and below the floor caption. It is generous on
+  // purpose now: since 2026-08-07 the octagon gives up the height rather than
+  // the caption giving up its lines, so the band is a decision, not a leftover.
+  var CAPTION_GAP = 6;
   var COMPOSITION_CX = 0.50;
   var COMPOSITION_CY = 0.51;
   // The site header the deck's height is measured against — see measureHeader().
@@ -2866,10 +2870,94 @@
       svg.style.setProperty('--arena-shift-x', (shiftX + driftX).toFixed(2) + 'px');
     }
 
+    reserveCaptionBand(svg);
     billboardFaces(svg);
     placeRankSpine(svg);
     paintRankLadder(svg);
     placeFloorCaption(svg);
+  }
+
+  // THE OCTAGON MAKES ROOM FOR THE WRITING ABOVE IT.
+  //
+  // OWNER, 2026-08-07: "опускай октагон ниже и параллельно с ним лестницу -
+  // создавай столько места над ней чтоб хватило на все надписи красиво и чётко."
+  //
+  // Everything before this treated the band above the floor as a fact to be
+  // measured and lived with: the caption was placed into whatever was left, and
+  // when 22px was left it lost two of its three lines. His instruction inverts
+  // it - the writing is the fixed quantity and the floor moves.
+  //
+  // The floor cannot simply drop: the crowd rail is nine pixels under it and
+  // A07 puts the whole arena on one screen. So the band is taken out of the
+  // octagon's own height. It is scaled about its centre, which lifts the bottom
+  // by half of what it loses, and then shifted down onto the reserved line -
+  // the two together spend the octagon's height, not the deck's.
+  //
+  // The ladder needs no part of this. placeRankSpine() measures the cells and
+  // runs after, so it follows the floor down by construction.
+  function reserveCaptionBand(svg) {
+    var caption = document.querySelector('.arena-floor-caption');
+    var container = svg.parentElement;
+    if (!caption || !container) { return; }
+    if (global.matchMedia && global.matchMedia('(max-width: 767px)').matches) { return; }
+
+    var cells = svg.querySelectorAll('.arena-cell');
+    if (!cells.length) { return; }
+    var top = Infinity, bottom = -Infinity;
+    for (var i = 0; i < cells.length; i++) {
+      var cb = cells[i].getBoundingClientRect();
+      if (!cb.width) { continue; }
+      if (cb.top < top) { top = cb.top; }
+      if (cb.bottom > bottom) { bottom = cb.bottom; }
+    }
+    if (!isFinite(top) || bottom <= top) { return; }
+
+    var frame = container.getBoundingClientRect();
+    var centre = frame.left + frame.width / 2;
+
+    // What the writing needs, at its full three lines and its natural width.
+    caption.removeAttribute('data-fit');
+    caption.style.width = '';
+    var natural = caption.getBoundingClientRect();
+    var needed = natural.height + CAPTION_GAP * 2;
+
+    var span = { left: centre - natural.width / 2, right: centre + natural.width / 2 };
+    var ceiling = frame.top;
+    var floorLimit = frame.bottom;
+    var panels = document.querySelectorAll('.arena-command-deck [class*="arena-"]');
+    for (var p = 0; p < panels.length; p++) {
+      var node = panels[p];
+      if (node === caption || caption.contains(node) || node.contains(caption)) { continue; }
+      if (node.contains(container) || container.contains(node)) { continue; }
+      var style = global.getComputedStyle(node);
+      if (style.display === 'none' || style.visibility === 'hidden') { continue; }
+      var box = node.getBoundingClientRect();
+      if (box.width < 80 || box.height < 16) { continue; }
+      var sharesColumn = Math.min(span.right, box.right) > Math.max(span.left, box.left);
+      if (sharesColumn && box.bottom <= top && box.bottom > ceiling) { ceiling = box.bottom; }
+      // Anything that starts below the floor is the floor's own ceiling from
+      // underneath - the crowd rail, on every window measured.
+      if (box.top >= bottom - 4 && box.top < floorLimit) { floorLimit = box.top; }
+    }
+
+    var reservedTop = ceiling + needed;
+    if (top >= reservedTop - 1) { return; }
+
+    var height = bottom - top;
+    var available = (floorLimit - CAPTION_GAP) - reservedTop;
+    if (available <= 40) { return; }
+    var wanted = Math.min(height, available);
+    var midY = (top + bottom) / 2;
+
+    if (wanted < height) {
+      var fit = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
+      svg.style.setProperty('--arena-fit', (fit * (wanted / height)).toFixed(4));
+    }
+    var shift = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
+    svg.style.setProperty(
+      '--arena-shift-y',
+      (shift + (reservedTop - (midY - wanted / 2))).toFixed(2) + 'px'
+    );
   }
 
   // THE CAPTION TAKES THE SPACE THAT IS ACTUALLY FREE.
@@ -2925,11 +3013,10 @@
     }
     if (!isFinite(octTop)) { return; }
 
-    // Two pixels, not eight. The band above the octagon is 22px on his window
-    // and the title is 17: a generous gap is what turns "it fits" into "it is
-    // gone", and a caption removed to make room for whitespace is a worse
-    // answer than a tight one.
-    var VGAP = 2;
+    // The vertical gap is the same number reserveCaptionBand() cut the room to,
+    // or the two would argue about a pixel and the caption would shed a line it
+    // had just been given space for.
+    var VGAP = CAPTION_GAP;
     var HGAP = 8;
     var centre = frame.left + frame.width / 2;
     var natural = caption.getBoundingClientRect();
