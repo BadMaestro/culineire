@@ -346,8 +346,8 @@ forbidden changes and evidence for every row below.
 | A14 | Furniture | Bottom ticker and Join the Crowd composition | GreenBear | A06 | DONE |
 | A15 | Arena Hall | Effects and artifacts preservation pass | GreenBear | A07–A10 | DONE |
 | A16 | Arena Hall | CulinEire branding and K-mark audit | unassigned | A11–A14 | DONE |
-| A17 | Integrity | Truthful visual state matrix | Bolt | A09–A16 | **IN PROGRESS** — three devtools issues closed v2.5.854 |
-| A18 | Integrity | Desktop accessibility and responsive gate | Bolt | A17 | **IN PROGRESS** — 1920/1440/1280 swept, 12px overflow closed v2.5.856 |
+| A17 | Integrity | Truthful visual state matrix | Bolt | A09–A16 | **DONE** — `docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md`, measured on production |
+| A18 | Integrity | Desktop accessibility and responsive gate | Bolt | A17 | **DONE** — 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab |
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
 | MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | **DELETED by the Owner** |
 | MC02 | Arena | The withdrawal seen LIVE on the arena, not described — see `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md` | unassigned | A09 | **OPEN, awaiting the Owner's steps** |
