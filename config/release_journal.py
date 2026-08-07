@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.894",
         "date": "2026-08-07",
-        "commit": "",
+        "commit": "c90c43b7",
         "title": "The caption fits by one pixel, because a margin was holding it off a line that is not there",
         "section": "Chef Battles / Arena",
         "summary": "v2.5.892 put the caption in the measured free band and it came out HIDDEN on the Owner's window, which is the wrong end of a fix about overlapping. Measured live: the band above the octagon is 22px, the room after gaps is 18, and the title alone measured 19. The extra two came from the title's own top margin - 2.88px whose job is to hold it off the kicker above, and the kicker is exactly what had just been shed. With the margin dropped in both reduced fits the title measures 17 and stands clear. IF REVERTED: at any window where the ribbon grows, the caption disappears instead of shortening.",
