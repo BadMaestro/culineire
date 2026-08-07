@@ -3051,6 +3051,18 @@
     function remeasure() {
       if (measureHeader()) { fitScene(svg); }
     }
+    // A WINDOW RESIZE ALWAYS RE-FITS, whatever the header did. remeasure()
+    // above only re-fits when the header's own number CHANGED, and a change of
+    // window HEIGHT does not touch the header at all - so the scene, and with
+    // it the rank ladder's measured position beside the floor, kept the
+    // coordinates it was given at the old size. Measured on production at
+    // 1280x520: the ladder hung 19px below the fold and 133px off the floor's
+    // centre line, and dispatching a resize by hand did not move it, which is
+    // what proved the re-fit was never running rather than running wrongly.
+    function refit() {
+      measureHeader();
+      fitScene(svg);
+    }
     if (global.ResizeObserver && document.querySelector(HEADER_SELECTOR)) {
       // BORDER-BOX, and this is the whole of why the first fix did not land.
       // A ResizeObserver watches the CONTENT box unless told otherwise, and the
@@ -3063,13 +3075,13 @@
         document.querySelector(HEADER_SELECTOR), { box: 'border-box' }
       );
     }
-    global.addEventListener('resize', remeasure);
+    global.addEventListener('resize', refit);
     if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
       document.fonts.ready.then(remeasure).catch(function () {});
     }
     // One late pass for anything that lands after paint without announcing
     // itself - a lazy banner, a consent strip, an image above the fold.
-    global.setTimeout(remeasure, 1200);
+    global.setTimeout(refit, 1200);
     if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
     paintRunway(payload.runway || null);
     if (global.ArenaBattleRoom) { global.ArenaBattleRoom.init(payload.latest_result); }

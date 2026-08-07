@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.878",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "A window resize re-fits the scene, so the ladder beside the octagon actually moves",
+        "section": "Chef Battles / Arena",
+        "summary": "v2.5.876 stood the rank ladder beside the octagon, measured against the floor's right edge and vertical middle. Verified at 1280x720: 16px clear of the floor, centred to the pixel, no overlap with anything. Then measured at 1280x520 and it was 19px BELOW THE FOLD and 133px off the centre line - and dispatching a resize event by hand did not move it, which is what proved the re-fit was never running rather than running wrongly. The window handler was remeasure(), which re-fits only when the HEADER's own number changed, and a change of window HEIGHT does not touch the header at all. So the scene kept the coordinates it was given at the old size, and everything measured against it - the ladder's position most visibly - was stale. A resize re-fits unconditionally now. The header's own observer keeps its conditional, because it fires for a different reason: the header wrapping at a width the window did not change to. IF REVERTED: the ladder is correct at the size the page loaded at and wrong at every size after it.",
+    },
+    {
         "version": "2.5.876",
         "date": "2026-08-07",
         "commit": "",

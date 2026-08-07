@@ -11013,7 +11013,10 @@ class ArenaHeaderMeasurementTests(TestCase):
         return source.split("measureHeader();", 1)[1].split("ArenaBattleRoom", 1)[0]
 
     def test_the_window_retriggers_the_measurement(self):
-        self.assertIn("addEventListener('resize', remeasure)", self._init_block())
+        """The window handler is refit(), which measures AND re-fits - see
+        test_a_window_resize_always_refits_the_scene for why measuring alone
+        was not enough."""
+        self.assertIn("addEventListener('resize', refit)", self._init_block())
 
     def test_web_fonts_retrigger_it(self):
         """Fonts land after init and grow the header; by then nothing asked again."""
@@ -11034,7 +11037,18 @@ class ArenaHeaderMeasurementTests(TestCase):
         self.assertIn("{ box: 'border-box' }", self._init_block())
 
     def test_there_is_a_late_pass_for_what_lands_silently(self):
-        self.assertIn("setTimeout(remeasure", self._init_block())
+        self.assertIn("setTimeout(refit", self._init_block())
+
+    def test_a_window_resize_always_refits_the_scene(self):
+        """remeasure() only re-fits when the HEADER's number changed, and a
+        change of window height does not touch the header - so the scene, and
+        the rank ladder's measured position beside the floor with it, kept the
+        coordinates it was given at the old size. Measured at 1280x520: the
+        ladder hung 19px below the fold and 133px off the floor's centre line,
+        and a hand-dispatched resize did not move it."""
+        block = self._init_block()
+        self.assertIn("addEventListener('resize', refit)", block)
+        self.assertIn("function refit()", block)
 
 
 @override_settings(
