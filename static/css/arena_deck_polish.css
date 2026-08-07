@@ -3044,6 +3044,14 @@
     width: 1px;
     background: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
   }
+  /* Owner, 2026-08-07: on rung 3 the divider is barely there. Head Chef fills
+   * rgb(155,132,103) and the bronze line is rgb(180,122,51) - the line and the
+   * chip under it are nearly the same colour, and it only gets worse on 2 and
+   * 1. So the divider turns over with the fill, exactly as the ink and the type
+   * already do; one attribute decides all three. */
+  .arena-rank-spine__step[data-on-dark="true"]::before {
+    background: color-mix(in srgb, var(--surface) 62%, transparent);
+  }
   .arena-rank-spine__ring {
     position: absolute;
     left: 0.62rem;
@@ -3990,6 +3998,21 @@
   .page--arena .arena-confrontation-band,
   .page--arena .arena-floor-caption {
     z-index: 24 !important;
+  }
+
+  /* The caption sheds a line rather than overlapping the panel above it or the
+     octagon below it. placeFloorCaption() measures the band that is actually
+     free and sets the attribute; the title is never the line that goes.
+     Owner, 2026-08-07: "исправь это раз и навсегда." */
+  .page--arena .arena-floor-caption[data-fit="no-kicker"] span,
+  .page--arena .arena-floor-caption[data-fit="title-only"] span,
+  .page--arena .arena-floor-caption[data-fit="title-only"] em {
+    display: none;
+  }
+  /* And if even the title cannot stand clear of both edges, it stands down
+     rather than printing through the octagon. */
+  .page--arena .arena-floor-caption[data-fit="none"] {
+    display: none;
   }
   .page--arena .arena-render-container {
     z-index: 1;

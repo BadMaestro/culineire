@@ -11357,6 +11357,13 @@ class ArenaRingNumberingTests(TestCase):
         rule = css.split(".arena-rank-spine__step::before {", 1)[1].split("}", 1)[0]
         self.assertIn("width: 1px", rule)
         self.assertIn("position: absolute", rule)
+        # And it turns over with the fill. Head Chef fills rgb(155,132,103) and
+        # the bronze line is rgb(180,122,51): the line and the chip under it are
+        # nearly the same colour, and it only gets worse on rungs 2 and 1.
+        flipped = css.split(
+            '.arena-rank-spine__step[data-on-dark="true"]::before {', 1
+        )[1].split("}", 1)[0]
+        self.assertIn("var(--surface)", flipped)
 
     def test_the_floor_carries_no_numerals(self):
         """Owner, 2026-08-07: take the numbers off the octagon. The ladder is on
@@ -11401,3 +11408,74 @@ class ArenaRingNumberingTests(TestCase):
         ).read_text(encoding="utf-8")
         self.assertNotIn("gap: 0.15rem;", css)
         self.assertIn("min-height: 1.375rem;", css)
+
+
+class FloorCaptionTakesTheFreeSpaceTests(TestCase):
+    """OWNER, 2026-08-07: "блоки опять наезжают друг на друга - мы уже чинили
+    это сегодня - исправь это раз и навсегда."
+
+    The caption sat at `top: 8.2%` of the floor container - a fixed share of a
+    box whose contents are not fixed. Measured on his window, 1170x820: caption
+    234-284, ribbon above ending at 255, octagon beginning at 277. A 49px block
+    in a 22px gap.
+    """
+
+    def _body(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        return source.split("function placeFloorCaption(", 1)[1].split("\n  }", 1)[0]
+
+    def test_it_runs_with_the_rest_of_the_fit(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn("placeFloorCaption(svg);", source)
+
+    def test_the_ceiling_is_only_what_stands_in_its_own_column(self):
+        """The cooking widget on the left also ends above the octagon and is
+        nowhere near the caption. Counting it as a ceiling is how a measured fix
+        gets the wrong answer with a straight face."""
+        body = self._body()
+        self.assertIn("sharesColumn", body)
+        self.assertIn("box.bottom <= octTop", body)
+
+    def test_the_octagon_is_the_other_edge(self):
+        body = self._body()
+        self.assertIn("octTop", body)
+        self.assertIn("room = (octTop", body)
+
+    def test_it_sheds_a_line_rather_than_overlapping(self):
+        """Kicker first, then the subtitle. The title is never the line that
+        goes."""
+        body = self._body()
+        self.assertIn("['full', 'no-kicker', 'title-only']", body)
+
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+        ).read_text(encoding="utf-8")
+        self.assertIn('.arena-floor-caption[data-fit="no-kicker"] span', css)
+        self.assertIn('.arena-floor-caption[data-fit="title-only"] em', css)
+
+    def test_a_panel_beside_it_narrows_it(self):
+        """The metrics card reaches into the caption's band on his window and
+        took 123px of it."""
+        body = self._body()
+        self.assertIn("leftBound", body)
+        self.assertIn("rightBound", body)
+
+    def test_it_measures_from_scratch_each_pass(self):
+        """Last pass's inline width answers the wrong question."""
+        body = self._body()
+        reset = body.split("caption.removeAttribute('data-fit');", 1)[0]
+        self.assertIn("getBoundingClientRect", body)
+        self.assertIn("caption.style.width = '';", body)

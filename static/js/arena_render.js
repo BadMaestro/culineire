@@ -2869,6 +2869,132 @@
     billboardFaces(svg);
     placeRankSpine(svg);
     paintRankLadder(svg);
+    placeFloorCaption(svg);
+  }
+
+  // THE CAPTION TAKES THE SPACE THAT IS ACTUALLY FREE.
+  //
+  // OWNER, 2026-08-07: "блоки опять наезжают друг на друга - мы уже чинили это
+  // сегодня - исправь это раз и навсегда."
+  //
+  // He is right that it is the same fault twice. The morning's pile was the
+  // ladder, the caption and the floor head fighting over one strip; the ladder
+  // was moved out and the caption was left where it was - at `top: 8.2%` of the
+  // floor container, a FIXED SHARE of a box whose contents are not fixed. On his
+  // window that share put it at 234 while the ribbon above ran to 255 and the
+  // octagon began at 277: a 50px caption in a 22px gap, so it overlapped both,
+  // and the metrics panel on the right as well.
+  //
+  // A percentage cannot know any of that. This measures the three edges that
+  // actually bound the caption - the lowest thing above it, the top of the
+  // octagon, and any panel standing in the same horizontal band - and puts the
+  // caption in what is left. If what is left is too short, it sheds a line
+  // rather than overlapping: the kicker first, then the subtitle. The title
+  // never goes, and nothing is ever hidden to make room for something else.
+  function placeFloorCaption(svg) {
+    var caption = document.querySelector('.arena-floor-caption');
+    var container = svg.parentElement;
+    if (!caption || !container) { return; }
+
+    // Below 767 the arena is untouched by the Owner's instruction of 2026-08-03.
+    if (global.matchMedia && global.matchMedia('(max-width: 767px)').matches) {
+      caption.removeAttribute('data-fit');
+      caption.style.top = '';
+      caption.style.left = '';
+      caption.style.width = '';
+      caption.style.transform = '';
+      return;
+    }
+
+    var frame = container.getBoundingClientRect();
+    if (!(frame.width > 0)) { return; }
+
+    // Measured from scratch every time: the natural box is what is being
+    // fitted, and last pass's inline width would answer the wrong question.
+    caption.removeAttribute('data-fit');
+    caption.style.width = '';
+    caption.style.left = '';
+    caption.style.top = '';
+    caption.style.transform = 'none';
+
+    var cells = svg.querySelectorAll('.arena-cell');
+    var octTop = Infinity;
+    for (var c = 0; c < cells.length; c++) {
+      var cb = cells[c].getBoundingClientRect();
+      if (cb.width && cb.top < octTop) { octTop = cb.top; }
+    }
+    if (!isFinite(octTop)) { return; }
+
+    // Two pixels, not eight. The band above the octagon is 22px on his window
+    // and the title is 17: a generous gap is what turns "it fits" into "it is
+    // gone", and a caption removed to make room for whitespace is a worse
+    // answer than a tight one.
+    var VGAP = 2;
+    var HGAP = 8;
+    var centre = frame.left + frame.width / 2;
+    var natural = caption.getBoundingClientRect();
+    var span = { left: centre - natural.width / 2, right: centre + natural.width / 2 };
+
+    // The ceiling is the lowest edge of anything that ends above the octagon AND
+    // stands in the caption's own column. The left-hand cooking widget ends
+    // above the octagon too and is nowhere near it; counting that as a ceiling
+    // is how a measured fix gets the wrong answer with a straight face.
+    var ceiling = frame.top;
+    var sideways = [];
+    var panels = document.querySelectorAll('.arena-command-deck [class*="arena-"]');
+    for (var p = 0; p < panels.length; p++) {
+      var node = panels[p];
+      if (node === caption || caption.contains(node) || node.contains(caption)) { continue; }
+      if (node.contains(container) || container.contains(node)) { continue; }
+      var style = global.getComputedStyle(node);
+      if (style.display === 'none' || style.visibility === 'hidden') { continue; }
+      var box = node.getBoundingClientRect();
+      if (box.width < 80 || box.height < 16) { continue; }
+      var sharesColumn = Math.min(span.right, box.right) > Math.max(span.left, box.left);
+      if (sharesColumn && box.bottom <= octTop && box.bottom > ceiling) { ceiling = box.bottom; }
+      if (!sharesColumn || box.bottom > octTop) { sideways.push(box); }
+    }
+
+    // What is left, and what will fit in it. The title is never the line that
+    // goes; if even the title cannot stand clear, the caption stands down
+    // rather than printing through the octagon.
+    var top = ceiling + VGAP;
+    var room = (octTop - VGAP) - top;
+    var order = ['full', 'no-kicker', 'title-only'];
+    var chosen = null;
+    for (var f = 0; f < order.length; f++) {
+      if (order[f] === 'full') { caption.removeAttribute('data-fit'); }
+      else { caption.setAttribute('data-fit', order[f]); }
+      if (caption.getBoundingClientRect().height <= room) { chosen = order[f]; break; }
+    }
+    if (!chosen) {
+      caption.setAttribute('data-fit', 'none');
+      return;
+    }
+    if (chosen === 'full') { caption.removeAttribute('data-fit'); }
+    else { caption.setAttribute('data-fit', chosen); }
+
+    var height = caption.getBoundingClientRect().height;
+    var band = { top: top, bottom: top + height };
+
+    // Horizontal: centred on the octagon, then pulled in by whatever stands in
+    // the same band. On his window that is the metrics card on the right.
+    var leftBound = frame.left;
+    var rightBound = frame.right;
+    for (var s = 0; s < sideways.length; s++) {
+      var sb = sideways[s];
+      if (sb.bottom <= band.top || sb.top >= band.bottom) { continue; }
+      if (sb.right <= centre && sb.right > leftBound) { leftBound = sb.right; }
+      if (sb.left >= centre && sb.left < rightBound) { rightBound = sb.left; }
+    }
+    var half = Math.min(centre - leftBound, rightBound - centre) - HGAP;
+    var width = Math.max(0, half * 2);
+    if (width < 140) { width = Math.min(280, frame.width); }
+
+    caption.style.transform = 'none';
+    caption.style.width = Math.round(width) + 'px';
+    caption.style.left = Math.round(centre - width / 2 - frame.left) + 'px';
+    caption.style.top = Math.round(top - frame.top) + 'px';
   }
 
   // THE LADDER WEARS ITS RINGS' OWN COLOURS. Owner, 2026-08-07.
