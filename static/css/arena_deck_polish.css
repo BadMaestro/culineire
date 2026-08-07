@@ -4112,3 +4112,44 @@
   .arena-runway.is-counting,
   .arena-runway.is-go { animation: none; }
 }
+
+
+/* ============================================================================
+ * A13 + A14 — the right-hand gifts panel and the bottom-centre strip, measured
+ * against the approved Design Template rather than adjusted by eye.
+ *
+ * Reference, as shares of its 1920 x 1080 canvas:
+ *   Recent gifts   330 x 223 at (1562, 761)    ->  x 0.814  y 0.705  w 0.172  h 0.207
+ *   Bottom band   1076.5 x 52 at (421.7, 1004) ->  x 0.220  y 0.930  w 0.561  h 0.048
+ *
+ * Production before this block, as shares of the deck:
+ *   Recent gifts   x 0.821  y 0.640  w 0.166  h 0.269   <- 30 per cent too tall
+ *   Bottom rail    x 0.001  y 0.926  w 0.999  h 0.073   <- edge to edge, not a band
+ *
+ * Two deltas and only two. The gifts panel's position and width were already
+ * inside one per cent of the reference and are not touched; the bottom rail's
+ * vertical position was already right (0.926 against 0.930) and is not touched
+ * either.
+ * ========================================================================== */
+
+/* A13. The panel's extra height is one paragraph the reference does not have:
+ * an explanatory note about the shop and the token checks, written for us
+ * rather than for a spectator. Hidden, not deleted - it is true, and it belongs
+ * in the docs and not on the floor. That takes the panel from 216px to about
+ * 176 on a 804-tall deck: 0.219 against the reference's 0.207. */
+.page--arena .arena-command-deck__gift-copy {
+  display: none;
+}
+
+/* A14. The bottom strip becomes the reference's centred band. The rail keeps
+ * its full-width backdrop - that is the floor's own edge, and the reference has
+ * one too - and the CONTENT is bounded to the middle 56.07 per cent, which is
+ * the reference band's own share. Padding rather than a wrapper, because the
+ * three children are the markup's own and adding a div to hold them would be a
+ * change to the template for a purely visual bound.
+ *   (100% - 56.07%) / 2 = 21.965% each side. */
+.page--arena .arena-command-deck__crowd-rail.arena-lower-broadcast {
+  padding-inline: 21.965%;
+  justify-content: space-between;
+  gap: 0.75rem;
+}

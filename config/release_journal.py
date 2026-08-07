@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.859",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "A13 and A14 - the gifts panel loses the paragraph the reference does not have, and the bottom strip becomes a band",
+        "section": "Chef Battles / Arena",
+        "summary": "Two cards, both measured against the Design Template rather than adjusted by eye, both shipped together because each is a few lines. REFERENCE, as shares of its 1920x1080 canvas: recent gifts 330x223 at (1562,761) = x 0.814 y 0.705 w 0.172 h 0.207; bottom band 1076.5x52 at (421.7,1004) = x 0.220 y 0.930 w 0.561 h 0.048. PRODUCTION BEFORE, as shares of the deck: gifts x 0.821 y 0.640 w 0.166 h 0.269; bottom rail x 0.001 y 0.926 w 0.999 h 0.073. A13: the panel was 30 per cent too tall, and the excess is one paragraph the reference has no equivalent for - an explanatory note about the shop and the token checks, written for us rather than for a spectator. Hidden, not deleted: it is true and it belongs in the docs. 216px becomes about 176 on an 804-tall deck, 0.219 against 0.207. Its x and width were already inside one per cent and are untouched. A14: the bottom strip ran edge to edge where the reference centres a band a little over half the canvas wide. The rail keeps its full-width backdrop - that is the floor's edge and the reference has one too - and the content is bounded to the middle 56.07 per cent by padding, chosen over a wrapper div because the three children are the markup's own and a purely visual bound should not change the template. Its vertical position was already right, 0.926 against 0.930, and is untouched. IF REVERTED: the panel grows back and the strip spreads to the corners.",
+    },
+    {
         "version": "2.5.857",
         "date": "2026-08-07",
         "commit": "",
