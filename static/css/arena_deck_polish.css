@@ -4009,6 +4009,14 @@
   .page--arena .arena-floor-caption[data-fit="title-only"] em {
     display: none;
   }
+  /* The title's top margin exists to hold it off the kicker. With the kicker
+     gone it is 2.88px of nothing, and on his window that was the difference
+     between a caption and no caption: the band is 22px, the title measured 19
+     with the dead margin and the room is 18. */
+  .page--arena .arena-floor-caption[data-fit="no-kicker"] strong,
+  .page--arena .arena-floor-caption[data-fit="title-only"] strong {
+    margin-top: 0;
+  }
   /* And if even the title cannot stand clear of both edges, it stands down
      rather than printing through the octagon. */
   .page--arena .arena-floor-caption[data-fit="none"] {
