@@ -2925,7 +2925,13 @@
       var rgb = fill.match(/\d+(\.\d+)?/g);
       if (!rgb || rgb.length < 3) { continue; }
       var lum = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
-      steps[i].setAttribute('data-on-dark', lum < 0.55 ? 'true' : 'false');
+      var onDark = lum < 0.55 ? 'true' : 'false';
+      steps[i].setAttribute('data-on-dark', onDark);
+      // The rim is drawn by the item BEHIND the chip - see the stylesheet for
+      // why it cannot be drawn by the chip itself - so the item needs the same
+      // answer about how dark it is standing on.
+      var item = steps[i].closest('.arena-rank-spine__item');
+      if (item) { item.setAttribute('data-on-dark', onDark); }
     }
   }
 

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.888",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "Two rungs of eight had no shape at all, and the numerals now stand in a gutter",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner: the first two are not visible at all. Measured on production: rings 7 and 8 fill rgb(228,221,209) and the deck behind them is rgb(229,222,213) - the chip is the same colour as the page it lies on, so Kitchen Porter and Prep Chef had no shape of their own, and v2.5.886's drop-shadow hairline was not enough to be that shape. The rim is a FILLED OBJECT now instead of a line: the list item takes the same bevelled clip and one pixel of padding, and the chip sits on top of it leaving that pixel showing all the way round, bevels included. An outline that cannot be clipped away, because it is not an outline. It lifts toward the surface on the ramp's dark half, where a dark rim would be the same nothing. Second instruction, same look: the numeral leaves the text flow for a gutter at the left edge and the rank name is centred on the CHIP - in flow they were one centred group, so a name's centre moved with the width of the numeral beside it and no two rungs agreed. IF REVERTED: eight rungs of which the two palest are invisible on a light deck.",
+    },
+    {
         "version": "2.5.886",
         "date": "2026-08-07",
         "commit": "72bac36a",

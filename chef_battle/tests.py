@@ -11341,3 +11341,28 @@ class ArenaRingNumberingTests(TestCase):
         # loses to it and the rule never reaches the screen.
         self.assertIn('.arena-rank-spine__step[data-on-dark="true"],', edge)
         self.assertIn("border-color: transparent;", edge)
+        # And the rim itself is the ITEM behind the chip, not a line on the
+        # chip. Rings 7 and 8 measure rgb(228,221,209) against a deck of
+        # rgb(229,222,213): those two rungs have no shape of their own at all,
+        # and a hairline was not enough to give them one - two of eight were
+        # invisible on the Owner's screen.
+        self.assertIn(".arena-rank-spine__item {", edge)
+        self.assertIn("background: var(--rim);", edge)
+        self.assertIn("clip-path: polygon(", edge)
+
+    def test_the_numeral_stands_in_a_gutter_and_the_name_is_centred(self):
+        """Owner, 2026-08-07: numbers to the left edge, rank names centred on
+        the cell. In flow they were one centred group, so a name's centre moved
+        with the width of the numeral beside it and no two rungs agreed."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+        ).read_text(encoding="utf-8")
+        block = css.split("выравнивание цифр", 1)[1].split("\n  .arena-confrontation-band", 1)[0]
+        ring = block.split(".arena-rank-spine__ring {", 1)[1].split("}", 1)[0]
+        self.assertIn("position: absolute", ring)
+        self.assertIn("left:", ring)
+        name = block.split(".arena-rank-spine__name {", 1)[1].split("}", 1)[0]
+        self.assertIn("text-align: center", name)

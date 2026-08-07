@@ -2969,33 +2969,72 @@
   .arena-rank-spine__step[data-on-dark="false"] {
     border-color: transparent;
     box-shadow: none;
-  }
-  .arena-rank-spine__step[data-on-dark="false"] {
-    filter:
-      drop-shadow(0 0 0.5px color-mix(in srgb, var(--accent-bronze) 78%, var(--ink)))
-      drop-shadow(0 0 0.5px color-mix(in srgb, var(--accent-bronze) 78%, var(--ink)))
-      drop-shadow(0 1px 1.5px color-mix(in srgb, var(--ink) 26%, transparent));
-  }
-  .arena-rank-spine__step[data-on-dark="true"] {
-    filter:
-      drop-shadow(0 0 0.5px color-mix(in srgb, var(--surface) 72%, transparent))
-      drop-shadow(0 0 0.5px color-mix(in srgb, var(--surface) 72%, transparent))
-      drop-shadow(0 1px 1.5px color-mix(in srgb, var(--ink) 34%, transparent));
+    filter: drop-shadow(0 1px 1.5px color-mix(in srgb, var(--ink) 22%, transparent));
   }
 
-  /* The ring's number, leading its own rung. Tabular so eight numerals sit in
-   * one column however the type is rendered, and separated by a hairline in the
-   * bronze rather than by a gap, so the chip still reads as one object. */
+  /* AND THE RIM IS THE ITEM, NOT THE CHIP. Owner, 2026-08-07: "первых две
+   * вообще не видно."
+   *
+   * Rings 7 and 8 measure rgb(228,221,209) and the deck behind them measures
+   * rgb(229,222,213). The chip is the same colour as the page it lies on, so
+   * those two rungs have no shape of their own AT ALL - only an edge can give
+   * them one, and a hairline drawn by drop-shadow was not enough to be that
+   * edge. Two rungs of eight were invisible, which is what he photographed.
+   *
+   * So the rim is a FILLED SHAPE behind the chip: the list item takes the same
+   * bevelled clip and one pixel of padding, and its background is the rim. The
+   * chip sits on top of it and leaves that pixel showing all the way round,
+   * bevels included. It is an outline that cannot be clipped away, because it
+   * is not an outline - it is the object underneath. */
+  .arena-rank-spine__item {
+    --rim: color-mix(in srgb, var(--accent-bronze) 62%, var(--ink));
+    padding: 1px;
+    background: var(--rim);
+    clip-path: polygon(
+      0.72rem 0,
+      calc(100% - 0.72rem) 0,
+      100% 50%,
+      calc(100% - 0.72rem) 100%,
+      0.72rem 100%,
+      0 50%
+    );
+  }
+  /* On the ramp's dark half a dark rim is the same nothing the pale rim was up
+   * top, so it lifts toward the surface. paintRankLadder() puts the same
+   * answer on the item that it puts on the chip. */
+  .arena-rank-spine__item[data-on-dark="true"] {
+    --rim: color-mix(in srgb, var(--surface) 62%, transparent);
+  }
+
+  /* Owner, 2026-08-07: "выравнивание цифр по левому краю а статусы по центру
+   * ячейки лестницы."
+   *
+   * The numeral leaves the text flow and stands in a gutter at the chip's left
+   * edge; the rank name is then centred on the CHIP rather than on what is left
+   * of it after the numeral. In flow they were one centred group, so the name's
+   * centre moved with the width of the numeral beside it and no two rungs
+   * agreed. The chip carries symmetric inline padding so a long name cannot run
+   * under the gutter on either side. Tabular figures so eight numerals sit in
+   * one column however the type is rendered. */
+  .arena-rank-spine__step {
+    position: relative;
+    padding-inline: 1.45rem;
+  }
   .arena-rank-spine__ring {
-    flex: 0 0 auto;
-    margin-right: 0.42rem;
-    padding-right: 0.42rem;
-    border-right: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    position: absolute;
+    left: 0.62rem;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    padding: 0;
     font-style: normal;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0;
-    opacity: 0.72;
+    opacity: 0.78;
+  }
+  .arena-rank-spine__name {
+    text-align: center;
   }
   .arena-confrontation-band .arena-live-centre--crown {
     width: 8.4rem;
