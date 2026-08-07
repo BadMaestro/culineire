@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.865",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The ladder shrinks to fit above the floor instead of lying on the first ring",
+        "section": "Chef Battles / Arena",
+        "summary": "Follow-through on v2.5.863, measured on production. With the names no longer clipped the stack is 147 wide and 201 tall, and the band left above the floor at 1920x1080 is 149 - because A07 fits the whole arena into one screen, so whatever the header and the ribbon take is gone. It therefore still overlapped the floor's first 44 pixels. The stack now scales from its own top centre to the room available, floored at 0.85 so the titles stay readable. Below that floor it is the Owner's call whether to abbreviate the titles - shrinking type until something fits is a product decision taken by arithmetic, and it is not an agent's to take. IF REVERTED: the ladder sits on the outer ring again.",
+    },
+    {
         "version": "2.5.863",
         "date": "2026-08-07",
         "commit": "",

@@ -2950,6 +2950,21 @@
     var offset = Math.min(wanted, highest);
     if (offset < 0) { offset = 0; }
 
+    // AND WHEN THERE IS STILL NOT ENOUGH ROOM, THE STACK SHRINKS RATHER THAN
+    // LYING ON THE RINGS. A07 fits the whole arena into one screen, so the band
+    // above the floor is whatever is left after the header and the ribbon - at
+    // 1920x1080 that is 149px for a stack that wants 201. Scaled from its own
+    // top centre, floored at 0.85 so the titles stay readable; below that it is
+    // the Owner's call whether to abbreviate them, not an agent's to decide by
+    // shrinking type until it fits.
+    var room = top - frame.top - offset - GAP;
+    var scale = room > 0 && ladderH > 0 ? Math.min(1, room / ladderH) : 1;
+    if (scale < 0.85) { scale = 0.85; }
+    spine.style.transformOrigin = 'top center';
+    spine.style.transform = scale < 1
+      ? 'translateX(-50%) scale(' + scale.toFixed(3) + ')'
+      : '';
+
     spine.style.top = offset.toFixed(1) + 'px';
     spine.style.left = ((left + right) / 2 - frame.left).toFixed(1) + 'px';
     // WIDTH IS NOT SET HERE ANY MORE. It was 0.1253 of the floor - the
