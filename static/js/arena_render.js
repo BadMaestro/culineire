@@ -2134,7 +2134,14 @@
     }
 
     if (assets.glyph) {
-      var gSize = radius * 0.62;
+      // A10, second half - the type hierarchy inside the hub, measured off the
+      // same reference. Its crown block is 190 wide and its glyph is set at
+      // 52px: 0.274 of the block. Ours was 0.62 of the RADIUS, which is 0.31 of
+      // the block - 13 per cent oversized, the only figure in the hub that was
+      // out of family. The CROWN HOLDER label (0.050 against 0.047) and the
+      // fitted name (up to 0.120 against 0.116) were already inside measurement
+      // noise of the reference and are left exactly as they are.
+      var gSize = radius * 0.547;
       group.appendChild(el('image', {
         href: assets.glyph,
         x: (cx - gSize / 2).toFixed(2),
