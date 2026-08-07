@@ -10605,3 +10605,42 @@ class RehearsalBattlesTakeNothingTests(TestCase):
         fields = penalise(p, refused=1, reputation=-5)
         self.assertTrue(fields)
         self.assertEqual(p.reputation, 10)
+
+
+class EmptyFighterPadIsMutedTests(TestCase):
+    """OWNER, 2026-08-07, asked and answered: "да приглушать".
+
+    At full side colour an empty pad read as an occupied one - green and red are
+    how the arena says "these two are fighting". Muted, the side is still
+    legible and the seat is plainly empty.
+    """
+
+    def _css(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_render.css"
+        ).read_text(encoding="utf-8")
+
+    def test_the_empty_pad_has_its_own_rule(self):
+        self.assertIn(".arena-floor-fighter--empty .arena-floor-fighter__tile", self._css())
+
+    def test_it_is_quieter_than_an_occupied_pad(self):
+        css = self._css()
+        self.assertIn("stroke-opacity: .5", css)
+        # 7% against the occupied 22%.
+        self.assertIn("var(--hall-green) 7%", css)
+        self.assertIn("var(--hall-red) 7%", css)
+        self.assertIn("var(--hall-green) 22%", css)
+        self.assertIn("var(--hall-red) 22%", css)
+
+    def test_no_raw_hex_was_introduced(self):
+        """The colour scheme is the law: tokens only, never an invented shade."""
+        import re
+
+        block = self._css().split("An EMPTY pad is muted", 1)[1].split("\n}", 4)[0]
+        self.assertEqual(
+            re.findall(r"#[0-9A-Fa-f]{3,6}\b", block), [],
+            "a raw hex colour was introduced for the empty pad",
+        )

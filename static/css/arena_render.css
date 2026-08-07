@@ -718,6 +718,28 @@
   stroke: var(--accent-bronze);
   fill: color-mix(in srgb, var(--accent-bronze) 22%, var(--surface));
 }
+
+/* An EMPTY pad is muted (Owner, 2026-08-07: "да приглушать").
+ *
+ * The two cells beside the centre are part of the floor and stay drawn when no
+ * battle is on (v2.5.848), but at full side colour an empty seat read as an
+ * occupied one - green and red are how the arena says "these two are fighting".
+ *
+ * The side is still legible, just quiet: a third of the tint, a stroke at half
+ * strength. It says "this seat belongs to the challenger and nobody is in it",
+ * which is the whole job. No new colour is introduced - the same two tokens,
+ * mixed further back.
+ */
+#arena-render .arena-floor-fighter--empty .arena-floor-fighter__tile {
+  stroke-opacity: .5;
+  stroke-width: 1.6;
+}
+#arena-render .arena-floor-fighter--empty.arena-floor-fighter--challenger .arena-floor-fighter__tile {
+  fill: color-mix(in srgb, var(--hall-green) 7%, var(--surface));
+}
+#arena-render .arena-floor-fighter--empty.arena-floor-fighter--opponent .arena-floor-fighter__tile {
+  fill: color-mix(in srgb, var(--hall-red) 7%, var(--surface));
+}
 #arena-render .arena-floor-fighter__name {
   fill: var(--surface);
   font-family: var(--font-serif, "Playfair Display", serif);

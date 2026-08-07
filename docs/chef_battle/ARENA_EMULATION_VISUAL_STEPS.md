@@ -48,7 +48,7 @@ Two chefs bound by an accepted challenge stand in **adjacent cells**:
 This replaces scattering for those two: the renderer currently spreads idle
 chefs by a hash of their slug and deliberately avoids neighbours.
 
-**State: TO BUILD.**
+**State: LANDED v2.5.844.**
 
 ### A3. Twelve hours to accept, and before that nothing is pinned.
 
@@ -72,7 +72,9 @@ From acceptance until the battle starts, the pair's placement is **stable**: the
 same two adjacent cells every time either of them comes back online, not a fresh
 random cell per visit. Leaving and returning must not move them.
 
-**State: TO BUILD, same mechanism as A2.**
+**State: LANDED v2.5.844**, same mechanism as A2 - the seat is keyed to the
+battle id and which chef takes which cell is fixed by slug, so leaving and
+returning cannot move either of them.
 
 ### A5. An accepted challenge is announced at the top.
 
@@ -147,9 +149,49 @@ happens, rather than the Owner being told afterwards what he should have seen.
 - The emulation bots are exempt from the 180-second online window since
   v2.5.840, so a test pair stands on the arena permanently.
 
-## Still open, and blocking part of this
+## What changed under this file since scenario A was dictated
 
-**A09, unassigned.** A fighter who is offline vanishes from the arena entirely,
-including the two chefs of a battle that is running. A2 and A4 keep the pair
-together while they are visible; they do not decide what a bout looks like when
-one of them is not there at all. That is A09's question.
+**A09 is DONE** (GreenBear, v2.5.847), and it was the block on everything after
+the off. A fighter is no longer filtered out of his own battle: the ring payload
+used to keep only chefs inside the 180-second heartbeat, so a chef who closed
+his tab vanished mid-bout and the ring ran empty.
+
+**THE CENTRE RULE TIGHTENED** (v2.5.849), and this one changes scenario A's own
+ending. The Owner ruled twice in a day; the second stands: **the pair reaches
+the centre only when the battle BEGINS.** Pressing Ready is not the beginning -
+since v2.5.844 it only pulls the start in to fifteen minutes, and those minutes
+are spent standing in the rings. `facing_pair` is no longer produced at all.
+The scenario runner narrated "the pair steps into the centre" on Ready and that
+line was corrected the same day.
+
+**Which is what made the empty pads load-bearing** (v2.5.848). With the centre
+confined to a started battle, the two cells beside it are empty for the whole
+life of a challenge rather than only between battles.
+
+**A rehearsal takes nothing** (v2.5.848). A scenario battle left running was
+picked up by the sweeper and cost both bots ten reputation for a dinner nobody
+was going to cook. Penalties are exempt for a battle whose two participants are
+both emulation bots, at the one gate inside penalise(); the rule is untouched
+for every real chef, and two tests exist purely to prove that.
+
+## Running it end to end
+
+    manage.py run_scenario_a --to-the-off
+
+Without the flag the run stops at Ready and the production sweeper starts the
+battle in its own time, up to fifteen minutes later. With it, the clock is
+brought to now and `resolve_start_rituals()` - the SAME function the cron calls,
+not a shortcut around it - begins the battle while the Owner is looking at it.
+That is the only way to watch the pair reach the centre without waiting a
+quarter of an hour.
+
+    manage.py run_scenario_a --clear
+
+removes the battle a run leaves behind.
+
+## Still to come
+
+**Scenario B**, when the Owner dictates it. Rows for the withdrawal seen live -
+the asking, the answer, the moderator's verdict and the numbers moving - are
+still TO SPEC: what appears on the screen is his, and nobody guesses on his
+behalf.

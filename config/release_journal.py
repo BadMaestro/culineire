@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.850",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The scenario runs to the off, and an empty fighter pad is muted",
+        "section": "Chef Battles / Arena",
+        "summary": "The run stopped at Ready, which under the tightened centre rule is no longer where anything interesting happens: since v2.5.849 the pair reaches the centre only when the battle BEGINS, and Ready merely pulls the start in to fifteen minutes. Watching that on production meant sitting through a quarter of an hour of the sweeper cron. run_scenario_a --to-the-off brings the clock to now and calls resolve_start_rituals() - THE SAME function the production crontab calls every fifteen minutes, not a shortcut around it - so the beginning the Owner sees is the real one and not a demo path that could drift from it. Two more narrated beats: the clock running out, and the pair stepping into the centre once the battle is actually running. Without the flag nothing changes and the sweeper does its own work in its own time. The specification in docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md was brought up to date in the same pass: A2 and A4 moved from TO BUILD to LANDED, A09 is recorded as closed by GreenBear in v2.5.847, and the tightened centre rule is written down against scenario A's own ending because it is the one thing in that file the Owner has since overruled. AND THE EMPTY PAD IS MUTED, on his answer to the one thing v2.5.848 deliberately left open: at full side colour an empty seat read as an occupied one, because green and red are how the arena says these two are fighting. The side stays legible and quiet - a third of the tint (7% against 22%) and a stroke at half strength. No new colour was introduced; the same two tokens, mixed further back, and a test refuses a raw hex in that block. IF REVERTED: the last step of the scenario is unwatchable without waiting fifteen minutes for a cron, and an empty seat looks like a fighter standing on it.",
+    },
+    {
         "version": "2.5.853",
         "date": "2026-08-07",
         "commit": "",

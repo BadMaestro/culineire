@@ -42,6 +42,9 @@ class Command(BaseCommand):
                             help="Seconds between steps (default 5).")
         parser.add_argument("--lead", type=int, default=12,
                             help="Seconds between arming the countdown and the off.")
+        parser.add_argument("--to-the-off", action="store_true",
+                            help="Carry on past Ready and actually begin the battle, "
+                                 "instead of leaving it to the fifteen-minute sweeper.")
 
     def handle(self, *args, **opts):
         chefs = []
@@ -117,9 +120,31 @@ class Command(BaseCommand):
         # any more, so this line stopped being true the moment that shipped.
         beat("The pill climbs the queue. The pair stays in the rings until the battle begins.")
 
+        if opts["to_the_off"]:
+            # The sweeper starts a battle when its clock runs out, and on
+            # production it runs every fifteen minutes - which is a long time to
+            # sit and watch nothing. Bringing the clock to now and calling the
+            # SAME function the cron calls shows the real beginning, at once,
+            # without a special path through the code: resolve_start_rituals is
+            # what starts every battle on this site.
+            from chef_battle.services import resolve_start_rituals
+
+            battle.start_time = timezone.now() - timezone.timedelta(seconds=1)
+            battle.save(update_fields=["start_time", "updated_at"])
+            beat("The clock runs out. The sweeper begins the battle - the real one, not a shortcut.")
+            resolve_start_rituals()
+            battle.refresh_from_db()
+            beat(f"The battle is {battle.get_status_display()}. NOW the pair steps into the centre.")
+
         arena_runway.clear()
         battle.refresh_from_db()
         minutes = (battle.start_time - timezone.now()).total_seconds() / 60
-        self.stdout.write(self.style.SUCCESS(
-            f"Done. Battle #{battle.pk} starts in {minutes:.1f} min, status {battle.status}."
-        ))
+        if opts["to_the_off"]:
+            self.stdout.write(self.style.SUCCESS(
+                f"Done. Battle #{battle.pk} is {battle.status} - the pair is in the centre. "
+                f"Run --clear when you have seen enough."
+            ))
+        else:
+            self.stdout.write(self.style.SUCCESS(
+                f"Done. Battle #{battle.pk} starts in {minutes:.1f} min, status {battle.status}."
+            ))
