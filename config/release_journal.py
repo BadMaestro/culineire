@@ -11,6 +11,14 @@ RELEASE_JOURNAL = [
         "version": "2.5.855",
     },
     {
+        "version": "2.5.854",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "A17: the three issues standing open in the Owner's devtools on the arena",
+        "section": "Chef Battles / Arena",
+        "summary": "None of the three broke a pixel, which is exactly why they had survived: a blocked stylesheet still renders the page and an unlabelled field still takes text. (1) BOOTSTRAP ICONS WAS LINKED FROM A CDN and blocked by our OWN Content Security Policy on every Chef Battles page - style-src is self plus fonts.googleapis.com, and jsdelivr is on neither list. It rendered nothing, because nothing used it: a sweep of every template and script found not one icon class from that font. Removed rather than allowlisted - adding a third-party origin to the CSP to serve icons nobody asks for buys a supply-chain risk for no pixels, and if icons are wanted later they are self-hosted like every other asset here. That also closes the third issue, VERIFY STYLESHEET URLS, which was the same link failing to load. (2) A FORM FIELD WITH NEITHER id NOR name - the lamp console's copy-out box, which a screen reader announces as nothing and the browser cannot autofill. It has an id and an aria-label saying what it holds. Three guards, and one of them caught its own explanation on the first run: the test scanned every line of base.html for the CDN host, and the comment recording WHY it was removed names that host. It reads the link and script lines only now - a test that fails on its own documentation is a test somebody deletes. IF REVERTED: two console errors and a blocked request on every Chef Battles page load, for nothing.",
+    },
+    {
         "version": "2.5.853",
         "date": "2026-08-07",
         "commit": "",

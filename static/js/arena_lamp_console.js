@@ -169,7 +169,11 @@
       }).join('') +
       '<p class="arena-lampc__actions">' +
       '<button type="button" data-lamp-reset>Сбросить</button></p>' +
-      '<textarea class="arena-lampc__copy" data-lamp-copy readonly rows="4"></textarea>' +
+      // id and aria-label: a field with neither is one a screen reader
+      // announces as nothing and the browser cannot autofill. It is read-only
+      // and holds the numbers to copy out of the console, so the label says so.
+      '<textarea id="arena-lamp-copy" class="arena-lampc__copy" data-lamp-copy ' +
+      'aria-label="Lamp layout values, ready to copy" readonly rows="4"></textarea>' +
       '</div>';
 
     document.body.appendChild(panel);

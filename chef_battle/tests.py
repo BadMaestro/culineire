@@ -10675,3 +10675,64 @@ class CrownBulbGlowIsNeverNegativeTests(TestCase):
         # Keyed to the radius, like everything else in that block, so it
         # survives a stage resize.
         self.assertIn("radius * 0.006", block)
+
+
+class ArenaPageHasNoBlockedOrUnlabelledResourcesTests(TestCase):
+    """A17/A18. Three issues the Owner had open in his devtools on the arena.
+
+    None of them broke a pixel, which is why they had survived: a blocked
+    stylesheet still renders the page, and an unlabelled field still accepts
+    text. They are the kind of thing an integrity pass exists to close.
+    """
+
+    def test_no_third_party_stylesheet_is_linked(self):
+        """Bootstrap Icons was linked from a CDN and blocked by our own CSP on
+        every Chef Battles page. Nothing used it - zero `bi bi-*` classes in the
+        whole template tree - so it cost a blocked request and two console
+        errors per load in exchange for nothing."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        base = (Path(django_settings.BASE_DIR) / "templates" / "base.html").read_text(
+            encoding="utf-8"
+        )
+        # Only real markup counts: the comment that explains the removal names
+        # the host, and a test that fails on its own explanation is a test that
+        # gets deleted.
+        links = [
+            line for line in base.splitlines()
+            if "<link" in line or "<script" in line
+        ]
+        for line in links:
+            self.assertNotIn(
+                "cdn.jsdelivr.net", line,
+                "a third-party stylesheet is linked again - CSP will block it",
+            )
+
+    def test_nothing_in_the_templates_uses_bootstrap_icons(self):
+        """If this ever fails, the icons are wanted - self-host them, do not
+        put the CDN back and widen the CSP for it."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        root = Path(django_settings.BASE_DIR) / "templates"
+        offenders = [
+            str(path.relative_to(root))
+            for path in root.rglob("*.html")
+            if "bi bi-" in path.read_text(encoding="utf-8", errors="replace")
+        ]
+        self.assertEqual(offenders, [])
+
+    def test_the_lamp_console_field_is_labelled(self):
+        """A field with neither id nor name is announced as nothing by a screen
+        reader. It is read-only and holds the numbers to copy out, so the label
+        says exactly that."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_lamp_console.js"
+        ).read_text(encoding="utf-8")
+        block = source.split("arena-lampc__copy", 1)[1][:200]
+        self.assertIn("aria-label", block)
+        self.assertIn('id="arena-lamp-copy"', source)
