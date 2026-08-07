@@ -2932,6 +2932,8 @@
       var span = { left: centre - natural.width / 2, right: centre + natural.width / 2 };
       var ceiling = frame.top;
       var floorLimit = frame.bottom;
+      var leftBound = frame.left;
+      var rightBound = frame.right;
       var panels = document.querySelectorAll('.arena-command-deck [class*="arena-"]');
       for (var p = 0; p < panels.length; p++) {
         var node = panels[p];
@@ -2946,6 +2948,23 @@
         // Anything that starts below the floor is the floor's own limit from
         // underneath - the crowd rail, on every window measured.
         if (box.top >= bottom - 4 && box.top < floorLimit) { floorLimit = box.top; }
+        // And a panel that reaches into the band beside the caption narrows it.
+        if (box.bottom > ceiling && box.top < top) {
+          if (box.right <= centre && box.right > leftBound) { leftBound = box.right; }
+          if (box.left >= centre && box.left < rightBound) { rightBound = box.left; }
+        }
+      }
+
+      // RESERVE FOR THE BOX IT WILL ACTUALLY GET, not for its natural one.
+      // v2.5.900 reserved 61px measured at the caption's natural 416px, then
+      // placeFloorCaption() narrowed it to 383 to clear the metrics card, the
+      // subtitle wrapped, and the caption shed its kicker inside a band that
+      // had just been made for it. The same clamp is applied here first.
+      var free = (rightBound - 8) - (leftBound + 8);
+      var width = Math.min(natural.width, free);
+      if (width > 120) {
+        caption.style.width = Math.round(width) + 'px';
+        needed = caption.getBoundingClientRect().height + CAPTION_GAP * 2;
       }
 
       var reservedTop = ceiling + needed;

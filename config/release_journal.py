@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.902",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The band is reserved for the box the caption will actually get",
+        "section": "Chef Battles / Arena",
+        "summary": "v2.5.900 reserved 61px measured at the caption's natural width of 416, and then placeFloorCaption() narrowed it to 383 to clear the metrics card, the subtitle wrapped onto a second line, and the caption shed its kicker INSIDE a band that had just been made for it. Same fault as the wrap in v2.5.896, one function upstream: a correct measurement of a box that is not the one being placed. reserveCaptionBand() now applies the same horizontal clamp before it measures the height, so the number it reserves is the number the caption will need. IF REVERTED: the octagon moves down to make room and the caption drops a line anyway.",
+    },
+    {
         "version": "2.5.900",
         "date": "2026-08-07",
         "commit": "1cd1ea53",
