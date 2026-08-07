@@ -2944,6 +2944,45 @@
     text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 65%, transparent);
   }
 
+  /* THE EDGE — Owner, 2026-08-07: "границы лестницы плохо видны."
+   *
+   * The chip HAD a 1px bronze border and an 8.8px bronze glow, and neither one
+   * reached the screen. clip-path cuts the element's own painting, and a CSS
+   * border and box-shadow are part of that painting: the polygon takes the two
+   * bevelled ends off, so the border survived only along the flat top and
+   * bottom and the glow was clipped away entirely. Nothing was missing from the
+   * stylesheet; it was being cut off after it was drawn.
+   *
+   * drop-shadow is applied to the element AFTER the clip, and follows the
+   * clipped silhouette, so it can draw the one line the border could not. Two
+   * tight passes make a hairline that turns both bevels, and a third, softer
+   * and offset, lifts the chip off the floor behind it.
+   *
+   * The colour flips with the fill, like the ink does: a dark rim on the pale
+   * end of the ramp is invisible against the deck, and a bronze rim on
+   * Culinary Master is invisible against the chip. */
+  /* The reset carries the attribute too. arena_hall.css sets this border under
+   * `.page--arena .arena-rank-spine__step`, and a bare class loses to it - the
+   * first attempt at this rule was written without the attribute and never
+   * reached the screen, which is the same lesson as the border itself. */
+  .arena-rank-spine__step[data-on-dark="true"],
+  .arena-rank-spine__step[data-on-dark="false"] {
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .arena-rank-spine__step[data-on-dark="false"] {
+    filter:
+      drop-shadow(0 0 0.5px color-mix(in srgb, var(--accent-bronze) 78%, var(--ink)))
+      drop-shadow(0 0 0.5px color-mix(in srgb, var(--accent-bronze) 78%, var(--ink)))
+      drop-shadow(0 1px 1.5px color-mix(in srgb, var(--ink) 26%, transparent));
+  }
+  .arena-rank-spine__step[data-on-dark="true"] {
+    filter:
+      drop-shadow(0 0 0.5px color-mix(in srgb, var(--surface) 72%, transparent))
+      drop-shadow(0 0 0.5px color-mix(in srgb, var(--surface) 72%, transparent))
+      drop-shadow(0 1px 1.5px color-mix(in srgb, var(--ink) 34%, transparent));
+  }
+
   /* The ring's number, leading its own rung. Tabular so eight numerals sit in
    * one column however the type is rendered, and separated by a hairline in the
    * bronze rather than by a gap, so the chip still reads as one object. */

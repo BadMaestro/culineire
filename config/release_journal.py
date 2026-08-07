@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.886",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The ladder gets an edge, because its border was being cut off after it was drawn",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner: the ladder's edges are hard to see. The chip already HAD a 1px bronze border and an 8.8px bronze glow, and neither reached the screen - clip-path cuts the element's own painting, and a CSS border and box-shadow are part of that painting, so the polygon took both bevelled ends off the border and clipped the glow away entirely. Nothing was missing from the stylesheet; it was being cut off after it was drawn, which is why reading the CSS would have said the edge was there. drop-shadow is applied AFTER the clip and follows the clipped silhouette: two tight passes make a hairline that turns both bevels, and a third, softer and offset, lifts the chip off the deck. The colour flips with the fill like the ink does, because a dark rim on the pale end of the ramp is invisible against the deck and a bronze rim on Culinary Master is invisible against the chip. THE RESET CARRIES THE ATTRIBUTE: arena_hall.css sets that border under `.page--arena .arena-rank-spine__step`, and the first version of this rule was written as a bare class, lost the cascade and changed nothing on the live page - caught by probing production rather than by reading the file. IF REVERTED: eight chips with two flat borders each and no bevels.",
+    },
+    {
         "version": "2.5.884",
         "date": "2026-08-07",
         "commit": "507c9985",

@@ -11318,3 +11318,26 @@ class ArenaRingNumberingTests(TestCase):
         drawing = self._js().split("function numberTheRings(", 1)[1].split("\n  }", 1)[0]
         self.assertIn("y: cy.toFixed(2)", drawing)
         self.assertNotIn("y: seat.y.toFixed(2)", drawing)
+
+    def test_the_edge_is_drawn_after_the_clip_not_before_it(self):
+        """Owner, 2026-08-07: "границы лестницы плохо видны."
+
+        The chip HAD a 1px bronze border and an 8.8px bronze glow. clip-path
+        cuts the element's own painting, and a border and a box-shadow are part
+        of that painting: the polygon took both bevelled ends off and clipped
+        the glow away entirely. drop-shadow is applied AFTER the clip and
+        follows the clipped silhouette, so it draws the line the border cannot.
+        """
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+        ).read_text(encoding="utf-8")
+        edge = css.split('/* THE EDGE', 1)[1].split("\n  .arena-confrontation-band", 1)[0]
+        self.assertIn("drop-shadow(", edge)
+        # And the reset must carry the attribute: arena_hall.css sets that
+        # border under `.page--arena .arena-rank-spine__step`, so a bare class
+        # loses to it and the rule never reaches the screen.
+        self.assertIn('.arena-rank-spine__step[data-on-dark="true"],', edge)
+        self.assertIn("border-color: transparent;", edge)
