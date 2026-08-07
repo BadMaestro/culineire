@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.882",
         "date": "2026-08-07",
-        "commit": "",
+        "commit": "f832d7b9",
         "title": "The rank ladder wears its rings' colours, and both are numbered from the centre out",
         "section": "Chef Battles / Arena",
         "summary": "The Owner: paint the ladder in the colours of the rings it stands for, and number the rings and the ladder elegantly. He chose the scheme himself - one to eight from the CENTRE OUTWARD, Culinary Master 1 and Kitchen Porter 8 - which is already what the floor counts in data-ring, so one number serves the octagon and the ladder and they cannot drift into disagreeing. THE COLOUR IS NOT RESTATED ANYWHERE. Three stylesheets already have an opinion about a rank ring's fill: arena_render.css names the ramp tokens, arena_deck_polish.css repeats them as literals under a heavier selector, arena_atmosphere.css wins with !important. A fourth list written for the ladder would be a fourth thing to keep in step, so paintRankLadder() reads the fill the ring COMPUTES to and puts it on the rung. Rings 7 and 8 come back identical because the floor paints them identical - six ramp tokens for eight ranks - and the Owner ruled to leave that truthful rather than invent two shades: a key that separates what the floor joins is a lie about the floor. The ink flips by the fill's own sRGB luminance, because the ramp runs from #52422e to near-white and one fixed text colour is unreadable at one end of it. The floor's numerals are drawn into the ring's own leftmost cell, opposite the ladder, so they take the camera and the fit with everything else. IF REVERTED: the ladder goes back to eight identical dark chips that name the rings without showing which is which.",
