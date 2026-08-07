@@ -11159,3 +11159,57 @@ class BroadcastShellTests(TestCase):
             html,
         )
         self.assertNotIn("Saoirse Mulcahy vs", html)
+
+
+class ArenaRankLadderAnchorTests(TestCase):
+    """The Owner, 2026-08-07: "подними лестницу рангов выше так, чтоб угол
+    ячейки Sponsors - был ровно между Chef de Partie и Sous Chef, и отодвинь
+    вправо на 1 см."
+
+    v2.5.876 hung the stack on the middle of the floor's BOUNDING BOX, and the
+    camera is rotateX(42deg): the far half of the octagon is compressed, so the
+    box's middle sits below the right-hand vertex. Measured on production at his
+    own window, 989x695 - box middle 439, Sponsors corner 423. Sixteen pixels,
+    invisible to any test that reads the box and real to the only person who
+    looks at the page.
+    """
+
+    def _body(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        source = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+        return source.split("function placeRankSpine(", 1)[1].split("\n  }", 1)[0]
+
+    def test_the_anchor_is_the_sponsors_corner_not_the_bounding_box(self):
+        body = self._body()
+        self.assertIn('data-ring-kind="vip"', body)
+        self.assertIn("vertexY = (vbox.top + vbox.bottom) / 2", body)
+
+    def test_the_rank_box_survives_only_as_a_fallback(self):
+        """A floor with no VIP ring drawn yet must still place the stack."""
+        body = self._body()
+        self.assertIn("var vertexY = (top + bottom) / 2;", body)
+        self.assertLess(
+            body.index("var vertexY = (top + bottom) / 2;"),
+            body.index('data-ring-kind="vip"'),
+            "the fallback must be assigned before the VIP scan can overwrite it",
+        )
+
+    def test_it_hangs_by_the_fourth_seam_and_not_by_its_own_middle(self):
+        """Eight rungs make the seam and the middle the same number today. They
+        stop being the same the moment a rank is added, and his instruction
+        names the seam."""
+        body = self._body()
+        self.assertIn("rungs[3].getBoundingClientRect()", body)
+        self.assertIn("rungs[4].getBoundingClientRect()", body)
+        self.assertIn("y = vertexY - frame.top - seam", body)
+
+    def test_the_centimetre_is_a_real_centimetre(self):
+        """CSS defines 1cm as exactly 96/2.54 px. A rounded 38 would be his
+        centimetre plus a fifth of a millimetre, every time."""
+        body = self._body()
+        self.assertIn("var ONE_CM = 96 / 2.54;", body)
+        self.assertIn("GAP + ONE_CM", body)

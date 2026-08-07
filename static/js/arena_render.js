@@ -2944,21 +2944,60 @@
     // floor and is centred on the floor's own vertical middle, where the space
     // is horizontal and there is far more of it.
     var GAP = 16;
+    // CSS defines one centimetre as exactly 96/2.54 px, so this is the Owner's
+    // centimetre and not an approximation of it.
+    var ONE_CM = 96 / 2.54;
     var ladderBox = spine.getBoundingClientRect();
     var ladderH = ladderBox.height;
     var ladderW = ladderBox.width;
 
-    // Horizontal: just clear of the floor's right edge, and never past the
+    // Horizontal: just clear of the floor's right edge, plus the Owner's
+    // centimetre (2026-08-07: "отодвинь вправо на 1 см"), and never past the
     // frame. If the room to the right is narrower than the stack, it is pulled
     // back to the frame's edge rather than allowed to leave the deck.
-    var x = right - frame.left + GAP;
+    var x = right - frame.left + GAP + ONE_CM;
     if (x + ladderW > frame.width) { x = frame.width - ladderW; }
     if (x < 0) { x = 0; }
 
-    // Vertical: centred on the floor. Clamped into the frame at both ends so a
-    // tall stack on a short deck is trimmed by the deck rather than hanging out
-    // of it.
-    var y = (top + bottom) / 2 - frame.top - ladderH / 2;
+    // Vertical: THE SPONSORS CORNER LANDS BETWEEN CHEF DE PARTIE AND SOUS CHEF.
+    //
+    // OWNER, 2026-08-07: "подними лестницу рангов выше так, чтоб угол ячейки
+    // Sponsors - был ровно между Chef de Partie и Sous Chef."
+    //
+    // Two corrections in one, and the first is why the second was needed. The
+    // corner he names is NOT the middle of the floor's bounding box: the camera
+    // is rotateX(42deg), so the far half of the octagon is compressed and the
+    // box's centre sits BELOW the right-hand vertex - measured 439 against 423
+    // at his own window, sixteen pixels of it. Centring the stack on the box,
+    // which is what shipped in v2.5.876, therefore hangs it below the corner.
+    // The anchor is the rightmost VIP (Sponsors) cell's own vertical middle,
+    // which IS that vertex, with the rank box kept only as a fallback.
+    var vertexY = (top + bottom) / 2;
+    var vip = svg.querySelectorAll('.arena-cell[data-ring-kind="vip"]');
+    var vipRight = -Infinity;
+    for (var v = 0; v < vip.length; v++) {
+      var vbox = vip[v].getBoundingClientRect();
+      if (!vbox.width || !vbox.height) { continue; }
+      if (vbox.right > vipRight) {
+        vipRight = vbox.right;
+        vertexY = (vbox.top + vbox.bottom) / 2;
+      }
+    }
+
+    // And the stack is hung by the seam between its fourth and fifth rungs
+    // rather than by its own middle. With eight rungs the two are the same
+    // number today; they stop being the same the moment a rank is added or the
+    // label above the list is given a height, and his instruction names the
+    // seam, not the middle.
+    var seam = ladderH / 2;
+    var rungs = spine.querySelectorAll('.arena-rank-spine__list > *');
+    if (rungs.length >= 5) {
+      var above = rungs[3].getBoundingClientRect();
+      var below = rungs[4].getBoundingClientRect();
+      seam = (above.bottom + below.top) / 2 - ladderBox.top;
+    }
+
+    var y = vertexY - frame.top - seam;
     if (y + ladderH > frame.height) { y = frame.height - ladderH; }
     if (y < 0) { y = 0; }
 

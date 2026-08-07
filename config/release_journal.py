@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.880",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The rank ladder hangs on the Sponsors corner, not on the middle of a bounding box",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner: raise the ladder so the corner of the Sponsors cell is exactly between Chef de Partie and Sous Chef, and move it one centimetre right. The raise is a correction to v2.5.876, which centred the stack on the vertical middle of the floor's BOUNDING BOX. The camera is rotateX(42deg), so the far half of the octagon is compressed and the box's middle sits BELOW the right-hand vertex - measured on production at his own window, 989x695: box middle 439, Sponsors corner 423. Sixteen pixels, and no measurement that reads the box can see them, which is why the position looked correct in every check and wrong on his screen. The anchor is now the rightmost VIP cell's own vertical middle, which IS that vertex, with the rank box kept as a fallback for a floor whose sponsor ring has not drawn yet. The stack is also hung by the SEAM between its fourth and fifth rungs rather than by its own middle: with eight rungs the two are the same number today and stop being the same the moment a rank is added. The centimetre is 96/2.54 px, which is what CSS defines a centimetre to be, not a rounded 38. IF REVERTED: the ladder drops sixteen pixels and the corner lands inside Chef de Partie instead of on the seam below it.",
+    },
+    {
         "version": "2.5.878",
         "date": "2026-08-07",
         "commit": "",
