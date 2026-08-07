@@ -10996,7 +10996,16 @@ class ArenaHeaderMeasurementTests(TestCase):
     def test_the_header_observer_is_still_there(self):
         """The narrower signal stays - it is the only one that fires when the
         header wraps at a width the window did not change to."""
-        self.assertIn("observe(document.querySelector(HEADER_SELECTOR))", self._init_block())
+        block = self._init_block()
+        self.assertIn("document.querySelector(HEADER_SELECTOR)", block)
+        self.assertIn("ResizeObserver(remeasure).observe(", block)
+
+    def test_the_observer_watches_the_border_box(self):
+        """The whole of why the first fix did not land. A ResizeObserver watches
+        the CONTENT box unless told otherwise, and the header grows by twelve
+        pixels of PADDING after first paint - content box identical, observer
+        silent, the variable stuck at 134 while the header measured 146."""
+        self.assertIn("{ box: 'border-box' }", self._init_block())
 
     def test_there_is_a_late_pass_for_what_lands_silently(self):
         self.assertIn("setTimeout(remeasure", self._init_block())

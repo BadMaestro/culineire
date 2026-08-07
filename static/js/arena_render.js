@@ -3044,7 +3044,16 @@
       if (measureHeader()) { fitScene(svg); }
     }
     if (global.ResizeObserver && document.querySelector(HEADER_SELECTOR)) {
-      new global.ResizeObserver(remeasure).observe(document.querySelector(HEADER_SELECTOR));
+      // BORDER-BOX, and this is the whole of why the first fix did not land.
+      // A ResizeObserver watches the CONTENT box unless told otherwise, and the
+      // header grows by twelve pixels of padding after first paint - content
+      // box identical, observer silent, --arena-header-h stuck at 134 while the
+      // header measured 146. Measured on production: dispatching a resize event
+      // by hand corrected it to 146 and took the overflow to zero, which is what
+      // proved the listener was right and the trigger was not firing.
+      new global.ResizeObserver(remeasure).observe(
+        document.querySelector(HEADER_SELECTOR), { box: 'border-box' }
+      );
     }
     global.addEventListener('resize', remeasure);
     if (document.fonts && document.fonts.ready && document.fonts.ready.then) {

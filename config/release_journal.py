@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.858",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The twelve pixels again - the observer was watching the wrong box",
+        "section": "Chef Battles / Arena",
+        "summary": "v2.5.856 added every trigger I could think of for re-measuring the header and the deck STILL hung twelve pixels off the bottom on production. Found by looking at the live page after the deploy rather than trusting the deploy: --arena-header-h read 134px while the header measured 146, and dispatching a resize event BY HAND corrected it to 146 and took the overflow to zero. That is what proved the listener was right and the trigger was not firing. A ResizeObserver watches the CONTENT box unless told otherwise, and this header grows by twelve pixels of PADDING after first paint - the content box is identical, so the observer stayed silent about a change of exactly the size that was wrong. It observes { box: 'border-box' } now. The lesson is the same one as the printed comment two releases ago: the verification has to be the thing itself, not a proxy for it. Checking that the code contained the fix would have passed; looking at the page did not. IF REVERTED: the arena hangs twelve pixels off the bottom of every desktop screen, and the next person to add a trigger will find the triggers were never the problem.",
+    },
+    {
         "version": "2.5.871",
         "date": "2026-08-07",
         "commit": "",
