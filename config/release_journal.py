@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.900",
+        "date": "2026-08-07",
+        "commit": "",
+        "title": "The reserved band arrives at full size: the shift is foreshortened by the camera",
+        "section": "Chef Battles / Arena",
+        "summary": "v2.5.898 reserved the caption's band and landed four pixels short - 58 where 61 was needed - so the caption still shed its kicker. The cause is the camera: --arena-shift-y is applied inside rotateX(42deg), so a translation asked for in CSS pixels reaches the screen foreshortened by the cosine of that angle, about 74 percent of the ask. Rather than model the camera here, which would be a second copy of a number that already lives in a stylesheet and would rot the day the angle changes, the reserve runs three passes: it measures what actually happened and asks again. IF REVERTED: the band is always short by the camera's cosine and the caption loses a line for want of four pixels.",
+    },
+    {
         "version": "2.5.898",
         "date": "2026-08-07",
         "commit": "0103f937",

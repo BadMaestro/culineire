@@ -2901,63 +2901,72 @@
     if (!caption || !container) { return; }
     if (global.matchMedia && global.matchMedia('(max-width: 767px)').matches) { return; }
 
-    var cells = svg.querySelectorAll('.arena-cell');
-    if (!cells.length) { return; }
-    var top = Infinity, bottom = -Infinity;
-    for (var i = 0; i < cells.length; i++) {
-      var cb = cells[i].getBoundingClientRect();
-      if (!cb.width) { continue; }
-      if (cb.top < top) { top = cb.top; }
-      if (cb.bottom > bottom) { bottom = cb.bottom; }
+    // THREE PASSES, BECAUSE THE SHIFT DOES NOT ARRIVE AT FULL SIZE.
+    // --arena-shift-y is applied inside the deck's camera - rotateX(42deg) -
+    // so a translation asked for in CSS pixels lands on the screen foreshortened
+    // by the cosine of that angle. The first version asked for 40px, got 36, and
+    // the caption shed its kicker for the sake of four pixels. Rather than model
+    // the camera here - a second copy of a number that already lives in a
+    // stylesheet - it measures what actually happened and asks again.
+    for (var pass = 0; pass < 3; pass++) {
+      var cells = svg.querySelectorAll('.arena-cell');
+      if (!cells.length) { return; }
+      var top = Infinity, bottom = -Infinity;
+      for (var i = 0; i < cells.length; i++) {
+        var cb = cells[i].getBoundingClientRect();
+        if (!cb.width) { continue; }
+        if (cb.top < top) { top = cb.top; }
+        if (cb.bottom > bottom) { bottom = cb.bottom; }
+      }
+      if (!isFinite(top) || bottom <= top) { return; }
+
+      var frame = container.getBoundingClientRect();
+      var centre = frame.left + frame.width / 2;
+
+      // What the writing needs, at its full three lines and its natural width.
+      caption.removeAttribute('data-fit');
+      caption.style.width = '';
+      var natural = caption.getBoundingClientRect();
+      var needed = natural.height + CAPTION_GAP * 2;
+
+      var span = { left: centre - natural.width / 2, right: centre + natural.width / 2 };
+      var ceiling = frame.top;
+      var floorLimit = frame.bottom;
+      var panels = document.querySelectorAll('.arena-command-deck [class*="arena-"]');
+      for (var p = 0; p < panels.length; p++) {
+        var node = panels[p];
+        if (node === caption || caption.contains(node) || node.contains(caption)) { continue; }
+        if (node.contains(container) || container.contains(node)) { continue; }
+        var style = global.getComputedStyle(node);
+        if (style.display === 'none' || style.visibility === 'hidden') { continue; }
+        var box = node.getBoundingClientRect();
+        if (box.width < 80 || box.height < 16) { continue; }
+        var sharesColumn = Math.min(span.right, box.right) > Math.max(span.left, box.left);
+        if (sharesColumn && box.bottom <= top && box.bottom > ceiling) { ceiling = box.bottom; }
+        // Anything that starts below the floor is the floor's own limit from
+        // underneath - the crowd rail, on every window measured.
+        if (box.top >= bottom - 4 && box.top < floorLimit) { floorLimit = box.top; }
+      }
+
+      var reservedTop = ceiling + needed;
+      if (top >= reservedTop - 1) { return; }
+
+      var height = bottom - top;
+      var available = (floorLimit - CAPTION_GAP) - reservedTop;
+      if (available <= 40) { return; }
+      var wanted = Math.min(height, available);
+      var midY = (top + bottom) / 2;
+
+      if (wanted < height - 0.5) {
+        var fit = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
+        svg.style.setProperty('--arena-fit', (fit * (wanted / height)).toFixed(4));
+      }
+      var shift = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
+      svg.style.setProperty(
+        '--arena-shift-y',
+        (shift + (reservedTop - (midY - wanted / 2))).toFixed(2) + 'px'
+      );
     }
-    if (!isFinite(top) || bottom <= top) { return; }
-
-    var frame = container.getBoundingClientRect();
-    var centre = frame.left + frame.width / 2;
-
-    // What the writing needs, at its full three lines and its natural width.
-    caption.removeAttribute('data-fit');
-    caption.style.width = '';
-    var natural = caption.getBoundingClientRect();
-    var needed = natural.height + CAPTION_GAP * 2;
-
-    var span = { left: centre - natural.width / 2, right: centre + natural.width / 2 };
-    var ceiling = frame.top;
-    var floorLimit = frame.bottom;
-    var panels = document.querySelectorAll('.arena-command-deck [class*="arena-"]');
-    for (var p = 0; p < panels.length; p++) {
-      var node = panels[p];
-      if (node === caption || caption.contains(node) || node.contains(caption)) { continue; }
-      if (node.contains(container) || container.contains(node)) { continue; }
-      var style = global.getComputedStyle(node);
-      if (style.display === 'none' || style.visibility === 'hidden') { continue; }
-      var box = node.getBoundingClientRect();
-      if (box.width < 80 || box.height < 16) { continue; }
-      var sharesColumn = Math.min(span.right, box.right) > Math.max(span.left, box.left);
-      if (sharesColumn && box.bottom <= top && box.bottom > ceiling) { ceiling = box.bottom; }
-      // Anything that starts below the floor is the floor's own ceiling from
-      // underneath - the crowd rail, on every window measured.
-      if (box.top >= bottom - 4 && box.top < floorLimit) { floorLimit = box.top; }
-    }
-
-    var reservedTop = ceiling + needed;
-    if (top >= reservedTop - 1) { return; }
-
-    var height = bottom - top;
-    var available = (floorLimit - CAPTION_GAP) - reservedTop;
-    if (available <= 40) { return; }
-    var wanted = Math.min(height, available);
-    var midY = (top + bottom) / 2;
-
-    if (wanted < height) {
-      var fit = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
-      svg.style.setProperty('--arena-fit', (fit * (wanted / height)).toFixed(4));
-    }
-    var shift = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
-    svg.style.setProperty(
-      '--arena-shift-y',
-      (shift + (reservedTop - (midY - wanted / 2))).toFixed(2) + 'px'
-    );
   }
 
   // THE CAPTION TAKES THE SPACE THAT IS ACTUALLY FREE.
