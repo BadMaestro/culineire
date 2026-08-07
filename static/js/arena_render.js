@@ -2889,6 +2889,107 @@
 
     billboardFaces(svg);
     placeRankSpine(svg);
+    paintRankLadder(svg);
+    numberTheRings(svg);
+  }
+
+  // THE LADDER WEARS ITS RINGS' OWN COLOURS. Owner, 2026-08-07.
+  //
+  // The colour is READ OFF THE FLOOR rather than restated beside it. Three
+  // stylesheets have an opinion about a rank ring's fill - arena_render.css
+  // names the tokens, arena_deck_polish.css repeats them as literals under a
+  // heavier selector, arena_atmosphere.css wins with !important - and a fourth
+  // list, written here, would be a fourth thing to keep in step with the other
+  // three. Whatever the ring ACTUALLY paints, the rung takes.
+  //
+  // Rings 7 and 8 (Prep Chef, Kitchen Porter) come back the same colour,
+  // because the floor paints them the same colour: there are six ramp tokens
+  // for eight ranks. The Owner ruled on 2026-08-07 to leave it truthful rather
+  // than invent two shades - the ladder is a key to the floor, and a key that
+  // separates what the floor joins is a lie about the floor.
+  function paintRankLadder(svg) {
+    var steps = document.querySelectorAll('.arena-rank-spine__step[data-ring]');
+    for (var i = 0; i < steps.length; i++) {
+      var ring = steps[i].getAttribute('data-ring');
+      var cell = svg.querySelector(
+        '.arena-cell[data-ring-kind="rank"][data-ring="' + ring + '"]'
+      );
+      if (!cell) { continue; }
+      var fill = global.getComputedStyle(cell).fill;
+      if (!fill || fill === 'none') { continue; }
+      steps[i].style.background = fill;
+      // Ink or light, decided by the colour itself. The ramp runs from #52422e
+      // to near-white, so one fixed text colour is unreadable at one end of it
+      // whichever end is chosen. sRGB relative luminance, and the 0.55 line is
+      // where the ramp's own middle step falls.
+      var rgb = fill.match(/\d+(\.\d+)?/g);
+      if (!rgb || rgb.length < 3) { continue; }
+      var lum = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
+      steps[i].setAttribute('data-on-dark', lum < 0.55 ? 'true' : 'false');
+    }
+  }
+
+  // AND THE RINGS CARRY THE SAME NUMBERS. Owner, 2026-08-07: number the rings
+  // and the ladder. One to eight from the centre outward, which is what
+  // data-ring already counts, so the numeral on the floor and the numeral on
+  // the rung are the same value from the same source.
+  //
+  // The numeral sits in the ring's own leftmost cell, opposite the ladder,
+  // which puts eight numerals down the left of the octagon facing eight rungs
+  // down the right. It is placed in a CELL rather than at a computed radius so
+  // it cannot land in a seam, and it is drawn into the SVG so it takes the
+  // camera and the fit with everything else instead of floating over them.
+  function numberTheRings(svg) {
+    var old = svg.querySelectorAll('[data-ring-numeral]');
+    for (var o = 0; o < old.length; o++) { old[o].remove(); }
+
+    var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
+    if (!cells.length) { return; }
+
+    var byRing = {};
+    var sumX = 0, sumY = 0, n = 0;
+    for (var i = 0; i < cells.length; i++) {
+      var ring = cells[i].getAttribute('data-ring');
+      var x = parseFloat(cells[i].getAttribute('data-centroid-x'));
+      var y = parseFloat(cells[i].getAttribute('data-centroid-y'));
+      if (!ring || isNaN(x) || isNaN(y)) { continue; }
+      if (!byRing[ring]) { byRing[ring] = []; }
+      byRing[ring].push({ node: cells[i], x: x, y: y });
+      sumX += x; sumY += y; n++;
+    }
+    if (!n) { return; }
+    var cx = sumX / n, cy = sumY / n;
+
+    Object.keys(byRing).forEach(function (ring) {
+      var candidates = byRing[ring];
+      var best = null;
+      for (var j = 0; j < candidates.length; j++) {
+        if (candidates[j].x >= cx) { continue; }
+        var off = Math.abs(candidates[j].y - cy);
+        if (!best || off < best.off) { best = { seat: candidates[j], off: off }; }
+      }
+      if (!best) { return; }
+      var seat = best.seat;
+      // Same luminance test as the ladder, on the same fill, so a numeral and
+      // its rung are never one light and one dark for the same ring.
+      var onDark = 'false';
+      var fill = global.getComputedStyle(seat.node).fill;
+      var rgb = fill ? fill.match(/\d+(\.\d+)?/g) : null;
+      if (rgb && rgb.length >= 3) {
+        var lum = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
+        onDark = lum < 0.55 ? 'true' : 'false';
+      }
+      var numeral = el('text', {
+        x: seat.x.toFixed(2), y: seat.y.toFixed(2),
+        'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'pointer-events': 'none',
+        'data-ring-numeral': ring,
+        'data-on-dark': onDark,
+        class: 'arena-ring-numeral'
+      });
+      numeral.textContent = ring;
+      seat.node.parentNode.appendChild(numeral);
+    });
   }
 
   // 3G R4 (Owner D1 Option B): desktop centred stack is CSS-owned

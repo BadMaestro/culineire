@@ -8487,8 +8487,13 @@ class ArenaRankColumnTests(TestCase):
         reads a number with no noun, so every step carries its own aria-label."""
         response = self.client.get(reverse("chef_battle:arena"))
         spine = response.content.decode().split('class="arena-rank-spine"', 1)[1].split("</div>", 1)[0]
-        for _value, label in ChefBattleProfile.Rank.choices:
-            self.assertIn(f'aria-label="{label} —', spine)
+        # The ring number joined the label on 2026-08-07, when the Owner had the
+        # rings numbered: the numeral renders aria-hidden, so without it here a
+        # screen reader would be the one reader who cannot tell which ring a
+        # rung belongs to.
+        ranks = ChefBattleProfile.Rank.choices
+        for index, (_value, label) in enumerate(ranks):
+            self.assertIn(f'aria-label="Ring {len(ranks) - index}, {label} —', spine)
 
     def test_rank_plinths_are_labels_not_duplicate_rankings_links(self):
         response = self.client.get(reverse("chef_battle:arena"))
@@ -11213,3 +11218,95 @@ class ArenaRankLadderAnchorTests(TestCase):
         body = self._body()
         self.assertIn("var ONE_CM = 96 / 2.54;", body)
         self.assertIn("GAP + ONE_CM", body)
+
+
+class ArenaRingNumberingTests(TestCase):
+    """The Owner, 2026-08-07: paint the ladder in the colours of the rings it
+    stands for, and number the rings and the ladder.
+
+    He chose the numbering himself: one to eight from the CENTRE OUTWARD, so
+    Culinary Master is ring 1 and Kitchen Porter is ring 8. That is already what
+    the floor counts in data-ring, which is the whole reason it can be one
+    number instead of two.
+    """
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        self.owner = get_user_model().objects.create_user(
+            username="ring-numbering-staff", password="x", is_staff=True)
+        self.client.force_login(self.owner)
+
+    def _spine(self):
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 200)
+        return response.content.decode().split(
+            'class="arena-rank-spine"', 1)[1].split("</div>", 1)[0]
+
+    def _js(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+    def test_the_numbers_run_one_to_eight_from_the_centre(self):
+        spine = self._spine()
+        ranks = ChefBattleProfile.Rank.choices
+        for index, (value, _label) in enumerate(ranks):
+            expected = len(ranks) - index
+            step = spine.split(f"arena-rank-spine__step--{value}", 1)[1]
+            self.assertIn(f'data-ring="{expected}"', step.split("</span>", 1)[0])
+
+    def test_the_innermost_rung_is_ring_one(self):
+        """Culinary Master stands in the ring against the crown."""
+        spine = self._spine()
+        master = spine.split("arena-rank-spine__step--culinary_master", 1)[1]
+        self.assertIn('data-ring="1"', master.split("</span>", 1)[0])
+
+    def test_every_rung_shows_its_numeral(self):
+        spine = self._spine()
+        self.assertEqual(
+            spine.count('class="arena-rank-spine__ring"'),
+            len(ChefBattleProfile.Rank.choices),
+        )
+
+    def test_the_colour_is_read_off_the_floor_and_never_restated(self):
+        """Three stylesheets already have an opinion about a rank ring's fill.
+        A fourth list, written for the ladder, is a fourth thing to keep in
+        step - so the rung takes whatever the ring COMPUTES to."""
+        js = self._js()
+        body = js.split("function paintRankLadder(", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("getComputedStyle(cell).fill", body)
+        self.assertIn('[data-ring-kind="rank"][data-ring="', body)
+
+    def test_the_ladder_and_the_floor_read_the_same_attribute(self):
+        """The numeral drawn on the ring and the numeral on the rung must come
+        from one source, or the two halves of a key disagree."""
+        js = self._js()
+        drawing = js.split("function numberTheRings(", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("getAttribute('data-ring')", drawing)
+        self.assertIn("'data-ring-numeral': ring", drawing)
+
+    def test_the_ink_flips_on_the_dark_half_of_the_ramp(self):
+        """The ramp runs from #52422e to near-white. One fixed text colour is
+        unreadable at one end of it, whichever end is chosen."""
+        js = self._js()
+        self.assertIn("0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]", js)
+
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+        ).read_text(encoding="utf-8")
+        self.assertIn('.arena-rank-spine__step[data-on-dark="true"]', css)
+        self.assertIn('.arena-rank-spine__step[data-on-dark="false"]', css)
+
+    def test_the_numerals_are_redrawn_rather_than_piled_up(self):
+        """The scene is rebuilt on resize. Without the sweep the octagon
+        collects a numeral per re-fit."""
+        drawing = self._js().split("function numberTheRings(", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("querySelectorAll('[data-ring-numeral]')", drawing)
+        self.assertIn("remove()", drawing)

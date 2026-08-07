@@ -1387,9 +1387,15 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
     if demo_next:
         arena_data["upcoming"] = demo_next
 
+    # THE RING NUMBER IS THE LADDER NUMBER. Owner, 2026-08-07: number them one
+    # to eight from the centre outward, so Culinary Master is 1 and Kitchen
+    # Porter is 8. The floor already keys its rank rings exactly that way in
+    # data-ring, so ONE number serves the octagon and the ladder and the two
+    # cannot drift into disagreeing about which ring is which.
+    _ranks = list(ChefBattleProfile.Rank)
     rank_groups = [
-        (rank, chefs_by_rank[rank.value])
-        for rank in ChefBattleProfile.Rank
+        (rank, chefs_by_rank[rank.value], len(_ranks) - index)
+        for index, rank in enumerate(_ranks)
     ]
 
     return {

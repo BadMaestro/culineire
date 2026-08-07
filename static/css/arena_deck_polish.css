@@ -2925,6 +2925,39 @@
   .arena-rank-spine__step b {
     display: none;
   }
+
+  /* THE RUNG WEARS ITS RING'S COLOUR — Owner, 2026-08-07.
+   *
+   * The colour is NOT here. paintRankLadder() reads it off the ring that is
+   * actually painted and writes it onto the rung; see the note there for why a
+   * fourth list of these eight colours would be a fourth thing to keep in step.
+   * What is here is the consequence: the background is now sometimes #52422e
+   * and sometimes near-white, and the old rule set one light ink and one light
+   * glow for all eight, which is unreadable at the pale end of the ramp. The
+   * data-on-dark attribute is set from the fill's own luminance. */
+  .arena-rank-spine__step[data-on-dark="true"] {
+    color: var(--surface);
+    text-shadow: 0 1px 0.35rem color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+  .arena-rank-spine__step[data-on-dark="false"] {
+    color: var(--ink);
+    text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 65%, transparent);
+  }
+
+  /* The ring's number, leading its own rung. Tabular so eight numerals sit in
+   * one column however the type is rendered, and separated by a hairline in the
+   * bronze rather than by a gap, so the chip still reads as one object. */
+  .arena-rank-spine__ring {
+    flex: 0 0 auto;
+    margin-right: 0.42rem;
+    padding-right: 0.42rem;
+    border-right: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    font-style: normal;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+    opacity: 0.72;
+  }
   .arena-confrontation-band .arena-live-centre--crown {
     width: 8.4rem;
     height: 8.4rem;

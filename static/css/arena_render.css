@@ -176,6 +176,27 @@
 }
 
 /* The ring signs itself once per octagon face, gold on velvet. */
+/* THE RINGS CARRY THEIR NUMBERS — Owner, 2026-08-07: "красиво и элегантно
+   пронумеровать кольца и лестницу." One to eight from the centre out, the same
+   value data-ring already carries, drawn by numberTheRings() into the ring's
+   own leftmost cell so the eight numerals face the eight rungs across the
+   octagon. Quiet on purpose: this is a key, not a label, and the floor's job is
+   to show chefs. The ink flips on the ramp's dark half - the same luminance
+   test the ladder uses, on the same fill. */
+.page--arena #arena-render .arena-ring-numeral {
+  fill: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.42;
+  paint-order: stroke fill;
+}
+.page--arena #arena-render .arena-ring-numeral[data-on-dark="true"] {
+  fill: var(--surface);
+  opacity: 0.55;
+}
+
 .page--arena #arena-render .arena-vip-label {
   fill: var(--arena-vip-gold);
   font-family: var(--font-sans);
