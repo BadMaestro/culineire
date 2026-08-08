@@ -10117,6 +10117,7 @@ class ConsoleArenaMirrorTests(TestCase):
             )
 
 
+@override_settings(ARENA_SHOW_EMULATION_BOTS=True)
 class EmulationBotsStayOnTheArenaTests(TestCase):
     """The three-minute online window does not apply to the emulation bots.
 
@@ -10184,6 +10185,64 @@ class EmulationBotsStayOnTheArenaTests(TestCase):
         from .views import _always_on_the_arena
 
         self.assertEqual(_always_on_the_arena(), {slug for slug, _ in EMU_CHEFS})
+
+
+class EmulationBotsAreSwitchedOffTests(TestCase):
+    """OWNER, 2026-08-07: "убери с арены двух тестовых шефов - просто пока
+    отключи их."
+
+    A switch, not a deletion: the accounts, their profiles and their history are
+    untouched and the Master Console still drives them. Off is the DEFAULT, so
+    production is clear of them without anyone having to remember a setting.
+    """
+
+    def setUp(self):
+        from .emulation import EMU_CHEFS
+        from .services import get_or_create_battle_profile
+
+        User = get_user_model()
+        for slug, name in EMU_CHEFS:
+            user = User.objects.create_user(username=slug, password="pw")
+            author = RecipeAuthor.objects.create(user=user, name=name, slug=slug)
+            profile = get_or_create_battle_profile(author)
+            profile.enrolled_at = timezone.now()
+            profile.last_seen_at = timezone.now()   # even seen this second
+            profile.save(update_fields=["enrolled_at", "last_seen_at"])
+
+    def _payload(self):
+        from .views import _build_arena_payload
+
+        return _build_arena_payload()
+
+    def test_no_bot_stands_on_the_floor_by_default(self):
+        from .emulation import EMU_CHEFS
+
+        rings = self._payload()["rings"]
+        seated = {c["slug"] for cells in rings.values() for c in cells}
+        for slug, _name in EMU_CHEFS:
+            self.assertNotIn(slug, seated)
+
+    def test_they_are_gone_from_the_counts_too_not_just_the_cells(self):
+        """Gated at the one query the rings, the rank counts and the legend are
+        all derived from - or the floor is empty and the legend still says two."""
+        from .emulation import EMU_CHEFS
+
+        bots = {slug for slug, _name in EMU_CHEFS}
+        counted = {
+            chef["slug"]
+            for chefs in self._payload()["chefs_by_rank"].values()
+            for chef in chefs
+        }
+        self.assertFalse(counted & bots)
+
+    @override_settings(ARENA_SHOW_EMULATION_BOTS=True)
+    def test_the_switch_brings_them_back(self):
+        from .emulation import EMU_CHEFS
+
+        rings = self._payload()["rings"]
+        seated = {c["slug"] for cells in rings.values() for c in cells}
+        for slug, _name in EMU_CHEFS:
+            self.assertIn(slug, seated)
 
 
 @override_settings(CHEF_BATTLE_ENABLED=True)

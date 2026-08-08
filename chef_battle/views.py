@@ -812,6 +812,27 @@ def _arena_runway():
     return current()
 
 
+def _emulation_bots_are_shown() -> bool:
+    """Whether the test chefs stand on the arena at all.
+
+    OWNER, 2026-08-07: "убери с арены двух тестовых шефов - просто пока отключи
+    их." A SWITCH, NOT A DELETION - the accounts, their profiles and their
+    history are untouched, and the Master Console still drives them; they simply
+    do not appear on the floor. Off by default, which is the state he asked for;
+    ARENA_SHOW_EMULATION_BOTS = True in settings brings them back for a run.
+    """
+    from django.conf import settings as django_settings
+
+    return bool(getattr(django_settings, "ARENA_SHOW_EMULATION_BOTS", False))
+
+
+def _emulation_bot_slugs() -> set[str]:
+    """The emulation module's own list, never a second copy of it."""
+    from .emulation import EMU_CHEFS
+
+    return {slug for slug, _name in EMU_CHEFS}
+
+
 def _always_on_the_arena() -> set[str]:
     """Author slugs the online window does not apply to.
 
@@ -830,9 +851,11 @@ def _always_on_the_arena() -> set[str]:
     Real chefs are untouched. Presence still means presence for everybody who
     is a person.
     """
-    from .emulation import EMU_CHEFS
+    if not _emulation_bots_are_shown():
+        return set()
+    return _emulation_bot_slugs()
 
-    return {slug for slug, _name in EMU_CHEFS}
+
 _ARENA_STATIC_COUNTRY = "Ireland"
 _ARENA_STATIC_FLAG = "\U0001F1EE\U0001F1EA"
 
@@ -1175,12 +1198,18 @@ def _build_arena_payload(*, viewer_author=None):
     online_cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
     always_on = _always_on_the_arena()
 
-    enrolled = list(
+    enrolled_qs = (
         ChefBattleProfile.objects
         .select_related("author")
         .filter(enrolled_at__isnull=False, is_suspended=False)
-        .order_by("-rating")
     )
+    # The test chefs are switched off (Owner, 2026-08-07). Gated HERE, at the one
+    # query everything else on the arena is derived from - the rings, the rank
+    # counts, the legend - so there is no surface where they can come back
+    # through a second path.
+    if not _emulation_bots_are_shown():
+        enrolled_qs = enrolled_qs.exclude(author__slug__in=_emulation_bot_slugs())
+    enrolled = list(enrolled_qs.order_by("-rating"))
 
     enrolled_author_ids = {p.author_id for p in enrolled}
 
