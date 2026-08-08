@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.906",
         "date": "2026-08-08",
-        "commit": "",
+        "commit": "5a79b9af",
         "title": "The two test chefs are switched off the arena",
         "section": "Chef Battles / Arena",
         "summary": "The Owner: take the two test chefs off the arena, just switch them off for now. A SWITCH, NOT A DELETION - the accounts, their profiles, their history and the Master Console that drives them are all untouched; they simply do not appear on the floor. ARENA_SHOW_EMULATION_BOTS is off by default, which is the state he asked for, so production is clear of them without anyone having to remember a setting, and True brings them back for a run. Gated at the one query the arena is derived from - the enrolled profiles - so the rings, the rank counts and the legend all lose them together: switching them off the cells while the legend still counted two would be the same half-truth the fixture chefs were. The v2.5.840 exemption from the 180-second online window now returns an empty set while the switch is off, rather than keeping bots permanently present for nobody to see. Four tests: none on the floor by default, none in the counts either, and the switch brings them back. IF REVERTED: two chefs who are not people stand on a production arena.",
