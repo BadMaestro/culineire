@@ -77,6 +77,9 @@ lost.
 | 9 | **AN13**: 584 declarations a later rule with the same selector already beat, and the 135 rules left empty with them |
 | 10 | **AN12**: seven stylesheets become two; the console mirror keeps only `arena.css` |
 | 11 | **AN15**: `arena_page_layout.js` owns the page's geometry; the renderer stops measuring the site header |
+| 12 | **AN13 again**: the same 44 unreachable declarations in `arena_atmosphere.css`, and the guard test widened to read both sheets |
+| 13 | **AN18, AN22, AN21**: nothing dead, 117MB of static accounted for, the last inline `style` attributes out of the templates |
+| 14 | **AN20**: one forced reflow per pass removed; the interleaving that is left is dependent measurement and stays |
 
 These numbers are DEPLOY STAGES, in the order they shipped. They are not the
 AN cards - the board is the register of those, and where a stage closed a card
@@ -225,13 +228,19 @@ exceeds Windows' filename limit on `docs/archive/…`.
    This harness cannot clear the cache or throttle; §24 asks for both. Every CLS
    figure here is from an uncached load of a newly-hashed stylesheet, which is
    close but is not the same thing.
-3. **Six functions in `arena_render.js` still read and write layout in one
-   pass**, and six ResizeObservers remain. §13 asks for a deliberate read phase
-   and write phase; that is untouched.
+3. **Three functions in `arena_render.js` still read and write layout in one
+   pass, and they should.** AN20 removed the one that was accidental and left
+   the three where each read depends on the write above it - a caption's
+   natural width cannot be measured without first clearing the width it was
+   given. One ResizeObserver remains, on the frame the scene is fitted into;
+   the page-level triggers moved to `arena_page_layout.js` in AN15.
 4. **The `.page--arena` prefix is still the specificity lever** throughout the
    shell. It works, and it is why the remaining `!important` count is as low as
    it is, but it is a convention rather than a system.
-5. **AN15, AN16, AN18, AN20, AN21, AN22 are open**, and AN7, AN9 and AN28 need
-   a browser on the production Arena, which is staff-only and not reachable from
-   this harness. Each is a numbered section of the master task and is on the
-   board with what is done and what is not.
+5. **AN16 is open** - the octagon is not yet behind a public contract, and the
+   page-level placement code still reaches into its `.arena-cell` elements to
+   find the floor's edges. **AN26, AN27 and AN29** are the closing three: the
+   full test gate re-run, the performance comparison, and this report's final
+   pass. **AN7, AN9 and AN28** need a browser on the PRODUCTION arena, which is
+   staff-only and answers 404 here; ten of the twelve scenarios were measured
+   on the harness instead and are labelled as harness numbers on the board.

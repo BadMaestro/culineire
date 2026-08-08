@@ -162,6 +162,76 @@
     return table;
   }
 
+  // ============================================================
+  // THE RENDERED OCTAGON'S PUBLIC CONTRACT
+  //
+  // AN16, master task section 10: the page hands the octagon a region and
+  // reads nothing of its internal SVG geometry.
+  //
+  // Everything above this line is plan-space arithmetic and never touches the
+  // DOM. Everything below is the live side of the same component: the three
+  // questions the PAGE is allowed to ask about where the octagon actually
+  // landed, answered in viewport coordinates.
+  //
+  // Before this existed, the page-level placement code - the floor caption,
+  // the band reserved above it, the rank ladder beside it - reached inside the
+  // SVG and queried `.arena-cell[data-ring-kind="rank"]` for itself. Three
+  // separate functions therefore knew that the octagon is made of cells, that
+  // cells carry a ring kind, and what the kinds are called. Renaming an
+  // attribute inside the octagon would have moved a caption in another file.
+  //
+  // A question NOT on this list is one the page has no business asking.
+  // ============================================================
+
+  /** The box every drawn cell of the octagon falls inside, or null. */
+  function region(svg) {
+    return boxOf(svg, '.arena-cell');
+  }
+
+  /** The box of the eight RANK rings alone - the floor the ladder names. */
+  function rankRegion(svg) {
+    return boxOf(svg, '.arena-cell[data-ring-kind="rank"]');
+  }
+
+  /**
+   * The Sponsors corner: the vertical middle of the rightmost VIP cell.
+   *
+   * The Owner named this point on 2026-08-07 - the corner of the Sponsors cell
+   * is to sit exactly between Chef de Partie and Sous Chef - and it is NOT the
+   * middle of the octagon's bounding box. The camera is rotateX(42deg), so the
+   * far half is compressed and the box's centre sits BELOW the right-hand
+   * vertex: measured 439 against 423 at his own window, sixteen pixels of it.
+   */
+  function sponsorsCorner(svg) {
+    var cells = svg ? svg.querySelectorAll('.arena-cell[data-ring-kind="vip"]') : [];
+    var best = null, right = -Infinity;
+    for (var i = 0; i < cells.length; i++) {
+      var box = cells[i].getBoundingClientRect();
+      if (!box.width || !box.height) { continue; }
+      if (box.right > right) {
+        right = box.right;
+        best = { x: box.right, y: (box.top + box.bottom) / 2 };
+      }
+    }
+    return best;
+  }
+
+  function boxOf(svg, selector) {
+    var cells = svg ? svg.querySelectorAll(selector) : [];
+    var top = Infinity, bottom = -Infinity, left = Infinity, right = -Infinity;
+    for (var i = 0; i < cells.length; i++) {
+      var box = cells[i].getBoundingClientRect();
+      if (!box.width || !box.height) { continue; }
+      if (box.top < top) { top = box.top; }
+      if (box.bottom > bottom) { bottom = box.bottom; }
+      if (box.left < left) { left = box.left; }
+      if (box.right > right) { right = box.right; }
+    }
+    if (!isFinite(top) || !(right > left) || !(bottom > top)) { return null; }
+    return { top: top, bottom: bottom, left: left, right: right,
+             width: right - left, height: bottom - top };
+  }
+
   global.ArenaOctagon = {
     CX: CX,
     CY: CY,
@@ -179,6 +249,10 @@
     octagonPoints: octagonPoints,
     segmentCentroid: segmentCentroid,
     cellAngles: cellAngles,
-    ringTable: ringTable
+    ringTable: ringTable,
+    // the live component's contract with the page (AN16)
+    region: region,
+    rankRegion: rankRegion,
+    sponsorsCorner: sponsorsCorner
   };
 })(window);

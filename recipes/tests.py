@@ -4294,7 +4294,7 @@ class ArchitectureNormalisationBlockTests(TestCase):
             self.assertEqual(by_id[done]["status"], "DONE", done)
         # AN13 joined them when the 584 superseded declarations came out, and
         # AN12 when the four stylesheets became two
-        for done in ("AN12", "AN13", "AN15", "AN18", "AN20", "AN21", "AN22"):
+        for done in ("AN12", "AN13", "AN15", "AN16", "AN18", "AN20", "AN21", "AN22"):
             self.assertEqual(by_id[done]["status"], "DONE", done)
         # and these are honestly unfinished
         for partial in ("AN7", "AN9"):

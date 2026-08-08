@@ -12061,10 +12061,90 @@ class ArenaRendererReadsBeforeItWritesTests(TestCase):
         # the mobile branch clears the same properties and returns, so the
         # desktop path starts after it
         desktop = body.split("AN15/AN20:", 1)[1]
-        read = desktop.index("cells[c].getBoundingClientRect()")
+        # AN16 moved the measurement itself behind the octagon's contract; what
+        # this test is about is the ORDER, and that is unchanged
+        read = desktop.index("ArenaOctagon.region(svg)")
         reset = desktop.index("caption.style.width = ''")
         self.assertLess(
             read, reset,
             "the caption's reset invalidates layout; reading the floor after it "
             "forces a reflow that changes nothing (AN20)",
         )
+
+
+class ArenaOctagonPublicContractTests(TestCase):
+    """AN16, master task section 10 — the octagon is a component, not a
+    structure other files are allowed to read.
+
+    The page hands it a region and asks it where it landed. It does not know
+    what the octagon is made of.
+
+    Before this, three page-level placement functions — the floor caption, the
+    band reserved above it, and the rank ladder beside it — each queried
+    `.arena-cell[data-ring-kind="rank"]` inside the SVG for themselves. All
+    three therefore knew that the octagon is built from cells, that a cell
+    carries a ring kind, and what the kinds are called. Renaming an attribute
+    inside the octagon would have moved a caption in another file, and nothing
+    would have said so until someone looked at the page.
+
+    The contract is three questions, and a question that is not on the list is
+    one the page has no business asking:
+
+        ArenaOctagon.region(svg)          where the whole floor landed
+        ArenaOctagon.rankRegion(svg)      where the eight rank rings landed
+        ArenaOctagon.sponsorsCorner(svg)  the corner the Owner named on 2026-08-07
+    """
+
+    PLACERS = ("reserveCaptionBand", "placeFloorCaption", "placeRankSpine")
+
+    def _read(self, name):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / name
+        ).read_text(encoding="utf-8")
+
+    def _body(self, source, fn):
+        lines = source.replace("\r\n", "\n").split("\n")
+        start = next(i for i, l in enumerate(lines)
+                     if l.strip().startswith("function " + fn + "("))
+        end = next(i for i in range(start + 1, len(lines))
+                   if lines[i].rstrip() == "  }")
+        return "\n".join(lines[start:end])
+
+    def test_the_contract_exists_and_is_exported(self):
+        js = self._read("arena_octagon.js")
+        for fn in ("region", "rankRegion", "sponsorsCorner"):
+            self.assertIn("function " + fn + "(", js)
+            self.assertIn(fn + ": " + fn, js)
+
+    def test_no_placement_function_reaches_inside_the_octagon(self):
+        js = self._read("arena_render.js")
+        for fn in self.PLACERS:
+            body = self._body(js, fn)
+            for probe in (".arena-cell", "data-ring-kind"):
+                self.assertNotIn(
+                    probe, body,
+                    f"{fn}() reads the octagon's internals ({probe}); it must "
+                    "ask ArenaOctagon where things landed (AN16)",
+                )
+
+    def test_the_placers_use_the_contract(self):
+        js = self._read("arena_render.js")
+        self.assertIn("ArenaOctagon.region(svg)", self._body(js, "placeFloorCaption"))
+        self.assertIn("ArenaOctagon.region(svg)", self._body(js, "reserveCaptionBand"))
+        spine = self._body(js, "placeRankSpine")
+        self.assertIn("ArenaOctagon.rankRegion(svg)", spine)
+        self.assertIn("ArenaOctagon.sponsorsCorner(svg)", spine)
+
+    def test_the_sponsors_corner_is_the_vip_cell_and_not_the_bounding_box(self):
+        """The camera is rotateX(42deg), so the far half of the octagon is
+        compressed and the bounding box's centre sits BELOW the right-hand
+        vertex — measured 439 against 423 at the Owner's own window. Centring
+        the ladder on the box hangs it sixteen pixels under the corner he
+        named."""
+        js = self._read("arena_octagon.js")
+        body = self._body(js, "sponsorsCorner") if "function sponsorsCorner(" in js else ""
+        self.assertIn('data-ring-kind="vip"', body)
+        self.assertIn("(box.top + box.bottom) / 2", body)

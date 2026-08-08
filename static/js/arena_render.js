@@ -2953,16 +2953,11 @@
     // the camera here - a second copy of a number that already lives in a
     // stylesheet - it measures what actually happened and asks again.
     for (var pass = 0; pass < 3; pass++) {
-      var cells = svg.querySelectorAll('.arena-cell');
-      if (!cells.length) { return; }
-      var top = Infinity, bottom = -Infinity;
-      for (var i = 0; i < cells.length; i++) {
-        var cb = cells[i].getBoundingClientRect();
-        if (!cb.width) { continue; }
-        if (cb.top < top) { top = cb.top; }
-        if (cb.bottom > bottom) { bottom = cb.bottom; }
-      }
-      if (!isFinite(top) || bottom <= top) { return; }
+      // AN16: the octagon answers where it landed; this file does not know
+      // what it is made of.
+      var floor = global.ArenaOctagon && global.ArenaOctagon.region(svg);
+      if (!floor) { return; }
+      var top = floor.top, bottom = floor.bottom;
 
       var frame = container.getBoundingClientRect();
       var centre = frame.left + frame.width / 2;
@@ -3079,13 +3074,9 @@
     // to rebuild all of it to answer a question the reset had not changed. One
     // synchronous reflow per pass, for nothing. Reading first costs nothing and
     // the numbers are identical; that was measured, not assumed.
-    var cells = svg.querySelectorAll('.arena-cell');
-    var octTop = Infinity;
-    for (var c = 0; c < cells.length; c++) {
-      var cb = cells[c].getBoundingClientRect();
-      if (cb.width && cb.top < octTop) { octTop = cb.top; }
-    }
-    if (!isFinite(octTop)) { return; }
+    var floor = global.ArenaOctagon && global.ArenaOctagon.region(svg);
+    if (!floor) { return; }
+    var octTop = floor.top;
 
     // Measured from scratch every time: the natural box is what is being
     // fitted, and last pass's inline width would answer the wrong question.
@@ -3245,18 +3236,10 @@
       return;
     }
 
-    var cells = svg.querySelectorAll('.arena-cell[data-ring-kind="rank"]');
-    if (!cells.length) { return; }
-    var top = Infinity, bottom = -Infinity, left = Infinity, right = -Infinity;
-    for (var i = 0; i < cells.length; i++) {
-      var box = cells[i].getBoundingClientRect();
-      if (!box.width || !box.height) { continue; }
-      if (box.top < top) { top = box.top; }
-      if (box.bottom > bottom) { bottom = box.bottom; }
-      if (box.left < left) { left = box.left; }
-      if (box.right > right) { right = box.right; }
-    }
-    if (!(right > left)) { return; }
+    // AN16: the ranks' own box, from the octagon rather than from its cells.
+    var ranks = global.ArenaOctagon && global.ArenaOctagon.rankRegion(svg);
+    if (!ranks) { return; }
+    var top = ranks.top, bottom = ranks.bottom, right = ranks.right;
 
     var frame = container.getBoundingClientRect();
     var floorH = bottom - top;
@@ -3306,17 +3289,8 @@
     // which is what shipped in v2.5.876, therefore hangs it below the corner.
     // The anchor is the rightmost VIP (Sponsors) cell's own vertical middle,
     // which IS that vertex, with the rank box kept only as a fallback.
-    var vertexY = (top + bottom) / 2;
-    var vip = svg.querySelectorAll('.arena-cell[data-ring-kind="vip"]');
-    var vipRight = -Infinity;
-    for (var v = 0; v < vip.length; v++) {
-      var vbox = vip[v].getBoundingClientRect();
-      if (!vbox.width || !vbox.height) { continue; }
-      if (vbox.right > vipRight) {
-        vipRight = vbox.right;
-        vertexY = (vbox.top + vbox.bottom) / 2;
-      }
-    }
+    var corner = global.ArenaOctagon && global.ArenaOctagon.sponsorsCorner(svg);
+    var vertexY = corner ? corner.y : (top + bottom) / 2;
 
     // And the stack is hung by the seam between its fourth and fifth rungs
     // rather than by its own middle. With eight rungs the two are the same

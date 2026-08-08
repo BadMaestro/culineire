@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.950",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "The octagon becomes a component: three questions the page may ask, and nothing else",
+        "section": "Chef Battles / Arena",
+        "summary": "AN16, master task section 10 - the page hands the octagon a region and reads nothing of its internal SVG geometry. Until now the floor caption, the band reserved above it and the rank ladder beside it each reached into the SVG and queried '.arena-cell[data-ring-kind=\"rank\"]' for themselves. Three page-level functions therefore knew that the octagon is built from cells, that a cell carries a ring kind, and what the kinds are called - so renaming an attribute inside the octagon would have moved a caption in a different file, and nothing would have said so until somebody looked at the page. The contract is three questions and it lives with the component, in arena_octagon.js, under its own heading: region(svg) for where the whole floor landed, rankRegion(svg) for the eight rank rings, sponsorsCorner(svg) for the corner the Owner named on 2026-08-07. That last one is a rule as much as a measurement - the camera is rotateX(42deg), so the far half of the octagon is compressed and the bounding box's centre sits BELOW the right-hand vertex, 439 against 423 at his own window, which is why centring the ladder on the box hangs it sixteen pixels under the corner he asked for. Neither '.arena-cell' nor 'data-ring-kind' appears in any of the three placement functions now. Nothing moved, and it was proved in a real engine rather than argued: caption 350,235,416,51, ladder 935,372,148,220, octagon 305,284,659,454, both inline style strings, and the SVG's --arena-fit 0.5288 and --arena-shift-y -70.21px, all matching to the character. The only difference anywhere on the page is that window.ArenaOctagon.region now exists.",
+    },
+    {
         "version": "2.5.948",
         "date": "2026-08-08",
         "commit": "99afb9d6",
