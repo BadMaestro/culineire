@@ -12008,3 +12008,63 @@ class ArenaTemplateHygieneTests(TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn(".arena-icon-sprite", css)
         self.assertIn('class="arena-icon-sprite"', self._read("_arena_deck_svg.html"))
+
+
+class ArenaRendererReadsBeforeItWritesTests(TestCase):
+    """AN20, master task section 13 — a deliberate read phase and write phase.
+
+    Three things are pinned here, and the third is the interesting one.
+
+    The renderer keeps ONE ResizeObserver and owns no page-level trigger at all
+    since AN15 — no resize listener, no fonts.ready hook, no late pass. Its one
+    remaining `setTimeout` removes a finished ripple after 900 ms and gates
+    nothing.
+
+    `placeFloorCaption()` reads the octagon BEFORE it resets the caption. The
+    caption is `position: absolute`, so nothing it does to its own width, left,
+    top or transform can move a cell of the floor — and yet the reset used to
+    come first, invalidating layout so that the very next line forced the
+    browser to rebuild all of it to answer a question the reset had not
+    changed. One synchronous reflow per pass, for nothing.
+
+    What is NOT pinned, deliberately: the interleaving further down that
+    function, in `reserveCaptionBand()` and in the three-pass band reserve.
+    There each read depends on the write above it — you cannot measure a
+    caption's natural width without first clearing the width it was given, and
+    you cannot know whether the `no-kicker` variant fits without applying it
+    and measuring. Guessing at those numbers instead of measuring them is what
+    produced eight releases in one day for a single caption."""
+
+    def _js(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+    def test_the_renderer_owns_no_page_level_trigger(self):
+        js = self._js()
+        self.assertNotIn("addEventListener('resize'", js)
+        self.assertNotIn("document.fonts.ready", js)
+        self.assertEqual(js.count("new global.ResizeObserver"), 1,
+                         "one observer: the frame the scene is fitted into")
+
+    def test_the_only_timer_left_cleans_up_a_finished_ripple(self):
+        js = self._js()
+        self.assertEqual(js.count("global.setTimeout("), 1)
+        self.assertIn("global.setTimeout(function () { ring.remove(); }, 900)", js)
+
+    def test_the_octagon_is_measured_before_the_caption_is_reset(self):
+        js = self._js()
+        body = js.split("function placeFloorCaption(", 1)[1].split("\n  }", 1)[0]
+        # the mobile branch clears the same properties and returns, so the
+        # desktop path starts after it
+        desktop = body.split("AN15/AN20:", 1)[1]
+        read = desktop.index("cells[c].getBoundingClientRect()")
+        reset = desktop.index("caption.style.width = ''")
+        self.assertLess(
+            read, reset,
+            "the caption's reset invalidates layout; reading the floor after it "
+            "forces a reflow that changes nothing (AN20)",
+        )

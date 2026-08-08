@@ -3072,14 +3072,13 @@
     var frame = container.getBoundingClientRect();
     if (!(frame.width > 0)) { return; }
 
-    // Measured from scratch every time: the natural box is what is being
-    // fitted, and last pass's inline width would answer the wrong question.
-    caption.removeAttribute('data-fit');
-    caption.style.width = '';
-    caption.style.left = '';
-    caption.style.top = '';
-    caption.style.transform = 'none';
-
+    // AN15/AN20: the octagon is read BEFORE the caption is reset, not after.
+    // The caption is `position: absolute`, so its width, left, top and
+    // transform cannot move a single cell of the floor - which means the reset
+    // below used to invalidate layout and the very next line forced the browser
+    // to rebuild all of it to answer a question the reset had not changed. One
+    // synchronous reflow per pass, for nothing. Reading first costs nothing and
+    // the numbers are identical; that was measured, not assumed.
     var cells = svg.querySelectorAll('.arena-cell');
     var octTop = Infinity;
     for (var c = 0; c < cells.length; c++) {
@@ -3087,6 +3086,20 @@
       if (cb.width && cb.top < octTop) { octTop = cb.top; }
     }
     if (!isFinite(octTop)) { return; }
+
+    // Measured from scratch every time: the natural box is what is being
+    // fitted, and last pass's inline width would answer the wrong question.
+    // From here the interleaving is DELIBERATE and section 13 does not ask for
+    // it to go: each read below depends on the write above it. You cannot
+    // measure a caption's natural width without first clearing the width it
+    // was given, and you cannot know whether `no-kicker` fits without applying
+    // it and measuring. Guessing at text metrics instead is what this project
+    // has been burned by twice.
+    caption.removeAttribute('data-fit');
+    caption.style.width = '';
+    caption.style.left = '';
+    caption.style.top = '';
+    caption.style.transform = 'none';
 
     // The vertical gap is the same number reserveCaptionBand() cut the room to,
     // or the two would argue about a pixel and the caption would shed a line it
