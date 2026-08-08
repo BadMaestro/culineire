@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.932",
         "date": "2026-08-08",
-        "commit": "",
+        "commit": "8401c525",
         "title": "The normalisation board is rewritten from the master task, and every card reconciled against what was measured",
         "section": "Chef Battles / Arena",
         "summary": "The Owner: fill every card up to 29 with the tasks from the prompt, and check what is already done against what the board says. He was right to ask twice. The block was opened with 29 empty cards under a rule I INVENTED - that a section waits for his dictation - and he never said any such thing; the work for all 29 was already written in his own task. Then I filled nine of them with titles of my own. Both are gone. Each card is now a numbered section of the master task, in its order, carrying the section number it comes from: AN1 is section 3, AN10 is section 6, AN13 is section 8A, AN29 is sections 26 to 29. The state of each is what was actually measured, not what was hoped: 15 DONE, 10 PARTIAL, 4 NOT STARTED. The partial ones say WHY - the performance baseline has no cold cache or throttling because this harness cannot produce them, the stylesheet target is four rather than two because he ruled the console stays flat, and section 8A is only one item in from a list of ten. Three tests hold the shape: every card names a master-task section and carries evidence, the finished ones agree with the deployed reality, and no card can go back to waiting for a dictation nobody owes it.",
