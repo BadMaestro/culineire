@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.942",
         "date": "2026-08-08",
-        "commit": "",
+        "commit": "a1203585",
         "title": "The loose ends of the three stylesheet stages: comments that named deleted files, and a report whose numbers had gone stale",
         "section": "Chef Battles / Arena",
         "summary": "Nothing here changes a pixel or a byte the browser executes; it stops the code lying about itself, which is the fault this whole block exists to fix. Three comments still named files that AN12 deleted - the renderer explained --row-light as arena_render.css's, described a four-way argument about a rank ring's fill between sheets two of which no longer exist, and the ring partial still said the octagon's stylesheet is loaded from the head of both pages when there is no separate stylesheet any more. The engineering report was worse: it opened with AN1-AN8 and v2.5.930, counted 8642 lines across the sheets when there are 7508, 58 !important when there are 55, and its stage table used numbers 1 to 8 that collide with the AN card numbers while meaning something else entirely. The table now says DEPLOY STAGE in the header, names the card each stage closed, carries the three new ones, and says in a line that the collision was an accident. The deleted-work table gains the two rows it was missing: the two stylesheets, and the 584 declarations with the 135 rules they emptied.",
