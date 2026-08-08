@@ -4242,3 +4242,55 @@ class ArenaBuildPlanShareLinkTests(TestCase):
         """The Arena stays staff/superuser only. A share link for the plan is
         not a share link for the unreleased product."""
         self.assertEqual(self.client.get(reverse("chef_battle:arena")).status_code, 404)
+
+
+class ArchitectureNormalisationBlockTests(TestCase):
+    """OWNER, 2026-08-08: open a block on the board called ARCHITECTURE
+    NORMALISATION with 29 sections, numbered AN1 to AN29.
+
+    The block is a FRAME. Every section is TO SPEC until he dictates it, and a
+    title written here by an agent is exactly what the block exists to stop -
+    the same rule ARENA_EMULATION_VISUAL_STEPS.md carries for the scenarios.
+    """
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        self.owner = get_user_model().objects.create_user(
+            username="an-board-staff", password="x", is_staff=True)
+        self.client.force_login(self.owner)
+
+    def test_there_are_twenty_nine_of_them_numbered_an1_to_an29(self):
+        from recipes.views import ARENA_NORMALISATION_SECTIONS
+
+        self.assertEqual(len(ARENA_NORMALISATION_SECTIONS), 29)
+        self.assertEqual(
+            [sec["id"] for sec in ARENA_NORMALISATION_SECTIONS],
+            [f"AN{n}" for n in range(1, 30)],
+        )
+
+    def test_every_section_is_to_spec_until_he_dictates_it(self):
+        from recipes.views import ARENA_NORMALISATION_SECTIONS
+
+        for sec in ARENA_NORMALISATION_SECTIONS:
+            self.assertEqual(sec["status"], "TO SPEC", sec["id"])
+            self.assertEqual(sec["title"], "", f'{sec["id"]} has a title nobody dictated')
+
+    def test_the_board_page_shows_the_block(self):
+        from django.urls import reverse
+
+        html = self.client.get(reverse("recipes:arena_build_plan")).content.decode()
+        self.assertIn("Architecture normalisation", html)
+        self.assertIn('id="an1"', html)
+        self.assertIn('id="an29"', html)
+
+    def test_the_markdown_board_carries_the_same_block(self):
+        """The moderation page is a surface; docs/ARENA_BATTLE_PLAN.md is the
+        board (AGENTS.md 1). The two disagreeing is how a board stops being
+        trusted."""
+        from django.conf import settings
+
+        plan = (settings.BASE_DIR / "docs" / "ARENA_BATTLE_PLAN.md").read_text(encoding="utf-8")
+        self.assertIn("ARCHITECTURE NORMALISATION", plan)
+        for n in (1, 15, 29):
+            self.assertIn(f"**AN{n}**", plan)

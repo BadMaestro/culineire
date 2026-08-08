@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.910",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "ARCHITECTURE NORMALISATION opened on the board: AN1 to AN29, every one TO SPEC",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner opened a block for the work he approved on 2026-08-07, when he said the arena is a puzzle to be moved in any direction and not ten layers stacked like a house of cards. Twenty-nine sections, numbered AN1 to AN29, and every one of them is TO SPEC: the block is the FRAME, and a section title written by an agent is precisely what it exists to stop - the same rule ARENA_EMULATION_VISUAL_STEPS.md already carries for the scenarios. What is written down is the measured state the work starts from, not opinions about it: seven arena stylesheets totalling 9425 lines with arena_deck_polish.css alone at 4345; six of them linked in arena.html and the seventh arriving from a partial, so a <link> sits in the middle of <body> and the load order cannot be read in one place; which sheet wins decided by a line in a template; 54 z-index declarations across three of them, 19 distinct values from -1 to 130; the deck's vertical space owned by three systems that did not know about each other, which cost eight releases in one day for one caption; and --arena-shift-y foreshortened by the camera's cosine. It lives in docs/ARENA_BATTLE_PLAN.md section 5a, which is the board, and is mirrored on the moderation build board as a grid of 29 slots. Four tests hold the shape: 29 sections, all TO SPEC with empty titles, present on the page and present in the markdown - the two disagreeing is how a board stops being trusted.",
+    },
+    {
         "version": "2.5.908",
         "date": "2026-08-08",
         "commit": "cffc85dc",

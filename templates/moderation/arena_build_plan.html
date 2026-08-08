@@ -70,8 +70,16 @@
   .abp-legacy-lanes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
   .abp-legacy-lanes p { font-size:.82rem; }
   .abp-note { background:var(--surface-soft); border-left:3px solid var(--brand); font-size:.8rem; padding:.55rem .7rem; }
-  @media (max-width:900px) { .abp-metrics, .abp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-  @media (max-width:560px) { .abp-metrics, .abp-grid, .abp-legacy-lanes { grid-template-columns:1fr; } .abp-stage__bar, .abp-workstream__head { align-items:flex-start; flex-wrap:wrap; } }
+  /* Architecture normalisation: 29 slots, read as a grid rather than a list -
+     the block is a frame the Owner fills, and an empty list of 29 lines reads
+     as work missing instead of work not yet dictated. */
+  .abp-an-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.5rem; margin:.8rem 0 1.6rem; }
+  .abp-an-cell { border:1px dashed var(--line); border-radius:10px; padding:.55rem .6rem; background:var(--surface); }
+  .abp-an-cell strong { display:block; color:var(--brand-dark); font-family:var(--font-serif); font-size:.95rem; }
+  .abp-an-cell span { color:var(--muted); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; }
+  .abp-an-cell:not(:has(span:empty)) { border-style:solid; }
+  @media (max-width:900px) { .abp-metrics, .abp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .abp-an-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+  @media (max-width:560px) { .abp-metrics, .abp-grid, .abp-legacy-lanes { grid-template-columns:1fr; } .abp-an-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .abp-stage__bar, .abp-workstream__head { align-items:flex-start; flex-wrap:wrap; } }
   @media (prefers-reduced-motion:reduce) { summary.abp-stage__bar::after { transition:none; } }
 </style>
 {% endblock %}
@@ -197,4 +205,28 @@
     </details>
   </div>
 </section>
+
+  <section class="abp-block" id="architecture-normalisation">
+    {% comment %}
+      ARCHITECTURE NORMALISATION - the Owner opened this block on 2026-08-08.
+      Twenty-nine sections, AN1 to AN29, every one TO SPEC until he dictates it.
+      The rows are deliberately empty: a title written here by an agent is the
+      thing the block exists to stop. The reasoning and the measured starting
+      state are in docs/ARENA_BATTLE_PLAN.md section 5a.
+    {% endcomment %}
+    <h2>Architecture normalisation</h2>
+    <p class="abp-note">
+      {{ normalisation_spec_count }} of {{ normalisation_total }} sections awaiting
+      the Owner's dictation. Nobody fills a row on his behalf.
+    </p>
+    <div class="abp-an-grid">
+      {% for sec in normalisation %}
+      <article class="abp-an-cell" id="{{ sec.id|lower }}">
+        <strong>{{ sec.id }}</strong>
+        <span>{% if sec.title %}{{ sec.title }}{% else %}TO SPEC{% endif %}</span>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
 {% endblock %}

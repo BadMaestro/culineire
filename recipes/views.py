@@ -3488,6 +3488,20 @@ ARENA_DESIGN_TASKS = [
 ]
 
 
+
+# ARCHITECTURE NORMALISATION - opened by the Owner on 2026-08-08.
+#
+# Twenty-nine sections, AN1 to AN29, and EVERY ONE IS TO SPEC until he dictates
+# it. The block is the frame, not the content: an agent does not write a title
+# here, because a section invented on his behalf is precisely what this block
+# exists to stop. The full preamble - his verdict of 2026-08-07 about a puzzle
+# versus a house of cards, and the measured state the work starts from - lives in
+# docs/ARENA_BATTLE_PLAN.md section 5a, which is the canonical board.
+ARENA_NORMALISATION_SECTIONS = [
+    {"id": f"AN{n}", "n": n, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""}
+    for n in range(1, 30)
+]
+
 ARENA_RELEASE_STAGES = [
     {
         "n": 1, "id": "recovered-baseline",
@@ -3533,7 +3547,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "cffc85dc / production v2.5.908",
+        "commit": "PENDING / production v2.5.910",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
@@ -3589,6 +3603,11 @@ def _arena_build_context():
         task for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"
     )
     return {
+        "normalisation": ARENA_NORMALISATION_SECTIONS,
+        "normalisation_total": len(ARENA_NORMALISATION_SECTIONS),
+        "normalisation_spec_count": sum(
+            sec["status"] == "TO SPEC" for sec in ARENA_NORMALISATION_SECTIONS
+        ),
         "stages": ARENA_RELEASE_STAGES,
         "total": len(ARENA_RELEASE_STAGES),
         "done_count": sum(s["status"] == "DONE" for s in ARENA_RELEASE_STAGES),

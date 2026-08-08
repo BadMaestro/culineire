@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-07 · Production baseline: **v2.5.908**
+Last reconciled: 2026-08-07 · Production baseline: **v2.5.910**
 · Next assignable card: none — B01 went to Bolt on the Owner's word, 2026-08-07.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
@@ -360,6 +360,94 @@ forbidden changes and evidence for every row below.
 | R01 | Result / Winner | Champion and runner-up result shell | GreenBear | B03 | DONE |
 | R02 | Result / Winner | Result metrics, status and chat | GreenBear | R01 | DONE |
 | G01 | Release gate | Complete Design Arena regression and production evidence | Team + Owner | A19, B03, R02 | PENDING |
+
+## 5a. ARCHITECTURE NORMALISATION (AN1 - AN29)
+
+**Opened by the Owner, 2026-08-08.** Twenty-nine sections, numbered AN1 to AN29.
+**Every one of them is TO SPEC until he dictates it.** This block is the frame,
+not the content: nobody fills a row on his behalf, and a row invented by an agent
+is the thing this block exists to stop.
+
+### Why it exists — his verdict, 2026-08-07
+
+> «то, что мы создаём, это по сути пазл, который мы должны двигать в любом
+> направлении в котором нам нужно... а не 10 слоёв стоят друг на друге как
+> карточный домик, а любой пиксель вправо или влево его разрушит - это в корне
+> не правильное видение нашего проекта»
+
+He then said: **«будем всё исправлять и чинить»** — the work is approved, and
+this is where it is written down.
+
+### The measured state this block starts from
+
+Facts, not opinions. Each was counted on 2026-08-07/08, and each is a candidate
+for a section rather than a section already assigned:
+
+- **Seven arena stylesheets, 9425 lines.** `arena.css` 780, `arena_command_deck.css`
+  747, `arena_effects.css` 134, `arena_hall.css` 257, **`arena_deck_polish.css`
+  4345**, `arena_atmosphere.css` 955, `arena_render.css` 1316. Six are linked in
+  `arena.html`; the seventh arrives from `_arena_render_ring.html`, so a `<link>`
+  sits in the middle of `<body>` and the load order cannot be read in one place.
+- **Which sheet wins is decided by a line in a template**, commented "polish then
+  atmosphere". That is why correct rules have twice failed to reach the screen:
+  one lost the cascade to `.page--arena`, one was cut away by `clip-path` after
+  it was painted.
+- **54 `z-index` declarations** across three of those sheets, 19 distinct values
+  from -1 to 130, one `!important`.
+- **The deck's vertical space had three owners that did not know about each
+  other**: a CSS share for the caption (`top: 8.2%`), a CSS share for the floor
+  (a 0.64 pad and a 0.51 composition centre), and a JS pass clawing a band back
+  after the fact. Eight releases in one day (v2.5.890 to v2.5.904) went into one
+  caption because each fix was right about its own piece and blind to the rest.
+- **`--arena-shift-y` is applied inside `rotateX(42deg)`**, so a translation asked
+  for in CSS pixels lands foreshortened by the cosine of that angle. Anything
+  that positions by arithmetic instead of measurement is wrong by that factor.
+- **A started refactor is parked, not merged**: `DeckBands`, one owner for the
+  deck's vertical space, in `.agent-chat/bolt-deckbands-wip.patch`. Unverified.
+
+### The sections
+
+| # | State | Title | Owner | Evidence |
+|---|---|---|---|---|
+| **AN1** | TO SPEC | — | — | — |
+| **AN2** | TO SPEC | — | — | — |
+| **AN3** | TO SPEC | — | — | — |
+| **AN4** | TO SPEC | — | — | — |
+| **AN5** | TO SPEC | — | — | — |
+| **AN6** | TO SPEC | — | — | — |
+| **AN7** | TO SPEC | — | — | — |
+| **AN8** | TO SPEC | — | — | — |
+| **AN9** | TO SPEC | — | — | — |
+| **AN10** | TO SPEC | — | — | — |
+| **AN11** | TO SPEC | — | — | — |
+| **AN12** | TO SPEC | — | — | — |
+| **AN13** | TO SPEC | — | — | — |
+| **AN14** | TO SPEC | — | — | — |
+| **AN15** | TO SPEC | — | — | — |
+| **AN16** | TO SPEC | — | — | — |
+| **AN17** | TO SPEC | — | — | — |
+| **AN18** | TO SPEC | — | — | — |
+| **AN19** | TO SPEC | — | — | — |
+| **AN20** | TO SPEC | — | — | — |
+| **AN21** | TO SPEC | — | — | — |
+| **AN22** | TO SPEC | — | — | — |
+| **AN23** | TO SPEC | — | — | — |
+| **AN24** | TO SPEC | — | — | — |
+| **AN25** | TO SPEC | — | — | — |
+| **AN26** | TO SPEC | — | — | — |
+| **AN27** | TO SPEC | — | — | — |
+| **AN28** | TO SPEC | — | — | — |
+| **AN29** | TO SPEC | — | — | — |
+
+**Rules for this block, until he says otherwise.**
+
+1. A section is TO SPEC until the Owner dictates it. No agent writes a title.
+2. Sections run in the order he gives them, one at a time, like every other card.
+3. Normalisation is **invisible work**: unless a section says otherwise, the page
+   must look the same after it as before, and the proof is a measurement taken
+   before and after at 1170x820, 1440x900 and 1920x1080.
+4. Nothing here touches `/AGENTS.md` section 8's excluded list - payments,
+   payouts, migrations, schemas, access gates - without his word each time.
 
 ## 6. How to assign a card
 
