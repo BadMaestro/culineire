@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.928",
         "date": "2026-08-08",
-        "commit": "",
+        "commit": "d2cfc6b8",
         "title": "Three tests that described the old architecture are corrected, and the gate is green",
         "section": "Chef Battles / Arena",
         "summary": "The full suite after AN1-AN7 came back 1760 tests with three failures. TWO were the pre-existing ones from the baseline: EmptyFighterPadIsMutedTests asserts the muted styling of the empty fighter pad, which was deleted in v2.5.890 when the Owner ordered the empty pads off the floor - the rule went, the class that tested the DRAWING was rewritten, and the class that tested the STYLING was missed. They have been red in production since. THE THIRD IS MINE: test_desktop_rank_stack_is_centred_option_b asserted `left: 50%` and `translateX(-50%)` in the ladder's base rule, which is exactly the CSS AN6 removed so the renderer could be the only thing deciding where the ladder stands. The composition is still the Owner's; what changed is who writes it down, and a test asserting those coordinates is now asserting an architecture he asked us to remove. All three are corrected to state the rule that is actually in force, and each correction is named rather than counted as something the refactor fixed. The occupied pads keep their side colours - only the empty ones went.",
