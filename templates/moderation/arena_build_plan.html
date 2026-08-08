@@ -73,11 +73,14 @@
   /* Architecture normalisation: 29 slots, read as a grid rather than a list -
      the block is a frame the Owner fills, and an empty list of 29 lines reads
      as work missing instead of work not yet dictated. */
-  .abp-an-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.5rem; margin:.8rem 0 1.6rem; }
+  .abp-an-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.5rem; margin:.8rem 0 1.6rem; }
   .abp-an-cell { border:1px dashed var(--line); border-radius:10px; padding:.55rem .6rem; background:var(--surface); }
   .abp-an-cell strong { display:block; color:var(--brand-dark); font-family:var(--font-serif); font-size:.95rem; }
   .abp-an-cell span { color:var(--muted); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; }
-  .abp-an-cell:not(:has(span:empty)) { border-style:solid; }
+  .abp-an-cell.is-done { border-style:solid; border-color:var(--hall-green,#4a7c59); }
+  .abp-an-cell.is-active { border-style:solid; box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 30%,transparent); }
+  .abp-an-cell strong em { float:right; font-style:normal; font-size:.6rem; letter-spacing:.08em; color:var(--muted); }
+  .abp-an-evidence { margin:.4rem 0 0; font-size:.68rem; line-height:1.45; color:var(--muted); }
   @media (max-width:900px) { .abp-metrics, .abp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .abp-an-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
   @media (max-width:560px) { .abp-metrics, .abp-grid, .abp-legacy-lanes { grid-template-columns:1fr; } .abp-an-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .abp-stage__bar, .abp-workstream__head { align-items:flex-start; flex-wrap:wrap; } }
   @media (prefers-reduced-motion:reduce) { summary.abp-stage__bar::after { transition:none; } }
@@ -216,14 +219,17 @@
     {% endcomment %}
     <h2>Architecture normalisation</h2>
     <p class="abp-note">
-      {{ normalisation_spec_count }} of {{ normalisation_total }} sections awaiting
-      the Owner's dictation. Nobody fills a row on his behalf.
+      {{ normalisation_done_count }} of {{ normalisation_total }} done,
+      {{ normalisation_spec_count }} still to spec. A section is written here when
+      it is finished, with the evidence that proves it - the board is the record,
+      not a decoration.
     </p>
     <div class="abp-an-grid">
       {% for sec in normalisation %}
-      <article class="abp-an-cell" id="{{ sec.id|lower }}">
-        <strong>{{ sec.id }}</strong>
+      <article class="abp-an-cell{% if sec.status == 'DONE' %} is-done{% elif sec.status == 'IN PROGRESS' %} is-active{% endif %}" id="{{ sec.id|lower }}">
+        <strong>{{ sec.id }} <em>{{ sec.status }}</em></strong>
         <span>{% if sec.title %}{{ sec.title }}{% else %}TO SPEC{% endif %}</span>
+        {% if sec.evidence %}<p class="abp-an-evidence">{{ sec.evidence }}</p>{% endif %}
       </article>
       {% endfor %}
     </div>

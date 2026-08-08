@@ -1,4 +1,44 @@
 /* =====================================================================
+   THE ARENA'S LAYER LADDER - one table, one place.
+
+   AN phase, 2026-08-08. Before this there were 68 z-index declarations
+   across four stylesheets carrying 21 different numbers between -1 and
+   10000, chosen one at a time by whoever needed to be on top that day.
+
+   THE NUMBERS ARE UNCHANGED. Every value below is one the Arena already
+   used, given the name of the job it does. This stage gives the ladder a
+   home; it does not re-order it. Re-ordering is a visual change and this
+   phase is not allowed to make one - the proof is that every computed
+   z-index on the live page is identical before and after.
+
+   To put something above something else, read this table. Do not invent
+   a number, and do not add one to whatever the inspector showed you.
+   ===================================================================== */
+:root {
+  --arena-z-under: -1;   /* below the floor plane - underlays and shadows */
+  --arena-z-base: 0;   /* the deck's own background */
+  --arena-z-floor: 1;   /* the floor plate */
+  --arena-z-stage: 2;   /* the stage and the render container */
+  --arena-z-cells: 3;   /* cells and seating drawn on the floor */
+  --arena-z-sparks: 4;   /* lit cells and their sparks */
+  --arena-z-occupants: 5;   /* chefs standing on the floor */
+  --arena-z-crowd: 6;   /* the crowd bowl and its figures */
+  --arena-z-ladder: 7;   /* the rank ladder */
+  --arena-z-centre: 8;   /* the confrontation band at the centre */
+  --arena-z-caption: 9;   /* the floor caption */
+  --arena-z-panel: 10;   /* deck panels - metrics, gifts, crown ladder */
+  --arena-z-widget: 11;   /* the cooking widget */
+  --arena-z-ribbon: 12;   /* the broadcast ribbon */
+  --arena-z-furniture: 24;   /* furniture that must clear the tilted floor */
+  --arena-z-runway: 27;   /* the countdown runway */
+  --arena-z-overlay: 60;   /* full-deck overlays */
+  --arena-z-tooltip: 130;   /* the chef tooltip */
+  --arena-z-tooltip-top: 200;   /* the tooltip's own top layer */
+  --arena-z-popup: 9998;   /* the battle popup */
+  --arena-z-modal: 10000;   /* the modal backdrop and dialog */
+}
+
+/* =====================================================================
    ARENA PAGE SHELL - one authoritative stylesheet.
 
    AN phase, 2026-08-08. This file is the merge of four sheets that every page
@@ -162,7 +202,7 @@
 /* ------------------------------------------------------------------ */
 .arena-tooltip {
   position: fixed;
-  z-index: 200;
+  z-index: var(--arena-z-tooltip-top);
   background: var(--surface);
   border: 1px solid var(--ce-card-border);
   border-radius: 14px;
@@ -383,7 +423,7 @@
   /* The popup is mounted directly under <body> by arena_battle_room.js, so
      this layer sits above every navigation surface without changing the
      header's own pointer behaviour. */
-  z-index: 10000;
+  z-index: var(--arena-z-modal);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -400,7 +440,7 @@
 
 .arena-popup__panel {
   position: relative;
-  z-index: 1;
+  z-index: var(--arena-z-floor);
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-md);
@@ -768,7 +808,7 @@
   position: fixed;
   top: 120px;
   right: 16px;
-  z-index: 9998;
+  z-index: var(--arena-z-popup);
   width: 210px;
   display: flex;
   flex-direction: column;
@@ -979,13 +1019,13 @@
 .arena-floor-stage { position: relative; isolation: isolate; overflow: hidden; border-radius: 1.1rem; background: var(--surface-soft); }
 /* OWNER CRITICAL 2026-07-25: disconnected 2.6MB floor-plate PNG */
 .arena-floor-stage::before { content: none !important; display: none !important; background: none !important; }
-.arena-floor-stage .arena-puzzle-container { position: relative; z-index: 1; }
-.arena-floor-stage #arena-puzzle { position: relative; z-index: 1; }
+.arena-floor-stage .arena-puzzle-container { position: relative; z-index: var(--arena-z-floor); }
+.arena-floor-stage #arena-puzzle { position: relative; z-index: var(--arena-z-floor); }
 /* 3G R4 (Owner D1 Option B): centred rank stack over the floor — composition
    from Ember's rank-progression prototype, official tokens only. Desktop
    placement is CSS-owned (left 50% + translateX); tablet may still measure via
    placeRankSpine(); mobile stays a wrapped flow row (Stage 3E). */
-.arena-rank-spine { position: absolute; z-index: 2; top: 13%; left: 50%; width: min(11.5rem, 25%); transform: translateX(-50%); pointer-events: none; }
+.arena-rank-spine { position: absolute; z-index: var(--arena-z-stage); top: 13%; left: 50%; width: min(11.5rem, 25%); transform: translateX(-50%); pointer-events: none; }
 .arena-rank-spine__label { margin: 0 0 .28rem; color: var(--accent-bronze-dark); font-size: .43rem; font-weight: 800; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
 /* The steps became <li> under an <ol> so the ladder is an ordered progression
    in the markup too; the stacking that used to live on the <nav> moves to the
@@ -1138,7 +1178,7 @@
     position: absolute;
     inset: 0;
     display: block;
-    z-index: 1;
+    z-index: var(--arena-z-floor);
   }
 
   .arena-command-deck__floor-head { display: none; }
@@ -1151,7 +1191,7 @@
   .arena-command-deck__phase-rail,
   .arena-command-deck__crowd-rail {
     position: absolute;
-    z-index: 3;
+    z-index: var(--arena-z-cells);
     margin: 0;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
     border-radius: .7rem;
@@ -1165,7 +1205,7 @@
   /* R6: full-width broadcast ribbon (identity + phase track). */
   .arena-broadcast-ribbon {
     position: absolute;
-    z-index: 4;
+    z-index: var(--arena-z-sparks);
     left: 0;
     right: 0;
     top: 0;
@@ -1273,7 +1313,7 @@
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
-    z-index: 5;
+    z-index: var(--arena-z-occupants);
   }
 
   .arena-command-deck__header *,
@@ -1295,7 +1335,7 @@
 
   .arena-command-deck__live-stage.arena-confrontation-band {
     position: absolute;
-    z-index: 2;
+    z-index: var(--arena-z-stage);
     left: 50%;
     top: 12.5%;
     transform: translateX(-50%);
@@ -1409,7 +1449,7 @@
   .arena-command-deck__floor::before {
     content: "";
     position: absolute;
-    z-index: 0;
+    z-index: var(--arena-z-base);
     inset: 0;
     pointer-events: none;
     background:
@@ -1464,7 +1504,7 @@
   .arena-confrontation-band .arena-live-centre::before {
     content: "";
     position: absolute;
-    z-index: -1;
+    z-index: var(--arena-z-under);
     inset: -0.35rem;
     border-radius: 1.15rem;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 40%, transparent);
@@ -2356,7 +2396,7 @@
   .arena-command-deck__gifts::before {
     content: "";
     position: absolute;
-    z-index: 0;
+    z-index: var(--arena-z-base);
     inset: 0.28rem;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
     border-radius: 0.45rem;
@@ -2367,7 +2407,7 @@
   .arena-command-deck__ladder > *,
   .arena-command-deck__gifts > * {
     position: relative;
-    z-index: 1;
+    z-index: var(--arena-z-floor);
   }
 
 
@@ -2574,7 +2614,7 @@
   .arena-command-deck__floor::after {
     content: "";
     position: absolute;
-    z-index: 0;
+    z-index: var(--arena-z-base);
     inset: 3% 11% auto;
     height: 42%;
     pointer-events: none;
@@ -2588,7 +2628,7 @@
   }
   .arena-command-deck__floor > .arena-confrontation-band,
   .arena-command-deck__floor > .arena-floor-stage {
-    z-index: 1;
+    z-index: var(--arena-z-floor);
   }
 
 
@@ -2649,7 +2689,7 @@
   .arena-floor-stage::after {
     content: "";
     position: absolute;
-    z-index: 0;
+    z-index: var(--arena-z-base);
     left: 50%;
     top: 54%;
     width: min(78%, 42rem);
@@ -2665,10 +2705,10 @@
   .arena-floor-stage #arena-puzzle,
   .arena-floor-stage .arena-render-container {
     position: relative;
-    z-index: 1;
+    z-index: var(--arena-z-floor);
   }
   .arena-floor-stage .arena-rank-spine {
-    z-index: 2;
+    z-index: var(--arena-z-stage);
   }
   .arena-rank-spine__step b {
     min-width: 1.15rem;
@@ -2966,7 +3006,7 @@
   .arena-rank-spine::before {
     content: "";
     position: absolute;
-    z-index: -1;
+    z-index: var(--arena-z-under);
     left: 50%;
     top: 0.35rem;
     bottom: 0.35rem;
@@ -2997,7 +3037,7 @@
 
   .arena-floor-caption {
     position: absolute;
-    z-index: 3;
+    z-index: var(--arena-z-cells);
     top: 8.2%;
     left: 50%;
     width: min(28rem, 48%);
@@ -3206,7 +3246,7 @@
   }
   /* Fixed battle widget stays overlay; do not leave a dead cream column. */
   .page--arena .site-battle-widget {
-    z-index: 130;
+    z-index: var(--arena-z-tooltip);
   }
 
 
@@ -3245,7 +3285,7 @@
 
   /* Ribbon must be the first readable show strip. */
   .arena-broadcast-ribbon {
-    z-index: 8;
+    z-index: var(--arena-z-centre);
     min-height: 4.4rem;
     padding: 0.55rem 1.15rem 0.65rem;
     background:
@@ -3264,12 +3304,12 @@
 
   /* Confrontation sits under ribbon, above the rings. */
   .arena-command-deck__live-stage.arena-confrontation-band {
-    z-index: 6;
+    z-index: var(--arena-z-crowd);
     top: 15.5%;
     width: min(68%, 48rem);
   }
   .arena-floor-caption {
-    z-index: 7;
+    z-index: var(--arena-z-ladder);
     top: 9.2%;
   }
 
@@ -3280,7 +3320,7 @@
     left: 50%;
     width: min(11rem, 18%);
     transform: translateX(-50%);
-    z-index: 4;
+    z-index: var(--arena-z-sparks);
   }
 
   /* Side panels: glass over the floor, not opaque admin cards. */
@@ -3356,11 +3396,11 @@
     left: 50%;
     transform: translate(-50%, -50%);
     width: min(52rem, 78%);
-    z-index: 6;
+    z-index: var(--arena-z-crowd);
   }
   .arena-floor-caption {
     top: 11%;
-    z-index: 7;
+    z-index: var(--arena-z-ladder);
   }
   /* Crown / empty: one focal medallion in the middle column. */
   .arena-confrontation-band[data-centre-key="empty"],
@@ -3385,7 +3425,7 @@
   }
   .arena-rank-spine {
     bottom: 10%;
-    z-index: 5;
+    z-index: var(--arena-z-occupants);
   }
 
 
@@ -3398,7 +3438,7 @@
     left: 50%;
     width: min(11.5rem, 20%);
     transform: translateX(-50%);
-    z-index: 5;
+    z-index: var(--arena-z-occupants);
   }
   .arena-rank-spine__list {
     display: grid;
@@ -3489,7 +3529,7 @@
   .arena-floor-stage::after {
     content: "";
     position: absolute;
-    z-index: 0;
+    z-index: var(--arena-z-base);
     left: 50%;
     top: 58%;
     width: min(72%, 40rem);
@@ -3607,7 +3647,7 @@
   }
   .arena-command-deck__crowd-rail.arena-lower-broadcast {
     min-height: 3.35rem;
-    z-index: 9;
+    z-index: var(--arena-z-caption);
     border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 62%, transparent);
     background:
       linear-gradient(
@@ -3629,7 +3669,7 @@
   .arena-floor-stage::before {
     content: "";
     position: absolute;
-    z-index: 0;
+    z-index: var(--arena-z-base);
     left: 50%;
     top: 52%;
     width: min(72%, 46rem);
@@ -3685,7 +3725,7 @@
   .arena-command-deck__gifts::after {
     content: "";
     position: absolute;
-    z-index: -1;
+    z-index: var(--arena-z-under);
     top: 18%;
     bottom: 18%;
     width: 2.35rem;
@@ -3709,7 +3749,7 @@
   .arena-command-deck__floor::after {
     content: "";
     position: absolute;
-    z-index: 0;
+    z-index: var(--arena-z-base);
     left: 12%;
     right: 12%;
     top: 3.5%;
@@ -3737,7 +3777,7 @@
   .arena-confrontation-band .arena-live-chef--opponent::after {
     content: "";
     position: absolute;
-    z-index: -1;
+    z-index: var(--arena-z-under);
     inset: 0.22rem;
     clip-path: inherit;
     pointer-events: none;
@@ -3971,10 +4011,10 @@
     isolation: isolate;
   }
   .arena-command-deck__floor > .arena-floor-stage {
-    z-index: 1;
+    z-index: var(--arena-z-floor);
   }
   .arena-command-deck__floor > .arena-confrontation-band {
-    z-index: 6;
+    z-index: var(--arena-z-crowd);
   }
   /* Soft stand silhouettes behind the floor — abstract wash only. */
   .arena-floor-stage::after {
@@ -4003,25 +4043,25 @@
 
   /* Atmosphere CSS (arenafront) may paint under the floor; keep show core above it. */
   .arena-command-deck__live-stage.arena-confrontation-band {
-    z-index: 8;
+    z-index: var(--arena-z-centre);
   }
   .arena-floor-caption {
-    z-index: 9;
+    z-index: var(--arena-z-caption);
   }
   .arena-rank-spine {
-    z-index: 7;
+    z-index: var(--arena-z-ladder);
   }
   .arena-command-deck__phase-card,
   .arena-command-deck__metrics,
   .arena-command-deck__ladder,
   .arena-command-deck__gifts {
-    z-index: 10;
+    z-index: var(--arena-z-panel);
   }
   .arena-broadcast-ribbon {
-    z-index: 12;
+    z-index: var(--arena-z-ribbon);
   }
   .arena-command-deck__crowd-rail.arena-lower-broadcast {
-    z-index: 11;
+    z-index: var(--arena-z-widget);
   }
   /* Phase deadline chip — broadcast urgency without fighting atmosphere art. */
   .arena-command-deck__phase-deadline:not(.is-empty) {
@@ -4436,7 +4476,7 @@
     top: 12%;
     width: min(12.5rem, 20%);
     gap: 0.22rem;
-    z-index: 5;
+    z-index: var(--arena-z-occupants);
   }
   .arena-rank-spine::before {
     margin-bottom: 0.35rem;
@@ -4568,14 +4608,14 @@
 
   /* Live SVG must read ABOVE atmosphere art — stronger seams + fills. */
   .page--arena .arena-command-deck__floor > .arena-floor-stage {
-    z-index: 2;
+    z-index: var(--arena-z-stage);
   }
   .page--arena .arena-floor-stage .arena-render-container {
-    z-index: 2;
+    z-index: var(--arena-z-stage);
     opacity: 1;
   }
   .page--arena .arena-floor-stage #arena-render {
-    z-index: 3;
+    z-index: var(--arena-z-cells);
     opacity: 1;
     filter: none;
   }
@@ -4649,7 +4689,7 @@
     left: 50%;
     width: min(11.5rem, 25%);
     transform: translateX(-50%);
-    z-index: 7;
+    z-index: var(--arena-z-ladder);
   }
   .arena-rank-spine__label {
     color: var(--accent-bronze-dark);
@@ -5012,7 +5052,7 @@
   .arena-confrontation-band .arena-live-chef::after {
     content: "";
     position: absolute;
-    z-index: -1;
+    z-index: var(--arena-z-under);
     inset: 0.24rem;
     pointer-events: none;
     clip-path: inherit;
@@ -5186,7 +5226,7 @@
 
   /* Active COOKING-style cell: bright gold fill, uppercase weight, glow. */
   .arena-broadcast-ribbon .arena-phase-step.is-active {
-    z-index: 1;
+    z-index: var(--arena-z-floor);
     transform: translateY(-1px) scale(1.06);
     color: var(--ink);
     border-color: var(--accent-bronze);
@@ -5829,7 +5869,7 @@
   .page--arena .arena-rank-spine,
   .page--arena .arena-confrontation-band,
   .page--arena .arena-floor-caption {
-    z-index: 24 !important;
+    z-index: var(--arena-z-furniture) !important;
   }
 
   /* The caption sheds a line rather than overlapping the panel above it or the
@@ -5855,7 +5895,7 @@
     display: none;
   }
   .page--arena .arena-render-container {
-    z-index: 1;
+    z-index: var(--arena-z-floor);
   }
 
 
@@ -5948,7 +5988,7 @@
 @media (min-width: 901px) {
   .page--arena .arena-cooking-widget {
     position: absolute;
-    z-index: 27;
+    z-index: var(--arena-z-runway);
     top: 1rem;
     left: 1.5%;
     width: clamp(15.5rem, 18vw, 19rem);
@@ -6051,7 +6091,7 @@
   left: 50%;
   top: 46%;
   transform: translate(-50%, -50%);
-  z-index: 60;
+  z-index: var(--arena-z-overlay);
   pointer-events: none;
   display: grid;
   place-items: center;

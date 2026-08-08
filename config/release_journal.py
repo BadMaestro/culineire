@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.918",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "One layer ladder for the arena, and the board finally shows the work",
+        "section": "Chef Battles / Arena",
+        "summary": "Two things the Owner asked for. AN5: 68 z-index declarations across four stylesheets carried 21 different numbers between -1 and 10000, chosen one at a time by whoever needed to be on top that day. They are now one documented table of --arena-z-* tokens, and THE NUMBERS ARE UNCHANGED - every value is one the arena already used, given the name of the job it does. This stage gives the ladder a home; it does not re-order it, because re-ordering is a visual change and this phase may not make one. A test fails if any arena stylesheet sets a bare z-index number again. AND THE BOARD: he asked why finished cards were not marked and what we made the board for. Fair. AN1 to AN4 are written up as DONE with their evidence, AN5 as IN PROGRESS, the rest stay TO SPEC and carry nothing; the moderation page shows status and evidence per card instead of a bare number. A new rule stands at the top of the block: a finished section is written up the same working session it finishes. The test that pinned every section as empty was describing the frame at the moment it was cut, not the rule, and now checks the real one - a section is either written up with evidence and an owner, or openly empty.",
+    },
+    {
         "version": "2.5.916",
         "date": "2026-08-08",
         "commit": "1ae30110",

@@ -4269,12 +4269,32 @@ class ArchitectureNormalisationBlockTests(TestCase):
             [f"AN{n}" for n in range(1, 30)],
         )
 
-    def test_every_section_is_to_spec_until_he_dictates_it(self):
+    def test_a_section_is_either_written_up_or_openly_empty(self):
+        """The Owner, 2026-08-08: why are the finished cards not marked, and the
+        work not written into its fields - what did we make the board for?
+
+        A section carries a title, a status, an owner and evidence, or it is TO
+        SPEC and carries nothing. What it may never be is finished work that the
+        board does not show."""
         from recipes.views import ARENA_NORMALISATION_SECTIONS
 
         for sec in ARENA_NORMALISATION_SECTIONS:
-            self.assertEqual(sec["status"], "TO SPEC", sec["id"])
-            self.assertEqual(sec["title"], "", f'{sec["id"]} has a title nobody dictated')
+            if sec["status"] == "TO SPEC":
+                self.assertEqual(sec["title"], "", sec["id"])
+                self.assertEqual(sec["evidence"], "", sec["id"])
+            else:
+                self.assertIn(sec["status"], ("DONE", "IN PROGRESS"), sec["id"])
+                self.assertTrue(sec["title"], f'{sec["id"]} has a status and no title')
+                self.assertTrue(sec["evidence"], f'{sec["id"]} claims a status with no evidence')
+                self.assertTrue(sec["owner"], f'{sec["id"]} has no owner')
+
+    def test_the_finished_sections_are_on_the_board(self):
+        """Four are done and one is running as of 2026-08-08."""
+        from recipes.views import ARENA_NORMALISATION_SECTIONS
+
+        done = [s for s in ARENA_NORMALISATION_SECTIONS if s["status"] == "DONE"]
+        self.assertGreaterEqual(len(done), 4)
+        self.assertEqual(done[0]["id"], "AN1")
 
     def test_the_board_page_shows_the_block(self):
         from django.urls import reverse

@@ -11737,3 +11737,28 @@ class ArenaReadinessLifecycleTests(TestCase):
             head.index("css/arena_render.css"),
             "arena_render.css must stay after atmosphere, as it was in the body",
         )
+
+    def test_z_index_comes_from_one_documented_ladder(self):
+        """Master task 8B. Before this there were 68 declarations across four
+        stylesheets carrying 21 different numbers between -1 and 10000, chosen
+        one at a time by whoever needed to be on top that day."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+        import re
+
+        css_dir = Path(django_settings.BASE_DIR) / "static" / "css"
+        shell = (css_dir / "arena.css").read_text(encoding="utf-8")
+        self.assertIn("THE ARENA'S LAYER LADDER", shell)
+        self.assertIn("--arena-z-modal:", shell)
+        self.assertIn("--arena-z-under:", shell)
+
+        raw = re.compile(r"z-index\s*:\s*-?\d")
+        for name in ("arena.css", "arena_effects.css",
+                     "arena_atmosphere.css", "arena_render.css"):
+            text = (css_dir / name).read_text(encoding="utf-8")
+            # the ladder itself declares the numbers; nothing else may
+            body = text.split("}", 1)[1] if name == "arena.css" else text
+            self.assertFalse(
+                raw.search(body),
+                f"{name} still sets a bare z-index number instead of a layer token",
+            )

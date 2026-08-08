@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-07 · Production baseline: **v2.5.916**
+Last reconciled: 2026-08-07 · Production baseline: **v2.5.918**
 · Next assignable card: none — B01 went to Bolt on the Owner's word, 2026-08-07.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
@@ -409,11 +409,11 @@ for a section rather than a section already assigned:
 
 | # | State | Title | Owner | Evidence |
 |---|---|---|---|---|
-| **AN1** | TO SPEC | — | — | — |
-| **AN2** | TO SPEC | — | — | — |
-| **AN3** | TO SPEC | — | — | — |
-| **AN4** | TO SPEC | — | — | — |
-| **AN5** | TO SPEC | — | — | — |
+| **AN1** | DONE | Audit, baseline, backup and ownership map | Bolt | `ARENA_NORMALISATION_BASELINE.md`; tag `backup/arena-pre-normalisation-2026-08-08`, rollback rehearsed; 1750 tests, 2 pre-existing failures |
+| **AN2** | DONE | Readiness lifecycle - nothing geometry-dependent is painted early | Bolt | v2.5.912. Before: 1 shift at 943ms, CLS 0.0255, spine moving 441x102px. After: 0 shifts, CLS 0 at 1440x900 and 1170x820 |
+| **AN3** | DONE | The octagon stylesheet leaves the body for the head | Bolt | v2.5.914. It measured LAST in the cascade from inside a DIV; declared in the head of both pages, kept last so nothing changed |
+| **AN4** | DONE | Four shell stylesheets merged into one | Bolt | v2.5.916. 6129 lines into `arena.css`, three files deleted; geometry pixel-identical to the baseline at 1170x820 |
+| **AN5** | IN PROGRESS | One documented layer ladder in place of 21 loose z-index values | Bolt | 68 declarations, 21 values from -1 to 10000, now `--arena-z-*` tokens with the SAME numbers so nothing re-orders |
 | **AN6** | TO SPEC | — | — | — |
 | **AN7** | TO SPEC | — | — | — |
 | **AN8** | TO SPEC | — | — | — |
@@ -441,7 +441,14 @@ for a section rather than a section already assigned:
 
 **Rules for this block, until he says otherwise.**
 
-1. A section is TO SPEC until the Owner dictates it. No agent writes a title.
+0. **A finished section is written up the same working session it finishes** -
+   title, status, owner, and the evidence that proves it. The Owner asked on
+   2026-08-08 why completed cards were not marked and what the board was made
+   for; the answer is that the board is the record, and a board that lags the
+   work is the thing this project has already been bitten by (see the six days
+   in section 1 of AGENTS.md).
+1. An unstarted section is TO SPEC and carries nothing. No agent invents a title
+   for work the Owner has not asked for.
 2. Sections run in the order he gives them, one at a time, like every other card.
 3. Normalisation is **invisible work**: unless a section says otherwise, the page
    must look the same after it as before, and the proof is a measurement taken

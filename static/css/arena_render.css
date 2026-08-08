@@ -681,7 +681,7 @@
   top: 0.7rem;
   left: 0;
   right: 0;
-  z-index: 2;
+  z-index: var(--arena-z-stage);
   text-align: center;
 }
 
@@ -1203,7 +1203,7 @@
   position: fixed;
   right: 0.75rem;
   bottom: 0.75rem;
-  z-index: 60;
+  z-index: var(--arena-z-overlay);
   font-family: Georgia, "Playfair Display", serif;
   color: var(--surface-soft);
 }

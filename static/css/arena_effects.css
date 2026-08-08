@@ -19,7 +19,7 @@
   content: "";
   position: absolute;
   inset: -2rem -1rem;
-  z-index: -1;
+  z-index: var(--arena-z-under);
   pointer-events: none;
   background:
     radial-gradient(120% 70% at 50% -8%, color-mix(in srgb, var(--accent-bronze) 14%, transparent), transparent 60%),

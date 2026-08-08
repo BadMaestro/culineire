@@ -44,7 +44,7 @@
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: var(--arena-z-base);
   pointer-events: none;
   background:
     linear-gradient(
@@ -70,7 +70,7 @@
   position: fixed;
   left: 50%;
   top: 52%;
-  z-index: 0;
+  z-index: var(--arena-z-base);
   width: min(94vw, 72rem);
   height: min(84vh, 58rem);
   pointer-events: none;
@@ -102,7 +102,7 @@
 .page--arena .site-header,
 .page--arena .site-footer {
   position: relative;
-  z-index: 1;
+  z-index: var(--arena-z-floor);
 }
 
 /* Keep the sitewide battle widget position:fixed. Demoting it to relative
@@ -110,7 +110,7 @@
    pinned it to the bottom-left of the Arena page. Overlay only needs z-index. */
 .page--arena .site-battle-widget {
   position: fixed;
-  z-index: 130;
+  z-index: var(--arena-z-tooltip);
 }
 
 
@@ -161,7 +161,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: var(--arena-z-base);
   pointer-events: none;
   border-radius: inherit;
   /* Dense soft âgallery massâ in the stand annulus; stage centre stays clear. */
@@ -209,11 +209,11 @@
 }
 
 .page--arena .arena-render-container > #arena-render {
-  z-index: 1;
+  z-index: var(--arena-z-floor);
 }
 
 .page--arena .arena-render-container > .arena-puzzle-label {
-  z-index: 2;
+  z-index: var(--arena-z-stage);
 }
 
 
@@ -372,7 +372,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: var(--arena-z-base);
   pointer-events: none;
   border-radius: inherit;
   opacity: 0.35;
