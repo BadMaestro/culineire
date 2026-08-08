@@ -15,6 +15,20 @@
 {# polish then atmosphere: deck chrome first; page-level hall underlay / kill rules last #}
 <link href="{% static 'css/arena_deck_polish.css' %}?v=20260807-ladder-beside-refit" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260730-no-spine-label" rel="stylesheet">
+{% comment %}
+  THE OCTAGON'S OWN SHEET, MOVED HERE FROM THE BODY on 2026-08-08 (AN phase).
+
+  It used to be linked inside a DIV by _arena_render_ring.html. Measured on the
+  live page, that made it the LAST sheet in the cascade - after arena_atmosphere,
+  whose own comments claim that IT is the file that loads last and therefore
+  wins. Decisions were taken on the strength of that claim.
+
+  It is declared last here on purpose. The correct place is the head; the
+  correct ORDER is the one the page already had, because moving a sheet earlier
+  would silently hand its rules to whoever comes after, and this phase is not
+  allowed to change how anything looks.
+{% endcomment %}
+<link href="{% static 'css/arena_render.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}

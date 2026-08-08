@@ -198,7 +198,18 @@ real fault (Cloudflare served a stale file for thirty days) and then bumped by
 hand on every deploy since, which is one more thing to forget rather than a
 safeguard. The hash cannot be forgotten.
 {% endcomment %}
-<link href="{% static 'css/arena_render.css' %}" rel="stylesheet">
+{% comment %}
+  THE STYLESHEET LEFT THIS FILE ON 2026-08-08 (AN phase).
+
+  It used to be linked right here - a <link> inside a DIV, in the middle of the
+  body. Measured on the live page, that put it LAST in the cascade, after every
+  sheet in the head including arena_atmosphere.css, whose own comments claim to
+  be the file that loads last and therefore wins. Decisions were taken on the
+  strength of that claim and it was false.
+
+  It is now loaded from the head of both pages that include this partial:
+  chef_battle/arena.html and chef_battle/arena_master_console.html.
+{% endcomment %}
 
 <script src="{% static 'js/arena_geometry.js' %}"></script>
 {% comment %}

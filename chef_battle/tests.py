@@ -11699,3 +11699,41 @@ class ArenaReadinessLifecycleTests(TestCase):
         for guard in ("setTimeout(function () { spine", "setTimeout(showLadder",
                       "opacity = 0", "visibility = 'hidden'"):
             self.assertNotIn(guard, js)
+
+    def test_the_octagon_stylesheet_is_loaded_from_the_head(self):
+        """Master task section 8: no <link> hidden inside an included template
+        in the middle of the body. Measured on the live page, that placement
+        made arena_render.css the LAST sheet in the cascade - after
+        arena_atmosphere.css, whose own comments claim to be the file that wins.
+        """
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        base = Path(django_settings.BASE_DIR) / "templates" / "chef_battle"
+        partial = (base / "_arena_render_ring.html").read_text(encoding="utf-8")
+        # The prose in that file now explains why the link left it, so the word
+        # itself appears; what must not appear is an actual stylesheet tag.
+        self.assertNotIn('rel="stylesheet"', partial,
+                         "a stylesheet is still linked from the body")
+
+        for page in ("arena.html", "arena_master_console.html"):
+            html = (base / page).read_text(encoding="utf-8")
+            head = html.split("{% block extra_head %}", 1)[1].split("{% endblock %}", 1)[0]
+            self.assertIn("css/arena_render.css", head, page)
+
+    def test_the_cascade_order_is_unchanged_by_the_move(self):
+        """Moving a sheet EARLIER would silently hand its rules to whoever comes
+        after. This phase may not change how anything looks, so the octagon
+        sheet keeps the last position it already had."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        html = (
+            Path(django_settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+        ).read_text(encoding="utf-8")
+        head = html.split("{% block extra_head %}", 1)[1].split("{% endblock %}", 1)[0]
+        self.assertLess(
+            head.index("css/arena_atmosphere.css"),
+            head.index("css/arena_render.css"),
+            "arena_render.css must stay after atmosphere, as it was in the body",
+        )
