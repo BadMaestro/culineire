@@ -439,6 +439,17 @@ for a section rather than a section already assigned:
 | **AN28** | TO SPEC | — | — | — |
 | **AN29** | TO SPEC | — | — | — |
 
+**The Owner's rulings inside this block.**
+
+- **2026-08-08, on the two-stylesheet target:** the Master Console mirror stays
+  FLAT. It deliberately loads neither `arena_effects.css` nor
+  `arena_atmosphere.css` - he asked for the mirror without the tilt and without
+  the effects, to spare the operator's machine - so those two are not folded
+  into the scene sheet. **The end state is four Arena stylesheets, not two:**
+  one shell (`arena.css`) and three scene files (`arena_render.css`,
+  `arena_effects.css`, `arena_atmosphere.css`). This amends section 8 of the
+  master task, and section 26's fourth assertion with it.
+
 **Rules for this block, until he says otherwise.**
 
 0. **A finished section is written up the same working session it finishes** -
