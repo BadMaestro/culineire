@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.946",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "Three audits close: nothing in the arena is dead, 117MB of static is accounted for, and the templates stop carrying CSS",
+        "section": "Chef Battles / Arena",
+        "summary": "AN18, AN22 and AN21 - sections 12, 15 and 14 of the master task. AN18: twenty-four arena assets classified in eight categories from who names them - templates, Python, other static files, tests, exported symbols. NOTHING is dead and nothing was deleted. The two that no caller anywhere touches are both deliberate, and no search could have said so: arena_octant_prototype.js declares in its own first line that it is an isolated geometry sandbox intentionally not loaded by production, and octagon_floor_template.js was disconnected on the Owner's instruction of 2026-07-30 that the arena share no code with the sponsors puzzle. UNKNOWN is empty. AN22: 627 static assets, 117.3MB, in four categories - 188 referenced, 28 originals sitting behind the derivative that is referenced, 411 unreferenced of which 288 are the crowd's depth tiers superseded by a decision the template records in writing, and one asset over four megapixels, reported and untouched. Not a byte was deleted, resized or re-encoded; section 15's own rule is that an original the company paid for is reported, and 17.10 says an asset he paid for is never deleted. The fourth category is the only defect and it is not code: 35 files, 3.2MB, of stylesheets the repository no longer has, still sitting in the server's staticfiles and still answering 200, because collectstatic copies and never deletes. The targeted count-first command that removes exactly those is written out rather than run. AN21: the last two inline style attributes are gone from the arena templates. Both looked harmless, and harmless was never the point - a declaration in a template is invisible to every tool that reads the stylesheets and beats all of them, because an element's own attribute outranks any rule that is not !important. Six new tests, one of which refuses the next one.",
+    },
+    {
         "version": "2.5.944",
         "date": "2026-08-08",
         "commit": "d3ab0ddc",

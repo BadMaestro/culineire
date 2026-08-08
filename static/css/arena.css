@@ -953,6 +953,10 @@
 }
 .arena-phase-gauge span {
   display: block;
+  /* AN21: the full bar is the resting state, and it used to be an inline
+     style attribute on the element. arena_render.js narrows it as the
+     refresh counts down; where it STARTS belongs here. */
+  width: 100%;
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(
@@ -6402,5 +6406,13 @@
     animation: none;
     opacity: 0;
   }
+}
+
+.arena-icon-sprite {
+  /* AN21: the icon sprite is a 0x0 <svg> holding the gradients and
+     symbols the deck references. It is taken out of flow so it cannot
+     contribute a line box; this was an inline style attribute until
+     section 14 asked for the templates to stop carrying CSS. */
+  position: absolute;
 }
 

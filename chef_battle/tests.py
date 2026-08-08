@@ -11954,3 +11954,57 @@ class ArenaStylesheetHasNoSupersededDeclarationTests(TestCase):
                 "selector; the earlier copy can never win and must be removed "
                 "(AN13): " + "; ".join(sorted(set(offenders))[:10]),
             )
+
+
+class ArenaTemplateHygieneTests(TestCase):
+    """AN21, master task section 14 — the templates carry markup, not CSS.
+
+    Two `style` attributes survived every earlier pass because both looked
+    harmless: `width:100%` on the refresh gauge, and `position:absolute` on the
+    zero-size SVG that holds the deck's icon sprite. Harmless is not the point.
+    A declaration in a template is invisible to every tool that reads the
+    stylesheets — it does not appear in a cascade map, an `!important` audit or
+    a superseded-declaration count, and it beats all of them, because an
+    element's own attribute outranks any rule that is not `!important`.
+
+    Both are in `arena.css` now, and this refuses the next one."""
+
+    TEMPLATES = ("arena.html", "_arena_render_ring.html", "_arena_deck_svg.html")
+
+    def _read(self, name):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "templates" / "chef_battle" / name
+        ).read_text(encoding="utf-8")
+
+    def test_no_arena_template_carries_a_style_attribute(self):
+        for name in self.TEMPLATES:
+            self.assertNotIn(
+                'style="', self._read(name),
+                f"{name} carries an inline style attribute; it belongs in "
+                "arena.css, where the audits can see it (AN21)",
+            )
+
+    def test_the_gauge_starts_full_from_the_stylesheet(self):
+        """The renderer narrows the bar as the refresh counts down. Where it
+        STARTS is a resting state and belongs to CSS."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
+        ).read_text(encoding="utf-8")
+        rule = css.split(".arena-phase-gauge span {", 1)[1].split("}", 1)[0]
+        self.assertIn("width: 100%", rule)
+
+    def test_the_icon_sprite_is_taken_out_of_flow_by_a_class(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        css = (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
+        ).read_text(encoding="utf-8")
+        self.assertIn(".arena-icon-sprite", css)
+        self.assertIn('class="arena-icon-sprite"', self._read("_arena_deck_svg.html"))
