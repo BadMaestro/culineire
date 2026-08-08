@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.914",
         "date": "2026-08-08",
-        "commit": "",
+        "commit": "8a76cf12",
         "title": "The octagon's stylesheet leaves the body for the head, in the same cascade position",
         "section": "Chef Battles / Arena",
         "summary": "AN phase. arena_render.css was linked from inside a DIV in _arena_render_ring.html - a stylesheet tag in the middle of the body, which the master task forbids in section 8. Measured on the live page, that placement made it the LAST sheet in the whole cascade, after arena_atmosphere.css, whose own comments state that IT is the file that loads last and therefore wins; decisions were taken on the strength of that claim and it was false. It is now declared in the head of both pages that include the partial, the public arena and the Master Console mirror. IT IS DECLARED LAST ON PURPOSE: the correct place is the head, but the correct ORDER is the one the page already had, because moving a sheet earlier silently hands its rules to whoever comes after, and this phase is not allowed to change how anything looks. Two tests hold both halves - no stylesheet tag in the partial, and atmosphere still before render.",
