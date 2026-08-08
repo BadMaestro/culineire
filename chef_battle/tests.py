@@ -8326,14 +8326,23 @@ class ArenaRankColumnTests(TestCase):
         self.assertEqual(spine.count('class="arena-rank-spine__item"'), len(ChefBattleProfile.Rank.choices))
         self.assertNotIn('href="', spine)
 
-    def test_desktop_rank_stack_is_centred_option_b(self):
-        """Owner D1 Option B (2026-07-24): Ember prototype centred stack, not a side column."""
+    def test_the_stylesheet_no_longer_places_the_rank_stack(self):
+        """Owner D1 Option B (2026-07-24) put the stack in the centre with
+        `left: 50%` and `translateX(-50%)` in this rule. It has since been moved
+        beside the octagon on his instruction of 2026-08-07, and AN6 made the
+        renderer the only thing that decides where it stands.
+
+        The composition is still his; what changed is who writes it down. This
+        test used to assert the CSS coordinates and would now be asserting an
+        architecture the Owner asked us to remove."""
         css = self.CSS_DECK.read_text(encoding="utf-8")
-        # Base rule (first .arena-rank-spine block) must centre over the floor.
         base = css.split(".arena-rank-spine {", 1)[1].split("}", 1)[0]
-        self.assertIn("left: 50%", base)
-        self.assertIn("translateX(-50%)", base)
-        self.assertNotIn("left: 0", base)
+        for placed in ("left:", "top:", "transform:"):
+            self.assertNotIn(placed, base, f"the stylesheet still sets {placed}")
+        self.assertIn("position: absolute", base)
+
+        js = (Path(settings.BASE_DIR) / "static" / "js" / "arena_render.js").read_text(encoding="utf-8")
+        self.assertIn("spine.style.left =", js)
 
     def test_desktop_rank_stack_runs_outer_to_centre(self):
         """Reference: Kitchen Porter at the far edge, Culinary Master at centre."""
@@ -10735,15 +10744,21 @@ class EmptyFighterPadIsMutedTests(TestCase):
             Path(django_settings.BASE_DIR) / "static" / "css" / "arena_render.css"
         ).read_text(encoding="utf-8")
 
-    def test_the_empty_pad_has_its_own_rule(self):
-        self.assertIn(".arena-floor-fighter--empty .arena-floor-fighter__tile", self._css())
+    def test_the_muted_pad_is_gone_because_the_pad_is_gone(self):
+        """These two tests asserted the muted styling of the empty fighter pad
+        and were RED IN PRODUCTION from v2.5.890, when the Owner ordered the
+        empty pads off the floor entirely - "скрой ячейки для шефов перед боем".
+        The rule was deleted, the class that tested the drawing was rewritten,
+        and this one, which tested the styling, was missed.
 
-    def test_it_is_quieter_than_an_occupied_pad(self):
+        They are recorded as the two pre-existing failures in the normalisation
+        baseline. This is the correction, and it is named rather than counted as
+        something the refactor fixed."""
         css = self._css()
-        self.assertIn("stroke-opacity: .5", css)
-        # 7% against the occupied 22%.
-        self.assertIn("var(--hall-green) 7%", css)
-        self.assertIn("var(--hall-red) 7%", css)
+        self.assertNotIn(".arena-floor-fighter--empty", css)
+        self.assertNotIn("stroke-opacity: .5", css)
+        # The OCCUPIED pads keep their side colours - those are how the arena
+        # says which two are fighting, and the Owner removed only the empty ones.
         self.assertIn("var(--hall-green) 22%", css)
         self.assertIn("var(--hall-red) 22%", css)
 
