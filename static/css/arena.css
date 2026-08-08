@@ -1025,7 +1025,12 @@
    from Ember's rank-progression prototype, official tokens only. Desktop
    placement is CSS-owned (left 50% + translateX); tablet may still measure via
    placeRankSpine(); mobile stays a wrapped flow row (Stage 3E). */
-.arena-rank-spine { position: absolute; z-index: var(--arena-z-stage); top: 13%; left: 50%; width: min(11.5rem, 25%); transform: translateX(-50%); pointer-events: none; }
+/* POSITION IS THE RENDERER'S (AN6, 2026-08-08). This rule carried
+   top/left/width/transform, and forty more declarations in this file argued
+   with it and with placeRankSpine() at the same time - which is what the
+   Owner saw as a ladder in the centre of the page, waiting to be corrected.
+   What is left is the containing block and nothing that decides WHERE. */
+.arena-rank-spine { position: absolute; z-index: var(--arena-z-stage); pointer-events: none; }
 .arena-rank-spine__label { margin: 0 0 .28rem; color: var(--accent-bronze-dark); font-size: .43rem; font-weight: 800; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
 /* The steps became <li> under an <ol> so the ladder is an ordered progression
    in the markup too; the stacking that used to live on the <nav> moves to the
@@ -3000,9 +3005,8 @@
 /* 3G — rank spine under confrontation with spine rail. */
 
   .arena-rank-spine {
-    top: 28%;
-    width: min(11.5rem, 20%);
-  }
+  /* position removed - the renderer owns it (AN6) */
+}
   .arena-rank-spine::before {
     content: "";
     position: absolute;
@@ -3038,11 +3042,7 @@
   .arena-floor-caption {
     position: absolute;
     z-index: var(--arena-z-cells);
-    top: 8.2%;
-    left: 50%;
-    width: min(28rem, 48%);
     margin: 0;
-    transform: translateX(-50%);
     text-align: center;
     pointer-events: none;
   }
@@ -3073,16 +3073,15 @@
 /* 3G — vertical stack alignment after caption graft. */
 
   .arena-floor-caption {
-    top: 7.8%;
-    width: min(26rem, 42%);
-  }
+  /* position removed - the renderer owns it (AN6) */
+}
   .arena-command-deck__live-stage.arena-confrontation-band {
     top: 17.5%;
     width: min(70%, 50rem);
   }
   .arena-rank-spine {
-    top: 38%;
-  }
+  /* position removed - the renderer owns it (AN6) */
+}
   .arena-command-deck__phase-card,
   .arena-command-deck__metrics {
     top: 16%;
@@ -3310,16 +3309,10 @@
   }
   .arena-floor-caption {
     z-index: var(--arena-z-ladder);
-    top: 9.2%;
   }
 
   /* Spine is a side legend, not a sticker on the crown. */
   .arena-rank-spine {
-    top: auto;
-    bottom: 14%;
-    left: 50%;
-    width: min(11rem, 18%);
-    transform: translateX(-50%);
     z-index: var(--arena-z-sparks);
   }
 
@@ -3346,12 +3339,8 @@
 
   /* Rank ladder as a bottom strip (prototype rank-progression), not a sticker on the crown. */
   .arena-rank-spine {
-    top: auto;
-    bottom: 11%;
-    left: 50%;
-    width: min(46rem, 72%);
-    transform: translateX(-50%);
-  }
+  /* position removed - the renderer owns it (AN6) */
+}
   .arena-rank-spine__list {
     display: flex;
     flex-wrap: nowrap;
@@ -3384,8 +3373,8 @@
     top: 18%;
   }
   .arena-floor-caption {
-    top: 10.5%;
-  }
+  /* position removed - the renderer owns it (AN6) */
+}
 
 
 
@@ -3399,7 +3388,6 @@
     z-index: var(--arena-z-crowd);
   }
   .arena-floor-caption {
-    top: 11%;
     z-index: var(--arena-z-ladder);
   }
   /* Crown / empty: one focal medallion in the middle column. */
@@ -3424,7 +3412,6 @@
     box-shadow: 0 0 1.4rem color-mix(in srgb, var(--accent-bronze) 22%, transparent);
   }
   .arena-rank-spine {
-    bottom: 10%;
     z-index: var(--arena-z-occupants);
   }
 
@@ -3433,11 +3420,6 @@
 /* 3G — rank spine as prototype vertical progression above crown. */
 
   .arena-rank-spine {
-    top: 22%;
-    bottom: auto;
-    left: 50%;
-    width: min(11.5rem, 20%);
-    transform: translateX(-50%);
     z-index: var(--arena-z-occupants);
   }
   .arena-rank-spine__list {
@@ -3468,8 +3450,8 @@
   }
   /* Caption sits above the progression; confrontation stays at floor centre. */
   .arena-floor-caption {
-    top: 9.5%;
-  }
+  /* position removed - the renderer owns it (AN6) */
+}
   .arena-command-deck__live-stage.arena-confrontation-band {
     top: 52%;
   }
@@ -3542,7 +3524,6 @@
     opacity: 0.75;
   }
   .arena-floor-stage .arena-rank-spine {
-    transform: translateX(-50%);
     /* keep spine upright above the tilted floor */
   }
   .arena-puzzle-label {
@@ -3811,9 +3792,8 @@
       );
   }
   .arena-rank-spine {
-    top: 14%;
-    width: min(11rem, 18%);
-  }
+  /* position removed - the renderer owns it (AN6) */
+}
   .arena-rank-spine__step {
     min-height: 1.05rem;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
@@ -4473,8 +4453,6 @@
 /* 3G — r10b: spine ladder over centre + ribbon LIVE weight (mockup #1). */
 
   .arena-rank-spine {
-    top: 12%;
-    width: min(12.5rem, 20%);
     gap: 0.22rem;
     z-index: var(--arena-z-occupants);
   }
@@ -4685,10 +4663,6 @@
  * ============================================================================ */
 
   .arena-rank-spine {
-    top: 22%;
-    left: 50%;
-    width: min(11.5rem, 25%);
-    transform: translateX(-50%);
     z-index: var(--arena-z-ladder);
   }
   .arena-rank-spine__label {
@@ -4742,8 +4716,6 @@
    * placeRankSpine() measures the floor and applies the reference's own ratios.
    * The rules here only make the stack compact so it can be placed. */
   .arena-rank-spine {
-    bottom: auto;
-    width: max-content;
     max-width: 28%;
     display: flex;
     flex-direction: column;

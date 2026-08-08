@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-07 · Production baseline: **v2.5.918**
+Last reconciled: 2026-08-07 · Production baseline: **v2.5.920**
 · Next assignable card: none — B01 went to Bolt on the Owner's word, 2026-08-07.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
@@ -413,8 +413,8 @@ for a section rather than a section already assigned:
 | **AN2** | DONE | Readiness lifecycle - nothing geometry-dependent is painted early | Bolt | v2.5.912. Before: 1 shift at 943ms, CLS 0.0255, spine moving 441x102px. After: 0 shifts, CLS 0 at 1440x900 and 1170x820 |
 | **AN3** | DONE | The octagon stylesheet leaves the body for the head | Bolt | v2.5.914. It measured LAST in the cascade from inside a DIV; declared in the head of both pages, kept last so nothing changed |
 | **AN4** | DONE | Four shell stylesheets merged into one | Bolt | v2.5.916. 6129 lines into `arena.css`, three files deleted; geometry pixel-identical to the baseline at 1170x820 |
-| **AN5** | IN PROGRESS | One documented layer ladder in place of 21 loose z-index values | Bolt | 68 declarations, 21 values from -1 to 10000, now `--arena-z-*` tokens with the SAME numbers so nothing re-orders |
-| **AN6** | TO SPEC | — | — | — |
+| **AN5** | DONE | One documented layer ladder in place of 21 loose z-index values | Bolt | 68 declarations, 21 values from -1 to 10000, now `--arena-z-*` tokens with the SAME numbers so nothing re-orders |
+| **AN6** | DONE | One owner of position for the ladder and the caption | Bolt | v2.5.920. 13 CSS rules placed the ladder and 7 the caption, as percentages, while the renderer wrote inline coordinates over them. 41 positional declarations removed; mobile untouched |
 | **AN7** | TO SPEC | — | — | — |
 | **AN8** | TO SPEC | — | — | — |
 | **AN9** | TO SPEC | — | — | — |
