@@ -2819,9 +2819,69 @@
     return true;
   }
 
+  // ============================================================
+  // THE ARENA'S READINESS LIFECYCLE
+  // ============================================================
+  //
+  // OWNER, 2026-08-08: on a cold load the rank ladder is visible in the CENTRE
+  // of the page before the octagon exists, and jumps right once it renders.
+  //
+  // Measured before this existed: one layout shift at 943ms, CLS 0.0255, the
+  // rank spine travelling 441px right and 102px down - from the position its
+  // stylesheet gives it to the position placeRankSpine() writes. The element
+  // was painted in a place nobody intended, because nothing said it was too
+  // early to paint it.
+  //
+  // NOT SOLVED WITH TIME. No setTimeout, no animation-delay, no "hide it for
+  // 500ms". A timing constant is a guess about a machine we do not own, and it
+  // is wrong on the machine that is slower than the guess. What is missing is
+  // not a delay but a STATE: the page knows whether the geometry the ladder
+  // depends on exists yet, and geometry-dependent furniture is painted only
+  // once it does.
+  //
+  //   boot        the script has run, nothing is measured
+  //   shell       the page's own furniture is laid out and correct
+  //   geometry    the octagon is drawn and its cells have real boxes
+  //   scene       everything measured off that geometry has been placed
+  //   interactive polling and events are attached
+  //
+  // The state is one attribute on the deck. CSS hides what depends on geometry
+  // until "scene", and nothing anywhere waits on a clock.
+  var ARENA_STATES = ['boot', 'shell', 'geometry', 'scene', 'interactive'];
+
+  function arenaStateNode() {
+    return document.querySelector('.arena-command-deck') || document.body;
+  }
+
+  function arenaState(next) {
+    var node = arenaStateNode();
+    if (!node) { return 'boot'; }
+    var now = node.getAttribute('data-arena-state') || 'boot';
+    if (!next) { return now; }
+    // The lifecycle only ever moves forward. A late resize must not drop the
+    // page back to "geometry" and blink the furniture the user is looking at.
+    if (ARENA_STATES.indexOf(next) <= ARENA_STATES.indexOf(now)) { return now; }
+    node.setAttribute('data-arena-state', next);
+    return next;
+  }
+
+  // The octagon is real when its cells have boxes. Asking the DOM whether the
+  // nodes EXIST is not the same question: they exist before layout has given
+  // them a size, and a ladder measured against a zero-width floor lands in the
+  // same wrong place it used to.
+  function geometryIsValid(svg) {
+    if (!svg) { return false; }
+    var cell = svg.querySelector('.arena-cell');
+    if (!cell) { return false; }
+    var box = cell.getBoundingClientRect();
+    return box.width > 0 && box.height > 0;
+  }
+
   function fitScene(svg) {
     var container = svg.parentElement;
     if (!container) { return; }
+    if (!geometryIsValid(svg)) { return; }
+    arenaState('geometry');
 
     for (var pass = 0; pass < 2; pass++) {
       // Prefer the sponsors-template floor (rank cells); fall back to oval seats.
@@ -2875,6 +2935,10 @@
     placeRankSpine(svg);
     paintRankLadder(svg);
     placeFloorCaption(svg);
+    // Everything measured off the octagon now holds a real position, so the
+    // furniture may be shown. This is the only line that reveals it, and it is
+    // reached by having done the work rather than by having waited.
+    arenaState('scene');
   }
 
   // THE OCTAGON MAKES ROOM FOR THE WRITING ABOVE IT.
@@ -3344,11 +3408,13 @@
     var geometry = payload && payload.geometry;
     if (!geometry || !Array.isArray(geometry.rings) || !geometry.rings.length) { return; }
 
+    arenaState('shell');
     drawGrid(svg, geometry);
     bind(svg, payload, geometry);
     attachEvents(svg);
     measureHeader();
     fitScene(svg);
+    arenaState('interactive');
     // The frame is fluid, so the fit is re-measured whenever it changes size.
     if (global.ResizeObserver && svg.parentElement) {
       new global.ResizeObserver(function () { fitScene(svg); }).observe(svg.parentElement);

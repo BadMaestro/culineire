@@ -4343,3 +4343,25 @@
  * it. The JS helper that made the caption give way was deleted with this
  * change rather than left behind as dead code.
  */
+
+/* ============================================================
+   READINESS - geometry-dependent furniture is painted only once its geometry
+   exists. Owner, 2026-08-08: the rank ladder must never be seen in the centre
+   of the page waiting for the octagon.
+
+   The state is written by arena_render.js onto the deck: boot, shell, geometry,
+   scene, interactive. Until "scene" the ladder and the floor caption have no
+   authoritative position, so they are not painted.
+
+   visibility, NOT display: these two are absolutely positioned, so hiding them
+   this way removes no space from anything and creates no layout shift when they
+   appear - measured, the shift that used to happen was the ladder MOVING, not
+   the ladder arriving.
+
+   There is no time anywhere in this rule. A delay is a guess about a machine we
+   do not own.
+   ============================================================ */
+.page--arena .arena-command-deck:not([data-arena-state="scene"]):not([data-arena-state="interactive"]) .arena-rank-spine,
+.page--arena .arena-command-deck:not([data-arena-state="scene"]):not([data-arena-state="interactive"]) .arena-floor-caption {
+  visibility: hidden;
+}

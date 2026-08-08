@@ -11620,3 +11620,82 @@ class FloorCaptionTakesTheFreeSpaceTests(TestCase):
             source.index("reserveCaptionBand(svg);"),
             source.index("placeRankSpine(svg);\n    paintRankLadder"),
         )
+
+
+class ArenaReadinessLifecycleTests(TestCase):
+    """OWNER, 2026-08-08: on a cold load the rank ladder is visible in the
+    CENTRE of the page before the octagon exists, then jumps right.
+
+    Measured before the fix: one layout shift at 943ms, CLS 0.0255, the rank
+    spine travelling 441px right and 102px down - from the position its
+    stylesheet gives it to the position placeRankSpine() writes.
+
+    The master task forbids solving this with time. These tests exist to keep
+    it solved with STATE.
+    """
+
+    def _js(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+    def _css(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+        ).read_text(encoding="utf-8")
+
+    def test_the_states_exist_and_are_ordered(self):
+        js = self._js()
+        self.assertIn(
+            "var ARENA_STATES = ['boot', 'shell', 'geometry', 'scene', 'interactive'];",
+            js,
+        )
+
+    def test_the_lifecycle_only_moves_forward(self):
+        """A late resize must not drop the page back and blink furniture the
+        user is already looking at."""
+        js = self._js()
+        body = js.split("function arenaState(", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("ARENA_STATES.indexOf(next) <= ARENA_STATES.indexOf(now)", body)
+
+    def test_geometry_is_measured_not_assumed(self):
+        """The cells exist in the DOM before layout has given them a size, and a
+        ladder measured against a zero-width floor lands in the same wrong place
+        it used to."""
+        js = self._js()
+        body = js.split("function geometryIsValid(", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("getBoundingClientRect", body)
+        self.assertIn("box.width > 0 && box.height > 0", body)
+
+    def test_the_scene_is_announced_only_after_everything_is_placed(self):
+        js = self._js()
+        block = js.split("billboardFaces(svg);", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("placeRankSpine(svg);", block)
+        self.assertIn("placeFloorCaption(svg);", block)
+        self.assertLess(
+            block.index("placeFloorCaption(svg);"),
+            block.index("arenaState('scene')"),
+            "the scene is announced before the furniture is placed",
+        )
+
+    def test_the_furniture_is_hidden_by_state_and_never_by_a_clock(self):
+        css = self._css()
+        rule = css.split("READINESS - geometry-dependent furniture", 1)[1]
+        self.assertIn('data-arena-state="scene"', rule)
+        self.assertIn("visibility: hidden", rule)
+        self.assertNotIn("transition-delay", rule)
+        self.assertNotIn("animation-delay", rule)
+
+    def test_no_timing_hack_guards_the_first_paint(self):
+        """setTimeout survives in this file for a late reflow pass, but nothing
+        may gate the ladder's or the caption's visibility on a clock."""
+        js = self._js()
+        for guard in ("setTimeout(function () { spine", "setTimeout(showLadder",
+                      "opacity = 0", "visibility = 'hidden'"):
+            self.assertNotIn(guard, js)
