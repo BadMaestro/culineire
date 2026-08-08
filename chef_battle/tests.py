@@ -11777,3 +11777,104 @@ class ArenaReadinessLifecycleTests(TestCase):
                 raw.search(body),
                 f"{name} still sets a bare z-index number instead of a layer token",
             )
+
+
+class ArenaStylesheetHasNoSupersededDeclarationTests(TestCase):
+    """AN13, master task 8A — a declaration that can never win is not code.
+
+    `arena.css` carried 584 declarations that a LATER rule with the identical
+    selector overwrote: the merge of four stylesheets preserved order rather
+    than resolving it, so the same selector was written twice, three times,
+    once even five times over. Identical selector means identical specificity,
+    so the later copy already decided the value for every element that can
+    match; the earlier one was unreachable and only made the file harder to
+    read.
+
+    This test is what stops them coming back. It parses the sheet the way the
+    cascade does — an at-rule context, a selector text, a property — and fails
+    on any property set twice for the same selector in the same context, unless
+    the earlier copy is `!important` and the later one is not, which is the one
+    case where the earlier copy still wins."""
+
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+
+    @staticmethod
+    def _rules(text):
+        """Yield (context, selector, [(property, important)]) in source order."""
+        import re
+
+        # blank the comments, keeping the offsets so nothing shifts
+        out, i = [], 0
+        while i < len(text):
+            if text.startswith("/*", i):
+                j = text.find("*/", i + 2)
+                j = len(text) if j < 0 else j + 2
+                out.append(" " * (j - i))
+                i = j
+            else:
+                out.append(text[i])
+                i += 1
+        clean = "".join(out)
+
+        stack, i, prelude = [], 0, 0
+        nested = re.compile(r"@(media|supports|layer|container)\b")
+        while i < len(clean):
+            c = clean[i]
+            if c == "{":
+                head = " ".join(clean[prelude:i].split())
+                if head.startswith("@") and nested.match(head):
+                    stack.append(head)
+                    i += 1
+                    prelude = i
+                    continue
+                depth, j = 1, i + 1
+                while j < len(clean) and depth:
+                    depth += (clean[j] == "{") - (clean[j] == "}")
+                    j += 1
+                if not head.startswith("@"):
+                    props = []
+                    for chunk in clean[i + 1:j - 1].split(";"):
+                        name, sep, value = chunk.partition(":")
+                        name = name.strip().lower()
+                        if sep and name and not name.startswith("@"):
+                            props.append(
+                                (name, "!important" in value.lower())
+                            )
+                    yield tuple(stack), head, props
+                i = j
+                prelude = i
+                continue
+            if c == "}":
+                if stack:
+                    stack.pop()
+                i += 1
+                prelude = i
+                continue
+            if c == ";" and clean[prelude:i].strip().startswith("@"):
+                i += 1
+                prelude = i
+                continue
+            i += 1
+
+    def test_no_declaration_is_overwritten_by_the_same_selector_later(self):
+        seen = {}
+        offenders = []
+        for ctx, selector, props in self._rules(
+            self.CSS.read_text(encoding="utf-8")
+        ):
+            for name, important in props:
+                key = (ctx, selector, name)
+                if key in seen:
+                    earlier_important = seen[key]
+                    if earlier_important and not important:
+                        continue          # the earlier !important still wins
+                    offenders.append(f"{selector} {{ {name} }}")
+                seen[key] = important
+
+        self.assertEqual(
+            offenders,
+            [],
+            "arena.css sets the same property twice for the same selector; the "
+            "earlier copy can never win and must be removed (AN13): "
+            + "; ".join(sorted(set(offenders))[:10]),
+        )

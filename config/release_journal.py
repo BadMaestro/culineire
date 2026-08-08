@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.934",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "Five hundred and eighty-four declarations that could never win come out of arena.css",
+        "section": "Chef Battles / Arena",
+        "summary": "AN13, master task section 8A. The merge of four stylesheets in AN4 preserved their order rather than resolving it, so the same selector ended up written twice, three times, in one case five times over, and 584 of the file's declarations were overwritten by a later rule carrying the IDENTICAL selector. Identical selector means identical specificity, so the later copy had already decided the value for every element that can match: the earlier one was unreachable code that only made the file harder to read. Those 584 are removed, and the 135 rules left holding nothing went with them - arena.css 6237 to 5130 lines, 216KB to 185KB, a third of the file. The equivalence is proved rather than claimed: both versions were parsed and compared declaration by declaration, and the winner of every one of the 2550 contests is the same before and after, with 0 changed, 0 lost, 0 gained, the surviving rules in the same cascade order and the brace balance at zero. Two of my own mistakes were caught on the way and neither reached the file - a regular expression that ate the last line of a multi-line selector list and orphaned the commas above it, and a first pass that wrote the file in LF where the repository keeps CRLF. A new test parses the sheet the way the cascade does and fails on any property written twice for the same selector, so they cannot come back.",
+    },
+    {
         "version": "2.5.932",
         "date": "2026-08-08",
         "commit": "8401c525",

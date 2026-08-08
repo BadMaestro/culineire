@@ -4292,8 +4292,11 @@ class ArchitectureNormalisationBlockTests(TestCase):
         # the lifecycle, the layer model and the ladder are finished and deployed
         for done in ("AN2", "AN6", "AN10", "AN14", "AN17", "AN19"):
             self.assertEqual(by_id[done]["status"], "DONE", done)
+        # AN13 joined them when the 584 superseded declarations came out
+        for done in ("AN13",):
+            self.assertEqual(by_id[done]["status"], "DONE", done)
         # and these are honestly unfinished
-        for partial in ("AN7", "AN9", "AN12", "AN13"):
+        for partial in ("AN7", "AN9", "AN12"):
             self.assertEqual(by_id[partial]["status"], "PARTIAL", partial)
 
     def test_the_old_shape_of_this_block_is_gone(self):

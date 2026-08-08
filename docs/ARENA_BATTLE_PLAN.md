@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-07 · Production baseline: **v2.5.932**
+Last reconciled: 2026-08-08 · Production baseline: **v2.5.934**
 · Next assignable card: none — B01 went to Bolt on the Owner's word, 2026-08-07.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
@@ -364,9 +364,10 @@ forbidden changes and evidence for every row below.
 ## 5a. ARCHITECTURE NORMALISATION (AN1 - AN29)
 
 **Opened by the Owner, 2026-08-08.** Twenty-nine sections, numbered AN1 to AN29.
-**Every one of them is TO SPEC until he dictates it.** This block is the frame,
-not the content: nobody fills a row on his behalf, and a row invented by an agent
-is the thing this block exists to stop.
+**Every card is a numbered section of his master task, in its order**, and the
+`Master task` column says which one. Nothing here is invented: a card that
+cannot name its section does not belong in this block. The state of each is what
+was measured, not what was hoped.
 
 ### Why it exists — his verdict, 2026-08-07
 
@@ -421,7 +422,7 @@ for a section rather than a section already assigned:
 | **AN10** | §6 | DONE | The complete pre-refactor test baseline, run once | 1750 tests, 2 pre-existing failures, 710.7s, PostgreSQL, --parallel 8, production dependency versions. Full output preserved beside the baseline report. |
 | **AN11** | §7 | DONE | Arena ownership manifest - one responsibility, one owner | Thirteen responsibilities mapped to the real code. Five had more than one owner: ring colour, the camera, the page's vertical space, the ladder's position and z-order. Readiness had no owner at all. |
 | **AN12** | §8 | PARTIAL | Consolidate the Arena stylesheets | Seven became four. TWO is not the end state: the Owner ruled on 2026-08-08 that the Master Console mirror stays flat, so effects and atmosphere cannot fold into the scene sheet. That amends section 8 of the task itself. |
-| **AN13** | §8A | PARTIAL | CSS cleanup rules | Done: unnecessary !important removed, 136 to 58, every survivor measured on the live page. Not done: deduplicate selectors, remove the 894 superseded declarations, dead-DOM rules, media-query debris, duplicate tokens, shared spacing constants, specificity wars. |
+| **AN13** | §8A | DONE | CSS cleanup rules | 584 declarations that a later rule with the IDENTICAL selector already overwrote are gone, and 135 rules left with nothing in them went with them: arena.css 6237 -> 5130 lines, 216KB -> 185KB. Equivalence proved rather than asserted - 2550 winning declarations before, the same 2550 after, 0 changed, the surviving rules in the same cascade order, brace balance 0. !important came out in AN8 (136 -> 58). A test now fails on any property written twice for one selector. |
 | **AN14** | §8B | DONE | An explicit layer model instead of scattered z-index | 21 --arena-z-* tokens and 0 raw numbers left in the four sheets. The values are unchanged on purpose: this gave the ladder a home, it did not re-order it. |
 | **AN15** | §9 | PARTIAL | One page-level layout authority | The renderer owns the ladder, the caption and the scene, and 31 competing CSS declarations were removed. The page as a whole still has no single declared authority - the panels are laid out by CSS, which is correct, but nothing states it. |
 | **AN16** | §10 | NOT STARTED | Isolate the Octagon behind a public contract | The page should hand it a region and read nothing of its internal SVG geometry. Ring, seating, rank, sponsor and spectator semantics must not change. |
