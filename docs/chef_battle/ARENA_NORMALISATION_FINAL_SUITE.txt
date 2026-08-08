@@ -1,101 +1,4 @@
-FINAL GATE - AN1-AN7 complete
-STARTED: 2026-08-08T15:31:40Z
-HEAD: 5ea8f26b
----
-Creating test database for alias 'default'...
-Cloning test database for alias 'default'...
-Cloning test database for alias 'default'...
-Cloning test database for alias 'default'...
-Cloning test database for alias 'default'...
-Cloning test database for alias 'default'...
-Cloning test database for alias 'default'...
-Cloning test database for alias 'default'...
-Cloning test database for alias 'default'...
-Found 1759 test(s).
-System check identified no issues (0 silenced).
-...................................................................................................................................................................WARNING | 2026-08-08 16:32:53 | fraud           | Fraud gate FAILED: age_verified — You must confirm that you are 18 or older before using paid Arena features.
-WARNING | 2026-08-08 16:32:55 | fraud           | Fraud gate FAILED: age_verified — You must confirm that you are 18 or older before using paid Arena features.
-................................................................................................ERROR | 2026-08-08 16:33:33 | services        | No Stripe Connect account ID on PayoutRequest #3
-........WARNING | 2026-08-08 16:33:43 | services        | Owner greenbear deleted unscored test battle #5 (correlation=).
-.........................................................................................WARNING | 2026-08-08 16:35:00 | services        | Owner greenbear deleted unscored test battle #17 (correlation=delete-test-battle).
-..........................................................................................................................................................................................................................................................................................................................................................................................................................................WARNING | 2026-08-08 16:39:13 | fraud           | Fraud gate FAILED: self_vote — Chef cannot vote for themselves.
-......................................................................WARNING | 2026-08-08 16:39:36 | fraud           | Fraud gate FAILED: withdrawal_consent — Buyer has not waived the EU right of withdrawal. Purchase blocked.
-............WARNING | 2026-08-08 16:39:42 | fraud           | Fraud gate FAILED: suspended_account — Chef suspended-chef is suspended: no reason given.
-WARNING | 2026-08-08 16:39:42 | fraud           | Fraud gate FAILED: age_verified — You must confirm that you are 18 or older before using paid Arena features.
-................................................................................................................................................................................................................................................WARNING | 2026-08-08 16:40:52 | telegram_preview | Could not create Telegram preview image for AB pk=7: preview write failed
-WARNING | 2026-08-08 16:40:52 | telegram_preview | Could not create Telegram preview image for AB pk=7: preview write failed
-...................................ss.....................................................................................................................................................................................................................................................................................ERROR | 2026-08-08 16:43:29 | services        | Failed to send sponsor contract email for application pk=13
-Traceback (most recent call last):
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/services.py", line 745, in approve_application
-    pdf_filename = _send_contract_email(application)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/services.py", line 1817, in _send_contract_email
-    msg.send(fail_silently=False)
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/venv/lib/python3.12/site-packages/django/core/mail/message.py", line 307, in send
-    return self.get_connection(fail_silently).send_messages([self])
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/tests.py", line 2466, in send_messages
-    raise RuntimeError("Simulated email send failure")
-RuntimeError: Simulated email send failure
-ERROR | 2026-08-08 16:43:31 | services        | Failed to send sponsor contract email for application pk=14
-Traceback (most recent call last):
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/services.py", line 745, in approve_application
-    pdf_filename = _send_contract_email(application)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/services.py", line 1817, in _send_contract_email
-    msg.send(fail_silently=False)
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/venv/lib/python3.12/site-packages/django/core/mail/message.py", line 307, in send
-    return self.get_connection(fail_silently).send_messages([self])
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/tests.py", line 2466, in send_messages
-    raise RuntimeError("Simulated email send failure")
-RuntimeError: Simulated email send failure
-......................................ERROR | 2026-08-08 16:43:43 | services        | Failed to send sponsor contract email for application pk=22
-Traceback (most recent call last):
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/services.py", line 745, in approve_application
-    pdf_filename = _send_contract_email(application)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/services.py", line 1791, in _send_contract_email
-    pdf_bytes     = generate_contract_pdf(application)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/unittest/mock.py", line 1134, in __call__
-    return self._mock_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/unittest/mock.py", line 1138, in _mock_call
-    return self._execute_mock_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/unittest/mock.py", line 1193, in _execute_mock_call
-    raise effect
-RuntimeError: PDF error
-ERROR | 2026-08-08 16:43:44 | services        | Failed to send sponsor contract email for application pk=23
-Traceback (most recent call last):
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/services.py", line 745, in approve_application
-    pdf_filename = _send_contract_email(application)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/mnt/e/CulinEire Project/CulinEire/CulinEire/sponsors/services.py", line 1791, in _send_contract_email
-    pdf_bytes     = generate_contract_pdf(application)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/unittest/mock.py", line 1134, in __call__
-    return self._mock_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/unittest/mock.py", line 1138, in _mock_call
-    return self._execute_mock_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3.12/unittest/mock.py", line 1193, in _execute_mock_call
-    raise effect
-RuntimeError: PDF error
-...............................................................................................................................................................................................................................................................................................................#1 Recovery Knife -> chef_battle/artifacts/recovery-knife-1.png
-relink_artifact_images: 1 re-linked, 1 still without a file
-relink_artifact_images: 0 re-linked, 1 still without a file
-Updated feed entry #3: Pinch Is Now Open
-Telegram status: sent
-Updated feed entry #3: Pinch Is Now Open
-Telegram status: skipped
-application=32 subjects_checked=2 possible_matches=1 source_snapshots=31,32
-application=32 subjects_checked=2 possible_matches=1 source_snapshots=31,32
-  Deleted 1 page views
-  Deleted 1 user activity records
-  Deleted 0 security events
+started 2026-08-08 21:43:36 UTC
 
 Total: 2 records older than 90 days (deleted)
   Would delete 1 page views
@@ -103,9 +6,6 @@ Total: 2 records older than 90 days (deleted)
   Would delete 0 security events
 
 [DRY RUN] Total: 1 records older than 90 days (not deleted)
-Closed 'Past': 3 standings recorded.
-Activated 'Next'.
-roll_seasons complete: 1 activated, 1 closed
 eu: failed / records=0 / sha256=-
 all down
 un: failed / records=0 / sha256=-
@@ -132,19 +32,43 @@ eu: success / records=1 / sha256=fd3c380513bd5d60bef4310df02b85b2b052bf60fbfae42
 eu: skipped_not_modified / records=1 / sha256=fd3c380513bd5d60bef4310df02b85b2b052bf60fbfae42e01ff359462abeb47
 eu: success / records=1 / sha256=fd3c380513bd5d60bef4310df02b85b2b052bf60fbfae42e01ff359462abeb47
 un: success / records=2 / sha256=f3e30d9cb140a33f6ffd56a6c05a12e346fc1059b89f47a79cf058466c627e6a
-Purged 1 expired vote integrity event(s).
+#1 Recovery Knife -> chef_battle/artifacts/recovery-knife-1.png
+relink_artifact_images: 1 re-linked, 1 still without a file
+relink_artifact_images: 0 re-linked, 1 still without a file
+Updated feed entry #3: Pinch Is Now Open
+Telegram status: sent
+Updated feed entry #3: Pinch Is Now Open
+Telegram status: skipped
 
 ----------------------------------------------------------------------
-Ran 1759 tests in 887.751s
+Ran 1775 tests in 700.509s
 
 OK (skipped=2)
-Destroying test database for alias 'default'...
-Destroying test database for alias 'default'...
-Destroying test database for alias 'default'...
-Destroying test database for alias 'default'...
-Destroying test database for alias 'default'...
-Destroying test database for alias 'default'...
-Destroying test database for alias 'default'...
-Destroying test database for alias 'default'...
-Destroying test database for alias 'default'...
-EXIT=0
+finished 2026-08-08 21:55:52 UTC
+
+# ============================================================
+# AGENTS.md section 9 — the required full-suite record
+# ============================================================
+full_suite_run:
+  test_run_id: "an26-final-gate-2026-08-08"
+  commit: "the tree at v2.5.952"
+  machine: "primary_8_core"
+  database_engine: "postgresql"     # verified: django.db.backends.postgresql
+  workers: 8                        # 4 physical / 8 logical, never more
+  started_at: "2026-08-08T21:43:36Z"
+  duration_seconds: 700.5
+  tests_collected: 1775
+  tests_passed: 1773
+  tests_failed: 0
+  tests_skipped: 2
+  pre_existing_failures: []         # the baseline's two are fixed, not carried
+  regressions: []
+  ran_on_linode: false
+  final_result: "FULL_SUITE_PASS"
+  baseline: "1750 tests / 2 failures / 710.7s"
+  first_attempt: >-
+    RED, three failures, all three checks doing their job on my own work: two
+    tests asserted the literal lines AN16 had moved behind the octagon's
+    contract, and the third caught the build board's stage-2 baseline still
+    reading production v2.5.932 five releases after that stopped being true.
+    Fixed, then re-run once.

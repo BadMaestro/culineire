@@ -11331,20 +11331,38 @@ class ArenaRankLadderAnchorTests(TestCase):
         ).read_text(encoding="utf-8")
         return source.split("function placeRankSpine(", 1)[1].split("\n  }", 1)[0]
 
+    def _contract(self):
+        """AN16 moved the measurement into the octagon's own file. What these
+        tests guard is the RULE, not which file holds the loop."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_octagon.js"
+        ).read_text(encoding="utf-8")
+
     def test_the_anchor_is_the_sponsors_corner_not_the_bounding_box(self):
-        body = self._body()
-        self.assertIn('data-ring-kind="vip"', body)
-        self.assertIn("vertexY = (vbox.top + vbox.bottom) / 2", body)
+        contract = self._contract()
+        corner = contract.split("function sponsorsCorner(", 1)[1].split(chr(10) + "  }", 1)[0]
+        self.assertIn('data-ring-kind="vip"', corner)
+        self.assertIn("(box.top + box.bottom) / 2", corner)
+        # and the ladder asks for it rather than working it out again
+        self.assertIn("ArenaOctagon.sponsorsCorner(svg)", self._body())
 
     def test_the_rank_box_survives_only_as_a_fallback(self):
-        """A floor with no VIP ring drawn yet must still place the stack."""
+        """A floor with no VIP ring drawn yet must still place the stack.
+
+        The contract returns null when it cannot find a drawn VIP cell, and the
+        ladder falls back to the middle of the rank box - which is wrong by the
+        camera's sixteen pixels, and is still better than not placing the stack
+        at all."""
+        contract = self._contract()
+        corner = contract.split("function sponsorsCorner(", 1)[1].split(chr(10) + "  }", 1)[0]
+        self.assertIn("return best;", corner)
+        self.assertIn("var best = null", corner)
+
         body = self._body()
-        self.assertIn("var vertexY = (top + bottom) / 2;", body)
-        self.assertLess(
-            body.index("var vertexY = (top + bottom) / 2;"),
-            body.index('data-ring-kind="vip"'),
-            "the fallback must be assigned before the VIP scan can overwrite it",
-        )
+        self.assertIn("corner ? corner.y : (top + bottom) / 2", body)
 
     def test_it_hangs_by_the_fourth_seam_and_not_by_its_own_middle(self):
         """Eight rungs make the seam and the middle the same number today. They

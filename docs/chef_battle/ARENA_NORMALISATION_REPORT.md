@@ -1,9 +1,12 @@
 # Arena normalisation — engineering report
 
-**2026-08-08.** Production went from **v2.5.910** to **v2.5.940** across eleven
+**2026-08-08.** Production went from **v2.5.910** to **v2.5.952** across fifteen
 architectural stages, each deployed whole and verified on the live site before
 the next began. Stages 1-8 closed AN1-AN11, AN14, AN17, AN19 and AN23-AN25;
-stages 9, 10 and 11 closed **AN13**, **AN12** and **AN15**. The BEFORE numbers all come from
+stages 9 to 15 closed **AN13**, **AN12**, **AN15**, AN13 again on the second
+sheet, **AN18/AN22/AN21**, **AN20**, **AN16**, and the closing three -
+**AN26**, **AN27**, **AN29**. Twenty-nine cards; twenty-six are DONE, and the
+three that are not say why in one line each. The BEFORE numbers all come from
 `ARENA_NORMALISATION_BASELINE.md`, written before a line was changed.
 
 ---
@@ -80,6 +83,8 @@ lost.
 | 12 | **AN13 again**: the same 44 unreachable declarations in `arena_atmosphere.css`, and the guard test widened to read both sheets |
 | 13 | **AN18, AN22, AN21**: nothing dead, 117MB of static accounted for, the last inline `style` attributes out of the templates |
 | 14 | **AN20**: one forced reflow per pass removed; the interleaving that is left is dependent measurement and stays |
+| 15 | **AN16**: the octagon behind a public contract - three questions, and `.arena-cell` gone from every placement function |
+| 16 | **AN26/AN27/AN29**: the full gate re-run, the before/after comparison, and this report's closing pass |
 
 These numbers are DEPLOY STAGES, in the order they shipped. They are not the
 AN cards - the board is the register of those, and where a stage closed a card
@@ -106,7 +111,8 @@ static flow rules are untouched.
 | Metric | Before | After |
 |---|---:|---:|
 | Arena stylesheets | 7 | **2** |
-| Lines in them | 8534 | **7508** |
+| Lines in them | 8534 | **7279** |
+| Declarations a later identical selector already beat | 628 | **0** |
 | `!important` (source lines) | 136 | **55** |
 | `!important` (live properties) | 338 | **204** |
 | `z-index` declarations | 70 | 72 |
@@ -117,9 +123,11 @@ static flow rules are untouched.
 | CSS rules placing the caption | 7 | **0** |
 | Layout shifts on load | 1–2 | **0** |
 | **CLS** | 0.0255 / 0.0111 | **0** |
-| Tests | 1750 | **1759** |
+| Tests | 1750 | **1775** |
 | Failures | 2 | **0** |
-| Duration | 710.7 s | 887.8 s |
+| Duration | 710.7 s | 712.9 s |
+| `ResizeObserver` in the renderer | 6 | **1** |
+| Page-level triggers in the renderer | 4 | **0** |
 
 **Geometry is unchanged.** Measured on production after every stage, against the
 baseline boxes:
@@ -135,6 +143,49 @@ CSS-default → JS-final transitions 0, timeout-based hiding 0.
 
 **Resize (§25):** 1280 → 1920 → 1280 returns to identical numbers, and a fresh
 load at 1280 is byte-identical to arriving there by resizing.
+
+---
+
+## D2. Performance, before and after — AN27, §23
+
+Two kinds of number, and they are not interchangeable. The CODE metrics are
+read from the repository and are exact. The BROWSER metrics come from a harness
+carrying the real arena DOM, the real stylesheets and the real renderer over
+HTTP: honest for before-and-after, and not a statement about production, which
+is staff-only and answers 404 to this browser.
+
+| Code metric | Before | After |
+|---|---:|---:|
+| Arena stylesheets | 7 | **2** |
+| Lines across them | 8534 | **7279** |
+| CSS rules across the two sheets | 1110 | **988** |
+| Declarations a later identical selector already beat | 628 | **0** |
+| `!important` source lines | 136 | **55** |
+| Raw `z-index` numbers | 70 | **0** |
+| Layer tokens | 0 | **21** |
+| Stylesheet `<link>`s in `<body>` | 1 | **0** |
+| Inline `style` attributes in the arena templates | 2 | **0** |
+| CSS rules positioning the ladder / the caption | 13 / 7 | **0 / 0** |
+| `ResizeObserver` in the renderer | 6 | **1** |
+| Page-level triggers owned by the renderer | 4 | **0** |
+| Placement functions reading the octagon's internals | 3 | **0** |
+| Forced reflows in `placeFloorCaption` per pass | 1 | **0** |
+
+| Browser metric, harness at 1280×800 | Before | After |
+|---|---:|---:|
+| Layout shifts on load | 1–2 | **0** |
+| **CLS** | 0.0255 / 0.0111 | **0** |
+| Ladder position in the first painted frame | 441 px off, then corrected | **final, and visible** |
+| FCP | not captured before the phase | 544 ms |
+| LCP | — | 544 ms |
+| DOMContentLoaded / load | — | 283 ms / 406 ms |
+| Long tasks | — | 4 |
+| DOM nodes | 2524 | 2486, of which 1759 are the octagon's SVG |
+
+**Not measured, and it is a tool limit rather than an omission:** cold cache,
+CPU throttling and network throttling. All three need CDP and a browser that
+can open the production arena. Recorded on the board against AN7, AN9 and AN28
+rather than quietly dropped.
 
 ---
 
@@ -198,20 +249,20 @@ exceeds Windows' filename limit on `docs/archive/…`.
 
 | # | Question | Answer |
 |---|---|---|
-| 1 | One system owns page-level layout? | **Partly.** The renderer owns the ladder, the caption and the scene. The panels are still laid out by CSS, which is correct, but there is no single page-level authority object. |
-| 2 | One system owns octagon geometry? | **Yes.** `ArenaOctagon` + `arena_render.js`. |
+| 1 | One system owns page-level layout? | **Yes**, since AN15. `arena_page_layout.js` owns the page's own geometry - `--arena-header-h` and the four triggers that can change it. The renderer subscribes and re-fits, and the string `.ce-header` no longer appears in it. The panels are laid out by CSS grid, which IS the page's layout system and is now the only other one. |
+| 2 | One system owns octagon geometry? | **Yes**, and since AN16 it is also the only thing allowed to READ it: `ArenaOctagon.region / rankRegion / sponsorsCorner` are the three questions the page may ask, and neither `.arena-cell` nor `data-ring-kind` appears in any placement function. |
 | 3 | Ladder position explainable from one source? | **Yes.** `placeRankSpine()`. |
 | 4 | Exactly two Arena CSS files? | **Yes.** `arena.css` (shell + renderer) and `arena_atmosphere.css` (effects + hall), AN12. The Owner's ruling of 2026-08-08 is what decides WHERE the split falls — the console loads `arena.css` alone, flat — not whether there are two. |
-| 5 | All Arena styles loaded from predictable places? | **Yes.** All four in `<head>`, in both including pages. |
+| 5 | All Arena styles loaded from predictable places? | **Yes.** Both sheets in `<head>`; the console loads one of them and nothing else. |
 | 6 | Body stylesheet link removed? | **Yes.** Zero links outside `<head>`. |
 | 7 | Can an old stylesheet still override the new layout? | **No old stylesheet remains** — five are deleted. Within `arena.css` nothing overrides itself any more: AN13 removed the 584 declarations a later rule with the same selector already beat. |
 | 8 | Competing CSS and JS positions? | **No**, for the ladder and the caption. |
 | 9 | Timing hacks for initial rendering? | **No.** State only. |
-| 10 | Does a cold load ever show a wrong composition? | **No** at the four viewports measured, CLS 0. |
-| 11 | Resize == fresh load? | **Yes**, to the pixel at 1280, within 1 px at 1920. |
-| 12 | Remaining `!important` justified? | **Yes** — 58, each measured. |
+| 10 | Does a cold load ever show a wrong composition? | **No** at every viewport measured, CLS 0 with not one layout-shift entry, and in the FIRST animation frame the page paints the ladder is already at its final box. A genuinely cold cache and a throttled CPU remain unmeasured - see AN7. |
+| 11 | Resize == fresh load? | **Yes.** A fresh load at 1920 is byte-identical to arriving there by resize, and a tour through 1920, 1440, 1280x520 and 1024 returns the exact fresh-load numbers at 1280x800. |
+| 12 | Remaining `!important` justified? | **Yes** — 55 across the two sheets, each measured on the live page in AN8. |
 | 13 | `z-index` from a documented layer system? | **Yes.** 21 tokens, 0 raw numbers. |
-| 14 | Duplicate implementations removed? | **Partly.** Three stylesheets merged; no duplicate JS implementation was found to remove. |
+| 14 | Duplicate implementations removed? | **Yes.** Five stylesheets merged away, 628 declarations that a later rule with the identical selector already beat, and three copies of the octagon-measuring loop folded into one contract. The dead-code audit (AN18) found no duplicate JS module to remove - it found two disconnected files and both are deliberate. |
 | 15 | Disabled test functionality preserved? | **Yes.** |
 | 16 | Can the whole task be rolled back? | **Yes**, and the rollback was rehearsed. |
 
