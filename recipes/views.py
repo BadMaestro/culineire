@@ -3498,36 +3498,37 @@ ARENA_DESIGN_TASKS = [
 # versus a house of cards, and the measured state the work starts from - lives in
 # docs/ARENA_BATTLE_PLAN.md section 5a, which is the canonical board.
 ARENA_NORMALISATION_SECTIONS = [
-    {"id": "AN1", "n": 1, "title": 'Audit, baseline, backup and ownership map', "status": 'DONE', "owner": "Bolt", "evidence": 'docs/chef_battle/ARENA_NORMALISATION_BASELINE.md; tag backup/arena-pre-normalisation-2026-08-08 -> a1f40923, rollback rehearsed in a detached worktree; suite 1750 tests / 2 pre-existing failures / 710.7s'},
-    {"id": "AN2", "n": 2, "title": 'Readiness lifecycle - nothing geometry-dependent is painted early', "status": 'DONE', "owner": "Bolt", "evidence": "v2.5.912. Measured before: 1 shift at 943ms, CLS 0.0255, the rank spine moving 441x102px. After, on production at 1440x900 and at the Owner's 1170x820: 0 shifts, CLS 0. States boot/shell/geometry/scene/interactive; no timers anywhere."},
-    {"id": "AN3", "n": 3, "title": 'The octagon stylesheet leaves the body for the head', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.914. It was a <link> inside a DIV, which measured LAST in the cascade - after arena_atmosphere.css, whose comments claim that role. Declared in the head of both including pages, kept last on purpose so nothing changed.'},
-    {"id": "AN4", "n": 4, "title": 'Four shell stylesheets merged into one', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.916. arena.css + command_deck + hall + deck_polish = 6129 lines into arena.css, in the order the browser already applied; the three are deleted, not imported. arena_effects.css moved ahead of the shell because it shares exactly one selector/property pair with the merged sheets. Geometry pixel-identical to the baseline at 1170x820.'},
-    {"id": "AN5", "n": 5, "title": 'One documented layer ladder in place of 21 loose z-index values', "status": 'DONE', "owner": "Bolt", "evidence": '68 declarations across four sheets carrying 21 numbers between -1 and 10000, now expressed as --arena-z-* tokens with the SAME values, so nothing re-orders. Verified by comparing every computed z-index on the live page.'},
-    {"id": "AN6", "n": 6, "title": 'One owner of position for the ladder and the caption', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.920. The ladder was positioned by 13 CSS rules and the caption by 7, as percentages of the deck, while the renderer measured the floor and wrote inline coordinates over all of them. 41 positional declarations removed from the desktop rules; the mobile static layout untouched.'},
-    {"id": "AN7", "n": 7, "title": 'The deck waits for its own measured height', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.926. Cold-load shift CLS 0.0111 at 981ms - rail, gifts, crown ladder, metrics and SVG sliding up together because the deck was painted at the 146px fallback header while the real one is 172. measureHeader() runs before the shell state; the deck is not painted until it has.'},
-    {"id": "AN8", "n": 8, "title": 'Every !important either proven necessary or removed', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.930. Measured on the live page: 2472 elements x 31 properties, animation noise excluded. Stripping all 338 important properties changed 9 elements; only 11 of 51 rules can touch them; stripping the other 40 rules changed 0 of 76632 values. 81 declarations removed, 58 kept with evidence.'},
-    {"id": "AN9", "n": 9, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN10", "n": 10, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN11", "n": 11, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN12", "n": 12, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN13", "n": 13, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN14", "n": 14, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN15", "n": 15, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN16", "n": 16, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN17", "n": 17, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN18", "n": 18, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN19", "n": 19, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN20", "n": 20, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN21", "n": 21, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN22", "n": 22, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN23", "n": 23, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN24", "n": 24, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN25", "n": 25, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN26", "n": 26, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN27", "n": 27, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN28", "n": 28, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
-    {"id": "AN29", "n": 29, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
+    {"id": "AN1", "n": 1, "spec": 'S3', "title": 'Read-only inventory before any edit', "status": 'DONE', "owner": "Bolt", "evidence": 'origin/main, HEAD, production version, worktrees, branches, stash, untracked files, handoff documents, the board, live behaviour, and the fate of the DeckBands prototype. ARENA_NORMALISATION_BASELINE.md, at v2.5.910.'},
+    {"id": "AN2", "n": 2, "spec": 'S4', "title": 'Recoverable backup with a TESTED rollback', "status": 'DONE', "owner": "Bolt", "evidence": 'backup/arena-pre-normalisation-2026-08-08 -> a1f40923, pushed to origin. Rehearsed in a detached worktree: footer read v2.5.910 and manage.py check was green. Migrations 218, chef_battle at 0085.'},
+    {"id": "AN3", "n": 3, "spec": 'S5A', "title": 'Codebase baseline - files, lines, selectors, observers, timers, measurements', "status": 'DONE', "owner": "Bolt", "evidence": '7 stylesheets / 8534 lines / 1110 live rules; 136 !important; 70 z-index declarations over 21 values; arena_render.js 3408 lines with 21 getBoundingClientRect calls, 6 ResizeObservers and 20 position writes.'},
+    {"id": "AN4", "n": 4, "spec": 'S5B', "title": 'CSS cascade map - every sheet, its loader, its order, contested ownership', "status": 'DONE', "owner": "Bolt", "evidence": '585 selector/property pairs with more than one owning file; 55 selectors written in three or more files; arena_render.css found linked from INSIDE the body, measuring last in the cascade.'},
+    {"id": "AN5", "n": 5, "spec": 'S5C', "title": 'JavaScript ownership map and dependency graph', "status": 'DONE', "owner": "Bolt", "evidence": 'Six functions read AND write layout in one pass; measureHeader alone does 10 reads and 5 writes; the fit, the ladder and the caption all re-enter through one call chain.'},
+    {"id": "AN6", "n": 6, "spec": 'S5D', "title": 'DOM/SVG initialisation order, with the ladder jump MEASURED', "status": 'DONE', "owner": "Bolt", "evidence": 'One layout shift at 943ms, CLS 0.0255, the rank spine travelling 441px right and 102px down from its stylesheet position to its JavaScript one.'},
+    {"id": "AN7", "n": 7, "spec": 'S5E', "title": 'Performance baseline', "status": 'PARTIAL', "owner": "Bolt", "evidence": "Have: DOMContentLoaded, load, first paint, FCP, CLS, request counts, bytes, 2524 DOM nodes of which 1931 are the octagon's SVG. Missing: cold cache, CPU and network throttling, LCP, style-recalculation and layout time - this harness cannot produce them and CDP is required."},
+    {"id": "AN8", "n": 8, "spec": 'S5F', "title": 'Geometry baseline at the approved viewports', "status": 'DONE', "owner": "Bolt", "evidence": "1920x1080, 1440x900, 1280x800 and the Owner's own 1170x820. Every panel box and every intersection recorded, including the four overlaps that exist at his window."},
+    {"id": "AN9", "n": 9, "spec": 'S5G', "title": 'Twelve load and resize scenarios', "status": 'PARTIAL', "owner": "Bolt", "evidence": 'Four of twelve measured: warm load, reload, 1440->1920 and 1920->1280. Missing: cold cache, empty cache, CPU throttle, network throttle, repeated cycles, and reload after resize.'},
+    {"id": "AN10", "n": 10, "spec": 'S6', "title": 'The complete pre-refactor test baseline, run once', "status": 'DONE', "owner": "Bolt", "evidence": '1750 tests, 2 pre-existing failures, 710.7s, PostgreSQL, --parallel 8, production dependency versions. Full output preserved beside the baseline report.'},
+    {"id": "AN11", "n": 11, "spec": 'S7', "title": 'Arena ownership manifest - one responsibility, one owner', "status": 'DONE', "owner": "Bolt", "evidence": "Thirteen responsibilities mapped to the real code. Five had more than one owner: ring colour, the camera, the page's vertical space, the ladder's position and z-order. Readiness had no owner at all."},
+    {"id": "AN12", "n": 12, "spec": 'S8', "title": 'Consolidate the Arena stylesheets', "status": 'PARTIAL', "owner": "Bolt", "evidence": 'Seven became four. TWO is not the end state: the Owner ruled on 2026-08-08 that the Master Console mirror stays flat, so effects and atmosphere cannot fold into the scene sheet. That amends section 8 of the task itself.'},
+    {"id": "AN13", "n": 13, "spec": 'S8A', "title": 'CSS cleanup rules', "status": 'PARTIAL', "owner": "Bolt", "evidence": 'Done: unnecessary !important removed, 136 to 58, every survivor measured on the live page. Not done: deduplicate selectors, remove the 894 superseded declarations, dead-DOM rules, media-query debris, duplicate tokens, shared spacing constants, specificity wars.'},
+    {"id": "AN14", "n": 14, "spec": 'S8B', "title": 'An explicit layer model instead of scattered z-index', "status": 'DONE', "owner": "Bolt", "evidence": '21 --arena-z-* tokens and 0 raw numbers left in the four sheets. The values are unchanged on purpose: this gave the ladder a home, it did not re-order it.'},
+    {"id": "AN15", "n": 15, "spec": 'S9', "title": 'One page-level layout authority', "status": 'PARTIAL', "owner": "Bolt", "evidence": 'The renderer owns the ladder, the caption and the scene, and 31 competing CSS declarations were removed. The page as a whole still has no single declared authority - the panels are laid out by CSS, which is correct, but nothing states it.'},
+    {"id": "AN16", "n": 16, "spec": 'S10', "title": 'Isolate the Octagon behind a public contract', "status": 'NOT STARTED', "owner": "Bolt", "evidence": 'The page should hand it a region and read nothing of its internal SVG geometry. Ring, seating, rank, sponsor and spectator semantics must not change.'},
+    {"id": "AN17", "n": 17, "spec": 'S11', "title": 'The Rank Ladder: one source for order, identity, colour and position', "status": 'DONE', "owner": "Bolt", "evidence": 'Order and identity from the backend Rank model, the number from data-ring, the colour READ OFF the ring itself rather than copied, and the position only from placeRankSpine(). No CSS fallback position, no post-load jump, stable through resize.'},
+    {"id": "AN18", "n": 18, "spec": 'S12', "title": 'Evidence-based dead-code audit in eight categories', "status": 'NOT STARTED', "owner": "Bolt", "evidence": 'ACTIVE / DUPLICATED / SUPERSEDED / FEATURE-FLAGGED / TEST-EMULATION / LEGACY BUT REQUIRED / DEAD / UNKNOWN. Nothing is deleted without proof and UNKNOWN is never deleted.'},
+    {"id": "AN19", "n": 19, "spec": 'S12A', "title": 'Fixture and emulation code preserved - disabled is not dead', "status": 'DONE', "owner": "Bolt", "evidence": 'The emulation bots keep their accounts, profiles, history and their Master Console; ARENA_SHOW_EMULATION_BOTS brings them back. hydrateFixtures stays disconnected and is held in place by three tests.'},
+    {"id": "AN20", "n": 20, "spec": 'S13', "title": 'JavaScript cleanup - a deliberate read phase and write phase', "status": 'NOT STARTED', "owner": "Bolt", "evidence": 'Six functions still read and write layout in one pass; six ResizeObservers, one resize handler, three fonts.ready hooks and a late pass all re-enter the same fit.'},
+    {"id": "AN21", "n": 21, "spec": 'S14', "title": 'Template cleanup', "status": 'PARTIAL', "owner": "Bolt", "evidence": 'Audited: no multi-line {# #} comment anywhere, the duplicate ids are mutually exclusive branches, and the stylesheet link is out of the body. Not done: the inline style attributes.'},
+    {"id": "AN22", "n": 22, "spec": 'S15', "title": 'Static asset inventory in four categories', "status": 'NOT STARTED', "owner": "Bolt", "evidence": 'Only two static files are never named by a template and both are intentional. The 8311x8333 sponsor logo is to be REPORTED, not altered - it is an original business asset.'},
+    {"id": "AN23", "n": 23, "spec": 'S16', "title": 'Database and backend safety', "status": 'DONE', "owner": "Bolt", "evidence": 'No migration was introduced, no live battle or user data was touched, and the emulation switch was used instead of writing test data to production.'},
+    {"id": "AN24", "n": 24, "spec": 'S17', "title": 'Two agents, one engineering team', "status": 'DONE', "owner": "Bolt", "evidence": 'Carpet message #3506 sent before any file was opened, carrying the split, the two-stylesheet target and the instruction not to build on the parked patch. GreenBear is away until Monday; both surfaces are mine, announced.'},
+    {"id": "AN25", "n": 25, "spec": 'S18-20', "title": 'Commit discipline, no V2 files, no visual redesign', "status": 'DONE', "owner": "Bolt", "evidence": 'Eleven staged deploys, each complete and verified before the next began. No arena_v2 anything. Geometry pixel-identical to the baseline at every viewport after every stage.'},
+    {"id": "AN26", "n": 26, "spec": 'S22', "title": 'Final full test gate against the baseline', "status": 'PARTIAL', "owner": "Bolt", "evidence": 'Green once at 1759 tests / 0 failures / 887.8s against a baseline of 1750 / 2 / 710.7s. To be re-run at the true end together with manage.py check and git diff --check.'},
+    {"id": "AN27", "n": 27, "spec": 'S23', "title": 'Final performance comparison, before to after', "status": 'PARTIAL', "owner": "Bolt", "evidence": 'Code metrics are complete. Browser metrics are partial for the same reason as section 5E: no cold cache, no throttling, and no style-recalculation or layout timings without CDP.'},
+    {"id": "AN28", "n": 28, "spec": 'S24-25', "title": 'Initial-render and resize acceptance', "status": 'PARTIAL', "owner": "Bolt", "evidence": 'Initial render passes on every measured viewport: 0 temporary ladder positions, 0 jumps, 0 CSS-to-JS transitions, 0 timeout hiding, CLS 0. Resize converges to the pixel. Cold cache and throttling remain unmeasured.'},
+    {"id": "AN29", "n": 29, "spec": 'S26-29', "title": 'The sixteen assertions, the final report, the success criteria', "status": 'PARTIAL', "owner": "Bolt", "evidence": "Thirteen of sixteen are YES with evidence. Two stylesheets is NO by the Owner's own amendment; one page-level layout authority and the removal of duplicate implementations are partial. The report is written and is to be updated at the end."},
 ]
+
 
 ARENA_RELEASE_STAGES = [
     {
@@ -3574,7 +3575,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "68fbb234 / production v2.5.930",
+        "commit": "PENDING / production v2.5.932",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
@@ -3632,11 +3633,14 @@ def _arena_build_context():
     return {
         "normalisation": ARENA_NORMALISATION_SECTIONS,
         "normalisation_total": len(ARENA_NORMALISATION_SECTIONS),
-        "normalisation_spec_count": sum(
-            sec["status"] == "TO SPEC" for sec in ARENA_NORMALISATION_SECTIONS
-        ),
         "normalisation_done_count": sum(
             sec["status"] == "DONE" for sec in ARENA_NORMALISATION_SECTIONS
+        ),
+        "normalisation_partial_count": sum(
+            sec["status"] == "PARTIAL" for sec in ARENA_NORMALISATION_SECTIONS
+        ),
+        "normalisation_todo_count": sum(
+            sec["status"] == "NOT STARTED" for sec in ARENA_NORMALISATION_SECTIONS
         ),
         "stages": ARENA_RELEASE_STAGES,
         "total": len(ARENA_RELEASE_STAGES),

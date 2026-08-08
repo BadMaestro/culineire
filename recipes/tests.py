@@ -4269,7 +4269,34 @@ class ArchitectureNormalisationBlockTests(TestCase):
             [f"AN{n}" for n in range(1, 30)],
         )
 
-    def test_a_section_is_either_written_up_or_openly_empty(self):
+    def test_every_section_is_a_numbered_part_of_the_master_task(self):
+        """OWNER, 2026-08-08: fill every card up to 29 with the tasks from the
+        prompt, and reconcile what is already done against what the board says.
+
+        Twice I filled this block wrongly - first left it empty under a rule I
+        invented, then wrote titles of my own. The source is the master task and
+        nothing else, so each card carries the section it comes from."""
+        from recipes.views import ARENA_NORMALISATION_SECTIONS
+
+        for sec in ARENA_NORMALISATION_SECTIONS:
+            self.assertTrue(sec["spec"], f'{sec["id"]} names no master-task section')
+            self.assertTrue(sec["title"], sec["id"])
+            self.assertTrue(sec["evidence"], f'{sec["id"]} claims a state with no evidence')
+            self.assertIn(sec["status"], ("DONE", "PARTIAL", "NOT STARTED"), sec["id"])
+
+    def test_the_board_agrees_with_what_was_actually_measured(self):
+        """A board that lags the work is what this block was opened to stop."""
+        from recipes.views import ARENA_NORMALISATION_SECTIONS
+
+        by_id = {s["id"]: s for s in ARENA_NORMALISATION_SECTIONS}
+        # the lifecycle, the layer model and the ladder are finished and deployed
+        for done in ("AN2", "AN6", "AN10", "AN14", "AN17", "AN19"):
+            self.assertEqual(by_id[done]["status"], "DONE", done)
+        # and these are honestly unfinished
+        for partial in ("AN7", "AN9", "AN12", "AN13"):
+            self.assertEqual(by_id[partial]["status"], "PARTIAL", partial)
+
+    def test_the_old_shape_of_this_block_is_gone(self):
         """The Owner, 2026-08-08: why are the finished cards not marked, and the
         work not written into its fields - what did we make the board for?
 
@@ -4278,22 +4305,18 @@ class ArchitectureNormalisationBlockTests(TestCase):
         board does not show."""
         from recipes.views import ARENA_NORMALISATION_SECTIONS
 
+        from recipes.views import ARENA_NORMALISATION_SECTIONS
+
         for sec in ARENA_NORMALISATION_SECTIONS:
-            if sec["status"] == "TO SPEC":
-                self.assertEqual(sec["title"], "", sec["id"])
-                self.assertEqual(sec["evidence"], "", sec["id"])
-            else:
-                self.assertIn(sec["status"], ("DONE", "IN PROGRESS"), sec["id"])
-                self.assertTrue(sec["title"], f'{sec["id"]} has a status and no title')
-                self.assertTrue(sec["evidence"], f'{sec["id"]} claims a status with no evidence')
-                self.assertTrue(sec["owner"], f'{sec["id"]} has no owner')
+            self.assertNotEqual(sec["status"], "TO SPEC",
+                                f'{sec["id"]} is still waiting for a dictation nobody owes it')
 
     def test_the_finished_sections_are_on_the_board(self):
         """Four are done and one is running as of 2026-08-08."""
         from recipes.views import ARENA_NORMALISATION_SECTIONS
 
         done = [s for s in ARENA_NORMALISATION_SECTIONS if s["status"] == "DONE"]
-        self.assertGreaterEqual(len(done), 4)
+        self.assertGreaterEqual(len(done), 15)
         self.assertEqual(done[0]["id"], "AN1")
 
     def test_the_board_page_shows_the_block(self):

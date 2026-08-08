@@ -77,6 +77,7 @@
   .abp-an-cell { border:1px dashed var(--line); border-radius:10px; padding:.55rem .6rem; background:var(--surface); }
   .abp-an-cell strong { display:block; color:var(--brand-dark); font-family:var(--font-serif); font-size:.95rem; }
   .abp-an-cell span { color:var(--muted); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; }
+  .abp-an-spec { margin:.25rem 0 0; font-size:.62rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
   .abp-an-cell.is-done { border-style:solid; border-color:var(--hall-green,#4a7c59); }
   .abp-an-cell.is-active { border-style:solid; box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 30%,transparent); }
   .abp-an-cell strong em { float:right; font-style:normal; font-size:.6rem; letter-spacing:.08em; color:var(--muted); }
@@ -220,16 +221,18 @@
     <h2>Architecture normalisation</h2>
     <p class="abp-note">
       {{ normalisation_done_count }} of {{ normalisation_total }} done,
-      {{ normalisation_spec_count }} still to spec. A section is written here when
-      it is finished, with the evidence that proves it - the board is the record,
-      not a decoration.
+      {{ normalisation_partial_count }} partial, {{ normalisation_todo_count }} not started.
+      Every card is a numbered section of the master task, in its order - the work was
+      specified when the block was opened, and the board carries what was actually
+      measured rather than a promise.
     </p>
     <div class="abp-an-grid">
       {% for sec in normalisation %}
-      <article class="abp-an-cell{% if sec.status == 'DONE' %} is-done{% elif sec.status == 'IN PROGRESS' %} is-active{% endif %}" id="{{ sec.id|lower }}">
+      <article class="abp-an-cell{% if sec.status == 'DONE' %} is-done{% elif sec.status == 'PARTIAL' %} is-active{% endif %}" id="{{ sec.id|lower }}">
         <strong>{{ sec.id }} <em>{{ sec.status }}</em></strong>
-        <span>{% if sec.title %}{{ sec.title }}{% else %}TO SPEC{% endif %}</span>
-        {% if sec.evidence %}<p class="abp-an-evidence">{{ sec.evidence }}</p>{% endif %}
+        <span>{{ sec.title }}</span>
+        <p class="abp-an-spec">master task &sect;{{ sec.spec|slice:"1:" }}</p>
+        <p class="abp-an-evidence">{{ sec.evidence }}</p>
       </article>
       {% endfor %}
     </div>
