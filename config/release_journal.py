@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.920",
         "date": "2026-08-08",
-        "commit": "",
+        "commit": "93b31407",
         "title": "One owner of position: forty-one CSS declarations stop arguing with the renderer",
         "section": "Chef Battles / Arena",
         "summary": "AN6. The rank ladder's position was written in THIRTEEN rules and the floor caption's in SEVEN, as percentages of the deck - top 13%, 28%, 38%, 22%, 14%, 12%, bottom 14%, 11%, 10% - while placeRankSpine() and placeFloorCaption() measured the floor and wrote inline coordinates over all of them. That is the two-systems fault the Owner named on 2026-08-07, in its purest form: CSS believed the element was placed, JavaScript moved it, and the user saw both. Forty-one positional declarations are gone from the desktop rules. What is left is the containing block, the element's own intrinsic size, and nothing that decides WHERE. Below 767px nothing changed at all - the arena is frozen there by his instruction of 2026-08-03, JavaScript does not place anything, and the static rule that lays the ladder out in flow is untouched. Verified on production by comparing every element box against the baseline at four viewports.",
