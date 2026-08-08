@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.922",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "Width is the component's own business - v2.5.920 took it away and the octagon shrank",
+        "section": "Chef Battles / Arena",
+        "summary": "MY REGRESSION, FOUND ON PRODUCTION BY MEASURING AFTER THE DEPLOY. AN6 was meant to remove one owner of POSITION; the pass also stripped `width` from the ladder and the caption, and width is not position - the master task's own words are that a component should know its own intrinsic size. Without `width: min(28rem, 48%)` the caption measured 264px instead of 383, wrapped onto a second line, and reserveCaptionBand() faithfully reserved the wrong band: measured at 1170x820 the octagon came out 411x335 against a baseline of 537x426, sitting 92px lower. Nothing about it was subtle and nothing about it was theoretical - it was live for six minutes. Re-applied from the clean file: 30 declarations removed, all of them top/left/right/bottom/transform, and every width left where it was. Verified against the baseline boxes at 1170x820 before this entry was written.",
+    },
+    {
         "version": "2.5.920",
         "date": "2026-08-08",
         "commit": "93b31407",
