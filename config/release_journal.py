@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.926",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "The deck waits for its own height, and the last load shift goes with it",
+        "section": "Chef Battles / Arena",
+        "summary": "AN7. After the ladder stopped jumping, one shift was left on a cold load: CLS 0.0111 at 981ms, with the crowd rail, the gifts card, the crown ladder, the metrics and the whole SVG sliding up together. None of them was wrong - they were correct twice, at two different heights. The deck is sized `100svh - var(--arena-header-h, 146px)`, 146 is the desktop header, and the real header at 1170x820 is 172, so the first paint gave the deck 26 pixels it was about to lose. measureHeader() now runs BEFORE the shell state is announced, and the deck's contents are not painted until it has. Same rule the ladder got, applied one level up: an element appears when the number it depends on is known. No timer decides any of it.",
+    },
+    {
         "version": "2.5.924",
         "date": "2026-08-08",
         "commit": "fa663419",

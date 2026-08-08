@@ -3504,7 +3504,7 @@ ARENA_NORMALISATION_SECTIONS = [
     {"id": "AN4", "n": 4, "title": 'Four shell stylesheets merged into one', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.916. arena.css + command_deck + hall + deck_polish = 6129 lines into arena.css, in the order the browser already applied; the three are deleted, not imported. arena_effects.css moved ahead of the shell because it shares exactly one selector/property pair with the merged sheets. Geometry pixel-identical to the baseline at 1170x820.'},
     {"id": "AN5", "n": 5, "title": 'One documented layer ladder in place of 21 loose z-index values', "status": 'DONE', "owner": "Bolt", "evidence": '68 declarations across four sheets carrying 21 numbers between -1 and 10000, now expressed as --arena-z-* tokens with the SAME values, so nothing re-orders. Verified by comparing every computed z-index on the live page.'},
     {"id": "AN6", "n": 6, "title": 'One owner of position for the ladder and the caption', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.920. The ladder was positioned by 13 CSS rules and the caption by 7, as percentages of the deck, while the renderer measured the floor and wrote inline coordinates over all of them. 41 positional declarations removed from the desktop rules; the mobile static layout untouched.'},
-    {"id": "AN7", "n": 7, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
+    {"id": "AN7", "n": 7, "title": 'The deck waits for its own measured height', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.926. Cold-load shift CLS 0.0111 at 981ms - rail, gifts, crown ladder, metrics and SVG sliding up together because the deck was painted at the 146px fallback header while the real one is 172. measureHeader() runs before the shell state; the deck is not painted until it has.'},
     {"id": "AN8", "n": 8, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
     {"id": "AN9", "n": 9, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
     {"id": "AN10", "n": 10, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
@@ -3574,7 +3574,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "fa663419 / production v2.5.924",
+        "commit": "PENDING / production v2.5.926",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

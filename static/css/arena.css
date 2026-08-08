@@ -6213,3 +6213,25 @@
 .page--arena .arena-command-deck:not([data-arena-state="scene"]):not([data-arena-state="interactive"]) .arena-floor-caption {
   visibility: hidden;
 }
+
+
+/* ============================================================
+   THE DECK WAITS FOR ITS OWN HEIGHT.
+
+   AN7, 2026-08-08. The deck is sized `100svh - var(--arena-header-h, 146px)`.
+   The fallback is the desktop header; the real one is 172px at 1170x820, so the
+   first paint was 26px too tall and the correction moved the crowd rail, the
+   gifts, the crown ladder, the metrics and the octagon up together - CLS 0.0111
+   at 981ms, measured on production.
+
+   Until arena_render.js has measured the header and announced `shell`, the
+   deck's contents are not painted. No timer decides this: measureHeader() runs
+   first and the attribute follows it.
+
+   The octagon is drawn by JavaScript in any case, so a page with no scripting
+   has no arena to hide.
+   ============================================================ */
+.page--arena .arena-command-deck:not([data-arena-state]) > *,
+.page--arena .arena-command-deck[data-arena-state="boot"] > * {
+  visibility: hidden;
+}

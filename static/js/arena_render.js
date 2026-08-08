@@ -3408,11 +3408,24 @@
     var geometry = payload && payload.geometry;
     if (!geometry || !Array.isArray(geometry.rings) || !geometry.rings.length) { return; }
 
-    arenaState('shell');
     drawGrid(svg, geometry);
     bind(svg, payload, geometry);
     attachEvents(svg);
+    // THE SHELL IS NOT READY UNTIL THE HEADER HAS BEEN MEASURED.
+    //
+    // The deck is `calc(100svh - var(--arena-header-h, 146px))`, and 146 is the
+    // desktop header. Measured on production at 1170x820 the real header is 172,
+    // so the first paint gave the deck 26px too much and measureHeader() then
+    // took it back: one layout shift at 981ms, CLS 0.0111, with the crowd rail,
+    // the gifts card, the crown ladder, the metrics and the whole SVG sliding up
+    // together. Nothing was wrong with any of them - they were correct twice, at
+    // two different heights.
+    //
+    // measureHeader() runs BEFORE the shell is announced now, so the deck is not
+    // painted at a height that is about to change. This is the same rule the
+    // ladder got: an element appears when the number it depends on is known.
     measureHeader();
+    arenaState('shell');
     fitScene(svg);
     arenaState('interactive');
     // The frame is fluid, so the fit is re-measured whenever it changes size.
