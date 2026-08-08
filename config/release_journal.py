@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.924",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "The last CSS rule that placed the ladder gives up the job",
+        "section": "Chef Battles / Arena",
+        "summary": "AN6 finished. One rule survived the earlier pass because it is written on a single line and the transformer only recognised multi-line bodies: `.arena-rank-spine { position: absolute; top: 13%; left: 50%; width: ...; transform: translateX(-50%) }`. That was the ladder's CSS home position - the one the Owner saw in the centre of the page on a cold load, before the readiness lifecycle stopped it being painted. top, left and transform are gone; position, z-index, width and pointer-events stay, because they say WHAT THE ELEMENT IS and not where it goes. Thirty-one positional declarations across the two elements are now gone in total, and placeRankSpine() is the only thing in the codebase that decides where the ladder stands.",
+    },
+    {
         "version": "2.5.922",
         "date": "2026-08-08",
         "commit": "95ceeca8",

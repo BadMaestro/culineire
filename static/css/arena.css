@@ -1025,7 +1025,10 @@
    from Ember's rank-progression prototype, official tokens only. Desktop
    placement is CSS-owned (left 50% + translateX); tablet may still measure via
    placeRankSpine(); mobile stays a wrapped flow row (Stage 3E). */
-.arena-rank-spine { position: absolute; z-index: var(--arena-z-stage); top: 13%; left: 50%; width: min(11.5rem, 25%); transform: translateX(-50%); pointer-events: none; }
+/* AN6: the renderer owns WHERE, this rule owns WHAT IT IS. top/left/transform
+   left with v2.5.922; the width stays, because a component knows its own
+   intrinsic size - taking it away in v2.5.920 shrank the octagon by 126px. */
+.arena-rank-spine { position: absolute; z-index: var(--arena-z-stage); width: min(11.5rem, 25%); pointer-events: none; }
 .arena-rank-spine__label { margin: 0 0 .28rem; color: var(--accent-bronze-dark); font-size: .43rem; font-weight: 800; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
 /* The steps became <li> under an <ol> so the ladder is an ordered progression
    in the markup too; the stacking that used to live on the <nav> moves to the
