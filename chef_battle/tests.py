@@ -11089,67 +11089,114 @@ class EmulationWithdrawalScenarioTests(TestCase):
 
 
 class ArenaHeaderMeasurementTests(TestCase):
-    """A18. The deck is sized 100svh minus everything above it, and "everything
-    above it" is not a constant.
+    """A18, and AN15 which moved it into a file of its own.
 
-    Measured at 1920x1080, 1440x900 and 1280x800 on production: the variable
-    said 134px while the true height above the deck was 146, so the arena ran
-    twelve pixels past the bottom of the screen at every one of them - and A07,
-    which promises the whole arena on one screen, was false again by a route
-    nobody had watched.
+    The deck is sized 100svh minus everything above it, and "everything above
+    it" is not a constant. Measured at 1920x1080, 1440x900 and 1280x800 on
+    production: the variable said 134px while the true height above the deck
+    was 146, so the arena ran twelve pixels past the bottom of the screen at
+    every one of them - and A07, which promises the whole arena on one screen,
+    was false again by a route nobody had watched.
 
-    The ResizeObserver could not catch it. measureHeader() returns
+    The ResizeObserver could not catch it. The measurement returns
     (header.top + header.height), so the number changes when anything ABOVE the
     header changes height - and in that case the header's own box does not
     resize at all. The observer was watching the one element that had not moved.
-    """
 
-    def _init_block(self):
+    All of it now lives in `arena_page_layout.js`. That is section 9 of the
+    master task: one owner for page-level layout, and a widget does not measure
+    its neighbours. The octagon renderer used to own this, and an octagon has no
+    business holding an opinion about the site's utility bar."""
+
+    def _layout(self):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        source = (
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_page_layout.js"
+        ).read_text(encoding="utf-8")
+
+    def _renderer(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
             Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
         ).read_text(encoding="utf-8")
-        return source.split("measureHeader();", 1)[1].split("ArenaBattleRoom", 1)[0]
+
+    def test_the_page_publishes_the_measurement(self):
+        js = self._layout()
+        self.assertIn("--arena-header-h", js)
+        self.assertIn("box.top + window.scrollY", js)
+        self.assertIn("box.height", js)
 
     def test_the_window_retriggers_the_measurement(self):
-        """The window handler is refit(), which measures AND re-fits - see
+        """The window path forces a re-fit, measured or not - see
         test_a_window_resize_always_refits_the_scene for why measuring alone
         was not enough."""
-        self.assertIn("addEventListener('resize', refit)", self._init_block())
+        self.assertIn("addEventListener('resize', function () { remeasure(true); })",
+                      self._layout())
 
     def test_web_fonts_retrigger_it(self):
         """Fonts land after init and grow the header; by then nothing asked again."""
-        self.assertIn("document.fonts.ready", self._init_block())
+        self.assertIn("document.fonts.ready", self._layout())
 
     def test_the_header_observer_is_still_there(self):
         """The narrower signal stays - it is the only one that fires when the
         header wraps at a width the window did not change to."""
-        block = self._init_block()
-        self.assertIn("document.querySelector(HEADER_SELECTOR)", block)
-        self.assertIn("ResizeObserver(remeasure).observe(", block)
+        js = self._layout()
+        self.assertIn("HEADER_SELECTOR", js)
+        self.assertIn("ResizeObserver", js)
 
     def test_the_observer_watches_the_border_box(self):
         """The whole of why the first fix did not land. A ResizeObserver watches
         the CONTENT box unless told otherwise, and the header grows by twelve
         pixels of PADDING after first paint - content box identical, observer
         silent, the variable stuck at 134 while the header measured 146."""
-        self.assertIn("{ box: 'border-box' }", self._init_block())
+        self.assertIn("{ box: 'border-box' }", self._layout())
 
     def test_there_is_a_late_pass_for_what_lands_silently(self):
-        self.assertIn("setTimeout(refit", self._init_block())
+        self.assertIn("setTimeout(function () { remeasure(true); }", self._layout())
 
     def test_a_window_resize_always_refits_the_scene(self):
-        """remeasure() only re-fits when the HEADER's number changed, and a
-        change of window height does not touch the header - so the scene, and
-        the rank ladder's measured position beside the floor with it, kept the
+        """A change of window height does not touch the header, so a re-fit
+        gated on the header's number never ran - the scene, and the rank
+        ladder's measured position beside the floor with it, kept the
         coordinates it was given at the old size. Measured at 1280x520: the
         ladder hung 19px below the fold and 133px off the floor's centre line,
-        and a hand-dispatched resize did not move it."""
-        block = self._init_block()
-        self.assertIn("addEventListener('resize', refit)", block)
-        self.assertIn("function refit()", block)
+        and a hand-dispatched resize did not move it.
+
+        That is what `force` carries: the window and the late pass re-fit
+        whatever the header did."""
+        self.assertIn("remeasure(true)", self._layout())
+        self.assertIn("if (changed || force) { fitScene(svg); }", self._renderer())
+
+    def test_the_octagon_no_longer_looks_for_its_neighbours(self):
+        """Master task section 9. The renderer draws inside the box it is given.
+        It may ask the page how big that box is; it may not go and find the site
+        header itself, which is what it did until AN15."""
+        js = self._renderer()
+        self.assertNotIn("'.ce-header'", js)
+        self.assertNotIn("HEADER_SELECTOR", js)
+        self.assertIn("ArenaPageLayout.subscribe(", js)
+        self.assertIn("ArenaPageLayout.watch()", js)
+
+    def test_the_owner_is_loaded_before_anything_that_draws(self):
+        """It publishes the number every other file measures against, so it
+        cannot be loaded after them."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        html = (
+            Path(django_settings.BASE_DIR) / "templates" / "chef_battle"
+            / "_arena_render_ring.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("js/arena_page_layout.js", html)
+        self.assertLess(
+            html.index("js/arena_page_layout.js"),
+            html.index("js/arena_render.js"),
+            "the page's layout owner must load before the octagon that consumes it",
+        )
 
 
 @override_settings(

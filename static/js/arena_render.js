@@ -96,8 +96,8 @@
   var CAPTION_GAP = 6;
   var COMPOSITION_CX = 0.50;
   var COMPOSITION_CY = 0.51;
-  // The site header the deck's height is measured against — see measureHeader().
-  var HEADER_SELECTOR = '.ce-header';
+  // AN15: the site header belongs to ArenaPageLayout. This renderer draws
+  // inside the box it is given and does not look for its neighbours.
   // A09: clear floor between the crown block and a fighter block, as a fraction
   // of the floor's width. Measured off the reference — see fighterOffset().
   var REFERENCE_FIGHTER_GAP = 0.044153;
@@ -2785,38 +2785,17 @@
   // out by construction. Floor span 0.63 is an OUTPUT to verify, not the fit
   // target. Two measure/scale passes land under 1px of drift.
   /**
-   * Publish the real header height as --arena-header-h.
+   * Ask the page for its own measurement. AN15 moved the number, the formula
+   * and its four triggers into ArenaPageLayout - `static/js/arena_page_layout.js`,
+   * which carries the two production faults that shaped them. This wrapper is
+   * all the octagon keeps: it needs the deck's height to be current before it
+   * announces the shell, and it does not care who measured it.
    *
-   * A07, Owner 2026-08-05: the arena fits the screen whole, on every screen.
-   * arena_command_deck.css sizes the deck as `100svh - var(--arena-header-h)`,
-   * and that variable had never been set by anything — the rule ran on its
-   * 146px fallback, which is the DESKTOP header and is wrong by whatever the
-   * header actually measures anywhere else. A fit computed from a constant
-   * that only holds at one width is not a fit.
-   *
-   * Returns true when the value changed, so the caller can avoid a redundant
-   * re-fit: fitScene is a two-pass measure-and-scale and is not free.
+   * Returns true when the value CHANGED, so a caller can skip a re-fit it does
+   * not need - fitScene is a two-pass measure-and-scale and is not free.
    */
   function measureHeader() {
-    var header = document.querySelector(HEADER_SELECTOR);
-    if (!header) { return false; }
-    // A18, measured at 1920x1080 on production: the deck is sized
-    // 100svh - var(--arena-header-h), and this measured the HEADER ELEMENT
-    // alone - 146px - while the header itself starts 77px down the page,
-    // under the site utility bar. So the arena overflowed the screen by
-    // exactly the height of that bar at every width where it shows, and A07,
-    // which promises the whole arena on one screen, was quietly false.
-    // What the deck needs is not the header height but everything above it:
-    // the header box top plus its height, read from the viewport.
-    var box = header.getBoundingClientRect();
-    var height = Math.round(Math.max(0, box.top + window.scrollY) + box.height);
-    if (!(height > 0)) { return false; }
-    var next = height + 'px';
-    if (document.documentElement.style.getPropertyValue('--arena-header-h') === next) {
-      return false;
-    }
-    document.documentElement.style.setProperty('--arena-header-h', next);
-    return true;
+    return global.ArenaPageLayout ? global.ArenaPageLayout.measure() : false;
   }
 
   // ============================================================
@@ -3432,58 +3411,24 @@
     if (global.ResizeObserver && svg.parentElement) {
       new global.ResizeObserver(function () { fitScene(svg); }).observe(svg.parentElement);
     }
-    // The header is what the deck's height is subtracted FROM, and it is not a
-    // constant: it wraps at narrow widths and its social strip is not always
-    // there. Re-measure it whenever the window changes, then re-fit.
+    // AN15, master task section 9: the page owns its own layout and the
+    // octagon re-fits inside whatever it is handed. The four triggers that can
+    // move the deck - the site header's own box, the window, the moment the
+    // fonts settle, and one late pass - live in ArenaPageLayout now. This
+    // renderer no longer knows the site has a header.
     //
-    // A18, MEASURED AT 1920x1080 ON PRODUCTION: --arena-header-h was stuck at
-    // 134px while everything above the deck actually measured 146, so the deck
-    // ran 12px past the bottom of the screen and A07 - the whole arena on one
-    // screen - was false again by a different route.
-    //
-    // The observer alone could not catch it. measureHeader() returns
-    // (header.top + header.height), so the number changes when anything ABOVE
-    // the header changes height - the utility bar - and in that case the
-    // header's OWN box does not resize at all. A ResizeObserver on the header
-    // watches the one thing that did not move. Web fonts do the same on first
-    // load: they land after init, the header grows, and by then nothing asks
-    // again.
-    //
-    // So: the header, the window, and the moment the fonts settle.
-    function remeasure() {
-      if (measureHeader()) { fitScene(svg); }
+    // `force` is a window resize or the late pass: re-fit even when the
+    // header's number held, because the FRAME changed under a scene that was
+    // already measured. Without it, measured on production at 1280x520, the
+    // ladder hung 19px below the fold and 133px off the floor's centre line -
+    // a change of window HEIGHT never touches the header, so nothing asked the
+    // scene to measure itself again.
+    if (global.ArenaPageLayout) {
+      global.ArenaPageLayout.subscribe(function (changed, force) {
+        if (changed || force) { fitScene(svg); }
+      });
+      global.ArenaPageLayout.watch();
     }
-    // A WINDOW RESIZE ALWAYS RE-FITS, whatever the header did. remeasure()
-    // above only re-fits when the header's own number CHANGED, and a change of
-    // window HEIGHT does not touch the header at all - so the scene, and with
-    // it the rank ladder's measured position beside the floor, kept the
-    // coordinates it was given at the old size. Measured on production at
-    // 1280x520: the ladder hung 19px below the fold and 133px off the floor's
-    // centre line, and dispatching a resize by hand did not move it, which is
-    // what proved the re-fit was never running rather than running wrongly.
-    function refit() {
-      measureHeader();
-      fitScene(svg);
-    }
-    if (global.ResizeObserver && document.querySelector(HEADER_SELECTOR)) {
-      // BORDER-BOX, and this is the whole of why the first fix did not land.
-      // A ResizeObserver watches the CONTENT box unless told otherwise, and the
-      // header grows by twelve pixels of padding after first paint - content
-      // box identical, observer silent, --arena-header-h stuck at 134 while the
-      // header measured 146. Measured on production: dispatching a resize event
-      // by hand corrected it to 146 and took the overflow to zero, which is what
-      // proved the listener was right and the trigger was not firing.
-      new global.ResizeObserver(remeasure).observe(
-        document.querySelector(HEADER_SELECTOR), { box: 'border-box' }
-      );
-    }
-    global.addEventListener('resize', refit);
-    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
-      document.fonts.ready.then(remeasure).catch(function () {});
-    }
-    // One late pass for anything that lands after paint without announcing
-    // itself - a lazy banner, a consent strip, an image above the fold.
-    global.setTimeout(refit, 1200);
     if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
     paintRunway(payload.runway || null);
     if (global.ArenaBattleRoom) { global.ArenaBattleRoom.init(payload.latest_result); }

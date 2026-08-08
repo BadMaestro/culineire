@@ -222,6 +222,14 @@ Multi-line {% templatetag openvariable %}#...#{% templatetag closevariable %} is
 NOT a comment in Django — it leaks to the page as text, which is exactly what
 v2.5.677 had to clean up once already. Multi-line comments use this tag.
 {% endcomment %}
+{% comment %}
+The page's own layout comes FIRST, because everything below draws inside what
+it measures. AN15, master task section 9: one owner for page-level layout, and
+a widget does not measure its neighbours. This file publishes
+--arena-header-h and owns the four triggers that can change it; the octagon
+subscribes and re-fits.
+{% endcomment %}
+<script src="{% static 'js/arena_page_layout.js' %}"></script>
 <script src="{% static 'js/arena_octagon.js' %}"></script>
 <script src="{% static 'js/arena_deck.js' %}?v=20260805-next-pills"></script>
 <script src="{% static 'js/arena_battle_room.js' %}"></script>
