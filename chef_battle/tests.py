@@ -8132,7 +8132,7 @@ class ArenaPhasePanelTests(TestCase):
         from django.conf import settings as django_settings
         from pathlib import Path
         css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         desktop = css.split("@media (min-width: 901px)", 1)[1]
         hidden = desktop.split("display: none;", 1)[0]
@@ -8218,8 +8218,8 @@ class ArenaRankColumnTests(TestCase):
     off; and its contrast must be provable from the deployed tokens rather than
     asserted in a CSS comment."""
 
-    CSS_DECK = Path(settings.BASE_DIR) / "static" / "css" / "arena_command_deck.css"
-    CSS_POLISH = Path(settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+    CSS_DECK = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+    CSS_POLISH = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
     CSS_BASE = Path(settings.BASE_DIR) / "static" / "css" / "base.css"
     TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
     JS_DECK = Path(settings.BASE_DIR) / "static" / "js" / "arena_deck.js"
@@ -8576,7 +8576,7 @@ class ArenaRankColumnTests(TestCase):
         """Stage 3G R1 — challenger/opponent must be green/red hall tokens,
         not brand bronze (which made both sides the same brown family)."""
         polish = (
-            Path(settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+            Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         effects = (
             Path(settings.BASE_DIR) / "static" / "css" / "arena_effects.css"
@@ -11372,7 +11372,7 @@ class ArenaRingNumberingTests(TestCase):
         from django.conf import settings as django_settings
 
         css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         self.assertIn('.arena-rank-spine__step[data-on-dark="true"]', css)
         self.assertIn('.arena-rank-spine__step[data-on-dark="false"]', css)
@@ -11390,7 +11390,7 @@ class ArenaRingNumberingTests(TestCase):
         from django.conf import settings as django_settings
 
         css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         edge = css.split('/* THE EDGE', 1)[1].split("\n  .arena-confrontation-band", 1)[0]
         self.assertIn("drop-shadow(", edge)
@@ -11416,7 +11416,7 @@ class ArenaRingNumberingTests(TestCase):
         from django.conf import settings as django_settings
 
         css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         block = css.split("выравнивание цифр", 1)[1].split("\n  .arena-confrontation-band", 1)[0]
         ring = block.split(".arena-rank-spine__ring {", 1)[1].split("}", 1)[0]
@@ -11434,7 +11434,7 @@ class ArenaRingNumberingTests(TestCase):
         from django.conf import settings as django_settings
 
         css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         rule = css.split(".arena-rank-spine__step::before {", 1)[1].split("}", 1)[0]
         self.assertIn("width: 1px", rule)
@@ -11486,7 +11486,7 @@ class ArenaRingNumberingTests(TestCase):
         self.assertIn("Math.round(x)", place)
 
         css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         self.assertNotIn("gap: 0.15rem;", css)
         self.assertIn("min-height: 1.375rem;", css)
@@ -11543,7 +11543,7 @@ class FloorCaptionTakesTheFreeSpaceTests(TestCase):
         from django.conf import settings as django_settings
 
         css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         self.assertIn('.arena-floor-caption[data-fit="no-kicker"] span', css)
         self.assertIn('.arena-floor-caption[data-fit="title-only"] em', css)
@@ -11647,7 +11647,7 @@ class ArenaReadinessLifecycleTests(TestCase):
         from django.conf import settings as django_settings
 
         return (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_deck_polish.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
 
     def test_the_states_exist_and_are_ordered(self):

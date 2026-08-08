@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.916",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "Four arena stylesheets become one shell, in the order the browser already applied",
+        "section": "Chef Battles / Arena",
+        "summary": "AN phase, CSS consolidation. arena.css, arena_command_deck.css, arena_hall.css and arena_deck_polish.css - 6129 lines that every page showing the Arena already loaded together - are now one file, arena.css, in exactly the order they were loaded in. Merging is only safe because it is the same order: a rule that won before still wins, a rule that lost still loses. The three merged files are DELETED, not wrapped in imports, and both pages that loaded them - the public arena and the Master Console mirror - lost three link tags each. ONE ORDER CORRECTION, MEASURED RATHER THAN GUESSED: arena_effects.css used to sit between command_deck and hall, so after the merge it would have landed last and gained a rule it used to lose. It shares exactly one selector/property pair with the sheets that followed it, `.arena-phase-step.is-active` box-shadow, and NOTHING with the old arena.css - so it is declared before the merged shell, which reproduces the previous outcome for every clash there is. Eleven test path constants repointed. Suite after the merge: 976 tests, the same two pre-existing failures as the baseline and no new ones. Arena stylesheets go seven to four; the remaining three are the octagon's own sheet, the effects and the atmosphere, and the last two cannot be folded in without the Owner's word because the console deliberately omits them. IF REVERTED: three more files in a cascade nobody can read in one place.",
+    },
+    {
         "version": "2.5.914",
         "date": "2026-08-08",
         "commit": "8a76cf12",

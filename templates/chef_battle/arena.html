@@ -8,12 +8,18 @@
 
 {% block extra_head %}
 <!-- duplicate chef_battle.css removed 2026-07-25 load purge -->
-<link href="{% static 'css/arena.css' %}?v=20260729-tooltip-anchor" rel="stylesheet">
-<link href="{% static 'css/arena_command_deck.css' %}?v=20260805-a07-fit" rel="stylesheet">
+{% comment %}
+  arena_effects.css is declared BEFORE the shell, and the order is measured
+  rather than chosen. It used to sit between arena_command_deck.css and
+  arena_hall.css; those two are now inside arena.css, so leaving it after the
+  merge would have handed it a rule it used to lose - `.arena-phase-step.is-active`
+  box-shadow, the one selector/property pair it shares with the sheets that
+  followed it. It shares NOTHING with the old arena.css, so putting it first
+  reproduces the previous outcome exactly, for every clash there is.
+{% endcomment %}
 <link href="{% static 'css/arena_effects.css' %}?v=20260727-kill-stage-aura" rel="stylesheet">
-<link href="{% static 'css/arena_hall.css' %}?v=20260727-tilt42" rel="stylesheet">
-{# polish then atmosphere: deck chrome first; page-level hall underlay / kill rules last #}
-<link href="{% static 'css/arena_deck_polish.css' %}?v=20260807-ladder-beside-refit" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260808-an-shell-merge" rel="stylesheet">
+{# then atmosphere: page-level hall underlay / kill rules #}
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260730-no-spine-label" rel="stylesheet">
 {% comment %}
   THE OCTAGON'S OWN SHEET, MOVED HERE FROM THE BODY on 2026-08-08 (AN phase).
