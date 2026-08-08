@@ -3505,7 +3505,7 @@ ARENA_NORMALISATION_SECTIONS = [
     {"id": "AN5", "n": 5, "title": 'One documented layer ladder in place of 21 loose z-index values', "status": 'DONE', "owner": "Bolt", "evidence": '68 declarations across four sheets carrying 21 numbers between -1 and 10000, now expressed as --arena-z-* tokens with the SAME values, so nothing re-orders. Verified by comparing every computed z-index on the live page.'},
     {"id": "AN6", "n": 6, "title": 'One owner of position for the ladder and the caption', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.920. The ladder was positioned by 13 CSS rules and the caption by 7, as percentages of the deck, while the renderer measured the floor and wrote inline coordinates over all of them. 41 positional declarations removed from the desktop rules; the mobile static layout untouched.'},
     {"id": "AN7", "n": 7, "title": 'The deck waits for its own measured height', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.926. Cold-load shift CLS 0.0111 at 981ms - rail, gifts, crown ladder, metrics and SVG sliding up together because the deck was painted at the 146px fallback header while the real one is 172. measureHeader() runs before the shell state; the deck is not painted until it has.'},
-    {"id": "AN8", "n": 8, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
+    {"id": "AN8", "n": 8, "title": 'Every !important either proven necessary or removed', "status": 'DONE', "owner": "Bolt", "evidence": 'v2.5.930. Measured on the live page: 2472 elements x 31 properties, animation noise excluded. Stripping all 338 important properties changed 9 elements; only 11 of 51 rules can touch them; stripping the other 40 rules changed 0 of 76632 values. 81 declarations removed, 58 kept with evidence.'},
     {"id": "AN9", "n": 9, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
     {"id": "AN10", "n": 10, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
     {"id": "AN11", "n": 11, "title": "", "status": "TO SPEC", "owner": "", "evidence": ""},
@@ -3574,7 +3574,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "d2cfc6b8 / production v2.5.928",
+        "commit": "PENDING / production v2.5.930",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

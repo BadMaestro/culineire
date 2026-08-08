@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.930",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "Eighty-one !important come out, and the ones that stay were each proven to matter",
+        "section": "Chef Battles / Arena",
+        "summary": "AN8. The master task allows !important only where it is technically unavoidable and requires every survivor to be justified; it also says \"it was already there\" is not a justification. Static analysis cannot decide this - a selector can be beaten by a different selector matching the same element - so it was measured on the live page instead. Method: snapshot 2472 arena elements x 31 computed properties, twice, to establish which of them animate and must be ignored; then strip every !important in the arena sheets through the CSSOM and re-snapshot. Removing ALL 338 important properties changed exactly NINE elements - the ribbon gradient, the two panel bodies and their empty lines, the deck floor, and the render container. Of 51 rules carrying !important, only 11 can touch those nine. Stripping the other 40 rules - 184 properties - changed ZERO of the 76 632 measured values. Those are removed here, 81 declarations of them in the source. What survives is the 58 that guard the floor plate, the atmosphere kill-rules and the reduced-motion block, each one now backed by a measurement rather than by history.",
+    },
+    {
         "version": "2.5.928",
         "date": "2026-08-08",
         "commit": "d2cfc6b8",

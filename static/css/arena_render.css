@@ -517,7 +517,7 @@
    one mechanism, no list to forget. */
 /* A08. This was `filter: brightness(var(--row-light, 1))`, and it never once
    reached the screen. arena_atmosphere.css carries
-   `.page--arena #arena-render .arena-cell { filter: none !important }` — written
+   `.page--arena #arena-render .arena-cell { filter: none }` — written
    to stop avatar glow bleeding past the rim — and a stand seat carries
    .arena-cell too, so every row was computed in JavaScript and thrown away by
    an !important meant for something else. Measured on production before this
@@ -664,7 +664,7 @@
      under this transform broke the camera (v2.5.649). This file is NOT the only
      place the camera is declared — that claim stood here and was wrong; see the
      block header above. arena_atmosphere.css also used to restate the whole
-     block with !important and force `flat` from there, so this line said
+     block with and force `flat` from there, so this line said
      preserve-3d while the page rendered flat. */
   transform-style: flat;
   transform-origin: 50% 62%;
@@ -847,7 +847,7 @@
 
      The saturate/brightness/sepia that used to sit here is gone rather than
      kept as decoration: arena_atmosphere.css kills every filter on this floor
-     with an !important, so it had never once applied. */
+     with an, so it had never once applied. */
   opacity: var(--crowd-dim, 0.55);
 }
 

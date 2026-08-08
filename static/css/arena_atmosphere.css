@@ -33,7 +33,7 @@
       var(--hall-dark-1) 45%,
       var(--hall-dark-0) 78%
     ),
-    var(--arena-atm-wall) center 2% / cover no-repeat !important;
+    var(--arena-atm-wall) center 2% / cover no-repeat;
   background-color: var(--hall-dark-0, var(--ink));
   color: var(--hall-text, var(--ink));
 }
@@ -287,7 +287,7 @@
       color-mix(in srgb, var(--hall-dark-0, var(--ink)) 74%, transparent),
       transparent 76%
     ),
-    var(--arena-atm-wall) center 2% / cover no-repeat !important;
+    var(--arena-atm-wall) center 2% / cover no-repeat;
 }
 
 .page--arena::before {
@@ -632,10 +632,10 @@
 }
 
 .page--arena .arena-command-deck {
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -667,10 +667,10 @@
 /* Page-level vignette / outer ellipse washes (read as second broken arena). */
 .page--arena::before,
 .page--arena::after {
-  content: none !important;
-  display: none !important;
-  background: none !important;
-  opacity: 0 !important;
+  content: none;
+  display: none;
+  background: none;
+  opacity: 0;
 }
 
 /* CSS "packed crowd" + gold sparkle = hundreds of radial-gradient pin-dots. */
@@ -700,9 +700,9 @@
 .page--arena .arena-floor-wrapper,
 .page--arena .arena-floor-plane,
 .page--arena .arena-floor-ring {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Owner 2026-07-27 (v2.5.612) switched the atmospheric stand-ins off, because
@@ -716,7 +716,7 @@
    takes no pointer events, and that is what A08 turns on. Written this way round
    so nothing has to out-important anything. */
 .page--arena #arena-render .arena-seat-group .arena-crowd-figure {
-  display: none !important;
+  display: none;
 }
 
 /* =============================================================================
@@ -732,8 +732,8 @@
    neutralised nothing — no stylesheet sets a filter on these elements.
    ============================================================================= */
 .page--arena #arena-render .arena-cell[data-ring-kind="rank"] {
-  stroke: #ffffff !important;
-  stroke-width: 1.2px !important;
+  stroke: #ffffff;
+  stroke-width: 1.2px;
   shape-rendering: geometricPrecision;
 }
 
@@ -743,34 +743,34 @@
    this file loads last. Two earlier attempts to repaint the floor - in the
    SVG fill attribute and in arena_render.css - never reached the screen
    because of them. Keep the colour in the token; never restate it here. */
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: var(--arena-floor-6) !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: var(--arena-floor-5) !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: var(--arena-floor-4) !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: var(--arena-floor-3) !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: var(--arena-floor-2) !important; }
-.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: var(--arena-floor-1) !important; }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: var(--arena-floor-6); }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: var(--arena-floor-5); }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: var(--arena-floor-4); }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: var(--arena-floor-3); }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: var(--arena-floor-2); }
+.page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: var(--arena-floor-1); }
 
 .page--arena #arena-render .arena-stage {
-  fill: #6c6054 !important;
-  stroke: #ffffff !important;
+  fill: #6c6054;
+  stroke: #ffffff;
 }
 
 .page--arena #arena-render .arena-stage[data-state="crown"] {
   /* Procedural recess + inner-rim in drawCrownStageFrame; stage polygon is pad only. */
-  fill: color-mix(in srgb, var(--ink) 55%, #1f2c25) !important;
-  stroke: none !important;
+  fill: color-mix(in srgb, var(--ink) 55%, #1f2c25);
+  stroke: none;
   paint-order: stroke fill;
 }
 
 .page--arena #arena-render .arena-ring-seam,
 .page--arena #arena-render .arena-ring-seam--outer,
 .page--arena #arena-render .arena-ring-seam--stage {
-  stroke: #ffffff !important;
-  filter: none !important;
+  stroke: #ffffff;
+  filter: none;
 }
 
 .page--arena #arena-render .arena-floor-pad--glow {
-  filter: none !important;
+  filter: none;
 }
 
 /* Nothing outside the sponsors shell — pads and obsolete rim nodes stay hidden. */
@@ -780,17 +780,17 @@
 .page--arena #arena-render .arena-rim--outer,
 .page--arena #arena-render .arena-floor-pad,
 .page--arena #arena-render .arena-floor-pad--glow {
-  display: none !important;
+  display: none;
 }
 
 /* Grey outer band must stay visible (filled evenodd ring). */
 .page--arena #arena-render [data-arena-layer="walkway"],
 .page--arena #arena-render .arena-walkway {
-  display: block !important;
-  fill: #c4bbb0 !important;
-  stroke: none !important;
-  opacity: 1 !important;
-  filter: none !important;
+  display: block;
+  fill: #c4bbb0;
+  stroke: none;
+  opacity: 1;
+  filter: none;
 }
 
 /* Avatars / cells must not cast paint outside the shell (Owner rim ghosts). */
@@ -803,7 +803,7 @@
 .page--arena #arena-render .arena-floor-fighter,
 .page--arena #arena-render .arena-floor-fighter__tile,
 .page--arena #arena-render .arena-floor-fighter__avatar {
-  filter: none !important;
+  filter: none;
 }
 
 /* Owner 2026-07-28: battle positions live ON the tilted SVG floor
@@ -814,10 +814,10 @@
 .page--arena #arena-render .arena-floor-fighter__tile,
 .page--arena #arena-render .arena-floor-fighter__avatar,
 .page--arena #arena-render .arena-floor-vs {
-  visibility: visible !important;
-  pointer-events: none !important;
-  box-shadow: none !important;
-  filter: none !important;
+  visibility: visible;
+  pointer-events: none;
+  box-shadow: none;
+  filter: none;
 }
 
 .page--arena .arena-confrontation-band .arena-live-chef,
@@ -828,43 +828,43 @@
 .page--arena .arena-live-centre--crown,
 .page--arena .arena-live-centre--quiet,
 .page--arena #arena-live-stage {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-  text-shadow: none !important;
+  display: none;
+  visibility: hidden;
+  pointer-events: none;
+  box-shadow: none;
+  filter: none;
+  text-shadow: none;
 }
 
 /* Flat accent only if HTML band is re-shown later — no outer glow past rim. */
 .page--arena .arena-confrontation-band .arena-live-chef--challenger {
-  box-shadow: inset 3px 0 0 var(--hall-green) !important;
-  filter: none !important;
+  box-shadow: inset 3px 0 0 var(--hall-green);
+  filter: none;
 }
 
 .page--arena .arena-confrontation-band .arena-live-chef--opponent {
-  box-shadow: inset -3px 0 0 var(--hall-red) !important;
-  filter: none !important;
+  box-shadow: inset -3px 0 0 var(--hall-red);
+  filter: none;
 }
 
 .page--arena .arena-confrontation-band .arena-live-centre,
 .page--arena .arena-live-centre,
 .page--arena .arena-live-centre--crown,
 .page--arena .arena-live-centre--quiet {
-  box-shadow: none !important;
-  filter: none !important;
-  text-shadow: none !important;
+  box-shadow: none;
+  filter: none;
+  text-shadow: none;
 }
 
 .page--arena .arena-confrontation-band .arena-live-centre::before,
 .page--arena .arena-confrontation-band .arena-live-centre::after,
 .page--arena .arena-live-centre::before,
 .page--arena .arena-live-centre::after {
-  content: none !important;
-  display: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-  opacity: 0 !important;
+  content: none;
+  display: none;
+  box-shadow: none;
+  filter: none;
+  opacity: 0;
 }
 
 .page--arena .arena-confrontation-band .arena-live-centre b,
@@ -873,8 +873,8 @@
 .page--arena .arena-live-chef span,
 .page--arena .arena-live-chef strong,
 .page--arena .arena-live-centre .arena-ico {
-  text-shadow: none !important;
-  filter: none !important;
+  text-shadow: none;
+  filter: none;
 }
 
 /* Real culprit (browser check 2026-07-27): live-stage::after side washes —
@@ -885,13 +885,13 @@
 .page--arena .arena-command-deck__live-stage[data-centre-key^="battle-"]::after,
 .page--arena .arena-command-deck__live-stage[data-centre-key^="crown-"]::after,
 .page--arena .arena-command-deck__live-stage[data-centre-key="empty"]::after {
-  content: none !important;
-  display: none !important;
-  background: none !important;
-  box-shadow: none !important;
-  filter: none !important;
-  opacity: 0 !important;
-  animation: none !important;
+  content: none;
+  display: none;
+  background: none;
+  box-shadow: none;
+  filter: none;
+  opacity: 0;
+  animation: none;
 }
 
 /* =============================================================================

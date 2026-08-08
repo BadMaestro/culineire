@@ -324,7 +324,7 @@
   padding: 0.45rem 0.9rem;
   border-radius: 999px;
   background: var(--accent-bronze);
-  color: var(--surface) !important;
+  color: var(--surface);
   text-decoration: none;
   line-height: 1;
   transition: background 0.18s;
@@ -333,7 +333,7 @@
 .arena-tooltip__link:hover,
 .arena-tooltip__link:focus-visible {
   background: var(--accent-bronze-dark);
-  color: var(--surface) !important;
+  color: var(--surface);
 }
 
 /* --- Stats row (W / L / Streak) --- */
@@ -400,7 +400,7 @@
   padding: 0.45rem 0.9rem;
   border-radius: 999px;
   background: transparent;
-  color: var(--accent-bronze) !important;
+  color: var(--accent-bronze);
   border: 1.5px solid var(--accent-bronze);
   text-decoration: none;
   line-height: 1;
@@ -409,7 +409,7 @@
 .arena-tooltip__challenge:hover,
 .arena-tooltip__challenge:focus-visible {
   background: var(--accent-bronze);
-  color: var(--surface) !important;
+  color: var(--surface);
 }
 
 
@@ -1798,9 +1798,9 @@
 .page--arena .arena-floor-wrapper,
 .page--arena .arena-floor-plane,
 .page--arena .arena-floor-ring {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* =============================================================================
@@ -3981,7 +3981,7 @@
     opacity: 1;
   }
   .page--arena #arena-render {
-    filter: none !important;
+    filter: none;
   }
 
 
@@ -4565,8 +4565,8 @@
     padding: 0;
     border: 0;
     border-radius: 0;
-    background: transparent !important;
-    box-shadow: none !important;
+    background: transparent;
+    box-shadow: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     grid-template-columns: minmax(0, 1fr) 7.4rem minmax(0, 1fr);
@@ -5845,7 +5845,7 @@
   .page--arena .arena-rank-spine,
   .page--arena .arena-confrontation-band,
   .page--arena .arena-floor-caption {
-    z-index: var(--arena-z-furniture) !important;
+    z-index: var(--arena-z-furniture);
   }
 
   /* The caption sheds a line rather than overlapping the panel above it or the
