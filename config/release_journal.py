@@ -1,8 +1,16 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.940",
+        "version": "2.5.942",
         "date": "2026-08-08",
         "commit": "",
+        "title": "The loose ends of the three stylesheet stages: comments that named deleted files, and a report whose numbers had gone stale",
+        "section": "Chef Battles / Arena",
+        "summary": "Nothing here changes a pixel or a byte the browser executes; it stops the code lying about itself, which is the fault this whole block exists to fix. Three comments still named files that AN12 deleted - the renderer explained --row-light as arena_render.css's, described a four-way argument about a rank ring's fill between sheets two of which no longer exist, and the ring partial still said the octagon's stylesheet is loaded from the head of both pages when there is no separate stylesheet any more. The engineering report was worse: it opened with AN1-AN8 and v2.5.930, counted 8642 lines across the sheets when there are 7508, 58 !important when there are 55, and its stage table used numbers 1 to 8 that collide with the AN card numbers while meaning something else entirely. The table now says DEPLOY STAGE in the header, names the card each stage closed, carries the three new ones, and says in a line that the collision was an accident. The deleted-work table gains the two rows it was missing: the two stylesheets, and the 584 declarations with the 135 rules they emptied.",
+    },
+    {
+        "version": "2.5.940",
+        "date": "2026-08-08",
+        "commit": "5b2fc579",
         "title": "The load and resize scenarios go from four measured to ten, and the ladder is in its final place in the first frame",
         "section": "Chef Battles / Arena",
         "summary": "AN7 and AN9, master task sections 5E and 5G. Measured on a harness that carries the real arena DOM, the real stylesheets and the real renderer over HTTP - the production arena is staff-only and answers 404 to this browser, so every number here is a harness number, honest for before-and-after and not a statement about production. At 1280x800: FCP 544ms, LCP 544ms, DOMContentLoaded 283ms, load 406ms, CLS 0 with not one layout-shift entry, 4 long tasks, 2486 DOM nodes of which 1759 are the octagon's SVG. The line that matters most: in the FIRST animation frame the page ever paints, the rank ladder is already at 935,372,148,220 and already visible. There is no frame in which it is somewhere else, which is what AN2 and AN6 were for and what section 24 asks to be proved rather than asserted. Ten of the twelve scenarios are now measured. A fresh load at 1920 is byte-identical to arriving there by resize. A tour through 1920, 1440, 1280x520 and 1024 and back to 1280x800 returns the exact fresh-load numbers. On the short screen that broke this before, 1280x520, the ladder ends 1px ABOVE the fold where it used to hang 19px below it; at 1024 the header measures 172 rather than 146 and the deck overflows by 0px, which is A07 holding at a width where it used to fail. The two that remain - cold cache, and CPU and network throttling - need CDP and access to the production page, and neither is available here. They are named on the board rather than quietly dropped.",

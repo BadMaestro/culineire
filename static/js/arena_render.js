@@ -1185,7 +1185,8 @@
   var FACE_DESATURATE = 0.38;
 
   // The seats fall into the dark on the same curve as the faces sitting in
-  // them. arena_render.css reads --row-light; it used to hold a hand-written
+  // them. arena.css reads --row-light (the renderer's own section, merged in
+  // AN12); it used to hold a hand-written
   // ladder of ring numbers, which stopped covering the stands the moment they
   // grew from four rows to eight. One source of depth, written from here.
   function lightRows(svg, geometry) {
@@ -3173,11 +3174,12 @@
   // THE LADDER WEARS ITS RINGS' OWN COLOURS. Owner, 2026-08-07.
   //
   // The colour is READ OFF THE FLOOR rather than restated beside it. Three
-  // stylesheets have an opinion about a rank ring's fill - arena_render.css
-  // names the tokens, arena_deck_polish.css repeats them as literals under a
-  // heavier selector, arena_atmosphere.css wins with !important - and a fourth
-  // list, written here, would be a fourth thing to keep in step with the other
-  // three. Whatever the ring ACTUALLY paints, the rung takes.
+  // sheets had an opinion about a rank ring's fill - the renderer named the
+  // tokens, arena_deck_polish.css repeated them as literals under a heavier
+  // selector, arena_atmosphere.css won with !important - and a fourth list,
+  // written here, would be a fourth thing to keep in step. Two of those files
+  // are gone since AN12 and AN13, and the argument is the same: whatever the
+  // ring ACTUALLY paints, the rung takes.
   //
   // Rings 7 and 8 (Prep Chef, Kitchen Porter) come back the same colour,
   // because the floor paints them the same colour: there are six ramp tokens

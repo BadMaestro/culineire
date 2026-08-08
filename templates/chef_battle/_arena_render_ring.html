@@ -207,7 +207,8 @@ safeguard. The hash cannot be forgotten.
   be the file that loads last and therefore wins. Decisions were taken on the
   strength of that claim and it was false.
 
-  It is now loaded from the head of both pages that include this partial:
+  Since AN12 there is no separate sheet to link: the renderer's rules live in
+  arena.css, which both pages that include this partial load from their head -
   chef_battle/arena.html and chef_battle/arena_master_console.html.
 {% endcomment %}
 

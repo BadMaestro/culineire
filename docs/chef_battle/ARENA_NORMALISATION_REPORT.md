@@ -1,8 +1,9 @@
 # Arena normalisation — engineering report
 
-**AN1 – AN8, 2026-08-08.** Production went from **v2.5.910** to **v2.5.930**
-across eight architectural stages, each deployed whole and verified on the live
-site before the next began. The BEFORE numbers all come from
+**2026-08-08.** Production went from **v2.5.910** to **v2.5.940** across eleven
+architectural stages, each deployed whole and verified on the live site before
+the next began. Stages 1-8 closed AN1-AN11, AN14, AN17, AN19 and AN23-AN25;
+stages 9, 10 and 11 closed **AN13**, **AN12** and **AN15**. The BEFORE numbers all come from
 `ARENA_NORMALISATION_BASELINE.md`, written before a line was changed.
 
 ---
@@ -63,16 +64,25 @@ lost.
 
 ## C. Changes
 
-| Stage | What |
+| Deploy stage | What |
 |---|---|
-| AN1 | Audit, baseline, backup tag, rollback rehearsed, ownership map |
-| AN2 | Readiness lifecycle: boot → shell → geometry → scene → interactive |
-| AN3 | `arena_render.css` moved from the body to the head, same cascade position |
-| AN4 | Four shell stylesheets merged into `arena.css`; three files deleted |
-| AN5 | One documented layer ladder, 21 `--arena-z-*` tokens, values unchanged |
-| AN6 | One owner of position: 31 positional declarations removed |
-| AN7 | The deck waits for its measured height before it is painted |
-| AN8 | 81 `!important` removed, 58 kept and each proven necessary |
+| 1 | Audit, baseline, backup tag, rollback rehearsed, ownership map |
+| 2 | Readiness lifecycle: boot -> shell -> geometry -> scene -> interactive |
+| 3 | The octagon's sheet moved from the body to the head, same cascade position |
+| 4 | Four shell stylesheets merged into `arena.css`; three files deleted |
+| 5 | One documented layer ladder, 21 `--arena-z-*` tokens, values unchanged |
+| 6 | One owner of position: 31 positional declarations removed |
+| 7 | The deck waits for its measured height before it is painted |
+| 8 | 81 `!important` removed, 58 kept and each proven necessary |
+| 9 | **AN13**: 584 declarations a later rule with the same selector already beat, and the 135 rules left empty with them |
+| 10 | **AN12**: seven stylesheets become two; the console mirror keeps only `arena.css` |
+| 11 | **AN15**: `arena_page_layout.js` owns the page's geometry; the renderer stops measuring the site header |
+
+These numbers are DEPLOY STAGES, in the order they shipped. They are not the
+AN cards - the board is the register of those, and where a stage closed a card
+the card is named in the row. The first eight ran before the block was opened
+and the numbering collided by accident, which is worth one line here rather
+than a puzzle later.
 
 **Files deleted:** `arena_command_deck.css`, `arena_hall.css`,
 `arena_deck_polish.css` — merged, not wrapped in imports.
@@ -93,8 +103,8 @@ static flow rules are untouched.
 | Metric | Before | After |
 |---|---:|---:|
 | Arena stylesheets | 7 | **2** |
-| Lines in them | 8534 | 8642 |
-| `!important` (source lines) | 136 | **58** |
+| Lines in them | 8534 | **7508** |
+| `!important` (source lines) | 136 | **55** |
 | `!important` (live properties) | 338 | **204** |
 | `z-index` declarations | 70 | 72 |
 | Raw `z-index` numbers | 70 | **0** |
@@ -132,6 +142,8 @@ load at 1280 is byte-identical to arriving there by resizing.
 | `arena_command_deck.css`, `arena_hall.css`, `arena_deck_polish.css` | Merged into `arena.css` in the exact order the browser already applied them. Every page that loaded them loaded all four together. Geometry compared pixel-for-pixel afterwards. |
 | 31 positional CSS declarations | The renderer overwrote every one of them on desktop; removing them changed nothing measurable. Verified at four viewports. |
 | 81 `!important` declarations | Proven on the live page: stripping the 40 rules that cannot reach the nine elements affected by `!important` changed **0 of 76 632** measured values. |
+| `arena_render.css`, `arena_effects.css` | AN12. Merged in the order the browser already applied them, after the sixteen declarations they shared with another sheet were removed - each of those already lost where it stood. Proved over the rendered DOM in a real engine: 2435 elements x 544 computed properties, plus the octagon's 1759 nodes at four forced stage states, zero differences. |
+| 584 superseded declarations and the 135 rules they emptied | AN13. Each was overwritten by a later rule with the IDENTICAL selector, so it could never win for any element. 2550 winning declarations before and the same 2550 after, 0 changed. |
 
 **Nothing else was deleted.** No JavaScript module, no template, no static asset
 and no database field. Nothing was classified DEAD.
