@@ -3042,9 +3042,6 @@
     stroke: color-mix(in srgb, #d8d0c0 70%, #ffffff);
     opacity: 1;
   }
-  .page--arena #arena-render {
-    filter: none;
-  }
 
 /* 3G — atmospheric stand wash (decorative crowd, not fake users). */
 
@@ -3545,13 +3542,7 @@
   .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: #ccc1aa; }
   .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: #d8d0c0; }
   .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
-    fill: color-mix(in srgb, var(--ink) 72%, var(--surface));
-    stroke: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
     stroke-width: 1;
-  }
-  .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
-    fill: color-mix(in srgb, var(--ink) 58%, var(--surface));
-    stroke: color-mix(in srgb, var(--accent-bronze) 65%, transparent);
   }
   .page--arena #arena-render .arena-rim,
   .page--arena #arena-render .arena-rim--outer {
@@ -5128,3 +5119,1288 @@
 .page--arena .arena-command-deck[data-arena-state="boot"] > * {
   visibility: hidden;
 }
+
+/* ==========================================================
+   arena_render.css, merged here in AN12 (master task section 8).
+   Kept in its original order so the cascade is unchanged.
+   ========================================================== */
+
+/*
+ * Unified arena renderer skin (arena_render.js).
+ *
+ * The renderer stamps structure only: data-ring, data-ring-kind, data-cell,
+ * data-occupancy, data-state. All colour lives here.
+ *
+ * Palette rule (CulinEire colour & font scheme v1): design tokens only, no raw
+ * colours. The floor is the brand's warm parchment + muted bronze — tiles
+ * darken toward the centre, so rank reads as depth: ring 1 is Culinary Master,
+ * ring 8 is Kitchen Porter. The eight steps are mixed from --brand rather than
+ * hardcoded, so a change to the brand token repaints the whole floor.
+ */
+
+.arena-render-container {
+  /* Floor rings, measured off the Owner-approved mockup (mockups/arena.png):
+     a horizontal scanline through the octagon centre, median of a 5x5 window.
+     Ring 8 is the outer band and ring 1 the innermost rank.
+     MEASURED: 8 #e6d2ba, 7 #e6d1b9, 6 #dbc0a3, 4 #b49d80, 1 #9d886c.
+     INTERPOLATED between those anchors: 5, 3, 2 — the mockup has only six
+     visible bands and the Arena draws eight ranks, so three steps are linear
+     fills, not readings. Named here rather than scattered as literals in the
+     rules below, per TECHNICAL_STANDARDS section 7. */
+  --arena-floor-1: #52422e;
+  --arena-floor-2: #7c674d;
+  --arena-floor-3: #9b8467;
+  --arena-floor-4: #b49c7f;
+  --arena-floor-5: #d2bb9f;
+  --arena-floor-6: #e1cbb0;
+  /* Owner's reference table, 2026-07-29, centre outward. It replaces my own
+     scanline reading, which missed the two dark inner steps entirely: a single
+     horizontal cut through the centre passes behind the Crown Holder card, so
+     the innermost rings never appeared in it, and two of my six values came out
+     a duplicate pair. Both lists were checked against mockups/arena.png; his
+     dark steps carry 17-22k pixels each, mine had nothing that dark.
+     Entries 7 (#eee1ca, light accent edge) and 8 (#535252, steel border) from
+     that table are the rim, not ring fills, and are left alone.
+     The floor draws SIX rings: 10+20+30+40+50+60 = 210 cells, ring 6 outer. */
+  --arena-floor-8: #e1cbb0;
+  --arena-floor-7: #e1cbb0;
+  /* Ring 2 (Moat) and ring 11 (VIP Guests) from the Owner's reference table,
+     ARENA_BATTLE_PLAN §2 v2. Named once here rather than repeated as literals in
+     the rules below, per TECHNICAL_STANDARDS section 7. The moat reuses the
+     innermost floor tone so the Crown sits in one continuous dark centre. */
+  --arena-moat: var(--arena-floor-1);
+  --arena-vip: #535252;
+  /* Brass trim for the VIP boxes, mixed from the site accent, not restated. */
+  --arena-vip-edge: color-mix(in srgb, var(--accent-bronze) 62%, var(--arena-vip));
+  /* The liner reads as gold rather than bronze: the accent lifted toward the
+     page's light surface, so it stays inside the palette. */
+  --arena-vip-gold: color-mix(in srgb, var(--accent-bronze) 72%, var(--surface-soft));
+  --arena-stage-ink: var(--brand-dark);
+  /* The scheme's bronze accent (--about-accent) is declared inside .about-deck,
+     so it does not exist on this page. Until it is promoted to :root, the
+     arena's accent is mixed from the brand token rather than restated as a raw
+     colour here. */
+  --arena-accent: color-mix(in srgb, var(--brand) 70%, var(--surface));
+
+  width: min(100%, 960px);
+  margin-inline: auto;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+}
+
+#arena-render {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  overflow: visible;
+}
+
+/* ---- cells ---- */
+
+#arena-render .arena-cell {
+  fill: var(--arena-seat);
+  stroke: var(--arena-seam);
+  transition: fill 180ms ease, opacity 180ms ease;
+}
+
+#arena-render .arena-cell[data-occupancy="chef"],
+#arena-render .arena-cell[data-occupancy="spectator"] {
+  cursor: pointer;
+}
+
+#arena-render .arena-cell[data-occupancy="chef"]:hover,
+#arena-render .arena-cell[data-occupancy="spectator"]:hover {
+  opacity: 0.82;
+}
+
+/* Free rank seats: outer ring is mockup stone grey; deepen toward centre. */
+#arena-render [data-ring="8"][data-occupancy="empty"] { fill: var(--arena-floor-8); }
+#arena-render [data-ring="7"][data-occupancy="empty"] { fill: var(--arena-floor-7); }
+#arena-render [data-ring="6"][data-occupancy="empty"] { fill: var(--arena-floor-6); }
+#arena-render [data-ring="5"][data-occupancy="empty"] { fill: var(--arena-floor-5); }
+#arena-render [data-ring="4"][data-occupancy="empty"] { fill: var(--arena-floor-4); }
+#arena-render [data-ring="3"][data-occupancy="empty"] { fill: var(--arena-floor-3); }
+#arena-render [data-ring="2"][data-occupancy="empty"] { fill: var(--arena-floor-2); }
+#arena-render [data-ring="1"][data-occupancy="empty"] { fill: var(--arena-floor-1); }
+
+/* A taken seat sits one step deeper than the free seat beside it, so an
+   occupied ring still reads as a ring behind its avatars. */
+#arena-render [data-ring="8"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-8) 78%, var(--arena-stage-ink)); }
+#arena-render [data-ring="7"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-7) 78%, var(--arena-stage-ink)); }
+#arena-render [data-ring="6"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-6) 78%, var(--arena-stage-ink)); }
+#arena-render [data-ring="5"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-5) 78%, var(--arena-stage-ink)); }
+#arena-render [data-ring="4"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-4) 78%, var(--arena-stage-ink)); }
+#arena-render [data-ring="3"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-3) 78%, var(--arena-stage-ink)); }
+#arena-render [data-ring="2"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-2) 78%, var(--arena-stage-ink)); }
+#arena-render [data-ring="1"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--arena-floor-1) 78%, var(--arena-stage-ink)); }
+
+/* ---- the two rings the eleven-ring structure adds (AR1) ----
+   These carry data-ring-kind, not a numeric data-ring: they hold no seats, so
+   they are deliberately outside the seating key. AR3 hangs the lanterns in the
+   moat; AR5 dresses the VIP band for sponsors. */
+
+/* Both blocks are scoped .page--arena on purpose. arena_deck_polish.css carries
+   `.page--arena #arena-render .arena-cell { stroke: #fff }`, which outranks a
+   plain `#arena-render .arena-cell--moat` on specificity no matter the load
+   order — the same trap that made v2.5.686 a silent no-op (see AR0 audit).
+   Matching the prefix is the fix; !important is not. */
+
+/* Ring 2 — the Moat. No visible cell borders (Owner): the ring must read as one
+   unbroken dark band separating the Crown from the ranks. */
+.page--arena #arena-render .arena-cell--moat {
+  fill: var(--arena-moat);
+  stroke: none;
+}
+
+/* The ring's own white outline — one line per edge, no dividers inside. */
+.page--arena #arena-render .arena-moat-edge {
+  fill: none;
+  stroke: var(--arena-seam);
+  stroke-width: 1.5;
+}
+
+/* Ring 11 — VIP Guests (sponsors): the steel band at the floor's outer edge.
+   Four boxes per octagon face. These are the only seats on the floor that are
+   BOUGHT, so they must not read as another rank tile: steel plate, brass edge,
+   and a brass lift on hover. The brass is mixed from the site's own accent token
+   rather than restated as a colour, so a palette change carries through. */
+.page--arena #arena-render .arena-cell--vip {
+  /* Velvet: deeper and warmer than the steel rim it sits in, so the box reads as
+     upholstered rather than as another plate of floor. */
+  fill: color-mix(in srgb, var(--arena-vip) 58%, var(--ink));
+  stroke: var(--arena-vip-edge);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+/* A VIP box lifts toward brass when pointed at — the seat is for sale. */
+.page--arena #arena-render .arena-cell--vip:hover {
+  fill: color-mix(in srgb, var(--arena-vip) 82%, var(--accent-bronze));
+  stroke: var(--accent-bronze);
+  stroke-width: 1.8;
+}
+
+/* The gold liner inside each box — drawn as its own inset wedge, because a
+   stroke is centred on its path and cannot be an inner rim on its own. */
+.page--arena #arena-render .arena-cell--vip-liner {
+  fill: none;
+  stroke: var(--arena-vip-gold);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+.page--arena #arena-render .arena-cell--vip:hover + .arena-cell--vip-liner {
+  opacity: 1;
+  stroke-width: 1.4;
+}
+
+/* The ring signs itself once per octagon face, gold on velvet. */
+.page--arena #arena-render .arena-vip-label {
+  fill: var(--arena-vip-gold);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* The corner boxes carry the whole word. It was set at 8px back when it had to
+   fit inside HALF a box; on the bent guide it has the whole corner, 95 units,
+   and used only 46 of them. Raised with that headroom in mind, not guessed. */
+.page--arena #arena-render .arena-vip-label--word {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  opacity: 0.92;
+}
+
+/* An occupied VIP box carries its sponsor: brass edge at full strength. */
+.page--arena #arena-render .arena-cell--vip[data-occupancy="sponsor"],
+.page--arena #arena-render .arena-cell--vip[data-occupancy="chef"] {
+  fill: color-mix(in srgb, var(--arena-vip) 70%, var(--accent-bronze));
+  stroke: var(--accent-bronze);
+  stroke-width: 2;
+}
+
+/* What a seated sponsor shows: their logo where they have one, their name where
+   they do not. Both sit in the sponsors layer, under the chefs — the arena is
+   the chefs' and the ring is the sponsors' frame around it, not the other way
+   round. */
+.page--arena #arena-render .arena-vip-sponsor-name {
+  fill: var(--surface-soft);
+  font-family: var(--font-sans);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.page--arena #arena-render .arena-vip-sponsor-logo {
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--ink) 70%, transparent));
+}
+
+/* Owner 2026-08-03 — a gold firefly runs around an ACTIVE box. Same outline and
+   same running dash as a chef's spark, in gold: this ring is sold, not earned,
+   and the colour is the one difference that says so. Butt ends for the reason
+   every running spot here uses them — the outline is closed, and round caps
+   break the dash in two at the seam. */
+.page--arena #arena-render .arena-vip-spark {
+  opacity: 0;
+  stroke: none;
+}
+
+.page--arena #arena-render .arena-vip-spark[data-lit="true"] {
+  opacity: 1;
+  stroke: var(--arena-vip-gold);
+  stroke-width: 2.6;
+  stroke-linecap: butt;
+  stroke-dasharray: 10 90;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 3px var(--arena-vip-gold));
+  animation: arena-spot-run 2.8s linear infinite;
+}
+
+/* Every box answers a click, so every box says so under the pointer. */
+.page--arena #arena-render .arena-cell--vip {
+  cursor: pointer;
+}
+
+/* Spectator galleries read cooler than the floor, mixed off --ink so they stay
+   inside the palette. The scheme has no blue token; if the reference's slate
+   gallery becomes a brand colour, it belongs in base.css, not here. */
+/* Spectator galleries: occupied only. Empty seat discs were a grey dot grid
+   around the floor — hide paint, keep nodes for seating logic/faces. */
+#arena-render [data-ring-kind="spectator"][data-occupancy="empty"],
+#arena-render .arena-cell--oval-seat[data-occupancy="empty"] {
+  fill: none;
+  stroke: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* AR5 — balcony spirits (ARENA_BATTLE_PLAN §2a).
+ *
+ * Bodiless is the whole brief, so a spirit is a soft light and nothing else:
+ * no portrait, no outline that could read as a head, no label. It is
+ * deliberately fainter and smaller than an author seat, because an author is a
+ * person in the hall and a spirit is only the fact that somebody is watching.
+ *
+ * An empty stand is invisible rather than absent: the nodes stay in the DOM so
+ * a poll can light them without redrawing the balcony. Zero present is a
+ * correct picture, and today it is the expected one. */
+#arena-render .arena-spirit {
+  fill: color-mix(in srgb, var(--surface) 72%, var(--accent-bronze));
+  stroke: none;
+  opacity: 0;
+  pointer-events: none;
+}
+#arena-render .arena-spirit[data-occupancy="present"] {
+  opacity: 0.34;
+  animation: arena-spirit-breathe 5.5s ease-in-out infinite;
+}
+#arena-render .arena-spirit[data-row="1"][data-occupancy="present"] {
+  opacity: 0.24;
+}
+
+@keyframes arena-spirit-breathe {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.38; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-spirit[data-occupancy="present"] { animation: none; }
+}
+
+/* ---- state ---- */
+
+#arena-render [data-state="in-battle"] {
+  stroke: var(--arena-accent);
+  stroke-width: 2;
+}
+
+#arena-render [data-state="online"] {
+  stroke: var(--brand);
+  stroke-width: 1.6;
+}
+
+/* ---- centre stage ---- */
+
+/* crown fill/stroke finalized below with marble overlay */
+#arena-render .arena-stage[data-state="active_battle"] { fill: var(--brand-dark); }
+#arena-render .arena-stage[data-state="facing_pair"] { fill: var(--brand); }
+
+/* ---- free seat, offered on hover only ---- */
+
+/* A free seat is plain until pointed at: the floor carries no permanent glyph,
+   and only a viewer who can actually take the seat is ever offered one. */
+#arena-render [data-seatable] {
+  cursor: pointer;
+}
+
+#arena-render [data-seatable]:hover {
+  fill: color-mix(in srgb, var(--brand) 30%, var(--surface));
+  stroke: var(--brand);
+  stroke-width: 1.8;
+}
+
+#arena-render .arena-seat-label {
+  fill: var(--surface);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--brand-dark);
+  stroke-width: 2px;
+}
+
+#arena-render .arena-seat-label[hidden] {
+  display: none;
+}
+
+/* ---- teleport ---- */
+
+/* Chefs taking the centre. chef_battle.css carries a flash of the same name,
+   but its keyframes animate r: 0 -> 55 against the legacy 1740-unit viewBox —
+   inside this stage rather than around it. Scoped here to this renderer's own
+   geometry instead. */
+#arena-render .arena-teleport-flash {
+  stroke: var(--arena-accent);
+  animation: arena-render-teleport 0.7s ease-out forwards;
+}
+
+@keyframes arena-render-teleport {
+  0%   { r: 88;  opacity: 0.9; stroke-width: 5; }
+  100% { r: 165; opacity: 0;   stroke-width: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-teleport-flash { display: none; }
+}
+
+/* ---- occupants ---- */
+
+#arena-render .arena-occupant {
+  pointer-events: none;
+  opacity: 1;
+}
+
+#arena-render .arena-occupant image {
+  opacity: 1;
+}
+
+/* Online presence pulse — SMIL on the circle does the hard work; CSS is backup. */
+#arena-render .arena-online-dot {
+  animation: arena-online-pulse 1.4s ease-in-out infinite;
+}
+
+#arena-render .arena-online-ping {
+  pointer-events: none;
+}
+
+@keyframes arena-online-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-online-dot { animation: none; opacity: 1; }
+  #arena-render .arena-online-dot animate,
+  #arena-render .arena-online-ping animate { display: none; }
+}
+
+/* Fallback when a record carries no avatar: the seat still reads as taken.
+   Serif, not sans — the initial stands in for a portrait, so it is display
+   type rather than UI type. */
+#arena-render .arena-occupant__initial {
+  fill: var(--surface);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: var(--ink);
+  stroke-width: 1.2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-cell { transition: none; }
+}
+
+/* ============================================================================
+ * PHASE B — the dark bowl around a lit floor.
+ *
+ * Phase A (v2.5.322, reverted in v2.5.324) darkened the wrong surface: it
+ * overrode --surface / --brand / --ink inside this container, and those are the
+ * tokens every tile fill is mixed from, so it repainted the FLOOR. The owner
+ * settled this on 2026-07-16 and again with the 2026-07-18 mockup: the floor
+ * stays warm parchment, there is no dark floor theme.
+ *
+ * What is dark is the BOWL the floor sits in — the stands, the crowd in shadow,
+ * green-black walls with gold rim lights. So nothing below touches a floor
+ * token: this styles the container around the SVG, and the spotlight is thrown
+ * onto the parchment rather than mixed into it.
+ * ========================================================================== */
+.arena-render-container {
+  /* The bowl and its light come from the site scheme, not from a hand-picked
+     pair. They were legacy emerald and yellow-gold values — an
+     set that appears nowhere in CulinEire's tokens, whose brand core is warm
+     parchment, ink and muted bronze (the reference PDF states it outright:
+     "--legal-green is brand/bronze, not green"). --hall-* are declared on
+     .page--arena in arena_hall.css, which wraps this scene; the fallbacks keep
+     the container correct if it is ever rendered outside that page. */
+  --arena-bowl: var(--surface-soft);
+  --arena-bowl-edge: var(--surface-muted);
+  --arena-spot: var(--accent-bronze);
+
+  /* Gold pooling over the stage, falling away into a dark bowl. */
+  background:
+    radial-gradient(120% 95% at 50% 42%,
+      color-mix(in srgb, var(--arena-spot) 22%, transparent) 0%,
+      transparent 56%),
+    radial-gradient(115% 115% at 50% 48%,
+      var(--arena-bowl) 0%, var(--arena-bowl-edge) 100%);
+  border-color: color-mix(in srgb, var(--arena-spot) 26%, var(--arena-bowl-edge));
+  /* The inset shadow is what turns a flat dark panel into a bowl: the rim falls
+     into shadow while the centre stays lit. */
+  box-shadow: inset 0 0 90px 26px var(--brand-soft), var(--shadow-sm);
+}
+
+/* ----------------------------------------------------------------------------
+ * The stands are RINGS, not a backdrop.
+ *
+ * Painting the dark onto the container alone put it only in the four corners
+ * left over around an inscribed octagon: a black box with a pale slab in it,
+ * not an amphitheatre (owner's screenshot, 2026-07-18). In the mockup the dark
+ * IS the crowd — the outer rings themselves, packed with people, wrapping a lit
+ * floor. So the spectator oval seats (Owner mockup redesign: oval around the
+ * chef octagon, not polar rings 9+) become the dark stands
+ * and the rank floor (1-8) keeps its parchment. The bowl then reads from the
+ * geometry outward instead of from the frame inward.
+ * -------------------------------------------------------------------------- */
+#arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
+  /* The empty stands must read as the DARK crowd bowl that wraps the lit floor
+     (reference: "the dark IS the crowd"). --arena-bowl is a light surface token,
+     so the previous bowl-88%/ink-12% mix painted the seats near-white and the
+     stands read as a faint grey dot-ring, not a packed amphitheatre. Flip it
+     ink-dominant so the outer rings carry the dark. Tokens only, no raw hex. */
+  fill: color-mix(in srgb, var(--ink) 74%, var(--arena-bowl));
+  stroke: color-mix(in srgb, var(--ink) 88%, var(--arena-bowl-edge));
+  /* opacity: the pre-redesign rule above still sets 0 on empty seats; restore
+     it here or the bowl is fully transparent (owner: "no seats for them"). */
+  opacity: 1;
+}
+
+/* An occupied seat is a lit face in the dark: brighter than the stand around
+   it, so a full house reads as a crowd rather than a texture. */
+#arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
+  fill: color-mix(in srgb, var(--arena-spot) 30%, var(--arena-bowl));
+  stroke: color-mix(in srgb, var(--arena-spot) 45%, var(--arena-bowl-edge));
+}
+
+/* ----------------------------------------------------------------------------
+ * Seams are mortar, not grout.
+ *
+ * --arena-seam was --surface, i.e. near-white, and the stroke is
+ * vector-effect: non-scaling-stroke — it stays 1.1 CSS px however far the SVG
+ * is scaled down. On a phone a floor tile is roughly 20px across, so a 1.1px
+ * white outline eats a large share of every tile and the whole floor collapses
+ * into white brickwork: the rank ladder was rendering correctly and simply
+ * could not be seen under it (owner's screenshots, 2026-07-18, three passes
+ * "nothing changes"). Dark mortar puts the tile back in charge of its colour.
+ * -------------------------------------------------------------------------- */
+
+#arena-render .arena-cell {
+  stroke-width: 0.7;
+}
+
+/* In the stands the mortar goes darker still, so the crowd reads as mass
+   rather than as a lit grid. */
+#arena-render [data-ring-kind="spectator"] {
+  stroke-width: 0.5;
+}
+
+/* Depth across the stands: the near ring catches the stage light, the far ring
+   falls away into the rim.
+
+   This was a ladder of one rule per ring, hand-written for rings 9-12 back when
+   the stands were four rings deep. They are eight now (get_arena_geometry,
+   40..96 seats) and the four new rings inherited no brightness at all: the back
+   of the hall lit up as brightly as the front row. A list of ring numbers in CSS
+   cannot survive the contract changing, so the fall-off is driven from
+   row / rows_total in arena_render.js instead — the same numbers the faces use,
+   one mechanism, no list to forget. */
+/* A08. This was `filter: brightness(var(--row-light, 1))`, and it never once
+   reached the screen. arena_atmosphere.css carries
+   `.page--arena #arena-render .arena-cell { filter: none }` — written
+   to stop avatar glow bleeding past the rim — and a stand seat carries
+   .arena-cell too, so every row was computed in JavaScript and thrown away by
+   an !important meant for something else. Measured on production before this
+   change: --row-light 1.000 on the near row and 0.550 on the far one, and
+   computed filter `none` on both; an inline brightness on the same circle also
+   computed to none, while the identical inline filter on a control div did not.
+
+   So the fall-off stops asking for `filter` at all and lands in the fill, which
+   nothing is holding down. The near row keeps the stage light; the far row is
+   mixed toward the deep bowl by exactly the same --row-light the renderer
+   already sets, so there is still ONE mechanism and no list of ring numbers to
+   forget. The rim protection above is untouched.
+
+   Direction, learned the hard way in v2.5.776: the BOWL is the floor of the
+   range and the light is what varies. The first attempt mixed the far row
+   toward a token built from --brand-dark, and --brand-dark is a warm brown at
+   luminance 0.32 against a bowl at 0.16 — so "deeper" came out 17% LIGHTER and
+   the hall fell away toward the viewer. Now the near row is lifted toward the
+   stage light by --row-light and the far row simply keeps less of it, which is
+   what depth actually is.
+
+   Scoped .page--arena on purpose, and this is the second time that trap has been
+   paid for in this file: arena_deck_polish.css owns the stand colour with
+   `.page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"]`,
+   which outranks a plain #arena-render rule at any load order. The comment at
+   the top of this file says exactly that about the moat, and the first cut of
+   A08 walked straight past it and shipped a rule that changed nothing.
+   Matching the prefix is the fix; !important is not. */
+.page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
+  fill: color-mix(
+    in srgb,
+    var(--arena-spot) calc(var(--row-light, 1) * 16%),
+    color-mix(in srgb, var(--ink) 74%, var(--arena-bowl))
+  );
+  stroke: color-mix(
+    in srgb,
+    var(--arena-spot) calc(var(--row-light, 1) * 10%),
+    color-mix(in srgb, var(--ink) 88%, var(--arena-bowl-edge))
+  );
+}
+
+/* An occupied seat is a real person and stays legible wherever they sit: it
+   takes the same light from the same variable, but from a far brighter start
+   and with only part of the fall, so a back row dims someone without swallowing
+   them. */
+.page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
+  fill: color-mix(
+    in srgb,
+    var(--arena-spot) calc((0.6 + var(--row-light, 1) * 0.4) * 34%),
+    var(--arena-bowl)
+  );
+  stroke: color-mix(
+    in srgb,
+    var(--arena-spot) calc((0.6 + var(--row-light, 1) * 0.4) * 45%),
+    var(--arena-bowl-edge)
+  );
+}
+
+/* ----------------------------------------------------------------------------
+ * The walkway, and the light along its edge.
+ *
+ * In the mockup the parchment does not run straight into the crowd: a pale
+ * grey walkway circles the floor, and the boundary carries a bronze rim light
+ * on each side. That line is what tells a lit floor from a dark hall — without
+ * it the outermost rank ring simply fades into the stands and the arena reads
+ * as one continuous slab.
+ *
+ * Neutral grey, not blue. The scheme has no cool token at all; --muted is the
+ * nearest neutral and is mixed toward the bowl so the walkway sits in shadow
+ * rather than glowing. The rim uses the site's own bronze, not an Arena-local
+ * colour.
+ * -------------------------------------------------------------------------- */
+#arena-render .arena-walkway {
+  stroke-width: 22;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 3;
+}
+
+#arena-render .arena-rim {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 3;
+  opacity: 0.7;
+}
+
+#arena-render .arena-rim--outer {
+  stroke: color-mix(in srgb, var(--muted) 48%, var(--surface));
+}
+
+/* Inner lip only — soft bronze edge light, not a second brown octagon. */
+
+/* The floor is lit by the under-pad polygon, not a CSS filter on the SVG.
+   Filters on a perspective/rotateX layer soften every ring edge. */
+
+/* ----------------------------------------------------------------------------
+ * Camera — perspective + rotateX(42deg) (Owner restore 2026-07-27, reaffirmed
+ * 2026-08-04 when he reverted A07's 57deg).
+ *
+ * THIS BLOCK DOES NOT WIN THE CASCADE, whatever the note further down says.
+ * arena_deck_polish.css declares the camera SEVEN times and one of those carries
+ * !important, so that file is what the page actually renders. Change both or
+ * neither. Measured 2026-08-04: an inline override of this rule read back
+ * unchanged, and the numbers taken from it were nearly reported as a finding.
+ * -------------------------------------------------------------------------- */
+.page--arena .arena-render-container {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  height: clamp(480px, 56vw, 94vh);
+  padding: 0;
+  border: 0;
+  border-radius: 1rem;
+  overflow: visible;
+  transform-style: preserve-3d;
+  perspective: 1500px;
+  perspective-origin: 50% 40%;
+}
+
+.page--arena #arena-render {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: auto;
+  height: 172%;
+  aspect-ratio: 1;
+  /* flat, not preserve-3d: the floor is one plane and a nested 3D context
+     under this transform broke the camera (v2.5.649). This file is NOT the only
+     place the camera is declared — that claim stood here and was wrong; see the
+     block header above. arena_atmosphere.css also used to restate the whole
+     block with and force `flat` from there, so this line said
+     preserve-3d while the page rendered flat. */
+  transform-style: flat;
+  transform-origin: 50% 62%;
+  transform:
+    translate(-50%, -50%)
+    translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
+    rotateX(42deg)
+    scale(var(--arena-fit, 1));
+  filter: none;
+}
+
+.page--arena .arena-puzzle-label {
+  position: absolute;
+  top: 0.7rem;
+  left: 0;
+  right: 0;
+  z-index: var(--arena-z-stage);
+  text-align: center;
+}
+
+/* Billboarding: CSS rotateX squashes faces on the floor plane.
+   billboardFaces() in arena_render.js measures each .arena-crowd-figure and
+   un-squashes it; do not add a global scaleY here. */
+
+/* Crown at the centre — no drop-shadow (bled past the outer shell). */
+#arena-render .arena-stage[data-state="crown"],
+#arena-render .arena-stage[data-state="active_battle"],
+#arena-render .arena-stage[data-state="facing_pair"] {
+  filter: none;
+}
+
+/* Mockup M07 — on-floor challenger/opponent hex + centred VS (same tilt as floor). */
+#arena-render .arena-floor-fighter__tile {
+  fill: color-mix(in srgb, var(--surface) 55%, transparent);
+  stroke-width: 2.4;
+  filter: none;
+}
+#arena-render .arena-floor-fighter--challenger .arena-floor-fighter__tile {
+  stroke: var(--hall-green);
+  fill: color-mix(in srgb, var(--hall-green) 22%, var(--surface));
+}
+#arena-render .arena-floor-fighter--opponent .arena-floor-fighter__tile {
+  stroke: var(--hall-red);
+  fill: color-mix(in srgb, var(--hall-red) 22%, var(--surface));
+}
+#arena-render .arena-floor-fighter--crown .arena-floor-fighter__tile {
+  stroke: var(--accent-bronze);
+  fill: color-mix(in srgb, var(--accent-bronze) 22%, var(--surface));
+}
+
+/* An EMPTY pad is muted (Owner, 2026-08-07: "да приглушать").
+ *
+ * The two cells beside the centre are part of the floor and stay drawn when no
+ * battle is on (v2.5.848), but at full side colour an empty seat read as an
+ * occupied one - green and red are how the arena says "these two are fighting".
+ *
+ * The side is still legible, just quiet: a third of the tint, a stroke at half
+ * strength. It says "this seat belongs to the challenger and nobody is in it",
+ * which is the whole job. No new colour is introduced - the same two tokens,
+ * mixed further back.
+ */
+#arena-render .arena-floor-fighter__name {
+  fill: var(--surface);
+  font-family: var(--font-serif, "Playfair Display", serif);
+  font-size: 12px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--brand-dark) 80%, transparent);
+  stroke-width: 2px;
+}
+#arena-render .arena-floor-fighter__identity-shade {
+  fill: color-mix(in srgb, var(--brand-dark) 78%, transparent);
+}
+#arena-render .arena-floor-fighter__country {
+  fill: color-mix(in srgb, var(--surface) 82%, transparent);
+  font-family: var(--font-sans, "Montserrat", sans-serif);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Portrait shares the floor plane (same rotateX as the octagon). */
+#arena-render .arena-floor-fighter__avatar {
+  filter: none;
+}
+
+#arena-render .arena-floor-vs__tile {
+  fill: color-mix(in srgb, var(--accent-bronze) 28%, var(--surface));
+  stroke: var(--accent-bronze);
+  stroke-width: 2.6;
+  filter: none;
+}
+#arena-render .arena-floor-vs__mark {
+  fill: var(--brand-dark);
+  font-family: var(--font-serif, "Playfair Display", serif);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--surface) 80%, transparent);
+  stroke-width: 4px;
+}
+#arena-render .arena-floor-vs__status,
+#arena-render .arena-floor-vs__theme {
+  fill: var(--ink-soft);
+  font-family: var(--font-sans, "Source Sans 3", sans-serif);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Crown holder — recess ring + bulbs; marble/glyph clipped inside. */
+#arena-render .arena-floor-crown__pad,
+#arena-render .arena-floor-crown__glyph {
+  pointer-events: none;
+}
+#arena-render .arena-floor-crown__recess {
+  pointer-events: none;
+}
+#arena-render .arena-floor-crown__gold-shadow {
+  pointer-events: none;
+}
+#arena-render .arena-floor-crown__gold-lip {
+  pointer-events: none;
+  opacity: 1;
+  stroke-width: 1.8;
+  paint-order: stroke;
+}
+#arena-render .arena-floor-crown__recess-wall {
+  pointer-events: none;
+}
+/* Additive: the halo brightens the gold lip it overlaps instead of veiling it
+   in a flat wash. The fill is the warm radial gradient, set in the markup. */
+#arena-render .arena-floor-crown__bulb-glow {
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+#arena-render .arena-floor-crown__bulb-glow--far {
+  opacity: 0.28;
+}
+#arena-render .arena-floor-crown__bulb-core {
+  opacity: 0.88;
+}
+#arena-render .arena-floor-crown__bulb-core--far {
+  opacity: 0.45;
+}
+#arena-render .arena-floor-crown__label {
+  fill: var(--accent-bronze);
+  font-family: var(--font-sans, "Source Sans 3", sans-serif);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+#arena-render .arena-floor-crown__name {
+  fill: color-mix(in srgb, var(--accent-bronze) 78%, var(--surface));
+  font-family: var(--font-serif, "Playfair Display", serif);
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--ink) 50%, transparent);
+  stroke-width: 2.2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render { filter: none; }
+}
+
+/* The preview crowd sits in shadow: dimmed and warmed toward the stage light,
+   so a real spectator's own avatar reads as a lit face among them rather than
+   as one more identical head. */
+#arena-render .arena-crowd-figure {
+  /* Depth comes in on the element as --crowd-dim, so the stylesheet still owns
+     the property and the row still owns the number. A flat opacity here would
+     beat a presentation attribute on the figure and flatten the bowl — a CSS
+     declaration outranks an SVG attribute, which is not obvious until it costs
+     an afternoon.
+
+     The saturate/brightness/sepia that used to sit here is gone rather than
+     kept as decoration: arena_atmosphere.css kills every filter on this floor
+     with an, so it had never once applied. */
+  opacity: var(--crowd-dim, 0.55);
+}
+
+/* ============================================================================
+ * Floor material = sponsors octagon palette (sponsors_puzzle.js RING_COLOURS).
+ * Same parchment steps + white seams. No CSS filter on #arena-render — filters
+ * on a perspective/rotateX SVG softens every stroke ("floating sharpness").
+ * ============================================================================ */
+.arena-render-container {
+  --arena-seat: #f4f1ec;
+  --arena-seam: #ffffff;
+  --arena-ring-line: #ffffff;
+  /* sponsors_puzzle.js RING_COLOURS.available */
+  --sp-ring-6: #f4f1ec;
+  --sp-ring-5: #ede8df;
+  --sp-ring-4: #e4ddd1;
+  --sp-ring-3: #d8d0c0;
+  --sp-ring-2: #ccc1aa;
+  --sp-ring-1: #bfb49a;
+  --sp-ring-0: #6c6054;
+}
+
+#arena-render .arena-cell[data-ring-kind="rank"],
+#arena-render .arena-cell[data-ring-kind="stage"] {
+  stroke: var(--arena-seam);
+  stroke-width: 1.25;
+  stroke-linejoin: miter;
+  shape-rendering: geometricPrecision;
+}
+
+/* Sponsors-template rings 1–6 (exact RING_COLOURS.available). */
+#arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: var(--sp-ring-6); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: var(--sp-ring-5); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: var(--sp-ring-4); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: var(--sp-ring-3); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: var(--sp-ring-2); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: var(--sp-ring-1); }
+
+#arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-6) 82%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-5) 78%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-4) 75%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-3) 72%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-2) 68%, var(--sp-ring-0)); }
+#arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="chef"] { fill: color-mix(in srgb, var(--sp-ring-1) 55%, var(--sp-ring-0)); }
+
+#arena-render .arena-stage {
+  fill: var(--sp-ring-0);
+  stroke: var(--arena-seam);
+  stroke-width: 1.6;
+}
+
+/* Must beat .page--arena #arena-render .arena-stage (atmosphere) and the
+   parchment stage fill above — crown pad is inscribed marble + gold rim. */
+.page--arena #arena-render .arena-stage[data-state="crown"],
+#arena-render .arena-stage[data-state="crown"] {
+  fill: color-mix(in srgb, var(--ink) 55%, #1f2c25);
+  stroke: none;
+  paint-order: stroke fill;
+}
+
+/* Explicit concentric ring boundaries (drawn in arena_render.js). */
+#arena-render .arena-ring-seam {
+  fill: none;
+  stroke: var(--arena-ring-line);
+  stroke-width: 1.35;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 3;
+  opacity: 0.95;
+  shape-rendering: geometricPrecision;
+}
+
+#arena-render .arena-ring-seam--stage {
+  stroke: color-mix(in srgb, var(--sp-ring-0) 40%, #ffffff);
+  stroke-width: 1.7;
+  opacity: 1;
+}
+
+#arena-render .arena-ring-seam--outer {
+  stroke: #ffffff;
+  stroke-width: 1.6;
+  opacity: 1;
+}
+
+/* Lit plate under the whole octagon — no blur filter. */
+#arena-render .arena-floor-pad {
+  fill: color-mix(in srgb, var(--sp-ring-6) 70%, var(--sp-ring-1));
+  stroke: none;
+  opacity: 0.88;
+}
+
+#arena-render .arena-floor-pad--glow {
+  fill: color-mix(in srgb, var(--sp-ring-1) 35%, transparent);
+  opacity: 0.55;
+}
+
+#arena-render .arena-walkway {
+  fill: #c4bbb0;
+  stroke: none;
+  opacity: 1;
+}
+
+#arena-render .arena-rim {
+  stroke: #ffffff;
+}
+
+#arena-render .arena-rim--inner {
+  stroke: color-mix(in srgb, var(--sp-ring-0) 35%, #ffffff);
+  stroke-width: 1.5;
+  opacity: 0.9;
+  filter: none;
+}
+
+#arena-render .arena-rim--outer {
+  stroke-width: 1.2;
+  opacity: 0.75;
+  filter: none;
+}
+
+/* No filter on the tilted SVG — that was the soft / swimming edges. */
+#arena-render {
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-rim--inner,
+  #arena-render .arena-rim--outer {
+    filter: none;
+  }
+}
+
+/* AR3 — moat lanterns. The ring itself stays unbroken (no cell borders); the
+   light comes from eight lamps standing in it, and their glow is what lands on
+   the gold Crown ring beside them. Colour is the existing VIP gold token, so no
+   new literal enters the palette. */
+.page--arena #arena-render .arena-lantern {
+  fill: var(--arena-vip-gold);
+  filter: drop-shadow(0 0 3px var(--arena-vip-gold))
+          drop-shadow(0 0 9px color-mix(in srgb, var(--arena-vip-gold) 70%, transparent));
+}
+
+/* Owner 2026-07-31 — the crown lamps throw a beam each way, inward over the
+   marble and outward across the moat. `screen` is what makes two beams that
+   cross read as brighter light instead of as two stacked sheets of paint; the
+   colour and the falloff live in the per-lamp gradient, not here. */
+.page--arena #arena-render .arena-floor-crown__cone {
+  mix-blend-mode: screen;
+  /* The pivot is written on each beam as its own lamp's coordinates; view-box
+     is what makes those numbers mean viewBox units instead of the beam's own
+     bounding box, whose centre is not the lamp. */
+  transform-box: view-box;
+  /* Owner 2026-07-31: no seven-second beat — just a steady swing, right and
+     left, forever. `linear` is the whole of that instruction: ease-in-out slows
+     to a stop at each shoulder, and it is that stop, not the length of the
+     cycle, that reads as waiting. */
+  animation: arena-lamp-sweep 5s linear infinite;
+}
+
+/* Owner 2026-07-31: the beam does not stand still — it swings 90 degrees each
+   way, so the light crosses everything between one shoulder and the other. */
+@keyframes arena-lamp-sweep {
+  0% { transform: rotate(-90deg); }
+  50% { transform: rotate(90deg); }
+  100% { transform: rotate(-90deg); }
+}
+
+/* Owner 2026-07-31 — the Enter Arena button's travelling spot, on the gold ring
+   and on the eight moat lanterns, the only lamps that throw no beam. The button
+   masks a conic gradient into its border; a path has no background to mask, so
+   the same spot is a short bright dash chasing round the outline. Every length
+   is a percentage of the outline because both shapes carry pathLength="100". */
+/* Owner 2026-07-31: white and stronger. The gold token put a yellow spot on a
+   gold ring, which is the one place it could not be seen; white separates from
+   everything under it, and a wider stroke with a double glow carries across the
+   camera tilt. `screen` is what makes it read as light landing ON the gold
+   rather than as a bead lying over it. */
+.page--arena #arena-render .arena-floor-crown__gold-spot {
+  stroke: #ffffff;
+  stroke-width: 4.2;
+  /* Butt, never round. The outline is a CLOSED path, so when the running dash
+     reaches the point where the path closes it is drawn as two pieces — the tail
+     at the end of the path and the head at the start. Those two pieces are
+     geometrically adjacent, so with butt ends they read as one spot crossing the
+     seam. Round ends put a cap on each piece and that is what the Owner saw as
+     the light breaking off and starting again. */
+  stroke-linecap: butt;
+  stroke-dasharray: 9 91;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 9px color-mix(in srgb, #ffffff 70%, transparent));
+  animation: arena-spot-run 3.2s linear infinite;
+}
+
+/* The firefly moved off the lamps and onto the chefs: it traces the outline of
+   the cell a chef is standing on, and only that cell. It lives in its own layer
+   ABOVE the occupants — drawn down in the cells layer it was invisible, because
+   a chef's portrait is clipped to that same cell and painted over it. bind()
+   lights the one whose ring and cell match the seated chef. */
+.page--arena #arena-render .arena-cell-spark {
+  opacity: 0;
+  stroke: none;
+}
+
+/* Owner 2026-07-31 — rank is legible from the light alone.
+ *
+ * The spark carries its ring, and the ring IS the rank: seating index 1 is the
+ * Culinary Master and 8 is the Kitchen Porter (chef_battle/selectors.py builds
+ * the geometry from reversed(Rank.choices), so the count runs inward).
+ *
+ * Two things vary and nothing else: the colour, and an intensity level 1 to 5.
+ * The level is three numbers moving together — weight, opacity and the size of
+ * the glow — because a light that is only wider does not read as brighter. They
+ * are custom properties so a ring states its rank in one line and the shape of
+ * the light is written once.
+ *
+ *   8 Kitchen Porter   white,  1     4 Sous Chef        blue,  2
+ *   7 Prep Chef        white,  2     3 Head Chef        rose,  3  (shimmering)
+ *   6 Commis Chef      white,  3     2 Executive Chef   rose,  4  (shimmering)
+ *   5 Chef de Partie   blue,   1     1 Culinary Master  prism, 5  (red-dominant)
+ */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"] {
+  --spark-colour: #ffffff;
+  --spark-weight: 2.4;
+  --spark-alpha: 1;
+  --spark-glow: 3px;
+
+  opacity: var(--spark-alpha);
+  stroke: var(--spark-colour);
+  stroke-width: var(--spark-weight);
+  /* Butt for the same reason as the ring: a cell outline is closed too. */
+  stroke-linecap: butt;
+  stroke-dasharray: 12 88;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 var(--spark-glow) var(--spark-colour));
+  animation: arena-spot-run 2.4s linear infinite;
+}
+
+/* ---- intensity, 1 to 5 ---- */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="8"] {
+  --spark-weight: 1.4; --spark-alpha: 0.42; --spark-glow: 2px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="7"],
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="4"] {
+  --spark-weight: 2.1; --spark-alpha: 0.66; --spark-glow: 4px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="6"],
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="3"] {
+  --spark-weight: 2.8; --spark-alpha: 0.86; --spark-glow: 7px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="5"] {
+  --spark-weight: 1.4; --spark-alpha: 0.42; --spark-glow: 2px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="2"] {
+  --spark-weight: 3.4; --spark-alpha: 0.95; --spark-glow: 10px;
+}
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="1"] {
+  --spark-weight: 4.2; --spark-alpha: 1; --spark-glow: 15px;
+}
+
+/* ---- colour ---- */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="5"],
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="4"] {
+  --spark-colour: #4db8ff;
+}
+
+/* Rose, with a shimmer: the stroke drifts between deep rose and a pale pink,
+   so the light is never one flat colour. The glow keeps the deep tone — a halo
+   that changed with it would read as flicker rather than sheen. */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="3"],
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="2"] {
+  --spark-colour: #ff4d6d;
+  animation: arena-spot-run 2.4s linear infinite,
+             arena-spark-rose 3.6s ease-in-out infinite;
+}
+
+/* The Master carries every colour, and red carries the cycle: it holds the
+   start, the middle and the end, so the ring reads red with the rest passing
+   through it rather than as a rainbow. */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="1"] {
+  --spark-colour: #ff2f3b;
+  animation: arena-spot-run 2.4s linear infinite,
+             arena-spark-prism 7s linear infinite;
+}
+
+@keyframes arena-spark-rose {
+  0%, 100% { stroke: #ff4d6d; }
+  50% { stroke: #ffa8c8; }
+}
+
+@keyframes arena-spark-prism {
+  0%, 100% { stroke: #ff2f3b; }
+  14% { stroke: #ff8a3b; }
+  26% { stroke: #ffd93b; }
+  38% { stroke: #ff2f3b; }
+  52% { stroke: #3bd77f; }
+  64% { stroke: #3bc8ff; }
+  76% { stroke: #ff2f6d; }
+  88% { stroke: #b46bff; }
+}
+
+@keyframes arena-spot-run {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Owner 2026-07-31 — the strobe on the beamless lamps. Three rings out of every
+   lamp, small, medium and large, in the tricolour: green, white, orange.
+
+   The growth law is the chef-click ripple's, restated declaratively: out of
+   nothing, easing off as it goes, fading to nothing. Scale rather than the r
+   attribute, because scale is the one transform every engine composites cheaply
+   and the stroke is held at a constant width by vector-effect on the shape.
+
+   It is light, not a drawn outline, so it goes on in screen blend with a glow —
+   two rings that cross add up instead of stacking as paint. */
+.page--arena #arena-render .arena-lamp-strobe {
+  transform-box: view-box;
+  mix-blend-mode: screen;
+  stroke-width: 1.6;
+  animation: arena-strobe-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Tricolour, outward. The three ring sizes are set on the shape; only the
+   colour and the beat live here. */
+.page--arena #arena-render .arena-lamp-strobe--1 {
+  stroke: #169b62;
+  filter: drop-shadow(0 0 2px #169b62);
+}
+
+.page--arena #arena-render .arena-lamp-strobe--2 {
+  stroke: #ffffff;
+  filter: drop-shadow(0 0 2px #ffffff);
+  animation-delay: 0.28s;
+}
+
+.page--arena #arena-render .arena-lamp-strobe--3 {
+  stroke: #ff883e;
+  filter: drop-shadow(0 0 2px #ff883e);
+  animation-delay: 0.56s;
+}
+
+@keyframes arena-strobe-ring {
+  0% { transform: scale(0.04); opacity: 0; }
+  12% { opacity: 0.75; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+/* ---- lamp console (arena_lamp_console.js) ----
+   The Owner's own control over where the lamps stand. It lives on the arena
+   page, which is staff/superuser only, so it is not gated again here — a second
+   gate that looks like access control but is only CSS would be worse than none.
+   Collapsed to a single button until he opens it. */
+.arena-lampc {
+  position: fixed;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: var(--arena-z-overlay);
+  font-family: Georgia, "Playfair Display", serif;
+  color: var(--surface-soft);
+}
+
+.arena-lampc__toggle,
+.arena-lampc__actions button {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--accent-bronze);
+  border-radius: 0.5rem;
+  color: var(--surface-soft);
+  background: color-mix(in srgb, var(--ink) 82%, var(--accent-bronze));
+  cursor: pointer;
+}
+
+.arena-lampc__toggle:hover,
+.arena-lampc__actions button:hover {
+  background: color-mix(in srgb, var(--ink) 68%, var(--accent-bronze));
+}
+
+.arena-lampc__body {
+  width: 19rem;
+  margin-top: 0.5rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--accent-bronze);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--ink) 92%, var(--accent-bronze));
+  box-shadow: 0 0.6rem 1.6rem color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.arena-lampc__hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.74rem;
+  opacity: 0.8;
+}
+
+.arena-lampc__plan {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--ink) 96%, var(--accent-bronze));
+  touch-action: none;
+}
+
+.arena-lampc__dot { cursor: grab; }
+.arena-lampc__dot:active { cursor: grabbing; }
+
+.arena-lampc__row {
+  margin: 0.5rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.arena-lampc__sw {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.arena-lampc__val {
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: 0.72rem;
+  color: var(--arena-vip-gold);
+}
+
+.arena-lampc__actions { margin: 0.6rem 0 0; }
+
+.arena-lampc__copy {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 60%, transparent);
+  border-radius: 0.4rem;
+  color: var(--arena-vip-gold);
+  background: color-mix(in srgb, var(--ink) 96%, var(--accent-bronze));
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: 0.7rem;
+  resize: vertical;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page--arena #arena-render .arena-floor-crown__cone {
+    animation: none;
+    opacity: 0.75;
+  }
+
+  .page--arena #arena-render .arena-floor-crown__gold-spot,
+  /* The shimmering ranks are named again here on purpose: their rules carry an
+     extra attribute and would outrank a plain [data-lit] selector, leaving the
+     Master shimmering for the one reader who asked for stillness. */
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"],
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="3"],
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="2"],
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-ring="1"],
+  .page--arena #arena-render .arena-vip-spark[data-lit="true"] {
+    animation: none;
+  }
+
+  /* A strobe is the one thing here that must not merely slow down. */
+  .page--arena #arena-render .arena-lamp-strobe {
+    animation: none;
+    opacity: 0;
+  }
+}
+

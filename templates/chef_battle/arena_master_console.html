@@ -20,14 +20,14 @@
   console used to load arena.css alone and nothing else, which is why the two
   arenas looked like different products: same markup, different rules.
 
-  arena_atmosphere.css and arena_effects.css are deliberately NOT loaded - the
-  Owner asked for the mirror without the tilt and without the effects, to save
-  the operator's machine. arena_console_mirror.css flattens the camera last.
+  arena_atmosphere.css is deliberately NOT loaded - the Owner asked for the
+  mirror without the tilt and without the effects, to save the operator's
+  machine, and since AN12 that one file carries both. arena.css carries the
+  shell and the octagon renderer, which is everything the mirror needs.
+  arena_console_mirror.css flattens the camera last.
 {% endcomment %}
-<link href="{% static 'css/arena.css' %}?v=20260729-tooltip-anchor" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260808-an12-two-sheets" rel="stylesheet">
 <link href="{% static 'css/arena_master_console.css' %}?v=20260806-mc01-removed" rel="stylesheet">
-{# the octagon's own sheet, moved out of the body on 2026-08-08 - see arena.html #}
-<link href="{% static 'css/arena_render.css' %}" rel="stylesheet">
 <link href="{% static 'css/arena_console_mirror.css' %}?v=20260806-hint-fit" rel="stylesheet">
 {% endblock %}
 

@@ -421,7 +421,7 @@ for a section rather than a section already assigned:
 | **AN9** | §5G | PARTIAL | Twelve load and resize scenarios | Four of twelve measured: warm load, reload, 1440->1920 and 1920->1280. Missing: cold cache, empty cache, CPU throttle, network throttle, repeated cycles, and reload after resize. |
 | **AN10** | §6 | DONE | The complete pre-refactor test baseline, run once | 1750 tests, 2 pre-existing failures, 710.7s, PostgreSQL, --parallel 8, production dependency versions. Full output preserved beside the baseline report. |
 | **AN11** | §7 | DONE | Arena ownership manifest - one responsibility, one owner | Thirteen responsibilities mapped to the real code. Five had more than one owner: ring colour, the camera, the page's vertical space, the ladder's position and z-order. Readiness had no owner at all. |
-| **AN12** | §8 | PARTIAL | Consolidate the Arena stylesheets | Seven became four. TWO is not the end state: the Owner ruled on 2026-08-08 that the Master Console mirror stays flat, so effects and atmosphere cannot fold into the scene sheet. That amends section 8 of the task itself. |
+| **AN12** | §8 | DONE | Consolidate the Arena stylesheets | Seven stylesheets are two. arena.css carries the shell and the octagon renderer; arena_atmosphere.css carries the effects layer and the hall, and loads after it. The Master Console still loads arena.css ALONE, flat, by the Owner's ruling of 2026-08-08 - which is why the split falls here and not somewhere tidier, and why the earlier claim that four was the end state was wrong. Sixteen declarations written in two sheets at once were removed first, so no single selector sets the same property in any two files and no repackaging can change a winner. Proved in a real engine over the rendered arena DOM: 2435 elements, each with its ::before and ::after, 544 computed properties apiece, plus the 1759 SVG nodes re-measured with the stage forced to crown, active_battle, facing_pair and no state at all. Zero differences. The only rows that moved were two values the site's own JavaScript randomises per load, and the same rows move when the SAME file is loaded twice. It caught a real regression before it shipped: the live battle stage would have turned grey, because the atmosphere's `.arena-stage` fill and the renderer's `[data-state]` fills carry equal specificity and only the load order had ever separated them. |
 | **AN13** | §8A | DONE | CSS cleanup rules | 584 declarations that a later rule with the IDENTICAL selector already overwrote are gone, and 135 rules left with nothing in them went with them: arena.css 6237 -> 5130 lines, 216KB -> 185KB. Equivalence proved rather than asserted - 2550 winning declarations before, the same 2550 after, 0 changed, the surviving rules in the same cascade order, brace balance 0. !important came out in AN8 (136 -> 58). A test now fails on any property written twice for one selector. |
 | **AN14** | §8B | DONE | An explicit layer model instead of scattered z-index | 21 --arena-z-* tokens and 0 raw numbers left in the four sheets. The values are unchanged on purpose: this gave the ladder a home, it did not re-order it. |
 | **AN15** | §9 | PARTIAL | One page-level layout authority | The renderer owns the ladder, the caption and the scene, and 31 competing CSS declarations were removed. The page as a whole still has no single declared authority - the panels are laid out by CSS, which is correct, but nothing states it. |
@@ -446,10 +446,13 @@ for a section rather than a section already assigned:
   FLAT. It deliberately loads neither `arena_effects.css` nor
   `arena_atmosphere.css` - he asked for the mirror without the tilt and without
   the effects, to spare the operator's machine - so those two are not folded
-  into the scene sheet. **The end state is four Arena stylesheets, not two:**
-  one shell (`arena.css`) and three scene files (`arena_render.css`,
-  `arena_effects.css`, `arena_atmosphere.css`). This amends section 8 of the
-  master task, and section 26's fourth assertion with it.
+  into the scene sheet. **His ruling decides WHERE the two files divide, not
+  how many there are** - and the note that once stood here, saying the end
+  state was four, was wrong for a day. There are two, since AN12:
+  `arena.css` carries the shell and the octagon renderer, which is everything
+  the mirror loads; `arena_atmosphere.css` carries the effects and the hall,
+  which the mirror must never load. Section 8 of the master task is met, and so
+  is section 26's fourth assertion.
 
 **Rules for this block, until he says otherwise.**
 

@@ -1,3 +1,144 @@
+/* ────────────────────────────────────────────────────────────────────────
+   Arena EFFECTS LAYER — GreenBear (Senior FE).
+   Pure CSS/SVG-filter atmosphere over Ember's arena_command_deck classes.
+   ZERO image files, ZERO structural changes, does NOT touch Ember's JS.
+   Loads AFTER arena_deck_polish.css so it only adds glow/depth on top of the
+   established palette. All motion is gated behind prefers-reduced-motion.
+   Reuses the --ad-* palette vars declared on .arena-command-deck.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* ── A. Atmosphere: warm colosseum depth behind the whole deck ──
+   A soft radial pool of light on top, sinking to a warmer floor at the
+   bottom — reads as an overhead arena lamp. Non-interactive, sits under
+   all content. */
+.arena-command-deck {
+  /* position: relative is arena.css's, and identical there (AN12) */
+  isolation: isolate; /* keep the atmosphere z-index local to the deck */
+}
+.arena-command-deck::before {
+  content: "";
+  position: absolute;
+  inset: -2rem -1rem;
+  z-index: var(--arena-z-under);
+  pointer-events: none;
+  background:
+    radial-gradient(120% 70% at 50% -8%, color-mix(in srgb, var(--accent-bronze) 14%, transparent), transparent 60%),
+    radial-gradient(90% 60% at 50% 108%, color-mix(in srgb, var(--ink) 6%, transparent), transparent 55%);
+}
+
+/* ── B. Phase rail: active step breathes with a gold aura ── */
+.arena-phase-step.is-active {
+  /* the resting box-shadow is arena.css's and always was: this copy loaded
+     earlier and never won a pixel (AN12). The animation below is the effect. */
+  animation: ad-phase-breathe 2.6s ease-in-out infinite;
+}
+@keyframes ad-phase-breathe {
+  0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-bronze) 30%, transparent), 0 2px 8px color-mix(in srgb, var(--accent-bronze) 20%, transparent); }
+  50%      { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-bronze) 48%, transparent), 0 3px 16px color-mix(in srgb, var(--accent-bronze) 40%, transparent); }
+}
+
+/* ── C. Centre stage aura, keyed to what holds the centre ──
+   The live-stage carries data-centre-key: battle-* (live combat),
+   crown-* (a champion holds), or empty (open floor). */
+.arena-command-deck__live-stage {
+  position: relative;
+}
+/* live battle: charged split of challenger-green / opponent-red —
+   DISABLED Owner 2026-07-27: these side washes bled past the grey outer rim. */
+.arena-command-deck__live-stage[data-centre-key^="battle-"]::after,
+.arena-command-deck__live-stage[data-centre-key^="crown-"]::after,
+.arena-command-deck__live-stage[data-centre-key="empty"]::after,
+.arena-command-deck__live-stage::after {
+  content: none;
+  display: none;
+  background: none;
+  animation: none;
+  opacity: 0;
+}
+@keyframes ad-stage-pulse {
+  0%, 100% { opacity: .75; }
+  50%      { opacity: 1; }
+}
+
+/* ── D. Live combatants: edge glow by role ── */
+.arena-live-chef--challenger { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hall-green) 28%, transparent)); }
+.arena-live-chef--opponent   { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hall-red) 28%, transparent)); }
+.arena-live-chef--crown      { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent-bronze) 40%, transparent)); }
+
+/* the centre link gets a subtle inviting lift on hover (no layout shift) */
+/* .arena-live-centre's transition is arena.css's - this copy loaded earlier
+   and lost every time (AN12). The hover filter below is what this file adds. */
+.arena-live-centre:hover,
+.arena-live-centre:focus-visible { filter: drop-shadow(0 3px 12px color-mix(in srgb, var(--accent-bronze) 45%, transparent)); }
+
+/* ── E. Procedural floor: give the vector cells depth without touching the JS.
+   Keyed on the data attributes the renderer stamps (data-occupancy, data-state,
+   data-centre-key) — never on payload shape. Scoped to the arena floor SVG. */
+.arena-floor-stage svg polygon[data-ring] {
+  transition: fill .3s ease, stroke .3s ease;
+}
+
+/* An occupied tile lifts off the floor; an empty seat stays flat. */
+.arena-floor-stage svg polygon[data-occupancy="chef"] {
+  filter: drop-shadow(0 1px 2px color-mix(in srgb, var(--ink) 35%, transparent));
+}
+
+/* A chef in a live fight is the one thing on the floor that moves. */
+.arena-floor-stage svg polygon[data-state="in-battle"] {
+  animation: ad-cell-fight 2.4s ease-in-out infinite;
+}
+
+@keyframes ad-cell-fight {
+  0%, 100% { stroke-opacity: .55; }
+  50%      { stroke-opacity: 1; }
+}
+
+/* The stage carries the same aura language as the deck's live stage above it. */
+.arena-floor-stage svg .arena-stage {
+  transition: fill .3s ease;
+}
+
+.arena-floor-stage svg .arena-stage[data-centre-key^="battle-"] {
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--brand-dark) 45%, transparent));
+  animation: ad-stage-pulse 3.2s ease-in-out infinite;
+}
+
+.arena-floor-stage svg .arena-stage[data-centre-key^="crown-"] {
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent-bronze) 50%, transparent));
+}
+
+/* ── Accessibility: no motion when the user asks for none ── */
+@media (prefers-reduced-motion: reduce) {
+  .arena-phase-step.is-active,
+  .arena-command-deck__live-stage[data-centre-key^="battle-"]::after,
+  .arena-command-deck__live-stage[data-centre-key^="crown-"]::after,
+  .arena-floor-stage svg polygon[data-state="in-battle"],
+  .arena-floor-stage svg .arena-stage[data-centre-key^="battle-"] {
+    animation: none;
+  }
+}
+
+/* GRAPHICS WP - stronger overhead lamp + bowl warmth (tokens only). */
+.page--arena .arena-command-deck::before {
+  background:
+    radial-gradient(120% 70% at 50% -8%, color-mix(in srgb, var(--accent-bronze) 22%, transparent), transparent 58%),
+    radial-gradient(95% 62% at 50% 110%, color-mix(in srgb, var(--ink) 11%, transparent), transparent 56%);
+}
+.page--arena .arena-command-deck__live-stage[data-centre-key^="battle-"]::after,
+.page--arena .arena-command-deck__live-stage[data-centre-key^="crown-"]::after {
+  content: none;
+  display: none;
+  background: none;
+  opacity: 0;
+  animation: none;
+}
+
+
+/* ==========================================================
+   arena_effects.css was first, the atmosphere follows, merged here in AN12 (master task section 8).
+   Kept in its original order so the cascade is unchanged.
+   ========================================================== */
+
 /* Arena ATMOSPHERE LAYER â" ArenaFront (ARENA_VISUAL_ATMOSPHERE) M17.
  *
  * Cascade: loads AFTER polish; page fill + under-oval packed-crowd haze.
@@ -751,16 +892,22 @@
 .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: var(--arena-floor-1); }
 
 .page--arena #arena-render .arena-stage {
-  fill: #6c6054;
   stroke: #ffffff;
 }
-
-.page--arena #arena-render .arena-stage[data-state="crown"] {
-  /* Procedural recess + inner-rim in drawCrownStageFrame; stage polygon is pad only. */
-  fill: color-mix(in srgb, var(--ink) 55%, #1f2c25);
-  stroke: none;
-  paint-order: stroke fill;
+/* AN12: the stage's fill belongs to whatever STATE it is in, and the renderer
+   owns those - `[data-state="active_battle"]`, `crown`, `facing_pair`. Those
+   rules carry the same specificity as this one, so for the whole of this
+   file's life the answer was decided by which sheet loaded last. Now that the
+   renderer travels inside arena.css this rule would have started winning and
+   painted a live battle stage grey. `:not([data-state])` says what was always
+   meant: this is the fill of a stage that has no state of its own. */
+.page--arena #arena-render .arena-stage:not([data-state]) {
+  fill: #6c6054;
 }
+
+/* The crown stage polygon is arena_render.css's, character for character,
+   and the renderer's copy loads later - this one never applied. Removed in
+   AN12 so the two sheets can be packaged in either order. */
 
 .page--arena #arena-render .arena-ring-seam,
 .page--arena #arena-render .arena-ring-seam--outer,

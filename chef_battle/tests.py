@@ -8588,7 +8588,7 @@ class ArenaRankColumnTests(TestCase):
             Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         effects = (
-            Path(settings.BASE_DIR) / "static" / "css" / "arena_effects.css"
+            Path(settings.BASE_DIR) / "static" / "css" / "arena_atmosphere.css"
         ).read_text(encoding="utf-8")
         self.assertIn("--ad-green: var(--hall-green)", polish)
         self.assertIn("--ad-red: var(--hall-red)", polish)
@@ -10616,7 +10616,7 @@ class FighterPadsAppearWithTheFightTests(TestCase):
         from django.conf import settings as django_settings
 
         css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_render.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         self.assertNotIn("arena-floor-fighter--empty", css)
 
@@ -10741,7 +10741,7 @@ class EmptyFighterPadIsMutedTests(TestCase):
         from django.conf import settings as django_settings
 
         return (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_render.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
 
     def test_the_muted_pad_is_gone_because_the_pad_is_gone(self):
@@ -11476,7 +11476,7 @@ class ArenaRingNumberingTests(TestCase):
         self.assertNotIn("data-ring-numeral", js)
 
         css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_render.css"
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
         self.assertNotIn("arena-ring-numeral", css)
 
@@ -11701,7 +11701,12 @@ class ArenaReadinessLifecycleTests(TestCase):
 
     def test_the_furniture_is_hidden_by_state_and_never_by_a_clock(self):
         css = self._css()
+        # AN12 folded the renderer into this file, and the renderer has its own
+        # decorative animations further down. Read the readiness section only -
+        # up to the next banner - or this asserts about the whole stylesheet.
         rule = css.split("READINESS - geometry-dependent furniture", 1)[1]
+        rule = rule.split("/* =====", 2)
+        rule = rule[0] + (rule[1] if len(rule) > 1 else "")
         self.assertIn('data-arena-state="scene"', rule)
         self.assertIn("visibility: hidden", rule)
         self.assertNotIn("transition-delay", rule)
@@ -11731,27 +11736,46 @@ class ArenaReadinessLifecycleTests(TestCase):
         self.assertNotIn('rel="stylesheet"', partial,
                          "a stylesheet is still linked from the body")
 
+        # AN12 folded the octagon sheet into arena.css; it is still declared in
+        # the head, on both pages, and it is still the only place it comes from
         for page in ("arena.html", "arena_master_console.html"):
             html = (base / page).read_text(encoding="utf-8")
             head = html.split("{% block extra_head %}", 1)[1].split("{% endblock %}", 1)[0]
-            self.assertIn("css/arena_render.css", head, page)
+            self.assertIn("css/arena.css", head, page)
 
-    def test_the_cascade_order_is_unchanged_by_the_move(self):
-        """Moving a sheet EARLIER would silently hand its rules to whoever comes
-        after. This phase may not change how anything looks, so the octagon
-        sheet keeps the last position it already had."""
+    def test_the_arena_loads_exactly_two_stylesheets_of_its_own(self):
+        """Master task section 8 asked for two, and this is the two: arena.css
+        carries the shell and the renderer, arena_atmosphere.css carries the
+        effects and the hall, and the order the elements see is the order they
+        had as four separate files.
+
+        The Master Console is the reason it is a split and not a single file:
+        the Owner ruled on 2026-08-08 that its mirror stays flat, so it loads
+        arena.css alone, with neither the effects nor the atmosphere."""
         from pathlib import Path
         from django.conf import settings as django_settings
+        import re
 
-        html = (
-            Path(django_settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
-        ).read_text(encoding="utf-8")
-        head = html.split("{% block extra_head %}", 1)[1].split("{% endblock %}", 1)[0]
-        self.assertLess(
-            head.index("css/arena_atmosphere.css"),
-            head.index("css/arena_render.css"),
-            "arena_render.css must stay after atmosphere, as it was in the body",
-        )
+        base = Path(django_settings.BASE_DIR) / "templates" / "chef_battle"
+        css_dir = Path(django_settings.BASE_DIR) / "static" / "css"
+
+        for gone in ("arena_render.css", "arena_effects.css",
+                     "arena_command_deck.css", "arena_hall.css",
+                     "arena_deck_polish.css"):
+            self.assertFalse((css_dir / gone).exists(),
+                             f"{gone} is back; the arena has two sheets, not more")
+
+        arena = (base / "arena.html").read_text(encoding="utf-8")
+        head = arena.split("{% block extra_head %}", 1)[1].split("{% endblock %}", 1)[0]
+        sheets = re.findall(r"css/([\w.]+\.css)", head)
+        self.assertEqual(sheets, ["arena.css", "arena_atmosphere.css"],
+                         "the arena's own sheets, in cascade order")
+
+        console = (base / "arena_master_console.html").read_text(encoding="utf-8")
+        chead = console.split("{% block extra_head %}", 1)[1].split("{% endblock %}", 1)[0]
+        console_sheets = re.findall(r"css/([\w.]+\.css)", chead)
+        self.assertIn("arena.css", console_sheets)
+        self.assertNotIn("arena_atmosphere.css", console_sheets)
 
     def test_z_index_comes_from_one_documented_ladder(self):
         """Master task 8B. Before this there were 68 declarations across four
@@ -11768,8 +11792,7 @@ class ArenaReadinessLifecycleTests(TestCase):
         self.assertIn("--arena-z-under:", shell)
 
         raw = re.compile(r"z-index\s*:\s*-?\d")
-        for name in ("arena.css", "arena_effects.css",
-                     "arena_atmosphere.css", "arena_render.css"):
+        for name in ("arena.css", "arena_atmosphere.css"):
             text = (css_dir / name).read_text(encoding="utf-8")
             # the ladder itself declares the numbers; nothing else may
             body = text.split("}", 1)[1] if name == "arena.css" else text

@@ -92,7 +92,7 @@ static flow rules are untouched.
 
 | Metric | Before | After |
 |---|---:|---:|
-| Arena stylesheets | 7 | **4** |
+| Arena stylesheets | 7 | **2** |
 | Lines in them | 8534 | 8642 |
 | `!important` (source lines) | 136 | **58** |
 | `!important` (live properties) | 338 | **204** |
@@ -147,8 +147,11 @@ and no database field. Nothing was classified DEAD.
   place by three tests, one of which exists to stop it being tidied away.
 - **`god_mode.css`** — never referenced by a template and never to be removed.
 - **The Master Console mirror's flat look.** The Owner ruled on 2026-08-08 that
-  it keeps neither the tilt nor the effects, which is why the end state is four
-  stylesheets and not two. This amends §8 and §26.4 of the master task.
+  it keeps neither the tilt nor the effects. That is why the split falls where
+  it does — `arena.css` holds the shell and the renderer, because those are what
+  the mirror needs, and `arena_atmosphere.css` holds the effects and the hall,
+  which it must not get. It decides the SHAPE of the two files, not their
+  number: §8 asked for two and there are two.
 - **Every `z-index` value.** The ladder gave them names, not new numbers.
 
 ---
@@ -183,10 +186,10 @@ exceeds Windows' filename limit on `docs/archive/…`.
 | 1 | One system owns page-level layout? | **Partly.** The renderer owns the ladder, the caption and the scene. The panels are still laid out by CSS, which is correct, but there is no single page-level authority object. |
 | 2 | One system owns octagon geometry? | **Yes.** `ArenaOctagon` + `arena_render.js`. |
 | 3 | Ladder position explainable from one source? | **Yes.** `placeRankSpine()`. |
-| 4 | Exactly two Arena CSS files? | **No — four, by the Owner's ruling** of 2026-08-08. |
+| 4 | Exactly two Arena CSS files? | **Yes.** `arena.css` (shell + renderer) and `arena_atmosphere.css` (effects + hall), AN12. The Owner's ruling of 2026-08-08 is what decides WHERE the split falls — the console loads `arena.css` alone, flat — not whether there are two. |
 | 5 | All Arena styles loaded from predictable places? | **Yes.** All four in `<head>`, in both including pages. |
 | 6 | Body stylesheet link removed? | **Yes.** Zero links outside `<head>`. |
-| 7 | Can an old stylesheet still override the new layout? | **No old stylesheet remains** — three are deleted. Within `arena.css` the merged sections still override each other in their original order. |
+| 7 | Can an old stylesheet still override the new layout? | **No old stylesheet remains** — five are deleted. Within `arena.css` nothing overrides itself any more: AN13 removed the 584 declarations a later rule with the same selector already beat. |
 | 8 | Competing CSS and JS positions? | **No**, for the ladder and the caption. |
 | 9 | Timing hacks for initial rendering? | **No.** State only. |
 | 10 | Does a cold load ever show a wrong composition? | **No** at the four viewports measured, CLS 0. |
@@ -201,10 +204,11 @@ exceeds Windows' filename limit on `docs/archive/…`.
 
 ## I. Remaining debt — named, not hidden
 
-1. **`arena.css` is 6199 lines and internally still layered.** The merge
-   preserved order rather than resolving it; 585 selector/property pairs still
-   have more than one owner, now inside one file instead of four. Resolving them
-   is the next real section and it is not started.
+1. **`arena.css` is internally layered where the two files legitimately meet.**
+   AN13 resolved everything inside the file — 0 declarations are now overwritten
+   by the same selector — and AN12 removed every cross-file clash between sheets
+   whose order changed. What remains is `arena_atmosphere.css` deliberately
+   overriding the shell it loads after, which is what that file is for.
 2. **Cold-cache, CPU-throttled and network-throttled loads are not measured.**
    This harness cannot clear the cache or throttle; §24 asks for both. Every CLS
    figure here is from an uncached load of a newly-hashed stylesheet, which is
@@ -215,5 +219,7 @@ exceeds Windows' filename limit on `docs/archive/…`.
 4. **The `.page--arena` prefix is still the specificity lever** throughout the
    shell. It works, and it is why the remaining `!important` count is as low as
    it is, but it is a convention rather than a system.
-5. **AN9 – AN29 are unwritten.** They are TO SPEC on the board and stay there
-   until the Owner dictates them.
+5. **AN15, AN16, AN18, AN20, AN21, AN22 are open**, and AN7, AN9 and AN28 need
+   a browser on the production Arena, which is staff-only and not reachable from
+   this harness. Each is a numbered section of the master task and is on the
+   board with what is done and what is not.

@@ -9,32 +9,26 @@
 {% block extra_head %}
 <!-- duplicate chef_battle.css removed 2026-07-25 load purge -->
 {% comment %}
-  arena_effects.css is declared BEFORE the shell, and the order is measured
-  rather than chosen. It used to sit between arena_command_deck.css and
-  arena_hall.css; those two are now inside arena.css, so leaving it after the
-  merge would have handed it a rule it used to lose - `.arena-phase-step.is-active`
-  box-shadow, the one selector/property pair it shares with the sheets that
-  followed it. It shares NOTHING with the old arena.css, so putting it first
-  reproduces the previous outcome exactly, for every clash there is.
-{% endcomment %}
-<link href="{% static 'css/arena_effects.css' %}?v=20260727-kill-stage-aura" rel="stylesheet">
-<link href="{% static 'css/arena.css' %}?v=20260808-an-shell-merge" rel="stylesheet">
-{# then atmosphere: page-level hall underlay / kill rules #}
-<link href="{% static 'css/arena_atmosphere.css' %}?v=20260730-no-spine-label" rel="stylesheet">
-{% comment %}
-  THE OCTAGON'S OWN SHEET, MOVED HERE FROM THE BODY on 2026-08-08 (AN phase).
+  TWO ARENA STYLESHEETS, and this is the whole set (AN12, master task 8).
 
-  It used to be linked inside a DIV by _arena_render_ring.html. Measured on the
-  live page, that made it the LAST sheet in the cascade - after arena_atmosphere,
-  whose own comments claim that IT is the file that loads last and therefore
-  wins. Decisions were taken on the strength of that claim.
+  arena.css   the shell and the octagon renderer, in that order.
+  arena_atmosphere.css   the effects layer and the hall atmosphere, in that
+  order, loading after the shell exactly as they always did.
 
-  It is declared last here on purpose. The correct place is the head; the
-  correct ORDER is the one the page already had, because moving a sheet earlier
-  would silently hand its rules to whoever comes after, and this phase is not
-  allowed to change how anything looks.
+  Seven sheets became these two across AN4 and AN12. The Master Console loads
+  arena.css ALONE - the Owner ruled on 2026-08-08 that its mirror stays flat,
+  with neither the effects nor the atmosphere - which is why the split falls
+  here and not somewhere tidier.
+
+  The order every element sees is unchanged. Before this merge the page loaded
+  effects, shell, atmosphere, renderer; four sheets in which sixteen
+  declarations were written twice over, and every one of those duplicates lost
+  where it stood. They were removed first, so no single selector now sets the
+  same property in any two of these files and no repackaging can change a
+  winner. Verified declaration by declaration, not by eye.
 {% endcomment %}
-<link href="{% static 'css/arena_render.css' %}" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260808-an12-two-sheets" rel="stylesheet">
+<link href="{% static 'css/arena_atmosphere.css' %}?v=20260808-an12-two-sheets" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
