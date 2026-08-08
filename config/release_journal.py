@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.908",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "Switched off means off everywhere, including the crown ladder",
+        "section": "Chef Battles / Arena",
+        "summary": "v2.5.906 took the test chefs off the floor and left one of them standing in Today's Crown Ladder, which is how it looked on production a minute after the deploy: no chef in any cell, and EMU Chef Alpha still holding a line with one crown. The rings are gated at the query they come from - enrolled profiles - and the ladder is not built from that query at all; it counts crowns won today, and a bot that won a rehearsal bout keeps its crown. Same switch, applied to the standings the arena publishes, so the page has one answer about whether the test chefs are there. IF REVERTED: the floor is clear and the panel beside it still names a chef who is not a person.",
+    },
+    {
         "version": "2.5.906",
         "date": "2026-08-08",
         "commit": "5a79b9af",

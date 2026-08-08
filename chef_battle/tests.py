@@ -10235,6 +10235,29 @@ class EmulationBotsAreSwitchedOffTests(TestCase):
         }
         self.assertFalse(counted & bots)
 
+    def test_they_are_off_the_crown_ladder_as_well(self):
+        """The rings are gated at the query they come from, but the ladder counts
+        crowns won today - so a bot that won a rehearsal bout kept its line on
+        the arena after the floor was already clear of it."""
+        from .emulation import EMU_CHEFS
+        from .models import Battle
+
+        slug = EMU_CHEFS[0][0]
+        winner = RecipeAuthor.objects.get(slug=slug)
+        Battle.objects.create(
+            challenger=winner,
+            opponent=RecipeAuthor.objects.get(slug=EMU_CHEFS[1][0]),
+            theme="rehearsal",
+            status=Battle.Status.COMPLETED,
+            winner=winner,
+            crown_awarded=True,
+            start_time=timezone.now(),
+            submission_deadline=timezone.now(),
+            end_time=timezone.now(),
+        )
+        ladder = self._payload()["crown_ladder"]
+        self.assertNotIn(slug, {row["slug"] for row in ladder})
+
     @override_settings(ARENA_SHOW_EMULATION_BOTS=True)
     def test_the_switch_brings_them_back(self):
         from .emulation import EMU_CHEFS

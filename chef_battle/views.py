@@ -833,6 +833,21 @@ def _emulation_bot_slugs() -> set[str]:
     return {slug for slug, _name in EMU_CHEFS}
 
 
+def _without_switched_off_bots(rows: list) -> list:
+    """Strip the test chefs out of a standings list while the switch is off.
+
+    The rings were gated at the query they come from, but the crown ladder is
+    not built from enrolled profiles - it counts crowns won today - so a bot
+    that won a rehearsal bout kept its line on the arena after the floor was
+    already clear of it. Switched off has to mean off everywhere on the page,
+    or "the test chefs are gone" is true of the part he happened to look at.
+    """
+    if _emulation_bots_are_shown():
+        return rows
+    bots = _emulation_bot_slugs()
+    return [row for row in rows if row.get("slug") not in bots]
+
+
 def _always_on_the_arena() -> set[str]:
     """Author slugs the online window does not apply to.
 
@@ -1286,7 +1301,7 @@ def _build_arena_payload(*, viewer_author=None):
         "upcoming": _arena_upcoming(),
         "latest_result": _arena_latest_result(),
         "crown_streak": get_crown_streak(),
-        "crown_ladder": get_crown_ladder(),
+        "crown_ladder": _without_switched_off_bots(get_crown_ladder()),
         "recent_gifts": get_recent_battle_gifts(active_battle),
         "top_supporter": get_top_supporter(active_battle),
         "metrics": get_arena_metrics(active_battle),
