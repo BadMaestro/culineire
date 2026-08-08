@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.944",
+        "date": "2026-08-08",
+        "commit": "",
+        "title": "AN13 had been applied to one of the two stylesheets, and the test that guards it watched only that one",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner: there are two more loose ends. He was right about both. FIRST: AN13 removed 584 unreachable declarations from arena.css and stopped there, while arena_atmosphere.css - which AN12 had just made the arena's other half - was carrying 44 of exactly the same thing, 9 rules of it entirely. Worse, the test written to stop them coming back read one file. A guard that watches half the surface is not a guard, and it would have reported green forever. Both files are clean now and the test reads both; it was checked against the unpruned sheet and fails there, naming the offending selectors. arena_atmosphere.css 1102 -> 861 lines, 42.0KB -> 34.1KB, and the cascade is untouched: 216 winning declarations before, the same 216 after, 0 changed, the surviving rules in the same order, brace balance 0. SECOND: the board's own header still read 'Production baseline: v2.5.934' five releases after that stopped being true - the file that dispatches the work, wrong about what is live, which is the exact fault section 17.9 of the constitution names about the board going stale. It says v2.5.944 now, and the deploy-journal entries for 934 through 942 have their commit hashes filled in rather than left empty.",
+    },
+    {
         "version": "2.5.942",
         "date": "2026-08-08",
         "commit": "a1203585",

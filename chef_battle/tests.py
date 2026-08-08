@@ -11866,7 +11866,12 @@ class ArenaStylesheetHasNoSupersededDeclarationTests(TestCase):
     the earlier copy is `!important` and the later one is not, which is the one
     case where the earlier copy still wins."""
 
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+    # BOTH of the arena's sheets. The first version of this test watched only
+    # arena.css, and arena_atmosphere.css was carrying 44 of the same thing.
+    SHEETS = [
+        Path(settings.BASE_DIR) / "static" / "css" / "arena.css",
+        Path(settings.BASE_DIR) / "static" / "css" / "arena_atmosphere.css",
+    ]
 
     @staticmethod
     def _rules(text):
@@ -11927,24 +11932,25 @@ class ArenaStylesheetHasNoSupersededDeclarationTests(TestCase):
             i += 1
 
     def test_no_declaration_is_overwritten_by_the_same_selector_later(self):
-        seen = {}
-        offenders = []
-        for ctx, selector, props in self._rules(
-            self.CSS.read_text(encoding="utf-8")
-        ):
-            for name, important in props:
-                key = (ctx, selector, name)
-                if key in seen:
-                    earlier_important = seen[key]
-                    if earlier_important and not important:
-                        continue          # the earlier !important still wins
-                    offenders.append(f"{selector} {{ {name} }}")
-                seen[key] = important
+        for sheet in self.SHEETS:
+            seen = {}
+            offenders = []
+            for ctx, selector, props in self._rules(
+                sheet.read_text(encoding="utf-8")
+            ):
+                for name, important in props:
+                    key = (ctx, selector, name)
+                    if key in seen:
+                        earlier_important = seen[key]
+                        if earlier_important and not important:
+                            continue      # the earlier !important still wins
+                        offenders.append(f"{selector} {{ {name} }}")
+                    seen[key] = important
 
-        self.assertEqual(
-            offenders,
-            [],
-            "arena.css sets the same property twice for the same selector; the "
-            "earlier copy can never win and must be removed (AN13): "
-            + "; ".join(sorted(set(offenders))[:10]),
-        )
+            self.assertEqual(
+                offenders,
+                [],
+                f"{sheet.name} sets the same property twice for the same "
+                "selector; the earlier copy can never win and must be removed "
+                "(AN13): " + "; ".join(sorted(set(offenders))[:10]),
+            )
