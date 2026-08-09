@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.978",
         "date": "2026-08-10",
-        "commit": "",
+        "commit": "30620e2e",
         "title": "G01 evidence gathered against contract section 14 - not signed off",
         "section": "Chef Battles / Arena",
         "summary": "docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md: ten of twelve section-14 categories checked with real evidence (access policy, responsive/keyboard/reduced-motion, state/action parity, vote/reveal integrity, moderation, migration readiness, console compatibility, feature flags, rollback). TWO ARE NOT CLEAN, named rather than glossed: A18's two open accessibility gaps (focus rings on 4 of 6 deck controls, 9.2px rank-chip contrast) stay open; legal/payment (real Stripe token purchases, TokenOrder/ProcessedTokenStripeEvent) is technically tested but AGENTS.md section 8 excludes payment/payout/Stripe/legal from every standing agent authorisation - that gate is the Owner's alone, every time, no exception. G01 status moves PENDING -> NEXT with owner Bolt + Owner; acceptance still requires his sign-off and this release does not claim it. 38 focused tests green (ArenaBuildPlanTests, ArenaBuildPlanShareLinkTests, ModerationPanelRoleTests).",
