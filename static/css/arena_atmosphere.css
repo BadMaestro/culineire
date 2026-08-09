@@ -549,9 +549,18 @@
   box-sizing: border-box;
 }
 
+/* AN-R1/B: THE STAGE'S GEOMETRY IS NOT THIS FILE'S TO OWN.
+
+   `width: 100%` and `margin: 0` stood here and quietly beat the page
+   layout: this sheet loads after arena.css and both selectors carry the
+   same specificity, so the atmosphere - which owns the hall's LOOK - was
+   deciding the floor's box. It is why the one authoritative vertical
+   input did nothing at all: the margin carrying it was zeroed from here,
+   two files away, by a rule about atmosphere.
+
+   Geometry belongs to the sheet that owns page layout. What stays here
+   is appearance. */
 .page--arena .arena-floor-stage {
-  width: 100%;
-  margin: 0;
   border-radius: 0 !important;
   box-sizing: border-box;
 }

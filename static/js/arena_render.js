@@ -90,12 +90,45 @@
   // live camera is rotateX(42deg), so that acceptance figure never described
   // what ships; keeping it in the source implied otherwise.
   var STANDS_RATIO = 1.60 * 1.60 / 1.7541;
-  // The clear air kept above and below the floor caption. It is generous on
-  // purpose now: since 2026-08-07 the octagon gives up the height rather than
-  // the caption giving up its lines, so the band is a decision, not a leftover.
-  var CAPTION_GAP = 6;
-  var COMPOSITION_CX = 0.50;
-  var COMPOSITION_CY = 0.51;
+
+  // ============================================================
+  // THE PRODUCT LAYOUT CONTRACT FOR THE OCTAGON.
+  //
+  // Owner, 2026-08-09: "THE ACCEPTED OCTAGON SIZE AND POSITION MUST REMAIN",
+  // and the historical sentence "the floor stands inside its frame at 64%"
+  // is no longer authoritative, because the accepted composition was never
+  // produced by it - it emerged from fitScene's iterative multiplication,
+  // reserveCaptionBand's multiplication on top of that, and the old
+  // camera/container relationship. A rule that did not produce the accepted
+  // result cannot be quoted as the reason to keep it.
+  //
+  // So the accepted composition IS the contract now. These are not numbers
+  // copied off a screenshot to make an implementation reproduce a picture -
+  // that is what REGION_FILL_X 0.5197 was, and it is gone. They are the
+  // Owner's accepted design proportions promoted to the product
+  // specification, and their provenance is written beside them:
+  //
+  //   reference viewport   1280x800
+  //   octagon page region  x 1..1269, y 235..799   (1268 x 564)
+  //   accepted octagon     [305, 284, 659, 454], centre (634.5, 511)
+  //
+  // Everything below is region-relative, so it holds at every viewport.
+  // ============================================================
+
+  // Width first, because the octagon is a square SVG under a FIXED camera:
+  // one number decides its rendered size and the height follows from the
+  // projection rather than being a second decision. 659 of the region's 1268.
+  var OCTAGON_VISUAL_WIDTH_SHARE = 659 / 1268;
+  // Horizontally the composition is simply centred, and this is structural
+  // rather than measured: 0.5 of 1268 is 634, against an accepted 634.5.
+  var OCTAGON_VISUAL_CENTRE_X = 0.5;
+  // Vertically it is deliberately NOT centred - the floor sits high so the
+  // crowd rail and the lower dock read beneath it. 276 of the region's 564:
+  // accepted centre 511 in a region whose top edge is 235.
+  var OCTAGON_VISUAL_CENTRE_Y = 276 / 564;
+  // A ceiling, not a target: on a short screen the octagon must not spill out
+  // of the region it was given. It does not decide the size when there is room.
+  var REGION_MAX_Y = 0.95;
   // AN15: the site header belongs to ArenaPageLayout. This renderer draws
   // inside the box it is given and does not look for its neighbours.
   // A09: clear floor between the crown block and a fighter block, as a fraction
@@ -2858,12 +2891,15 @@
   }
 
   function fitScene(svg) {
-    var container = svg.parentElement;
-    if (!container) { return; }
+    // The SVG's parent is the CAMERA VIEWPORT, and the viewport's parent is
+    // the page region. Naming it says which is which: this file places the
+    // camera in the region, and never the other way round.
+    var camera = svg.parentElement;
+    if (!camera) { return; }
     if (!geometryIsValid(svg)) { return; }
     arenaState('geometry');
 
-    placeOctagon(svg, container);
+    placeOctagon(svg, camera);
 
     billboardFaces(svg);
     placeRankSpine(svg);
@@ -2919,103 +2955,91 @@
   // than invent two shades - the ladder is a key to the floor, and a key that
   // separates what the floor joins is a lie about the floor.
   // ============================================================
-  // THE OCTAGON'S LAYOUT OWNER.
-  //
-  // AN-R1/B, 2026-08-09. It receives a region and decides scale and position
-  // INSIDE it. It is the only thing anywhere that writes --arena-fit,
-  // --arena-shift-x and --arena-shift-y, and each of them is written from a
-  // known base rather than added to whatever the last pass left.
-  //
-  // What it no longer does: solve page furniture. The caption's band is a grid
-  // row now (see `.arena-command-deck__floor`), so there is nothing to make
-  // room for and nobody to negotiate with. Two functions used to write these
-  // three variables, five passes between them, each accumulating onto the
-  // other's result - that is what the Owner's audit found and this replaces.
-  //
-  // The camera is MEASURED, not modelled: --arena-shift-* is applied through
-  // rotateX(42deg) under a 1500px perspective, so a translation asked for in
-  // CSS pixels does not arrive on the screen at that size. One probe measures
-  // the ratio; the solve is then closed against an ABSOLUTE screen target, and
-  // refined at most twice to half a pixel because the projection is not
-  // affine. That is convergence inside one owner, not two owners taking turns.
-  // ============================================================
 
-  /** The floor's own cells - the set the fit has always been measured on. */
-  function octagonCells(svg) {
-    var cells = svg.querySelectorAll('.arena-cell--sponsors-tpl');
-    if (!cells.length) {
-      cells = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
-    }
-    if (!cells.length) {
-      cells = svg.querySelectorAll('.arena-cell--oval-seat');
-    }
-    return cells;
+  /** The octagon's own rendered box - the thing the region has to hold. */
+  function elementBox(svg) {
+    var b = svg.getBoundingClientRect();
+    if (!(b.width > 0) || !(b.height > 0)) { return null; }
+    return { left: b.left, right: b.right, top: b.top, bottom: b.bottom,
+             width: b.width, height: b.height,
+             cx: b.left + b.width / 2, cy: b.top + b.height / 2 };
   }
 
-  function cellsBox(cells) {
-    var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-    for (var i = 0; i < cells.length; i++) {
-      var box = cells[i].getBoundingClientRect();
-      if (!box.width || !box.height) { continue; }
-      if (box.left < left) { left = box.left; }
-      if (box.right > right) { right = box.right; }
-      if (box.top < top) { top = box.top; }
-      if (box.bottom > bottom) { bottom = box.bottom; }
+  /**
+   * Place the COMPLETE camera component inside its page region.
+   *
+   * Nothing here reaches into the camera. The three properties written are
+   * the component's own placement - a uniform scale and a translation in
+   * screen pixels, both applied OUTSIDE the perspective - so the projection
+   * they carry is the one the camera already produced, magnified and moved.
+   */
+  function writePlacement(camera, scale, x, y) {
+    camera.style.setProperty('--arena-camera-scale', scale.toFixed(5));
+    camera.style.setProperty('--arena-camera-x', x.toFixed(2) + 'px');
+    camera.style.setProperty('--arena-camera-y', y.toFixed(2) + 'px');
+  }
+
+  function placeOctagon(svg, camera) {
+    // ============================================================
+    // THE OCTAGON'S LAYOUT OWNER - Owner's correction of 2026-08-09.
+    //
+    // The chain, and the boundary that had been missing:
+    //
+    //     page layout      allocates the region
+    //           |
+    //     THIS FUNCTION    scales and moves the COMPLETE camera component
+    //           |          into that region
+    //     the camera       projects, and knows nothing above it
+    //
+    // What it used to do instead was reach through the camera. It wrote
+    // --arena-fit and --arena-shift-* on the SVG, INSIDE rotateX(42deg)
+    // under a 1500px perspective, which is why it needed a probe and two
+    // refinements: a translation asked for in CSS pixels does not arrive on
+    // the screen at that size, and a scale under a perspective does not grow
+    // the box linearly. Every one of those passes was the code apologising
+    // for having crossed a boundary it should not have crossed.
+    //
+    // The camera now has its own viewport with its own intrinsic side (see
+    // --arena-camera-side in arena.css), so the projection no longer depends
+    // on the height of whatever box the page happened to give it. Placement
+    // is a plain 2D scale and translate on that viewport, which is affine,
+    // which is why the solve below is exact: two writes and one measurement,
+    // no probe, no refinement loop, no accumulation.
+    //
+    // A page that provides no camera viewport - the Master Console mirror,
+    // which carries `page--arena` on a completely different shell - gets
+    // nothing written by this function. It is not a second layout path; it
+    // is the precondition of this one not being met.
+    // ============================================================
+    if (!camera || !camera.parentElement) { return; }
+    if (!global.getComputedStyle(camera)
+               .getPropertyValue('--arena-camera-side').trim()) {
+      return;
     }
-    if (!(right > left) || !(bottom > top)) { return null; }
-    return { left: left, right: right, top: top, bottom: bottom,
-             width: right - left, height: bottom - top,
-             cx: (left + right) / 2, cy: (top + bottom) / 2 };
-  }
-
-  function writeCamera(svg, fit, shiftX, shiftY) {
-    svg.style.setProperty('--arena-fit', fit.toFixed(4));
-    svg.style.setProperty('--arena-shift-x', shiftX.toFixed(2) + 'px');
-    svg.style.setProperty('--arena-shift-y', shiftY.toFixed(2) + 'px');
-  }
-
-  function placeOctagon(svg, container) {
-    var region = container.getBoundingClientRect();
+    var region = camera.parentElement.getBoundingClientRect();
     if (!(region.width > 0) || !(region.height > 0)) { return; }
 
     // A KNOWN BASE, so the answer cannot depend on what the last pass left.
-    writeCamera(svg, 1, 0, 0);
-    var natural = cellsBox(octagonCells(svg));
-    if (!natural) { return; }
+    writePlacement(camera, 1, 0, 0);
+    var natural = elementBox(svg);
+    if (!natural || !(natural.width > 0) || !(natural.height > 0)) { return; }
 
-    // THE FIT THE REGION ASKS FOR. Owner 2026-07-27: the floor stands inside
-    // its frame at 64%, shrunk 20% from the prior 80% so it leaves more hall
-    // margin.
-    var viewPad = 0.64;
-    var fit = Math.min(region.width * viewPad / natural.width,
-                       region.height * viewPad / natural.height);
-
-    // HOW THE CAMERA CARRIES A TRANSLATION - measured, once.
-    var PROBE = 100;
-    writeCamera(svg, fit, 0, 0);
-    var zero = cellsBox(octagonCells(svg));
-    writeCamera(svg, fit, PROBE, PROBE);
-    var moved = cellsBox(octagonCells(svg));
-    if (!zero || !moved) { writeCamera(svg, fit, 0, 0); return; }
-    var kx = (moved.cx - zero.cx) / PROBE;
-    var ky = (moved.cy - zero.cy) / PROBE;
-    if (!(Math.abs(kx) > 0.01)) { kx = 1; }
-    if (!(Math.abs(ky) > 0.01)) { ky = 1; }
-
-    // THE COMPOSITION CENTRE OF ITS OWN REGION: 0.50 W / 0.51 H (spec).
-    var targetX = region.left + region.width * COMPOSITION_CX;
-    var targetY = region.top + region.height * COMPOSITION_CY;
-
-    writeCamera(svg, fit, (targetX - zero.cx) / kx, (targetY - zero.cy) / ky);
-    for (var step = 0; step < 2; step++) {
-      var now = cellsBox(octagonCells(svg));
-      if (!now) { return; }
-      var dx = targetX - now.cx, dy = targetY - now.cy;
-      if (Math.abs(dx) <= 0.5 && Math.abs(dy) <= 0.5) { return; }
-      var sx = parseFloat(svg.style.getPropertyValue('--arena-shift-x')) || 0;
-      var sy = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
-      writeCamera(svg, fit, sx + dx / kx, sy + dy / ky);
+    // THE SIZE. One division, because the scale is outside the projection.
+    var scale = region.width * OCTAGON_VISUAL_WIDTH_SHARE / natural.width;
+    // The ceiling, applied to the same known base rather than to a result.
+    if (natural.height * scale > region.height * REGION_MAX_Y) {
+      scale = region.height * REGION_MAX_Y / natural.height;
     }
+
+    // THE POSITION. Measured once at the chosen scale, then corrected once.
+    // The correction is exact: the translation is applied after the scale and
+    // in screen pixels, so what is asked for is what arrives.
+    writePlacement(camera, scale, 0, 0);
+    var sized = elementBox(svg);
+    if (!sized) { writePlacement(camera, 1, 0, 0); return; }
+    var targetX = region.left + region.width * OCTAGON_VISUAL_CENTRE_X;
+    var targetY = region.top + region.height * OCTAGON_VISUAL_CENTRE_Y;
+    writePlacement(camera, scale, targetX - sized.cx, targetY - sized.cy);
   }
 
   function paintRankLadder(svg) {
@@ -3051,8 +3075,19 @@
   // edge and the crown without covering it.
   function placeRankSpine(svg) {
     var spine = document.querySelector('.arena-rank-spine');
-    var container = svg.parentElement;
-    if (!spine || !container) { return; }
+    var camera = svg.parentElement;
+    if (!spine || !camera) { return; }
+    // THE FRAME IS THE PAGE REGION, NOT THE CAMERA.
+    //
+    // AN-R2/2, 2026-08-09. This read `svg.parentElement` and called it the
+    // frame, which was true only while the camera viewport happened to be
+    // stretched over the whole region. Now that the viewport has an
+    // intrinsic side of its own, the ladder measured itself against a
+    // 284px box and landed at x=204 instead of 935. The ladder stands
+    // beside the octagon INSIDE the octagon's region; the region is the
+    // element that says how much room there is, and it is also the ladder's
+    // own offset parent, which is what its top and left are relative to.
+    var container = spine.offsetParent || camera.parentElement || camera;
 
     // Below 767 the arena is untouched by the Owner's own instruction of
     // 2026-08-03, so CSS keeps layout there and nothing is measured.

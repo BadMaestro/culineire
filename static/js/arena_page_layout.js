@@ -96,15 +96,75 @@
     var deck = document.querySelector('.arena-command-deck');
     if (!deck) { return false; }
     var ribbon = deck.querySelector('.arena-broadcast-ribbon');
+    // MEASURED FROM THE FLOOR LAYER, NOT FROM THE DECK.
+    //
+    // AN-R2/2, 2026-08-09. The number is the first row of the floor's own
+    // grid, so it has to be an offset within the floor's box. It was taken
+    // from the deck's box, and the deck carries a 1px border, so the row
+    // was one pixel too tall and everything under it - the writing, the
+    // clear air above it, the octagon's region - sat one pixel low. That
+    // is the whole of the caption's remaining 1px, measured: accepted 235,
+    // rendered 236.
+    var floor = deck.querySelector('.arena-command-deck__floor');
     var top = 0;
-    if (ribbon) {
-      var deckBox = deck.getBoundingClientRect();
+    if (ribbon && floor) {
+      var floorBox = floor.getBoundingClientRect();
       var box = ribbon.getBoundingClientRect();
-      if (box.height > 0) { top = Math.max(0, Math.round(box.bottom - deckBox.top)); }
+      if (box.height > 0) { top = Math.max(0, Math.round(box.bottom - floorBox.top)); }
     }
     var next = top + 'px';
     if (deck.style.getPropertyValue('--arena-deck-top-h') === next) { return false; }
     deck.style.setProperty('--arena-deck-top-h', next);
+    return true;
+  }
+
+  /**
+   * Publish --arena-caption-nudge-x: how far the writing must step aside so a
+   * page panel does not stand on it.
+   *
+   * AN-R1/B. This is the page's business and not the caption's. The caption is
+   * centred on the floor by the stylesheet; when a panel reaches into its band
+   * - the metrics card does, at every width measured - the page says by how
+   * much the band is blocked, and the stylesheet steps the writing aside by
+   * exactly that much and no more.
+   *
+   * It is the same kind of fact as --arena-deck-top-h: where the page's own
+   * furniture ended up. The caption never measures a neighbour; it is told.
+   *
+   * Measured at 1280x800 before this existed: a centred caption ran 69px into
+   * the metrics card and 43px down it. That is the Owner's own report of
+   * 2026-08-07 - "блоки опять наезжают друг на друга" - reappearing the moment
+   * the old measurement-based placement was removed, which is why the page has
+   * to answer it instead.
+   */
+  function measureCaptionBand() {
+    var deck = document.querySelector('.arena-command-deck');
+    var caption = deck && deck.querySelector('.arena-floor-caption');
+    if (!deck || !caption) { return false; }
+    var GAP = 8;
+    var box = caption.getBoundingClientRect();
+    // Measure the caption where it WOULD be with no nudge, by adding back the
+    // one already applied. Reading its nudged position instead makes the
+    // measurement depend on its own last answer: it steps aside, the overlap
+    // disappears, the nudge returns to zero, and it steps back - measured,
+    // that oscillated between 77px and 0.
+    var applied = parseFloat(deck.style.getPropertyValue('--arena-caption-nudge-x')) || 0;
+    var left = box.left + applied;
+    var right = box.right + applied;
+    var nudge = 0;
+    if (box.width > 0) {
+      var panels = deck.querySelectorAll('.arena-command-deck__metrics, .arena-command-deck__phase-card');
+      for (var i = 0; i < panels.length; i++) {
+        var p = panels[i].getBoundingClientRect();
+        if (!(p.width > 0) || !(p.height > 0)) { continue; }
+        if (p.bottom <= box.top || p.top >= box.bottom) { continue; }   // not in the band
+        if (p.left >= right || p.right <= left) { continue; }           // not in the way
+        if (p.left > left) { nudge = Math.max(nudge, right - (p.left - GAP)); }
+      }
+    }
+    var next = Math.round(nudge) + 'px';
+    if (deck.style.getPropertyValue('--arena-caption-nudge-x') === next) { return false; }
+    deck.style.setProperty('--arena-caption-nudge-x', next);
     return true;
   }
 
@@ -117,7 +177,8 @@
   function remeasure(force) {
     var header = measure();
     var regions = measureDeckTop();
-    announce(header || regions, !!force);
+    var band = measureCaptionBand();
+    announce(header || regions || band, !!force);
   }
 
   /**
@@ -164,7 +225,8 @@
     measure: function () {
       var header = measure();
       var regions = measureDeckTop();
-      return header || regions;
+      var band = measureCaptionBand();
+      return header || regions || band;
     },
     watch: watch,
     /** fn(changed, force) - `force` means re-fit even when the number held. */

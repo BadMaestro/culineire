@@ -295,3 +295,124 @@ exceeds Windows' filename limit on `docs/archive/…`.
    pass. **AN7, AN9 and AN28** need a browser on the PRODUCTION arena, which is
    staff-only and answers 404 here; ten of the twelve scenarios were measured
    on the harness instead and are labelled as harness numbers on the board.
+
+## J. The camera boundary — Owner's acceptance repair, 2026-08-09
+
+His acceptance audit found the octagon's vertical position had two owners. The
+first repair pass gave the writing a grid row and took the compensation out of
+the renderer, and it left three things wrong. He named all three and this
+section records how each was closed and with what evidence.
+
+### J1. The camera was owned by the page
+
+The camera viewport was `inset: 0` on the page region, so the region's height
+WAS the camera's coordinate space, and three optical quantities followed it: the
+scene's side at 172% of it, the perspective origin at 40% of it, and the
+transform origin at 62% of the scene.
+
+Measured, with the scale held fixed and the placement owner not running: taking
+80px off the page region moved the scene 978.672 to 841.078, the perspective
+origin 227.594 to 195.594, the transform origin 606.777 to 521.468, and the
+projected octagon 658x440 to 557x375 — with the proportion, 0.669 to 0.673. Page
+furniture redefined the optics.
+
+The camera itself is unchanged. Its four values — perspective 1500px,
+perspective-origin 50% 40%, rotateX(42deg), transform-origin 50% 62% — are the
+accepted ones and were not touched, on his instruction not to redesign the
+camera. What changed is what they are measured against: the viewport has an
+intrinsic side of its own, and the page scales and moves the COMPLETE component
+into its region with a 2D transform outside the perspective.
+
+Proof after: the region was moved and resized by up to 120px, the deck-top
+furniture changed twice, the caption's lead row tripled and the caption's type
+doubled in size. The octagon stayed 659.00 x 454.00, the proportion stayed
+0.688923 to six decimal places, and the perspective, perspective-origin and
+camera box did not move.
+
+### J2. The camera's two intrinsic constants
+
+440px and 0.79308. Neither is tuned and neither is copied off a screenshot: the
+camera has exactly two intrinsic quantities — the side of its viewport and the
+fit of the scene inside it — and two accepted facts pin them.
+
+The first is the octagon's own proportion, 659 by 454. Each viewport side gives
+exactly one fit that reproduces it, so that fact alone is a curve, not a point.
+The second picks the point: where the rank ring lands INSIDE that box, which is
+what the ladder is measured from — so the ladder's accepted left edge, 935, is a
+statement about the camera and not about the ladder. At 440px the fit is
+0.79308, the octagon comes back 659.00 x 454.00 and the ladder at 935. At 284px,
+which satisfies the proportion alone, the outline still matches and the ladder
+lands at 941.
+
+`--arena-fit` is now DECLARED in the stylesheet and written by nobody. It used to
+be the output of an iterative solve against a box the page handed over.
+
+### J3. The product layout contract replaces REGION_FILL_X
+
+`REGION_FILL_X = 0.5197` was 659/1268 read off the accepted composition while
+claiming descent from the Owner's 2026-07-27 rule that the floor stands inside
+its frame at 64%. It could not have that descent: the accepted geometry was
+never produced by a clean 0.64 relationship — it emerged from fitScene's
+iterative multiplication, reserveCaptionBand's multiplication on top of it, and
+the old camera/container relationship.
+
+His decision of 2026-08-09 settles it: the accepted composition IS the contract.
+Three named constants carry it, each with its provenance beside it, all
+region-relative so they hold at every viewport:
+
+    OCTAGON_VISUAL_WIDTH_SHARE   659 / 1268
+    OCTAGON_VISUAL_CENTRE_X      0.5          (structural — centred)
+    OCTAGON_VISUAL_CENTRE_Y      276 / 564
+
+The distinction he drew and this section keeps: an unexplained number copied
+from a screenshot is a defect; an Owner-approved design proportion promoted to
+the product specification, named and provenanced, is a contract.
+
+### J4. Moving the region no longer resizes it
+
+`--arena-octagon-offset-y` was a `margin-top`, so +40 pushed the region down AND
+took 40 off its height; the octagon re-fitted into the shorter box and 40 arrived
+on the screen as 21. It is a `translate` on the finished region now, which
+changes no track and no dimension.
+
+Measured 0 / +40 / -40 / 0: the octagon moved 284 -> 324 -> 244 -> 284, stayed
+659 x 454 throughout, and the region stayed 564 tall. Exact, and no accumulation.
+
+### J5. The caption's lost gap
+
+`CAPTION_GAP = 6` was a real layout-spacing decision that lost its owner when
+`placeFloorCaption()` was deleted, and the caption came to rest six pixels high.
+It is a grid row now — `--arena-caption-lead` — because spacing between two
+page-layout regions is page layout's decision. No `top`, no `translateY`, no
+margin chosen to hit a number.
+
+One further pixel came from elsewhere and is worth recording, because it was
+invisible to every reading of the caption: `--arena-deck-top-h` is the first row
+of the FLOOR's grid and was measured from the DECK's box, and the deck carries a
+1px border. The row was one pixel too tall and everything under it sat one pixel
+low.
+
+### J6. The placement is affine, so the solve is exact
+
+The old owner wrote inside the camera — `--arena-fit` and `--arena-shift-*` on
+the SVG, inside rotateX under a perspective — which is why it needed a 100px
+probe and two refinement passes: a translation asked for in CSS pixels does not
+arrive on the screen at that size, and a scale under a perspective does not grow
+the box linearly. Every one of those passes was the code apologising for having
+crossed a boundary.
+
+Placement is now a plain 2D scale and translate on the viewport. Two writes, one
+measurement, no probe, no loop, no accumulation.
+
+### J7. Acceptance, at 1280x800, offset 0
+
+| | target | measured |
+|---|---|---|
+| Octagon | 305, 284, 659, 454 | 305.5, 284.00, 659.00, 454.00 |
+| Rank Ladder | 935, 372, 148, 220 | 935, 372, 148, 220 |
+| Caption | 350, 235, 416, 51 | 350, 235, 416, 51 |
+
+Caption overlaps with any page panel: none. Resize converges to the same numbers
+by every path — a fresh 1920x1080 and 1280 -> 1920 agree to the pixel
+(octagon 459, 306, 992, 683), and 1920 -> 1280 returns to the accepted
+composition exactly.

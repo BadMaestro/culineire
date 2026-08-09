@@ -11622,23 +11622,40 @@ class FloorCaptionGetsARegionTests(TestCase):
                           "caption.style.width = Math"):
             self.assertNotIn(forbidden, js)
 
-    def test_the_floor_allocates_three_regions(self):
+    def test_the_floor_allocates_the_regions(self):
+        """Four rows: the furniture above, the clear air over the writing,
+        the writing, and what is left. The octagon spans the last two.
+
+        The clear air is the third of the Owner's repairs of 2026-08-09:
+        CAPTION_GAP = 6 lived in placeFloorCaption(), lost its owner when that
+        function was deleted, and the caption came to rest six pixels high.
+        Spacing between two page-layout regions belongs to page layout."""
         css = self._css()
-        rule = css.split(".arena-command-deck__floor {", 1)
         found = False
         for chunk in css.split(".arena-command-deck__floor {")[1:]:
             body = chunk.split("}", 1)[0]
             if "grid-template-rows" in body:
                 found = True
                 self.assertIn("var(--arena-deck-top-h", body)
+                self.assertIn("var(--arena-caption-lead)", body)
                 self.assertIn("auto", body)
                 self.assertIn("1fr", body)
         self.assertTrue(found, "the floor layer no longer allocates regions")
 
+    def test_the_clear_air_above_the_writing_is_a_layout_row(self):
+        """The number is the one that was lost, and it is not applied to the
+        caption as a nudge: no top, no translateY, no margin picked to hit a
+        target."""
+        css = self._css()
+        self.assertIn("--arena-caption-lead: 6px;", css)
+        chunk = css.split(".arena-floor-caption {", 1)[1].split("}", 1)[0]
+        self.assertNotIn("top:", chunk)
+        self.assertNotIn("translateY", chunk)
+
     def test_the_caption_is_a_row_and_not_a_placed_box(self):
         css = self._css()
         chunk = css.split(".arena-floor-caption {", 1)[1].split("}", 1)[0]
-        self.assertIn("grid-row: 2", chunk)
+        self.assertIn("grid-row: 3", chunk)
         self.assertNotIn("position: absolute", chunk)
 
     def test_the_region_boundary_is_published_by_the_page(self):
@@ -11664,8 +11681,128 @@ class FloorCaptionGetsARegionTests(TestCase):
         """placeRankSpine() measures the cells after they land, so it needs no
         part of any of this."""
         js = self._js()
-        order = js.index("placeOctagon(svg, container);")
+        order = js.index("placeOctagon(svg, camera);")
         self.assertLess(order, js.index("placeRankSpine(svg);"))
+
+
+class ArenaCameraIsOwnedByTheOctagonTests(TestCase):
+    """Owner's correction of 2026-08-09 — the camera stops belonging to the page.
+
+    The defect he named, and it was measured before it was fixed: the camera
+    viewport was `inset: 0` on the page region, so the region's height WAS the
+    camera's coordinate space. Three optical quantities followed it — the
+    scene's side at 172% of it, the perspective origin at 40% of it, and the
+    transform origin at 62% of the scene. Taking 80px off the page region moved
+    the scene 978.672 -> 841.078, the perspective origin 227.594 -> 195.594,
+    the projected octagon 658x440 -> 557x375, and the PROPORTION with it,
+    0.669 -> 0.673. Page furniture was redefining the optics.
+
+    His instruction was not to redesign the camera. Its four values are
+    untouched — 1500px, 50% 40%, rotateX(42deg), 50% 62%. What changed is what
+    they are measured against: the viewport now has an intrinsic side of its
+    own, and the page scales and moves the COMPLETE component into its region
+    with a 2D transform outside the perspective.
+
+    Measured after, on the real stylesheets and the real renderer at 1280x800:
+    octagon [305, 284, 659, 454], ladder [935, 372, 148, 220], caption
+    [350, 235, 416, 51] — the accepted composition, exactly. Moving the page
+    region by 120px in either direction leaves the octagon 659.00 x 454.00 and
+    the proportion identical to six decimal places."""
+
+    def _read(self, kind, name):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / kind / name
+        ).read_text(encoding="utf-8")
+
+    @staticmethod
+    def _code(text):
+        """Comments explain what was removed and name what is forbidden, so a
+        scan that reads them finds every ghost it was written to bury."""
+        text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+        return re.sub("//[^" + chr(10) + "]*", " ", text)
+
+    def _placer(self):
+        js = self._read("js", "arena_render.js")
+        js = js.replace(chr(13), "")
+        return js.split("function placeOctagon(", 1)[1].split(chr(10) + "  }", 1)[0]
+
+    def test_the_camera_viewport_has_an_intrinsic_side(self):
+        css = self._read("css", "arena.css")
+        self.assertIn("--arena-camera-side: 440px;", css)
+        self.assertEqual(css.count("--arena-camera-side:"), 1,
+                         "the camera's own size is declared in one place")
+
+    def test_the_viewport_is_not_stretched_over_the_page_region(self):
+        """`inset: 0` on the region is the coupling itself."""
+        css = self._read("css", "arena.css")
+        chunk = css.split(
+            ".page--arena .arena-command-deck__floor .arena-render-container {", 1
+        )[1].split("}", 1)[0]
+        self.assertNotIn("inset: 0", chunk)
+        self.assertIn("width: var(--arena-camera-side)", chunk)
+        self.assertIn("height: var(--arena-camera-side)", chunk)
+        self.assertIn("perspective: 1500px", chunk)
+        self.assertIn("perspective-origin: 50% 40%", chunk)
+
+    def test_nothing_else_sizes_or_transforms_the_viewport(self):
+        """These four declarations sat at the same specificity and LATER in the
+        file, so the intrinsic side resolved to zero and the placement never
+        ran — a 0x0 camera, measured."""
+        css = self._code(self._read("css", "arena.css"))
+        for chunk in css.split(".arena-render-container {")[1:]:
+            body = chunk.split("}", 1)[0]
+            if "--arena-camera-side" in body:
+                continue
+            for forbidden in ("width: auto", "height: auto", "transform: none"):
+                self.assertNotIn(
+                    forbidden, body,
+                    "a second rule sizes or transforms the camera viewport",
+                )
+
+    def test_the_renderer_never_reaches_inside_the_camera(self):
+        js = self._read("js", "arena_render.js")
+        for forbidden in ("'--arena-fit'", "'--arena-shift-x'", "'--arena-shift-y'"):
+            self.assertNotIn(
+                forbidden, js,
+                "the scene's fit and shift are camera constants; the page "
+                "places the camera and does not steer it",
+            )
+
+    def test_the_placement_is_affine_and_therefore_exact(self):
+        """No probe, no refinement loop, no accumulation. A scale and a
+        translation outside the perspective mean what is asked for is what
+        arrives, so the whole solve is two writes and one measurement."""
+        body = self._placer()
+        self.assertIn("--arena-camera-scale", self._read("js", "arena_render.js"))
+        for gone in ("PROBE", "for (var sizing", "for (var step"):
+            self.assertNotIn(gone, body)
+
+    def test_the_tuned_constant_is_gone_and_the_contract_is_named(self):
+        """REGION_FILL_X 0.5197 was 659/1268 read off the accepted screenshot
+        while claiming descent from the Owner's 0.64 rule. He removed that
+        claim: the accepted composition IS the contract now, and its numbers
+        are named and carry their provenance."""
+        js = self._code(self._read("js", "arena_render.js"))
+        self.assertNotIn("REGION_FILL_X", js)
+        for name in ("OCTAGON_VISUAL_WIDTH_SHARE",
+                     "OCTAGON_VISUAL_CENTRE_X",
+                     "OCTAGON_VISUAL_CENTRE_Y"):
+            self.assertIn(name, js)
+        self.assertIn("659 / 1268", js)
+
+    def test_moving_the_region_does_not_resize_it(self):
+        """Owner, 2026-08-09: moving a puzzle piece must not resize the puzzle
+        piece. As a margin-top the input pushed the region down AND took the
+        same amount off its height, the octagon re-fitted into the shorter box,
+        and +40 arrived on the screen as +21. Measured after: +40 is +40, -40
+        is -40, the region stays 564 tall and the octagon stays 659 x 454."""
+        css = self._read("css", "arena.css")
+        self.assertIn("translate: 0 var(--arena-octagon-offset-y, 0px);", css)
+        self.assertNotIn("margin-top: var(--arena-octagon-offset-y", css)
+        self.assertEqual(css.count("var(--arena-octagon-offset-y"), 1)
 
 
 class ArenaReadinessLifecycleTests(TestCase):
@@ -12050,7 +12187,7 @@ class ArenaRendererReadsBeforeItWritesTests(TestCase):
         other's result."""
         js = self._js()
         body = js.split("function placeOctagon(", 1)[1].split(chr(10) + "  }", 1)[0]
-        self.assertIn("writeCamera(svg, 1, 0, 0);", body)
+        self.assertIn("writePlacement(camera, 1, 0, 0);", body)
         self.assertNotIn("+ driftY", body)
         self.assertNotIn("current * factor", body)
 
