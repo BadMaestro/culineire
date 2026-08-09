@@ -4297,9 +4297,31 @@ class ArchitectureNormalisationBlockTests(TestCase):
         for done in ("AN12", "AN13", "AN15", "AN16", "AN18", "AN20", "AN21", "AN22",
                      "AN26", "AN27", "AN29"):
             self.assertEqual(by_id[done]["status"], "DONE", done)
-        # and these are honestly unfinished
-        for partial in ("AN7", "AN9"):
-            self.assertEqual(by_id[partial]["status"], "PARTIAL", partial)
+        # AN7, AN9 and AN28 joined them on 2026-08-09, when the Owner closed
+        # the phase. The two scenarios that had been missing since the block
+        # opened - cold cache and CPU/network throttling - are measured by
+        # CONSTRUCTION now rather than through CDP: cache-bust every asset
+        # and request the renderer last, block the main thread in 120ms
+        # bursts, deliver the renderer 900ms late, then do the last two at
+        # once. What is still not claimed is the same measurement against
+        # the PRODUCTION page, which answers 404 to everyone but staff, and
+        # that is carried as visual debt VD2 rather than as a PARTIAL card.
+        for done in ("AN7", "AN9", "AN28"):
+            self.assertEqual(by_id[done]["status"], "DONE", done)
+
+    def test_no_normalisation_card_is_left_partial(self):
+        """The Owner closed the phase on 2026-08-09: nothing may be PARTIAL.
+
+        This is the assertion that makes COMPLETE mean something. A card
+        that cannot be finished from this workstation is not parked here as
+        PARTIAL - it is closed with what WAS measured and its remainder is
+        carried explicitly as visual debt, where it has a name and an
+        owner."""
+        from recipes.views import ARENA_NORMALISATION_SECTIONS
+
+        left = [s["id"] for s in ARENA_NORMALISATION_SECTIONS
+                if s["status"] != "DONE"]
+        self.assertEqual(left, [], "the phase is closed; these are not: %r" % (left,))
 
     def test_the_old_shape_of_this_block_is_gone(self):
         """The Owner, 2026-08-08: why are the finished cards not marked, and the

@@ -3259,9 +3259,21 @@
     arenaState('shell');
     fitScene(svg);
     arenaState('interactive');
-    // The frame is fluid, so the fit is re-measured whenever it changes size.
-    if (global.ResizeObserver && svg.parentElement) {
-      new global.ResizeObserver(function () { fitScene(svg); }).observe(svg.parentElement);
+    // THE OBSERVER WATCHES THE REGION, NOT THE CAMERA.
+    //
+    // AN-R2/3, 2026-08-09, found by the lifecycle audit and not by a test.
+    // This observed `svg.parentElement` - which used to be the camera
+    // viewport stretched over the page region, so watching it WAS watching
+    // the region. The viewport has an intrinsic 440px side now and its box
+    // never changes, so the observer had quietly become one that can never
+    // fire. A trigger that cannot fire is worse than one that is missing:
+    // it reads as covered.
+    //
+    // The box that actually varies is the REGION, one level up, and it is
+    // still exactly one ResizeObserver in this file.
+    var region = svg.parentElement && svg.parentElement.parentElement;
+    if (global.ResizeObserver && region) {
+      new global.ResizeObserver(function () { fitScene(svg); }).observe(region);
     }
     // AN15, master task section 9: the page owns its own layout and the
     // octagon re-fits inside whatever it is handed. The four triggers that can
@@ -3317,7 +3329,14 @@
   function runwayLayer() {
     var el = document.getElementById('arena-runway');
     if (el) { return el; }
-    var host = document.querySelector('.arena-render-container')
+    // THE RUNWAY IS PAGE FURNITURE, NOT PART OF THE CAMERA.
+    //
+    // AN-R2/3: it used to be appended to `.arena-render-container`, which
+    // was the whole region. That element is the camera viewport now - 440px
+    // square and carrying the placement scale - so the countdown would have
+    // been shrunk and moved by the octagon's fit. It belongs to the region,
+    // which is the box it was always positioned against.
+    var host = document.querySelector('.arena-floor-stage')
       || document.querySelector('.arena-command-deck__floor')
       || document.body;
     el = document.createElement('div');

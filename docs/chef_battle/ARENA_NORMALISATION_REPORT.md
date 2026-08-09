@@ -416,3 +416,178 @@ Caption overlaps with any page panel: none. Resize converges to the same numbers
 by every path — a fresh 1920x1080 and 1280 -> 1920 agree to the pixel
 (octagon 459, 306, 992, 683), and 1920 -> 1280 returns to the accepted
 composition exactly.
+
+## K. Phase closure — the Owner's ten items, 2026-08-09
+
+The phase is closed here. Sections A to J describe how the architecture got to
+where it is; this section is the evidence that nothing was left PARTIAL.
+
+### K1. BEFORE vs AFTER
+
+| Metric | Before | After |
+|---|---|---|
+| Arena-specific stylesheets | 7 | 2 |
+| Arena stylesheet lines | 8534 | 7488 |
+| Arena CSS rules | 1110 | 1074 |
+| `!important` across both sheets | 136 | 42 |
+| Geometry `!important` on the camera path | 7 | 0 |
+| Raw `z-index` numbers | 70 | 0, against 50 layer tokens |
+| Stylesheet link inside the body | 1 | 0 |
+| Inline style attributes in the arena templates | 2 | 0 |
+| Declarations a later identical selector already beat | 628 | 0 |
+| Competing owners of the octagon's vertical position | 2 | 1 |
+| Camera declarations | 6, one with `!important` | 1 |
+| `perspective` declarations | 3 | 1 |
+| `perspective-origin` declarations | 3 | 1 |
+| `rotateX` declarations | 5 | 1 |
+| Rules sizing the camera viewport | 4 | 1 |
+| Files able to decide floor-layer geometry | 2 | 1 |
+| Writers of `--arena-fit` and `--arena-shift-*` | 2 functions, 5 passes | 0 |
+| Iterative placement passes per fit | up to 5, accumulating | 0 |
+| Camera probes per fit | one 100px probe plus 2 refinements | 0 |
+| CSS rules positioning the ladder and the caption | 20 | 0 |
+| `ResizeObserver` in the renderer | 6 | 1 |
+| Page-level triggers owned by the renderer | 4 | 0 |
+| Forced reflows per caption pass | 1 | 0 |
+| Layout shifts on load | 1 to 2 | 0 |
+| CLS | 0.0255 / 0.0111 | 0 |
+| The rank ladder's first painted position | 441px from final | its final position |
+| The known initial-render defect | ladder centred, then jumps | not reproducible in six load profiles |
+
+### K2. AN28 — the original startup defect, six load profiles
+
+The defect: the shell appears, the ladder appears in the CENTRE, the octagon is
+still absent, the octagon loads, the ladder JUMPS.
+
+Measured on the harness that carries the real arena DOM, the real stylesheets
+and the real renderer over HTTP, through an observer that watches the page from
+before its first paint. Six profiles at 1280x800:
+
+| Profile | Shell | Octagon | Ladder | Ladder first and stable | Changes | Octagon first and stable | Changes |
+|---|---|---|---|---|---|---|---|
+| A normal | 471ms | 471ms | 471ms | 935,372,148,220 both | 0 | 305,284,659,454 both | 0 |
+| B hard reload, every asset cache-busted | 120ms | 777ms | 777ms | same | 0 | same | 0 |
+| C cold, renderer requested last | 67ms | 707ms | 707ms | same | 0 | same | 0 |
+| D CPU blocked in 120ms bursts for 1.5s | 605ms | 605ms | 605ms | same | 0 | same | 0 |
+| E renderer arrives 900ms late | 91ms | 1256ms | 1256ms | same | 0 | same | 0 |
+| F CPU plus late renderer | 206ms | 1299ms | 1299ms | same | 0 | same | 0 |
+
+B, C, E and F are the rows that matter: the shell stands alone for 656ms, 640ms,
+1164ms and 1093ms with NEITHER geometry-dependent element shown. A second batch
+on the final candidate reproduced every geometry figure, one profile holding the
+shell alone for 7.3 seconds.
+
+Against the PASS criteria: temporary centre ladder 0, visible ladder jump 0,
+known-wrong geometry displayed 0, geometry-dependent elements visible before
+readiness 0 - they appear at the `interactive` transition and not before -
+timeout-based hiding 0, arbitrary opacity delay 0. The one remaining
+`setTimeout` in the renderer is a 900ms ripple cleanup and gates nothing.
+
+**AN28 is PASS on the harness and NOT VERIFIED on production.** The production
+Arena answers 404 to everyone but staff; no browser extension is connected, and
+creating a staff session is not something an agent may do - section 20 of the
+constitution reserves `is_staff` to the Owner and section 17.10 forbids a
+service login under a privileged account. That gate needs the Owner's own
+browser, and it is the only item in this closure that does.
+
+### K3. Master Console mirror — classification A, the SAME component
+
+Answered from the code, not from intent:
+
+| Question | Answer |
+|---|---|
+| Renders the actual Arena octagon | Yes |
+| Uses `#arena-render` | Yes, the same `_arena_render_ring.html`, included whole |
+| Uses `arena_render.js` | Yes, loaded by `base.html` for both pages |
+| Same SVG generation | Yes, the same `drawGrid` from the same payload |
+| Independent geometry rules | It had none, and that was the defect |
+| Independent camera rules | Five selectors' worth, every one of them inert |
+| Depends on removed declarations | Yes, it named `arena_deck_polish.css`, deleted in AN12, as the file it had to out-run |
+| Could future Arena changes silently break it | It already had: none of its five flatten selectors exists on the console page, so the mirror had been rendering through the full tilted camera against the Owner's own X02 instruction |
+
+So it is the same component and it reuses the authoritative architecture. The
+camera viewport rule reaches both surfaces; the mirror sets two VALUES that the
+one camera reads - `--arena-camera-tilt: 0deg` and
+`--arena-camera-perspective: none` - and declares no geometry of its own. The
+ring cell is the component's page region there exactly as `.arena-floor-stage`
+is on the Arena.
+
+Measured in the engine with the console's own stylesheet order: viewport 440px,
+fit 0.79308, perspective `none`, tilt `0deg`, and the scene's transform a pure
+scale with no rotation in it.
+
+This is not a visual redesign. The console renders what the Owner asked for on
+2026-08-05 for the first time, rather than being told so for the first time.
+
+### K4. Dead and superseded — the final pass
+
+| Candidate | Class | Action |
+|---|---|---|
+| `width`, `margin`, `padding` on the floor layer in the EFFECTS sheet | SUPERSEDED | removed; the layout sheet owns the floor's box |
+| `width: min(100%, 960px)`, margin and padding on the bare `.arena-render-container` | DEAD | removed; every instance carries `page--arena`, so it could never apply |
+| `height`, `width`, `transform`, `transform-style` at `.arena-floor-stage .arena-render-container` | SUPERSEDED | removed; it beat the viewport's own block and produced a 0x0 camera |
+| `perspective`, `perspective-origin`, `transform-style`, all `!important`, at the same selector | SUPERSEDED | removed; duplicate optics |
+| `transform: none` on the viewport, twice | SUPERSEDED | removed |
+| `transform: none !important` on the floor layer under reduced motion | SUPERSEDED | the floor dropped from the selector list |
+| `background-color` on the viewport | DEAD | removed; already beaten by `background: transparent !important` |
+| The mirror's five-selector flatten block | DEAD | replaced by two values |
+| `REGION_FILL_X`, `COMPOSITION_CX`, `COMPOSITION_CY`, `CAPTION_GAP` | SUPERSEDED | removed |
+| `writeCamera`, `octagonCells`, `cellsBox` | DEAD | removed; no caller left |
+| `reserveCaptionBand`, `placeFloorCaption` | SUPERSEDED | removed in v2.5.954 |
+| The 100px probe and both refinement loops | SUPERSEDED | removed; placement is affine |
+| Emulation bots, `hydrateFixtures`, `arena_octant_prototype.js`, `octagon_floor_template.js`, `god_mode.css` | INTENTIONALLY RETAINED | untouched |
+| 411 unreferenced static assets, 35 files of staticfiles residue | UNKNOWN / reported | untouched, written up in `ARENA_STATIC_INVENTORY.md` |
+
+### K5. Lifecycle, listeners and observers
+
+| Mechanism | arena_render.js | arena_page_layout.js |
+|---|---|---|
+| `resize` listeners | 0 | 1 |
+| `ResizeObserver` | 1, on the region | 1, on the header, border-box |
+| `MutationObserver` | 0 | 0 |
+| `fonts.ready` | 0 | 1 |
+| `DOMContentLoaded` | 1 | 0 |
+| `setTimeout` | 1, a 900ms ripple cleanup | 1, the single late pass |
+| `setInterval` | 5 - poll, ping and the runway; data, not layout | 0 |
+| `init()` | one definition, one registration | — |
+| `fitScene` call sites | 5, all on the one subscription path | — |
+| `placeOctagon` / `placeRankSpine` | one definition and one call each | — |
+
+Two defects were found by this audit and by nothing else:
+
+1. **A ResizeObserver that could no longer fire.** It observed
+   `svg.parentElement`, which used to be the camera viewport stretched over the
+   page region, so watching it WAS watching the region. With an intrinsic 440px
+   viewport its box is a constant. It watches the region now. A trigger that
+   cannot fire is worse than one that is missing: it reads as covered.
+2. **The runway countdown appended into the camera viewport**, where the
+   octagon's placement scale would have shrunk and moved it. It belongs to the
+   region, which is the box it was always positioned against.
+
+`ArenaPageLayout.watch()` is idempotent, so a re-initialisation cannot double a
+trigger, and the renderer registers exactly one observer and no page-level
+trigger at all.
+
+### K6. The ownership guard
+
+The old guard checked that a declaration is not overwritten by an identical
+selector later in the SAME file. Every defect above walked past it. The new one
+guards the invariants that actually broke this project: two sheets and no more;
+no superseded sheet on disk or linked anywhere; no stylesheet link in a body or
+a partial; the effects sheet owning no arena layout geometry; each camera
+quantity declared once; one rule sizing and transforming the viewport; no
+geometry `!important` on the camera path; no parallel camera in any other
+stylesheet; the mirror changing values rather than declaring a camera; no
+JavaScript writing a camera variable; and nothing left of the replaced systems.
+
+Both guard classes scan CODE and not comments. That correction was itself made
+twice during this pass, when the guard read a comment explaining what had been
+removed as the thing itself.
+
+### K7. Known visual debt — NOT fixed here, by instruction
+
+The octagon's containment and composition at large desktop sizes, which the
+Owner sees on his own viewport, is recorded as VD1 in
+`docs/chef_battle/ARENA_VISUAL_DEBT.md` and on the board. It is deliberately
+untouched by this closure and belongs to the later Arena visual/layout cleanup.
+AN28's cold-cache and throttling gate against the production page is VD2.

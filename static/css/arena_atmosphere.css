@@ -540,12 +540,15 @@
   box-sizing: border-box;
 }
 
+/* AN-R2/3, 2026-08-09: THE FLOOR LAYER'S GEOMETRY IS NOT THIS FILE'S.
+   width, margin and padding on the arena's floor layer were declared here,
+   two of them with !important, in the EFFECTS sheet. That is the exact shape
+   of the fault this phase already paid for once: the same file zeroed
+   .arena-floor-stage's margin from two rules away and the octagon's only
+   vertical input silently did nothing for a day. arena.css owns the floor
+   layer's box and already sets margin, padding, border and radius to the same
+   values; only the appearance stays here. */
 .page--arena .arena-command-deck__floor {
-  width: 100%;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
   box-sizing: border-box;
 }
 

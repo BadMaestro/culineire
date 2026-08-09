@@ -6,7 +6,7 @@
  *
  * So this file does exactly two things and nothing else:
  *
- *   1. flattens the camera — the public arena's rotateX(42deg) is a real cost
+ *   1. flattens the camera — the public arena's tilt is a real cost
  *      on a machine that also has an operator console open on top of it;
  *   2. switches off the atmosphere and effects layers.
  *
@@ -19,18 +19,32 @@
  * A07's composition; every rule is under .page--arena-mirror.
  */
 
-/* ── 1. The camera is flat here ──────────────────────────────────────────── */
-/* The public rule is set last by arena_deck_polish.css:3666, so the mirror has
- * to be later still rather than more specific. It is: this file is the last
- * stylesheet on the console. */
-.page--arena-mirror .arena-floor,
-.page--arena-mirror .arena-stage,
-.page--arena-mirror .arena-command-deck__floor,
-.page--arena-mirror .arena-render-ring,
-.page--arena-mirror [data-arena-camera] {
-  transform: none !important;
-  perspective: none !important;
-  transform-style: flat !important;
+/* -- 1. The camera is flat here ------------------------------------------ */
+/* AN-R2/3, 2026-08-09. This block used to list five selectors and set
+ * `transform`, `perspective` and `transform-style` on all of them
+ * with !important, and it explained itself by saying it had to be later than
+ * a stylesheet that AN12 deleted. Worse, of the
+ * five selectors NONE is the element that carries the camera: the console
+ * embeds `_arena_render_ring.html` alone, so the only elements it has are
+ * `.arena-render-container` and `#arena-render`. The block was inert, and the
+ * mirror had been rendering through the full tilted camera for as long as that
+ * was true, against the Owner's own X02 instruction.
+ *
+ * The console is the SAME component as the public Arena - same partial, same
+ * ids, same renderer, same payload - so it does not get a second camera. It
+ * changes two VALUES that the one camera reads:
+ *
+ *   --arena-camera-tilt         0deg   "без градуса наклона"
+ *   --arena-camera-perspective  none   nothing to project, so nothing to cost
+ *
+ * Everything else - the viewport's intrinsic side, its fit, its placement in
+ * whatever box the console gives it - is the authoritative architecture in
+ * arena.css, unchanged and unduplicated. The ring cell (.amc-ring) is the
+ * component's page region here exactly as .arena-floor-stage is on the Arena.
+ */
+.page--arena-mirror .arena-render-container {
+  --arena-camera-tilt: 0deg;
+  --arena-camera-perspective: none;
 }
 
 /* ── 2. Atmosphere and effects are off ───────────────────────────────────── */

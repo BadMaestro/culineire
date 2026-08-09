@@ -11685,6 +11685,306 @@ class FloorCaptionGetsARegionTests(TestCase):
         self.assertLess(order, js.index("placeRankSpine(svg);"))
 
 
+class ArenaOwnershipGuardTests(TestCase):
+    """The FINAL ownership guard — Owner, 2026-08-09, item 3.
+
+    His verdict on the old one: "The old guard gave PASS while two stylesheets
+    still controlled .arena-floor-stage geometry. That guard was insufficient."
+
+    He is right, and the record says exactly how it failed. The old guard
+    checked that a declaration is not overwritten by an identical selector
+    later in the SAME file. Every real defect this phase found slipped past it:
+
+      * arena_atmosphere.css set `width`, `margin: 0 !important` and
+        `padding: 0 !important` on the arena's floor layer — the EFFECTS sheet
+        owning the LAYOUT sheet's box. An earlier version of the same rule
+        zeroed .arena-floor-stage's margin from two files away and the
+        octagon's only vertical input did nothing at all for a day;
+      * `height: auto; width: auto; transform: none` sat at equal specificity
+        and LATER in arena.css than the camera viewport's own block, so the
+        viewport measured 0x0 and the octagon vanished;
+      * `perspective` was declared twice, once with !important at a heavier
+        selector, so which one ran was a question about specificity;
+      * the Master Console mirror flattened five selectors that its own page
+        does not contain, and named a stylesheet deleted in AN12 as the file
+        it had to out-run.
+
+    So this guard is not about duplication inside one file. It is about WHO
+    OWNS WHAT, across the files, and every assertion below is one that would
+    have caught a defect that actually happened.
+    """
+
+    LAYOUT_SHEET = "arena.css"
+    EFFECTS_SHEET = "arena_atmosphere.css"
+    ARENA_SHEETS = ("arena.css", "arena_atmosphere.css")
+    # merged away by AN12; a file that comes back is a fifth opinion
+    SUPERSEDED_SHEETS = ("arena_render.css", "arena_effects.css",
+                         "arena_deck_polish.css", "arena_hall.css",
+                         "arena_proto.css")
+    GEOMETRY_PROPS = (
+        "width", "height", "top", "left", "right", "bottom", "inset",
+        "margin", "padding", "transform", "translate", "position",
+        "perspective", "perspective-origin", "transform-origin",
+        "transform-style", "grid-row", "grid-column", "grid-template",
+        "aspect-ratio",
+    )
+    # the elements whose geometry the LAYOUT sheet owns and nothing else may
+    OWNED_SELECTOR_PARTS = ("arena-command-deck__floor", "arena-floor-stage",
+                            "arena-render-container", "arena-render")
+
+    def _css_dir(self):
+        from django.conf import settings as django_settings
+
+        return django_settings.BASE_DIR / "static" / "css"
+
+    def _sheet(self, name):
+        return (self._css_dir() / name).read_text(encoding="utf-8")
+
+    @staticmethod
+    def _rules(text):
+        """(selector, body) for every rule, comments removed.
+
+        Not a CSS parser and not trying to be one — the Owner's own words are
+        "do not create a massive theoretical CSS parser". Arena stylesheets are
+        flat since AN12, and a rule is a selector, a brace, declarations, a
+        brace.
+        """
+        text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+        for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", text):
+            yield " ".join(m.group(1).split()), m.group(2)
+
+    @classmethod
+    def _declarations(cls, text):
+        for sel, body in cls._rules(text):
+            for chunk in body.split(";"):
+                chunk = chunk.strip()
+                if not chunk or ":" not in chunk:
+                    continue
+                yield sel, chunk.split(":", 1)[0].strip().lower(), chunk
+
+    # ---- how many sheets, and which -------------------------------------
+
+    def test_the_arena_page_loads_exactly_two_arena_stylesheets(self):
+        from django.conf import settings as django_settings
+
+        html = (django_settings.BASE_DIR / "templates" / "chef_battle"
+                / "arena.html").read_text(encoding="utf-8")
+        linked = re.findall(r"static\s+'css/(arena[\w.]*\.css)'", html)
+        self.assertEqual(sorted(linked), sorted(self.ARENA_SHEETS))
+
+    def test_no_superseded_arena_stylesheet_exists_or_is_loaded(self):
+        from django.conf import settings as django_settings
+
+        for name in self.SUPERSEDED_SHEETS:
+            self.assertFalse(
+                (self._css_dir() / name).exists(),
+                f"{name} was merged away by AN12 and is back",
+            )
+        for template in ("chef_battle/arena.html",
+                         "chef_battle/arena_master_console.html",
+                         "chef_battle/_arena_render_ring.html"):
+            html = (django_settings.BASE_DIR / "templates"
+                    / template).read_text(encoding="utf-8")
+            for name in self.SUPERSEDED_SHEETS:
+                self.assertNotIn(name, html)
+
+    def test_no_arena_stylesheet_is_linked_from_a_body_or_a_partial(self):
+        """One was, and it is how a sheet can load after everything that was
+        supposed to be able to override it."""
+        from django.conf import settings as django_settings
+
+        for template in ("chef_battle/arena.html",
+                         "chef_battle/arena_master_console.html",
+                         "chef_battle/_arena_render_ring.html"):
+            html = (django_settings.BASE_DIR / "templates"
+                    / template).read_text(encoding="utf-8")
+            body = html.split("{% block content %}", 1)[-1]
+            self.assertNotIn("rel=\"stylesheet\"", body, template)
+
+    # ---- who owns the geometry ------------------------------------------
+
+    def test_the_effects_sheet_owns_no_arena_layout_geometry(self):
+        """The defect this is named after: arena_atmosphere.css set width,
+        margin and padding on the floor layer, two of them with !important, and
+        an earlier version of the same rule zeroed the stage's margin from two
+        files away — the octagon's one vertical input silently did nothing for
+        a day. Decoration on ::before/::after is not layout and is allowed."""
+        offenders = []
+        for sel, prop, decl in self._declarations(self._sheet(self.EFFECTS_SHEET)):
+            if "::" in sel:
+                continue
+            if not any(part in sel for part in self.OWNED_SELECTOR_PARTS):
+                continue
+            if prop in self.GEOMETRY_PROPS:
+                offenders.append((sel, decl))
+        self.assertEqual(
+            offenders, [],
+            "the effects sheet is deciding arena layout geometry: %r" % (offenders,),
+        )
+
+    # ---- the camera is declared once -------------------------------------
+
+    def test_each_camera_quantity_is_declared_exactly_once(self):
+        css = re.sub(r"/\*.*?\*/", " ", self._sheet(self.LAYOUT_SHEET), flags=re.S)
+        counts = {}
+        for _sel, prop, decl in self._declarations(css):
+            if prop in ("perspective", "perspective-origin", "transform-style"):
+                counts.setdefault(prop, []).append(decl)
+        self.assertEqual(len(counts.get("perspective", [])), 1)
+        self.assertEqual(len(counts.get("perspective-origin", [])), 1)
+        self.assertEqual(css.count("--arena-camera-side:"), 1)
+        self.assertEqual(css.count("--arena-fit:"), 1)
+        self.assertEqual(len(re.findall(r"rotateX\(", css)), 1)
+
+    def test_the_camera_viewport_is_sized_and_transformed_in_one_place(self):
+        css = self._sheet(self.LAYOUT_SHEET)
+        sized = [sel for sel, prop, decl in self._declarations(css)
+                 if "arena-render-container" in sel and "::" not in sel
+                 and prop in ("width", "height", "transform")]
+        rules = {sel for sel in sized}
+        self.assertEqual(
+            len(rules), 1,
+            "more than one rule sizes or transforms the camera viewport: %r" % (rules,),
+        )
+
+    def test_no_geometry_important_on_the_camera_path(self):
+        """!important on geometry is how a cascade argument gets settled by
+        force instead of by ownership. The camera path is the viewport, the
+        scene, the region and the floor layer."""
+        offenders = []
+        for name in self.ARENA_SHEETS:
+            for sel, prop, decl in self._declarations(self._sheet(name)):
+                if "::" in sel:
+                    continue
+                if not any(part in sel for part in self.OWNED_SELECTOR_PARTS):
+                    continue
+                if "!important" in decl and prop in self.GEOMETRY_PROPS:
+                    offenders.append((name, sel, decl))
+        self.assertEqual(offenders, [], "geometry settled by !important: %r" % (offenders,))
+
+    def test_no_parallel_camera_implementation_anywhere_in_static(self):
+        """The Master Console mirror was one. It is two VALUES now — a tilt and
+        a perspective the single camera reads — and not a second camera."""
+        for path in sorted(self._css_dir().glob("*.css")):
+            if path.name in self.ARENA_SHEETS:
+                continue
+            text = re.sub(r"/\*.*?\*/", " ", path.read_text(encoding="utf-8"), flags=re.S)
+            for probe in ("rotateX(", "perspective-origin:", "--arena-camera-side"):
+                self.assertNotIn(
+                    probe, text,
+                    f"{path.name} carries a second arena camera ({probe})",
+                )
+
+    def test_the_console_mirror_changes_values_and_not_the_camera(self):
+        # CODE, not prose: a comment that explains what was removed will
+        # otherwise be read as the thing itself. That mistake has now been
+        # made twice in this file and is worth the one line it costs.
+        mirror = re.sub(r"/\*.*?\*/", " ",
+                        self._sheet("arena_console_mirror.css"), flags=re.S)
+        self.assertIn("--arena-camera-tilt: 0deg", mirror)
+        self.assertIn("--arena-camera-perspective: none", mirror)
+        self.assertNotIn("arena_deck_polish", mirror,
+                         "the mirror still names a stylesheet deleted in AN12")
+        # the mirror may not DECLARE a camera; it may only set values.
+        for forbidden in ("rotateX", "perspective-origin", "transform-style"):
+            self.assertNotIn(forbidden, mirror)
+        self.assertNotIn("  perspective:", mirror)
+
+    # ---- the renderer does not steer the camera --------------------------
+
+    def _js(self, name="arena_render.js"):
+        from django.conf import settings as django_settings
+
+        return (django_settings.BASE_DIR / "static" / "js"
+                / name).read_text(encoding="utf-8")
+
+    @staticmethod
+    def _code(text):
+        text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+        return re.sub("//[^" + chr(10) + "]*", " ", text)
+
+    def test_no_javascript_writes_a_camera_variable(self):
+        from django.conf import settings as django_settings
+
+        for path in sorted((django_settings.BASE_DIR / "static" / "js").glob("arena*.js")):
+            code = self._code(path.read_text(encoding="utf-8"))
+            for forbidden in ("'--arena-fit'", "'--arena-shift-x'", "'--arena-shift-y'"):
+                self.assertNotIn(forbidden, code, f"{path.name} steers the camera")
+
+    def test_the_replaced_systems_left_nothing_behind(self):
+        code = self._code(self._js())
+        for gone in ("REGION_FILL_X", "reserveCaptionBand", "placeFloorCaption",
+                     "writeCamera", "COMPOSITION_CX", "COMPOSITION_CY",
+                     "CAPTION_GAP", "octagonCells", "cellsBox"):
+            self.assertNotIn(gone, code, f"{gone} survived the systems that used it")
+
+    def test_the_placement_has_no_probe_or_refinement_loop(self):
+        code = self._code(self._js())
+        body = code.split("function placeOctagon(", 1)[1].split(chr(10) + "  }", 1)[0]
+        for gone in ("PROBE", "for (var sizing", "for (var step"):
+            self.assertNotIn(gone, body)
+
+
+class ArenaLifecycleMechanismCountTests(TestCase):
+    """Owner, 2026-08-09, item 5 — the original defect was a render-lifecycle
+    defect, so the lifecycle is counted rather than assumed.
+
+    It found two things a test would not have: a ResizeObserver that had
+    quietly become unable to fire, because it watched an element that used to
+    be the page region and is now a fixed 440px camera viewport; and the
+    runway countdown appended into that same viewport, where the octagon's
+    placement scale would have shrunk it. Both are fixed and both are held
+    here."""
+
+    def _code(self, name):
+        from django.conf import settings as django_settings
+
+        text = (django_settings.BASE_DIR / "static" / "js"
+                / name).read_text(encoding="utf-8")
+        text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+        return re.sub("//[^" + chr(10) + "]*", " ", text)
+
+    def test_the_renderer_holds_one_observer_and_no_page_level_trigger(self):
+        code = self._code("arena_render.js")
+        self.assertEqual(len(re.findall(r"new global\.ResizeObserver", code)), 1)
+        self.assertEqual(len(re.findall(r"addEventListener\(\s*'resize'", code)), 0)
+        self.assertEqual(len(re.findall(r"fonts\.ready", code)), 0)
+        self.assertEqual(len(re.findall(r"new (?:global\.)?MutationObserver", code)), 0)
+
+    def test_the_observer_watches_the_region_and_not_the_camera(self):
+        """A trigger that cannot fire is worse than one that is missing: it
+        reads as covered. The viewport's box is a constant now."""
+        code = self._code("arena_render.js")
+        self.assertIn("new global.ResizeObserver(function () { fitScene(svg); }).observe(region)",
+                      " ".join(code.split()))
+        self.assertIn("svg.parentElement.parentElement", code)
+
+    def test_the_page_owns_the_page_level_triggers_and_owns_them_once(self):
+        code = self._code("arena_page_layout.js")
+        self.assertEqual(len(re.findall(r"addEventListener\(\s*'resize'", code)), 1)
+        self.assertEqual(len(re.findall(r"new global\.ResizeObserver", code)), 1)
+        self.assertIn("if (watching) { return; }", code,
+                      "watch() must be idempotent or a re-init doubles every trigger")
+
+    def test_the_renderer_starts_once(self):
+        code = self._code("arena_render.js")
+        self.assertEqual(len(re.findall(r"addEventListener\(\s*'DOMContentLoaded'", code)), 1)
+        self.assertEqual(len(re.findall(r"\bfunction init\(", code)), 1)
+
+    def test_nothing_gates_the_first_paint_on_a_clock(self):
+        """The master task forbids solving a readiness problem with time. The
+        one setTimeout left is a 900ms ripple cleanup."""
+        code = self._code("arena_render.js")
+        timeouts = re.findall(r"setTimeout\(([^;]{0,80})", code)
+        self.assertEqual(len(timeouts), 1, timeouts)
+        self.assertIn("ring.remove()", timeouts[0])
+
+    def test_the_runway_belongs_to_the_region_not_the_camera(self):
+        code = self._code("arena_render.js")
+        self.assertIn("document.querySelector('.arena-floor-stage')", code)
+        self.assertNotIn("var host = document.querySelector('.arena-render-container')", code)
+
+
 class ArenaCameraIsOwnedByTheOctagonTests(TestCase):
     """Owner's correction of 2026-08-09 — the camera stops belonging to the page.
 
@@ -11738,13 +12038,13 @@ class ArenaCameraIsOwnedByTheOctagonTests(TestCase):
     def test_the_viewport_is_not_stretched_over_the_page_region(self):
         """`inset: 0` on the region is the coupling itself."""
         css = self._read("css", "arena.css")
-        chunk = css.split(
-            ".page--arena .arena-command-deck__floor .arena-render-container {", 1
-        )[1].split("}", 1)[0]
+        chunk = next(part.split("}", 1)[0]
+                    for part in css.split(".page--arena .arena-render-container {")[1:]
+                    if "--arena-camera-side" in part.split("}", 1)[0])
         self.assertNotIn("inset: 0", chunk)
         self.assertIn("width: var(--arena-camera-side)", chunk)
         self.assertIn("height: var(--arena-camera-side)", chunk)
-        self.assertIn("perspective: 1500px", chunk)
+        self.assertIn("perspective: var(--arena-camera-perspective, 1500px)", chunk)
         self.assertIn("perspective-origin: 50% 40%", chunk)
 
     def test_nothing_else_sizes_or_transforms_the_viewport(self):

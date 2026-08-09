@@ -1149,87 +1149,7 @@
   translate: 0 var(--arena-octagon-offset-y, 0px);
 }
 
-/* ============================================================
-   THE OCTAGON'S INTERNAL CAMERA VIEWPORT.
 
-   Owner's correction, 2026-08-09: "The internal camera viewport must not
-   inherit its optical coordinate system from the arbitrary height of the
-   page region."
-
-   It used to. This element was `inset: 0` on the region, so the region's
-   height WAS the camera's coordinate space, and three optical quantities
-   followed it: the scene's side (172% of it), the perspective origin
-   (40% of it) and, through the scene, the transform origin (62% of that).
-   Measured with the scale held fixed: taking 80px off the page region
-   moved the scene 978.672 -> 841.078, the perspective origin 227.594 ->
-   195.594, and the projected octagon 658x440 -> 557x375 - and the
-   PROPORTION with it, 0.669 -> 0.673. Page furniture was redefining the
-   optics, silently, in a file that never mentions a camera.
-
-   The viewport now has an INTRINSIC side of its own. The camera's own
-   optics are untouched - 1500px, 50% 40%, and rotateX(42deg) at 50% 62%
-   on the scene, exactly as accepted - and because they are all measured
-   against a constant, the projection is now a property of the component.
-
-   WHERE 440px AND 0.79308 COME FROM. Neither is tuned and neither is
-   copied off a screenshot: they are SOLVED, once, from the accepted
-   composition, and the solve is reproducible from the accepted numbers
-   alone.
-
-   The camera has exactly two intrinsic quantities - the side of its
-   viewport and the fit of the scene inside it - and together they fix the
-   projection completely. Two accepted facts pin them:
-
-     the octagon's own proportion   659 wide by 454 tall  (0.688923)
-     where the octagon's rank ring lands inside that box, which is what
-     the ladder is measured from and is why the ladder's accepted left
-     edge, 935, is a statement about the CAMERA and not about the ladder
-
-   Each side gives exactly one fit that reproduces the proportion, so the
-   first fact is a curve and the second picks the point on it: at 440px
-   the fit is 0.79308, the octagon comes back 659.00 x 454.00 and the
-   ladder at 935. Off that point the outline still matches and the
-   interior does not - at 284px, which satisfies the proportion alone, the
-   ladder lands at 941.
-
-   --arena-fit is DECLARED here and written by nobody. It used to be the
-   output of an iterative solve in arena_render.js against a box the page
-   handed over; it is a property of the camera, so it is a constant of the
-   camera.
-
-   The page then scales and moves the WHOLE viewport - a 2D transform
-   OUTSIDE the perspective, so it magnifies the finished projection
-   instead of changing it. arena_render.js writes those three values and
-   nothing else; it no longer reaches inside the camera.
-   ============================================================ */
-.page--arena .arena-command-deck__floor .arena-render-container {
-  --arena-camera-side: 440px;
-  --arena-fit: 0.79308;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  inset-inline-end: auto;
-  bottom: auto;
-  width: var(--arena-camera-side);
-  height: var(--arena-camera-side);
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  /* flat, not preserve-3d: the viewport flattens the scene it projects,
-     and the placement transform below then scales that finished image.
-     preserve-3d would hand an unflattened 3D chain to the region and the
-     scale would join the projection instead of following it. */
-  transform-style: flat;
-  transform-origin: 50% 50%;
-  transform:
-    translate(-50%, -50%)
-    translate(var(--arena-camera-x, 0px), var(--arena-camera-y, 0px))
-    scale(var(--arena-camera-scale, 1));
-  perspective: 1500px;
-  perspective-origin: 50% 40%;
-}
 
 /* 3G R2 — wrappers are display:contents (no layout change). Only the lower
    broadcast bar is restyled so the frame closes edge-to-edge. */
@@ -4794,7 +4714,6 @@
 /* Phone ~390: stack, clip, no page-level sideways scroll. */
 
 @media (prefers-reduced-motion: reduce) {
-  .page--arena .arena-command-deck__floor,
   .page--arena .arena-phase-step.is-active,
   .page--arena .arena-broadcast-ribbon .arena-phase-step.is-active {
     animation: none !important;
@@ -5372,9 +5291,12 @@
      colour here. */
   --arena-accent: color-mix(in srgb, var(--brand) 70%, var(--surface));
 
-  width: min(100%, 960px);
-  margin-inline: auto;
-  padding: 0.9rem;
+  /* AN-R2/3: THE BOX IS GONE, THE TOKENS STAY. Every instance of this
+     element is inside _arena_render_ring.html, which only the Arena and
+     the Master Console include, and both carry `page--arena` - so this
+     width, margin and padding could never apply to anything. They were a
+     second opinion about the camera viewport's size that no page could
+     ever have read. */
   border: 1px solid var(--border);
   border-radius: 18px;
 }
@@ -5914,29 +5836,99 @@
 /* The floor is lit by the under-pad polygon, not a CSS filter on the SVG.
    Filters on a perspective/rotateX layer soften every ring edge. */
 
-/* ----------------------------------------------------------------------------
- * Camera — perspective + rotateX(42deg) (Owner restore 2026-07-27, reaffirmed
- * 2026-08-04 when he reverted A07's 57deg).
- *
- * THIS BLOCK DOES NOT WIN THE CASCADE, whatever the note further down says.
- * arena_deck_polish.css declares the camera SEVEN times and one of those carries
- * !important, so that file is what the page actually renders. Change both or
- * neither. Measured 2026-08-04: an inline override of this rule read back
- * unchanged, and the numbers taken from it were nearly reported as a finding.
- * -------------------------------------------------------------------------- */
+/* ============================================================
+   THE OCTAGON'S INTERNAL CAMERA VIEWPORT.
+
+   Owner's correction, 2026-08-09: "The internal camera viewport must not
+   inherit its optical coordinate system from the arbitrary height of the
+   page region."
+
+   It used to. This element was `inset: 0` on the region, so the region's
+   height WAS the camera's coordinate space, and three optical quantities
+   followed it: the scene's side (172% of it), the perspective origin
+   (40% of it) and, through the scene, the transform origin (62% of that).
+   Measured with the scale held fixed: taking 80px off the page region
+   moved the scene 978.672 -> 841.078, the perspective origin 227.594 ->
+   195.594, and the projected octagon 658x440 -> 557x375 - and the
+   PROPORTION with it, 0.669 -> 0.673. Page furniture was redefining the
+   optics, silently, in a file that never mentions a camera.
+
+   The viewport now has an INTRINSIC side of its own. The camera's own
+   optics are untouched - 1500px, 50% 40%, and rotateX(42deg) at 50% 62%
+   on the scene, exactly as accepted - and because they are all measured
+   against a constant, the projection is now a property of the component.
+
+   WHERE 440px AND 0.79308 COME FROM. Neither is tuned and neither is
+   copied off a screenshot: they are SOLVED, once, from the accepted
+   composition, and the solve is reproducible from the accepted numbers
+   alone.
+
+   The camera has exactly two intrinsic quantities - the side of its
+   viewport and the fit of the scene inside it - and together they fix the
+   projection completely. Two accepted facts pin them:
+
+     the octagon's own proportion   659 wide by 454 tall  (0.688923)
+     where the octagon's rank ring lands inside that box, which is what
+     the ladder is measured from and is why the ladder's accepted left
+     edge, 935, is a statement about the CAMERA and not about the ladder
+
+   Each side gives exactly one fit that reproduces the proportion, so the
+   first fact is a curve and the second picks the point on it: at 440px
+   the fit is 0.79308, the octagon comes back 659.00 x 454.00 and the
+   ladder at 935. Off that point the outline still matches and the
+   interior does not - at 284px, which satisfies the proportion alone, the
+   ladder lands at 941.
+
+   --arena-fit is DECLARED here and written by nobody. It used to be the
+   output of an iterative solve in arena_render.js against a box the page
+   handed over; it is a property of the camera, so it is a constant of the
+   camera.
+
+   ONE VIEWPORT FOR BOTH SURFACES. AN-R2/3, 2026-08-09: this rule reaches
+   the public Arena and the Master Console mirror alike, because they are
+   the SAME component - the same partial, the same #arena-render, the same
+   renderer, the same SVG. The mirror was briefly left on the old CSS-only
+   path and that was a second geometry implementation waiting to rot: it
+   still named `arena_deck_polish.css`, deleted in AN12, as the file it had
+   to out-run. What the mirror actually wants is two VALUES, not a second
+   camera, so it sets --arena-camera-tilt and --arena-camera-perspective
+   and changes nothing else.
+
+   The page then scales and moves the WHOLE viewport - a 2D transform
+   OUTSIDE the perspective, so it magnifies the finished projection
+   instead of changing it. arena_render.js writes those three values and
+   nothing else; it no longer reaches inside the camera.
+   ============================================================ */
 .page--arena .arena-render-container {
-  position: relative;
-  width: 100%;
+  --arena-camera-side: 440px;
+  --arena-fit: 0.79308;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  width: var(--arena-camera-side);
+  height: var(--arena-camera-side);
   max-width: none;
-  height: clamp(480px, 56vw, 94vh);
+  margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 1rem;
+  border-radius: 0;
   overflow: visible;
-  transform-style: preserve-3d;
-  perspective: 1500px;
+  /* flat, not preserve-3d: the viewport flattens the scene it projects,
+     and the placement transform below then scales that finished image.
+     preserve-3d would hand an unflattened 3D chain to the region and the
+     scale would join the projection instead of following it. */
+  transform-style: flat;
+  transform-origin: 50% 50%;
+  transform:
+    translate(-50%, -50%)
+    translate(var(--arena-camera-x, 0px), var(--arena-camera-y, 0px))
+    scale(var(--arena-camera-scale, 1));
+  perspective: var(--arena-camera-perspective, 1500px);
   perspective-origin: 50% 40%;
 }
+
 
 .page--arena #arena-render {
   position: absolute;
@@ -5973,7 +5965,7 @@
   transform:
     translate(-50%, -50%)
     translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-    rotateX(42deg)
+    rotateX(var(--arena-camera-tilt, 42deg))
     scale(var(--arena-fit, 1));
   filter: none;
 }
