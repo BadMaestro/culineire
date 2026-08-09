@@ -3519,7 +3519,7 @@ ARENA_NORMALISATION_CLOSURE = {
     "release": "v2.5.960",
     "commit": "23b9043e",
     "summary": (
-        "29 of 29 cards DONE. Seven arena stylesheets to two, one camera "
+        "Seven arena stylesheets to two, one camera "
         "declaration instead of six, 628 unreachable declarations removed, "
         "70 raw z-index numbers to none, and the octagon's position given a "
         "single owner. The camera is a component with its own intrinsic "

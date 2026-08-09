@@ -215,14 +215,14 @@
     </p>
     <p>{{ normalisation_closure.summary }}</p>
     <p class="abp-note">{{ normalisation_closure.owner_only }}</p>
-    <p class="abp-note"><strong>Carried out of the block, each with its own owner:</strong></p>
-    <ul class="abp-note">
-      {% for item in normalisation_closure.carried_out %}<li>{{ item }}</li>{% endfor %}
-    </ul>
-    <p class="abp-note"><strong>The record:</strong></p>
-    <ul class="abp-note">
-      {% for path in normalisation_closure.records %}<li><code>{{ path }}</code></li>{% endfor %}
-    </ul>
+    <div class="abp-note">
+      <strong>Carried out of the block, each with its own owner:</strong>
+      <ul>{% for item in normalisation_closure.carried_out %}<li>{{ item }}</li>{% endfor %}</ul>
+    </div>
+    <div class="abp-note">
+      <strong>The record:</strong>
+      <ul>{% for path in normalisation_closure.records %}<li><code>{{ path }}</code></li>{% endfor %}</ul>
+    </div>
   </section>
 
 {% endblock %}
