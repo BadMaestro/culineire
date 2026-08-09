@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.970",
         "date": "2026-08-09",
-        "commit": "",
+        "commit": "efd53999",
         "title": "The last tail: a dead context key feeding a template that no longer reads it",
         "section": "Records",
         "summary": "Asked directly whether any tail was left after v2.5.968 removed the closure section from the page. One was: _arena_build_context() in recipes/views.py still put normalisation_closure into the template context on every request, and nothing in templates/ referenced that key any more - grepped and confirmed empty before removing it. ARENA_NORMALISATION_CLOSURE itself is untouched and still exported for ArchitectureNormalisationIsClosedTests, which import it directly rather than through the context. 26 focused tests green.",
