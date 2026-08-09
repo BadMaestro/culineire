@@ -364,6 +364,23 @@ forbidden changes and evidence for every row below.
 
 ## 5a. ARCHITECTURE NORMALISATION (AN1 - AN29)
 
+> **CLOSED by the Owner, 2026-08-09, at production v2.5.960.** 29 of 29 cards
+> DONE and the engineering acceptance gates satisfied. No further work on this
+> task: the Arena's geometry, camera, layout, CSS architecture and readiness
+> lifecycle are not to be touched again under this heading, and no further
+> cleanup pass follows from it.
+>
+> His ruling on the one gate that could not be opened here: **AN28's
+> production-page observation is OWNER-ONLY VISUAL ACCEPTANCE**, because the
+> live Arena is staff-gated. It does not keep the engineering task open, and
+> it is not a PARTIAL card.
+>
+> Three things carried OUT of this block rather than left inside it, each with
+> its own owner: **VD1**, the large-desktop composition, is visual debt for the
+> later Arena visual/layout cleanup; **MC02** is a separate product task; the
+> **static-asset residue** is separate maintenance debt.
+
+
 **Opened by the Owner, 2026-08-08.** Twenty-nine sections, numbered AN1 to AN29.
 **Every card is a numbered section of his master task, in its order**, and the
 `Master task` column says which one. Nothing here is invented: a card that

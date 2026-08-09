@@ -59,7 +59,12 @@ owners and they must not be treated as one.
 
 ---
 
-## VD2 — AN28 is still PARTIAL
+## VD2 — AN28's production observation is OWNER-ONLY VISUAL ACCEPTANCE
+
+**Reclassified by the Owner, 2026-08-09.** AN28 is DONE as an engineering card:
+the startup defect was re-tested under six load profiles and passed every one.
+What remains is observation of the LIVE page, and because the Arena is
+staff-gated that is his to do and not an open engineering item.
 
 Cold cache and CPU/network throttling on the production Arena remain unmeasured.
 They need CDP against the production page, and the Arena answers 404 to
@@ -70,7 +75,8 @@ visual cleanup card inherits it rather than rediscovering it.
 
 ## The frozen architecture
 
-Frozen by the Owner on 2026-08-09 at **v2.5.958**. The chain below is not to be
+Frozen by the Owner on 2026-08-09 and CLOSED at **v2.5.960**, the completed
+normalisation release. The chain below is not to be
 re-opened by a visual repair:
 
     PAGE LAYOUT      the rows, the caption's gap, the octagon's region,
