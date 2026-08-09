@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.964",
+        "date": "2026-08-09",
+        "commit": "",
+        "title": "The dead CSS from the 29-card AN grid follows the grid it styled",
+        "section": "Records",
+        "summary": "The Owner looked at the closure section v2.5.962 shipped and called it out: junk left on the board. The HTML grid of 29 AN cards was removed in e623b79d, but the nine CSS rules and two media-query fragments that styled it - .abp-an-grid, .abp-an-cell and its .is-done/.is-active/em/span variants, .abp-an-spec, .abp-an-evidence - stayed in templates/moderation/arena_build_plan.html, matching no element anywhere in the file or the codebase. Removed whole, not commented out. manage.py check and git diff --check clean; no Python, no other template, and no JS referenced these classes, confirmed by grep before deletion.",
+    },
+    {
         "version": "2.5.962",
         "date": "2026-08-09",
         "commit": "63bf9645",
