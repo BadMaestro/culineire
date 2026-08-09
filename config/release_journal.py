@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.980",
         "date": "2026-08-10",
-        "commit": "",
+        "commit": "8e4cc076",
         "title": "A18's two gaps and G01's legal/payment gate move to Stage 3, on the Owner's word",
         "section": "Chef Battles / Arena",
         "summary": "OWNER, 2026-08-10: A18's two open accessibility gaps (focus rings, rank-chip contrast) and G01's contract section-14 legal/payment category (real Stripe token purchases) are not to be worked now - deferred to Stage 3 (release-readiness), the last stage of Arena development. Recorded in three places: ARENA_RELEASE_STAGES stage 3's criteria (recipes/views.py), A18's and G01's own evidence fields in ARENA_DESIGN_TASKS, and docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md sections 2, 9 and the closing summary, now reading 12/12 section-14 categories accounted for rather than 10/12. G01 still needs the Owner's explicit sign-off; this release removes its last two named blockers by deferral, not by fixing them. 38 focused tests green.",
