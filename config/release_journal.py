@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.968",
         "date": "2026-08-09",
-        "commit": "",
+        "commit": "e46a8ce7",
         "title": "Architecture normalisation leaves the board entirely - the section, not just the grid",
         "section": "Records",
         "summary": "The Owner marked it with an X across the whole rendered section, on the live page, after v2.5.966 shipped: not the grid, not the box count - the section itself. v2.5.962 replaced 29 cards with one closure section; v2.5.966 consolidated that section from six boxes to four; both were the wrong shape of the same answer. A completed project has no business on a board for construction still to be done, in any number of boxes. templates/moderation/arena_build_plan.html now renders nothing for Architecture Normalisation - the section, its heading, its four note blocks, all removed, replaced by a comment naming where the record actually lives: recipes.views.ARENA_NORMALISATION_CLOSURE (kept, still exported and still asserted directly by ArchitectureNormalisationIsClosedTests) and the four files it names, docs/chef_battle/ARENA_NORMALISATION_CARDS_ARCHIVE.md, ARENA_NORMALISATION_REPORT.md, ARENA_NORMALISATION_FINAL_SUITE.txt, ARENA_VISUAL_DEBT.md. test_the_board_page_shows_the_closure_and_not_the_grid, which asserted the closure text WAS on the page, is rewritten as test_the_board_page_shows_neither_the_grid_nor_a_closure_section and now asserts the opposite. 29 tests green.",
