@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.974",
         "date": "2026-08-09",
-        "commit": "",
+        "commit": "4955e920",
         "title": "A17, A18 and B01 stop lying to whoever loads the moderation board",
         "section": "Chef Battles / Arena",
         "summary": "recipes.views.ARENA_DESIGN_TASKS had three cards showing PENDING or NEXT for days after docs/ARENA_BATTLE_PLAN.md carried them DONE - the same staleness class as A19 last release, found while fixing A19. A17 -> DONE, evidence docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md (seven states measured on production, two deliberate payload/screen splits documented). A18 -> DONE, its rich v2.5.861 evidence kept verbatim with a closing line appended rather than erased: 1920/1440/1280/375 swept, 0px overflow, keyboard verified. B01 -> DONE, evidence ported from the v2.5.874 journal entry (tab/description/og:title/h1 fixed, the {% if %}-outside-{% block %} mistake that always overrode the parent). G01 promoted PENDING -> NEXT since it is now the only card with all three prerequisites (A19, B03, R02) satisfied - owner unchanged, Team + Owner, not self-assigned. test_design_task_ids_are_unique_and_exactly_one_card_is_next pins the NEXT id on purpose (its own docstring: 'a silent jump in the queue matters too') and is updated from B01 to G01, not loosened. 20 focused tests green.",
