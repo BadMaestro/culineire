@@ -349,6 +349,7 @@ forbidden changes and evidence for every row below.
 | A17 | Integrity | Truthful visual state matrix | Bolt | A09–A16 | **DONE** — `docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md`, measured on production |
 | A18 | Integrity | Desktop accessibility and responsive gate | Bolt | A17 | **DONE** — 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab |
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
+| VD1 | Arena Hall | **Final Arena visual/layout cleanup** — the visible overflow the Owner reported on 2026-08-09, deferred by him in the same instruction that FROZE the architecture at v2.5.958. Not measured by Bolt: it shows on his viewport, and 1280x800 and 1920x1080 both fit. Four different defects hide behind one word and must be told apart first - the octagon's transparent box, its ink, the crowd rail, or the deck. Written up with what may NOT be used to repair it in `docs/chef_battle/ARENA_VISUAL_DEBT.md`. | unassigned | A19 | **OPEN — known debt, deliberately unfixed** |
 | MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | **DELETED by the Owner** |
 | MC02 | Arena | The withdrawal seen LIVE on the arena, not described — see `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md` | unassigned | A09 | **OPEN, awaiting the Owner's steps** |
 | SA-A2 | Arena | An accepted challenge seats the pair in adjacent cells, each in his own ring | Bolt | — | DONE v2.5.844 |
