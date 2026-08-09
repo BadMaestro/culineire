@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.962",
+        "date": "2026-08-09",
+        "commit": "",
+        "title": "The moderation board stops rendering 29 closed AN cards it already knew were closed",
+        "section": "Records",
+        "summary": "The Owner spotted it live: /recipes/moderation/arena-build-plan/ was still drawing all 29 Architecture Normalisation cards as individual DONE tiles under 'Architecture normalisation', a grid that reads as open work sitting in the queue (section 17.4's exact failure). The code fix already existed on origin/main - commit e623b79d, 2026-08-09, same day as the markdown board's own cleanup - and had simply never shipped: ARENA_NORMALISATION_CLOSURE replaced the per-card loop in recipes/views.py and the template now renders one closure section (title, cards-done count, closed-on date and release, summary, owner-only note, what was carried out of the block, and the record's file paths) instead of a 29-tile grid. Verified with the full ArenaBuildPlanTests and ArenaBuildPlanShareLinkTests suites (23 tests) plus the static image-weight gate, all green, before this deploy. This release also carries three prior undeployed commits that had queued up since v2.5.960 with no version number of their own: AGENTS.md 2.12.0 (the cold-start bootstrap made portable and machine-independent), the Arena measurement tooling moved out of session scratchpads into ops/audits/arena/tools/, and ops/onboarding/bolt_session_handoff.md. None of the three touch product behaviour.",
+    },
+    {
         "version": "2.5.960",
         "date": "2026-08-09",
         "commit": "23b9043e",
