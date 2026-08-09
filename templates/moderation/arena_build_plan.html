@@ -212,30 +212,29 @@
 
   <section class="abp-block" id="architecture-normalisation">
     {% comment %}
-      ARCHITECTURE NORMALISATION - the Owner opened this block on 2026-08-08.
-      Twenty-nine sections, AN1 to AN29, every one TO SPEC until he dictates it.
-      The rows are deliberately empty: a title written here by an agent is the
-      thing the block exists to stop. The reasoning and the measured starting
-      state are in docs/ARENA_BATTLE_PLAN.md section 5a.
+      ARCHITECTURE NORMALISATION - CLOSED by the Owner on 2026-08-09 and taken
+      OFF the active board. Twenty-nine cards rendered here as a grid; a
+      completed project sitting in the queue is read as work, so the whole of
+      it is one closure line now and the cards live in the archive document.
+      Do not restore the grid: the board is for construction still to be done.
     {% endcomment %}
-    <h2>Architecture normalisation</h2>
+    <h2>{{ normalisation_closure.title }} &mdash; {{ normalisation_closure.status }}</h2>
     <p class="abp-note">
-      {{ normalisation_done_count }} of {{ normalisation_total }} done,
-      {{ normalisation_partial_count }} partial, {{ normalisation_todo_count }} not started.
-      Every card is a numbered section of the master task, in its order - the work was
-      specified when the block was opened, and the board carries what was actually
-      measured rather than a promise.
+      {{ normalisation_closure.cards }} of {{ normalisation_closure.cards }} cards done,
+      closed {{ normalisation_closure.closed_on }} at {{ normalisation_closure.release }}
+      ({{ normalisation_closure.commit }}). A completed foundation, not an open
+      blocker: no card depends on it and it is not active work.
     </p>
-    <div class="abp-an-grid">
-      {% for sec in normalisation %}
-      <article class="abp-an-cell{% if sec.status == 'DONE' %} is-done{% elif sec.status == 'PARTIAL' %} is-active{% endif %}" id="{{ sec.id|lower }}">
-        <strong>{{ sec.id }} <em>{{ sec.status }}</em></strong>
-        <span>{{ sec.title }}</span>
-        <p class="abp-an-spec">master task &sect;{{ sec.spec|slice:"1:" }}</p>
-        <p class="abp-an-evidence">{{ sec.evidence }}</p>
-      </article>
-      {% endfor %}
-    </div>
+    <p>{{ normalisation_closure.summary }}</p>
+    <p class="abp-note">{{ normalisation_closure.owner_only }}</p>
+    <p class="abp-note"><strong>Carried out of the block, each with its own owner:</strong></p>
+    <ul class="abp-note">
+      {% for item in normalisation_closure.carried_out %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+    <p class="abp-note"><strong>The record:</strong></p>
+    <ul class="abp-note">
+      {% for path in normalisation_closure.records %}<li><code>{{ path }}</code></li>{% endfor %}
+    </ul>
   </section>
 
 {% endblock %}

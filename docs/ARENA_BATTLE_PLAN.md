@@ -65,13 +65,44 @@ reference floor is a 1120×1120 **square**, the same as this SVG's viewBox, so i
 not available at 42°, which is why A07 shipped as a framing card and not a
 geometry one. See v2.5.792/793 in the journal.
 
-**Two cascade facts A09 will need, measured on the live page, not read off the
-source.** The camera is set by `arena_deck_polish.css:3666` — last one wins — and
-two blocks above it (1912, 2277) drop `rotateX` altogether; `arena_render.css`
-does not own it. The floor container's `clamp(480px, 56vw, 94vh)` in
-`arena_render.css` loses to `height: auto` from `arena_atmosphere.css` at higher
-specificity, and the container is absolute with `top/bottom: 0`, so it fills its
-grid cell and nothing more.
+**THE FROZEN ARCHITECTURE — the current source of truth, and it replaces the
+cascade note that stood here.** That note told a future agent that the camera is
+set by `arena_deck_polish.css:3666` and that the floor container's height comes
+from `arena_render.css`. Both files were merged away in AN12 and neither exists.
+A board that hands out deleted file paths as current instructions is how the old
+architecture gets rebuilt by accident, so here is what is actually true, frozen
+by the Owner on 2026-08-09 at v2.5.960:
+
+```
+PAGE LAYOUT        .arena-command-deck__floor
+                   owns the furniture, the caption's region and its gap,
+                   the octagon's region, and the region's movement
+      |
+OCTAGON REGION     .arena-floor-stage
+      |
+OCTAGON LAYOUT     placeOctagon(svg, camera) in arena_render.js
+OWNER              scales and moves the COMPLETE camera component into
+                   the region it is given
+      |
+CAMERA VIEWPORT    .arena-render-container
+                   its own intrinsic side (440px) and scene fit (0.79308)
+      |
+SCENE              #arena-render
+                   perspective 1500px, origin 50% 40%, rotateX(42deg),
+                   transform-origin 50% 62%
+```
+
+Exactly **two** Arena stylesheets (`arena.css`, `arena_atmosphere.css`) and
+exactly **one** camera. The Master Console mirror is the SAME component and
+differs only by configuration values it sets on it. The camera knows nothing of
+the caption, the furniture, the grid rows or the page offsets, and page layout
+redefines none of the camera's optics.
+
+**What this means for every card below.** A card adapts to these facts; the facts
+do not adapt to a card. Page composition is changed through PAGE LAYOUT. Moving
+the octagon means moving its REGION, never editing the camera. Nothing writes
+`--arena-fit` or `--arena-shift-*`; nothing positions the ladder or the caption
+from CSS; nothing adds a third stylesheet.
 
 ## 1. Current team and ownership
 
@@ -319,6 +350,15 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 
 ## 5. Atomic dispatch queue
 
+**Cleaned and synchronised 2026-08-09**, on the Owner's instruction, after
+Architecture Normalisation closed. The queue holds work still to be done: four
+actionable cards (A19, VD1, MC02, G01) and the historical rows of what shipped.
+The twenty-nine AN cards are off it entirely - see §5a - and no card depends on
+an AN number any more, because a card blocked by a finished foundation is
+blocked forever. The per-card classification, the dependency matrix, the
+cross-card pass and the execution order are in
+`docs/chef_battle/ARENA_BOARD_SYNC_2026_08_09.md`.
+
 The build board contains the full action, files, visible result, acceptance,
 forbidden changes and evidence for every row below.
 
@@ -348,10 +388,10 @@ forbidden changes and evidence for every row below.
 | A16 | Arena Hall | CulinEire branding and K-mark audit | unassigned | A11–A14 | DONE |
 | A17 | Integrity | Truthful visual state matrix | Bolt | A09–A16 | **DONE** — `docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md`, measured on production |
 | A18 | Integrity | Desktop accessibility and responsive gate | Bolt | A17 | **DONE** — 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab |
-| A19 | Arena Hall | Owner visual acceptance — Arena Hall | Owner | A18 | PENDING |
-| VD1 | Arena Hall | **Final Arena visual/layout cleanup** — the visible overflow the Owner reported on 2026-08-09, deferred by him in the same instruction that FROZE the architecture at v2.5.958. Not measured by Bolt: it shows on his viewport, and 1280x800 and 1920x1080 both fit. Four different defects hide behind one word and must be told apart first - the octagon's transparent box, its ink, the crowd rail, or the deck. Written up with what may NOT be used to repair it in `docs/chef_battle/ARENA_VISUAL_DEBT.md`. | unassigned | A19 | **OPEN — known debt, deliberately unfixed** |
+| A19 | Arena Hall | Owner visual acceptance — Arena Hall. **Architecture prerequisite satisfied** (normalisation closed at v2.5.960). Owner-only; nothing to implement. | Owner | architecture prerequisite satisfied | PENDING — WAITING FOR OWNER |
+| VD1 | Arena Hall | **Final Arena visual/layout cleanup** — the large-desktop composition the Owner reported on 2026-08-09 and deliberately deferred. Product intent unchanged. IMPLEMENTATION PATH, synchronised to the frozen architecture: macro composition is changed through PAGE LAYOUT (`.arena-command-deck__floor`) and by moving the octagon's REGION (`.arena-floor-stage`) as a whole piece through `--arena-octagon-offset-y`. FORBIDDEN: editing camera optics to achieve page composition, changing the accepted octagon internal geometry, adding a third stylesheet, restoring any deleted compensation mechanism, or a constant chosen to make one screen look right. Full brief and the four defects that must be told apart first: `docs/chef_battle/ARENA_VISUAL_DEBT.md`. | unassigned | A19 · depends_on PAGE_LAYOUT, OCTAGON_REGION | **OPEN — known visual debt, deliberately unfixed** |
 | MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | **DELETED by the Owner** |
-| MC02 | Arena | The withdrawal seen LIVE on the arena, not described — see `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md` | unassigned | A09 | **OPEN, awaiting the Owner's steps** |
+| MC02 | Arena | The withdrawal seen LIVE on the arena, not described — `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`. Product intent unchanged: each step is shown by ACTION on the arena, driven by the existing `emulation.py` through the real services. IMPLEMENTATION PATH, synchronised: the Master Console mirror is the SAME Arena camera component and may differ ONLY by configuration values it sets on it (`--arena-camera-tilt`, `--arena-camera-perspective`). It must not introduce independent camera CSS, independent scene geometry, or a second octagon implementation. Overlays attached to the scene belong to the REGION, not to the camera viewport — the viewport carries the placement scale. | unassigned | A09 · depends_on SCENE, READINESS | **OPEN — awaiting the Owner's steps (TO SPEC)** |
 | SA-A2 | Arena | An accepted challenge seats the pair in adjacent cells, each in his own ring | Bolt | — | DONE v2.5.844 |
 | SA-A4 | Arena | That pairing is stable across leaving and returning | Bolt | SA-A2 | DONE v2.5.844 |
 | SA-A6 | Arena | Both Ready pulls the match in to 15 minutes and the pill climbs the queue | Bolt | — | DONE v2.5.844 |
@@ -360,134 +400,33 @@ forbidden changes and evidence for every row below.
 | B03 | Battle Broadcast | Broadcast chat and composer | GreenBear | B02 | DONE |
 | R01 | Result / Winner | Champion and runner-up result shell | GreenBear | B03 | DONE |
 | R02 | Result / Winner | Result metrics, status and chat | GreenBear | R01 | DONE |
-| G01 | Release gate | Complete Design Arena regression and production evidence | Team + Owner | A19, B03, R02 | PENDING |
+| G01 | Release gate | Complete Design Arena regression and production evidence. **Architecture prerequisite satisfied**: the normalisation gate is green on the final candidate (1799 tests, 0 failures, 2 skipped, PostgreSQL). What G01 still needs is the product evidence of §14 of the contract - access policy, state and action parity, vote and reveal integrity, moderation, migration readiness, console compatibility, flags, legal gates, rollback. | Team + Owner | A19, B03, R02 | PENDING |
 
-## 5a. ARCHITECTURE NORMALISATION (AN1 - AN29)
+## 5a. Architecture Normalisation — CLOSED
 
-> **CLOSED by the Owner, 2026-08-09, at production v2.5.960.** 29 of 29 cards
-> DONE and the engineering acceptance gates satisfied. No further work on this
-> task: the Arena's geometry, camera, layout, CSS architecture and readiness
-> lifecycle are not to be touched again under this heading, and no further
-> cleanup pass follows from it.
->
-> His ruling on the one gate that could not be opened here: **AN28's
-> production-page observation is OWNER-ONLY VISUAL ACCEPTANCE**, because the
-> live Arena is staff-gated. It does not keep the engineering task open, and
-> it is not a PARTIAL card.
->
-> Three things carried OUT of this block rather than left inside it, each with
-> its own owner: **VD1**, the large-desktop composition, is visual debt for the
-> later Arena visual/layout cleanup; **MC02** is a separate product task; the
-> **static-asset residue** is separate maintenance debt.
+**Opened 2026-08-08, CLOSED by the Owner 2026-08-09 at production v2.5.960.**
+Twenty-nine cards, AN1 to AN29, all DONE; the engineering acceptance gates are
+satisfied. It is **not active work** and it is **not a dependency**: a completed
+foundation, not an open blocker. Nothing on the queue above may be blocked by an
+AN number, and no future card may reopen the block.
 
+The record is preserved in full and lives outside the active queue:
 
-**Opened by the Owner, 2026-08-08.** Twenty-nine sections, numbered AN1 to AN29.
-**Every card is a numbered section of his master task, in its order**, and the
-`Master task` column says which one. Nothing here is invented: a card that
-cannot name its section does not belong in this block. The state of each is what
-was measured, not what was hoped.
+| What | Where |
+|---|---|
+| The twenty-nine cards with their per-card evidence | `docs/chef_battle/ARENA_NORMALISATION_CARDS_ARCHIVE.md` |
+| The engineering report, before/after metrics, the closure gates | `docs/chef_battle/ARENA_NORMALISATION_REPORT.md` |
+| The final full-suite output | `docs/chef_battle/ARENA_NORMALISATION_FINAL_SUITE.txt` |
+| Releases and commits | `config/release_journal.py`, v2.5.900 to v2.5.960 |
+| The frozen architecture and what may not be used to change it | `docs/chef_battle/ARENA_VISUAL_DEBT.md` |
 
-### Why it exists — his verdict, 2026-08-07
+**AN28's production-page observation is OWNER-ONLY VISUAL ACCEPTANCE**, because
+the live Arena is staff-gated. It does not keep the engineering task open.
 
-> «то, что мы создаём, это по сути пазл, который мы должны двигать в любом
-> направлении в котором нам нужно... а не 10 слоёв стоят друг на друге как
-> карточный домик, а любой пиксель вправо или влево его разрушит - это в корне
-> не правильное видение нашего проекта»
-
-He then said: **«будем всё исправлять и чинить»** — the work is approved, and
-this is where it is written down.
-
-### The measured state this block starts from
-
-Facts, not opinions. Each was counted on 2026-08-07/08, and each is a candidate
-for a section rather than a section already assigned:
-
-- **Seven arena stylesheets, 9425 lines.** `arena.css` 780, `arena_command_deck.css`
-  747, `arena_effects.css` 134, `arena_hall.css` 257, **`arena_deck_polish.css`
-  4345**, `arena_atmosphere.css` 955, `arena_render.css` 1316. Six are linked in
-  `arena.html`; the seventh arrives from `_arena_render_ring.html`, so a `<link>`
-  sits in the middle of `<body>` and the load order cannot be read in one place.
-- **Which sheet wins is decided by a line in a template**, commented "polish then
-  atmosphere". That is why correct rules have twice failed to reach the screen:
-  one lost the cascade to `.page--arena`, one was cut away by `clip-path` after
-  it was painted.
-- **54 `z-index` declarations** across three of those sheets, 19 distinct values
-  from -1 to 130, one `!important`.
-- **The deck's vertical space had three owners that did not know about each
-  other**: a CSS share for the caption (`top: 8.2%`), a CSS share for the floor
-  (a 0.64 pad and a 0.51 composition centre), and a JS pass clawing a band back
-  after the fact. Eight releases in one day (v2.5.890 to v2.5.904) went into one
-  caption because each fix was right about its own piece and blind to the rest.
-- **`--arena-shift-y` is applied inside `rotateX(42deg)`**, so a translation asked
-  for in CSS pixels lands foreshortened by the cosine of that angle. Anything
-  that positions by arithmetic instead of measurement is wrong by that factor.
-- **A started refactor is parked, not merged**: `DeckBands`, one owner for the
-  deck's vertical space, in `.agent-chat/bolt-deckbands-wip.patch`. Unverified.
-
-### The sections
-
-| # | Master task | State | Title | Evidence |
-|---|---|---|---|---|
-| **AN1** | §3 | DONE | Read-only inventory before any edit | origin/main, HEAD, production version, worktrees, branches, stash, untracked files, handoff documents, the board, live behaviour, and the fate of the DeckBands prototype. ARENA_NORMALISATION_BASELINE.md, at v2.5.910. |
-| **AN2** | §4 | DONE | Recoverable backup with a TESTED rollback | backup/arena-pre-normalisation-2026-08-08 -> a1f40923, pushed to origin. Rehearsed in a detached worktree: footer read v2.5.910 and manage.py check was green. Migrations 218, chef_battle at 0085. |
-| **AN3** | §5A | DONE | Codebase baseline - files, lines, selectors, observers, timers, measurements | 7 stylesheets / 8534 lines / 1110 live rules; 136 !important; 70 z-index declarations over 21 values; arena_render.js 3408 lines with 21 getBoundingClientRect calls, 6 ResizeObservers and 20 position writes. |
-| **AN4** | §5B | DONE | CSS cascade map - every sheet, its loader, its order, contested ownership | 585 selector/property pairs with more than one owning file; 55 selectors written in three or more files; arena_render.css found linked from INSIDE the body, measuring last in the cascade. |
-| **AN5** | §5C | DONE | JavaScript ownership map and dependency graph | Six functions read AND write layout in one pass; measureHeader alone does 10 reads and 5 writes; the fit, the ladder and the caption all re-enter through one call chain. |
-| **AN6** | §5D | DONE | DOM/SVG initialisation order, with the ladder jump MEASURED | One layout shift at 943ms, CLS 0.0255, the rank spine travelling 441px right and 102px down from its stylesheet position to its JavaScript one. |
-| **AN7** | §5E | **DONE** | Performance baseline | Measured on a harness that carries the real arena DOM, the real stylesheets and the real renderer over HTTP, at 1280x800: FCP 544ms, LCP 544ms, DOMContentLoaded 283ms, load 406ms, CLS 0 with zero layout-shift entries, 4 long tasks, 2486 DOM nodes of which 1759 are the octagon's SVG, 136 requests. The first animation frame the page ever paints already has the rank ladder at its final box, 935,372,148,220, and already visible - there is no frame in which it is somewhere else. STILL MISSING, and it is a tool limit rather than an unfinished measurement: cold cache, CPU throttling and network throttling need CDP, and the production arena is staff-only so the browser here cannot open it at all - it answers 404. Every number above is therefore a harness number, honest for before-and-after comparison and not a statement about production. CLOSED 2026-08-09 as far as this workstation can close it. The two that were missing - cold cache and CPU/network throttling - are now measured by CONSTRUCTION rather than by CDP: a cold cache by cache-busting every asset and requesting the renderer last, CPU throttling by blocking the main thread in 120ms bursts for 1.5s from DOMContentLoaded, network throttling by delivering the renderer 900ms late, and the last two together. In every profile the ladder is first visible AT its final 935,372,148,220 and the octagon at 305,284,659,454, zero changes to either, with the shell standing alone for up to 1164ms. What is still not claimed: the same measurements against the PRODUCTION page, which answers 404 to everyone but staff. Carried as VD2. |
-| **AN8** | §5F | DONE | Geometry baseline at the approved viewports | 1920x1080, 1440x900, 1280x800 and the Owner's own 1170x820. Every panel box and every intersection recorded, including the four overlaps that exist at his window. |
-| **AN9** | §5G | **DONE** | Twelve load and resize scenarios | Ten of the twelve scenarios are measured, up from four. Warm load and reload at 1280x800: CLS 0, zero shift entries, ladder 935,372,148,220 in the FIRST painted frame. 1280 -> 1920: ladder 1391,462,170,220, caption 747,235,416,53. A fresh load at 1920 is byte-identical to arriving there by resize. 1920 -> 1440 -> 1280x520 -> 1024 and back to 1280x800 returns the exact fresh-load numbers, so the tour converges rather than drifts. On the short screen that broke this before, 1280x520, the ladder now ends 1px ABOVE the fold where it used to hang 19px below it. At 1024 the header measures 172 rather than 146 and the deck overflows the viewport by 0px, which is A07 holding at a width where it used to fail. The two that remain are cold cache and CPU/network throttling: they need CDP, and the production arena is staff-only, so this browser cannot open it - it answers 404. CLOSED 2026-08-09 as far as this workstation can close it. The two scenarios that were missing - cold cache and CPU/network throttling - are now measured by CONSTRUCTION rather than by CDP: a cold cache is reproduced by cache-busting every asset and requesting the renderer last, CPU throttling by blocking the main thread in 120ms bursts for 1.5s from DOMContentLoaded, and network throttling by delivering the renderer 900ms late; the two are also run together. Twelve of twelve now have numbers. In every one the ladder is first visible AT its final 935,372,148,220 and the octagon at 305,284,659,454, zero changes to either, with the shell standing alone for up to 1164ms. What is still not claimed, and cannot be from here: the same measurements against the PRODUCTION page, which answers 404 to everyone but staff. Carried as VD2. |
-| **AN10** | §6 | DONE | The complete pre-refactor test baseline, run once | 1750 tests, 2 pre-existing failures, 710.7s, PostgreSQL, --parallel 8, production dependency versions. Full output preserved beside the baseline report. |
-| **AN11** | §7 | DONE | Arena ownership manifest - one responsibility, one owner | Thirteen responsibilities mapped to the real code. Five had more than one owner: ring colour, the camera, the page's vertical space, the ladder's position and z-order. Readiness had no owner at all. |
-| **AN12** | §8 | DONE | Consolidate the Arena stylesheets | Seven stylesheets are two. arena.css carries the shell and the octagon renderer; arena_atmosphere.css carries the effects layer and the hall, and loads after it. The Master Console still loads arena.css ALONE, flat, by the Owner's ruling of 2026-08-08 - which is why the split falls here and not somewhere tidier, and why the earlier claim that four was the end state was wrong. Sixteen declarations written in two sheets at once were removed first, so no single selector sets the same property in any two files and no repackaging can change a winner. Proved in a real engine over the rendered arena DOM: 2435 elements, each with its ::before and ::after, 544 computed properties apiece, plus the 1759 SVG nodes re-measured with the stage forced to crown, active_battle, facing_pair and no state at all. Zero differences. The only rows that moved were two values the site's own JavaScript randomises per load, and the same rows move when the SAME file is loaded twice. It caught a real regression before it shipped: the live battle stage would have turned grey, because the atmosphere's `.arena-stage` fill and the renderer's `[data-state]` fills carry equal specificity and only the load order had ever separated them. |
-| **AN13** | §8A | DONE | CSS cleanup rules | 584 declarations that a later rule with the IDENTICAL selector already overwrote are gone, and 135 rules left with nothing in them went with them: arena.css 6237 -> 5130 lines, 216KB -> 185KB. Equivalence proved rather than asserted - 2550 winning declarations before, the same 2550 after, 0 changed, the surviving rules in the same cascade order, brace balance 0. !important came out in AN8 (136 -> 58). A test now fails on any property written twice for one selector. |
-| **AN14** | §8B | DONE | An explicit layer model instead of scattered z-index | 21 --arena-z-* tokens and 0 raw numbers left in the four sheets. The values are unchanged on purpose: this gave the ladder a home, it did not re-order it. |
-| **AN15** | §9 | DONE | One page-level layout authority | The page's own geometry has an owner, and it is not the octagon. `static/js/arena_page_layout.js` publishes --arena-header-h - everything above the deck - and owns the four triggers that can change it: the site header's own box in border-box mode, the window, the moment the web fonts settle, and one late pass. The renderer subscribes and re-fits; it no longer contains the string `.ce-header` at all, which is the literal test of section 9's 'a widget does not measure its neighbours'. The formula and all four triggers are unchanged on purpose - moving ownership is not licence to move a pixel - and it was measured rather than assumed: the same page loaded with the old code and the new one gives octagon 305,284,659,454, ladder 935,372,148,220, caption 350,235,416,51 both times, and the only difference anywhere is that window.ArenaPageLayout now exists. Resizing to 1920 through the force path lands the ladder at 1390,463 and the caption at 747,235, which is the production baseline for that width. Nine tests hold it, including one that fails if the renderer ever goes looking for the header again. |
-| **AN16** | §10 | DONE | Isolate the Octagon behind a public contract | The octagon is a component now, not a structure other files read. Three questions are the whole of what the page may ask - ArenaOctagon.region(svg) for where the floor landed, rankRegion(svg) for the eight rank rings, sponsorsCorner(svg) for the corner the Owner named on 2026-08-07 - and a question not on that list is one the page has no business asking. Until now the floor caption, the band reserved above it and the rank ladder each queried '.arena-cell[data-ring-kind="rank"]' inside the SVG for themselves, so three page-level functions knew that the octagon is built from cells, that a cell carries a ring kind, and what the kinds are called; renaming an attribute inside the octagon would have moved a caption in another file and nothing would have said so. Neither string appears in any of the three now. Proved identical in a real engine rather than argued: caption 350,235,416,51, ladder 935,372,148,220, octagon 305,284,659,454, the caption's and the ladder's own inline style strings, and the SVG's --arena-fit 0.5288 and --arena-shift-y -70.21px, all matching to the character before and after. The only difference anywhere on the page is that window.ArenaOctagon.region now exists. Four tests hold it. |
-| **AN17** | §11 | DONE | The Rank Ladder: one source for order, identity, colour and position | Order and identity from the backend Rank model, the number from data-ring, the colour READ OFF the ring itself rather than copied, and the position only from placeRankSpine(). No CSS fallback position, no post-load jump, stable through resize. |
-| **AN18** | §12 | DONE | Evidence-based dead-code audit in eight categories | Twenty-four arena assets - fifteen JavaScript modules and nine stylesheets - each classified from who names it: templates, Python, other static files, tests, and the symbols it exports. NOTHING is DEAD and nothing was deleted. The two that no caller anywhere touches are both deliberate, and no search could have told you so: arena_octant_prototype.js says in its own first line that it is an isolated geometry sandbox intentionally not loaded by production, and octagon_floor_template.js was disconnected on the Owner's instruction of 2026-07-30 that the arena share no code with the sponsors puzzle. UNKNOWN is empty - every asset resolved with evidence. Written up in docs/chef_battle/ARENA_DEAD_CODE_AUDIT.md. One finding is not code and is handed to AN22: 35 files and 3.2MB of stylesheets that no longer exist still sit in the server's staticfiles and still answer 200, because collectstatic copies and never deletes; the manifest references none of them. |
-| **AN19** | §12A | DONE | Fixture and emulation code preserved - disabled is not dead | The emulation bots keep their accounts, profiles, history and their Master Console; ARENA_SHOW_EMULATION_BOTS brings them back. hydrateFixtures stays disconnected and is held in place by three tests. |
-| **AN20** | §13 | DONE | JavaScript cleanup - a deliberate read phase and write phase | The observers half was already closed by AN15 and is now measured rather than claimed: arena_render.js holds ONE ResizeObserver, zero resize listeners, zero fonts.ready hooks, and its single remaining setTimeout is a 900ms ripple cleanup - nothing gates the first paint on a clock. On the read/write half: of eleven functions that touch layout in both directions, eight already measure before they write. One forced reflow was accidental and is gone - placeFloorCaption reset five inline styles on an absolutely positioned caption and then read every cell of the octagon, which no reset of an out-of-flow element can move, so the browser rebuilt the whole layout each pass to answer a question nothing had changed. Reading first is byte-for-byte identical, proved in a real engine: ladder, caption and octagon boxes, the caption's own inline style string and the SVG's --arena-fit and --arena-shift-y all match to the character. The three remaining interleaves are DELIBERATE and section 13 should not want them gone: each read depends on the write above it. You cannot measure a caption's natural width without clearing the width it was given, you cannot know whether the no-kicker variant fits without applying it and measuring, and the three-pass band reserve exists because --arena-shift-y is applied inside a rotateX(42deg) camera and arrives foreshortened. Guessing at those numbers instead of measuring them is what produced eight releases in one day for one caption. |
-| **AN21** | §14 | DONE | Template cleanup | The arena templates carry markup and no CSS. Two style attributes had survived every earlier pass because both looked harmless - width:100% on the refresh gauge, position:absolute on the zero-size SVG holding the deck's icon sprite - and harmless is not the point: a declaration in a template is invisible to every tool that reads the stylesheets, appears in no cascade map, no !important audit and no superseded count, and beats all of them, because an element's own attribute outranks any rule that is not !important. Both are in arena.css now, the sprite behind a named class. The rest of section 14 was already audited and clean: no multi-line {# #} comment anywhere - the one-line Django comment that leaked eight lines of prose over the whole site's header is a lesson this file keeps - the duplicate ids are mutually exclusive branches, and no stylesheet is linked from the body. Three tests hold it, one of which refuses the next inline style attribute in any of the three arena templates. |
-| **AN22** | §15 | DONE | Static asset inventory in four categories | 627 assets under static/, 117.3MB, in four categories, and not one file deleted, resized or re-encoded - section 15's own rule is that an original the company paid for is reported and never altered. REFERENCED 188 files / 53.6MB. ORIGINAL 28 / 43.9MB: a master nothing names beside the derivative everything names, categories/salads.png next to salads.webp. UNREFERENCED 411 / 19.8MB, and the breakdown is why that word is not UNUSED - 288 of them are the crowd's near/mid/far depth tiers, superseded by a decision the ring template records in writing, and the rest are old logo cuts and paid crowd faces beyond the 96 the template lists by name. One asset passes four megapixels: images/logo-social.png at 2085x2084, reported and untouched. The fourth category is the only defect: 35 files and 3.2MB of RESIDUE in the server's staticfiles for five stylesheets the repository no longer has, still answering 200, because collectstatic copies and never deletes. Not removed here - that is a production deletion outside an inventory - but the targeted, count-first command that removes exactly those and nothing else is written out in docs/chef_battle/ARENA_STATIC_INVENTORY.md. |
-| **AN23** | §16 | DONE | Database and backend safety | No migration was introduced, no live battle or user data was touched, and the emulation switch was used instead of writing test data to production. |
-| **AN24** | §17 | DONE | Two agents, one engineering team | Carpet message #3506 sent before any file was opened, carrying the split, the two-stylesheet target and the instruction not to build on the parked patch. GreenBear is away until Monday; both surfaces are mine, announced. |
-| **AN25** | §18-20 | DONE | Commit discipline, no V2 files, no visual redesign | Eleven staged deploys, each complete and verified before the next began. No arena_v2 anything. Geometry pixel-identical to the baseline at every viewport after every stage. |
-| **AN26** | §22 | DONE | Final full test gate against the baseline | GREEN, on the Owner's word of 2026-08-08. 1775 tests, 0 failures, 2 skipped, 700.5s, PostgreSQL confirmed as django.db.backends.postgresql, --parallel 8 on the 8-core workstation, one run. Against the baseline of 1750 tests / 2 failures / 710.7s that is 25 tests more, both pre-existing failures gone, and ten seconds faster. The FIRST attempt was red with three failures and every one of them was a check doing its job on my own work: two tests asserted the literal lines AN16 had just moved behind the octagon's contract - the rule they guard is unchanged and they now read the contract - and the third caught something I had not noticed at all, the build board's stage-2 baseline still reading 'production v2.5.932' five releases after that stopped being true. A board that is wrong about what is live is the fault section 17.4 names, and it was found by the suite rather than by me. Full output preserved beside the report as ARENA_NORMALISATION_FINAL_SUITE.txt. |
-| **AN27** | §23 | DONE | Final performance comparison, before to after | Written up as its own section of the report, and split into two kinds of number that are not interchangeable. CODE metrics, read from the repository and exact: 7 stylesheets to 2, 8534 lines to 7279, 1110 rules to 988, 628 declarations a later identical selector already beat to 0, 136 !important source lines to 55, 70 raw z-index numbers to 0 against 21 layer tokens, one stylesheet link in the body to none, two inline style attributes in the templates to none, 20 CSS rules positioning the ladder and the caption to none, six ResizeObservers in the renderer to one, four page-level triggers it owned to none, three placement functions reading the octagon's internals to none, and one forced reflow per caption pass to none. BROWSER metrics, measured on a harness carrying the real DOM, the real stylesheets and the real renderer over HTTP and labelled as such: one or two layout shifts on load to zero, CLS 0.0255/0.0111 to 0, and a ladder that used to arrive 441px from where it belonged now final and visible in the first frame the page paints. FCP and LCP 544ms, DOMContentLoaded 283ms, load 406ms, 4 long tasks, 2486 DOM nodes of which 1759 are the octagon. Cold cache and throttling are absent for the same reason as AN7 - they need CDP and the production page - and that is stated in the table rather than left as a gap. |
-| **AN28** | §24-25 | **DONE** | Initial-render and resize acceptance | Initial render passes on every measured viewport: 0 temporary ladder positions, 0 jumps, 0 CSS-to-JS transitions, 0 timeout hiding, CLS 0. Resize converges to the pixel. Cold cache and throttling remain unmeasured. ACCEPTANCE REPAIR PASS, 2026-08-09 (v2.5.954 then v2.5.956): resize acceptance re-proved on the corrected architecture and it now converges to the ACCEPTED composition by every path - a fresh 1920x1080 and 1280 -> 1920 agree to the pixel (octagon 459,306,992,683), and 1920 -> 1280 returns to 305,284,659,454 / ladder 935,372,148,220 / caption 350,235,416,51 exactly. The camera is isolated from the page region: moving and resizing the region by up to 120px, changing the deck-top furniture, tripling the caption's lead row and doubling its type all leave the octagon 659.00x454.00 and the proportion 0.688923 to six decimals. Cold cache and throttling against the PRODUCTION page remain unmeasured and are carried as VD2. AN28 IS CLOSED, 2026-08-09. The original defect - shell up, ladder in the CENTRE, octagon absent, octagon loads, ladder JUMPS - was re-tested under six load profiles on the harness that carries the real DOM, the real stylesheets and the real renderer, watched from before first paint: normal, hard reload with every asset cache-busted, cold with the renderer requested last, the main thread blocked in 120ms bursts for 1.5s, the renderer arriving 900ms late, and the last two together. In all six the ladder is FIRST VISIBLE at its final 935,372,148,220 and the octagon at 305,284,659,454, with zero changes to either. The shell stands alone for up to 1164ms with neither shown. Temporary centre ladder 0, jump 0, wrong geometry shown 0, geometry-dependent elements before readiness 0, timeout hiding 0, opacity delay 0. NOT VERIFIED ON PRODUCTION and that is stated rather than glossed: the Arena answers 404 to everyone but staff, and creating a staff session is reserved to the Owner by section 20 and forbidden to an agent by 17.10. That one gate needs his own browser. Cold cache and CPU/network throttling through CDP remain unmeasured for the same reason and are carried as VD2. |
-| **AN29** | §26-29 | DONE | The sixteen assertions, the final report, the success criteria | The sixteen assertions of section 26 are answered with evidence in docs/chef_battle/ARENA_NORMALISATION_REPORT.md, and four of them changed today. One system owns page-level layout: YES since AN15. The octagon's geometry has one owner AND one reader: YES since AN16. Exactly two Arena stylesheets: YES since AN12 - my earlier answer of 'no, four' was wrong and the board carried it for a day. Duplicate implementations removed: YES - five stylesheets merged away, 628 unreachable declarations gone, and three copies of the octagon-measuring loop folded into one contract. The report itself is rewritten to match: eleven deploy stages became fourteen, the stage numbers no longer collide with the AN card numbers by accident, the deleted-work table gains the rows it was missing, and the remaining debt names what is actually left rather than what was left this morning. What is NOT claimed: anything about the production page's cold-cache or throttled behaviour, which needs a browser that can open it. |
-
-**The Owner's rulings inside this block.**
-
-- **2026-08-08, on the two-stylesheet target:** the Master Console mirror stays
-  FLAT. It deliberately loads neither `arena_effects.css` nor
-  `arena_atmosphere.css` - he asked for the mirror without the tilt and without
-  the effects, to spare the operator's machine - so those two are not folded
-  into the scene sheet. **His ruling decides WHERE the two files divide, not
-  how many there are** - and the note that once stood here, saying the end
-  state was four, was wrong for a day. There are two, since AN12:
-  `arena.css` carries the shell and the octagon renderer, which is everything
-  the mirror loads; `arena_atmosphere.css` carries the effects and the hall,
-  which the mirror must never load. Section 8 of the master task is met, and so
-  is section 26's fourth assertion.
-
-**Rules for this block, until he says otherwise.**
-
-0. **A finished section is written up the same working session it finishes** -
-   title, status, owner, and the evidence that proves it. The Owner asked on
-   2026-08-08 why completed cards were not marked and what the board was made
-   for; the answer is that the board is the record, and a board that lags the
-   work is the thing this project has already been bitten by (see the six days
-   in section 1 of AGENTS.md).
-1. An unstarted section is TO SPEC and carries nothing. No agent invents a title
-   for work the Owner has not asked for.
-2. Sections run in the order he gives them, one at a time, like every other card.
-3. Normalisation is **invisible work**: unless a section says otherwise, the page
-   must look the same after it as before, and the proof is a measurement taken
-   before and after at 1170x820, 1440x900 and 1920x1080.
-4. Nothing here touches `/AGENTS.md` section 8's excluded list - payments,
-   payouts, migrations, schemas, access gates - without his word each time.
+Three items were carried OUT of the block, each with its own owner: **VD1** the
+large-desktop composition, **MC02** the withdrawal seen live, and the
+static-asset residue as maintenance debt. They are cards in their own right
+above; they are not AN work.
 
 ## 6. How to assign a card
 

@@ -4244,123 +4244,117 @@ class ArenaBuildPlanShareLinkTests(TestCase):
         self.assertEqual(self.client.get(reverse("chef_battle:arena")).status_code, 404)
 
 
-class ArchitectureNormalisationBlockTests(TestCase):
-    """OWNER, 2026-08-08: open a block on the board called ARCHITECTURE
-    NORMALISATION with 29 sections, numbered AN1 to AN29.
+class ArchitectureNormalisationIsClosedTests(TestCase):
+    """The project is CLOSED and OFF the active board — Owner, 2026-08-09.
 
-    The block is a FRAME. Every section is TO SPEC until he dictates it, and a
-    title written here by an agent is exactly what the block exists to stop -
-    the same rule ARENA_EMULATION_VISUAL_STEPS.md carries for the scenarios.
-    """
+    This class replaces ArchitectureNormalisationBlockTests, which guarded the
+    twenty-nine rows while they were work. They are not work any more: the
+    Owner closed the phase at v2.5.960 and took it off the Construction Board,
+    because a completed project sitting in the queue is read as something still
+    to do, and because a card blocked by a finished foundation is blocked
+    forever.
 
-    def setUp(self):
-        from django.contrib.auth import get_user_model
+    What is guarded now is the closure: that the record survived the removal,
+    that the board carries ONE line for the whole project rather than
+    twenty-nine archived rows, and that nothing active depends on an AN number
+    ever again."""
 
-        self.owner = get_user_model().objects.create_user(
-            username="an-board-staff", password="x", is_staff=True)
-        self.client.force_login(self.owner)
+    ARCHIVE = "docs/chef_battle/ARENA_NORMALISATION_CARDS_ARCHIVE.md"
 
-    def test_there_are_twenty_nine_of_them_numbered_an1_to_an29(self):
-        from recipes.views import ARENA_NORMALISATION_SECTIONS
-
-        self.assertEqual(len(ARENA_NORMALISATION_SECTIONS), 29)
-        self.assertEqual(
-            [sec["id"] for sec in ARENA_NORMALISATION_SECTIONS],
-            [f"AN{n}" for n in range(1, 30)],
-        )
-
-    def test_every_section_is_a_numbered_part_of_the_master_task(self):
-        """OWNER, 2026-08-08: fill every card up to 29 with the tasks from the
-        prompt, and reconcile what is already done against what the board says.
-
-        Twice I filled this block wrongly - first left it empty under a rule I
-        invented, then wrote titles of my own. The source is the master task and
-        nothing else, so each card carries the section it comes from."""
-        from recipes.views import ARENA_NORMALISATION_SECTIONS
-
-        for sec in ARENA_NORMALISATION_SECTIONS:
-            self.assertTrue(sec["spec"], f'{sec["id"]} names no master-task section')
-            self.assertTrue(sec["title"], sec["id"])
-            self.assertTrue(sec["evidence"], f'{sec["id"]} claims a state with no evidence')
-            self.assertIn(sec["status"], ("DONE", "PARTIAL", "NOT STARTED"), sec["id"])
-
-    def test_the_board_agrees_with_what_was_actually_measured(self):
-        """A board that lags the work is what this block was opened to stop."""
-        from recipes.views import ARENA_NORMALISATION_SECTIONS
-
-        by_id = {s["id"]: s for s in ARENA_NORMALISATION_SECTIONS}
-        # the lifecycle, the layer model and the ladder are finished and deployed
-        for done in ("AN2", "AN6", "AN10", "AN14", "AN17", "AN19"):
-            self.assertEqual(by_id[done]["status"], "DONE", done)
-        # AN13 joined them when the 584 superseded declarations came out, and
-        # AN12 when the four stylesheets became two
-        for done in ("AN12", "AN13", "AN15", "AN16", "AN18", "AN20", "AN21", "AN22",
-                     "AN26", "AN27", "AN29"):
-            self.assertEqual(by_id[done]["status"], "DONE", done)
-        # AN7, AN9 and AN28 joined them on 2026-08-09, when the Owner closed
-        # the phase. The two scenarios that had been missing since the block
-        # opened - cold cache and CPU/network throttling - are measured by
-        # CONSTRUCTION now rather than through CDP: cache-bust every asset
-        # and request the renderer last, block the main thread in 120ms
-        # bursts, deliver the renderer 900ms late, then do the last two at
-        # once. What is still not claimed is the same measurement against
-        # the PRODUCTION page, which answers 404 to everyone but staff, and
-        # that is carried as visual debt VD2 rather than as a PARTIAL card.
-        for done in ("AN7", "AN9", "AN28"):
-            self.assertEqual(by_id[done]["status"], "DONE", done)
-
-    def test_no_normalisation_card_is_left_partial(self):
-        """The Owner closed the phase on 2026-08-09: nothing may be PARTIAL.
-
-        This is the assertion that makes COMPLETE mean something. A card
-        that cannot be finished from this workstation is not parked here as
-        PARTIAL - it is closed with what WAS measured and its remainder is
-        carried explicitly as visual debt, where it has a name and an
-        owner."""
-        from recipes.views import ARENA_NORMALISATION_SECTIONS
-
-        left = [s["id"] for s in ARENA_NORMALISATION_SECTIONS
-                if s["status"] != "DONE"]
-        self.assertEqual(left, [], "the phase is closed; these are not: %r" % (left,))
-
-    def test_the_old_shape_of_this_block_is_gone(self):
-        """The Owner, 2026-08-08: why are the finished cards not marked, and the
-        work not written into its fields - what did we make the board for?
-
-        A section carries a title, a status, an owner and evidence, or it is TO
-        SPEC and carries nothing. What it may never be is finished work that the
-        board does not show."""
-        from recipes.views import ARENA_NORMALISATION_SECTIONS
-
-        from recipes.views import ARENA_NORMALISATION_SECTIONS
-
-        for sec in ARENA_NORMALISATION_SECTIONS:
-            self.assertNotEqual(sec["status"], "TO SPEC",
-                                f'{sec["id"]} is still waiting for a dictation nobody owes it')
-
-    def test_the_finished_sections_are_on_the_board(self):
-        """Four are done and one is running as of 2026-08-08."""
-        from recipes.views import ARENA_NORMALISATION_SECTIONS
-
-        done = [s for s in ARENA_NORMALISATION_SECTIONS if s["status"] == "DONE"]
-        self.assertGreaterEqual(len(done), 15)
-        self.assertEqual(done[0]["id"], "AN1")
-
-    def test_the_board_page_shows_the_block(self):
-        from django.urls import reverse
-
-        html = self.client.get(reverse("recipes:arena_build_plan")).content.decode()
-        self.assertIn("Architecture normalisation", html)
-        self.assertIn('id="an1"', html)
-        self.assertIn('id="an29"', html)
-
-    def test_the_markdown_board_carries_the_same_block(self):
-        """The moderation page is a surface; docs/ARENA_BATTLE_PLAN.md is the
-        board (AGENTS.md 1). The two disagreeing is how a board stops being
-        trusted."""
+    def _board(self):
         from django.conf import settings
 
-        plan = (settings.BASE_DIR / "docs" / "ARENA_BATTLE_PLAN.md").read_text(encoding="utf-8")
-        self.assertIn("ARCHITECTURE NORMALISATION", plan)
-        for n in (1, 15, 29):
-            self.assertIn(f"**AN{n}**", plan)
+        return (settings.BASE_DIR / "docs" / "ARENA_BATTLE_PLAN.md").read_text(encoding="utf-8")
+
+    def test_the_closure_is_one_record_and_not_twenty_nine_rows(self):
+        from recipes import views
+
+        self.assertFalse(hasattr(views, "ARENA_NORMALISATION_SECTIONS"),
+                         "the twenty-nine cards are back on the active board")
+        closure = views.ARENA_NORMALISATION_CLOSURE
+        self.assertEqual(closure["status"], "CLOSED")
+        self.assertEqual(closure["cards"], 29)
+        self.assertEqual(closure["release"], "v2.5.960")
+        self.assertTrue(closure["summary"])
+        self.assertTrue(closure["owner_only"])
+
+    def test_nothing_was_destroyed_by_taking_it_off_the_board(self):
+        """Every card and its evidence moved verbatim rather than being
+        deleted. AN1 and AN29 are the ends of the range: if both are in the
+        archive, the table went across whole."""
+        from django.conf import settings
+        from recipes import views
+
+        for path in views.ARENA_NORMALISATION_CLOSURE["records"]:
+            self.assertTrue((settings.BASE_DIR / path).exists(), path)
+        archive = (settings.BASE_DIR / self.ARCHIVE).read_text(encoding="utf-8")
+        for card in ("AN1", "AN13", "AN16", "AN28", "AN29"):
+            self.assertIn("**%s**" % card, archive, card)
+        self.assertIn("CLOSED by the Owner", archive)
+
+    def test_no_an_card_is_active_work_on_the_board(self):
+        """Not as a row, and — the part that actually bites — not as a
+        dependency."""
+        board = self._board()
+        queue = board.split("## 5. Atomic dispatch queue", 1)[1].split("## 5a.", 1)[0]
+        for row in queue.split(chr(10)):
+            if not row.startswith("|"):
+                continue
+            cells = [c.strip() for c in row.split("|")]
+            if len(cells) < 7:
+                continue
+            card_id, depends = cells[1], cells[5]
+            self.assertIsNone(
+                re.fullmatch(r"AN\d+", card_id or ""),
+                "%s is an AN card sitting in the active queue" % card_id,
+            )
+            self.assertIsNone(
+                re.search(r"\bAN\d+\b", depends or ""),
+                "%s still depends on a completed AN card: %r" % (card_id, depends),
+            )
+
+    def test_the_board_hands_out_no_deleted_file_as_an_instruction(self):
+        """The cascade note used to tell a future agent that the camera is set
+        by arena_deck_polish.css. That file was merged away in AN12. A board
+        that hands out deleted paths as current instructions is how the old
+        architecture gets rebuilt by accident."""
+        from django.conf import settings
+
+        board = self._board()
+        active = (board.split("## 5a.", 1)[0]
+                  + board.split("## 6. How to assign a card", 1)[1])
+        # PARAGRAPH, not line: the sentence that says a file is gone often
+        # wraps, and a line-by-line scan reports its own formatting.
+        for name in ("arena_deck_polish.css", "arena_render.css", "arena_effects.css",
+                     "arena_hall.css", "arena_proto.css"):
+            self.assertFalse((settings.BASE_DIR / "static" / "css" / name).exists(), name)
+            for para in active.split(chr(10) + chr(10)):
+                if name not in para:
+                    continue
+                self.assertTrue(
+                    "merged away" in para or "neither exists" in para
+                    or "used to" in para or "no longer" in para,
+                    "the board names %s without saying it is gone: %r" % (name, para[:200]),
+                )
+
+    def test_the_frozen_architecture_is_stated_where_a_card_will_read_it(self):
+        board = self._board()
+        for fact in (".arena-command-deck__floor", ".arena-floor-stage",
+                     "placeOctagon(svg, camera)", ".arena-render-container",
+                     "#arena-render", "rotateX(42deg)"):
+            self.assertIn(fact, board, fact)
+        self.assertIn("two** Arena stylesheets", board)
+
+    def test_the_board_page_shows_the_closure_and_not_the_grid(self):
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+
+        User = get_user_model()
+        User.objects.create_user(username="abp-closure", password="pw",
+                                 is_staff=True, is_superuser=True)
+        self.client.login(username="abp-closure", password="pw")
+        html = self.client.get(reverse("recipes:arena_build_plan")).content.decode()
+        self.assertIn("Architecture normalisation", html)
+        self.assertIn("CLOSED", html)
+        self.assertNotIn('id="an1"', html)
+        self.assertNotIn('id="an29"', html)
