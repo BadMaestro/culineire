@@ -65,6 +65,11 @@ was read as today's production HTML and reported as a serious cache defect. It
 was not. Check the mtime, or write to a fresh unique filename and verify the
 byte count.
 
+**`document.styleSheets` is not a reliable way to read the cascade here.**
+Walking it once visited 151 rules out of roughly 2000 and the conclusion drawn
+from that walk was wrong. Parse the served stylesheet text, or use the Python
+tools in this directory, which read the files themselves.
+
 **The browser pane does not composite when it is not fronted.** `requestAnimationFrame`
 never fires, `setTimeout` is throttled to seconds, screenshots time out and
 Chrome records no paint entries at all — so first paint and FCP cannot be

@@ -7,15 +7,27 @@ process restart, branch switch, task switch, or resumed session:
 
 1. Read `/AGENTS.md`.
 2. Read `/docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md`.
-3. Read `/docs/CURRENT_EXECUTION_PLAN.md`.
-4. Read `/docs/TECHNICAL_STANDARDS.md`.
-5. Read `/docs/ARENA_BATTLE_PLAN.md` — the board.
-6. Read all five of the above from `origin/main`, never from the local
+3. Read `/docs/TECHNICAL_STANDARDS.md`.
+4. Read `/docs/ARENA_BATTLE_PLAN.md` — the board.
+5. Read all four of the above from `origin/main`, never from the local
    working tree. They are the COLD-START set. `/AGENTS.md` section 10 lists
-   every active document, including the game rules under `/docs/chef_battle/`,
-   which are read when a task touches them rather than at every start.
-7. Complete the cold-start bootstrap record required by `/AGENTS.md`.
-8. Do not start a poller. There are none (`/AGENTS.md` section 5).
+   every active document; the game rules under `/docs/chef_battle/`, the Arena
+   reports and the measurement tooling are read when a task needs them, not at
+   every start. `/docs/CURRENT_EXECUTION_PLAN.md` left the mandatory set on
+   2026-08-09 and lost none of its authority.
+6. Inspect THIS checkout as current work: HEAD, branch, `git status --short`,
+   the staged and unstaged diffs, and the untracked files. A dirty tree is not
+   invalid state, nothing in it is discarded, and untracked files are reported
+   rather than committed - some are the Owner's.
+7. Reconcile `config/release_journal.py` against the live footer and the
+   server's HEAD before claiming anything is missing.
+8. Complete the cold-start bootstrap record required by `/AGENTS.md`.
+9. Do not start a poller. There are none (`/AGENTS.md` section 5).
+
+The operational contract - the three kinds of state, the sequence, what a cold
+start may never do - is `ops/bootstrap/COLD_START.md`, and the hooks that
+announce it are `ops/bootstrap/session_start.py` and
+`ops/bootstrap/precompact.sh`, both tracked. `/AGENTS.md` wins over all of them.
 
 When the Owner says **"Onboarding GreenBear"** (or Bolt), that is the trigger for
 the same cold start plus one file:

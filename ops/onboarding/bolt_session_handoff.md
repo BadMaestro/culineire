@@ -1,5 +1,30 @@
 # Bolt — session handoff, 2026-08-09
 
+```yaml
+kind: migration bridge and durable context
+authoritative: false          # for DYNAMIC state. Never change state from this file.
+created_at: 2026-08-09
+created_at_commit: 0037b8d2
+validate_dynamic_state_against:
+  open_cards_and_dependencies: docs/ARENA_BATTLE_PLAN.md + docs/chef_battle/ARENA_BOARD_SYNC_2026_08_09.md
+  production_state: config/release_journal.py + the live footer + the server HEAD
+  governance: origin/main AGENTS.md
+  cold_start_contract: ops/bootstrap/COLD_START.md
+durable_and_still_useful_when_stale:
+  - environment traps (WSL paths, venv, CRLF, deploy ritual)
+  - architecture provenance - where the camera constants came from
+  - lessons from failures that cost real time
+  - tooling locations
+```
+
+**Read the dynamic sections as history, not as state.** Section 1 and section 3
+below were true at commit `0037b8d2`; check them against the sources above
+rather than trusting them. Sections 2, 4 and 5 are durable and do not rot: an
+environment trap and a lesson from a failure stay true.
+
+This file is not to be rewritten every time a card changes status. That is what
+turned the last project-state document into a two-month-old fiction.
+
 Written because the Owner is moving the work to VS Code. A new session starts
 with an empty scratchpad and no memory of this one, so everything that mattered
 is in the repository rather than in a temporary directory.

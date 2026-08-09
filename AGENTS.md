@@ -3,11 +3,11 @@
 ```yaml
 document:
   id: "culineire-agent-constitution"
-  version: "2.11.0"
+  version: "2.12.0"
   status: "ACTIVE_AFTER_OWNER_MERGE"
   owner: "CulinEire Product Owner"
   canonical_path: "/AGENTS.md"
-  last_updated: "2026-08-05"
+  last_updated: "2026-08-09"
 ```
 
 ## 1. Authority
@@ -89,9 +89,21 @@ from the Owner in silence, or settle a disagreement by rank — there is no rank
 **Work is dispatched by the board, not by an agent.** The board is
 `docs/ARENA_BATTLE_PLAN.md` on `origin/main`, surfaced at
 `/recipes/moderation/arena-build-plan/` from `ARENA_RELEASE_STAGES` in
-`recipes/views.py`. The Owner assigns one card at a time. Cards run strictly in
-order; card N+1 does not begin until card N is merged, deployed and verified. An
-agent holds at most one card and does not self-assign.
+`recipes/views.py`. The Owner assigns one card at a time. An agent holds at
+most one card and does not self-assign.
+
+**A card may start when all of its DECLARED PREREQUISITES are satisfied**
+(amended 2026-08-09 on the Owner's order). The prerequisites are the board's
+`Depends on` column and the dependency matrix beside it. Card number and
+position in the table are presentation and priority, not a dependency.
+
+This replaces "cards run strictly in order; card N+1 does not begin until card
+N is merged, deployed and verified". That rule predates the board having a real
+dependency graph, and under it a card could be blocked forever by a neighbour
+it has nothing to do with - which is exactly what happened when a finished
+project sat in the queue and every card after it read as blocked. Where the
+Owner has stated an explicit order, that order IS the dependency and it holds;
+no agent invents parallelism the board does not declare.
 
 **Keeping the board and the deploy journal (`config/release_journal.py`)
 truthful is every agent's duty, in the same working session as the event they
@@ -141,10 +153,27 @@ Before reading or modifying code, the agent must read, in order:
 
 1. `/AGENTS.md`
 2. `/docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md`
-3. `/docs/CURRENT_EXECUTION_PLAN.md`
-4. `/docs/TECHNICAL_STANDARDS.md`
-5. `/docs/ARENA_BATTLE_PLAN.md` — the board, so the agent knows which card is
-   next and what already shipped
+3. `/docs/TECHNICAL_STANDARDS.md`
+4. `/docs/ARENA_BATTLE_PLAN.md` — the board, so the agent knows which cards
+   are ready and what already shipped
+
+**`/docs/CURRENT_EXECUTION_PLAN.md` left this list on 2026-08-09, on the
+Owner's order, and lost none of its authority.** It remains an active document
+under section 10 and is read when a task concerns the documentation
+programme. What it stopped being is mandatory at every start: it records a
+documentation reset completed on 2026-07-21, it dispatches nothing, and the
+board does the work it used to be read for. The mandatory set is what
+establishes the rules, the product, the technical constraints and the current
+work - nothing else earns a place in every window.
+
+**Task-specific documents are read AFTER the card is known**, not because a
+session exists: the game rules under `/docs/chef_battle/`, the Arena reports
+and debt records, and the measurement tooling under `ops/audits/arena/tools/`.
+The board names what a card needs.
+
+The operational detail of all of this - the three kinds of state, and what may
+never be read from where - is `ops/bootstrap/COLD_START.md`. This section wins
+if the two ever differ.
 
 Read all five from `origin/main`, never from the local working tree, and never
 from memory.
@@ -171,6 +200,15 @@ git config core.hooksPath     # MUST be .githooks — it refuses unsigned commit
 If either of the last two is wrong, fix it before touching anything: an unsigned
 commit cannot be repaired afterwards without rewriting history, which section 6
 forbids.
+
+**GOVERNANCE comes from `origin/main`; CURRENT WORK comes from this
+checkout.** Never take a rule from an uncommitted working-tree edit - that is
+a proposal, not the constitution. But never ignore the working tree either:
+after a compaction, a limit or a restart, uncommitted work is normal and may
+be the whole point of the session. Read `git status` in both sections, the
+staged and unstaged diffs, and the untracked files. A dirty tree is not
+invalid state; nothing in it is discarded, and untracked files are reported
+rather than committed, because some of them are the Owner's.
 
 Reconcile against production before claiming anything is missing. Work an agent
 remembers from a previous session may already have shipped, and branches held
