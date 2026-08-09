@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.966",
         "date": "2026-08-09",
-        "commit": "",
+        "commit": "c5e6ef3f",
         "title": "The closure section stops being seven boxes for one line",
         "section": "Records",
         "summary": "The Owner looked at v2.5.964 - the dead-CSS deploy, which changed nothing on screen because the rules it removed matched no element - and asked again why the board still showed junk. It did: the closure section's own code comment said 'the whole of it is one closure line now', but the markup rendered it as six separate bordered .abp-note boxes, two of which were a label alone in one box with its list in the very next box. Two changes, both against the section's own stated intent rather than a new product call: the 'Carried out of the block' and 'The record' labels now share one box with their list instead of two; and the summary paragraph's opening sentence, '29 of 29 cards DONE', is deleted because the box directly above it already states the same count and date - it was restating, not adding information. The technical detail (stylesheet count, CLS, z-index, the 1799-test gate) is unchanged and stays inline; docs/chef_battle/ARENA_NORMALISATION_REPORT.md, already linked in the record list, carries the full before/after metrics. 29 tests green: the three ArenaBuildPlan* classes, ArchitectureNormalisationIsClosedTests, and the static image-weight gate.",
