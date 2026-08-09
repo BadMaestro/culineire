@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.972",
+        "date": "2026-08-09",
+        "commit": "",
+        "title": "A19 accepted - the Owner's own act, recorded where the board reads it",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner accepted the Arena Hall, 2026-08-09, no punch list returned. A19 was PENDING/Owner-only/nothing-to-implement on both the markdown board and recipes.views.ARENA_DESIGN_TASKS; both now read DONE. B01 still shows status NEXT in ARENA_DESIGN_TASKS with stale evidence ('Reference available; implementation audit pending') even though the markdown board has carried B01 as DONE v2.5.874 for days - not touched here, flagged separately rather than fixed silently alongside an unrelated change. G01's three prerequisites (A19, B03, R02) are now all satisfied on the markdown board; it is unblocked, not self-assigned - the Owner assigns it. VD1 stays deliberately deferred regardless of A19. 11 focused ArenaBuildPlanTests green, including the exactly-one-NEXT invariant (still B01, unaffected).",
+    },
+    {
         "version": "2.5.970",
         "date": "2026-08-09",
         "commit": "efd53999",

@@ -3264,14 +3264,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "A19", "group": "Arena Hall", "title": "Owner visual acceptance — Arena Hall",
-        "status": "PENDING", "owner": "Owner",
+        "status": "DONE", "owner": "Owner",
         "files": "Evidence only",
         "depends_on": "A18",
         "action": "Review production-sized side-by-side captures against mockups/arena.png.",
         "visible_result": "Owner accepts the Arena Hall or returns a finite punch list.",
         "acceptance": "All required furniture present; intentional deviations documented; no open visual blocker.",
         "forbidden": "No code changes inside the acceptance ticket.",
-        "evidence": "Not started.",
+        "evidence": "OWNER, 2026-08-09: accepted, no punch list returned.",
     },
     {
         "id": "B01", "group": "Battle Broadcast", "title": "Broadcast shell and confrontation header",
