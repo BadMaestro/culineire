@@ -66,7 +66,13 @@ the startup defect was re-tested under six load profiles and passed every one.
 What remains is observation of the LIVE page, and because the Arena is
 staff-gated that is his to do and not an open engineering item.
 
-Cold cache and CPU/network throttling on the production Arena remain unmeasured.
+**Narrowed 2026-08-09.** The blanket claim that nothing could be measured on
+production was wrong: `chef_battle:arena_preview_current` renders the real Arena
+read-only behind a share token, and the full performance comparison was taken
+through it - section L of the normalisation report. What is left is narrower.
+
+Cold cache and CPU/network throttling on the production Arena remain unmeasured,
+and so do first paint and FCP.
 They need CDP against the production page, and the Arena answers 404 to
 everything but staff. Recorded on the board against AN28; repeated here so the
 visual cleanup card inherits it rather than rediscovering it.

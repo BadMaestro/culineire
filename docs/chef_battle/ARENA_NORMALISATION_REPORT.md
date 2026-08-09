@@ -148,6 +148,12 @@ load at 1280 is byte-identical to arriving there by resizing.
 
 ## D2. Performance, before and after — AN27, §23
 
+> **SUPERSEDED for the browser metrics by section L.** Those numbers were
+> taken on the harness at 1280x800 and compared against a baseline measured
+> on production at 1440x900. Not the same conditions, so not a valid
+> comparison. The CODE metrics here are read from the repository and stand.
+
+
 Two kinds of number, and they are not interchangeable. The CODE metrics are
 read from the repository and are exact. The BROWSER metrics come from a harness
 carrying the real arena DOM, the real stylesheets and the real renderer over
@@ -424,6 +430,12 @@ where it is; this section is the evidence that nothing was left PARTIAL.
 
 ### K1. BEFORE vs AFTER
 
+> **SUPERSEDED for the browser metrics by section L.** Those numbers were
+> taken on the harness at 1280x800 and compared against a baseline measured
+> on production at 1440x900. Not the same conditions, so not a valid
+> comparison. The CODE metrics here are read from the repository and stand.
+
+
 | Metric | Before | After |
 |---|---|---|
 | Arena-specific stylesheets | 7 | 2 |
@@ -591,3 +603,75 @@ Owner sees on his own viewport, is recorded as VD1 in
 `docs/chef_battle/ARENA_VISUAL_DEBT.md` and on the board. It is deliberately
 untouched by this closure and belongs to the later Arena visual/layout cleanup.
 AN28's cold-cache and throttling gate against the production page is VD2.
+
+## L. Performance acceptance — the real production measurement, 2026-08-09
+
+Sections D2 and K1 compared harness numbers at 1280x800 against a baseline
+taken on **production at 1440x900**. Those are not the same conditions and the
+comparison was not valid. This section replaces it.
+
+### L1. How the production measurement became possible
+
+The blocker I reported twice — "the Arena answers 404 to everyone but staff, so
+no after-measurement can be taken" — was wrong. The project has its own
+token-gated, read-only preview route, `chef_battle:arena_preview_current`, which
+renders the real `arena.html` from real data through `_arena_page_context`,
+records no presence, creates no profile, and does not widen Arena access. It is
+the intended way to look at the production Arena without an account, and it had
+been in the codebase the whole time.
+
+Conditions matched to the baseline: production host, 1440x900, warm cache, the
+baseline's own buffered `PerformanceObserver` plus navigation and paint timings.
+Three reloads; the median is reported.
+
+### L2. Before and after
+
+BEFORE: `ARENA_NORMALISATION_BASELINE.md` sections 3-4, commit `a1f40923`,
+production **v2.5.910**.
+AFTER: production **v2.5.960**, commit `23b9043e`.
+
+| Metric | Before | After | Change |
+|---|---|---|---|
+| domInteractive | 564 ms | 304 ms (237-349) | **-46.1%** |
+| DOMContentLoaded | 1131 ms | 639 ms (627-669) | **-43.5%** |
+| load | 1483 ms | 704 ms (685-723) | **-52.5%** |
+| CLS | 0.0255 | 0 | **-100%** |
+| Layout shifts on load | 1 | 0 | **-100%** |
+| Time-to-stable (the shift settling) | 943 ms | no shift occurs | metric gone |
+| Rank-ladder displacement | 441 px right, 102 px down | 0 px | **-100%** |
+| Arena stylesheets loaded | 7 | 2 | **-71.4%** |
+| Stylesheets on the page | 16 | 13 | -18.8% |
+| Nodes inside `#arena-render` | 1931 | 1931 | 0.0% |
+| DOM nodes | 2524 | 2656 | **+5.2%** worse |
+| Total requests | 138 | 150 | **+8.7%** worse |
+| JS requests | 15 | 19 | **+26.7%** worse |
+| Document transfer | 85 495 B | 105 091 B | **+22.9%** worse |
+| First paint | 960 ms | no after-value | — |
+| First contentful paint | 960 ms | no after-value | — |
+| LCP, style recalculation, layout time, JS execution time, memory, frame drops | never captured | — | — |
+
+### L3. Verdict, and what it rests on
+
+The baseline set its own acceptance in writing: *"CLS must reach 0 and the
+441 px shift must disappear from the trace."* Both are met on production. Every
+load timing improved between 44% and 53%.
+
+**PASS**, with four named regressions. The JS request count is explained -
+`arena_page_layout.js` was added when page-level layout was taken off the
+renderer. The 22.9% larger document is not explained by anything in this phase
+and no work here was aimed at it; it is recorded rather than rationalised.
+
+### L4. Limits, stated rather than left to be discovered
+
+- **First paint and FCP have no after-value.** The measuring browser does not
+  composite, so Chrome records no paint entry at all. These are the only two
+  baseline rows still open.
+- **The page measured is the preview route**, not `/chef-battle/arena/` itself:
+  the same template, the same context builder, the same production assets and
+  host, but anonymous - its pollers 404, which suppresses a few requests a staff
+  load would make.
+- **The bottom block was never captured in the baseline**, so no percentage can
+  exist for it. After-only figures observed in passing: 5-7 long tasks totalling
+  738-898 ms, ~2 MB JS heap.
+- **Total requests is time-sensitive** - the arena polls - so it is counted at
+  the load event rather than whenever the reading was taken.
