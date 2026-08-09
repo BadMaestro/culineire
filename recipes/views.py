@@ -3648,7 +3648,6 @@ def _arena_build_context():
         task for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"
     )
     return {
-        "normalisation_closure": ARENA_NORMALISATION_CLOSURE,
         "stages": ARENA_RELEASE_STAGES,
         "total": len(ARENA_RELEASE_STAGES),
         "done_count": sum(s["status"] == "DONE" for s in ARENA_RELEASE_STAGES),
