@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.976",
         "date": "2026-08-09",
-        "commit": "",
+        "commit": "54e91caa",
         "title": "G01: the full suite catches the board lying about its own version, again",
         "section": "Records",
         "summary": "G01 (release gate) called for the final 1799-strong PostgreSQL suite as part of its own evidence. It found one real defect before any product code was touched: test_the_arena_boards_baseline_matches_the_footer_too failed because ARENA_RELEASE_STAGES' design-arena stage still carried commit '23b9043e / production v2.5.960' - six releases stale - and docs/ARENA_BATTLE_PLAN.md's Production baseline line was two releases stale at v2.5.970. Both fixed to the version this release ships. Section 17.4's exact failure, caught by the suite rather than by a person, which is what the suite is for. 1797 of 1797 non-skipped tests passed on the first red-then-green cycle; the one pre-existing failure was this one, not a product regression - confirmed by rerunning the full ModerationPanelRoleTests and ArenaBuildPlanTests classes green after the fix (29 tests).",
