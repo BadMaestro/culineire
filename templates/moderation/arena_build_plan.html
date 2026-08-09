@@ -198,31 +198,16 @@
   </div>
 </section>
 
-  <section class="abp-block" id="architecture-normalisation">
-    {% comment %}
-      ARCHITECTURE NORMALISATION - CLOSED by the Owner on 2026-08-09 and taken
-      OFF the active board. Twenty-nine cards rendered here as a grid; a
-      completed project sitting in the queue is read as work, so the whole of
-      it is one closure line now and the cards live in the archive document.
-      Do not restore the grid: the board is for construction still to be done.
-    {% endcomment %}
-    <h2>{{ normalisation_closure.title }} &mdash; {{ normalisation_closure.status }}</h2>
-    <p class="abp-note">
-      {{ normalisation_closure.cards }} of {{ normalisation_closure.cards }} cards done,
-      closed {{ normalisation_closure.closed_on }} at {{ normalisation_closure.release }}
-      ({{ normalisation_closure.commit }}). A completed foundation, not an open
-      blocker: no card depends on it and it is not active work.
-    </p>
-    <p>{{ normalisation_closure.summary }}</p>
-    <p class="abp-note">{{ normalisation_closure.owner_only }}</p>
-    <div class="abp-note">
-      <strong>Carried out of the block, each with its own owner:</strong>
-      <ul>{% for item in normalisation_closure.carried_out %}<li>{{ item }}</li>{% endfor %}</ul>
-    </div>
-    <div class="abp-note">
-      <strong>The record:</strong>
-      <ul>{% for path in normalisation_closure.records %}<li><code>{{ path }}</code></li>{% endfor %}</ul>
-    </div>
-  </section>
+{% comment %}
+  ARCHITECTURE NORMALISATION - CLOSED by the Owner 2026-08-09, v2.5.960.
+  Twenty-nine cards, then a closure-summary section, both tried on this
+  board and both rejected by the Owner 2026-08-09: a completed project has
+  no business on a board for construction still to be done, not even as one
+  section. The record lives entirely in recipes.views.ARENA_NORMALISATION_CLOSURE
+  (still exported for the tests and for config/release_journal.py to point
+  at) and in the files it names - docs/chef_battle/ARENA_NORMALISATION_CARDS_ARCHIVE.md,
+  ARENA_NORMALISATION_REPORT.md, ARENA_NORMALISATION_FINAL_SUITE.txt,
+  ARENA_VISUAL_DEBT.md. Do not render any part of it here again.
+{% endcomment %}
 
 {% endblock %}

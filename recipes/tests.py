@@ -4345,7 +4345,12 @@ class ArchitectureNormalisationIsClosedTests(TestCase):
             self.assertIn(fact, board, fact)
         self.assertIn("two** Arena stylesheets", board)
 
-    def test_the_board_page_shows_the_closure_and_not_the_grid(self):
+    def test_the_board_page_shows_neither_the_grid_nor_a_closure_section(self):
+        """The Owner rejected both attempts, 2026-08-09: the 29-card grid,
+        then the one-section closure summary that replaced it. A completed
+        project has no business on a board for construction still to be
+        done. The record survives in ARENA_NORMALISATION_CLOSURE and the
+        files it names - just not rendered on this page."""
         from django.contrib.auth import get_user_model
         from django.urls import reverse
 
@@ -4354,7 +4359,7 @@ class ArchitectureNormalisationIsClosedTests(TestCase):
                                  is_staff=True, is_superuser=True)
         self.client.login(username="abp-closure", password="pw")
         html = self.client.get(reverse("recipes:arena_build_plan")).content.decode()
-        self.assertIn("Architecture normalisation", html)
-        self.assertIn("CLOSED", html)
+        self.assertNotIn("Architecture normalisation", html)
+        self.assertNotIn('id="architecture-normalisation"', html)
         self.assertNotIn('id="an1"', html)
         self.assertNotIn('id="an29"', html)
