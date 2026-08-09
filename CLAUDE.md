@@ -47,4 +47,12 @@ itself the violation. Report what you find and stop.
 `/AGENTS.md` is canonical. If this pointer and `/AGENTS.md` ever differ,
 `/AGENTS.md` wins and this file must be corrected in the same task.
 
+**Session handoff, for a session that starts with nothing:**
+`ops/onboarding/bolt_session_handoff.md`. It carries what the cold-start
+set cannot: the frozen Arena architecture and its two solved constants, the
+four cards that are actually open, the environment (WSL paths, venv, CRLF,
+deploy), where the measurement tooling lives now, and the mistakes from the
+normalisation phase that cost real time. It is not a substitute for
+`/AGENTS.md` and does not override it.
+
 Do not copy the full constitution into this file.

@@ -1,0 +1,70 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>AN28 rig</title>
+<style>html,body{margin:0}iframe{border:0;width:1280px;height:800px;display:block}</style>
+<script>
+window.__AN28 = null;
+function run(page){
+  window.__AN28 = null;
+  var old = document.querySelector('iframe');
+  if (old) { old.remove(); }
+  var f = document.createElement('iframe');
+  var t0 = performance.now();
+  var seen = { shell:null, octagon:null, ladder:null, ready:null };
+  var first = { ladder:null, octagon:null };
+  var last  = { ladder:null, octagon:null };
+  var jumps = { ladder:0, octagon:0 };
+  var states = [];
+  var frames = 0;
+
+  function box(el){
+    if (!el) { return null; }
+    var r = el.getBoundingClientRect();
+    if (!(r.width > 0) || !(r.height > 0)) { return null; }
+    var s = f.contentWindow.getComputedStyle(el);
+    if (s.visibility === 'hidden' || s.display === 'none' || parseFloat(s.opacity) === 0) {
+      return null;
+    }
+    return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)];
+  }
+  function same(a,b){ return a&&b&&a[0]===b[0]&&a[1]===b[1]&&a[2]===b[2]&&a[3]===b[3]; }
+
+  function sample(){
+    frames++;
+    var d = f.contentDocument;
+    if (d) {
+      var t = performance.now() - t0;
+      var shell = d.querySelector('.arena-command-deck');
+      var svg = d.getElementById('arena-render');
+      var spine = d.querySelector('.arena-rank-spine');
+      var st = d.documentElement.getAttribute('data-arena-state')
+            || (d.body && d.body.getAttribute('data-arena-state'));
+      if (st && (!states.length || states[states.length-1][0] !== st)) { states.push([st, +t.toFixed(1)]); }
+      if (!seen.shell && box(shell)) { seen.shell = +t.toFixed(1); }
+      var ob = svg && svg.querySelector('.arena-cell') ? box(svg) : null;
+      if (ob) {
+        if (!seen.octagon) { seen.octagon = +t.toFixed(1); first.octagon = ob; }
+        if (last.octagon && !same(last.octagon, ob)) { jumps.octagon++; }
+        last.octagon = ob;
+      }
+      var lb = box(spine);
+      if (lb) {
+        if (!seen.ladder) { seen.ladder = +t.toFixed(1); first.ladder = lb; }
+        if (last.ladder && !same(last.ladder, lb)) { jumps.ladder++; }
+        last.ladder = lb;
+      }
+    }
+    if (performance.now() - t0 < 5000) { requestAnimationFrame(sample); }
+    else {
+      window.__AN28 = { page:page, frames:frames, firstVisible:seen, states:states,
+                        ladder:{ atFirst:first.ladder, stable:last.ladder, changes:jumps.ladder },
+                        octagon:{ atFirst:first.octagon, stable:last.octagon, changes:jumps.octagon } };
+    }
+  }
+  f.src = page;
+  document.body.appendChild(f);
+  requestAnimationFrame(sample);
+  return 'running ' + page;
+}
+</script>
+<body></body>
