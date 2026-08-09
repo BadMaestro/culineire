@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-09 · Production baseline: **v2.5.976**
+Last reconciled: 2026-08-10 · Production baseline: **v2.5.978**
 · A19 accepted by the Owner 2026-08-09. G01's three prerequisites (A19, B03,
 R02) are now all satisfied — unblocked, not self-assigned; the Owner assigns it.
 VD1 stays deliberately deferred regardless of A19.
@@ -402,7 +402,7 @@ forbidden changes and evidence for every row below.
 | B03 | Battle Broadcast | Broadcast chat and composer | GreenBear | B02 | DONE |
 | R01 | Result / Winner | Champion and runner-up result shell | GreenBear | B03 | DONE |
 | R02 | Result / Winner | Result metrics, status and chat | GreenBear | R01 | DONE |
-| G01 | Release gate | Complete Design Arena regression and production evidence. **Architecture prerequisite satisfied**: the normalisation gate is green on the final candidate (1799 tests, 0 failures, 2 skipped, PostgreSQL). What G01 still needs is the product evidence of §14 of the contract - access policy, state and action parity, vote and reveal integrity, moderation, migration readiness, console compatibility, flags, legal gates, rollback. | Team + Owner | A19, B03, R02 | PENDING |
+| G01 | Release gate | Complete Design Arena regression and production evidence. Full evidence against contract §14: `docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md`. | Bolt + Owner | A19, B03, R02 | **EVIDENCE GATHERED, NOT SIGNED OFF** — 10/12 §14 categories checked and green; A18's two open accessibility gaps and §9 legal/payment (Stripe) are named, not cleared. §9 is the Owner's alone under AGENTS.md section 8. Awaiting his sign-off. |
 
 ## 5a. Architecture Normalisation — CLOSED
 

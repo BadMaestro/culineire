@@ -3330,14 +3330,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "G01", "group": "Release gate", "title": "Complete Design Arena regression and production evidence",
-        "status": "NEXT", "owner": "Team + Owner",
+        "status": "NEXT", "owner": "Bolt + Owner",
         "files": "Tests/evidence only unless a regression is found",
         "depends_on": "A19, B03, R02",
         "action": "Run the final PostgreSQL suite, visual matrix, Dark Launch checks, deployment postflight and rollback proof.",
         "visible_result": "Design Arena integration is either accepted or blocked by named evidence.",
         "acceptance": "All preceding tickets DONE; production commit/version match origin/main; Owner signs off.",
         "forbidden": "Do not mark Stage 2 DONE on partial screenshots or local-only evidence.",
-        "evidence": "Not started.",
+        "evidence": "docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md, gathered 2026-08-09/10 against production v2.5.976 (e5a022ac). 1797/1797 non-skipped tests green (one real board-drift defect found and fixed along the way, section 17.4). Ten of twelve contract section 14 categories have real, checked evidence. TWO ARE NOT CLEAN: A18's two open accessibility gaps (focus rings on 4 of 6 deck controls, 9.2px rank-chip contrast) remain open and unfixed; section 9 legal/payment/Stripe evidence exists and is tested but AGENTS.md section 8 excludes it from any standing agent authorisation - it is the Owner's to clear, not this report's. G01 is not DONE: the acceptance criteria requires his sign-off and nothing here substitutes for it.",
     },
     {
         "id": "MC01",
@@ -3592,7 +3592,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "54e91caa / production v2.5.976",
+        "commit": "pending / production v2.5.978",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
