@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.958",
         "date": "2026-08-09",
-        "commit": "",
+        "commit": "7bf2ba13",
         "title": "The board and the journal catch up with what is live",
         "section": "Records",
         "summary": "Record-keeping, no product code. Two journal entries had been left with an empty commit hash - v2.5.954, deployed while an instruction written before it was known asked for it not to be, and v2.5.956 - and both now carry theirs. The build board stage-2 baseline read 'recorded next deploy / production v2.5.954'; a board that is wrong about what is live is the fault AGENTS.md 17.4 names, and the suite caught the same class of staleness once already. AN28 keeps its PARTIAL status - cold cache and throttling are still unmeasured - and gains the acceptance repair pass evidence: resize now converges to the ACCEPTED composition by every path, and the camera is isolated from the page region.",
