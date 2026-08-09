@@ -1,7 +1,9 @@
 # Arena — what the Owner must SEE. Scenario A.
 
-**Status:** SCENARIO A dictated by the Owner on 2026-08-06 and being built.
-Scenario B follows. Bolt records; the Owner dictates; nobody guesses.
+**Status:** SCENARIO A dictated by the Owner on 2026-08-06 and landed (see the
+per-step state below). **Scenario B — MC02, the withdrawal — CANCELLED by the
+Owner, 2026-08-09: no longer needed.** Nothing under "Still to come" is to be
+built; the section is kept for the record and dictates nothing.
 
 ## Why this file exists
 
@@ -189,9 +191,9 @@ quarter of an hour.
 
 removes the battle a run leaves behind.
 
-## Still to come
+## Scenario B — CANCELLED, 2026-08-09
 
-**Scenario B**, when the Owner dictates it. Rows for the withdrawal seen live -
-the asking, the answer, the moderator's verdict and the numbers moving - are
-still TO SPEC: what appears on the screen is his, and nobody guesses on his
-behalf.
+**MC02 is cancelled, the Owner's word: no longer needed.** Rows for the
+withdrawal seen live - the asking, the answer, the moderator's verdict and the
+numbers moving - were never dictated and stay undictated. Nothing here
+authorises building it; reopen only on a fresh, explicit order.
