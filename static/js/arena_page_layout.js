@@ -76,6 +76,38 @@
     return true;
   }
 
+  /**
+   * Publish --arena-deck-top-h: what the furniture above the floor occupies in
+   * the caption's own column, measured from the top of the deck.
+   *
+   * AN-R1/B, 2026-08-09. This is a PAGE-LEVEL fact and it belongs here, beside
+   * --arena-header-h, for the same reason: it says where the page's own panels
+   * ended up, and no component should be finding that out for itself. The
+   * floor layer turns it into a grid row, the caption gets the row under it,
+   * and the octagon gets what is left.
+   *
+   * Only the broadcast ribbon stands between the top of the deck and the floor
+   * in that column. The cooking widget is a left-hand HUD and is deliberately
+   * not counted - it ends above the floor too and is nowhere near the caption,
+   * and counting it is how a measured fix gets the wrong answer with a
+   * straight face.
+   */
+  function measureDeckTop() {
+    var deck = document.querySelector('.arena-command-deck');
+    if (!deck) { return false; }
+    var ribbon = deck.querySelector('.arena-broadcast-ribbon');
+    var top = 0;
+    if (ribbon) {
+      var deckBox = deck.getBoundingClientRect();
+      var box = ribbon.getBoundingClientRect();
+      if (box.height > 0) { top = Math.max(0, Math.round(box.bottom - deckBox.top)); }
+    }
+    var next = top + 'px';
+    if (deck.style.getPropertyValue('--arena-deck-top-h') === next) { return false; }
+    deck.style.setProperty('--arena-deck-top-h', next);
+    return true;
+  }
+
   function announce(changed, force) {
     for (var i = 0; i < subscribers.length; i++) {
       try { subscribers[i](changed, force); } catch (e) { /* one bad subscriber must not stop the rest */ }
@@ -83,7 +115,9 @@
   }
 
   function remeasure(force) {
-    announce(measure(), !!force);
+    var header = measure();
+    var regions = measureDeckTop();
+    announce(header || regions, !!force);
   }
 
   /**
@@ -126,7 +160,12 @@
   }
 
   global.ArenaPageLayout = {
-    measure: measure,
+    /** Both page-level numbers in one call: the header, and the regions. */
+    measure: function () {
+      var header = measure();
+      var regions = measureDeckTop();
+      return header || regions;
+    },
     watch: watch,
     /** fn(changed, force) - `force` means re-fit even when the number held. */
     subscribe: function (fn) {

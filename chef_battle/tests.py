@@ -11572,134 +11572,100 @@ class ArenaRingNumberingTests(TestCase):
         self.assertIn("min-height: 1.375rem;", css)
 
 
-class FloorCaptionTakesTheFreeSpaceTests(TestCase):
-    """OWNER, 2026-08-07: "блоки опять наезжают друг на друга - мы уже чинили
-    это сегодня - исправь это раз и навсегда."
+class FloorCaptionGetsARegionTests(TestCase):
+    """AN-R1/B, 2026-08-09 — the writing above the floor is LAYOUT now.
 
-    The caption sat at `top: 8.2%` of the floor container - a fixed share of a
-    box whose contents are not fixed. Measured on his window, 1170x820: caption
-    234-284, ribbon above ending at 255, octagon beginning at 277. A 49px block
-    in a 22px gap.
-    """
+    This class replaces FloorCaptionTakesTheFreeSpaceTests, which described the
+    mechanism the Owner's acceptance audit rejected. That mechanism was real
+    work and it solved a real defect — the caption used to sit at a fixed share
+    of a box whose contents are not fixed, and on his window it overlapped the
+    ribbon above, the octagon below and the metrics panel beside it. The answer
+    then was to measure the three edges that bound it, place it in what was
+    left, and, when what was left was too short, scale and shift the OCTAGON
+    through the camera until it fitted.
 
-    def _body(self):
+    That made the caption a second owner of the octagon's position, which is
+    what the audit found and what these tests now forbid.
+
+    The floor layer is three grid rows: what the furniture above occupies, the
+    writing, and the octagon's own region. The caption receives a region
+    instead of taking one, so it cannot overlap the floor and it cannot move
+    it."""
+
+    def _js(self):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        source = (
+        return (
             Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
         ).read_text(encoding="utf-8")
-        return source.split("function placeFloorCaption(", 1)[1].split("\n  }", 1)[0]
 
-    def test_it_runs_with_the_rest_of_the_fit(self):
+    def _css(self):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        source = (
-            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
-        ).read_text(encoding="utf-8")
-        self.assertIn("placeFloorCaption(svg);", source)
-
-    def test_the_ceiling_is_only_what_stands_in_its_own_column(self):
-        """The cooking widget on the left also ends above the octagon and is
-        nowhere near the caption. Counting it as a ceiling is how a measured fix
-        gets the wrong answer with a straight face."""
-        body = self._body()
-        self.assertIn("sharesColumn", body)
-        self.assertIn("box.bottom <= octTop", body)
-
-    def test_the_octagon_is_the_other_edge(self):
-        body = self._body()
-        self.assertIn("octTop", body)
-        self.assertIn("room = (octTop", body)
-
-    def test_it_sheds_a_line_rather_than_overlapping(self):
-        """Kicker first, then the subtitle. The title is never the line that
-        goes."""
-        body = self._body()
-        self.assertIn("['full', 'no-kicker', 'title-only']", body)
-
-        from pathlib import Path
-        from django.conf import settings as django_settings
-
-        css = (
+        return (
             Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
-        self.assertIn('.arena-floor-caption[data-fit="no-kicker"] span', css)
-        self.assertIn('.arena-floor-caption[data-fit="title-only"] em', css)
 
-    def test_a_panel_beside_it_narrows_it(self):
-        """The metrics card reaches into the caption's band on his window and
-        took 123px of it."""
-        body = self._body()
-        self.assertIn("leftBound", body)
-        self.assertIn("rightBound", body)
+    def test_the_compensation_mechanism_is_gone_not_disabled(self):
+        js = self._js()
+        self.assertNotIn("function reserveCaptionBand(", js)
+        self.assertNotIn("function placeFloorCaption(", js)
+        self.assertNotIn("reserveCaptionBand(svg);", js)
+        self.assertNotIn("placeFloorCaption(svg);", js)
 
-    def test_it_measures_from_scratch_each_pass(self):
-        """Last pass's inline width answers the wrong question."""
-        body = self._body()
-        reset = body.split("caption.removeAttribute('data-fit');", 1)[0]
-        self.assertIn("getBoundingClientRect", body)
-        self.assertIn("caption.style.width = '';", body)
+    def test_the_renderer_does_not_place_the_caption(self):
+        """Not its top, not its left, not its width. The caption is laid out."""
+        js = self._js()
+        for forbidden in ("caption.style.top", "caption.style.left",
+                          "caption.style.width = Math"):
+            self.assertNotIn(forbidden, js)
 
-    def test_width_is_decided_before_height(self):
-        """They are not independent: a caption squeezed sideways WRAPS, and a
-        wrapped title is taller than the band it was being squeezed into.
-        v2.5.892 measured heights first, narrowed the box to 154px, and the
-        title came back 33px tall and printed through the octagon - a correct
-        measurement of the wrong box."""
-        body = self._body()
-        self.assertLess(
-            body.index("caption.style.width"),
-            body.index("var order = ['full'"),
-            "the fit ladder must be measured at the width the caption will have",
-        )
+    def test_the_floor_allocates_three_regions(self):
+        css = self._css()
+        rule = css.split(".arena-command-deck__floor {", 1)
+        found = False
+        for chunk in css.split(".arena-command-deck__floor {")[1:]:
+            body = chunk.split("}", 1)[0]
+            if "grid-template-rows" in body:
+                found = True
+                self.assertIn("var(--arena-deck-top-h", body)
+                self.assertIn("auto", body)
+                self.assertIn("1fr", body)
+        self.assertTrue(found, "the floor layer no longer allocates regions")
 
-    def test_a_panel_in_the_way_shifts_it_rather_than_shrinking_it(self):
-        """The free span beside the metrics card is 664px and the caption wants
-        416: there is room, just not centred."""
-        body = self._body()
-        self.assertIn("var width = Math.min(natural.width, free);", body)
-        self.assertIn("if (x < leftBound + HGAP)", body)
-        self.assertIn("if (x + width > rightBound - HGAP)", body)
+    def test_the_caption_is_a_row_and_not_a_placed_box(self):
+        css = self._css()
+        chunk = css.split(".arena-floor-caption {", 1)[1].split("}", 1)[0]
+        self.assertIn("grid-row: 2", chunk)
+        self.assertNotIn("position: absolute", chunk)
 
-    def test_the_octagon_gives_up_the_height_for_it(self):
-        """OWNER, 2026-08-07: lower the octagon and the ladder with it, and make
-        as much room above as the writing needs.
-
-        The band above the floor used to be a fact to be lived with, and at 22px
-        the caption lost two of its three lines. The writing is the fixed
-        quantity now.
-        """
+    def test_the_region_boundary_is_published_by_the_page(self):
+        """A page-level fact belongs to the page's layout owner, beside
+        --arena-header-h, and not to a component measuring its neighbours."""
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        source = (
-            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        layout = (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_page_layout.js"
         ).read_text(encoding="utf-8")
-        self.assertIn("reserveCaptionBand(svg);", source)
-        body = source.split("function reserveCaptionBand(", 1)[1].split("\n  }", 1)[0]
-        # It spends the octagon's height, not the deck's: the crowd rail is nine
-        # pixels under the floor and A07 puts the whole arena on one screen.
-        self.assertIn("--arena-fit", body)
-        self.assertIn("--arena-shift-y", body)
-        self.assertIn("floorLimit", body)
-        # And it reserves what the caption needs at FULL three lines.
-        self.assertIn("caption.removeAttribute('data-fit');", body)
-        self.assertIn("natural.height + CAPTION_GAP * 2", body)
+        self.assertIn("--arena-deck-top-h", layout)
+        self.assertIn("arena-broadcast-ribbon", layout)
+        self.assertNotIn("--arena-deck-top-h", self._js())
+
+    def test_the_octagon_has_one_authoritative_vertical_input(self):
+        css = self._css()
+        self.assertIn("--arena-octagon-offset-y", css)
+        self.assertEqual(css.count("var(--arena-octagon-offset-y"), 1,
+                         "one input, in one place")
 
     def test_the_ladder_follows_the_floor_by_construction(self):
-        """No second mover: placeRankSpine measures the cells and runs after."""
-        from pathlib import Path
-        from django.conf import settings as django_settings
-
-        source = (
-            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
-        ).read_text(encoding="utf-8")
-        self.assertLess(
-            source.index("reserveCaptionBand(svg);"),
-            source.index("placeRankSpine(svg);\n    paintRankLadder"),
-        )
+        """placeRankSpine() measures the cells after they land, so it needs no
+        part of any of this."""
+        js = self._js()
+        order = js.index("placeOctagon(svg, container);")
+        self.assertLess(order, js.index("placeRankSpine(svg);"))
 
 
 class ArenaReadinessLifecycleTests(TestCase):
@@ -11757,9 +11723,9 @@ class ArenaReadinessLifecycleTests(TestCase):
         js = self._js()
         block = js.split("billboardFaces(svg);", 1)[1].split("\n  }", 1)[0]
         self.assertIn("placeRankSpine(svg);", block)
-        self.assertIn("placeFloorCaption(svg);", block)
+        self.assertIn("paintRankLadder(svg);", block)
         self.assertLess(
-            block.index("placeFloorCaption(svg);"),
+            block.index("paintRankLadder(svg);"),
             block.index("arenaState('scene')"),
             "the scene is announced before the furniture is placed",
         )
@@ -12073,21 +12039,20 @@ class ArenaRendererReadsBeforeItWritesTests(TestCase):
         self.assertEqual(js.count("global.setTimeout("), 1)
         self.assertIn("global.setTimeout(function () { ring.remove(); }, 900)", js)
 
-    def test_the_octagon_is_measured_before_the_caption_is_reset(self):
+    def test_the_placer_measures_from_a_base_and_writes_once(self):
+        """AN-R1/B replaced the function this used to guard, and the forced
+        reflow it was about went with it: the caption is laid out now, so
+        nothing resets it and then re-reads the floor.
+
+        What replaces the guarantee: the octagon's owner starts from a known
+        base, measures, and writes. It never reads a camera variable back and
+        adds to it - that is how two owners used to accumulate onto each
+        other's result."""
         js = self._js()
-        body = js.split("function placeFloorCaption(", 1)[1].split("\n  }", 1)[0]
-        # the mobile branch clears the same properties and returns, so the
-        # desktop path starts after it
-        desktop = body.split("AN15/AN20:", 1)[1]
-        # AN16 moved the measurement itself behind the octagon's contract; what
-        # this test is about is the ORDER, and that is unchanged
-        read = desktop.index("ArenaOctagon.region(svg)")
-        reset = desktop.index("caption.style.width = ''")
-        self.assertLess(
-            read, reset,
-            "the caption's reset invalidates layout; reading the floor after it "
-            "forces a reflow that changes nothing (AN20)",
-        )
+        body = js.split("function placeOctagon(", 1)[1].split(chr(10) + "  }", 1)[0]
+        self.assertIn("writeCamera(svg, 1, 0, 0);", body)
+        self.assertNotIn("+ driftY", body)
+        self.assertNotIn("current * factor", body)
 
 
 class ArenaOctagonPublicContractTests(TestCase):
@@ -12113,7 +12078,7 @@ class ArenaOctagonPublicContractTests(TestCase):
         ArenaOctagon.sponsorsCorner(svg)  the corner the Owner named on 2026-08-07
     """
 
-    PLACERS = ("reserveCaptionBand", "placeFloorCaption", "placeRankSpine")
+    PLACERS = ("placeOctagon", "placeRankSpine")
 
     def _read(self, name):
         from pathlib import Path
@@ -12150,8 +12115,8 @@ class ArenaOctagonPublicContractTests(TestCase):
 
     def test_the_placers_use_the_contract(self):
         js = self._read("arena_render.js")
-        self.assertIn("ArenaOctagon.region(svg)", self._body(js, "placeFloorCaption"))
-        self.assertIn("ArenaOctagon.region(svg)", self._body(js, "reserveCaptionBand"))
+        # AN-R1/B: the two functions that used to ask the octagon where it was
+        # so they could move it are gone. What is left asks nothing of it.
         spine = self._body(js, "placeRankSpine")
         self.assertIn("ArenaOctagon.rankRegion(svg)", spine)
         self.assertIn("ArenaOctagon.sponsorsCorner(svg)", spine)

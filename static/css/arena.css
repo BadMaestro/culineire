@@ -1105,7 +1105,27 @@
   box-shadow: none;
 }
 
-.arena-command-deck__floor > .arena-floor-stage,
+.arena-command-deck__floor > .arena-floor-stage {
+  /* AN-R1/B: row two - whatever the writing above did not use.
+
+     --arena-octagon-offset-y IS THE ONE AUTHORITATIVE VERTICAL INPUT.
+     Positive moves the floor down, in real pixels, and the rank ladder
+     follows because it is measured from the cells after they land.
+     Nothing else in this stylesheet or in the renderer decides where
+     the octagon sits vertically. */
+  grid-row: 3;
+  position: relative;
+  min-height: 0;
+  /* margin, not padding: the render container inside is absolutely
+     positioned with inset:0, which resolves against the PADDING box -
+     padding here would move nothing at all. Measured: it did.
+     margin moves the region itself, which is the point. */
+  margin: 0;
+  margin-top: var(--arena-octagon-offset-y, 0px);
+  border: 0;
+  border-radius: 0;
+}
+
 .page--arena .arena-command-deck__floor .arena-render-container {
   position: absolute;
   inset: 0;
@@ -1148,9 +1168,41 @@
   }
 
   .arena-command-deck__floor {
+    /* ============================================================
+       THE FLOOR LAYER ALLOCATES REGIONS. IT DOES NOT COMPENSATE.
+
+       AN-R1/B, 2026-08-09, the Owner's choice. The chain he specified:
+
+           page / deck layout   decides the regions
+                   |
+           caption gets a region · the octagon gets a region
+                   |
+           the octagon's layout owner   scales and places INSIDE its region
+                   |
+           the camera   renders that, and nothing else
+
+       Three rows, top to bottom:
+
+         1  --arena-deck-top-h   what the furniture above the floor occupies
+                                 in the caption's own column. A page-level
+                                 fact, measured and published by
+                                 arena_page_layout.js, which already owns
+                                 --arena-header-h. The caption does not
+                                 measure its neighbours; the page tells it.
+         2  auto                 THE WRITING. Exactly the height it needs.
+         3  1fr                  THE OCTAGON'S REGION. What is left.
+
+       The band above the floor used to be made by MOVING the floor: the
+       caption measured what was left, decided it was not enough, and scaled
+       and shifted the octagon through the camera to make room - three times
+       over, accumulating onto a fit another function was also accumulating.
+       Two owners of one position. Now the caption cannot move the octagon
+       because it is a grid item in a different row and has no way to.
+       ============================================================ */
     position: absolute;
     inset: 0;
-    display: block;
+    display: grid;
+    grid-template-rows: var(--arena-deck-top-h, 0px) auto 1fr;
     z-index: var(--arena-z-floor);
   }
 
@@ -2410,8 +2462,12 @@
 /* 3G — centre floor caption (prototype arena-core heading). */
 
   .arena-floor-caption {
-    position: absolute;
-    margin: 0;
+    /* AN-R1/B: row one of the floor. In flow, centred, and placed by
+       nothing - the renderer used to write its top, left and width.
+       Its height is its own business and the row simply takes it. */
+    grid-row: 2;
+    justify-self: center;
+    margin: 0 0 var(--arena-caption-gap, 0.5rem);
     text-align: center;
     pointer-events: none;
   }
@@ -2434,7 +2490,18 @@
 /* 3G — vertical stack alignment after caption graft. */
 
   .arena-floor-caption {
-    width: min(26rem, 42%);
+    /* AN-R4: THE CAPTION'S WIDTH IS DECIDED HERE, and only here.
+
+       It used to be decided twice - this declaration, and a JavaScript clamp
+       that measured the box this produced and wrote an inline pixel width back
+       over it. Two policies, and the answer was whichever ran last.
+
+       The renderer now reports one thing it can see and this rule cannot: how
+       much horizontal room the neighbouring panels have left, published as
+       --arena-caption-free on the deck. The policy - never wider than 26rem,
+       never more than 42% of the floor, never wider than the room that is
+       actually free - lives in this one line. */
+    width: min(26rem, 42%, var(--arena-caption-free, 100%));
   }
   .arena-rank-spine {
   /* position is the renderer's (AN6); size stays with the component */
@@ -3019,13 +3086,10 @@
   .arena-floor-stage .arena-render-container {
     transform: none;
   }
-  .arena-floor-stage #arena-render {
-    transform-origin: 50% 50%;
-    transform:
-      translate(-50%, -50%)
-      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      scale(var(--arena-fit, 1));
-  }
+  /* AN-R2: the camera used to be restated here without rotateX, and it
+     never once applied - the production rule carries !important and beat
+     it at every width. Reduced motion is about MOTION; the camera is a
+     fixed composition and does not move. One camera, declared once. */
 }
 
 /* 3G — parchment seat rings (live SVG cells, official tokens). */
@@ -3275,11 +3339,9 @@
   }
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform-origin: 50% 50%;
-    transform:
-      translate(-50%, -50%)
-      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      scale(var(--arena-fit, 1));
+    /* AN-R2: camera removed - see the single declaration for
+       `.page--arena #arena-render`. This copy had no rotateX and never
+       applied. */
     filter: none;
   }
   /* Decorative parchment plate tracks the floor and shares the camera tilt. */
@@ -3314,11 +3376,9 @@
   /* Camera stays — mockup composition is the acceptance target (AGENTS s11). */
   .arena-floor-stage #arena-render,
   .page--arena .arena-floor-stage #arena-render {
-    transform-origin: 50% 50%;
-    transform:
-      translate(-50%, -50%)
-      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      scale(var(--arena-fit, 1));
+    /* AN-R2: camera removed - see the single declaration for
+       `.page--arena #arena-render`. This copy had no rotateX and never
+       applied. */
   }
   .arena-floor-stage::before {
     transform-origin: 50% 50%;
@@ -4727,12 +4787,18 @@
     transform-style: preserve-3d !important;
   }
   .page--arena .arena-floor-stage #arena-render {
-    transform-origin: 50% 62% !important;
-    transform:
-      translate(-50%, -50%)
-      translate(var(--arena-shift-x, 0px), var(--arena-shift-y, 0px))
-      rotateX(42deg)
-      scale(var(--arena-fit, 1)) !important;
+    /* AN-R2: THE CAMERA IS DECLARED ONCE, and not here.
+
+       It used to be declared here as well, with !important on both the
+       origin and the transform, which is how a reader was left to work
+       out by specificity which of five copies actually ran. The one
+       authoritative declaration is `.page--arena #arena-render` further
+       down this file: same origin, same transform, no !important, and it
+       is the only rule in either stylesheet that sets them.
+
+       It also covers the Master Console, which carries `page--arena` but
+       has no `.arena-floor-stage`, so the selector removed here never
+       reached the console at all. */
     filter: none !important;
   }
   /* Furniture above the tilted floor plane. */
@@ -5759,12 +5825,29 @@
   width: auto;
   height: 172%;
   aspect-ratio: 1;
-  /* flat, not preserve-3d: the floor is one plane and a nested 3D context
-     under this transform broke the camera (v2.5.649). This file is NOT the only
-     place the camera is declared — that claim stood here and was wrong; see the
-     block header above. arena_atmosphere.css also used to restate the whole
-     block with and force `flat` from there, so this line said
-     preserve-3d while the page rendered flat. */
+  /* ============================================================
+     THE ARENA'S CAMERA. Declared HERE, and nowhere else.
+
+     AN-R2, 2026-08-09. It used to be declared five times: twice without
+     rotateX for a selector list that could not reach the page, once more
+     under prefers-reduced-motion, and once at a heavier selector with
+     !important on both the origin and the transform. Which of them ran was
+     a question about specificity rather than about the arena, and a reader
+     had no way to answer it by looking. Four are gone; this is the one.
+
+     It reaches BOTH pages: the arena, and the Master Console, which carries
+     `page--arena` but has no `.arena-floor-stage`. The console's own mirror
+     stylesheet flattens what it wants flat, which is its business and loads
+     after this.
+
+     flat, not preserve-3d: the floor is one plane and a nested 3D context
+     under this transform broke the camera (v2.5.649).
+
+     rotateX(42deg) is the Owner's camera, restored 2026-07-27 after
+     v2.5.792 tried 57deg and was reverted within the hour. Do not change
+     the angle: the ladder's anchor, the caption's band and every geometry
+     baseline in the report were measured through it.
+     ============================================================ */
   transform-style: flat;
   transform-origin: 50% 62%;
   transform:

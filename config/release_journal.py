@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.954",
+        "date": "2026-08-09",
+        "commit": "",
+        "title": "The writing above the floor gets a row of its own, and the caption stops being able to move the octagon",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner's acceptance repair pass, option B of the two designs he was offered. His audit found the one place the normalisation phase had missed: the octagon's vertical position had TWO owners. fitScene() wrote --arena-fit and --arena-shift-y, reserveCaptionBand() wrote them again, and both accumulated onto whatever the other had left - five passes between them, so the answer depended on how many had run. He chose to fix it in layout rather than in arithmetic. The floor layer is three grid rows now: what the furniture above occupies, published as --arena-deck-top-h by the page's own layout owner beside --arena-header-h; the writing, which takes exactly the height it needs; and the octagon's region, which is what is left. The caption RECEIVES a region instead of taking one, so it cannot overlap the floor and it cannot move it - it is a grid item in a different row and has no mechanism to. reserveCaptionBand() and placeFloorCaption() are deleted whole, not disabled: the renderer no longer writes the caption's top, left or width, and the caption carries no inline style attribute at all. That also closes the caption's width, which had two policies - CSS said one thing, a JavaScript clamp wrote another over it; CSS is now the only one, because JavaScript no longer touches the width. The camera went from six declarations to ONE, with no !important deciding which of them ran: four could never win and one was the same camera restated at a heavier selector. Verified alone, that change moved nothing - every measured box identical to the character. HONEST ABOUT WHAT MOVED: the composition is not what it was. The octagon used to be centred over the whole deck and paid for the caption's band out of its own height through the camera; it now has a region of its own, 510px instead of 652px, and the Owner-approved 64% fit applied to a smaller region gives a smaller octagon, lower down - at 1280x800 it measures 360,366,551,378 against the accepted 305,284,659,454. Closing that gap needs either a tuned constant or the old cross-system compensation, both of which he forbade in the same instruction, so it is reported rather than tuned. The visual acceptance is his.",
+    },
+    {
         "version": "2.5.952",
         "date": "2026-08-08",
         "commit": "b70810f4",

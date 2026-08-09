@@ -2863,317 +2863,45 @@
     if (!geometryIsValid(svg)) { return; }
     arenaState('geometry');
 
-    for (var pass = 0; pass < 2; pass++) {
-      // Prefer the sponsors-template floor (rank cells); fall back to oval seats.
-      var cells = svg.querySelectorAll('.arena-cell--sponsors-tpl');
-      if (!cells.length) {
-        cells = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
-      }
-      if (!cells.length) {
-        cells = svg.querySelectorAll('.arena-cell--oval-seat');
-      }
-      if (!cells.length) { return; }
+    placeOctagon(svg, container);
 
-      var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-      for (var i = 0; i < cells.length; i++) {
-        var box = cells[i].getBoundingClientRect();
-        if (!box.width || !box.height) { continue; }
-        if (box.left < left) { left = box.left; }
-        if (box.right > right) { right = box.right; }
-        if (box.top < top) { top = box.top; }
-        if (box.bottom > bottom) { bottom = box.bottom; }
-      }
-      if (!(right > left) || !(bottom > top)) { return; }
-
-      var frame = container.getBoundingClientRect();
-      var width = right - left, height = bottom - top;
-      if (!(width > 0) || !(height > 0)) { return; }
-      if (!(frame.width > 0) || !(frame.height > 0)) { return; }
-
-      // Fit stands inside the frame at 64% — Owner 2026-07-27: shrink octagon
-      // 20% from the prior 80% fit so the floor leaves more hall margin.
-      var viewPad = 0.64;
-      var byWidth = frame.width * viewPad / width;
-      var byHeight = frame.height * viewPad / height;
-      var factor = Math.min(byWidth, byHeight);
-      var current = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
-      svg.style.setProperty('--arena-fit', (current * factor).toFixed(4));
-
-      // Composition centre: 0.50 W / 0.51 H of the frame (spec).
-      var targetX = frame.left + frame.width * COMPOSITION_CX;
-      var targetY = frame.top + frame.height * COMPOSITION_CY;
-      var driftY = targetY - (top + bottom) / 2;
-      var driftX = targetX - (left + right) / 2;
-      var shiftY = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
-      var shiftX = parseFloat(svg.style.getPropertyValue('--arena-shift-x')) || 0;
-      svg.style.setProperty('--arena-shift-y', (shiftY + driftY).toFixed(2) + 'px');
-      svg.style.setProperty('--arena-shift-x', (shiftX + driftX).toFixed(2) + 'px');
-    }
-
-    reserveCaptionBand(svg);
     billboardFaces(svg);
     placeRankSpine(svg);
     paintRankLadder(svg);
-    placeFloorCaption(svg);
     // Everything measured off the octagon now holds a real position, so the
     // furniture may be shown. This is the only line that reveals it, and it is
     // reached by having done the work rather than by having waited.
     arenaState('scene');
   }
-
-  // THE OCTAGON MAKES ROOM FOR THE WRITING ABOVE IT.
+  // ============================================================
+  // THE CAPTION IS NOT PLACED BY THIS FILE ANY MORE.
   //
-  // OWNER, 2026-08-07: "опускай октагон ниже и параллельно с ним лестницу -
-  // создавай столько места над ней чтоб хватило на все надписи красиво и чётко."
+  // AN-R1/B, 2026-08-09, on the Owner's choice between two designs.
   //
-  // Everything before this treated the band above the floor as a fact to be
-  // measured and lived with: the caption was placed into whatever was left, and
-  // when 22px was left it lost two of its three lines. His instruction inverts
-  // it - the writing is the fixed quantity and the floor moves.
+  // What stood here - placeFloorCaption() and reserveCaptionBand() - solved a
+  // real problem the wrong way round. His words on 2026-08-07: "блоки опять
+  // наезжают друг на друга - мы уже чинили это сегодня - исправь это раз и
+  // навсегда." The caption used to sit at `top: 8.2%` of the floor, a fixed
+  // share of a box whose contents are not fixed; on his window that share put
+  // it at 234 while the ribbon above ran to 255 and the octagon began at 277 -
+  // a 50px caption in a 22px gap, overlapping both and the metrics panel too.
   //
-  // The floor cannot simply drop: the crowd rail is nine pixels under it and
-  // A07 puts the whole arena on one screen. So the band is taken out of the
-  // octagon's own height. It is scaled about its centre, which lifts the bottom
-  // by half of what it loses, and then shifted down onto the reserved line -
-  // the two together spend the octagon's height, not the deck's.
+  // The answer then was to measure the three edges that bound it and place it
+  // in what was left, and, when what was left was too short, to scale and
+  // shift the OCTAGON through the camera until it fitted. That worked, and it
+  // made the caption a second owner of the octagon's position.
   //
-  // The ladder needs no part of this. placeRankSpine() measures the cells and
-  // runs after, so it follows the floor down by construction.
-  function reserveCaptionBand(svg) {
-    var caption = document.querySelector('.arena-floor-caption');
-    var container = svg.parentElement;
-    if (!caption || !container) { return; }
-    if (global.matchMedia && global.matchMedia('(max-width: 767px)').matches) { return; }
-
-    // THREE PASSES, BECAUSE THE SHIFT DOES NOT ARRIVE AT FULL SIZE.
-    // --arena-shift-y is applied inside the deck's camera - rotateX(42deg) -
-    // so a translation asked for in CSS pixels lands on the screen foreshortened
-    // by the cosine of that angle. The first version asked for 40px, got 36, and
-    // the caption shed its kicker for the sake of four pixels. Rather than model
-    // the camera here - a second copy of a number that already lives in a
-    // stylesheet - it measures what actually happened and asks again.
-    for (var pass = 0; pass < 3; pass++) {
-      // AN16: the octagon answers where it landed; this file does not know
-      // what it is made of.
-      var floor = global.ArenaOctagon && global.ArenaOctagon.region(svg);
-      if (!floor) { return; }
-      var top = floor.top, bottom = floor.bottom;
-
-      var frame = container.getBoundingClientRect();
-      var centre = frame.left + frame.width / 2;
-
-      // What the writing needs, at its full three lines and its natural width.
-      caption.removeAttribute('data-fit');
-      caption.style.width = '';
-      var natural = caption.getBoundingClientRect();
-      // One pixel over, deliberately: the band and the caption are measured to
-      // fractions, and reserving the exact number lands them equal - 49 against
-      // 49 - where a rounding either way costs the caption a line.
-      var needed = natural.height + CAPTION_GAP * 2 + 1;
-
-      var span = { left: centre - natural.width / 2, right: centre + natural.width / 2 };
-      var ceiling = frame.top;
-      var floorLimit = frame.bottom;
-      var leftBound = frame.left;
-      var rightBound = frame.right;
-      var panels = document.querySelectorAll('.arena-command-deck [class*="arena-"]');
-      for (var p = 0; p < panels.length; p++) {
-        var node = panels[p];
-        if (node === caption || caption.contains(node) || node.contains(caption)) { continue; }
-        if (node.contains(container) || container.contains(node)) { continue; }
-        var style = global.getComputedStyle(node);
-        if (style.display === 'none' || style.visibility === 'hidden') { continue; }
-        var box = node.getBoundingClientRect();
-        if (box.width < 80 || box.height < 16) { continue; }
-        var sharesColumn = Math.min(span.right, box.right) > Math.max(span.left, box.left);
-        if (sharesColumn && box.bottom <= top && box.bottom > ceiling) { ceiling = box.bottom; }
-        // Anything that starts below the floor is the floor's own limit from
-        // underneath - the crowd rail, on every window measured.
-        if (box.top >= bottom - 4 && box.top < floorLimit) { floorLimit = box.top; }
-        // And a panel that reaches into the band beside the caption narrows it.
-        if (box.bottom > ceiling && box.top < top) {
-          if (box.right <= centre && box.right > leftBound) { leftBound = box.right; }
-          if (box.left >= centre && box.left < rightBound) { rightBound = box.left; }
-        }
-      }
-
-      // RESERVE FOR THE BOX IT WILL ACTUALLY GET, not for its natural one.
-      // v2.5.900 reserved 61px measured at the caption's natural 416px, then
-      // placeFloorCaption() narrowed it to 383 to clear the metrics card, the
-      // subtitle wrapped, and the caption shed its kicker inside a band that
-      // had just been made for it. The same clamp is applied here first.
-      var free = (rightBound - 8) - (leftBound + 8);
-      var width = Math.min(natural.width, free);
-      if (width > 120) {
-        caption.style.width = Math.round(width) + 'px';
-        needed = caption.getBoundingClientRect().height + CAPTION_GAP * 2 + 1;
-      }
-
-      var reservedTop = ceiling + needed;
-      if (top >= reservedTop - 1) { return; }
-
-      var height = bottom - top;
-      var available = (floorLimit - CAPTION_GAP) - reservedTop;
-      if (available <= 40) { return; }
-      var wanted = Math.min(height, available);
-      var midY = (top + bottom) / 2;
-
-      if (wanted < height - 0.5) {
-        var fit = parseFloat(svg.style.getPropertyValue('--arena-fit')) || 1;
-        svg.style.setProperty('--arena-fit', (fit * (wanted / height)).toFixed(4));
-      }
-      var shift = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
-      svg.style.setProperty(
-        '--arena-shift-y',
-        (shift + (reservedTop - (midY - wanted / 2))).toFixed(2) + 'px'
-      );
-    }
-  }
-
-  // THE CAPTION TAKES THE SPACE THAT IS ACTUALLY FREE.
+  // The band is layout now. `.arena-command-deck__floor` is three rows - what
+  // the furniture above occupies, the writing, and the floor - so the caption
+  // receives a region instead of taking one, and it cannot overlap the octagon
+  // because they are in different rows. Nothing in this file writes the
+  // caption's top, left or width, and nothing in this file needs to know how
+  // tall it is.
   //
-  // OWNER, 2026-08-07: "блоки опять наезжают друг на друга - мы уже чинили это
-  // сегодня - исправь это раз и навсегда."
-  //
-  // He is right that it is the same fault twice. The morning's pile was the
-  // ladder, the caption and the floor head fighting over one strip; the ladder
-  // was moved out and the caption was left where it was - at `top: 8.2%` of the
-  // floor container, a FIXED SHARE of a box whose contents are not fixed. On his
-  // window that share put it at 234 while the ribbon above ran to 255 and the
-  // octagon began at 277: a 50px caption in a 22px gap, so it overlapped both,
-  // and the metrics panel on the right as well.
-  //
-  // A percentage cannot know any of that. This measures the three edges that
-  // actually bound the caption - the lowest thing above it, the top of the
-  // octagon, and any panel standing in the same horizontal band - and puts the
-  // caption in what is left. If what is left is too short, it sheds a line
-  // rather than overlapping: the kicker first, then the subtitle. The title
-  // never goes, and nothing is ever hidden to make room for something else.
-  function placeFloorCaption(svg) {
-    var caption = document.querySelector('.arena-floor-caption');
-    var container = svg.parentElement;
-    if (!caption || !container) { return; }
-
-    // Below 767 the arena is untouched by the Owner's instruction of 2026-08-03.
-    if (global.matchMedia && global.matchMedia('(max-width: 767px)').matches) {
-      caption.removeAttribute('data-fit');
-      caption.style.top = '';
-      caption.style.left = '';
-      caption.style.width = '';
-      caption.style.transform = '';
-      return;
-    }
-
-    var frame = container.getBoundingClientRect();
-    if (!(frame.width > 0)) { return; }
-
-    // AN15/AN20: the octagon is read BEFORE the caption is reset, not after.
-    // The caption is `position: absolute`, so its width, left, top and
-    // transform cannot move a single cell of the floor - which means the reset
-    // below used to invalidate layout and the very next line forced the browser
-    // to rebuild all of it to answer a question the reset had not changed. One
-    // synchronous reflow per pass, for nothing. Reading first costs nothing and
-    // the numbers are identical; that was measured, not assumed.
-    var floor = global.ArenaOctagon && global.ArenaOctagon.region(svg);
-    if (!floor) { return; }
-    var octTop = floor.top;
-
-    // Measured from scratch every time: the natural box is what is being
-    // fitted, and last pass's inline width would answer the wrong question.
-    // From here the interleaving is DELIBERATE and section 13 does not ask for
-    // it to go: each read below depends on the write above it. You cannot
-    // measure a caption's natural width without first clearing the width it
-    // was given, and you cannot know whether `no-kicker` fits without applying
-    // it and measuring. Guessing at text metrics instead is what this project
-    // has been burned by twice.
-    caption.removeAttribute('data-fit');
-    caption.style.width = '';
-    caption.style.left = '';
-    caption.style.top = '';
-    caption.style.transform = 'none';
-
-    // The vertical gap is the same number reserveCaptionBand() cut the room to,
-    // or the two would argue about a pixel and the caption would shed a line it
-    // had just been given space for.
-    var VGAP = CAPTION_GAP;
-    var HGAP = 8;
-    var centre = frame.left + frame.width / 2;
-    var natural = caption.getBoundingClientRect();
-    var span = { left: centre - natural.width / 2, right: centre + natural.width / 2 };
-
-    // The ceiling is the lowest edge of anything that ends above the octagon AND
-    // stands in the caption's own column. The left-hand cooking widget ends
-    // above the octagon too and is nowhere near it; counting that as a ceiling
-    // is how a measured fix gets the wrong answer with a straight face.
-    var ceiling = frame.top;
-    var sideways = [];
-    var panels = document.querySelectorAll('.arena-command-deck [class*="arena-"]');
-    for (var p = 0; p < panels.length; p++) {
-      var node = panels[p];
-      if (node === caption || caption.contains(node) || node.contains(caption)) { continue; }
-      if (node.contains(container) || container.contains(node)) { continue; }
-      var style = global.getComputedStyle(node);
-      if (style.display === 'none' || style.visibility === 'hidden') { continue; }
-      var box = node.getBoundingClientRect();
-      if (box.width < 80 || box.height < 16) { continue; }
-      var sharesColumn = Math.min(span.right, box.right) > Math.max(span.left, box.left);
-      if (sharesColumn && box.bottom <= octTop && box.bottom > ceiling) { ceiling = box.bottom; }
-      if (!sharesColumn || box.bottom > octTop) { sideways.push(box); }
-    }
-
-    // WIDTH BEFORE HEIGHT. The two are not independent: a caption squeezed
-    // sideways WRAPS, and a wrapped title is taller than the band it was being
-    // squeezed to fit. v2.5.892 measured the heights first, then narrowed the
-    // box to 154px, and the title came back 33px tall and printed through the
-    // octagon - a correct measurement of the wrong box.
-    //
-    // And the answer to a panel in the way is to SHIFT, not to shrink. The free
-    // span beside the metrics card is 664px and the caption wants 416: there is
-    // room, just not centred. It moves the least it can, and only shrinks when
-    // the free span is genuinely narrower than the text.
-    var leftBound = frame.left;
-    var rightBound = frame.right;
-    for (var s = 0; s < sideways.length; s++) {
-      var sb = sideways[s];
-      if (sb.bottom <= ceiling || sb.top >= octTop) { continue; }
-      if (sb.right <= centre && sb.right > leftBound) { leftBound = sb.right; }
-      if (sb.left >= centre && sb.left < rightBound) { rightBound = sb.left; }
-    }
-    var free = (rightBound - HGAP) - (leftBound + HGAP);
-    var width = Math.min(natural.width, free);
-    if (width < 120) { width = Math.min(280, frame.width); }
-    caption.style.width = Math.round(width) + 'px';
-
-    var x = centre - width / 2;
-    if (x < leftBound + HGAP) { x = leftBound + HGAP; }
-    if (x + width > rightBound - HGAP) { x = rightBound - HGAP - width; }
-
-    // What is left, and what will fit in it, measured at the width it will
-    // actually have. The title is never the line that goes; if even the title
-    // cannot stand clear, the caption stands down rather than printing through
-    // the octagon.
-    var top = ceiling + VGAP;
-    var room = (octTop - VGAP) - top;
-    var order = ['full', 'no-kicker', 'title-only'];
-    var chosen = null;
-    for (var f = 0; f < order.length; f++) {
-      if (order[f] === 'full') { caption.removeAttribute('data-fit'); }
-      else { caption.setAttribute('data-fit', order[f]); }
-      // Half a pixel of tolerance: both sides of this comparison are fractions,
-      // and a caption that fits by a fifth of a pixel fits.
-      if (caption.getBoundingClientRect().height <= room + 0.5) { chosen = order[f]; break; }
-    }
-    if (!chosen) {
-      caption.setAttribute('data-fit', 'none');
-      return;
-    }
-    if (chosen === 'full') { caption.removeAttribute('data-fit'); }
-    else { caption.setAttribute('data-fit', chosen); }
-
-    caption.style.transform = 'none';
-    caption.style.left = Math.round(x - frame.left) + 'px';
-    caption.style.top = Math.round(top - frame.top) + 'px';
-  }
+  // The rule it used to enforce by shedding lines is now enforced by the grid:
+  // row two takes exactly the height the writing needs, and row three - the
+  // octagon - gets what is left.
+  // ============================================================
 
   // THE LADDER WEARS ITS RINGS' OWN COLOURS. Owner, 2026-08-07.
   //
@@ -3190,6 +2918,106 @@
   // for eight ranks. The Owner ruled on 2026-08-07 to leave it truthful rather
   // than invent two shades - the ladder is a key to the floor, and a key that
   // separates what the floor joins is a lie about the floor.
+  // ============================================================
+  // THE OCTAGON'S LAYOUT OWNER.
+  //
+  // AN-R1/B, 2026-08-09. It receives a region and decides scale and position
+  // INSIDE it. It is the only thing anywhere that writes --arena-fit,
+  // --arena-shift-x and --arena-shift-y, and each of them is written from a
+  // known base rather than added to whatever the last pass left.
+  //
+  // What it no longer does: solve page furniture. The caption's band is a grid
+  // row now (see `.arena-command-deck__floor`), so there is nothing to make
+  // room for and nobody to negotiate with. Two functions used to write these
+  // three variables, five passes between them, each accumulating onto the
+  // other's result - that is what the Owner's audit found and this replaces.
+  //
+  // The camera is MEASURED, not modelled: --arena-shift-* is applied through
+  // rotateX(42deg) under a 1500px perspective, so a translation asked for in
+  // CSS pixels does not arrive on the screen at that size. One probe measures
+  // the ratio; the solve is then closed against an ABSOLUTE screen target, and
+  // refined at most twice to half a pixel because the projection is not
+  // affine. That is convergence inside one owner, not two owners taking turns.
+  // ============================================================
+
+  /** The floor's own cells - the set the fit has always been measured on. */
+  function octagonCells(svg) {
+    var cells = svg.querySelectorAll('.arena-cell--sponsors-tpl');
+    if (!cells.length) {
+      cells = svg.querySelectorAll('.arena-cell[data-ring-kind="spectator"]');
+    }
+    if (!cells.length) {
+      cells = svg.querySelectorAll('.arena-cell--oval-seat');
+    }
+    return cells;
+  }
+
+  function cellsBox(cells) {
+    var left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+    for (var i = 0; i < cells.length; i++) {
+      var box = cells[i].getBoundingClientRect();
+      if (!box.width || !box.height) { continue; }
+      if (box.left < left) { left = box.left; }
+      if (box.right > right) { right = box.right; }
+      if (box.top < top) { top = box.top; }
+      if (box.bottom > bottom) { bottom = box.bottom; }
+    }
+    if (!(right > left) || !(bottom > top)) { return null; }
+    return { left: left, right: right, top: top, bottom: bottom,
+             width: right - left, height: bottom - top,
+             cx: (left + right) / 2, cy: (top + bottom) / 2 };
+  }
+
+  function writeCamera(svg, fit, shiftX, shiftY) {
+    svg.style.setProperty('--arena-fit', fit.toFixed(4));
+    svg.style.setProperty('--arena-shift-x', shiftX.toFixed(2) + 'px');
+    svg.style.setProperty('--arena-shift-y', shiftY.toFixed(2) + 'px');
+  }
+
+  function placeOctagon(svg, container) {
+    var region = container.getBoundingClientRect();
+    if (!(region.width > 0) || !(region.height > 0)) { return; }
+
+    // A KNOWN BASE, so the answer cannot depend on what the last pass left.
+    writeCamera(svg, 1, 0, 0);
+    var natural = cellsBox(octagonCells(svg));
+    if (!natural) { return; }
+
+    // THE FIT THE REGION ASKS FOR. Owner 2026-07-27: the floor stands inside
+    // its frame at 64%, shrunk 20% from the prior 80% so it leaves more hall
+    // margin.
+    var viewPad = 0.64;
+    var fit = Math.min(region.width * viewPad / natural.width,
+                       region.height * viewPad / natural.height);
+
+    // HOW THE CAMERA CARRIES A TRANSLATION - measured, once.
+    var PROBE = 100;
+    writeCamera(svg, fit, 0, 0);
+    var zero = cellsBox(octagonCells(svg));
+    writeCamera(svg, fit, PROBE, PROBE);
+    var moved = cellsBox(octagonCells(svg));
+    if (!zero || !moved) { writeCamera(svg, fit, 0, 0); return; }
+    var kx = (moved.cx - zero.cx) / PROBE;
+    var ky = (moved.cy - zero.cy) / PROBE;
+    if (!(Math.abs(kx) > 0.01)) { kx = 1; }
+    if (!(Math.abs(ky) > 0.01)) { ky = 1; }
+
+    // THE COMPOSITION CENTRE OF ITS OWN REGION: 0.50 W / 0.51 H (spec).
+    var targetX = region.left + region.width * COMPOSITION_CX;
+    var targetY = region.top + region.height * COMPOSITION_CY;
+
+    writeCamera(svg, fit, (targetX - zero.cx) / kx, (targetY - zero.cy) / ky);
+    for (var step = 0; step < 2; step++) {
+      var now = cellsBox(octagonCells(svg));
+      if (!now) { return; }
+      var dx = targetX - now.cx, dy = targetY - now.cy;
+      if (Math.abs(dx) <= 0.5 && Math.abs(dy) <= 0.5) { return; }
+      var sx = parseFloat(svg.style.getPropertyValue('--arena-shift-x')) || 0;
+      var sy = parseFloat(svg.style.getPropertyValue('--arena-shift-y')) || 0;
+      writeCamera(svg, fit, sx + dx / kx, sy + dy / ky);
+    }
+  }
+
   function paintRankLadder(svg) {
     var steps = document.querySelectorAll('.arena-rank-spine__step[data-ring]');
     for (var i = 0; i < steps.length; i++) {
