@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-09 · Production baseline: **v2.5.970**
+Last reconciled: 2026-08-09 · Production baseline: **v2.5.976**
 · A19 accepted by the Owner 2026-08-09. G01's three prerequisites (A19, B03,
 R02) are now all satisfied — unblocked, not self-assigned; the Owner assigns it.
 VD1 stays deliberately deferred regardless of A19.
