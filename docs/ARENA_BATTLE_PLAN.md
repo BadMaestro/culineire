@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-10 · Production baseline: **v2.5.978**
+Last reconciled: 2026-08-10 · Production baseline: **v2.5.980**
 · A19 accepted by the Owner 2026-08-09. G01's three prerequisites (A19, B03,
 R02) are now all satisfied — unblocked, not self-assigned; the Owner assigns it.
 VD1 stays deliberately deferred regardless of A19.
@@ -389,7 +389,7 @@ forbidden changes and evidence for every row below.
 | A15 | Arena Hall | Effects and artifacts preservation pass | GreenBear | A07–A10 | DONE |
 | A16 | Arena Hall | CulinEire branding and K-mark audit | unassigned | A11–A14 | DONE |
 | A17 | Integrity | Truthful visual state matrix | Bolt | A09–A16 | **DONE** — `docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md`, measured on production |
-| A18 | Integrity | Desktop accessibility and responsive gate | Bolt | A17 | **DONE** — 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab |
+| A18 | Integrity | Desktop accessibility and responsive gate | Bolt | A17 | **DONE** — 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab. Two named gaps (focus rings, rank-chip contrast) **deferred by the Owner, 2026-08-10, to Stage 3 (release-readiness)** |
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall. **Architecture prerequisite satisfied** (normalisation closed at v2.5.960). Owner-only; nothing to implement. | Owner | architecture prerequisite satisfied | **DONE — Owner accepted 2026-08-09, no punch list returned** |
 | VD1 | Arena Hall | **Final Arena visual/layout cleanup** — the large-desktop composition the Owner reported on 2026-08-09. Full brief and the four defects that must be told apart first: `docs/chef_battle/ARENA_VISUAL_DEBT.md`. | unassigned | A19 | **DONE — Owner accepted the debt as-is, 2026-08-09. NO CODE CHANGED: this closes by his decision, not by a fix. The composition is unchanged from what A07/AN normalisation left; nothing in PAGE LAYOUT or OCTAGON_REGION was touched.** |
 | MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | **DELETED by the Owner** |
@@ -402,7 +402,7 @@ forbidden changes and evidence for every row below.
 | B03 | Battle Broadcast | Broadcast chat and composer | GreenBear | B02 | DONE |
 | R01 | Result / Winner | Champion and runner-up result shell | GreenBear | B03 | DONE |
 | R02 | Result / Winner | Result metrics, status and chat | GreenBear | R01 | DONE |
-| G01 | Release gate | Complete Design Arena regression and production evidence. Full evidence against contract §14: `docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md`. | Bolt + Owner | A19, B03, R02 | **EVIDENCE GATHERED, NOT SIGNED OFF** — 10/12 §14 categories checked and green; A18's two open accessibility gaps and §9 legal/payment (Stripe) are named, not cleared. §9 is the Owner's alone under AGENTS.md section 8. Awaiting his sign-off. |
+| G01 | Release gate | Complete Design Arena regression and production evidence. Full evidence against contract §14: `docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md`. | Bolt + Owner | A19, B03, R02 | **EVIDENCE GATHERED, NOT SIGNED OFF** — 12/12 §14 categories accounted for: 10 checked and green, 2 (A18's accessibility gaps, §9 legal/payment) explicitly **deferred by the Owner, 2026-08-10, to Stage 3**, not open blockers on this stage any more. Nothing left for G01 to gather. Awaiting his sign-off. |
 
 ## 5a. Architecture Normalisation — CLOSED
 

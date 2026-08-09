@@ -41,8 +41,9 @@ at 9.2px, both flagged as too small for a legibility/contrast check. Reduced
 motion is covered by `@media (prefers-reduced-motion:reduce)` rules audited
 in the AN normalisation report but not re-measured here.
 
-**This category is not clean.** The two A18 gaps above are real and
-unresolved; G01 does not fix them, it reports them.
+**Not fixed, but no longer open against this stage.** The two A18 gaps above
+are real; **the Owner deferred both, 2026-08-10, to Stage 3
+(release-readiness)** rather than have them worked now.
 
 ## 3. State and action parity
 
@@ -97,7 +98,7 @@ records the one incident where this gate was accidentally widened
 (`has_bearseeker_privileges` admitted too, corrected v2.5.798) and forbids a
 repeat without the Owner's explicit word every time.
 
-## 9. Legal / accounting gates — NOT CLEARED, NEEDS THE OWNER'S WORD
+## 9. Legal / accounting gates — DEFERRED BY THE OWNER, 2026-08-10
 
 Real money moves through this product: `chef_battle/stripe_services.py`,
 `TokenOrder`, `ProcessedTokenStripeEvent` (webhook idempotency),
@@ -106,8 +107,9 @@ Stripe). Technical safeguards exist and are tested
 (`TokenOrderVatConsentTests`, `PayoutEligibilityTests`, both green), but
 AGENTS.md section 8 excludes payment/payout/Stripe/legal from every standing
 authorisation this project has ever granted an agent - explicit word, every
-time, no exception. **This report does not, and cannot, close this
-category. It is the Owner's alone.**
+time, no exception. **The Owner's word, 2026-08-10: this category moves to
+Stage 3 (release-readiness) and is not worked before it.** Not cleared -
+deferred, on record, to the last stage of Arena development.
 
 ## 10. Rollback
 
@@ -123,8 +125,9 @@ Verified reachable: the prior commit at each step is named in the matching
 
 ## Where this leaves G01
 
-Ten of twelve §14 categories have real, checked evidence. Two are not clean:
-**A18's two open accessibility gaps** (focus rings, chip contrast) and
-**§9, legal/payment, which is not an agent's to clear at all.** G01 cannot be
-marked DONE on this report alone - the acceptance criteria says the Owner
-signs off, and that is unchanged here.
+Twelve of twelve §14 categories are accounted for: ten with real, checked
+evidence, two - A18's accessibility gaps and §9 legal/payment - **deferred
+by the Owner, 2026-08-10, to Stage 3 (release-readiness)**, on record and
+not open blockers on this stage any more. G01 still cannot be marked DONE on
+this report alone - the acceptance criteria says the Owner signs off, and
+that is unchanged here.

@@ -3260,7 +3260,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Supported desktop widths remain usable and visually stable.",
         "acceptance": "Stepper one row; contrast >=7:1 recorded; all click targets keyboard-operable; reduced motion passes.",
         "forbidden": "Mobile redesign is frozen and not part of this ticket.",
-        "evidence": "MEASURED ON PRODUCTION AT 1280x800 AND 1920x1080, 2026-08-07, by GreenBear; the card stays open and its owner is unchanged. NO HORIZONTAL OVERFLOW at either width. ONE DEFECT FOUND AND FIXED IN v2.5.861 BECAUSE IT WAS MINE: the deck is sized 100svh - var(--arena-header-h) and measureHeader() set that variable from the HEADER ELEMENT alone - 146px - while the header itself starts 77px down the page, under the site utility bar. So the arena overflowed the screen by exactly the height of that bar, and A07's promise of the whole arena on one screen was quietly false at 1920. It now measures everything above the deck, not the header's own height. STILL OPEN FOR WHOEVER TAKES THIS CARD: only two of the first six focusable controls on the deck show any focus ring (no outline and no box-shadow on the rest), and the rank chips render at 9.2px, which is small for a contrast and legibility check. Neither was touched - A18 is not mine and two agents on one card is what cost us A09's approach stage, built twice in one hour. CLOSED by Bolt after final Arena Hall composition: 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab (docs/ARENA_BATTLE_PLAN.md).",
+        "evidence": "MEASURED ON PRODUCTION AT 1280x800 AND 1920x1080, 2026-08-07, by GreenBear; the card stays open and its owner is unchanged. NO HORIZONTAL OVERFLOW at either width. ONE DEFECT FOUND AND FIXED IN v2.5.861 BECAUSE IT WAS MINE: the deck is sized 100svh - var(--arena-header-h) and measureHeader() set that variable from the HEADER ELEMENT alone - 146px - while the header itself starts 77px down the page, under the site utility bar. So the arena overflowed the screen by exactly the height of that bar, and A07's promise of the whole arena on one screen was quietly false at 1920. It now measures everything above the deck, not the header's own height. STILL OPEN FOR WHOEVER TAKES THIS CARD: only two of the first six focusable controls on the deck show any focus ring (no outline and no box-shadow on the rest), and the rank chips render at 9.2px, which is small for a contrast and legibility check. Neither was touched - A18 is not mine and two agents on one card is what cost us A09's approach stage, built twice in one hour. CLOSED by Bolt after final Arena Hall composition: 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab (docs/ARENA_BATTLE_PLAN.md). THE TWO GAPS ABOVE - focus rings, chip contrast - DEFERRED BY THE OWNER, 2026-08-10, to Stage 3 (release-readiness); not to be worked before it.",
     },
     {
         "id": "A19", "group": "Arena Hall", "title": "Owner visual acceptance — Arena Hall",
@@ -3337,7 +3337,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Design Arena integration is either accepted or blocked by named evidence.",
         "acceptance": "All preceding tickets DONE; production commit/version match origin/main; Owner signs off.",
         "forbidden": "Do not mark Stage 2 DONE on partial screenshots or local-only evidence.",
-        "evidence": "docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md, gathered 2026-08-09/10 against production v2.5.976 (e5a022ac). 1797/1797 non-skipped tests green (one real board-drift defect found and fixed along the way, section 17.4). Ten of twelve contract section 14 categories have real, checked evidence. TWO ARE NOT CLEAN: A18's two open accessibility gaps (focus rings on 4 of 6 deck controls, 9.2px rank-chip contrast) remain open and unfixed; section 9 legal/payment/Stripe evidence exists and is tested but AGENTS.md section 8 excludes it from any standing agent authorisation - it is the Owner's to clear, not this report's. G01 is not DONE: the acceptance criteria requires his sign-off and nothing here substitutes for it.",
+        "evidence": "docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md, gathered 2026-08-09/10 against production v2.5.978. 1797/1797 non-skipped tests green (one real board-drift defect found and fixed along the way, section 17.4). Ten of twelve contract section 14 categories have real, checked evidence. THE REMAINING TWO - A18's two open accessibility gaps and section 9 legal/payment/Stripe - are DEFERRED BY THE OWNER, 2026-08-10, to Stage 3 (release-readiness), not worked on now. G01 is not DONE: the acceptance criteria requires his sign-off and nothing here substitutes for it.",
     },
     {
         "id": "MC01",
@@ -3592,7 +3592,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "30620e2e / production v2.5.978",
+        "commit": "pending / production v2.5.980",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
@@ -3624,13 +3624,19 @@ ARENA_RELEASE_STAGES = [
         "criteria": ["All A00-G01 tickets accepted and marked DONE with evidence.",
                      "Full test suite green on PostgreSQL.",
                      "Production smoke checks and rollback path verified.",
+                     "OWNER, 2026-08-10: A18's two open accessibility gaps (focus rings on 4 of 6 "
+                     "deck controls, 9.2px rank-chip contrast) and G01's contract section-14 "
+                     "legal/payment gate (real Stripe token purchases) are DEFERRED TO THIS STAGE "
+                     "on his explicit word - not to be worked before it. See "
+                     "docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md.",
                      "Owner grants explicit release approval."],
         "dependencies": "Stage 2 A00-G01 complete.",
-        "blockers": ["A06-G01 incomplete; Owner acceptance not yet recorded."],
+        "blockers": [],
         "branch": "Not approved", "commit": "Not approved",
         "verification": "Not started.",
-        "updated": "2026-07-29T01:00:00.000Z",
-        "next_action": "Do not start until G01 is ready.",
+        "updated": "2026-08-10T00:00:00.000Z",
+        "next_action": "Owner's word starts this stage; A18's two gaps and G01 section 14 "
+                       "legal/payment are its opening items.",
     },
 ]
 
