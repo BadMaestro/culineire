@@ -3330,14 +3330,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "G01", "group": "Release gate", "title": "Complete Design Arena regression and production evidence",
-        "status": "NEXT", "owner": "Bolt + Owner",
+        "status": "DONE", "owner": "Bolt + Owner",
         "files": "Tests/evidence only unless a regression is found",
         "depends_on": "A19, B03, R02",
         "action": "Run the final PostgreSQL suite, visual matrix, Dark Launch checks, deployment postflight and rollback proof.",
         "visible_result": "Design Arena integration is either accepted or blocked by named evidence.",
         "acceptance": "All preceding tickets DONE; production commit/version match origin/main; Owner signs off.",
         "forbidden": "Do not mark Stage 2 DONE on partial screenshots or local-only evidence.",
-        "evidence": "docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md, gathered 2026-08-09/10 against production v2.5.978. 1797/1797 non-skipped tests green (one real board-drift defect found and fixed along the way, section 17.4). Ten of twelve contract section 14 categories have real, checked evidence. THE REMAINING TWO - A18's two open accessibility gaps and section 9 legal/payment/Stripe - are DEFERRED BY THE OWNER, 2026-08-10, to Stage 3 (release-readiness), not worked on now. G01 is not DONE: the acceptance criteria requires his sign-off and nothing here substitutes for it.",
+        "evidence": "docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md, gathered 2026-08-09/10 against production v2.5.978. 1797/1797 non-skipped tests green (one real board-drift defect found and fixed along the way, section 17.4). Ten of twelve contract section 14 categories have real, checked evidence; the remaining two (A18's accessibility gaps, section 9 legal/payment) DEFERRED BY THE OWNER, 2026-08-10, to Stage 3. OWNER, 2026-08-10: SIGN OFF. Stage 2 closes on this.",
     },
     {
         "id": "MC01",
@@ -3570,7 +3570,7 @@ ARENA_RELEASE_STAGES = [
     },
     {
         "n": 2, "id": "design-arena",
-        "title": "Design Arena visual integration", "status": "IN PROGRESS",
+        "title": "Design Arena visual integration", "status": "DONE",
         "purpose": "Complete the approved Arena Hall, Battle Broadcast and Result/Winner "
                    "surfaces as atomic tickets. Master Console is excluded.",
         "owners": "Owner assigns one card at a time. There are no roles and no deploy "
@@ -3592,7 +3592,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "8e4cc076 / production v2.5.980",
+        "commit": "pending / production v2.5.982",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
@@ -3611,13 +3611,13 @@ ARENA_RELEASE_STAGES = [
                         "v2.5.812 as a framing card instead: the arena now fits the screen whole "
                         "at every width. Access: Chef Battles is visible to is_staff - "
                         "(Bear)seeker Admins and Super Users - and to nobody below (AGENTS.md 20).",
-        "updated": "2026-08-05T00:00:00.000Z",
-        "next_action": "Assign A09 — Live challenger/opponent composition (unassigned).",
+        "updated": "2026-08-10T00:00:00.000Z",
+        "next_action": "CLOSED. OWNER, 2026-08-10: G01 sign off. All A00-G01 DONE; Stage 3 opens.",
         "workstreams": ARENA_DESIGN_TASKS,
     },
     {
         "n": 3, "id": "release-readiness",
-        "title": "Release readiness & full verification", "status": "NOT STARTED",
+        "title": "Release readiness & full verification", "status": "IN PROGRESS",
         "purpose": "Full verification and the Owner's explicit release sign-off once the visual "
                    "integration matches the reference.",
         "owners": "Whichever agent holds the card (no gate-holder) + Owner (approval)",
@@ -3633,10 +3633,12 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 2 A00-G01 complete.",
         "blockers": [],
         "branch": "Not approved", "commit": "Not approved",
-        "verification": "Not started.",
+        "verification": "OWNER, 2026-08-10: G01 signed off. Stage started on his word.",
         "updated": "2026-08-10T00:00:00.000Z",
-        "next_action": "Owner's word starts this stage; A18's two gaps and G01 section 14 "
-                       "legal/payment are its opening items.",
+        "next_action": "A18's two gaps and G01's section 14 legal/payment gate are this stage's "
+                       "opening items. Full production release still needs the Owner's separate, "
+                       "explicit release approval - his G01 sign-off starts this stage, it is not "
+                       "that approval.",
     },
 ]
 
@@ -3650,8 +3652,14 @@ def _arena_build_context():
         {**s, "done": bool(s["backend"]["done"] and s["frontend"]["done"])}
         for s in ARENA_LEGACY_LATER_STAGES
     ]
+    # A stage can finish with nothing left to assign - Stage 2 did, on the
+    # Owner's G01 sign-off, 2026-08-10. That is a real state, not a bug: the
+    # StopIteration this used to raise with no default is the crash v2.5.778
+    # caused, and forcing some other card to wear "NEXT" just to avoid it
+    # would be exactly the kind of lie about the board this project keeps
+    # correcting. None renders as blank in the template.
     next_design_task = next(
-        task for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"
+        (task for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"), None
     )
     return {
         "stages": ARENA_RELEASE_STAGES,

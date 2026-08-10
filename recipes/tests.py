@@ -4111,23 +4111,21 @@ class ArenaBuildPlanTests(TestCase):
         self.assertNotContains(resp, "pending v2.5.691")
         self.assertNotContains(resp, "Verify and deploy v2.5.691")
 
-    def test_design_task_ids_are_unique_and_exactly_one_card_is_next(self):
-        """EXACTLY ONE, and the count matters more than which card it is.
+    def test_design_task_ids_are_unique_and_the_board_never_crashes_on_next(self):
+        """Uniqueness is a hard invariant; NEXT is not - a stage can finish
+        with nothing left to assign, and it just did (G01 signed off,
+        2026-08-10, Stage 2 closed).
 
-        _arena_build_context() runs `next(t for t in ARENA_DESIGN_TASKS if
-        t["status"] == "NEXT")` with no default, so ZERO NEXT raises
-        StopIteration and the entire build board 500s. Not hypothetical:
-        v2.5.778 closed AR5 without promoting its successor in this list - the
-        markdown plan was updated and this list was not - and the board stayed
-        down until v2.5.782 found it.
-
-        The old name pinned whichever card happened to be next, so it read as
-        bookkeeping to be hand-edited on every move rather than as the invariant
-        that keeps the page alive. The id is still asserted, because a silent
-        jump in the queue matters too, but the COUNT is asserted first and on
-        its own, with the offenders named in the message.
+        _arena_build_context() used to run `next(t for t in ARENA_DESIGN_TASKS
+        if t["status"] == "NEXT")` with no default, so ZERO NEXT raised
+        StopIteration and the entire build board 500s (v2.5.778, AR5 closed
+        without promoting its successor). The fix is not to force some card to
+        wear NEXT so one always exists - that is exactly the kind of lie about
+        the board this project keeps correcting - it is a default of None on
+        the lookup itself, proved here by calling the real context builder
+        against the real (currently empty) NEXT set rather than a fixture.
         """
-        from recipes.views import ARENA_DESIGN_TASKS
+        from recipes.views import ARENA_DESIGN_TASKS, _arena_build_context
 
         ids = [task["id"] for task in ARENA_DESIGN_TASKS]
         # The card COUNT is not asserted. It was pinned at 31 and broke the
@@ -4139,17 +4137,16 @@ class ArenaBuildPlanTests(TestCase):
         self.assertEqual(ids and not duplicates, True, f"duplicate card ids: {duplicates}")
 
         nexts = [task["id"] for task in ARENA_DESIGN_TASKS if task["status"] == "NEXT"]
-        self.assertEqual(
+        self.assertLessEqual(
             len(nexts), 1,
-            f"the build board needs exactly one NEXT card or it 500s; found "
-            f"{len(nexts)}: {nexts}",
+            f"at most one NEXT card - two make 'next assignable' ambiguous; "
+            f"found {len(nexts)}: {nexts}",
         )
-        self.assertEqual(nexts, ["G01"])
-        self.assertEqual(
-            [task["id"] for task in ARENA_DESIGN_TASKS
-             if task["status"] in {"NEXT", "IN PROGRESS"}],
-            ["G01"],
-        )
+        # The real proof: the context builder runs clean against the real
+        # data, zero-NEXT included, rather than merely counting rows.
+        context = _arena_build_context()
+        self.assertIn("next_design_task", context)
+
         required = {
             "id", "group", "title", "status", "owner", "files", "depends_on",
             "action", "visible_result", "acceptance", "forbidden", "evidence",

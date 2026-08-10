@@ -4,10 +4,11 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-10 · Production baseline: **v2.5.980**
-· A19 accepted by the Owner 2026-08-09. G01's three prerequisites (A19, B03,
-R02) are now all satisfied — unblocked, not self-assigned; the Owner assigns it.
-VD1 stays deliberately deferred regardless of A19.
+Last reconciled: 2026-08-10 · Production baseline: **v2.5.982**
+· **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
+integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
+to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
+Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
 
@@ -402,7 +403,7 @@ forbidden changes and evidence for every row below.
 | B03 | Battle Broadcast | Broadcast chat and composer | GreenBear | B02 | DONE |
 | R01 | Result / Winner | Champion and runner-up result shell | GreenBear | B03 | DONE |
 | R02 | Result / Winner | Result metrics, status and chat | GreenBear | R01 | DONE |
-| G01 | Release gate | Complete Design Arena regression and production evidence. Full evidence against contract §14: `docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md`. | Bolt + Owner | A19, B03, R02 | **EVIDENCE GATHERED, NOT SIGNED OFF** — 12/12 §14 categories accounted for: 10 checked and green, 2 (A18's accessibility gaps, §9 legal/payment) explicitly **deferred by the Owner, 2026-08-10, to Stage 3**, not open blockers on this stage any more. Nothing left for G01 to gather. Awaiting his sign-off. |
+| G01 | Release gate | Complete Design Arena regression and production evidence. Full evidence against contract §14: `docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md`. | Bolt + Owner | A19, B03, R02 | **DONE — OWNER SIGN OFF, 2026-08-10.** 12/12 §14 categories accounted for: 10 checked and green, 2 (A18's accessibility gaps, §9 legal/payment) deferred to Stage 3. **Stage 2 (Design Arena visual integration) is CLOSED.** |
 
 ## 5a. Architecture Normalisation — CLOSED
 

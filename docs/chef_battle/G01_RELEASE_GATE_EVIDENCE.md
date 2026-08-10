@@ -1,8 +1,9 @@
 # G01 — release gate evidence, against contract §14
 
 **Card:** G01, Release gate. **Prerequisites** (A19, B03, R02) all DONE.
-**This document is evidence, not a sign-off.** Per the card's own acceptance
-criteria, closure needs the Owner's word — nothing here grants that.
+**OWNER, 2026-08-10: SIGN OFF.** G01 is DONE and Stage 2 (Design Arena visual
+integration) is CLOSED. This document remains the evidence record backing
+that sign-off, not a substitute for it.
 
 Gathered 2026-08-09/10, against production v2.5.976, commit `e5a022ac`.
 
@@ -126,8 +127,9 @@ Verified reachable: the prior commit at each step is named in the matching
 ## Where this leaves G01
 
 Twelve of twelve §14 categories are accounted for: ten with real, checked
-evidence, two - A18's accessibility gaps and §9 legal/payment - **deferred
-by the Owner, 2026-08-10, to Stage 3 (release-readiness)**, on record and
-not open blockers on this stage any more. G01 still cannot be marked DONE on
-this report alone - the acceptance criteria says the Owner signs off, and
-that is unchanged here.
+evidence, two - A18's accessibility gaps and §9 legal/payment - deferred by
+the Owner, 2026-08-10, to Stage 3 (release-readiness). **The Owner signed off
+the same day.** G01 is DONE. Stage 2 (Design Arena visual integration) is
+CLOSED; Stage 3 opens with A18's two gaps and §9 legal/payment as its first
+items, plus its own separate, still-outstanding requirement - the Owner's
+explicit release approval - which this sign-off is not.
