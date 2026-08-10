@@ -3343,7 +3343,7 @@ ARENA_DESIGN_TASKS = [
         "id": "MC01",
         "group": "Master Console",
         "title": "Battle Cancellation Simulation - walk the withdrawal through, step by step",
-        "status": "PENDING",
+        "status": "DONE",
         "owner": "GreenBear",
         "files": "templates/chef_battle/arena_master_console.html; chef_battle/withdrawal_service.py (READ ONLY - reuse, do not re-implement)",
         "depends_on": "v2.5.830",
@@ -3351,7 +3351,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Pressing the scenario in the console plays the three stages with what each actor sees at each one.",
         "acceptance": "The simulation calls the real service or mirrors it exactly; the penalty shown is 15 rating and 3 reputation; the battle ends CANCELLED with no loss and no winner; the three-per-account allowance and the dark button are shown.",
         "forbidden": "Do not re-implement the rule in the console - every guard is in withdrawal_service.py and covered by BattleWithdrawalTests. Do not merge it with the operator CANCEL action in P03_TRANSITION_MATRIX: that is an operator acting from above, this is a chef asking and a moderator answering. Nothing may route around penalise() (section 18).",
-        "evidence": "MECHANISM SHIPPED v2.5.871; THE PICTURE IS STILL THE OWNER'S. The first MC01 was a console panel that walked the withdrawal through in step cards, and he deleted it the day it shipped - being a DESCRIPTION was the whole problem, because he checks the product by looking at the arena. So the three steps are PERFORMED now instead of narrated: emulation_withdrawal_step() drives ask, answer and verdict through the real withdrawal_service on the emulation battle, so the allowance is really spent, the penalty is really applied by penalise(), and the battle really ends CANCELLED with no loss and no winner. Four tests hold it, including that NOTHING moves until the moderator speaks and that it refuses any battle which is not an emulation. WHAT IS DELIBERATELY NOT BUILT: what any of it LOOKS like on the arena. ARENA_EMULATION_VISUAL_STEPS.md keeps those rows TO SPEC, and its own rule is that nobody guesses on his behalf. The states exist now; he says how they read. OWNER'S INSTRUCTION, 2026-08-06: the withdrawal flow shipped in v2.5.830 must also exist inside the Master Console Panel as a Battle Cancellation Simulation, showing every step as it will look on the real arena. Handed to Bolt on the Carpet as message #3491, together with the full synchronisation of current work the Owner asked for.",
+        "evidence": "MECHANISM SHIPPED v2.5.871; THE PICTURE IS STILL THE OWNER'S. The first MC01 was a console panel that walked the withdrawal through in step cards, and he deleted it the day it shipped - being a DESCRIPTION was the whole problem, because he checks the product by looking at the arena. So the three steps are PERFORMED now instead of narrated: emulation_withdrawal_step() drives ask, answer and verdict through the real withdrawal_service on the emulation battle, so the allowance is really spent, the penalty is really applied by penalise(), and the battle really ends CANCELLED with no loss and no winner. Four tests hold it, including that NOTHING moves until the moderator speaks and that it refuses any battle which is not an emulation. WHAT WAS DELIBERATELY NOT BUILT: what any of it LOOKS like on the arena - that became MC02, and the Owner CANCELLED it, 2026-08-09: no longer needed. OWNER'S INSTRUCTION, 2026-08-06: the withdrawal flow shipped in v2.5.830 must also exist inside the Master Console Panel as a Battle Cancellation Simulation, showing every step as it will look on the real arena. Handed to Bolt on the Carpet as message #3491, together with the full synchronisation of current work the Owner asked for. CLOSED: the mechanism (v2.5.871) is the whole of what this card asked for; nothing is left TO SPEC under it any more.",
     },
     {
         "id": "X01", "group": "Audit 2026-08-05", "title": "The list of upcoming battles does not exist",
@@ -3454,14 +3454,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "X10", "group": "Audit 2026-08-05 - Owner decides", "title": "Matchmaking axis: level or rank",
-        "status": "PENDING", "owner": "Owner",
+        "status": "DONE", "owner": "Owner",
         "files": "Decision only - no file until he rules",
         "depends_on": "Owner",
         "action": "The Owner rules which side is the rule. No agent changes code towards an archived document.",
         "visible_result": "None until the ruling.",
         "acceptance": "His answer recorded verbatim in the release journal, then the losing side corrected.",
         "forbidden": "Do not 'fix' this by editing code to match an archived doc; several of these are money.",
-        "evidence": "chef_levels.md specifies matchmaking by LEVEL, maximum difference 1. check_rank_matchup() enforces it by RANK. The Owner's own words on 2026-08-05 say RANK, plus or minus one. So the code follows his live instruction and the document is the stale side. Recorded only so nobody 'corrects' the code towards the document. STRUCTURAL NOTE: the whole Chef Battles design corpus is ARCHIVED, and AGENTS.md section 10 says an archived document cannot define current scope. That is why these drifted, and it is why the fix is a ruling and not a patch.",
+        "evidence": "CLOSED BY THE OWNER'S OWN WORDS, 2026-08-05: RANK, plus or minus one. chef_levels.md specifies matchmaking by LEVEL, maximum difference 1; check_rank_matchup() enforces it by RANK. The code already follows his live instruction; the archived document is the stale side and stays uncorrected (AGENTS.md section 10 - an archived document cannot define current scope). No code change needed - the ruling predates this card, this closes the paperwork on it.",
     },
     {
         "id": "X11", "group": "Audit 2026-08-05 - Owner decides", "title": "Token packages: four or eight",
@@ -3592,7 +3592,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "408a4e8c / production v2.5.982",
+        "commit": "pending / production v2.5.984",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
