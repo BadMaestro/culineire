@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.984",
         "date": "2026-08-10",
-        "commit": "",
+        "commit": "121a8ed1",
         "title": "MC01 and X10 close - a shipped mechanism and an already-given ruling, both stuck on PENDING",
         "section": "Chef Battles / Arena",
         "summary": "Owner asked to finish everything still PENDING on the live board. Two of the six PENDING rows were not open work at all, just wrong status: MC01's own evidence already said 'MECHANISM SHIPPED v2.5.871' - the only thing left under it was the visual side, which became MC02 and which the Owner cancelled 2026-08-09; nothing remains open under MC01, so DONE. X10 (matchmaking axis) already carried its ruling in its own evidence text - 'the Owner's own words on 2026-08-05 say RANK' - the code already follows it and the archived document stays uncorrected per AGENTS.md section 10; no code change needed, so DONE. THE OTHER FOUR - X06 (battle window), X07 (moves earned), X08 (combat moves per round), X11 (token packages, real money) - are genuinely open questions with no ruling on record yet. Each card says explicitly 'no agent changes code towards an archived document' and X11 is priced in EUR: these are not an agent's to close and are reported, not attempted. 20 focused tests green.",
