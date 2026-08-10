@@ -40,7 +40,7 @@ Adds PvP/social progression to an existing user/author.
 | --------------------- | ----------------- | ----------------------- |
 | `user`                | OneToOne          | Required                |
 | `battle_rank`         | CharField         | Default: Kitchen Porter |
-| `battle_rating`       | Integer           | Default: 1000           |
+| `battle_rating`       | Integer           | ~~Default: 1000~~ → **`rating`, default 0** (X19, 2026-08-11: the code is the decision). Consequence worth knowing: `penalise()` floors rating at zero, so a chef starting at 0 cannot lose rating at all, and a penalty of "up to 15 rating" takes nothing from a new account. |
 | `culinary_reputation` | Integer           | Default: 0              |
 | `wins`                | Integer           | Default: 0              |
 | `losses`              | Integer           | Default: 0              |

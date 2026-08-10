@@ -373,3 +373,92 @@ wider than reported), **five were settled by his ruling in the code's favour**
 Founding Ten, the Board of Memory, artifact tier by format — «будем строить»),
 and the rest stand as written. Recorded because an audit that never reports its
 own error rate is asking to be trusted rather than checked.
+
+---
+
+## 8. The other half: the eight remaining documents and `tz_main.md`
+
+Ordered by his instruction of 2026-08-11. Same method and the same boundary:
+where a document and the code disagree about a **decision**, the code is the
+decision (his standing rule); where the code never implemented the rule at all,
+that is **absence, not a decision**, and it is his to settle.
+
+**Three of my own earlier findings are corrected here.** Reading the second half
+made the first half more accurate, which is the argument for finishing an audit
+rather than shipping it in pieces.
+
+### 8.1 What holds
+
+| Requirement | Source | Evidence |
+|---|---|---|
+| The eight-rung rank ladder, in order | `tz_main.md` §10 | `ChefBattleProfile.Rank` — Kitchen Porter → Culinary Master, exact match |
+| Crown lasts 24 hours, time-based, granted on a win | `tz_main.md` §11, `artifact_3` §10 | `services.py:953`, `crown_until`, `has_crown` reads `> now` |
+| Only APPROVED content grants moves | `tz_main.md` §16 | `recipes/signals.py:111` and `articles/signals.py` gate on `status == APPROVED` **and** on it not already having been approved, so a re-save cannot farm moves |
+| Cooldown between the same pair; daily challenge limit; vote anomaly logging; rate limits; IP/device/session checks | `tz_main.md` §16 | `gate_repeat_challenge_cooldown`, `gate_challenge_spam`, `VoteIntegrityEvent`, `ratelimit`, `gate_duplicate_device` / `gate_vote_rate_ip` |
+| The strongest artifacts are never sold | `tz_main.md` §15 | Legendary is prize-only; `send_battle_artifact` refuses it by name |
+| Clans are built on the Faction taxonomy, with alliances and the observer seat | `clans_alliances_rules.md` | `Clan.categories` M2M → `Faction`, `SeasonArenaObserver`, `observer_service.py` |
+| The battle lifecycle a QA map describes | `chef_journey_map.md` | Steps 1–9 all exist as routes and services; it is a QA map, not a spec, and it says so in its own first line |
+
+### 8.2 Corrections to my own earlier findings
+
+**G4 was wrong — the Hall of Fame is half-built, not absent.**
+`/chef-battle/hall-of-fame/` exists and renders two lists:
+
+- **The Founding Ten IS implemented**, by ordering rather than by a flag:
+  `get_hall_of_fame_battles()` takes the first ten completed battles.
+- **The Board of Memory is NOT.** `get_hall_of_fame_chefs()` returns the top
+  twenty **by wins**, which is a leaderboard. `hall_of_fame.md` asks for the
+  first twenty chefs ever to **participate** — a pioneer list, permanent, and
+  not a ranking. Those are different sets, and only one of them can be second.
+
+**And the founding ten are not permanent, which is a defect in itself.** The
+selector orders by `updated_at`, and `Battle.updated_at` is `auto_now=True`
+(`models.py:235`). Any later write to a completed battle row — a moderation
+note, a dispute, a withdrawal resolution, an operator touch — moves it to the
+end of that ordering and **silently evicts it from the founding ten**, letting a
+newer battle take its place. `hall_of_fame.md` uses the word "permanently".
+Ordering by `created_at`, or by the `is_historic` flag the document asks for,
+fixes it; ordering by a column that changes cannot.
+
+**X16 was wrong — clans and factions are not two competing systems.** I read
+`cuisines_design.md`'s header ("supersedes `clans_design.md` — the clan idea is
+dropped") and stopped there. `clans_alliances_rules.md` is the LATER document
+and it revives clans in a new shape, layered **on top of** factions: a clan
+picks up to three **Faction** rows as its categories, and the code implements
+exactly that (`Clan.categories` is an M2M to `Faction`). The stale line is the
+supersede note in `cuisines_design.md`, not the code.
+
+### 8.3 Absence — not built, and his to settle
+
+| ID | Requirement | Source | State |
+|---|---|---|---|
+| **G6** | **Culinary Reputation must be separate from Battle Rating** — reputation earned from approved recipes, articles, likes, comments and consistency; rating from PvP. The document gives the reason: *"a chef can be a strong content creator without being the best PvP fighter."* | `tz_main.md` §9, `artifact_3` §9 | **The separation exists in the schema and nowhere else.** Both fields exist; reputation is written in exactly three places and every one is a battle outcome — `+15` on a win, `+7` on second place, `−5` on a refusal. **No recipe, article, like or comment ever moves it.** Content grants battle MOVES, not reputation, so the two ladders the ТЗ separates on purpose are both driven by PvP alone. |
+| **G7** | The Board of Memory — the first twenty chefs to participate | `hall_of_fame.md` | Not built; the page shows a wins leaderboard instead. See 8.2. |
+| **G8** | Rating affected by **opponent strength** and **repeated-opponent reduction**; §16's **diminishing returns vs a repeated opponent** | `tz_main.md` §9/§16, `artifact_3` §9 | Not built. A win is a flat `+25` whoever was beaten, and the only repeat control is a 24-hour cooldown on the same pair — a block, not a diminishing return. Beating the same weak opponent daily pays exactly what beating the champion pays. |
+| **G9** | `BattleMoveTransaction.balance_after` | `tz_main.md` §17.7 | Absent. The **token** ledger carries `balance_after` and can be reconciled against the wallet; the **moves** ledger cannot. Nothing can prove today's move balance is the sum of its own history. |
+| **G10** | `SeasonStanding.wins / losses / streak` | `tz_main.md` §17.13 | Absent — a standing row carries `score` and `rank_position` only, so a season leaderboard cannot show a chef's record for that season. |
+| **G11** | `Season.crown_rule`, `Season.reward_rules_json` | `tz_main.md` §17.12 | Absent. Season rewards live in `season_service.py`, so changing a season's rules is a deploy rather than a data edit. |
+| **G12** | `Battle.season` | `tz_main.md` §17.3 | Absent. A battle carries no season; standings are computed from the season's date window. It works, and it means a battle can never be reassigned and a season never re-run. |
+| **G13** | Pages: battle **history**, a per-season page `/season/<slug>/`, a **crown-holder** page, a dedicated **vote-review** page | `tz_main.md` §18 | Absent as pages. Vote review exists in the Django admin (`is_suspicious` filter and two actions); the season page is one leaderboard with no per-season URL; the crown appears on the arena, not on a page of its own. |
+
+### 8.4 Disagreements settled the way he ruled — the code is the decision
+
+| ID | Subject | The document said | The code says | Note |
+|---|---|---|---|---|
+| **X19** | Starting rating | `battle_rating` **default 1000** (`artifact_3` §2) | `rating = IntegerField(default=0)` | The consequence is worth knowing: `penalise()` floors rating at zero, so a chef starting at 0 cannot lose rating at all, and the withdrawal penalty of "up to 15 rating" takes nothing from a new account. That behaviour is already on record; this is where it comes from. |
+| **X20** | The second rung's public name | **Prep Cook** (`tz_main.md` §10) | Displays **"Prep Chef"** (value `prep_cook`) | The stored value is the document's; the label a chef reads is not. |
+| **X21** | The arena's ring structure | 13 contiguous rings — centre, 8 ranks, `spectator_1..4` (`arena_data_layer_spec.md` §1) | The 11-ring octagon (Crown, Moat, 8 ranks, VIP), and spectators on an **oval** rather than polar rings — his own decisions of 2026-07-24 and 2026-07-29 | The spec predates both and was never updated. |
+| **X22** | `center.type = "facing_pair"` | A pre-combat facing state (`arena_data_layer_spec.md` §3) | **Never produced.** `_arena_center()` refuses any battle that has not begun, so the type cannot occur; `arena_render.js:1843` still branches on it | A dead branch, one line. |
+| **X23** | Clans dropped | `cuisines_design.md` header | `clans_alliances_rules.md` is later and builds clans **on** factions; the code agrees | The supersede line is the stale side. |
+
+### 8.5 Where this leaves the corpus
+
+All eighteen game-rule documents and `tz_main.md` have now been read against the
+code. Across the whole corpus: **nine rules that were never built** (G1, G3, G6,
+G7, G8–G13), **twelve disagreements settled in the code's favour** (X12–X23), and
+**three findings of mine withdrawn or corrected** (G2, G4, X16) — plus 3.7,
+which took two corrections before it was right.
+
+The largest single item is **G6**. Everything else on the absence list is a
+field, a page or a weighting. G6 is a product idea: the ТЗ builds two ladders on
+purpose, explains why in its own words, and only one of them was built.

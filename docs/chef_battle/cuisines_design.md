@@ -1,7 +1,14 @@
 # Chef Battle — Culinary Factions Design (Phase 6)
 
 **Status:** DRAFT for owner approval. **No schema/migration is written until approved.**
-**Supersedes:** `clans_design.md` (the clan/kitchen idea is dropped).
+**Supersedes:** ~~`clans_design.md` (the clan/kitchen idea is dropped)~~ —
+**STALE, corrected 2026-08-11 (X23).** Clans were not dropped. They came back in
+a new shape in `clans_alliances_rules.md`, which is the LATER document, and they
+are layered **on top of** this file's factions rather than competing with them:
+a clan chooses up to three **Faction** rows as its categories. The code
+implements exactly that — `Clan.categories` is a ManyToMany to `Faction`. An
+audit read this line alone and reported the two systems as duplicates; they are
+not.
 **Author:** GreenBear · **Parallel:** Bolt owns the Seasons engine — **shipped and live on origin** (`season_service` v2.5.189; `season_signals` hook v2.5.190; the post-commit `season_ended_committed` signal for faction rewards v2.5.192).
 **Method:** synthesised from a 5-lens design pass (game-design, anti-abuse, legal/rewards, data-model, season-boundary) grounded in the live code, plus Bolt's confirmed season-hook contract.
 

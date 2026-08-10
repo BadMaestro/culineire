@@ -1,5 +1,27 @@
 # Arena Data Layer Spec (Layer 2 of the procedural arena)
 
+> **STALE IN TWO PLACES, CORRECTED 2026-08-11 under the Owner's standing rule
+> that the code is the decision (X21, X22).**
+>
+> **X21 — the ring structure below is superseded.** This file describes 13
+> contiguous rings: a centre, eight ranks and `spectator_1..4`. Neither half is
+> current. Spectators became an **oval** around the floor on his instruction of
+> 2026-07-24 (`get_arena_geometry()` publishes `spectator_oval`, and the polar
+> spectator rings are gone), and the floor became the **11-ring octagon** —
+> Crown, Moat, eight ranks, VIP — on 2026-07-29 (ARENA_BATTLE_PLAN §2). The
+> payload's `geometry.rings` is the centre plus the eight rank rings plus the
+> oval rows; the Crown, Moat and VIP rings are drawn by the renderer and are
+> not ring records.
+>
+> **X22 — `center.type = "facing_pair"` can no longer occur.** `_arena_center()`
+> refuses any battle that has not begun, so the type is never produced. The
+> branch that still tests for it in `arena_render.js` is dead. Kept in §3 below
+> as history, not as contract.
+>
+> What is still current and still authoritative here: the chef record contract,
+> the identity and placement rules, the centre-stage types other than
+> `facing_pair`, the command-deck keys, and the polling contract.
+
 Owner directive 2026-07-16: the arena is rendered procedurally (polar math,
 SVG/Canvas, no sprites). This document maps the **existing public read-model**
 (`arena()` context / `arena_data` / `POST /chef-battle/arena/state/`) onto the
