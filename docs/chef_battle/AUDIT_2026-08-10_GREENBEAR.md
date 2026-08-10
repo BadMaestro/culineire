@@ -217,12 +217,14 @@ Three consumers, three different behaviours:
   the arena silently omits those two artifacts — `The Butter Shield` (epic,
   effect value **9**) and `Rusty Pan of Survival` (common, 1).
 
-**CORRECTED BY THE OWNER, 2026-08-10 — this is LATENT, not manifest, and my
-first wording overstated it.** I wrote "four chefs". It is four `ChefArtifact`
-rows held by **two** accounts, `crestedten` and `jam-oliver` — the two TEST
-chefs he ordered off the arena on 2026-08-07. No real chef holds either
-artifact, and there is no real battle on the arena, so nobody has been shown a
-wrong number yet. The code path is wrong and would undercount the moment a real
+**CORRECTED BY THE OWNER TWICE, and the second time mattered.** I first wrote
+"four chefs today". It is four `ChefArtifact` rows across **two** accounts,
+`crestedten` and `jam-oliver`. I then called those test chefs, and he corrected
+that too: **they are real accounts, his own, which he uses for testing.** So
+neither of my wordings was right. The accurate one: two of the Owner's own
+accounts carried the artifacts and would have been shown a defence total lower
+than they own; no third-party chef held either, and no live battle existed, so
+the impact was latent while the defect was not. The code path is wrong and would undercount the moment a real
 chef held one; that is the finding, and it is the whole of it. The absence of
 `choices` on the field is what allowed it.
 
@@ -347,7 +349,8 @@ such.
 | 3 | «audience_gifts.md — в коде правильные цены» | **His ruling, X12.** Document corrected to the code, generated from its own labels, emoji and `APPRECIATION_GIFT_COST`, and pinned by a test that reads it in both directions. |
 | 4 | «что именно говорит правило — один бой на шефа? ты меня дезинформируешь — ты обязан читать правило **полностью**» | **He was right and the gap is WIDER than I reported.** I quoted only the first clause. In full: the slot is occupied **the moment a challenge is issued**, and an occupied slot forbids **accepting** as well as issuing; it frees when the challenge expires unanswered or the battle completes. Nothing in the code models a slot at all — the three nearest gates are 3 challenges a day, 24h on a repeat pair, and 24h after a COMPLETED battle. G1 stands, restated. |
 | 5 | «у нас нет понятия — Герой, откуда ты его взял?» | **My error. G2 WITHDRAWN.** From `chef_levels.md`, which describes a tier X09 buried on 2026-08-05 — the board says so in as many words. `is_hero` is **his own flag**: set only in `get_or_create_battle_profile()` for `OWNER_SLUG`, true on exactly one production account. The `check_rank_matchup()` branch is §18, not progression. I read an unreconciled document literally and reported a tier the product does not have. |
-| 6 | «сейчас на арене нет ни одного реального боя — и ни одного реального шефа — поэтому это утверждение не может быть правильным» | **My error, corrected in four places.** I wrote that the `defense` spelling affected "four chefs today". It is four `ChefArtifact` rows on **two** accounts — `crestedten` and `jam-oliver`, the test chefs he ordered off the arena on 2026-08-07. **Latent, not manifest.** The code path was wrong and is fixed; nobody had been shown a wrong number. |
+| 6 | «сейчас на арене нет ни одного реального боя — и ни одного реального шефа» | **My error, corrected in four places.** I wrote "four chefs today". It is four `ChefArtifact` rows on **two** accounts. **Latent, not manifest.** |
+| 7 | «crestedten и jam-oliver — это реальные аккаунты, но мои, я их использую для тестов» | **My second wording was wrong too.** I had relabelled them "test chefs", which reads as fixtures. They are **real accounts that belong to him**, used for testing — so the accurate statement is that two of his own accounts would have been shown a defence total lower than they own, no third-party chef held either artifact, and no live battle existed. Corrected in the journal, the view comment, the test docstring and section 3.7. Worth stating once as a rule for whoever audits next: **an account being used for testing is not test data**, and nothing about it is safe to treat as disposable. |
 
 And one more, which is not a challenge but the rule that settles most of what is
 left:

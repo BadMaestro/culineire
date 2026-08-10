@@ -12774,7 +12774,7 @@ class DefenceArtifactSpellingTests(TestCase):
     """Artifact.effect_type is free text, and production carries both
     spellings: 100 rows "defence" and 2 "defense" — The Butter Shield (epic,
     effect value 9) and Rusty Pan of Survival (common, 1) - four ChefArtifact
-    rows held by the two test accounts, no real chef among them.
+    rows across two accounts, both the Owner's own and used by him for testing.
 
     Three consumers read that field and only one was wrong. Combat normalises
     before comparing; the knife-roll filter lists both; the arena's defence
