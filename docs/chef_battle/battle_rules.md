@@ -25,8 +25,13 @@ Defined by project creator.
 > `CHALLENGE_ACCEPTANCE_WINDOW` in `chef_battle/forms.py`, shipped v2.5.837. An
 > unanswered challenge expires and costs the challenged chef nothing.
 >
-> **STILL HIS TO SETTLE:** the 24-hour battle window with its `battle_deadline`
-> field, which does not exist — board card X06.
+> **SETTLED, X06, Owner 2026-08-10: THE DOCUMENT MATCHES THE CODE.** This file's
+> single 24-hour `battle_deadline` never existed as a field. The real shape,
+> already live in `accept_challenge()` (`chef_battle/services.py:325`) and the
+> public rules page, is two separate deadlines: **48 hours to submit**
+> (`submission_deadline`), then **2 more days of public voting**
+> (`voting_deadline`). No code changed; this document is corrected below to say
+> what has been running all along.
 
 ---
 
@@ -108,27 +113,31 @@ Each chef has **one battle slot**. Only one active battle at a time.
 
 ```
 Challenge issued → occupies challenger's slot
-  ├─ Accepted within 12h → 24h timer starts for both chefs
-  └─ Not accepted within 12h → slot freed; −1 battle to non-responder (floor 0)
+  ├─ Accepted within 12h → submission window starts for both chefs
+  └─ Not accepted within 12h → slot freed; no penalty to non-responder (X02)
 
 Battle completes → slot freed; chef can accept or issue a new challenge
 ```
 
 ### Key rules
 
-- **Acceptance window**: 12 hours from challenge issue
-- **Battle window**: 24 hours from acceptance — both chefs complete
-  combat + cooking + submission within this window
+- **Acceptance window**: 12 hours from challenge issue (X05)
+- ~~**Battle window**: 24 hours from acceptance — both chefs complete
+  combat + cooking + submission within this window~~ — **corrected, X06,
+  Owner 2026-08-10**: there is no single combined window. **48 hours to
+  submit** (`submission_deadline`), then a further **2 days of public
+  voting** (`voting_deadline`) — matches `accept_challenge()` and the
+  public rules page.
 - **Occupied slot**: a chef with an active battle cannot accept or issue
   new challenges until the slot is free
 - Manual refuse → −1 battle (floor 0)
 - ~~Slot auto-expires → −1 battle~~ — **no penalty**; silence is not an offence (Owner, 2026-08-05)
 
-### "Ready" button — scheduling combat within the 24h window
+### "Ready" button — scheduling combat within the submission window
 
 1. Chef A presses **"Ready"** — signals preparation is complete
 2. Chef B sees the signal, presses **"Ready"**, and proposes a specific
-   combat time within the remaining 24h window
+   combat time within the remaining submission window
 3. Chef A confirms the proposed time → combat begins at that time
 
 ---
@@ -139,7 +148,8 @@ Battle completes → slot freed; chef can accept or issue a new challenge
 |---------|--------|
 | Challenge not accepted in the window | Slot freed. **No penalty** (Owner, 2026-08-05) |
 | Manual refuse | −1 battle to refuser; slot freed |
-| 24h window expires without completion | Auto-cancel; non-compliant party −1 battle |
+| `submission_deadline` passes without a submission | Auto-cancel; non-compliant party −1 battle |
+| `voting_deadline` passes | Voting closes; result recorded |
 | Win recorded | +1 battle count; recalculate level |
 
 ---
@@ -151,7 +161,10 @@ Battle completes → slot freed; chef can accept or issue a new challenge
 
 ### Battle model fields
 - `accepted_at` DateTimeField null=True
-- `battle_deadline` DateTimeField null=True — `accepted_at + 24h`
+- ~~`battle_deadline` DateTimeField null=True — `accepted_at + 24h`~~ — does not
+  exist; the real fields are below (X06, Owner 2026-08-10)
+- `submission_deadline` DateTimeField — `start_time + 48h`
+- `voting_deadline` DateTimeField — `submission_deadline + 2 days`
 - `challenger_ready` BooleanField default=False
 - `opponent_ready` BooleanField default=False
 - `proposed_combat_time` DateTimeField null=True
@@ -172,4 +185,5 @@ def has_active_battle(profile):
 
 ### Auto-tasks (cron / celery beat — run every 30 min)
 - Find `declared` battles past their window → expire. No penalty to anyone.
-- Find active battles where `battle_deadline < now()` → auto-cancel; −1 to non-compliant party
+- Find active battles where `submission_deadline < now()` and no submission → auto-cancel; −1 to non-compliant party
+- Find battles where `voting_deadline < now()` → close voting, record result
