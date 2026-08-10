@@ -12,11 +12,11 @@ ready. The agent named goes to its own file and does what is written there.
 
     "Onboarding GreenBear"   ->  ops/onboarding/greenbear.txt
     "Onboarding Bolt"        ->  ops/onboarding/bolt.txt
+    "Onboarding Ember"       ->  ops/onboarding/ember.txt
 
-EMBER IS RETIRED (Owner, 2026-08-04) and there is no route for that name. Its
-runbook stays in this directory, marked RETIRED at the top, because it records
-how the agent worked and section 16 preserves that. Do not delete it, do not
-route to it, and do not restore it to the roster - only the Owner adds an agent.
+EMBER WAS REINSTATED by the Owner on 2026-08-10. Its preserved runbook is once
+again the active route. Reinstatement does not revive an old card; Ember waits
+for a fresh Owner assignment after cold start.
 
 WHERE TO READ IT FROM — THIS IS THE PART THAT GETS SKIPPED
 ----------------------------------------------------------
@@ -96,11 +96,11 @@ corrected in the same task.
 THE ROSTER THIS PACKAGE COVERS
 -------------------------------
 
-AGENTS.md section 1 is the single authoritative roster. As of package 1.5d it is
-Bolt and GreenBear — equal peers, no roles, no director, no gate holder. Any
+AGENTS.md section 1 is the single authoritative roster. It is now Bolt,
+GreenBear and Ember — equal peers, no roles, no director, no gate holder. Any
 agent who knows how may deploy, one at a time, after proving every check in
-section 8 on their own work. Ember was on this roster until 2026-08-04 and was
-retired by the Owner; its identity, mailbox and audit history are preserved.
+section 8 on their own work. Ember's 2026-08-04 retirement remains in the audit
+history; the Owner reinstated Ember on 2026-08-10.
 
 See AGENT_PROFILES.txt beside this file for what is known about each agent, what
 is not, and who said so. Anything an agent has not stated about itself is written
@@ -119,7 +119,7 @@ Package 1.5d contents:
     AGENT_PROFILES.txt    who the three agents are, and what is not known
     greenbear.txt         cold-start runbook, v3.3
     bolt.txt              cold-start runbook, v3.3
-    ember.txt             RETIRED 2026-08-04 — kept as history, not routed to
+    ember.txt             active again 2026-08-10 — Ember cold-start runbook
 
 WHAT CHANGED IN 1.5d
 --------------------

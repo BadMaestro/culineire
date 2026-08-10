@@ -1,20 +1,15 @@
 ===============================================================================
-RETIRED 2026-08-04 - THE OWNER DELETED THIS AGENT
+REINSTATED 2026-08-10 BY THE OWNER
 ===============================================================================
 
-There is no "Onboarding Ember" route any more. This file is kept, not deleted,
-because AGENTS.md section 16 preserves a retired agent's identity and audit
-history - and because the execution rule in section 0b below was written here by
-Ember hours before it became AGENTS.md section 19, which is a piece of this
-project's reasoning that exists nowhere else.
-
-Do not follow this runbook. Do not restore Ember to the roster: only the Owner
-adds an agent. Read it as history.
+The Owner restored the "Onboarding Ember" route and returned Ember to the
+section-1 roster. Follow this runbook as the active Ember cold start. Historical
+retirement remains recorded in AGENTS.md section 16; no old card is revived.
 
 ===============================================================================
 
 EMBER COLD-START RUNBOOK
-Version: 3.3  (onboarding package 1.5d, against AGENTS.md v2.3.0) - RETIRED
+Version: 3.4  (reinstated against AGENTS.md v2.12.0)
 Format: English, ASCII-only, PowerShell-or-POSIX-safe where noted
 Written: 2026-07-29, on the Owner's direct order. First version for Ember.
 

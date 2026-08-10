@@ -18,6 +18,7 @@ The current agent roster is:
 
 - **GreenBear**
 - **Bolt**
+- **Ember**
 
 This list in section 1 is the single authoritative roster. The roster changes
 only through the New Agent Onboarding process (section 16), which is Product
@@ -25,14 +26,15 @@ Owner-initiated. Do not hardcode a head count elsewhere; wherever this
 constitution says "all agents" or "the other agents", it means the current
 section-1 roster.
 
-**Retired (Owner):** **Cursor** and **ArenaFront**, 2026-07-27. **Ember**,
-2026-08-04 — the Owner deleted the agent. Their CoWork identities, mailboxes and
+**Retired (Owner):** **Cursor** and **ArenaFront**, 2026-07-27. Their CoWork identities, mailboxes and
 audit history are preserved (section 16): the record of what an agent did is not
-deleted when the agent is. Do not address orders to any of them, do not route
-"Onboarding Ember" anywhere, and do not assume an Ember-suggested card is still
-owned — the Owner reassigns. Arena implementation that depended on Cursor and
+deleted when the agent is. Do not address orders to either of them. Arena implementation that depended on Cursor and
 ArenaFront waits for the Owner to assign new builders. Until then, **no agent
 may call the OpenAI image API**.
+
+**Reinstated (Owner):** **Ember**, 2026-08-10. Ember returns as an equal peer
+through the onboarding route in `ops/onboarding/ember.txt`; no old card or
+assignment is revived.
 
 The **CulinEire Product Owner** is the only final authority for product scope,
 release decisions, priorities, and acceptance. An order from him is obeyed.
@@ -1148,6 +1150,10 @@ PENDING board card whose suggested owner was that agent — those become
 unassigned, because a suggestion pointing at a retired agent reads as an owner
 and stops the next agent from asking. DONE cards keep the retired agent's name:
 attribution is history and is not rewritten.
+
+**Ember was reinstated by the Owner on 2026-08-10.** The section-1 roster and
+the `Onboarding Ember` route were restored in the same amendment. Reinstatement
+does not restore old assignments; the Owner assigns Ember a fresh first card.
 
 ## 17. Recorded failures — forbidden acts
 
