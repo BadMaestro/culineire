@@ -25,6 +25,33 @@ Every number below carries the command that produced it and its blind spot.
 
 ## 1. Bolt's findings, re-checked
 
+> **F1–F5 were fixed while this audit was being written** — `fc0d8bcc`,
+> shipped as **v2.5.988**, live. I verified the fix rather than take the commit
+> message for it: `token_checkout_create` and both gift views now carry
+> `@chef_battle_guard`; `author_detail` calls `is_battle_visible()` directly;
+> `handle_no_show_battles` takes `_locked_battle()` and re-verifies status and
+> deadline under the lock; `issue_reward` uses a DB-side atomic increment.
+> **The table below records what I found when I looked, which is the state
+> those fixes were made against.** One residue survives them — see 1a.
+
+### 1a. What the fix left behind: the three endpoints are still discoverable
+
+`chef_battle_guard` was added as the **innermost** decorator on all three, under
+`@require_POST` and `@login_required`. Those answer first, so to an anonymous
+prober on production **after** v2.5.988:
+
+```
+GET /chef-battle/arena/                       404   ← invisible, correct
+GET /chef-battle/tokens/checkout/             405   ← "wrong method", so it exists
+GET /chef-battle/battles/1/gift/appreciation/ 302 → /accounts/login/?next=…
+```
+
+The security hole is genuinely closed: an authenticated non-staff caller now
+reaches the guard and gets a 404. What remains is that these three URLs still
+announce their own existence during a dark launch, where every other gated
+surface answers 404. Moving `@chef_battle_guard` to the top of each stack costs
+one line each and makes them behave like the rest of the arena.
+
 | # | His claim | My verdict | My evidence |
 |---|---|---|---|
 | F1 | `recipes/views.py:1457-1465` re-implements the gate and keeps `has_bearseeker_privileges` | **CONFIRMED** | Read the lines. `is_battle_visible()` is `flag or is_staff or is_superuser`; this copy adds `_ap.has_bearseeker_privileges`. Strictly wider. |
@@ -237,23 +264,27 @@ charge different money.
 
 ## 5. What I recommend, in order
 
-1. **F2 and F3 first, before anything else.** They are the only findings in
-   either audit where an unreleased feature can take real euro from an account
-   that, by your own rule, cannot see the feature at all. Both are one decorator.
-   They are access-gate changes, so §8 says they need your word — this is me
-   asking for it.
-2. **F1** — same class, no money: one call to `is_battle_visible()`.
-3. **F4 and F5** — the pattern that fixes them is already in the same files.
-4. **3.1, the Russian strings** — the only defect here you would see with your
-   own eyes, and the only one that can reach the public feed.
-5. **X12–X14** — prices. Four documents and the code disagree about what a
-   chef is charged, and one price table is enforced by nobody. Money is your
-   ruling every time.
-6. **G1, the one-slot rule** — a core rule of your own document that nothing
-   enforces. Cheap now, expensive after launch.
-7. **3.7, the two `defense` artifacts** — four chefs are affected today and the
-   arena shows them the wrong number. One `choices` list on the field closes the
+**F1–F5 are already done** (v2.5.988). What is left, in order:
+
+1. **3.1, the Russian strings** — the only defect in this act you would see
+   with your own eyes, and the only one that can reach the **public** event
+   feed. Nothing else here is visible to a visitor.
+2. **X12–X14** — prices. Two documents and the code disagree about what a chef
+   is charged: every appreciation gift price differs by four times or more, an
+   undocumented delivery fee doubles every artifact, and the rarity price table
+   is enforced by nobody. Money is your ruling every time.
+3. **3.7, the two `defense` artifacts** — four chefs are shown the wrong
+   defence power on the arena today. A `choices` list on the field closes the
    class of bug, not just these two rows.
+4. **G1, the one-slot rule** — a core rule of your own document that nothing
+   enforces, and the cheapest thing on this list to enforce now.
+5. **G2, the Hero tier** — the code does the opposite of what the document
+   says. One of the two is wrong and only you can say which.
+6. **1a** — three URLs that still announce themselves during a dark launch.
+   One line each.
+7. **The eight documents nobody has read against the code yet**, plus all 1269
+   lines of `tz_main.md`. This audit covered ten of eighteen and found eleven
+   defects in them. There is no reason to expect the other eight to be cleaner.
 8. Everything else waits.
 
 Nothing above was changed. Tree clean, nothing deployed, no flags written.
