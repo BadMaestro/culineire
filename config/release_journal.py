@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.986",
         "date": "2026-08-10",
-        "commit": "",
+        "commit": "b0f6eea0",
         "title": "X06/X07/X08/X11 ruled - the code was right, the archived docs are corrected",
         "section": "Chef Battles / Arena",
         "summary": "OWNER, 2026-08-10, four rulings at once: X06 - the code matches the doc (battle window is 48h submission + 2 days voting via submission_deadline/voting_deadline, not the archived 24h battle_deadline field, which never existed). X07 - moves earned are 5/5/10/1 (energy_service.py), matching the code; the document's 2/2/5/1 was stale. X08 - the code matches the doc (combat moves per round is 1-5, COMBAT_MOVES_MAX, not the archived 1-3). X11 - the code matches the doc (eight token packages per token_config.py, topping out at Legend Chef 12800T/EUR768, not the archived four; this is real EUR pricing and the Owner said so explicitly). No code changed in any of the four - docs/chef_battle/battle_rules.md, moves_economy.md and token_economy.md are corrected to describe what has actually been running, each with a dated SETTLED note so nobody 'corrects' the code back towards the old numbers later. All four X-cards -> DONE. 20 focused tests green.",
