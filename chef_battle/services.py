@@ -498,18 +498,34 @@ def handle_no_show_battles() -> int:
       reputation hit, no rating change (forfeit does not affect Elo).
     """
     now = timezone.now()
-    battles = Battle.objects.filter(
-        status__in=[Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS],
-        submission_deadline__lte=now,
-    ).select_related("challenger", "opponent")
+    qualifying_statuses = (
+        Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS,
+    )
+    battle_ids = list(
+        Battle.objects.filter(
+            status__in=qualifying_statuses,
+            submission_deadline__lte=now,
+        ).values_list("pk", flat=True)
+    )
 
     count = 0
-    for battle in battles:
-        entries = list(battle.entries.values_list("author_id", flat=True))
-        challenger_submitted = battle.challenger_id in entries
-        opponent_submitted = battle.opponent_id in entries
-
+    for battle_id in battle_ids:
         with transaction.atomic():
+            # Row-locked and re-verified under the lock, same pattern as
+            # resolve_start_rituals/_locked_battle: this sweep runs from
+            # crontab every 15 minutes with no mutex (F4, 2026-08-10), so two
+            # overlapping runs can both snapshot the same stale battle before
+            # either commits. Without the lock and re-check, both would call
+            # _award_forfeit_win and double-credit the winner's wins/streak/
+            # rank and double-penalise the loser.
+            battle = _locked_battle(battle_id, expected_status=None)
+            if battle.status not in qualifying_statuses or battle.submission_deadline > now:
+                continue
+
+            entries = list(battle.entries.values_list("author_id", flat=True))
+            challenger_submitted = battle.challenger_id in entries
+            opponent_submitted = battle.opponent_id in entries
+
             if not challenger_submitted and not opponent_submitted:
                 battle.status = Battle.Status.CANCELLED
                 battle.result_reason = "Double no-show: neither chef submitted an entry."
@@ -2165,9 +2181,19 @@ def issue_reward(reward_id: int, reviewed_by=None) -> "RewardRecord":
             raise ValueError(f"RewardRecord {reward_id} is in status '{record.status}' and cannot be issued.")
 
         wallet, _ = TokenWallet.objects.get_or_create(chef=record.recipient)
-        new_balance = wallet.balance + record.tokens_granted
-        wallet.balance = new_balance
-        wallet.save(update_fields=["balance", "updated_at"])
+        # Atomic DB-side increment, same pattern as credit_tokens/debit_tokens
+        # (F5, 2026-08-10): the previous read-modify-write here (wallet.balance
+        # + amount, then save) loses updates when two RewardRecords for the
+        # same chef are issued at once - e.g. two staff approving different
+        # queue rows, or a bulk "issue selected" action racing a second
+        # session - the later save clobbers the earlier one and tokens vanish
+        # without TokenTransaction.balance_after ever showing it.
+        TokenWallet.objects.filter(pk=wallet.pk).update(
+            balance=F("balance") + record.tokens_granted,
+            updated_at=timezone.now(),
+        )
+        wallet.refresh_from_db(fields=["balance"])
+        new_balance = wallet.balance
 
         TokenTransaction.objects.create(
             wallet=wallet,

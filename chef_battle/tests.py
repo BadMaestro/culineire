@@ -1538,6 +1538,67 @@ class ConcurrentScoringSharesOneProfileTests(TransactionTestCase):
         self.assertTrue(winner.battle_profile.has_crown)
 
 
+class NoShowSweepIsLockedAgainstDoubleAwardTests(TestCase):
+    """F4, 2026-08-10: handle_no_show_battles iterated a plain snapshot and
+    called _award_forfeit_win inside transaction.atomic() with no row lock -
+    unlike resolve_start_rituals/_locked_battle, which lock specifically to
+    stop two overlapping sweeps from double-processing the same battle. The
+    crontab runs this sweep every 15 minutes with no mutex, so two overlapping
+    runs could both see the same stale battle before either commits and both
+    award the forfeit - double-crediting the winner's wins/streak/rank and
+    double-penalising the loser."""
+
+    def _stale_forfeit_battle(self):
+        User = get_user_model()
+        u1 = User.objects.create_user("noshow-w", password="pw")
+        u2 = User.objects.create_user("noshow-l", password="pw")
+        winner = RecipeAuthor.objects.create(user=u1, name="NoShow Winner", slug="noshow-winner")
+        loser = RecipeAuthor.objects.create(user=u2, name="NoShow Loser", slug="noshow-loser")
+        challenge = BattleChallenge.objects.create(
+            challenger=winner, opponent=loser, theme="No Show",
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        battle = accept_challenge(challenge)
+        from .services import submit_battle_entry
+        submit_battle_entry(battle=battle, author=winner, battle_statement="On time.")
+        past = timezone.now() - timezone.timedelta(hours=1)
+        Battle.objects.filter(pk=battle.pk).update(submission_deadline=past)
+        return winner, loser, battle
+
+    def test_sweep_locks_the_battle_row(self):
+        """Asserted on the SQL, same convention as
+        ConcurrentScoringSharesOneProfileTests.test_profiles_are_read_under_a_
+        row_lock: the read-modify-write window is too narrow to hit reliably
+        with real threads, so what can be stated exactly is the mechanism -
+        the sweep reads the battle row with FOR UPDATE."""
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        self._stale_forfeit_battle()
+        with CaptureQueriesContext(connection) as captured:
+            handle_no_show_battles()
+
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper()
+            and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(
+            locking,
+            "the no-show sweep read the battle without FOR UPDATE - two "
+            "overlapping crontab runs would both award the same forfeit",
+        )
+
+    def test_sweep_run_twice_only_awards_the_forfeit_once(self):
+        winner, loser, battle = self._stale_forfeit_battle()
+        first = handle_no_show_battles()
+        second = handle_no_show_battles()
+        self.assertEqual(first, 1)
+        self.assertEqual(second, 0)
+        winner.battle_profile.refresh_from_db()
+        self.assertEqual(winner.battle_profile.wins, 1)
+
+
 class AutoCompleteVotingTests(TestCase):
     """CB-1402: management command completes VOTING battles past deadline."""
 
@@ -2151,6 +2212,65 @@ class RewardRecordLifecycleTests(TestCase):
         self.assertEqual(count, 0)
 
 
+class IssueRewardWalletUpdateIsAtomicTests(TestCase):
+    """F5, 2026-08-10: issue_reward read wallet.balance, added tokens_granted
+    in Python, then .save()'d the result - a plain read-modify-write, unlike
+    credit_tokens/debit_tokens in this same file, which use an F()-expression
+    UPDATE specifically to avoid this. Two RewardRecords for the same chef
+    issued at once (two staff approving different queue rows, or a bulk
+    "issue selected" action racing a second session) would both read the
+    pre-update balance and the later save clobbers the earlier one - tokens
+    vanish and TokenTransaction.balance_after stops reconciling with the
+    wallet."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("ir-chef", password="pw")
+        self.chef = RecipeAuthor.objects.create(user=self.user, name="IR Chef", slug="ir-chef")
+
+    def test_wallet_balance_is_updated_with_an_atomic_expression(self):
+        """Asserted on the SQL, same convention as
+        ConcurrentScoringSharesOneProfileTests: the balance UPDATE must
+        reference its own column in the SET expression (an F() increment),
+        not assign a Python-computed literal - only the former is safe
+        against a second issue_reward racing the same wallet."""
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import issue_reward
+
+        reward = RewardRecord.objects.create(
+            recipient=self.chef, reward_type=RewardRecord.RewardType.CBR,
+            tokens_granted=40, reason="F5 atomicity test",
+        )
+        with CaptureQueriesContext(connection) as captured:
+            issue_reward(reward.pk)
+
+        wallet_updates = [
+            q["sql"] for q in captured.captured_queries
+            if q["sql"].upper().startswith("UPDATE")
+            and "chef_battle_tokenwallet" in q["sql"].lower()
+        ]
+        self.assertTrue(wallet_updates, "issue_reward did not UPDATE the wallet row")
+        self.assertTrue(
+            any('"balance" +' in q for q in wallet_updates),
+            "the wallet balance UPDATE is not a DB-side increment (F() expression) - "
+            "a plain assigned value here loses updates under two concurrent "
+            "issue_reward calls for the same chef: " + " | ".join(wallet_updates),
+        )
+
+    def test_balance_after_reconciles_with_the_wallet(self):
+        from .services import issue_reward
+
+        reward = RewardRecord.objects.create(
+            recipient=self.chef, reward_type=RewardRecord.RewardType.CBR,
+            tokens_granted=40, reason="F5 reconciliation test",
+        )
+        issue_reward(reward.pk)
+        wallet = TokenWallet.objects.get(chef=self.chef)
+        tx = wallet.transactions.latest("created_at")
+        self.assertEqual(tx.balance_after, wallet.balance)
+
+
 # ── CB-2003  TokenOrder VAT & consent fields ────────────────────────────────
 
 class TokenOrderVatConsentTests(TestCase):
@@ -2171,6 +2291,7 @@ class TokenOrderVatConsentTests(TestCase):
         )
 
     @override_settings(
+        CHEF_BATTLE_ENABLED=True,
         STRIPE_SECRET_KEY="sk_test_fake",
         STRIPE_WEBHOOK_SECRET="whsec_fake",
         STRIPE_PRICE_MODE="test",
@@ -2395,8 +2516,14 @@ class FraudGateTests(TestCase):
 
 # ── CB-2006 — Age verification gate ──────────────────────────────────────────
 
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class AgeVerificationGateTests(TestCase):
-    """gate_age_verified enforces 18+ before paid arena actions (CB-2006)."""
+    """gate_age_verified enforces 18+ before paid arena actions (CB-2006).
+
+    CHEF_BATTLE_ENABLED=True so the two POST tests below reach their own
+    age-verification checks rather than 404ing at chef_battle_guard first
+    (F2/F3, 2026-08-10: token_checkout_create and the gift-send views were
+    unguarded and are guarded now)."""
 
     def setUp(self):
         User = get_user_model()

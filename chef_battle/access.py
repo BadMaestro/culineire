@@ -167,9 +167,6 @@ UNGUARDED_BY_DESIGN = {
     "battle_recipe_attach": "login_required; participant-checked in the view.",
     "biathlon": "login_required; PermissionDenied unless a battle participant.",
     "content_report_submit": "login_required; DSA reporting endpoint, validates its own input.",
-    "send_appreciation_gift_view": "login_required; runs the fraud gates including suspension.",
-    "send_viewer_battle_gift_view": "login_required; runs the fraud gates including suspension.",
-    "token_checkout_create": "login_required; wallet is resolved from the caller.",
     "artifact_generate_image": "login_required; staff/moderator checked in the view.",
 
     # Poll and action endpoints that call is_battle_visible directly, because

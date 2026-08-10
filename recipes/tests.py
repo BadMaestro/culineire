@@ -4241,6 +4241,64 @@ class ArenaBuildPlanShareLinkTests(TestCase):
         self.assertEqual(self.client.get(reverse("chef_battle:arena")).status_code, 404)
 
 
+@override_settings(CHEF_BATTLE_ENABLED=False)
+class AuthorDetailBattleVisibilityParityTests(TestCase):
+    """F1, audit 2026-08-10: author_detail re-implemented the arena visibility
+    check by hand instead of calling is_battle_visible(), and its copy still
+    trusted has_bearseeker_privileges - the exact flag test_gate_parity exists
+    to keep out, one call site test_gate_parity never covered because it only
+    compares battle_widget_context against is_battle_visible, not this view.
+
+    A moderator flag without the staff bit must see the same nothing an
+    ordinary AUTHOR sees on someone else's public profile page."""
+
+    def setUp(self):
+        User = get_user_model()
+        from recipes.models import RecipeAuthor
+        from chef_battle.models import ChefBattleProfile
+
+        viewed_user = User.objects.create_user("f1-viewed", password="pw")
+        self.viewed_author = RecipeAuthor.objects.create(
+            user=viewed_user, name="F1 Viewed", slug="f1-viewed",
+        )
+        # enrolled_at set so the arena section would actually render if the
+        # visibility leak were still open - an unenrolled profile would hide
+        # it regardless of the permission fix, which would prove nothing.
+        ChefBattleProfile.objects.create(author=self.viewed_author, enrolled_at=timezone.now())
+
+        self.moderator_user = User.objects.create_user("f1-moderator-flag", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.moderator_user, name="F1 Moderator Flag", slug="f1-moderator-flag",
+            has_bearseeker_privileges=True,
+        )
+
+        self.staff_user = User.objects.create_user(
+            "f1-staff", password="pw", is_staff=True,
+        )
+        RecipeAuthor.objects.create(user=self.staff_user, name="F1 Staff", slug="f1-staff")
+
+    def _get(self):
+        return self.client.get(
+            reverse("recipes:author_detail", kwargs={"slug": self.viewed_author.slug})
+        )
+
+    def test_moderator_flag_without_staff_bit_sees_no_battle_data(self):
+        self.client.login(username="f1-moderator-flag", password="pw")
+        resp = self._get()
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, 'id="chef-arena"')
+        self.assertNotContains(resp, "Chef Battles Arena")
+        self.assertIsNone(resp.context["battle_profile"])
+        self.assertEqual(resp.context["arena_battles"], [])
+
+    def test_staff_sees_battle_data(self):
+        self.client.login(username="f1-staff", password="pw")
+        resp = self._get()
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'id="chef-arena"')
+        self.assertIsNotNone(resp.context["battle_profile"])
+
+
 class ArchitectureNormalisationIsClosedTests(TestCase):
     """The project is CLOSED and OFF the active board — Owner, 2026-08-09.
 

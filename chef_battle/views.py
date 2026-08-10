@@ -609,6 +609,7 @@ WITHDRAWAL_CONSENT_TEXT = (
 
 @require_POST
 @login_required
+@chef_battle_guard
 def token_checkout_create(request):
     from .models import TokenPackage, TokenWallet
     from .stripe_services import (
@@ -2610,6 +2611,7 @@ def battle_chat_poll(request, pk):
 
 @login_required
 @require_POST
+@chef_battle_guard
 def send_appreciation_gift_view(request, pk):
     from .models import AppreciationGiftType
     from .services import send_appreciation_gift
@@ -2661,6 +2663,7 @@ def send_appreciation_gift_view(request, pk):
 
 @login_required
 @require_POST
+@chef_battle_guard
 def send_viewer_battle_gift_view(request, pk):
     """Viewer sends a combat artifact to a chef during an active battle.
 

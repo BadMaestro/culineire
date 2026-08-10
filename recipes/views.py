@@ -1454,15 +1454,8 @@ def author_detail(request, slug):
     arena_battles = []
     arena_gift_display = []
     champion_badge = None
-    _flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
-    _u = request.user
-    _ap = getattr(_u, "recipe_author_profile", None) if _u and _u.is_authenticated else None
-    chef_battle_enabled = _flag_on or bool(
-        _u and _u.is_authenticated and (
-            _u.is_staff or _u.is_superuser
-            or (_ap and _ap.has_bearseeker_privileges)
-        )
-    )
+    from chef_battle.access import is_battle_visible
+    chef_battle_enabled = is_battle_visible(request)
 
     if chef_battle_enabled:
         try:
@@ -3484,6 +3477,61 @@ ARENA_DESIGN_TASKS = [
         "acceptance": "His answer recorded verbatim in the release journal, then the losing side corrected.",
         "forbidden": "Do not 'fix' this by editing code to match an archived doc; several of these are money.",
         "evidence": "OWNER'S RULING 2026-08-05: X12 approved. The doubled artifact price stands: send_battle_artifact() (services.py) charges artifact.token_cost * 2 - the artifact plus an equal delivery fee - and that is the intended economics, not a defect. The live catalogue also stands: six appreciation gifts at 20-100 tokens against the archived document's five at 5-20. No code change; this row exists so nobody 'corrects' the price towards audience_gifts.md later.",
+    },
+    {
+        "id": "F1", "group": "Release Audit 2026-08-10", "title": "Public author page leaked battle data through a stale permission flag",
+        "status": "DONE", "owner": "Bolt",
+        "files": "recipes/views.py:1437 (author_detail)",
+        "depends_on": "none",
+        "action": "Replace the view's own hand-rolled visibility check with a call to is_battle_visible().",
+        "visible_result": "A moderator flag without the staff bit sees nothing on someone else's author page again, matching every other Chef Battles surface.",
+        "acceptance": "author_detail calls is_battle_visible(); has_bearseeker_privileges does not appear in this file's own copy of the check; recipes.tests.AuthorDetailBattleVisibilityParityTests green.",
+        "forbidden": "Do not widen who sees the section while fixing this - the fix is parity with the existing gate, not a new policy.",
+        "evidence": "SHIPPED v2.5.988. Full audit against docs/CHEF_BATTLE_PRODUCT_CONTRACT_2D.md found author_detail re-implementing the visibility rule by hand instead of calling chef_battle.access.is_battle_visible(), and the copy still trusted has_bearseeker_privileges - the exact flag the v2.5.798 fix (see that release_journal entry) excluded everywhere else. It was a fifth hand-written copy test_gate_parity.py never covered, because that test only compares battle_widget_context against is_battle_visible(). Any account carrying the moderator flag without is_staff saw battle_profile, recent_battles, arena_battles, arena_gift_display and champion_badge on the public author page. Fixed by deleting the local copy and calling the shared function. New test recipes.tests.AuthorDetailBattleVisibilityParityTests proves a moderator-flag-only account sees neither the context values nor the rendered #chef-arena section, and that staff still does.",
+    },
+    {
+        "id": "F2", "group": "Release Audit 2026-08-10", "title": "Token purchase accepted a real Stripe charge with no visibility gate",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (token_checkout_create); chef_battle/access.py (UNGUARDED_BY_DESIGN)",
+        "depends_on": "none",
+        "action": "Add chef_battle_guard to token_checkout_create; remove its now-stale UNGUARDED_BY_DESIGN entry.",
+        "visible_result": "An ordinary authenticated user (not staff) posting directly to the checkout endpoint gets the same 404 the shop page already gives them.",
+        "acceptance": "token_checkout_create carries @chef_battle_guard; test_every_routed_view_is_guarded_or_listed still green; TokenOrderVatConsentTests and AgeVerificationGateTests updated for the now-enforced gate.",
+        "forbidden": "Do not touch Stripe/webhook/payout code - this is an access-gate fix only, per AGENTS.md section 8's standing exclusion of the real payment integration.",
+        "evidence": "SHIPPED v2.5.988. token_shop (the GET page) carried @chef_battle_guard; the POST that actually creates the Stripe Checkout session did not - only @require_POST @login_required, listed in UNGUARDED_BY_DESIGN with the reason 'wallet is resolved from the caller', which addresses data-scoping, not pre-release visibility. Contract section 5 says ordinary_authenticated_user sees Chef Battles nowhere before the Owner's release decision; this endpoint let one spend real EUR on it anyway with a guessed package_id. Guard added, exemption entry removed. Existing tests that posted to this endpoint as a plain non-staff author (TokenOrderVatConsentTests.test_checkout_requires_withdrawal_consent, AgeVerificationGateTests.test_token_checkout_blocked_when_age_not_verified) needed CHEF_BATTLE_ENABLED=True added so they still reach their own logic instead of 404ing at the gate first - same fix pattern the v2.5.871 journal entry already used for BattleSetReadyTests.",
+    },
+    {
+        "id": "F3", "group": "Release Audit 2026-08-10", "title": "Gift and artifact sending accepted POSTs with no visibility gate",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (send_appreciation_gift_view, send_viewer_battle_gift_view); chef_battle/access.py (UNGUARDED_BY_DESIGN)",
+        "depends_on": "none",
+        "action": "Add chef_battle_guard to both gift-send views; remove their now-stale UNGUARDED_BY_DESIGN entries.",
+        "visible_result": "A user who cannot even load battle_detail can no longer POST a gift or artifact into that battle by pk and recipient slug.",
+        "acceptance": "Both views carry @chef_battle_guard; test_every_routed_view_is_guarded_or_listed still green; AgeVerificationGateTests.test_send_gift_blocked_when_age_not_verified still exercises its own fraud-gate logic under the class-level CHEF_BATTLE_ENABLED=True override.",
+        "forbidden": "Do not loosen the existing fraud gates (suspension/fraud-flag/age/velocity) while adding this - they stay, this adds the missing layer in front of them.",
+        "evidence": "SHIPPED v2.5.988. Both views were @login_required @require_POST only, exempted in UNGUARDED_BY_DESIGN on the rationale 'runs the fraud gates including suspension' - true, but none of gate_suspended_account/gate_fraud_flagged/gate_age_verified check is_staff or is_battle_visible. A user who fails chef_battle_guard on every page in this app could still reach either endpoint directly. Guard added to both; exemptions removed.",
+    },
+    {
+        "id": "F4", "group": "Release Audit 2026-08-10", "title": "No-show sweep could double-award a forfeit under overlapping runs",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/services.py (handle_no_show_battles)",
+        "depends_on": "none",
+        "action": "Row-lock each battle under the sweep and re-verify its status/deadline after acquiring the lock, same pattern as resolve_start_rituals/_locked_battle.",
+        "visible_result": "None visible to a user - this closes a data-integrity gap in a cron sweep, not a UI change.",
+        "acceptance": "handle_no_show_battles locks via _locked_battle and re-checks status+deadline before awarding; NoShowSweepIsLockedAgainstDoubleAwardTests green (SQL-mechanism test + a run-twice-only-awards-once functional test).",
+        "forbidden": "Do not change the no-penalty-for-silence rule (Owner, 2026-08-05) or any forfeit amount while fixing the lock - this is concurrency-safety only.",
+        "evidence": "SHIPPED v2.5.988. handle_no_show_battles iterated a plain queryset snapshot and called _award_forfeit_win() inside transaction.atomic() with no row lock - unlike calculate_battle_result/resolve_start_rituals, which lock specifically to stop double-processing (see _locked_battle's own docstring). The sweep runs from crontab every 15 minutes with no mutex (docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md), and _notify_chef sends email synchronously inside the loop, so overlapping runs are plausible, not theoretical. Two overlapping runs seeing the same stale battle before either committed would both award the forfeit - double wins/streak/rank to the winner, double penalty to the loser. Fixed: the sweep now takes a plain id snapshot, then locks and re-verifies each battle (status still qualifying, deadline still passed) inside its own transaction before touching it, and recomputes submission state from the locked row rather than the pre-lock snapshot.",
+    },
+    {
+        "id": "F5", "group": "Release Audit 2026-08-10", "title": "Reward issuance could lose tokens under a concurrent wallet update",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/services.py (issue_reward)",
+        "depends_on": "none",
+        "action": "Replace the read-modify-write wallet balance update with the same F()-expression atomic UPDATE credit_tokens/debit_tokens already use.",
+        "visible_result": "None visible to a user - this closes a lost-update gap between two staff actions, not a UI change.",
+        "acceptance": "issue_reward updates TokenWallet.balance via F('balance') + amount, not a Python-computed literal; IssueRewardWalletUpdateIsAtomicTests green (SQL-mechanism test + a balance_after-reconciles test).",
+        "forbidden": "Do not change reverse_reward's existing select_for_update() pattern while fixing this - that one is already correct, just a different valid technique; this card is issue_reward only.",
+        "evidence": "SHIPPED v2.5.988. issue_reward locked the RewardRecord (select_for_update) but read wallet.balance, added tokens_granted in Python, and .save()'d the result - a plain read-modify-write, while credit_tokens/debit_tokens in this same file use TokenWallet.objects.filter(pk=...).update(balance=F('balance')+amount) specifically to avoid this. Two RewardRecords for the same chef issued at once (two staff approving different queue rows, or a bulk 'issue selected' action racing a second session) would both read the pre-update balance; the later save silently clobbers the earlier one and TokenTransaction.balance_after stops reconciling with the real balance - a §7 auditability violation. Fixed to the same F()-expression pattern used elsewhere in this file.",
     },
 ]
 
