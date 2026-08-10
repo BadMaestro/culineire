@@ -323,6 +323,16 @@ def check_rank_matchup(challenger, opponent) -> str | None:
 
 
 def accept_challenge(challenge: BattleChallenge) -> Battle:
+    # F9, 2026-08-11: check_rank_matchup only ran at challenge_create, not
+    # here. A challenge stands for up to twelve hours (X05) and a win moves
+    # rank by the ladder's three-wins-per-step cadence, so a matchup that was
+    # legal when sent could no longer be adjacent-rank by the time it is
+    # accepted - the eligibility check is only authoritative at the state
+    # transition it is meant to gate if it runs there too.
+    rank_error = check_rank_matchup(challenge.challenger, challenge.opponent)
+    if rank_error:
+        raise ValueError(rank_error)
+
     now = timezone.now()
     start_time = challenge.proposed_start_time or now
     status = Battle.Status.SCHEDULED if start_time > now else Battle.Status.MENU_LOCKED
@@ -880,6 +890,14 @@ def _award_draw_shares(battle: Battle) -> None:
 def _score_battle(battle: Battle) -> Battle:
     if battle.status == Battle.Status.COMPLETED:
         return battle
+
+    # F10, 2026-08-11: neither exit path below touched is_revealed, so a
+    # battle scored straight from ACTIVE (calculate_battle_result is also a
+    # _SERVICE_OWNED_TRANSITIONS target for (ACTIVE, COMPLETED)) could reach
+    # COMPLETED - a status the template treats as reveal-implying - without
+    # the flag ever being set. reveal_entries_if_ready() is the only other
+    # writer of this field; a battle scored here never passed through it.
+    battle.entries.filter(is_revealed=False).update(is_revealed=True)
 
     vote_counts = {
         item["voted_for"]: item["total"]
@@ -2954,6 +2972,17 @@ _SERVICE_OWNED_TRANSITIONS = {
     (Battle.Status.ACTIVE, Battle.Status.COMPLETED): "calculate_battle_result",
 }
 
+# Targets the battle_detail.html template treats as reveal-implying
+# (entry.is_revealed OR battle.status in this set shows the recipe/statement).
+# F10, 2026-08-11: a direct force-assign to one of these bypassed
+# reveal_entries_if_ready()/_score_battle entirely, so the template showed
+# both entries while is_revealed stayed False in the database - the reveal
+# contract held only by accident of which code path made a dish public.
+_REVEAL_IMPLIED_TARGETS = {
+    Battle.Status.PRESENTATION, Battle.Status.VOTING,
+    Battle.Status.COMPLETED, Battle.Status.REVEALED,
+}
+
 # Force-transition targets the console may request at all.
 OPERATOR_ALLOWED_TARGETS = {
     Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE,
@@ -2997,6 +3026,8 @@ def operator_force_status(
         else:
             battle.status = target_status
             battle.save(update_fields=["status", "updated_at"])
+            if target_status in _REVEAL_IMPLIED_TARGETS:
+                battle.entries.filter(is_revealed=False).update(is_revealed=True)
 
         _operator_event(
             battle=battle, operator_author=operator_author,

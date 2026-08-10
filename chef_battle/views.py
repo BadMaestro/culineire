@@ -492,6 +492,7 @@ def season_leaderboard(request):
     })
 
 
+@chef_battle_guard
 @login_required
 def chef_enroll(request):
     """Author → Chef onboarding. Requires 18+ confirmation and battle rules acceptance."""
@@ -533,6 +534,7 @@ def chef_enroll(request):
     return render(request, "chef_battle/enroll.html", {"error": error})
 
 
+@chef_battle_guard
 @login_required
 def enroll_success(request):
     """Confirmation page shown immediately after successful Chef enrollment."""
@@ -540,6 +542,7 @@ def enroll_success(request):
     return render(request, "chef_battle/enroll_success.html", {"author": author})
 
 
+@chef_battle_guard
 @login_required
 def age_verification(request):
     """Allow a chef to self-certify they are 18+ before paid Arena features."""
@@ -1876,7 +1879,11 @@ def challenge_respond(request, pk):
         if not cooldown.passed:
             messages.error(request, "You completed a battle recently. Please wait 24 hours before accepting a new challenge.")
             return redirect("chef_battle:challenge_list")
-        battle = accept_challenge(challenge)
+        try:
+            battle = accept_challenge(challenge)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect("chef_battle:challenge_list")
         messages.success(request, "Challenge accepted. The battle room is live.")
         return redirect(battle.get_absolute_url())
     if action == "refuse":
@@ -2436,6 +2443,7 @@ def battle_state_poll(request, pk):
     })
 
 
+@chef_battle_guard
 @login_required
 def biathlon(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
@@ -2489,7 +2497,13 @@ def biathlon_shoot(request, pk):
 
 @login_required
 def cooking_moderation(request):
-    if not is_moderator(request.user):
+    # is_moderator() alone admits has_bearseeker_privileges regardless of
+    # is_staff (F8, 2026-08-11) - a general site-moderation flag, not a Chef
+    # Battle one. Not currently exploitable (grant_bearseeker always sets
+    # is_staff too), but nothing enforces that invariant, so this app's own
+    # moderation surface also requires is_battle_visible, same as every other
+    # page here.
+    if not (is_moderator(request.user) and is_battle_visible(request)):
         raise PermissionDenied
     battles = get_battles_awaiting_cooking_approval()
     return render(request, "chef_battle/cooking_moderation.html", {"battles": battles})
@@ -2498,7 +2512,7 @@ def cooking_moderation(request):
 @login_required
 @require_POST
 def cooking_moderation_approve(request, pk):
-    if not is_moderator(request.user):
+    if not (is_moderator(request.user) and is_battle_visible(request)):
         raise PermissionDenied
     battle = get_object_or_404(Battle, pk=pk)
     try:
@@ -3201,6 +3215,7 @@ def battle_set_ready(request, pk):
 
 # ── Changing Room: Menu Declaration ─────────────────────────────────────────
 
+@chef_battle_guard
 @login_required
 def battle_changing_room(request, pk):
     """Changing Room — chef declares their ingredient list (menu_locked phase)."""
@@ -3238,6 +3253,7 @@ def battle_changing_room(request, pk):
     })
 
 
+@chef_battle_guard
 @login_required
 def battle_recipe_attach(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
@@ -3904,7 +3920,7 @@ def battle_withdraw_resolve(request, pk):
     from .models import BattleWithdrawal
     from .withdrawal_service import resolve_withdrawal, WithdrawalNotAllowed
 
-    if not is_moderator(request.user):
+    if not (is_moderator(request.user) and is_battle_visible(request)):
         raise Http404
 
     withdrawal = get_object_or_404(

@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-10 · Production baseline: **v2.5.988**
+Last reconciled: 2026-08-11 · Production baseline: **v2.5.994**
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
@@ -17,10 +17,21 @@ three permission gaps (a stale flag leaking battle data on the public author
 page, an unguarded real-money token checkout, unguarded gift/artifact sends)
 and two unlocked race conditions (a no-show sweep that could double-award a
 forfeit, a reward-issuance wallet update that could lose tokens under
-concurrent approval). All five closed same-day; see the F1-F5 cards below and
-the audit report for the full account, including F6-F11 (medium/low, not yet
-worked) and the two contract-terminology violations (TokenWallet vs the
-required TokenAccount naming; raw CSS colour literals vs Arena tokens).**
+concurrent approval). All five closed same-day.**
+**GreenBear's independent audit, v2.5.989 — the menu spoke Russian in one
+path, two artifact rows were spelled inconsistently, and F2/F3's guard sat
+under require_POST/login_required instead of outermost, letting three URLs
+announce their own existence during dark launch. All three closed.**
+**F6-F10 fixed, 2026-08-11 — the medium findings from the same 2026-08-10
+audit: onboarding (chef_enroll/enroll_success/age_verification) and three
+battle-flow pages carried no visibility gate; Chef Battle's own moderation
+views trusted a general site-moderator flag that can outlive the staff bit;
+challenge rank eligibility was never re-checked at acceptance; and the
+reveal flag could desync from what the template already showed under a
+forced or scored transition. All five closed same-day; see the F6-F10
+cards below. F11 (low) and T1/T2 (terminology: TokenWallet vs the required
+TokenAccount naming; raw CSS colour literals vs Arena tokens) remain open,
+pending priority.**
 Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.

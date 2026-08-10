@@ -156,16 +156,10 @@ UNGUARDED_BY_DESIGN = {
 
     # Signed-in surfaces that authorise per object: author profile, battle
     # participation, moderator status or a fraud gate, checked in the view.
-    "age_verification": "login_required; requires the caller's own author profile.",
-    "chef_enroll": "login_required; onboarding for the caller's own account.",
-    "enroll_success": "login_required; confirmation for the caller's own enrolment.",
     "reward_agreement": "login_required; PermissionDenied without an author profile.",
     "payout_statement": "login_required; PermissionDenied without an author profile.",
     "battle_chest": "login_required; shows only the caller's own artifacts.",
     "changing_room": "login_required; shows only the caller's own state.",
-    "battle_changing_room": "login_required; PermissionDenied unless a battle participant.",
-    "battle_recipe_attach": "login_required; participant-checked in the view.",
-    "biathlon": "login_required; PermissionDenied unless a battle participant.",
     "content_report_submit": "login_required; DSA reporting endpoint, validates its own input.",
     "artifact_generate_image": "login_required; staff/moderator checked in the view.",
 
@@ -177,14 +171,20 @@ UNGUARDED_BY_DESIGN = {
     "arena_react": "Calls is_battle_visible directly.",
     "arena_blast": "Calls is_battle_visible directly.",
     "battle_chat_poll": "Calls is_battle_visible directly; previously leaked chat to anonymous.",
-    "cooking_moderation": "Moderator-only, checked with is_moderator in the view.",
-    "cooking_moderation_approve": "Moderator-only, checked with is_moderator in the view.",
+    "cooking_moderation": (
+        "Moderator-only, checked with is_moderator AND is_battle_visible in the "
+        "view (F8, 2026-08-11) - is_moderator alone admits has_bearseeker_"
+        "privileges regardless of is_staff, a general site-moderation flag, not "
+        "a Chef Battle one."
+    ),
+    "cooking_moderation_approve": "Same is_moderator AND is_battle_visible check as cooking_moderation (F8).",
     "battle_withdraw_resolve": (
         "login_required + require_POST, and moderator-only: the view raises "
-        "Http404 through is_moderator before it reads anything. It is listed "
-        "here rather than decorated because it is reached from the moderation "
-        "panel, not from a battle page, and chef_battle_guard would answer a "
-        "moderator's POST with the battle-visibility banner."
+        "Http404 through is_moderator AND is_battle_visible (F8, 2026-08-11) "
+        "before it reads anything. It is listed here rather than decorated "
+        "because it is reached from the moderation panel, not from a battle "
+        "page, and chef_battle_guard would answer a moderator's POST with the "
+        "battle-visibility banner."
     ),
 }
 

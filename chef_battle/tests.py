@@ -12919,3 +12919,229 @@ class GiftPricesMatchTheirDocumentTests(TestCase):
                 "delivery fee", text,
                 f"{name} states an artifact price without the fee that doubles it",
             )
+
+
+@override_settings(CHEF_BATTLE_ENABLED=False)
+class OnboardingAndBattleFlowGuardTests(TestCase):
+    """F6/F7, 2026-08-11: chef_enroll, enroll_success, age_verification (onboarding)
+    and battle_changing_room, battle_recipe_attach, biathlon (GET) carried only
+    @login_required, unlike their sibling battle-flow endpoints which all carry
+    chef_battle_guard. An ordinary non-staff member could self-enroll, receive the
+    enrol bonus, self-certify age, and reach in-battle pages the app-wide gate is
+    meant to hide entirely before release. All six now carry @chef_battle_guard,
+    outermost, same convention as DarkLaunchInvisibilityTests."""
+
+    NO_PK_ENDPOINTS = (
+        "chef_battle:chef_enroll",
+        "chef_battle:enroll_success",
+        "chef_battle:age_verification",
+    )
+    PK_ENDPOINTS = (
+        "chef_battle:battle_changing_room",
+        "chef_battle:battle_recipe_attach",
+        "chef_battle:biathlon",
+    )
+
+    def setUp(self):
+        User = get_user_model()
+        self.plain_user = User.objects.create_user("f6f7-plain", password="pw")
+        RecipeAuthor.objects.create(user=self.plain_user, name="F6F7 Plain", slug="f6f7-plain")
+
+    def test_ordinary_member_is_404d_on_onboarding(self):
+        client = Client()
+        client.login(username="f6f7-plain", password="pw")
+        for name in self.NO_PK_ENDPOINTS:
+            url = reverse(name)
+            self.assertEqual(
+                client.get(url).status_code, 404,
+                f"{name} let a non-staff member past the arena gate",
+            )
+
+    def test_ordinary_member_is_404d_on_battle_flow_pages(self):
+        client = Client()
+        client.login(username="f6f7-plain", password="pw")
+        for name in self.PK_ENDPOINTS:
+            url = reverse(name, kwargs={"pk": 1})
+            self.assertEqual(
+                client.get(url).status_code, 404,
+                f"{name} let a non-staff member past the arena gate",
+            )
+
+    def test_anonymous_is_404d_on_all_six(self):
+        client = Client()
+        for name in self.NO_PK_ENDPOINTS:
+            self.assertEqual(client.get(reverse(name)).status_code, 404)
+        for name in self.PK_ENDPOINTS:
+            self.assertEqual(client.get(reverse(name, kwargs={"pk": 1})).status_code, 404)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_staff_still_reaches_enroll(self):
+        User = get_user_model()
+        staff = User.objects.create_user("f6f7-staff", password="pw", is_staff=True)
+        RecipeAuthor.objects.create(user=staff, name="F6F7 Staff", slug="f6f7-staff")
+        client = Client()
+        client.login(username="f6f7-staff", password="pw")
+        self.assertEqual(client.get(reverse("chef_battle:chef_enroll")).status_code, 200)
+
+
+class ChefBattleModerationRequiresVisibilityTests(TestCase):
+    """F8, 2026-08-11: cooking_moderation, cooking_moderation_approve and
+    battle_withdraw_resolve gated only on is_moderator(), which returns True for
+    has_bearseeker_privileges regardless of is_staff - a general site-moderation
+    flag, not a Chef Battle one. Not previously exploitable (grant_bearseeker
+    always also sets is_staff), but nothing enforced that invariant. All three now
+    also require is_battle_visible()."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.mod_flag_only = User.objects.create_user("f8-modflag", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.mod_flag_only, name="F8 Mod Flag", slug="f8-modflag",
+            has_bearseeker_privileges=True,
+        )
+        self.staff_mod = User.objects.create_user("f8-staff", password="pw", is_staff=True)
+        RecipeAuthor.objects.create(user=self.staff_mod, name="F8 Staff", slug="f8-staff")
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_moderator_flag_without_staff_bit_is_denied(self):
+        client = Client()
+        client.login(username="f8-modflag", password="pw")
+        resp = client.get(reverse("chef_battle:cooking_moderation"))
+        self.assertIn(resp.status_code, (403, 404))
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_staff_moderator_is_allowed(self):
+        client = Client()
+        client.login(username="f8-staff", password="pw")
+        resp = client.get(reverse("chef_battle:cooking_moderation"))
+        self.assertEqual(resp.status_code, 200)
+
+
+class AcceptChallengeRankRecheckTests(TestCase):
+    """F9, 2026-08-11: check_rank_matchup only ran at challenge_create, not at
+    accept_challenge. A challenge stands up to twelve hours (X05); if the rank
+    gap widens past adjacent in that window (a win moves rank by the ladder's
+    three-wins-per-step cadence), the battle was still created. accept_challenge
+    now re-checks and raises ValueError; challenge_respond surfaces it as a
+    message instead of a 500."""
+
+    def setUp(self):
+        User = get_user_model()
+        uc = User.objects.create_user("f9-challenger", password="pw")
+        uo = User.objects.create_user("f9-opponent", password="pw")
+        self.challenger = RecipeAuthor.objects.create(user=uc, name="F9 Challenger", slug="f9-challenger")
+        self.opponent = RecipeAuthor.objects.create(user=uo, name="F9 Opponent", slug="f9-opponent")
+        ChefBattleProfile.objects.create(author=self.challenger, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.opponent, enrolled_at=timezone.now())
+
+    def _challenge(self):
+        return BattleChallenge.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme="F9 Dish",
+            expires_at=timezone.now() + timezone.timedelta(hours=12),
+        )
+
+    def test_accept_raises_when_rank_gap_widened_after_the_challenge_was_sent(self):
+        challenge = self._challenge()
+        # Both start at the same default rank - legal when the challenge was
+        # sent. Push the opponent three ranks up before it is accepted.
+        ranks = list(ChefBattleProfile.Rank)
+        self.opponent.battle_profile.rank = ranks[3].value
+        self.opponent.battle_profile.save(update_fields=["rank"])
+
+        with self.assertRaises(ValueError):
+            accept_challenge(challenge)
+        challenge.refresh_from_db()
+        self.assertEqual(challenge.status, BattleChallenge.Status.PENDING)
+        self.assertFalse(Battle.objects.filter(challenge=challenge).exists())
+
+    def test_accept_still_works_when_ranks_stayed_adjacent(self):
+        challenge = self._challenge()
+        battle = accept_challenge(challenge)
+        self.assertIsNotNone(battle.pk)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_view_surfaces_the_rank_error_instead_of_500(self):
+        challenge = self._challenge()
+        ranks = list(ChefBattleProfile.Rank)
+        self.opponent.battle_profile.rank = ranks[3].value
+        self.opponent.battle_profile.save(update_fields=["rank"])
+
+        client = Client()
+        client.login(username="f9-opponent", password="pw")
+        resp = client.post(
+            reverse("chef_battle:challenge_respond", kwargs={"pk": challenge.pk}),
+            {"action": "accept"},
+        )
+        self.assertEqual(resp.status_code, 302)
+        challenge.refresh_from_db()
+        self.assertEqual(challenge.status, BattleChallenge.Status.PENDING)
+
+
+class ForcedTransitionRevealsEntriesTests(TestCase):
+    """F10, 2026-08-11: battle_detail.html shows entry.recipe/battle_statement
+    when entry.is_revealed OR battle.status in {completed, presentation, voting} -
+    a phase-name fallback. reveal_entries_if_ready() was the only writer of
+    is_revealed, and neither operator_force_status's direct-assign branch nor
+    _score_battle called it, so a forced or scored transition into one of those
+    statuses could show both dishes while is_revealed stayed False in the
+    database."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.owner_user = User.objects.create_superuser("f10-greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "F10 GreenBear"},
+        )
+        ua = User.objects.create_user("f10-chef-a", password="pw")
+        ub = User.objects.create_user("f10-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="F10 Chef A", slug="f10-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="F10 Chef B", slug="f10-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+
+    def _battle_with_unrevealed_entries(self, status):
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="F10 Dish", status=status,
+            start_time=now,
+            submission_deadline=now - timezone.timedelta(hours=1),
+            voting_deadline=now + timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=2),
+        )
+        for author in (self.chef_a, self.chef_b):
+            BattleEntry.objects.create(
+                battle=battle, author=author,
+                battle_statement="Secret recipe.",
+                dish_submitted_at=now, is_revealed=False,
+            )
+        return battle
+
+    def test_direct_force_assign_reveals_entries(self):
+        from .services import operator_force_status
+        battle = self._battle_with_unrevealed_entries(Battle.Status.ACTIVE)
+        operator_force_status(
+            battle_id=battle.pk, operator_author=self.owner_author,
+            target_status=Battle.Status.VOTING, expected_status=Battle.Status.ACTIVE,
+            reason="F10 test",
+        )
+        self.assertTrue(
+            all(battle.entries.values_list("is_revealed", flat=True)),
+            "forcing straight to VOTING left an entry unrevealed while the "
+            "template would already show it",
+        )
+
+    def test_calculate_battle_result_reveals_entries(self):
+        battle = self._battle_with_unrevealed_entries(Battle.Status.ACTIVE)
+        BattleVote.objects.create(
+            battle=battle,
+            voter=get_user_model().objects.create_user("f10-voter", password="pw"),
+            voted_for=self.chef_a,
+        )
+        calculate_battle_result(battle)
+        self.assertTrue(
+            all(battle.entries.values_list("is_revealed", flat=True)),
+            "a battle scored to COMPLETED left an entry unrevealed",
+        )
