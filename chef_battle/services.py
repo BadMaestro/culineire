@@ -1593,32 +1593,32 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
     Transitions battle to ACTIVE when both chefs have declared.
     """
     if battle.status != Battle.Status.MENU_LOCKED:
-        raise ValueError("Меню можно объявить только на стадии Changing Room (menu_locked).")
+        raise ValueError("The menu can only be declared in the Changing Room (menu_locked).")
     if not battle.author_is_participant(chef):
-        raise ValueError("Только участник боя может объявить меню.")
+        raise ValueError("Only a chef fighting this battle can declare a menu.")
     if battle.battle_ingredients.filter(chef=chef).exists():
-        raise ValueError("Меню уже объявлено и не может быть изменено.")
+        raise ValueError("Your menu is already declared and cannot be changed.")
 
     count = len(ingredients)
     if count < BattleIngredient.MIN_COUNT or count > BattleIngredient.MAX_COUNT:
         raise ValueError(
-            f"Список должен содержать от {BattleIngredient.MIN_COUNT} "
-            f"до {BattleIngredient.MAX_COUNT} ингредиентов, получено {count}."
+            f"Your list must hold between {BattleIngredient.MIN_COUNT} and "
+            f"{BattleIngredient.MAX_COUNT} ingredients; you sent {count}."
         )
     opponent_count = battle.battle_ingredients.filter(chef=battle.opponent_for(chef)).count()
     if opponent_count and count != opponent_count:
         raise ValueError(
-            f"Соперник объявил {opponent_count} ингредиентов — ваш список должен содержать столько же."
+            f"Your opponent declared {opponent_count} ingredients — your list must hold the same number."
         )
     key_count = sum(1 for i in ingredients if i.get("is_key"))
     if key_count != BattleIngredient.KEY_COUNT:
-        raise ValueError(f"Необходимо отметить ровно {BattleIngredient.KEY_COUNT} ключевых ингредиента.")
+        raise ValueError(f"Mark exactly {BattleIngredient.KEY_COUNT} key ingredients.")
 
     names = [i["name"].strip() for i in ingredients]
     if any(not n for n in names):
-        raise ValueError("Название ингредиента не может быть пустым.")
+        raise ValueError("An ingredient name cannot be empty.")
     if len(set(n.lower() for n in names)) != len(names):
-        raise ValueError("Ингредиенты не должны повторяться.")
+        raise ValueError("Ingredients cannot repeat.")
 
     with transaction.atomic():
         created = []
@@ -1642,7 +1642,7 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
             create_battle_event(
                 battle=battle,
                 event_type=BattleEvent.EventType.BATTLE_STARTED,
-                message="Оба шефа объявили меню. Бой начинается!",
+                message="Both chefs have declared their menus. The battle begins!",
                 is_public=True,
             )
 

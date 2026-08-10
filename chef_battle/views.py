@@ -607,9 +607,17 @@ WITHDRAWAL_CONSENT_TEXT = (
 )
 
 
+# The guard goes FIRST, above login_required and require_POST, and that order is
+# the whole point of this stack. Underneath them the gate still refused everyone
+# it should — but require_POST answered an anonymous GET with 405 and
+# login_required answered it with a redirect to the login page, so during a dark
+# launch these three URLs announced their own existence while every other gated
+# arena surface answered 404. A dark launch is about being invisible, not only
+# about being shut. Measured on production at v2.5.988 before this change:
+# /chef-battle/arena/ 404, /chef-battle/tokens/checkout/ 405.
+@chef_battle_guard
 @require_POST
 @login_required
-@chef_battle_guard
 def token_checkout_create(request):
     from .models import TokenPackage, TokenWallet
     from .stripe_services import (
@@ -1235,8 +1243,19 @@ def _build_arena_payload(*, viewer_author=None):
             chef_id__in=enrolled_author_ids,
             status=ChefArtifact.Status.AVAILABLE,
         ).values("chef_id").annotate(
-            atk=Coalesce(Sum("artifact__effect_value", filter=Q(artifact__effect_type="attack")), 0),
-            def_=Coalesce(Sum("artifact__effect_value", filter=Q(artifact__effect_type="defence")), 0),
+            # BOTH spellings. Artifact.effect_type is free text with no choices,
+            # and production carries 100 rows spelled "defence" and 2 spelled
+            # "defense" — The Butter Shield (epic, 9) and Rusty Pan of Survival
+            # (common, 1), held by four chefs. An exact match on one spelling
+            # silently dropped them from the defence total the arena shows, so
+            # those chefs read a number lower than what they own. Combat itself
+            # was never wrong: services.py normalises before it compares, and
+            # the knife-roll filter already listed both. This was the third
+            # consumer and the only one that did neither.
+            atk=Coalesce(Sum("artifact__effect_value",
+                             filter=Q(artifact__effect_type__iexact="attack")), 0),
+            def_=Coalesce(Sum("artifact__effect_value",
+                              filter=Q(artifact__effect_type__in=("defence", "defense"))), 0),
         )
     }
 
@@ -2609,9 +2628,10 @@ def battle_chat_poll(request, pk):
     })
 
 
+# Guard first — see token_checkout_create for why the order matters.
+@chef_battle_guard
 @login_required
 @require_POST
-@chef_battle_guard
 def send_appreciation_gift_view(request, pk):
     from .models import AppreciationGiftType
     from .services import send_appreciation_gift
@@ -2661,9 +2681,10 @@ def send_appreciation_gift_view(request, pk):
     return redirect("chef_battle:battle_detail", pk=pk)
 
 
+# Guard first — see token_checkout_create for why the order matters.
+@chef_battle_guard
 @login_required
 @require_POST
-@chef_battle_guard
 def send_viewer_battle_gift_view(request, pk):
     """Viewer sends a combat artifact to a chef during an active battle.
 
@@ -3262,7 +3283,7 @@ def battle_declare_menu(request, pk):
     ]
     try:
         declare_menu(battle=battle, chef=viewer_author, ingredients=ingredients)
-        messages.success(request, "Меню объявлено. Ждём соперника!")
+        messages.success(request, "Menu declared. Waiting for your opponent!")
     except ValueError as e:
         messages.error(request, str(e))
         return redirect("chef_battle:battle_changing_room", pk=pk)

@@ -12695,3 +12695,169 @@ class ArenaOctagonPublicContractTests(TestCase):
         body = self._body(js, "sponsorsCorner") if "function sponsorsCorner(" in js else ""
         self.assertIn('data-ring-kind="vip"', body)
         self.assertIn("(box.top + box.bottom) / 2", body)
+
+
+class ArenaSpeaksEnglishTests(TestCase):
+    """Every string this site shows a user is English — GreenBear audit 3.1.
+
+    The whole menu-declaration path answered in Russian: six ValueError
+    messages the view renders verbatim, the success banner, and — worst —
+    a BattleEvent created with is_public=True, which puts one Russian
+    sentence in the public battle feed the arena and the sitewide news read.
+    It was written to the Owner's Russian dictation and never translated,
+    and no test looked, so it survived every green suite until v2.5.989.
+
+    This guards the SOURCE, not one string: the next line written the same
+    way fails here rather than on the Owner's screen.
+    """
+
+    CYRILLIC = re.compile("[Ѐ-ӿ]")
+
+    #: Files whose user-facing strings must be English. Comments are exempt —
+    #: quoting the Owner's own words in a comment is normal and wanted.
+    SOURCES = ("services.py", "views.py", "selectors.py", "forms.py",
+               "withdrawal_service.py", "energy_service.py")
+
+    def _user_facing_lines(self, name):
+        """Every string literal in the module that is not a docstring.
+
+        Parsed, not grepped. Comments and docstrings quoting the Owner's own
+        Russian are normal and wanted — a line-based scan cannot tell those
+        from a message, and the first version of this test failed on three
+        of his own quotes.
+        """
+        import ast
+
+        path = Path(__file__).resolve().parent / name
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        docstrings = set()
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Module, ast.ClassDef,
+                                 ast.FunctionDef, ast.AsyncFunctionDef)):
+                body = getattr(node, "body", None)
+                if (body and isinstance(body[0], ast.Expr)
+                        and isinstance(body[0].value, ast.Constant)
+                        and isinstance(body[0].value.value, str)):
+                    docstrings.add(id(body[0].value))
+
+        out = []
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Constant) and isinstance(node.value, str)
+                    and id(node) not in docstrings
+                    and self.CYRILLIC.search(node.value)):
+                out.append((node.lineno, node.value.strip()))
+        return out
+
+    def test_no_cyrillic_reaches_a_user_facing_string(self):
+        offenders = []
+        for name in self.SOURCES:
+            for number, text in self._user_facing_lines(name):
+                offenders.append(f"{name}:{number}  {text[:90]}")
+        self.assertEqual(
+            offenders, [],
+            "Cyrillic outside a comment — this site answers in English:\n"
+            + "\n".join(offenders),
+        )
+
+    def test_the_public_menu_event_is_english(self):
+        """The one that reached the PUBLIC feed, pinned by itself.
+
+        create_battle_event(..., is_public=True) writes into the battle event
+        stream the arena and the sitewide news read, so this string is not a
+        message to one person — it is site content.
+        """
+        source = (Path(__file__).resolve().parent / "services.py").read_text(encoding="utf-8")
+        self.assertIn("Both chefs have declared their menus.", source)
+
+
+class DefenceArtifactSpellingTests(TestCase):
+    """Artifact.effect_type is free text, and production carries both
+    spellings: 100 rows "defence" and 2 "defense" — The Butter Shield (epic,
+    effect value 9) and Rusty Pan of Survival (common, 1), held by four chefs.
+
+    Three consumers read that field and only one was wrong. Combat normalises
+    before comparing; the knife-roll filter lists both; the arena's defence
+    total matched "defence" exactly and silently dropped the other two, so
+    those chefs were shown less than they own. GreenBear audit 3.7.
+    """
+
+    def setUp(self):
+        from .models import Artifact
+        User = get_user_model()
+        self.author = RecipeAuthor.objects.create(
+            user=User.objects.create_user("spellingchef", password="pw"),
+            name="Spelling Chef", slug="spelling-chef",
+        )
+        ChefBattleProfile.objects.create(author=self.author)
+        self.british = Artifact.objects.create(
+            name="Lid of the Realm", effect_type="defence", effect_value=4)
+        self.american = Artifact.objects.create(
+            name="Butter Shield Clone", effect_type="defense", effect_value=9)
+
+    def test_both_spellings_count_toward_the_defence_total(self):
+        from django.db.models import Q, Sum
+        from django.db.models.functions import Coalesce
+        for artifact in (self.british, self.american):
+            ChefArtifact.objects.create(
+                chef=self.author, artifact=artifact,
+                status=ChefArtifact.Status.AVAILABLE,
+            )
+        total = ChefArtifact.objects.filter(chef=self.author).aggregate(
+            def_=Coalesce(Sum("artifact__effect_value",
+                              filter=Q(artifact__effect_type__in=("defence", "defense"))), 0),
+        )["def_"]
+        self.assertEqual(
+            total, 13,
+            "the arena's defence total must count both spellings; matching one "
+            "of them hides every artifact written the other way",
+        )
+
+    def test_the_arena_view_does_not_match_one_spelling_exactly(self):
+        source = (Path(__file__).resolve().parent / "views.py").read_text(encoding="utf-8")
+        self.assertNotIn(
+            'artifact__effect_type="defence"', source,
+            "an exact match on one spelling is the bug this test exists for",
+        )
+
+
+class DarkLaunchInvisibilityTests(TestCase):
+    """A dark launch is about being INVISIBLE, not only about being shut.
+
+    v2.5.988 closed the access hole on these three by adding
+    chef_battle_guard — but under require_POST and login_required, which
+    answer first. An anonymous caller got 405 from the checkout and a login
+    redirect from the gift endpoints, while every other gated arena surface
+    answered 404. The guard is outermost now. GreenBear audit 1a.
+    """
+
+    ENDPOINTS = (
+        ("chef_battle:token_checkout_create", {}),
+        ("chef_battle:send_appreciation_gift", {"pk": 1}),
+        ("chef_battle:send_viewer_battle_gift", {"pk": 1}),
+    )
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_anonymous_callers_are_told_nothing(self):
+        client = Client()
+        for name, kwargs in self.ENDPOINTS:
+            url = reverse(name, kwargs=kwargs)
+            for response in (client.get(url), client.post(url, {})):
+                self.assertEqual(
+                    response.status_code, 404,
+                    f"{name} answered {response.status_code} to an anonymous "
+                    f"caller; a gated surface answers 404 and nothing else",
+                )
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_an_ordinary_member_is_told_nothing_either(self):
+        User = get_user_model()
+        User.objects.create_user(username="plainmember", password="pw")
+        client = Client()
+        client.login(username="plainmember", password="pw")
+        for name, kwargs in self.ENDPOINTS:
+            url = reverse(name, kwargs=kwargs)
+            response = client.post(url, {})
+            self.assertEqual(
+                response.status_code, 404,
+                f"{name} let a non-staff member past the arena gate",
+            )
