@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.982",
         "date": "2026-08-10",
-        "commit": "",
+        "commit": "408a4e8c",
         "title": "G01 signed off. Stage 2 (Design Arena visual integration) is CLOSED; Stage 3 opens",
         "section": "Chef Battles / Arena",
         "summary": "OWNER, 2026-08-10: G01 sign off. G01 -> DONE, evidence unchanged (docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md), 12/12 contract section-14 categories accounted for. Stage 2 (design-arena in ARENA_RELEASE_STAGES) -> DONE: every A00-G01 card is DONE. Stage 3 (release-readiness) -> IN PROGRESS, opening items A18's two deferred accessibility gaps and section-9 legal/payment - both still need the Owner's word before work starts, and full production release needs his separate explicit approval, which this sign-off is not. FIXED ALONGSIDE: _arena_build_context()'s next_design_task lookup had no default and would StopIteration-crash the page the moment zero cards carried status NEXT - exactly the state G01's own closure now produces, since it was the last NEXT card and nothing replaces it. Forcing an arbitrary card to wear NEXT to dodge the crash would have been the same kind of board-lying this session spent eight releases correcting, so the lookup now defaults to None instead, and the guard test (recipes.tests.ArchitectureNormalisationIsClosedTests's neighbour, test_design_task_ids_are_unique_and_the_board_never_crashes_on_next) proves it by calling the real context builder rather than asserting a fixed count. 44 focused tests green.",
