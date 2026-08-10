@@ -3,6 +3,12 @@
 ## Author note
 Defined by project creator. This is the canonical sequence of every Chef's Battle.
 
+> **THE OWNER'S STANDING RULE, 2026-08-10:** «ТЗ писалось долго и несколько раз
+> переписывалось — код уточнялся по факту… поэтому я склонен больше доверять
+> коду — ТЗ и правки нужно адаптировать.» Where this file and the code disagree
+> about a decision, the code is the decision. Two corrections follow from it
+> here, marked X15 and X17.
+
 ---
 
 ## Phase sequence
@@ -75,7 +81,12 @@ ingredient penalty applied.
 
 ## Phase 9 — Completed (`completed`)
 - Winner announced
-- Winner gets +5 moves, both participants get +1 moves
+- ~~Winner gets +5 moves, both participants get +1 moves~~ — **corrected, X15,
+  2026-08-10.** The winner gets **+10** (`EARN_BATTLE_WON`), participation is
+  **+1** (`EARN_BATTLE_PARTICIPATION`), and second place is paid half the
+  winner's share rather than nothing (`battle_rules.md`). This file was the
+  last place still saying +5, contradicting `moves_economy.md`, which the
+  Owner already settled against the code in X07.
 - Ingredient penalty phase begins (see Phase 5)
 - If this is one of the first 10 battles → marked `is_historic = True`
 - Participants may qualify for Board of Memory (first 20 unique chefs)
@@ -84,22 +95,47 @@ ingredient penalty applied.
 
 ## Battle model status field values
 
+**Corrected, X17, 2026-08-10.** This list named ten statuses, two of which
+(`declared`, `accepted`) are not battle statuses at all — they live on
+`BattleChallenge`, because a challenge is not yet a battle. `Battle.Status`
+has sixteen. The phase spine above is still right; this table is the code's.
+
 | Value | Meaning |
 |-------|---------|
-| `declared` | Challenge issued, awaiting response |
-| `accepted` | Accepted, awaiting menu declarations |
-| `menu_locked` | Menus declared, combat not yet started |
+| `scheduled` | Accepted, start time in the future |
+| `menu_locked` | Menus being declared in the Changing Room |
 | `active` | Combat in progress |
-| `ingredient_penalty` | Post-vote penalty phase |
+| `awaiting_submissions` | Combat done, dishes not yet in |
+| `revealed` | Entries opened |
 | `cooking` | Chefs are preparing dishes |
 | `presentation` | Entries revealed, pre-vote |
 | `voting` | Audience voting open |
 | `completed` | Battle finished, winner known |
-| `cancelled` | Challenge refused or expired |
+| `ingredient_penalty` | Post-vote penalty phase |
+| `waiting` | Start timer expired with only one chef ready — grace period |
+| `walkover` | Grace period expired; the chef who turned up takes the win |
+| `void` | Neither chef turned up |
+| `paused` | Emergency stop by an operator |
+| `disputed` | Under moderation dispute |
+| `cancelled` | Refused, expired, or withdrawn |
+
+The two that moved: `declared` and `accepted` are `BattleChallenge.Status`
+values (`pending`, `accepted`, `refused`, `expired`, `cancelled`).
 
 ---
 
-## Cooking format options (BattleEntry)
+## Cooking format options (BattleEntry) — NOT BUILT
+
+**Open, not settled.** `CookingFormat`, `cooking_format`, `cooking_video_url`
+and `cooking_photos` do not exist. What `BattleEntry` carries is a single
+`cooked_photo` with `real_photo_confirmed` and a `photo_hash` for duplicate
+detection, plus `recipe` and `battle_statement`. The photo-or-video choice
+lives one level up, on the challenge, as `Battle.BattleType`.
+
+This is absence, not a decision, so the standing rule does not settle it — and
+`chef_levels.md`'s artifact-tier-by-format rule depends on the field that was
+never added. **The Owner ruled on 2026-08-10: «этого ещё и вправду нет — будем
+строить».** It is wanted, and it waits for his card.
 
 ```python
 class CookingFormat(models.TextChoices):
@@ -108,8 +144,9 @@ class CookingFormat(models.TextChoices):
 ```
 
 Entry fields for cooking content:
-- `cooking_format` — webcam or photos
-- `cooking_video_url` — link to stream/recording (webcam format)
-- `cooking_photos` — multi-image upload (photos format)
-- `recipe` — final submitted recipe (FK)
-- `battle_statement` — chef's note to the audience
+- ~~`cooking_format`~~ — not built; `Battle.battle_type` (photo/video) is the
+  nearest thing that exists
+- ~~`cooking_video_url`~~ — not built
+- ~~`cooking_photos`~~ — not built; the entry carries one `cooked_photo`
+- `recipe` — final submitted recipe (FK) ✔
+- `battle_statement` — chef's note to the audience ✔

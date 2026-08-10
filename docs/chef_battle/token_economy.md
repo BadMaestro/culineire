@@ -33,15 +33,23 @@ Larger packages = better value. Encourages bulk purchases.
 
 ## What tokens buy
 
-| Action | Cost |
-|--------|------|
-| Gift Common artifact to a chef | 10 tokens |
-| Gift Uncommon artifact | 25 tokens |
-| Gift Rare artifact | 60 tokens |
-| Gift Epic artifact | 150 tokens |
-| Gift Legendary artifact | 400 tokens |
-| (Future) Profile cosmetics | TBD |
-| (Future) Extra battle slot | TBD |
+> **SETTLED, X13, Owner 2026-08-10: A COMBAT ARTIFACT SENT INTO AN OPEN BATTLE
+> COSTS DOUBLE, AND THAT IS THE RULE.** The second half is a delivery fee — the
+> price of the right to make a gift while the fight is running. The table below
+> listed only the artifact price and never named the fee. The prices themselves
+> never changed and match `Artifact.RARITY_TOKEN_COST`; the totals are what a
+> viewer is charged. Full account in `audience_gifts.md`.
+
+| Action | Artifact price | Delivery fee | **Charged** |
+|--------|----------------|--------------|-------------|
+| Gift Common artifact into a live battle | 10 | 10 | **20 tokens** |
+| Gift Uncommon artifact | 25 | 25 | **50 tokens** |
+| Gift Rare artifact | 60 | 60 | **120 tokens** |
+| Gift Epic artifact | 150 | 150 | **300 tokens** |
+| Gift Legendary artifact | — | — | **prize only, cannot be bought** |
+| Appreciation gift (6 kinds, no fee) | 20–100 | — | **20–100 tokens** |
+| (Future) Profile cosmetics | TBD | | |
+| (Future) Extra battle slot | TBD | | |
 
 ---
 

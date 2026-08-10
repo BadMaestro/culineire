@@ -1,5 +1,10 @@
 # HALL OF FAME — First Battles & Pioneer Chefs
 
+
+> **OWNER, 2026-08-10: «этого ещё и вправду нет — будем строить».** Confirmed missing and confirmed WANTED. Not dropped, not deferred by an agent — it is scheduled work awaiting a card from him. Nothing here is to be built before he assigns it.
+
+**STATE, measured 2026-08-10:** neither rule is built. There is no `is_historic` field on `Battle`, no Board of Memory model, no page and no homepage block. Reconstructible after the fact from completion order, so nothing is being lost while it waits.
+
 ## Author note
 Defined by project creator. These are permanent historical records of the
 Chef's Battle launch on CulinEire.

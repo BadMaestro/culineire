@@ -101,7 +101,7 @@ CONTRADICTS**.
 | G# | Document | Rule | State of the code |
 |---|---|---|---|
 | **G1** | `battle_rules.md` §"Slot system" | **"One battle slot per chef. A chef with an active battle cannot accept or issue new challenges."** | **Not enforced anywhere.** No `has_active_battle` check in `challenge_create`, in `BattleChallengeForm`, or in `accept_challenge`. The nearest gate is `gate_post_battle_cooldown` (24h *after* finishing), which is a different rule. Nineteen fraud gates exist; none of them is this one. **Blind spot:** production currently has 0 active battles, so nothing has manifested. |
-| **G2** | `chef_levels.md` | **A CulinEire Hero may fight only other Heroes** | The code does the **opposite**: `check_rank_matchup():312-313` returns `None` — unrestricted — the moment *either* chef is a Hero. The Owner's 2026-08-05 ruling covered level-vs-rank matchmaking; it did not touch this. |
+| ~~**G2**~~ | `chef_levels.md` | ~~A CulinEire Hero may fight only other Heroes~~ | **WITHDRAWN — my error, corrected by the Owner 2026-08-10: «у нас нет понятия Герой».** There is no Hero tier and there never shipped one; X09 buried it on 2026-08-05 and the board says so in as many words. `is_hero` is **his own flag** — set only in `get_or_create_battle_profile()` for `OWNER_SLUG`, true on exactly one production account, `greenbear`. So the branch in `check_rank_matchup()` is not "heroes fight anyone", it is the Owner standing outside the rank window, which is §18 and not progression. I read an unreconciled document literally and reported a tier the product does not have. What genuinely remains is cosmetic: three templates still print the words "CulinEire Hero" for that flag. |
 | **G3** | `chef_levels.md` | Artifact tier from cooking format — webcam wins draw Rare/Epic/Legendary, photo wins draw Common/Uncommon | **Missing entirely.** `cooking_format` does not exist in the Python source. `_DROP_WEIGHTS_WINNER` (`services.py:2082`) is one table for every battle. |
 | **G4** | `hall_of_fame.md` | "The Founding Ten" (`is_historic` on the first 10 battles) and the "Board of Memory" (first 20 chefs) | **Missing entirely** — no field, no model, no page. Time-sensitive by nature, though reconstructible from ordering afterwards. |
 | **G5** | `battle_lifecycle.md` §"Ready" | Three steps: A ready → B ready **and proposes a time** → A confirms | Half-built. `proposed_combat_time` and `combat_time_confirmed` exist on the model and **nothing ever writes them** (one read in `selectors.py:347`). What runs is the Owner's later A6 rule — both ready pulls the start to 15 minutes — which supersedes; the two dead fields are the residue. |
@@ -217,8 +217,14 @@ Three consumers, three different behaviours:
   the arena silently omits those two artifacts — `The Butter Shield` (epic,
   effect value **9**) and `Rusty Pan of Survival` (common, 1).
 
-**4 `ChefArtifact` rows hold one of them today**, so this is manifest, not
-latent. The absence of `choices` on the field is what allowed it.
+**CORRECTED BY THE OWNER, 2026-08-10 — this is LATENT, not manifest, and my
+first wording overstated it.** I wrote "four chefs". It is four `ChefArtifact`
+rows held by **two** accounts, `crestedten` and `jam-oliver` — the two TEST
+chefs he ordered off the arena on 2026-08-07. No real chef holds either
+artifact, and there is no real battle on the arena, so nobody has been shown a
+wrong number yet. The code path is wrong and would undercount the moment a real
+chef held one; that is the finding, and it is the whole of it. The absence of
+`choices` on the field is what allowed it.
 
 ### 3.8 — `combat_items.md`, reconciled
 
@@ -264,30 +270,46 @@ charge different money.
 
 ## 5. What I recommend, in order
 
-**F1–F5 are already done** (v2.5.988). What is left, in order:
+**Done since this act was written.** F1–F5 (v2.5.988, Bolt). **3.1, 3.7 and 1a**
+— the Russian strings, the `defense` spelling and the three announcing URLs —
+shipped as **v2.5.989** on his order, with three guard tests. **X12, X13, X15,
+X17, X18** — settled by him and the documents corrected in **v2.5.991**.
+**G2 withdrawn** as my error.
 
-1. **3.1, the Russian strings** — the only defect in this act you would see
-   with your own eyes, and the only one that can reach the **public** event
-   feed. Nothing else here is visible to a visitor.
-2. **X12–X14** — prices. Two documents and the code disagree about what a chef
-   is charged: every appreciation gift price differs by four times or more, an
-   undocumented delivery fee doubles every artifact, and the rarity price table
-   is enforced by nobody. Money is your ruling every time.
-3. **3.7, the two `defense` artifacts** — four chefs are shown the wrong
-   defence power on the arena today. A `choices` list on the field closes the
-   class of bug, not just these two rows.
-4. **G1, the one-slot rule** — a core rule of your own document that nothing
-   enforces, and the cheapest thing on this list to enforce now.
-5. **G2, the Hero tier** — the code does the opposite of what the document
-   says. One of the two is wrong and only you can say which.
-6. **1a** — three URLs that still announce themselves during a dark launch.
-   One line each.
-7. **The eight documents nobody has read against the code yet**, plus all 1269
-   lines of `tz_main.md`. This audit covered ten of eighteen and found eleven
-   defects in them. There is no reason to expect the other eight to be cleaner.
-8. Everything else waits.
+### The Owner's standing rule that settles most of the rest
 
-Nothing above was changed. Tree clean, nothing deployed, no flags written.
+**2026-08-10, verbatim:** «ТЗ писалось долго и несколько раз переписывалось —
+код уточнялся по факту и уточняющие вопросы задавались по факту — поэтому я
+склонен больше доверять коду — ТЗ и правки нужно адаптировать.»
+
+So where a document and the code disagree about a **decision**, the code is the
+decision and the document is adapted. This does **not** cover a rule the code
+never implemented: **absence is not a decision.** That line is what separates
+the two lists below, and it is the reason G1, G3 and G4 stay open while X12–X18
+closed the same day.
+
+### What is left
+
+1. **G1, the one-slot rule** — and read it in full, because it is wider than I
+   first reported: the slot is occupied **the moment a challenge is issued**,
+   and an occupied slot forbids **accepting** as well as issuing. Nothing in the
+   code models a slot at all. The nearest three gates are 3 challenges a day,
+   24 hours on a repeat pair, and 24 hours after a COMPLETED battle — none of
+   them this. Build it or drop it; absence is not a decision.
+2. **X14** — `RARITY_TOKEN_COST` is referenced by nothing, so a new artifact
+   costs whatever the admin form defaults to (10) regardless of rarity. The data
+   is correct today and held there by nobody.
+3. **G3 and G4** — artifact tier by cooking format (the field does not exist),
+   the Founding Ten and the Board of Memory. **Owner, 2026-08-10: «этого ещё и
+   вправду нет — будем строить».** Confirmed missing and confirmed wanted; they
+   are scheduled work waiting on a card from him, not open questions any more.
+4. **X16** — clans and factions both built and both routed, while
+   `cuisines_design.md` says in its own header that factions supersede clans.
+   28 factions and 0 clans on production.
+5. **The eight documents nobody has read against the code yet**, plus all 1269
+   lines of `tz_main.md`. This act covered ten of eighteen.
+
+Everything in section 3 that is not listed here is shipped or withdrawn.
 
 ---
 
@@ -308,3 +330,43 @@ the code against itself, and this audit tests it against the rules.
 The three that a test would have caught cheaply, if anyone had written it:
 the one-slot rule (G1), the artifact price table nothing enforces (X14), and the
 `effect_type` spelling (3.7).
+
+---
+
+## 7. Every challenge he made to this act, and what it changed
+
+He read the act and pushed back six times in one evening. Collected here because
+the answers were scattered across five files and a chat, which is how a
+correction gets lost. Two of the six were my errors, and both are marked as
+such.
+
+| # | His words | What it changed |
+|---|---|---|
+| 1 | «подарки стоят в 4+ раза дороже написанного — **где**?» | Fair: my summary was loose. It is the six **appreciation** gifts, not combat artifacts, and the spread is **2.5× to 16×** — coffee ×4, flowers ×16, cocktail ×5.3, beer ×3, whiskey ×2.5 — plus a sixth gift the document never had. Combat artifact prices matched exactly all along. |
+| 2 | «доставка подарка стоит в два раза дороже — и это **правильно**… это плата за право сделать подарок в активном бою» | **His ruling, X13.** Not a defect: the doubling is the price of intervening in a running fight. The documents were silent about the fee, which is what made them look like they disagreed. Both now state fee and total beside the price. No code changed. |
+| 3 | «audience_gifts.md — в коде правильные цены» | **His ruling, X12.** Document corrected to the code, generated from its own labels, emoji and `APPRECIATION_GIFT_COST`, and pinned by a test that reads it in both directions. |
+| 4 | «что именно говорит правило — один бой на шефа? ты меня дезинформируешь — ты обязан читать правило **полностью**» | **He was right and the gap is WIDER than I reported.** I quoted only the first clause. In full: the slot is occupied **the moment a challenge is issued**, and an occupied slot forbids **accepting** as well as issuing; it frees when the challenge expires unanswered or the battle completes. Nothing in the code models a slot at all — the three nearest gates are 3 challenges a day, 24h on a repeat pair, and 24h after a COMPLETED battle. G1 stands, restated. |
+| 5 | «у нас нет понятия — Герой, откуда ты его взял?» | **My error. G2 WITHDRAWN.** From `chef_levels.md`, which describes a tier X09 buried on 2026-08-05 — the board says so in as many words. `is_hero` is **his own flag**: set only in `get_or_create_battle_profile()` for `OWNER_SLUG`, true on exactly one production account. The `check_rank_matchup()` branch is §18, not progression. I read an unreconciled document literally and reported a tier the product does not have. |
+| 6 | «сейчас на арене нет ни одного реального боя — и ни одного реального шефа — поэтому это утверждение не может быть правильным» | **My error, corrected in four places.** I wrote that the `defense` spelling affected "four chefs today". It is four `ChefArtifact` rows on **two** accounts — `crestedten` and `jam-oliver`, the test chefs he ordered off the arena on 2026-08-07. **Latent, not manifest.** The code path was wrong and is fixed; nobody had been shown a wrong number. |
+
+And one more, which is not a challenge but the rule that settles most of what is
+left:
+
+> «ТЗ писалось долго и несколько раз переписывалось — код уточнялся по факту и
+> уточняющие вопросы задавались по факту — поэтому я склонен больше доверять
+> коду — ТЗ и правки нужно адаптировать.»
+
+**Its boundary, which he did not have to state and which every correction here
+respects: it settles a DISAGREEMENT, where the code is the decision. It does not
+cover a rule the code never implemented — absence is not a decision.** That is
+why X12–X18 closed the same day and G1, G3 and G4 did not.
+
+### The scoreboard on my own act
+
+Of everything I put in front of him: **two findings were wrong** (G2 withdrawn
+entirely, 3.7 overstated from latent to manifest), **one was understated** (G1,
+wider than reported), **five were settled by his ruling in the code's favour**
+(X12, X13, X15, X17, X18), **three were confirmed as real and wanted** (the
+Founding Ten, the Board of Memory, artifact tier by format — «будем строить»),
+and the rest stand as written. Recorded because an audit that never reports its
+own error rate is asking to be trusted rather than checked.

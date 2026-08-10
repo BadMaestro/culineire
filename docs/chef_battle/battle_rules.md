@@ -133,12 +133,24 @@ Battle completes → slot freed; chef can accept or issue a new challenge
 - Manual refuse → −1 battle (floor 0)
 - ~~Slot auto-expires → −1 battle~~ — **no penalty**; silence is not an offence (Owner, 2026-08-05)
 
-### "Ready" button — scheduling combat within the submission window
+### "Ready" button — CORRECTED to the code, X18, Owner's standing rule 2026-08-10
 
-1. Chef A presses **"Ready"** — signals preparation is complete
-2. Chef B sees the signal, presses **"Ready"**, and proposes a specific
-   combat time within the remaining submission window
-3. Chef A confirms the proposed time → combat begins at that time
+What runs is the Owner's own scenario A6 of 2026-08-06 — «оба готовы - таймер
+до матча 15 минут» — and it is simpler than the handshake below: when **both**
+chefs have pressed Ready, the start is pulled in to **15 minutes from now**
+(`READY_HEAD_START`, `pull_start_forward_when_both_ready()`), which also lifts
+the pair up the Next Battle queue, because that board is ordered by time
+remaining. The start is never pushed later. A chef who is ready alone waits out
+`START_RITUAL_GRACE` — ten minutes — and then takes the walkover.
+
+The three-step handshake below was never built. `proposed_combat_time` and
+`combat_time_confirmed` exist on the model and **nothing writes them**; they are
+the residue of this paragraph and are the only two dead fields the audit of
+2026-08-10 found.
+
+- ~~1. Chef A presses "Ready" — signals preparation is complete~~
+- ~~2. Chef B presses "Ready" and proposes a specific combat time~~
+- ~~3. Chef A confirms the proposed time → combat begins at that time~~
 
 ---
 

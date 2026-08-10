@@ -12773,7 +12773,8 @@ class ArenaSpeaksEnglishTests(TestCase):
 class DefenceArtifactSpellingTests(TestCase):
     """Artifact.effect_type is free text, and production carries both
     spellings: 100 rows "defence" and 2 "defense" — The Butter Shield (epic,
-    effect value 9) and Rusty Pan of Survival (common, 1), held by four chefs.
+    effect value 9) and Rusty Pan of Survival (common, 1) - four ChefArtifact
+    rows held by the two test accounts, no real chef among them.
 
     Three consumers read that field and only one was wrong. Combat normalises
     before comparing; the knife-roll filter lists both; the arena's defence
@@ -12860,4 +12861,61 @@ class DarkLaunchInvisibilityTests(TestCase):
             self.assertEqual(
                 response.status_code, 404,
                 f"{name} let a non-staff member past the arena gate",
+            )
+
+
+class GiftPricesMatchTheirDocumentTests(TestCase):
+    """The prices a viewer is charged and the prices the rulebook states are
+    the same numbers — Owner's rulings X12 and X13, 2026-08-10.
+
+    audience_gifts.md had carried 5/5/10/15/20 tokens for the appreciation
+    gifts since it was written, between 2.5 and 16 times under what
+    APPRECIATION_GIFT_COST actually charges, and it listed five gifts where the
+    code has six. It also named only the artifact price, never the delivery
+    fee that doubles a combat artifact sent into a live battle. Both were
+    settled in the code's favour and the document corrected.
+
+    A drift nobody can see is what made this possible for months, so the
+    document is now read by a test rather than by whoever remembers to look.
+    """
+
+    DOC = Path(__file__).resolve().parent.parent / "docs" / "chef_battle" / "audience_gifts.md"
+
+    def _rows(self):
+        text = self.DOC.read_text(encoding="utf-8")
+        return [line for line in text.splitlines() if line.strip().startswith("|")]
+
+    def test_every_appreciation_price_is_in_the_document(self):
+        rows = "\n".join(self._rows())
+        for gift, cost in APPRECIATION_GIFT_COST.items():
+            label = AppreciationGiftType(gift).label
+            hit = [r for r in rows.splitlines()
+                   if r.split("|")[1].strip() == label]
+            self.assertTrue(
+                hit, f"'{label}' is charged {cost}T and the document does not list it",
+            )
+            self.assertIn(
+                f"{cost} tokens", hit[0],
+                f"the document prices '{label}' differently from the "
+                f"{cost}T APPRECIATION_GIFT_COST charges",
+            )
+
+    def test_the_document_states_no_price_the_code_does_not_charge(self):
+        charged = {f"{c} tokens" for c in APPRECIATION_GIFT_COST.values()}
+        for row in self._rows():
+            cells = [c.strip() for c in row.split("|")]
+            if len(cells) > 3 and cells[3].endswith("tokens") and cells[2] in ("☕", "🍺", "🥃", "🌷", "🍸", "🍾"):
+                self.assertIn(
+                    cells[3], charged,
+                    f"the document offers {cells[3]} for {cells[1]}, which nothing charges",
+                )
+
+    def test_the_delivery_fee_is_written_down_where_the_artifact_price_is(self):
+        """X13: the fee is the rule, so it belongs beside the price it doubles."""
+        for name in ("audience_gifts.md", "token_economy.md"):
+            path = self.DOC.parent / name
+            text = path.read_text(encoding="utf-8").lower()
+            self.assertIn(
+                "delivery fee", text,
+                f"{name} states an artifact price without the fee that doubles it",
             )

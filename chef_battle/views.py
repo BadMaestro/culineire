@@ -1246,7 +1246,9 @@ def _build_arena_payload(*, viewer_author=None):
             # BOTH spellings. Artifact.effect_type is free text with no choices,
             # and production carries 100 rows spelled "defence" and 2 spelled
             # "defense" — The Butter Shield (epic, 9) and Rusty Pan of Survival
-            # (common, 1), held by four chefs. An exact match on one spelling
+            # (common, 1). Four ChefArtifact rows, held by the two test chefs
+            # crestedten and jam-oliver - no real chef holds either, so this is
+            # latent rather than manifest. An exact match on one spelling
             # silently dropped them from the defence total the arena shows, so
             # those chefs read a number lower than what they own. Combat itself
             # was never wrong: services.py normalises before it compares, and
