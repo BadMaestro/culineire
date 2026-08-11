@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib import admin, messages
+from django.db import transaction
 from django.shortcuts import redirect, render
 from django.urls import path
 from django.utils import timezone
@@ -56,32 +57,64 @@ def cancel_challenges(modeladmin, request, queryset):
 
 @admin.action(description="Cancel selected battles")
 def cancel_battles(modeladmin, request, queryset):
-    cancellable = queryset.exclude(status__in=[
-        Battle.Status.COMPLETED,
-        Battle.Status.CANCELLED,
-    ])
+    # F35, 2026-08-11: the queryset was filtered ONCE and iterated with a
+    # plain battle.save() per row - no lock, no recheck at the point of
+    # writing. The whole selected batch is fetched into memory before the
+    # loop body runs at all, so a battle that finishes naturally (scorer
+    # awards wins/rating/crown/moves, status -> COMPLETED) WHILE this loop
+    # is still working through earlier rows gets silently overwritten back
+    # to CANCELLED from the stale in-memory copy - leaving a cancelled
+    # battle whose winner already banked a real result.
+    candidate_ids = list(
+        queryset.exclude(status__in=[
+            Battle.Status.COMPLETED,
+            Battle.Status.CANCELLED,
+        ]).values_list("pk", flat=True)
+    )
     count = 0
-    for battle in cancellable:
-        battle.status = Battle.Status.CANCELLED
-        battle.save(update_fields=["status", "updated_at"])
-        create_battle_event(
-            event_type=BattleEvent.EventType.BATTLE_FINISHED,
-            battle=battle,
-            message=f"Battle cancelled by staff: {battle.theme}.",
-            is_public=False,
-        )
-        count += 1
+    for battle_id in candidate_ids:
+        with transaction.atomic():
+            locked = Battle.objects.select_for_update().get(pk=battle_id)
+            if locked.status in (Battle.Status.COMPLETED, Battle.Status.CANCELLED):
+                continue
+            locked.status = Battle.Status.CANCELLED
+            locked.save(update_fields=["status", "updated_at"])
+            create_battle_event(
+                event_type=BattleEvent.EventType.BATTLE_FINISHED,
+                battle=locked,
+                message=f"Battle cancelled by staff: {locked.theme}.",
+                is_public=False,
+            )
+            count += 1
     modeladmin.message_user(request, f"{count} battle(s) cancelled.", messages.SUCCESS)
 
 
 @admin.action(description="Force-reveal entries for selected battles")
 def force_reveal_entries(modeladmin, request, queryset):
+    # F34, 2026-08-11: same shape as F35 below - the filtered queryset is
+    # fetched once into memory before the loop starts, then each row is
+    # written with a plain battle.save(), no lock, no recheck. A battle that
+    # a scorer completes naturally (wins/rating/crown/moves already banked,
+    # status -> COMPLETED) WHILE this loop is still working through earlier
+    # rows gets silently forced back to VOTING from the stale copy - and the
+    # very next visit to battle_detail (F20's auto-trigger: end_time passed
+    # and status in ACTIVE/VOTING) re-runs calculate_battle_result on it,
+    # double-awarding everything a second time.
+    candidate_ids = list(
+        queryset.filter(
+            status__in=[Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS]
+        ).values_list("pk", flat=True)
+    )
     count = 0
-    for battle in queryset.filter(status__in=[Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS]):
-        battle.entries.filter(is_revealed=False).update(is_revealed=True)
-        battle.status = Battle.Status.VOTING
-        battle.save(update_fields=["status", "updated_at"])
-        count += 1
+    for battle_id in candidate_ids:
+        with transaction.atomic():
+            locked = Battle.objects.select_for_update().get(pk=battle_id)
+            if locked.status not in (Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS):
+                continue
+            locked.entries.filter(is_revealed=False).update(is_revealed=True)
+            locked.status = Battle.Status.VOTING
+            locked.save(update_fields=["status", "updated_at"])
+            count += 1
     modeladmin.message_user(request, f"Entries revealed for {count} battle(s).", messages.SUCCESS)
 
 

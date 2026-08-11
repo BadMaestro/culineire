@@ -524,6 +524,20 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
     end_time = voting_deadline
 
     with transaction.atomic():
+        # F38, 2026-08-11: refuse_challenge and expire_stale_challenges write
+        # this same challenge's status without ever locking it, so an accept
+        # could race either one. Battle.challenge's unique OneToOneField
+        # already stops a SECOND battle from ever being created for this
+        # challenge (F19), but nothing stopped the CHALLENGE itself landing
+        # as REFUSED or EXPIRED in the same instant a live Battle exists for
+        # it - and refuse_challenge penalises the chef for "refusing" a
+        # challenge they were simultaneously accepting.
+        locked_challenge = BattleChallenge.objects.select_for_update().get(pk=challenge.pk)
+        if locked_challenge.status != BattleChallenge.Status.PENDING:
+            raise ValueError(
+                f"This challenge is no longer pending (now {locked_challenge.status})."
+            )
+
         # F21, 2026-08-11: slot_occupied_reason is checked in the view before
         # this call, but that read is unlocked - two DIFFERENT pending
         # challenges to the same chef, accepted near-simultaneously, both see
@@ -608,6 +622,17 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
 
 def refuse_challenge(challenge: BattleChallenge) -> None:
     with transaction.atomic():
+        # F38, 2026-08-11: this challenge's status could just as easily have
+        # been taken by a concurrent accept_challenge (which now locks and
+        # rechecks, see above) or expire_stale_challenges. Lock it here too
+        # and refuse to penalise a chef for "refusing" a challenge that was
+        # simultaneously accepted or that already expired on its own.
+        locked_challenge = BattleChallenge.objects.select_for_update().get(pk=challenge.pk)
+        if locked_challenge.status != BattleChallenge.Status.PENDING:
+            raise ValueError(
+                f"This challenge is no longer pending (now {locked_challenge.status})."
+            )
+
         challenge.status = BattleChallenge.Status.REFUSED
         challenge.refused_at = timezone.now()
         challenge.save(update_fields=["status", "refused_at"])
@@ -659,40 +684,53 @@ def refuse_challenge(challenge: BattleChallenge) -> None:
 def expire_stale_challenges() -> int:
     """Mark pending challenges past their deadline as EXPIRED. Returns count."""
     now = timezone.now()
-    stale = BattleChallenge.objects.filter(
-        status=BattleChallenge.Status.PENDING,
-        expires_at__lte=now,
+    # F38, 2026-08-11: this queryset used to be iterated directly, fetching
+    # every stale challenge into memory once and then writing each with a
+    # plain .save() - no lock, no recheck at write time. A challenge that a
+    # chef accepts or refuses WHILE this sweep is still working through
+    # earlier rows would get silently overwritten to EXPIRED from the stale
+    # copy, even though a live Battle (or a refusal penalty) already exists
+    # for it. Materialise only the ids, then lock and recheck each row.
+    stale_ids = list(
+        BattleChallenge.objects.filter(
+            status=BattleChallenge.Status.PENDING,
+            expires_at__lte=now,
+        ).values_list("pk", flat=True)
     )
     count = 0
-    for challenge in stale:
-        challenge.status = BattleChallenge.Status.EXPIRED
-        challenge.save(update_fields=["status"])
+    for challenge_id in stale_ids:
+        with transaction.atomic():
+            challenge = BattleChallenge.objects.select_for_update().get(pk=challenge_id)
+            if challenge.status != BattleChallenge.Status.PENDING:
+                continue
+            challenge.status = BattleChallenge.Status.EXPIRED
+            challenge.save(update_fields=["status"])
 
-        # AN UNANSWERED CHALLENGE COSTS NOTHING. Owner's ruling, 2026-08-05:
-        # silence is not an offence. A chef who never answered may be busy, away,
-        # or simply never saw it, and the site cannot tell that from contempt.
-        #
-        # This block briefly DID penalise silence, in v2.5.820, on the strength
-        # of battle_rules.md giving an ignored challenge the same weight as a
-        # refusal. Overturned the same day.
-        #
-        # Irresponsibility is ACCEPTING and then not turning up, and that is
-        # already paid for — _award_walkover(), _award_forfeit_win() and the
-        # both-absent path take the loss, the streak and the reputation. Nothing
-        # is added here. `ignored_battles` stays unwritten by design; the doc has
-        # been corrected rather than the code bent to it.
-        create_battle_event(
-            event_type=BattleEvent.EventType.CHALLENGE_EXPIRED,
-            challenge=challenge,
-            actor=challenge.challenger,
-            target=challenge.opponent,
-            message=(
-                f"Challenge expired: {challenge.opponent.name} did not respond "
-                f"to {challenge.challenger.name}'s battle on '{challenge.theme}'."
-            ),
-            is_public=False,
-        )
-        count += 1
+            # AN UNANSWERED CHALLENGE COSTS NOTHING. Owner's ruling, 2026-08-05:
+            # silence is not an offence. A chef who never answered may be busy, away,
+            # or simply never saw it, and the site cannot tell that from contempt.
+            #
+            # This block briefly DID penalise silence, in v2.5.820, on the strength
+            # of battle_rules.md giving an ignored challenge the same weight as a
+            # refusal. Overturned the same day.
+            #
+            # Irresponsibility is ACCEPTING and then not turning up, and that is
+            # already paid for — _award_walkover(), _award_forfeit_win() and the
+            # both-absent path take the loss, the streak and the reputation. Nothing
+            # is added here. `ignored_battles` stays unwritten by design; the doc has
+            # been corrected rather than the code bent to it.
+            create_battle_event(
+                event_type=BattleEvent.EventType.CHALLENGE_EXPIRED,
+                challenge=challenge,
+                actor=challenge.challenger,
+                target=challenge.opponent,
+                message=(
+                    f"Challenge expired: {challenge.opponent.name} did not respond "
+                    f"to {challenge.challenger.name}'s battle on '{challenge.theme}'."
+                ),
+                is_public=False,
+            )
+            count += 1
     return count
 
 
@@ -1948,19 +1986,12 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
         raise ValueError("The menu can only be declared in the Changing Room (menu_locked).")
     if not battle.author_is_participant(chef):
         raise ValueError("Only a chef fighting this battle can declare a menu.")
-    if battle.battle_ingredients.filter(chef=chef).exists():
-        raise ValueError("Your menu is already declared and cannot be changed.")
 
     count = len(ingredients)
     if count < BattleIngredient.MIN_COUNT or count > BattleIngredient.MAX_COUNT:
         raise ValueError(
             f"Your list must hold between {BattleIngredient.MIN_COUNT} and "
             f"{BattleIngredient.MAX_COUNT} ingredients; you sent {count}."
-        )
-    opponent_count = battle.battle_ingredients.filter(chef=battle.opponent_for(chef)).count()
-    if opponent_count and count != opponent_count:
-        raise ValueError(
-            f"Your opponent declared {opponent_count} ingredients — your list must hold the same number."
         )
     key_count = sum(1 for i in ingredients if i.get("is_key"))
     if key_count != BattleIngredient.KEY_COUNT:
@@ -1973,6 +2004,27 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
         raise ValueError("Ingredients cannot repeat.")
 
     with transaction.atomic():
+        # F40, 2026-08-11: lock the battle row before the checks below that
+        # read this chef's own or the opponent's declared ingredients. Two
+        # chefs declaring at nearly the same instant used to run these reads
+        # under plain READ COMMITTED with nothing serialising them - neither
+        # transaction could see the other's not-yet-committed row, so BOTH
+        # computed both_declared as False, both menus landed after commit,
+        # and nothing ever moved the battle to ACTIVE. Worse than a lost
+        # update: a permanent soft-lock, since re-declaring is refused once a
+        # menu exists for that chef. Locking here serialises the two calls -
+        # the second blocks until the first fully commits, then correctly
+        # sees it.
+        Battle.objects.select_for_update().get(pk=battle.pk)
+
+        if battle.battle_ingredients.filter(chef=chef).exists():
+            raise ValueError("Your menu is already declared and cannot be changed.")
+        opponent_count = battle.battle_ingredients.filter(chef=battle.opponent_for(chef)).count()
+        if opponent_count and count != opponent_count:
+            raise ValueError(
+                f"Your opponent declared {opponent_count} ingredients — your list must hold the same number."
+            )
+
         created = []
         for pos, item in enumerate(ingredients):
             created.append(BattleIngredient.objects.create(
@@ -2169,21 +2221,34 @@ def approve_cooking_phase(battle: Battle, moderator) -> Battle:
     if battle.status != Battle.Status.INGREDIENT_PENALTY:
         raise ValueError("Battle must be in ingredient_penalty status to approve cooking phase.")
     with transaction.atomic():
+        # F41, 2026-08-11: the status check above ran against whatever object
+        # the caller's request loaded, before this transaction even opened -
+        # a stale moderation-queue page can still show INGREDIENT_PENALTY for
+        # a battle that has since been cancelled or voided by another path
+        # (withdrawal, stall sweep, admin cancel), and approving it would
+        # resurrect an impossible CANCELLED -> COOKING transition. Lock the
+        # row and recheck under it, same discipline as every other locked
+        # transition in this module.
+        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        if locked_battle.status != Battle.Status.INGREDIENT_PENALTY:
+            raise ValueError("Battle must be in ingredient_penalty status to approve cooking phase.")
+
         # Persist surviving ingredients for each chef before status changes —
         # shots/locks are stable here; the list drives cooking-phase moderation.
-        for chef in (battle.challenger, battle.opponent):
-            surviving = get_surviving_ingredients(battle, chef)
-            battle.entries.filter(author=chef).update(surviving_ingredients=surviving)
+        for chef in (locked_battle.challenger, locked_battle.opponent):
+            surviving = get_surviving_ingredients(locked_battle, chef)
+            locked_battle.entries.filter(author=chef).update(surviving_ingredients=surviving)
 
-        battle.status = Battle.Status.COOKING
-        battle.save(update_fields=["status", "updated_at"])
+        locked_battle.status = Battle.Status.COOKING
+        locked_battle.save(update_fields=["status", "updated_at"])
         create_battle_event(
             event_type=BattleEvent.EventType.BATTLE_STARTED,
-            battle=battle,
+            battle=locked_battle,
             message="Cooking phase approved by moderator. Chefs may now submit their cooked dishes.",
             actor=None,
             is_public=True,
         )
+        battle.status = locked_battle.status
     return battle
 
 
@@ -2314,8 +2379,6 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
     carried in the chef's knife and tool roll. If unused when the battle ends it is expired.
     Multiple deliveries of the same artifact to the same chef are allowed.
     """
-    if battle.status not in Battle.ACTIVE_STATUSES:
-        raise ValueError("Cannot send battle gifts to a battle that is not active.")
     if not battle.author_is_participant(recipient):
         raise ValueError("Recipient must be a participant in this battle.")
     if not artifact.is_active:
@@ -2335,14 +2398,25 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
     total_cost = artifact_cost + delivery_fee
 
     with transaction.atomic():
+        # F37, 2026-08-11: battle.status was checked above against whatever
+        # object the caller passed in, BEFORE this transaction even opened -
+        # a scorer can complete the battle in the window between that check
+        # and the debit below, and the debit/gift/artifact-lock would still
+        # go through for a battle no longer accepting anything: the viewer
+        # loses real tokens and the artifact locks to a battle that is
+        # already over and can never use it. Lock the row and recheck under
+        # it, before spending anything.
+        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        if locked_battle.status not in Battle.ACTIVE_STATUSES:
+            raise ValueError("Cannot send battle gifts to a battle that is not active.")
         debit_tokens(
             sender_author, total_cost,
             tx_type=TokenTransaction.TxType.GIFT_SENT,
             description=f"Battle gift: {artifact.name} to {recipient.name} (incl. delivery fee)",
-            battle=battle,
+            battle=locked_battle,
         )
         gift = ViewerBattleGift.objects.create(
-            battle=battle,
+            battle=locked_battle,
             recipient=recipient,
             sender=sender_user,
             artifact=artifact,
@@ -2355,7 +2429,7 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
             artifact=artifact,
             source=ChefArtifact.Source.BATTLE_GIFT,
             status=ChefArtifact.Status.AVAILABLE,
-            locked_to_battle=battle,
+            locked_to_battle=locked_battle,
         )
     return gift
 

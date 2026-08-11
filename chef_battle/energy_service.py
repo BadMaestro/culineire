@@ -119,8 +119,21 @@ def award_moves(
     if amount <= 0:
         return 0
 
-    from chef_battle.models import BattleMoveTransaction
+    from chef_battle.models import BattleMoveTransaction, ChefBattleProfile
     TxType = BattleMoveTransaction.TxType
+
+    # F39, 2026-08-11: lock this chef's profile row first, before the
+    # once-per-object dedup check and the anti-farm count below. Neither used
+    # to have anything serialising two concurrent award_moves calls for the
+    # SAME chef - a re-approval signal firing twice, or two likes landing in
+    # the same instant, could both read "not yet awarded" / "under the cap"
+    # before either committed, doubling moves, the uncapped faction/clan
+    # contributions and reputation, or letting more than
+    # LIKE_ANTI_FARM_MAX_PER_SOURCE through in a day. Locking the profile row
+    # serialises the whole function per chef: a second call blocks here
+    # until the first commits, then sees what the first actually wrote.
+    profile = _get_profile(author)
+    ChefBattleProfile.objects.select_for_update().get(pk=profile.pk)
 
     # Publishing a piece of content rewards it ONCE. A recipe (or article/pinch)
     # can transition unapproved -> approved many times — a chef edits an approved
@@ -197,7 +210,6 @@ def award_moves(
     except Exception:
         logger.exception("Reputation award failed for author pk=%s", author.pk)
 
-    profile = _get_profile(author)
     if profile.infinite_moves:
         # Infinite-balance profiles (greenbear etc.) skip the cap
         pass

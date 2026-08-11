@@ -1949,7 +1949,11 @@ def challenge_respond(request, pk):
         messages.success(request, "Challenge accepted. The battle room is live.")
         return redirect(battle.get_absolute_url())
     if action == "refuse":
-        refuse_challenge(challenge)
+        try:
+            refuse_challenge(challenge)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect("chef_battle:challenge_list")
         messages.warning(request, "Challenge refused and recorded.")
         return redirect("chef_battle:challenge_list")
 

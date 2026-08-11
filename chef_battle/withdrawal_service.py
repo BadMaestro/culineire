@@ -151,16 +151,27 @@ def resolve_withdrawal(*, withdrawal: BattleWithdrawal, moderator, uphold_penalt
 
     battle = withdrawal.battle
     with transaction.atomic():
+        # F36, 2026-08-11: the CLOSED check above reads whatever object the
+        # caller's request loaded, unlocked - two concurrent resolve calls for
+        # the SAME withdrawal (a double-click, or two moderator tabs) both
+        # pass it before either commits, and both would apply the penalty:
+        # -30 rating / -6 reputation instead of the Owner's -15/-3 figure.
+        # Lock the withdrawal row and re-check under the lock, the same
+        # discipline F29 already applied to the battle it cancels.
+        locked_withdrawal = BattleWithdrawal.objects.select_for_update().get(pk=withdrawal.pk)
+        if locked_withdrawal.status == BattleWithdrawal.Status.CLOSED:
+            raise WithdrawalNotAllowed("This request is already closed.")
+
         # F29, 2026-08-11: withdrawal.battle is whatever the caller's request
         # loaded, which can be stale by the time a moderator's decision lands -
         # calculate_battle_result or the stall sweep can complete or void the
         # same battle in between. Re-read it under a lock here and gate the
         # CANCELLED rewrite on THAT status, so a battle that already finished
         # naturally is never dragged back to CANCELLED and double-penalised.
-        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        locked_battle = Battle.objects.select_for_update().get(pk=locked_withdrawal.battle_id)
 
         if uphold_penalty:
-            profile = get_or_create_battle_profile(withdrawal.requester)
+            profile = get_or_create_battle_profile(locked_withdrawal.requester)
             fields = penalise(
                 profile,
                 battle=locked_battle,
@@ -170,12 +181,12 @@ def resolve_withdrawal(*, withdrawal: BattleWithdrawal, moderator, uphold_penalt
             if fields:
                 profile.save(update_fields=fields)
 
-        withdrawal.penalty_applied = bool(uphold_penalty)
-        withdrawal.moderator_note = (note or "").strip()
-        withdrawal.reviewed_by = moderator
-        withdrawal.reviewed_at = timezone.now()
-        withdrawal.status = BattleWithdrawal.Status.CLOSED
-        withdrawal.save(update_fields=[
+        locked_withdrawal.penalty_applied = bool(uphold_penalty)
+        locked_withdrawal.moderator_note = (note or "").strip()
+        locked_withdrawal.reviewed_by = moderator
+        locked_withdrawal.reviewed_at = timezone.now()
+        locked_withdrawal.status = BattleWithdrawal.Status.CLOSED
+        locked_withdrawal.save(update_fields=[
             "penalty_applied", "moderator_note", "reviewed_by", "reviewed_at", "status",
         ])
 
@@ -184,7 +195,7 @@ def resolve_withdrawal(*, withdrawal: BattleWithdrawal, moderator, uphold_penalt
             locked_battle.status = Battle.Status.CANCELLED
             locked_battle.waiting_until = None
             locked_battle.result_reason = (
-                f"Withdrawn: {withdrawal.requester.name} pulled out."[:120]
+                f"Withdrawn: {locked_withdrawal.requester.name} pulled out."[:120]
             )
             locked_battle.save(update_fields=[
                 "status", "waiting_until", "result_reason", "updated_at",
@@ -192,15 +203,20 @@ def resolve_withdrawal(*, withdrawal: BattleWithdrawal, moderator, uphold_penalt
         battle.status = locked_battle.status
         battle.waiting_until = locked_battle.waiting_until
         battle.result_reason = locked_battle.result_reason
+        withdrawal.status = locked_withdrawal.status
+        withdrawal.penalty_applied = locked_withdrawal.penalty_applied
+        withdrawal.moderator_note = locked_withdrawal.moderator_note
+        withdrawal.reviewed_by = locked_withdrawal.reviewed_by
+        withdrawal.reviewed_at = locked_withdrawal.reviewed_at
 
         create_battle_event(
             event_type=BattleEvent.EventType.BATTLE_FINISHED,
             battle=locked_battle,
-            actor=withdrawal.requester,
-            target=withdrawal.opponent,
+            actor=locked_withdrawal.requester,
+            target=locked_withdrawal.opponent,
             message=(
                 f"Chef Battle '{battle.theme}' was withdrawn by "
-                f"{withdrawal.requester.name}."
+                f"{locked_withdrawal.requester.name}."
             ),
             is_public=True,
             publish_to_news=True,

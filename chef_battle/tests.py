@@ -15179,3 +15179,607 @@ class SeasonOnlyOneActiveConstraintTests(TestCase):
                     ends_at=timezone.now() + timezone.timedelta(days=60))
 
         self.assertFalse(Season.objects.filter(name="F24R Season C").exists())
+
+
+class _StubModelAdmin:
+    """Minimal stand-in for admin.ModelAdmin - the two actions under test
+    only ever call .message_user() on it."""
+    def message_user(self, request, message, level=None):
+        pass
+
+
+class AdminForceRevealEntriesLockedTests(TestCase):
+    """F34, 2026-08-11: force_reveal_entries materialised its filtered
+    queryset ONCE, then wrote each row with a plain battle.save() - no lock,
+    no recheck at write time. A battle that a scorer completes naturally
+    WHILE this loop is still working through earlier rows in the same batch
+    got silently forced back to VOTING from the stale in-memory copy, and the
+    very next battle_detail visit (F20's auto-trigger) would re-run
+    calculate_battle_result on it, double-awarding wins/rating/crown/moves."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f34-a", password="pw"), name="F34 A", slug="f34-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f34-b", password="pw"), name="F34 B", slug="f34-b")
+
+    def _active_battle(self, theme):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme=theme,
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+
+    def test_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from chef_battle.admin import force_reveal_entries
+
+        battle = self._active_battle("F34 Lock")
+        qs = Battle.objects.filter(pk=battle.pk)
+        with CaptureQueriesContext(connection) as captured:
+            force_reveal_entries(_StubModelAdmin(), None, qs)
+
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "force_reveal_entries must lock each battle row before writing it")
+
+    def test_a_battle_that_completes_mid_batch_is_not_forced_back_to_voting(self):
+        """Not a true concurrency test (single-threaded) - simulates the
+        exact window the old code left open: a SECOND battle in the same
+        admin batch completes naturally after the queryset is fetched but
+        before this loop reaches its row. Injected deterministically via a
+        one-shot patch on the first select_for_update() call, rather than
+        racing real threads for a window that proves nothing."""
+        from unittest import mock
+        from django.db.models.query import QuerySet
+        from chef_battle.admin import force_reveal_entries
+
+        battle_1 = self._active_battle("F34 Batch One")
+        battle_2 = self._active_battle("F34 Batch Two")
+        self.assertLess(battle_1.pk, battle_2.pk)
+
+        calls = {"n": 0}
+        real_select_for_update = QuerySet.select_for_update
+
+        def spy(self_qs, *args, **kwargs):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                # Simulate battle_2 finishing naturally (scorer awards the
+                # win) while the admin loop is still on battle_1.
+                Battle.objects.filter(pk=battle_2.pk).update(status=Battle.Status.COMPLETED)
+            return real_select_for_update(self_qs, *args, **kwargs)
+
+        qs = Battle.objects.filter(pk__in=[battle_1.pk, battle_2.pk]).order_by("pk")
+        with mock.patch.object(QuerySet, "select_for_update", spy):
+            force_reveal_entries(_StubModelAdmin(), None, qs)
+
+        battle_1.refresh_from_db()
+        battle_2.refresh_from_db()
+        self.assertEqual(battle_1.status, Battle.Status.VOTING)
+        self.assertEqual(
+            battle_2.status, Battle.Status.COMPLETED,
+            "a battle that completed mid-batch must not be forced back to VOTING",
+        )
+
+
+class AdminCancelBattlesLockedTests(TestCase):
+    """F35, 2026-08-11: same shape as F34 - cancel_battles fetched its
+    filtered queryset once and wrote each row with a plain battle.save(),
+    no lock, no recheck. A battle that finishes naturally mid-batch got
+    silently overwritten to CANCELLED, leaving a cancelled battle whose
+    winner had already banked wins/rating/crown/moves for it."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f35-a", password="pw"), name="F35 A", slug="f35-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f35-b", password="pw"), name="F35 B", slug="f35-b")
+
+    def _active_battle(self, theme):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme=theme,
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+
+    def test_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from chef_battle.admin import cancel_battles
+
+        battle = self._active_battle("F35 Lock")
+        qs = Battle.objects.filter(pk=battle.pk)
+        with CaptureQueriesContext(connection) as captured:
+            cancel_battles(_StubModelAdmin(), None, qs)
+
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "cancel_battles must lock each battle row before writing it")
+
+    def test_a_battle_that_completes_mid_batch_is_not_overwritten_to_cancelled(self):
+        from unittest import mock
+        from django.db.models.query import QuerySet
+        from chef_battle.admin import cancel_battles
+
+        battle_1 = self._active_battle("F35 Batch One")
+        battle_2 = self._active_battle("F35 Batch Two")
+        self.assertLess(battle_1.pk, battle_2.pk)
+
+        calls = {"n": 0}
+        real_select_for_update = QuerySet.select_for_update
+
+        def spy(self_qs, *args, **kwargs):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                Battle.objects.filter(pk=battle_2.pk).update(status=Battle.Status.COMPLETED)
+            return real_select_for_update(self_qs, *args, **kwargs)
+
+        qs = Battle.objects.filter(pk__in=[battle_1.pk, battle_2.pk]).order_by("pk")
+        with mock.patch.object(QuerySet, "select_for_update", spy):
+            cancel_battles(_StubModelAdmin(), None, qs)
+
+        battle_1.refresh_from_db()
+        battle_2.refresh_from_db()
+        self.assertEqual(battle_1.status, Battle.Status.CANCELLED)
+        self.assertEqual(
+            battle_2.status, Battle.Status.COMPLETED,
+            "a battle that completed mid-batch must not be overwritten to CANCELLED",
+        )
+
+
+class ResolveWithdrawalLocksTheWithdrawalTests(TestCase):
+    """F36, 2026-08-11: resolve_withdrawal's CLOSED check ran against
+    whatever object the caller's request loaded, unlocked - two concurrent
+    resolve calls for the SAME withdrawal (a double-click, two moderator
+    tabs) both passed it before either committed, and both would apply the
+    Owner's -15 rating / -3 reputation penalty, for -30/-6 total instead."""
+
+    def setUp(self):
+        from .withdrawal_service import request_withdrawal, decide_withdrawal
+        User = get_user_model()
+        self.moderator = User.objects.create_user("f36-mod", password="pw", is_staff=True)
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f36-a", password="pw"), name="F36 A", slug="f36-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f36-b", password="pw"), name="F36 B", slug="f36-b")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F36 theme",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+        from .models import ChefBattleProfile
+        ChefBattleProfile.objects.create(author=self.chef_a, rating=100, reputation=50)
+        self.withdrawal = request_withdrawal(
+            battle=self.battle, author=self.chef_a, reason="F36 reason.")
+        decide_withdrawal(withdrawal=self.withdrawal, author=self.chef_b, with_penalty=True,
+                          opponent_reason="F36 opponent reason.")
+
+    def test_locks_the_withdrawal_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .withdrawal_service import resolve_withdrawal
+
+        with CaptureQueriesContext(connection) as captured:
+            resolve_withdrawal(withdrawal=self.withdrawal, moderator=self.moderator, uphold_penalty=True)
+
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battlewithdrawal" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "resolve_withdrawal must lock the withdrawal row, not just the battle")
+
+    def test_a_second_resolve_on_a_stale_withdrawal_object_is_refused(self):
+        from .withdrawal_service import resolve_withdrawal, WithdrawalNotAllowed
+        from .models import ChefBattleProfile
+
+        # A second racing moderator would have loaded their OWN copy of this
+        # withdrawal before either call committed - fetch that independent,
+        # still-open copy now, before the first resolve runs.
+        from .models import BattleWithdrawal
+        stale_copy = BattleWithdrawal.objects.get(pk=self.withdrawal.pk)
+
+        resolve_withdrawal(withdrawal=self.withdrawal, moderator=self.moderator, uphold_penalty=True)
+        profile = ChefBattleProfile.objects.get(author=self.chef_a)
+        self.assertEqual(profile.rating, 85)      # 100 - the Owner's figure: 15
+        self.assertEqual(profile.reputation, 47)  # 50 - 3
+
+        with self.assertRaises(WithdrawalNotAllowed):
+            resolve_withdrawal(withdrawal=stale_copy, moderator=self.moderator, uphold_penalty=True)
+
+        profile.refresh_from_db()
+        self.assertEqual(
+            profile.rating, 85,
+            "a second resolve on a stale withdrawal object must not apply the penalty twice",
+        )
+        self.assertEqual(profile.reputation, 47)
+
+
+class SendBattleArtifactLocksBattleTests(TestCase):
+    """F37, 2026-08-11: battle.status was checked against whatever object
+    the caller passed in, BEFORE the transaction opened. A scorer completing
+    the battle in the window between that check and the debit meant a
+    viewer's real tokens were spent, and the artifact locked to a battle
+    that was already over and could never use it."""
+
+    def setUp(self):
+        from .models import Artifact, ChefBattleProfile
+        User = get_user_model()
+        ua = User.objects.create_user("f37-a", password="pw")
+        ub = User.objects.create_user("f37-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="F37 A", slug="f37-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="F37 B", slug="f37-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F37 theme",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+        self.artifact = Artifact.objects.create(
+            name="F37 Pan", rarity=Artifact.Rarity.RARE,
+            effect_type="attack", effect_value=5, token_cost=50,
+        )
+
+    def test_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .models import TokenTransaction
+        from .services import credit_tokens, send_battle_artifact
+
+        credit_tokens(self.chef_a, 100, TokenTransaction.TxType.ADMIN_GRANT)
+        with CaptureQueriesContext(connection) as captured:
+            send_battle_artifact(
+                sender_user=self.chef_a.user, recipient=self.chef_b,
+                battle=self.battle, artifact=self.artifact,
+            )
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "send_battle_artifact must lock the battle row before debiting tokens")
+
+    def test_a_battle_that_finished_before_the_debit_refuses_and_spends_nothing(self):
+        from .models import TokenTransaction, TokenWallet, ViewerBattleGift
+        from .services import credit_tokens, send_battle_artifact
+
+        credit_tokens(self.chef_a, 100, TokenTransaction.TxType.ADMIN_GRANT)
+        # Simulate the stale-object race: the caller's `battle` still shows
+        # ACTIVE, but the row itself finished in the meantime.
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.COMPLETED)
+
+        with self.assertRaises(ValueError):
+            send_battle_artifact(
+                sender_user=self.chef_a.user, recipient=self.chef_b,
+                battle=self.battle, artifact=self.artifact,
+            )
+
+        self.assertEqual(TokenWallet.objects.get(chef=self.chef_a).balance, 100)
+        self.assertFalse(ViewerBattleGift.objects.filter(battle=self.battle).exists())
+
+
+class ChallengeTransitionsAreLockedTests(TestCase):
+    """F38, 2026-08-11: accept_challenge, refuse_challenge and
+    expire_stale_challenges all wrote a challenge's status with nothing
+    serialising them against each other. Battle.challenge's unique
+    OneToOneField already stops a SECOND battle from ever being created for
+    one challenge (F19), but nothing stopped the CHALLENGE itself landing as
+    REFUSED or EXPIRED in the same instant a live Battle exists for it - and
+    refuse_challenge penalises a chef for "refusing" a challenge they were
+    simultaneously accepting."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.challenger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f38-ch", password="pw"), name="F38 Challenger", slug="f38-ch")
+        self.opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f38-op", password="pw"), name="F38 Opponent", slug="f38-op")
+
+    def _pending_challenge(self, theme="F38 Challenge"):
+        return BattleChallenge.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme=theme,
+            expires_at=timezone.now() + timezone.timedelta(hours=12),
+        )
+
+    def test_accept_challenge_locks_the_challenge_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import accept_challenge
+
+        challenge = self._pending_challenge()
+        with CaptureQueriesContext(connection) as captured:
+            accept_challenge(challenge)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battlechallenge" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "accept_challenge must lock the challenge row")
+
+    def test_refuse_challenge_locks_the_challenge_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import refuse_challenge
+
+        challenge = self._pending_challenge()
+        with CaptureQueriesContext(connection) as captured:
+            refuse_challenge(challenge)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battlechallenge" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "refuse_challenge must lock the challenge row")
+
+    def test_expire_stale_challenges_locks_each_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import expire_stale_challenges
+
+        challenge = self._pending_challenge()
+        BattleChallenge.objects.filter(pk=challenge.pk).update(
+            expires_at=timezone.now() - timezone.timedelta(hours=1))
+        with CaptureQueriesContext(connection) as captured:
+            expire_stale_challenges()
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battlechallenge" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "expire_stale_challenges must lock each challenge row")
+
+    def test_refusing_an_already_accepted_challenge_is_refused_not_penalised(self):
+        from .services import accept_challenge, refuse_challenge, get_or_create_battle_profile
+
+        challenge = self._pending_challenge()
+        # A second racer's stale copy, loaded before the accept committed.
+        stale_copy = BattleChallenge.objects.get(pk=challenge.pk)
+
+        accept_challenge(challenge)
+        with self.assertRaises(ValueError):
+            refuse_challenge(stale_copy)
+
+        profile = get_or_create_battle_profile(self.opponent)
+        self.assertEqual(
+            profile.refused_battles, 0,
+            "refusing a challenge that was simultaneously accepted must not "
+            "penalise the chef who lost the race",
+        )
+        challenge.refresh_from_db()
+        self.assertEqual(challenge.status, BattleChallenge.Status.ACCEPTED)
+        self.assertTrue(Battle.objects.filter(challenge=challenge).exists())
+
+    def test_accepting_an_already_refused_challenge_is_refused(self):
+        from .services import accept_challenge, refuse_challenge
+
+        challenge = self._pending_challenge()
+        stale_copy = BattleChallenge.objects.get(pk=challenge.pk)
+
+        refuse_challenge(challenge)
+        with self.assertRaises(ValueError):
+            accept_challenge(stale_copy)
+
+        self.assertFalse(Battle.objects.filter(challenge=challenge).exists())
+        challenge.refresh_from_db()
+        self.assertEqual(challenge.status, BattleChallenge.Status.REFUSED)
+
+
+class AwardMovesLocksTheProfileTests(TestCase):
+    """F39, 2026-08-11: the once-per-object dedup check and the like
+    anti-farm count both ran as a bare .exists()/.count() with nothing
+    serialising two concurrent award_moves calls for the SAME chef. Locking
+    the profile row first closes both: a second call now blocks until the
+    first commits, then sees what the first actually wrote."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        self.author = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f39-chef", password="pw"), name="F39 Chef", slug="f39-chef")
+        ChefBattleProfile.objects.create(author=self.author, enrolled_at=timezone.now())
+
+    def test_locks_the_profile_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .energy_service import award_moves
+        from .models import BattleMoveTransaction
+
+        with CaptureQueriesContext(connection) as captured:
+            award_moves(self.author, 5, BattleMoveTransaction.TxType.RECIPE_PUBLISHED)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_chefbattleprofile" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "award_moves must lock the chef's profile row")
+
+    def test_infinite_moves_and_cap_behaviour_survive_the_refactor(self):
+        """Regression only - the lock's job is a true-concurrency guard that
+        a sequential test cannot exercise (both racers would see each
+        other's committed writes anyway in one connection); this confirms
+        moving the profile fetch earlier didn't change the cap/infinite
+        logic it feeds."""
+        from .energy_service import award_moves, ENERGY_CAP
+        from .models import BattleMoveTransaction, ChefBattleProfile
+
+        awarded = award_moves(self.author, 5, BattleMoveTransaction.TxType.PINCH_PUBLISHED)
+        self.assertEqual(awarded, 5)
+        profile = ChefBattleProfile.objects.get(author=self.author)
+        self.assertEqual(profile.battle_moves, 5)
+
+        profile.battle_moves = ENERGY_CAP - 2
+        profile.save(update_fields=["battle_moves"])
+        awarded = award_moves(self.author, 10, BattleMoveTransaction.TxType.LIKE_RECEIVED,
+                              source_user=self.author.user)
+        self.assertEqual(awarded, 2)
+        profile.refresh_from_db()
+        self.assertEqual(profile.battle_moves, ENERGY_CAP)
+
+    def test_a_republished_object_is_not_awarded_twice(self):
+        from .energy_service import award_moves
+        from .models import BattleMoveTransaction, ChefBattleProfile
+
+        first = award_moves(self.author, 5, BattleMoveTransaction.TxType.RECIPE_PUBLISHED,
+                            reference=self.author)
+        second = award_moves(self.author, 5, BattleMoveTransaction.TxType.RECIPE_PUBLISHED,
+                             reference=self.author)
+        self.assertEqual(first, 5)
+        self.assertEqual(second, 0)
+        profile = ChefBattleProfile.objects.get(author=self.author)
+        self.assertEqual(profile.battle_moves, 5)
+
+
+class DeclareMenuLocksBattleTests(TestCase):
+    """F40, 2026-08-11: declare_menu computed both_declared from two bare
+    .exists() checks with nothing locking the battle. Two chefs declaring at
+    nearly the same instant each ran under plain READ COMMITTED - neither
+    transaction could see the other's not-yet-committed row, so BOTH
+    computed both_declared as False, both menus landed after commit, and
+    nothing ever moved the battle to ACTIVE: a permanent soft-lock, since
+    re-declaring is refused once a menu exists. Not a true concurrency test
+    (see the class docstring convention elsewhere in this file) - the lock
+    mechanism is asserted on the SQL; a sequential functional test cannot
+    reproduce the READ COMMITTED gap itself, only confirm normal play still
+    works."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.challenger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f40-ch", password="pw"), name="F40 Challenger", slug="f40-ch")
+        self.opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f40-op", password="pw"), name="F40 Opponent", slug="f40-op")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme="F40 theme",
+            status=Battle.Status.MENU_LOCKED, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+
+    def _menu(self, n=5):
+        return [{"name": f"Ingredient {i}", "is_key": i < 2} for i in range(n)]
+
+    def test_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import declare_menu
+
+        with CaptureQueriesContext(connection) as captured:
+            declare_menu(battle=self.battle, chef=self.challenger, ingredients=self._menu())
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "declare_menu must lock the battle row")
+
+    def test_both_chefs_declaring_still_activates_the_battle(self):
+        from .services import declare_menu
+
+        declare_menu(battle=self.battle, chef=self.challenger, ingredients=self._menu())
+        declare_menu(battle=self.battle, chef=self.opponent, ingredients=self._menu())
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.ACTIVE)
+
+
+class ApproveCookingPhaseLocksBattleTests(TestCase):
+    """F41, 2026-08-11: the INGREDIENT_PENALTY status check ran against
+    whatever object the caller's request loaded, before the transaction
+    opened, with no lock or recheck inside it. A stale moderation-queue page
+    could still show INGREDIENT_PENALTY for a battle already cancelled or
+    voided by another path, and approving it would resurrect an impossible
+    CANCELLED -> COOKING transition."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.moderator = User.objects.create_user("f41-mod", password="pw", is_staff=True)
+        self.challenger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f41-ch", password="pw"), name="F41 Challenger", slug="f41-ch")
+        self.opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f41-op", password="pw"), name="F41 Opponent", slug="f41-op")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme="F41 theme",
+            status=Battle.Status.INGREDIENT_PENALTY, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+
+    def test_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import approve_cooking_phase
+
+        with CaptureQueriesContext(connection) as captured:
+            approve_cooking_phase(self.battle, self.moderator)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "approve_cooking_phase must lock the battle row")
+
+    def test_a_stale_approval_on_a_cancelled_battle_is_refused(self):
+        from .services import approve_cooking_phase
+
+        # A stale copy, loaded before the battle was cancelled elsewhere.
+        stale_copy = Battle.objects.get(pk=self.battle.pk)
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.CANCELLED)
+
+        with self.assertRaises(ValueError):
+            approve_cooking_phase(stale_copy, self.moderator)
+
+        self.battle.refresh_from_db()
+        self.assertEqual(
+            self.battle.status, Battle.Status.CANCELLED,
+            "a stale approval must not resurrect a cancelled battle into COOKING",
+        )
+
+
+class G13TemplatesCssIsLoadedOnceTests(TestCase):
+    """F42, 2026-08-11: the four new G13 pages (battle_history, season_detail,
+    crown_holder, vote_review) each loaded chef_battle.css a second time in
+    their own extra_head block, on top of base.html's own single gated load -
+    the exact regression the round-3 cleanup fixed on 40 OTHER templates,
+    reintroduced here because these four didn't exist yet at the time."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.viewer = User.objects.create_user("f42-staff", password="pw", is_staff=True)
+        self.author = RecipeAuthor.objects.create(user=self.viewer, name="F42 Staff", slug="f42-staff")
+
+    def test_battle_history_loads_the_stylesheet_once(self):
+        self.client.force_login(self.viewer)
+        resp = self.client.get(reverse("chef_battle:battle_history"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content.decode().count("chef_battle.css"), 1)
+
+    def test_crown_holder_loads_the_stylesheet_once(self):
+        self.client.force_login(self.viewer)
+        resp = self.client.get(reverse("chef_battle:crown_holder"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content.decode().count("chef_battle.css"), 1)
+
+    def test_vote_review_loads_the_stylesheet_once(self):
+        self.client.force_login(self.viewer)
+        resp = self.client.get(reverse("chef_battle:vote_review"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content.decode().count("chef_battle.css"), 1)
+
+    def test_season_detail_loads_the_stylesheet_once(self):
+        from .season_service import create_season
+        season = create_season(
+            name="F42 Season", starts_at=timezone.now() - timezone.timedelta(days=1),
+            ends_at=timezone.now() + timezone.timedelta(days=1), activate=True)
+        self.client.force_login(self.viewer)
+        resp = self.client.get(reverse("chef_battle:season_detail", kwargs={"slug": season.slug}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content.decode().count("chef_battle.css"), 1)

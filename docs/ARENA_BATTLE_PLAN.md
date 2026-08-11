@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-11 · Production baseline: **v2.5.1008**
+Last reconciled: 2026-08-11 · Production baseline: **v2.5.1010**
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
@@ -130,6 +130,37 @@ turn the resulting IntegrityError into the same friendly message the
 existing check already gives the common case, same pattern as F19. This
 closes every finding from all four audit rounds except the TokenWallet model
 rename, still the Owner's to authorise on his own timeline.**
+**F34-F42 fixed, 2026-08-11 — an INDEPENDENT audit the Owner supplied found
+9 real defects this session's own four internal rounds had missed entirely:
+4 CRITICAL, 4 HIGH, 1 LOW, verdict 72%, release not accepted. Every finding
+verified against the actual code before anything was touched; all nine held
+up, and eight of the nine are concurrency races - the class this session's
+own rounds believed was fully swept after F21/F24/F27/F29/F30. CRITICAL:
+admin bulk actions force_reveal_entries and cancel_battles (F34/F35) each
+fetched their battle queryset once and wrote every row unlocked, so a
+battle a scorer completed mid-batch got silently forced back to VOTING or
+CANCELLED; resolve_withdrawal (F36) never locked the BattleWithdrawal row
+itself - a gap in this session's OWN F29 fix, not a first-time miss - so two
+concurrent resolves could double the withdrawal penalty; send_battle_artifact
+(F37) checked battle status before its transaction opened, so a battle
+finishing in the gap meant a viewer's real tokens were spent for nothing.
+HIGH: challenge accept/refuse/expire (F38) were not serialised against each
+other, so a chef could be penalised for "refusing" a challenge simultaneously
+accepted; award_moves' once-per-object and anti-farm checks (F39) had no
+lock; declare_menu (F40) - the worst of the nine - computed both_declared
+from two unlocked checks, so two chefs declaring within the same instant
+could each fail to see the other's not-yet-committed menu and leave the
+battle stuck in MENU_LOCKED forever, with no sweep able to detect or escape
+it; approve_cooking_phase (F41) could resurrect a cancelled battle into
+COOKING from a stale moderation-queue page. LOW: the four new G13 pages
+(F42) reloaded chef_battle.css a second time, reintroducing the exact
+pattern the round-3 cleanup removed from 40 other templates, because these
+four were written after that cleanup ran. Fixed with the same lock-and-
+recheck discipline already established this session, extended for the
+first time to admin.py's bulk actions. Two findings (F39, F40) are races
+between two SEPARATE connections that no sequential TestCase can reproduce
+even with a stale-object simulation - closed on the locking mechanism,
+proven via captured SQL. 114 focused tests green, zero regressions.**
 Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
