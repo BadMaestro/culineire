@@ -25,6 +25,61 @@ def get_active_season() -> Season | None:
     )
 
 
+
+#: What a season pays when it says nothing of its own. These are the values the
+#: service has always used; naming them here is what lets a season override them
+#: as DATA instead of as a deploy (G11, tz_main.md section 17.12).
+DEFAULT_REWARD_RULES = {
+    "seasonal_win": 10,      # seasonal score for a win
+    "seasonal_second": 5,    # ...and for second place or a draw
+}
+
+#: How the crown is decided when a season says nothing of its own. Free text on
+#: purpose: it describes a rule to a human, it does not dispatch code. Anything
+#: that dispatches code from a string in a database is a second state machine,
+#: and TECHNICAL_STANDARDS section 1 forbids exactly that.
+DEFAULT_CROWN_RULE = "24 hours to the winner of each battle."
+
+
+def reward_rules(season=None) -> dict:
+    """This season's reward numbers: the defaults, with its own overrides on top.
+
+    G11, Owner 2026-08-11. Season.reward_rules_json existed in the ТЗ and not in
+    the code, so the numbers lived in this module and changing them for one
+    season meant a deploy. A season that says nothing behaves exactly as every
+    season has so far - the defaults ARE the current behaviour, not a new set.
+
+    A malformed or partial override never breaks a battle: unknown keys are
+    ignored and missing ones fall back, because a bad row in a season should
+    cost that season its override and nothing else.
+    """
+    rules = dict(DEFAULT_REWARD_RULES)
+    if season is None:
+        return rules
+    override = getattr(season, "reward_rules_json", None)
+    if isinstance(override, dict):
+        for key in DEFAULT_REWARD_RULES:
+            value = override.get(key)
+            if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+                rules[key] = value
+    return rules
+
+
+def crown_rule(season=None) -> str:
+    """The season's crown rule as text, or the standing one."""
+    if season is not None and (season.crown_rule or "").strip():
+        return season.crown_rule.strip()
+    return DEFAULT_CROWN_RULE
+
+
+def active_reward_rules() -> dict:
+    """The rules in force right now. Safe to call from anywhere, including a
+    path with no season at all - it answers with the defaults."""
+    try:
+        return reward_rules(get_active_season())
+    except Exception:                      # pragma: no cover - defensive
+        return dict(DEFAULT_REWARD_RULES)
+
 def get_latest_finished_season() -> Season | None:
     """Most recently ended season, for showing past champions."""
     return (

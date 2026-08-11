@@ -5616,8 +5616,17 @@ class PostBattleCooldownAcceptTests(TestCase):
         ub = User.objects.create_user("cd-chef-b", password="pw")
         self.chef_a = RecipeAuthor.objects.create(user=ua, name="CD Chef A", slug="cd-chef-a")
         self.chef_b = RecipeAuthor.objects.create(user=ub, name="CD Chef B", slug="cd-chef-b")
-        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now(), battle_moves=20)
-        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now(), battle_moves=20)
+        # age_verified is required to ACCEPT since F13 (v2.5.1000) - the gate
+        # used to run only for the challenger at challenge_create, so the
+        # opponent could enter a real-money battle unverified. This class is
+        # about the COOLDOWN, so both chefs are verified and the cooldown is
+        # the only thing left that can refuse an accept.
+        ChefBattleProfile.objects.create(
+            author=self.chef_a, enrolled_at=timezone.now(), battle_moves=20,
+            age_verified=True, age_confirmed_at=timezone.now())
+        ChefBattleProfile.objects.create(
+            author=self.chef_b, enrolled_at=timezone.now(), battle_moves=20,
+            age_verified=True, age_confirmed_at=timezone.now())
 
     def _make_pending_challenge(self):
         return BattleChallenge.objects.create(
@@ -14056,3 +14065,124 @@ class DoubleAcceptRaceReturnsFriendlyMessageTests(TestCase):
             {"action": "accept"},
         )
         self.assertEqual(resp.status_code, 302)
+
+class CookingFormatSetsTheArtifactTierTests(TestCase):
+    """G3 — «этого ещё и вправду нет — будем строить».
+
+    chef_levels.md sets the winner's artifact tier from how the dish was
+    cooked: a photo series draws from the basic pool, a live cook from the
+    premium one, and webcam counts only when BOTH chefs streamed. The field it
+    names never existed — while BattleEntryForm has carried the photo/video
+    radio since it was written, collecting the answer and dropping it.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.a, self.b = [
+            RecipeAuthor.objects.create(
+                user=User.objects.create_user(f"g3-{n}", password="pw"),
+                name=f"G3 {n}", slug=f"g3-{n}")
+            for n in ("a", "b")
+        ]
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Format Dish",
+            status=Battle.Status.ACTIVE,
+            start_time=now, submission_deadline=now, voting_deadline=now, end_time=now,
+        )
+
+    def _entry(self, author, fmt):
+        return BattleEntry.objects.create(
+            battle=self.battle, author=author, cooking_format=fmt)
+
+    def test_photos_draw_from_the_basic_pool(self):
+        from chef_battle.services import drop_weights_for_battle
+        fmt = BattleEntry.CookingFormat.PHOTOS
+        self._entry(self.a, fmt)
+        self._entry(self.b, fmt)
+        self.assertEqual(set(drop_weights_for_battle(self.battle)), {"common", "uncommon"})
+
+    def test_both_on_camera_draw_from_the_premium_pool(self):
+        from chef_battle.services import drop_weights_for_battle
+        fmt = BattleEntry.CookingFormat.WEBCAM
+        self._entry(self.a, fmt)
+        self._entry(self.b, fmt)
+        self.assertEqual(set(drop_weights_for_battle(self.battle)),
+                         {"rare", "epic", "legendary"})
+
+    def test_a_mixed_battle_takes_the_lower_tier(self):
+        """The document's own tie-break, and it is the strict one: one chef
+        cooking to camera must not lift the other's prize pool."""
+        from chef_battle.services import drop_weights_for_battle
+        self._entry(self.a, BattleEntry.CookingFormat.WEBCAM)
+        self._entry(self.b, BattleEntry.CookingFormat.PHOTOS)
+        self.assertEqual(set(drop_weights_for_battle(self.battle)), {"common", "uncommon"})
+
+    def test_a_battle_with_no_entries_is_not_premium(self):
+        from chef_battle.services import drop_weights_for_battle
+        self.assertEqual(set(drop_weights_for_battle(self.battle)), {"common", "uncommon"})
+
+    def test_the_submission_form_stores_the_choice_it_collects(self):
+        from chef_battle.forms import BattleEntryForm
+        from recipes.models import Recipe
+
+        recipe = Recipe.objects.create(
+            author=self.a, title="Format Recipe", slug="format-recipe",
+            status=Recipe.Status.APPROVED)
+        # Built the way battle_entry_submit builds it: an instance carrying the
+        # author, because BattleEntry.clean() checks recipe ownership against
+        # it and the form only assigns the author in save().
+        form = BattleEntryForm(
+            {"content_type": "video", "recipe": recipe.pk, "battle_statement": "live"},
+            instance=BattleEntry(battle=self.battle, author=self.a),
+            author=self.a, battle=self.battle)
+        self.assertTrue(form.is_valid(), form.errors)
+        entry = form.save()
+        self.assertEqual(entry.cooking_format, BattleEntry.CookingFormat.WEBCAM)
+
+
+class SeasonRulesAreDataTests(TestCase):
+    """G11 — a season's numbers were only ever changeable by deploying.
+
+    tz_main.md section 17.12 lists crown_rule and reward_rules_json on Season
+    and neither existed, so the rules lived in season_service.py. A season that
+    sets nothing must behave exactly as every season has so far.
+    """
+
+    def _season(self, **kwargs):
+        from chef_battle.models import Season
+        now = timezone.now()
+        return Season.objects.create(
+            name="Rules Season", starts_at=now, ends_at=now + timezone.timedelta(days=30),
+            **kwargs)
+
+    def test_a_season_with_no_rules_pays_the_standing_numbers(self):
+        from chef_battle.season_service import reward_rules, DEFAULT_REWARD_RULES
+        self.assertEqual(reward_rules(self._season()), DEFAULT_REWARD_RULES)
+
+    def test_no_season_at_all_pays_the_standing_numbers(self):
+        from chef_battle.season_service import reward_rules, DEFAULT_REWARD_RULES
+        self.assertEqual(reward_rules(None), DEFAULT_REWARD_RULES)
+
+    def test_a_season_can_override_one_number_and_keep_the_rest(self):
+        from chef_battle.season_service import reward_rules, DEFAULT_REWARD_RULES
+        rules = reward_rules(self._season(reward_rules_json={"seasonal_win": 40}))
+        self.assertEqual(rules["seasonal_win"], 40)
+        self.assertEqual(rules["seasonal_second"], DEFAULT_REWARD_RULES["seasonal_second"])
+
+    def test_a_malformed_override_costs_that_season_its_override_and_nothing_else(self):
+        from chef_battle.season_service import reward_rules, DEFAULT_REWARD_RULES
+        for junk in ("not a dict", [1, 2], {"seasonal_win": "ten"},
+                     {"seasonal_win": -5}, {"seasonal_win": True}, {"unknown": 3}):
+            self.assertEqual(
+                reward_rules(self._season(reward_rules_json=junk))["seasonal_win"],
+                DEFAULT_REWARD_RULES["seasonal_win"],
+                f"{junk!r} must fall back rather than break a battle",
+            )
+
+    def test_the_crown_rule_is_text_for_a_human_and_falls_back(self):
+        from chef_battle.season_service import crown_rule, DEFAULT_CROWN_RULE
+        self.assertEqual(crown_rule(self._season()), DEFAULT_CROWN_RULE)
+        self.assertEqual(
+            crown_rule(self._season(crown_rule="Top of the ladder holds it all season.")),
+            "Top of the ladder holds it all season.")

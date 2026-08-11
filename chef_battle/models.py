@@ -320,6 +320,24 @@ class BattleEntry(models.Model):
     )
     is_revealed = models.BooleanField(default=False)
     is_late = models.BooleanField(default=False)
+    class CookingFormat(models.TextChoices):
+        PHOTOS = "photos", "Photo Series"
+        WEBCAM = "webcam", "Live / Recorded Webcam"
+
+    #: G3, Owner 2026-08-11 («этого ещё и вправду нет — будем строить»).
+    #: chef_levels.md sets the winner's artifact tier from how the dish was
+    #: cooked - a photo series draws from the basic pool, a live cook from the
+    #: premium one - and named this exact field. It did not exist, so the rule
+    #: could not run and every battle drew from one table.
+    #:
+    #: The chef has been ANSWERING this question all along: BattleEntryForm has
+    #: carried a photo/video radio since it was written, declared on the form
+    #: and absent from the model, so the answer was collected and thrown away
+    #: at every submission. It is stored now.
+    cooking_format = models.CharField(
+        max_length=16, choices=CookingFormat.choices, default=CookingFormat.PHOTOS,
+        help_text="How this chef cooked the dish. Sets the artifact tier on a win.",
+    )
     cooked_photo = models.ImageField(upload_to="chef_battle/cooked/", null=True, blank=True)
     cooked_photo_submitted_at = models.DateTimeField(null=True, blank=True)
     real_photo_confirmed = models.BooleanField(default=False, help_text="Chef confirmed cooked photo is a real photograph (§32)")
@@ -879,6 +897,19 @@ class Season(models.Model):
     starts_at = models.DateTimeField()
     ends_at = models.DateTimeField()
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.UPCOMING)
+    #: G11, Owner 2026-08-11. tz_main.md section 17.12 lists both of these and
+    #: neither existed, so a season's rules lived in season_service.py and
+    #: changing them meant a deploy rather than a data edit - which is the
+    #: opposite of what a season is for. Blank means "the service default",
+    #: so an untouched season behaves exactly as every season has so far.
+    crown_rule = models.CharField(
+        max_length=200, blank=True,
+        help_text="How the crown is decided for this season. Blank = the service default.",
+    )
+    reward_rules_json = models.JSONField(
+        null=True, blank=True,
+        help_text="Per-season reward overrides. NULL = the service default.",
+    )
 
     class Meta:
         ordering = ["-starts_at"]

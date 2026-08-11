@@ -96,6 +96,16 @@ class BattleEntryForm(forms.ModelForm):
         entry = super().save(commit=False)
         entry.author = self.author
         entry.battle = self.battle
+        # G3: this radio has been on the form since it was written and its
+        # answer went nowhere - `content_type` is declared here and does not
+        # exist on the model, so every chef's choice was collected and dropped.
+        # It sets the artifact tier on a win (chef_levels.md).
+        chosen = self.cleaned_data.get("content_type")
+        if chosen:
+            entry.cooking_format = (
+                BattleEntry.CookingFormat.WEBCAM if chosen == "video"
+                else BattleEntry.CookingFormat.PHOTOS
+            )
         if self._attached_recipe_id:
             entry.recipe_id = self._attached_recipe_id
         entry.dish_submitted_at = timezone.now()

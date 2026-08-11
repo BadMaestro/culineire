@@ -209,6 +209,12 @@ def penalise(profile, *, battle=None, losses=0, reputation=0, rating=0,
 # winner's share is always the larger one.
 RATING_WIN = 25
 REPUTATION_WIN = 15
+#: The standing seasonal award. Since G11 (2026-08-11) a season may override it
+#: as data through Season.reward_rules_json; season_service.DEFAULT_REWARD_RULES
+#: carries the same number and is what a season with no rules of its own pays.
+#: Kept here because the halves and the shape of the award are still this
+#: module's, and because removing a published constant is a change nobody asked
+#: for.
 SEASONAL_WIN = 10
 
 
@@ -334,10 +340,15 @@ def award_second_place(profile) -> None:
     """Half of a win, for the chef who lost the vote or drew.
 
     Also used by the draw path, which until now paid both chefs nothing at all.
+
+    The seasonal share reads the ACTIVE SEASON's own rules (G11): a season that
+    says nothing pays what every season has always paid.
     """
+    from .season_service import active_reward_rules
+
     profile.rating += RATING_WIN // 2
     profile.reputation += REPUTATION_WIN // 2
-    profile.seasonal_score += SEASONAL_WIN // 2
+    profile.seasonal_score += active_reward_rules()["seasonal_second"]
 
 
 def promote_rank(profile) -> None:
@@ -1140,7 +1151,10 @@ def _score_battle(battle: Battle) -> Battle:
             winner_profile.best_win_streak = winner_profile.win_streak
         winner_profile.rating += rating_delta
         winner_profile.reputation += REPUTATION_WIN
-        winner_profile.seasonal_score += SEASONAL_WIN
+        # G11: the winner's seasonal share is the active season's own number,
+        # falling back to the standing one when a season sets nothing.
+        from .season_service import active_reward_rules
+        winner_profile.seasonal_score += active_reward_rules()["seasonal_win"]
         winner_profile.crown_count += 1
         winner_profile.crown_until = timezone.now() + timezone.timedelta(hours=24)
         promote_rank(winner_profile)
@@ -2317,6 +2331,47 @@ _DROP_WEIGHTS_WINNER = {
     "legendary": 8,
 }
 
+# G3, Owner 2026-08-11. chef_levels.md: a win cooked on camera draws from the
+# PREMIUM pool, a photo series from the BASIC one - "Artifact rewards by
+# cooking format". The rule could not run because BattleEntry had no
+# cooking_format; it does now, and the chef has been answering the question at
+# every submission since the form was written.
+#
+# The weights inside each pool are the existing table's, untouched: this splits
+# WHICH rarities can drop, it does not re-tune how likely each is. A pool that
+# comes up empty falls back to the full table rather than paying nothing -
+# _pick_artifact already refuses to leave a winner with no drop, and a rule
+# about tiers must not become a rule about getting nothing.
+_DROP_WEIGHTS_BASIC = {"common": 30, "uncommon": 27}
+_DROP_WEIGHTS_PREMIUM = {"rare": 20, "epic": 15, "legendary": 8}
+
+
+def battle_cooking_format(battle) -> str:
+    """How this battle was cooked, for reward purposes.
+
+    chef_levels.md is explicit about the tie-break and it is the strict one:
+    "if both entries use different formats, the battle format is determined by
+    the LOWER tier - webcam only applies when BOTH chefs stream live." So one
+    chef cooking to camera does not lift the other's prize pool.
+    """
+    from .models import BattleEntry
+
+    formats = set(
+        battle.entries.values_list("cooking_format", flat=True)
+    )
+    if formats and formats == {BattleEntry.CookingFormat.WEBCAM}:
+        return BattleEntry.CookingFormat.WEBCAM
+    return BattleEntry.CookingFormat.PHOTOS
+
+
+def drop_weights_for_battle(battle) -> dict:
+    """The rarity pool this battle's winner draws from."""
+    from .models import BattleEntry
+
+    if battle_cooking_format(battle) == BattleEntry.CookingFormat.WEBCAM:
+        return dict(_DROP_WEIGHTS_PREMIUM)
+    return dict(_DROP_WEIGHTS_BASIC)
+
 def _pick_artifact(chef, weights: dict, guaranteed: bool = False):
     """Pick a random artifact the chef doesn't already own, weighted by rarity.
 
@@ -2355,9 +2410,14 @@ def drop_battle_artifacts(battle: Battle) -> list:
     winner = battle.winner
     loser = battle.loser
 
+    # G3: the winner's pool follows how the dish was cooked. The loser's
+    # consolation drop keeps the original full table - chef_levels.md ties the
+    # tier to WINNING, and a consolation prize is not the reward it describes.
+    winner_weights = drop_weights_for_battle(battle)
+
     participants = []
     if winner:
-        participants.append((winner, _DROP_WEIGHTS_WINNER, True))
+        participants.append((winner, winner_weights, True))
     if loser and random.random() < 0.50:
         participants.append((loser, _DROP_WEIGHTS_WINNER, False))
 

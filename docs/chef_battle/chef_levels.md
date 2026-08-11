@@ -83,21 +83,25 @@ call and no agent's.
 
 ---
 
-## Artifact rewards by cooking format — NOT BUILT, CONFIRMED TO BUILD
+## Artifact rewards by cooking format — BUILT, v2.5.1001
 
-> **OWNER, 2026-08-10: «этого ещё и вправду нет — будем строить».** Confirmed
-> missing and confirmed WANTED — scheduled work awaiting a card from him, not a
-> rule to drop and not something an agent starts on its own.
+> **OWNER, 2026-08-10: «этого ещё и вправду нет — будем строить».** Built on
+> 2026-08-11. `BattleEntry.cooking_format` exists, the winner's pool follows
+> it, and the tie-break below is implemented exactly as written: webcam counts
+> only when BOTH chefs cooked on camera.
 
-**This is the other kind of gap and it is not settled by the standing rule: the
-code never implemented it, so there is no decision to defer to.** There is no
-`cooking_format` field anywhere in the Python source. `_DROP_WEIGHTS_WINNER` in
-`services.py` is a single rarity-weighted table used for every battle, the
-winner always draws and the loser draws on a coin flip. The battle's format
-lives on `Battle.BattleType` (photo / video), on the CHALLENGE, not on the
-entry, and nothing reads it when a prize is drawn.
+`battle_cooking_format()` and `drop_weights_for_battle()` in `services.py` are
+the rule; `_DROP_WEIGHTS_BASIC` and `_DROP_WEIGHTS_PREMIUM` are the two pools,
+carrying the same weights the single table always had — this splits WHICH
+rarities can drop, it does not re-tune how likely each one is.
 
-The Owner has said which: it is to be built. It waits for his card, and no agent starts it before that.
+**The field was the only thing missing, and the answer was already being
+collected:** `BattleEntryForm` has carried a photo/video radio since it was
+written, declared on the form and absent from the model, so every chef's choice
+was gathered at submission and thrown away. It is stored now.
+
+An empty pool falls back to the full set rather than paying nothing: a rule
+about tiers must not quietly become a rule about getting no prize at all.
 
 | Cooking format | Artifact tier on win |
 |----------------|----------------------|
