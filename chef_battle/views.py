@@ -34,6 +34,7 @@ from .fraud import (
     gate_account_age,
     gate_age_verified,
     gate_challenge_spam,
+    gate_dsa_report_threshold,
     gate_duplicate_device,
     gate_fraud_flagged,
     gate_gift_velocity,
@@ -655,6 +656,9 @@ def token_checkout_create(request):
     # never called anywhere - the one real-money purchase path built its own
     # gate list and left it out. A written, never-wired anti-fraud check on
     # a real-money flow is worse than not having one.
+    # F23-DSA, 2026-08-11, Owner's ruling: gate_dsa_report_threshold wired in
+    # the same way - an account with too many moderator-logged DSA reports
+    # does not buy more tokens until a moderator has looked at it.
     wallet, _ = TokenWallet.objects.get_or_create(chef=author)
     fraud_result = run_fraud_gates([
         (gate_suspended_account, (author,), {}),
@@ -662,6 +666,7 @@ def token_checkout_create(request):
         (gate_age_verified, (author,), {}),
         (gate_withdrawal_consent, (withdrawal_waived,), {}),
         (gate_token_purchase_velocity, (wallet,), {}),
+        (gate_dsa_report_threshold, (author,), {}),
     ])
     if not fraud_result.passed:
         first_fail = next(g for g in fraud_result.gates if not g.passed)
@@ -671,6 +676,7 @@ def token_checkout_create(request):
             "age_verified": "You must confirm that you are 18 or older before purchasing tokens.",
             "withdrawal_consent": "You must confirm the digital content consent before purchasing tokens.",
             "token_purchase_velocity": "You have made too many token purchases in the last 24 hours. Please try again later.",
+            "dsa_report_threshold": "Your account has been reported and is pending moderator review. Please contact support.",
         }
         from django.urls import reverse
         resp = {"error": _CHECKOUT_FRAUD_MESSAGES.get(first_fail.gate, "Purchase not accepted.")}

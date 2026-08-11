@@ -922,6 +922,24 @@ class Season(models.Model):
 
     class Meta:
         ordering = ["-starts_at"]
+        constraints = [
+            # F24 residual, 2026-08-11: activate_season locks and re-checks
+            # its OWN row, but two DIFFERENT seasons activated at once take
+            # different row locks and never collide - both could pass
+            # get_active_season()'s unlocked read before either commits.
+            # App-level locking cannot close a race across two different
+            # rows; only the database can. A unique constraint on `status`
+            # filtered to status="active" means every row satisfying the
+            # filter must hold a distinct value of a column that only has
+            # one possible value here, so at most one such row can ever
+            # exist - the second writer's save() raises IntegrityError
+            # instead of silently landing.
+            models.UniqueConstraint(
+                fields=["status"],
+                condition=models.Q(status="active"),
+                name="chef_battle_season_only_one_active",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.slug:

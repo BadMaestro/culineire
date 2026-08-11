@@ -280,7 +280,13 @@ def gate_post_battle_cooldown(challenger, cooldown_hours: int = 24) -> GateResul
 # ---------------------------------------------------------------------------
 
 def gate_dsa_report_threshold(author, max_reports: int = 5) -> GateResult:
-    """Warn if author has accumulated too many DSA reports (does not block — logs only)."""
+    """Block token purchases once an account has accumulated too many DSA
+    reports (Owner's ruling, 2026-08-11: a reported account does not buy
+    more tokens until a moderator has looked at it and reset the count).
+
+    dsa_reported_count is moderator-set (chef_battle admin), never
+    auto-incremented by an automated report pipeline - so this only fires
+    after a human has already logged reports against the account."""
     if author is None:
         return GateResult("dsa_report_threshold", True)
     profile = getattr(author, "battle_profile", None)

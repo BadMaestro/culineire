@@ -15081,3 +15081,101 @@ class CombatArtifactReservationLockTests(TestCase):
         self.assertTrue(
             locking, "fetching the artifact to reserve must lock its own row too",
         )
+
+
+class DsaReportThresholdGateTests(TestCase):
+    """F32, 2026-08-11: gate_dsa_report_threshold was written and correctly
+    returned passed=False past the threshold, but had zero call sites -
+    F23 found it and deliberately left it unwired pending an Owner policy
+    call on block-vs-log-only. Owner's ruling, 2026-08-11: blocking. Wired
+    into token_checkout_create alongside gate_token_purchase_velocity."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        self.user = User.objects.create_user("f32-buyer", password="pw")
+        self.author = RecipeAuthor.objects.create(user=self.user, name="F32 Buyer", slug="f32-buyer")
+        self.profile = ChefBattleProfile.objects.create(author=self.author, age_verified=True)
+
+    def test_gate_fails_at_the_report_threshold(self):
+        from .fraud import gate_dsa_report_threshold
+        self.profile.dsa_reported_count = 5
+        self.profile.save(update_fields=["dsa_reported_count"])
+        r = gate_dsa_report_threshold(self.author)
+        self.assertFalse(r.passed)
+        self.assertEqual(r.gate, "dsa_report_threshold")
+
+    def test_gate_passes_under_the_report_threshold(self):
+        from .fraud import gate_dsa_report_threshold
+        self.profile.dsa_reported_count = 4
+        self.profile.save(update_fields=["dsa_reported_count"])
+        self.assertTrue(gate_dsa_report_threshold(self.author).passed)
+
+    def test_checkout_view_blocks_a_buyer_past_the_report_threshold(self):
+        from .models import TokenPackage
+        self.profile.dsa_reported_count = 5
+        self.profile.save(update_fields=["dsa_reported_count"])
+        package = TokenPackage.objects.create(
+            key="f32-pack", name="F32 Pack", tokens=100, price_eur="10.00", is_active=True)
+        self.client.force_login(self.user)
+        resp = self.client.post(
+            reverse("chef_battle:token_checkout_create"),
+            data=json.dumps({"package_id": package.pk, "withdrawal_consent": True}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("pending moderator review", resp.json()["error"])
+
+
+class SeasonOnlyOneActiveConstraintTests(TestCase):
+    """F24 residual, 2026-08-11: activate_season/create_season's own 'is
+    another season active' check reads a DIFFERENT row, unlocked - two
+    DIFFERENT seasons activated at once could both pass it before either
+    commits, since each only locks its own row (or, for create_season,
+    locks nothing at all). A DB-level partial unique constraint (only one
+    Season with status='active') is the actual guard. These tests
+    monkeypatch get_active_season to simulate the race window, bypassing
+    the app-level check on purpose, to prove the CONSTRAINT - not the
+    check - is what stops the second writer."""
+
+    def setUp(self):
+        from .season_service import create_season
+        now = timezone.now()
+        self.season_a = create_season(
+            name="F24R Season A", starts_at=now - timezone.timedelta(days=10),
+            ends_at=now + timezone.timedelta(days=10))
+        self.season_b = create_season(
+            name="F24R Season B", starts_at=now + timezone.timedelta(days=20),
+            ends_at=now + timezone.timedelta(days=40))
+
+    def test_the_database_constraint_stops_a_second_active_season(self):
+        from unittest import mock
+        from . import season_service
+        from .models import Season
+
+        season_service.activate_season(self.season_a)
+
+        with mock.patch.object(season_service, "get_active_season", return_value=None):
+            with self.assertRaises(ValueError):
+                season_service.activate_season(self.season_b)
+
+        self.season_a.refresh_from_db()
+        self.season_b.refresh_from_db()
+        self.assertEqual(self.season_a.status, Season.Status.ACTIVE)
+        self.assertEqual(self.season_b.status, Season.Status.UPCOMING)
+
+    def test_create_season_activate_true_is_also_stopped_by_the_constraint(self):
+        from unittest import mock
+        from . import season_service
+        from .models import Season
+
+        season_service.activate_season(self.season_a)
+
+        with mock.patch.object(season_service, "get_active_season", return_value=None):
+            with self.assertRaises(ValueError):
+                season_service.create_season(
+                    name="F24R Season C", activate=True,
+                    starts_at=timezone.now() + timezone.timedelta(days=50),
+                    ends_at=timezone.now() + timezone.timedelta(days=60))
+
+        self.assertFalse(Season.objects.filter(name="F24R Season C").exists())

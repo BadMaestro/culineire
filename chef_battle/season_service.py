@@ -10,7 +10,7 @@ history of ended seasons.
 """
 from __future__ import annotations
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 from .models import ChefBattleProfile, Season, SeasonStanding
 from .season_signals import season_ended, season_ended_committed, season_started
@@ -94,12 +94,22 @@ def create_season(*, name: str, starts_at, ends_at, activate: bool = False) -> S
         raise ValueError("Season ends_at must be after starts_at.")
     if activate and get_active_season() is not None:
         raise ValueError("Another season is already active — close it before activating a new one.")
-    return Season.objects.create(
-        name=name,
-        starts_at=starts_at,
-        ends_at=ends_at,
-        status=Season.Status.ACTIVE if activate else Season.Status.UPCOMING,
-    )
+    try:
+        with transaction.atomic():
+            return Season.objects.create(
+                name=name,
+                starts_at=starts_at,
+                ends_at=ends_at,
+                status=Season.Status.ACTIVE if activate else Season.Status.UPCOMING,
+            )
+    except IntegrityError:
+        # F24 residual, 2026-08-11: the check above is an unlocked read: two
+        # concurrent create_season(activate=True) calls for two DIFFERENT
+        # seasons can both see nothing active and both reach this insert.
+        # The DB's own only-one-active constraint is the actual guard; this
+        # turns the loser's IntegrityError into the same message the
+        # unlocked check above already gives the common case.
+        raise ValueError("Another season is already active — close it before activating a new one.")
 
 
 def activate_season(season: Season) -> Season:
@@ -107,26 +117,34 @@ def activate_season(season: Season) -> Season:
         return season
     if season.status == Season.Status.ENDED:
         raise ValueError("An ended season cannot be reactivated.")
-    with transaction.atomic():
-        # F24, 2026-08-11: this row was never locked, so two overlapping
-        # roll_seasons runs (the command documents no mutex, same as every
-        # other cron sweep in this app) could both pass the status checks on
-        # the SAME season before either committed and both fire
-        # season_started. Lock the row and re-check under it.
-        locked = Season.objects.select_for_update().get(pk=season.pk)
-        if locked.status == Season.Status.ACTIVE:
+    try:
+        with transaction.atomic():
+            # F24, 2026-08-11: this row was never locked, so two overlapping
+            # roll_seasons runs (the command documents no mutex, same as every
+            # other cron sweep in this app) could both pass the status checks on
+            # the SAME season before either committed and both fire
+            # season_started. Lock the row and re-check under it.
+            locked = Season.objects.select_for_update().get(pk=season.pk)
+            if locked.status == Season.Status.ACTIVE:
+                season.status = locked.status
+                return season
+            if locked.status == Season.Status.ENDED:
+                raise ValueError("An ended season cannot be reactivated.")
+            # F24 residual, 2026-08-11: this read is of a DIFFERENT row and is
+            # itself unlocked - two DIFFERENT seasons activated at once each
+            # lock their own row and never collide here, so both could see
+            # nothing active and both pass. Caught below by the DB's own
+            # only-one-active constraint, the actual guard for this case.
+            active = get_active_season()
+            if active is not None and active.pk != locked.pk:
+                raise ValueError("Another season is already active — close it first.")
+            locked.status = Season.Status.ACTIVE
+            locked.save(update_fields=["status"])
+            # Integration hook: faction subsystem opens per-season standings.
+            season_started.send(sender=Season, season=locked)
             season.status = locked.status
-            return season
-        if locked.status == Season.Status.ENDED:
-            raise ValueError("An ended season cannot be reactivated.")
-        active = get_active_season()
-        if active is not None and active.pk != locked.pk:
-            raise ValueError("Another season is already active — close it first.")
-        locked.status = Season.Status.ACTIVE
-        locked.save(update_fields=["status"])
-        # Integration hook: faction subsystem opens per-season standings.
-        season_started.send(sender=Season, season=locked)
-        season.status = locked.status
+    except IntegrityError:
+        raise ValueError("Another season is already active — close it first.")
     return season
 
 
