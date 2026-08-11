@@ -235,9 +235,18 @@ def award_moves(
         updated_at=timezone.now(),
     )
 
+    # G9, Owner 2026-08-11: the ledger records the balance it produced, the
+    # same way TokenTransaction always has. Read back AFTER the DB-side update
+    # rather than computed in Python, because the increment above is capped and
+    # may have landed alongside a concurrent one - an arithmetic guess would
+    # record a balance the row never held, which is worse than no column at all.
+    balance_after = ChefBattleProfile.objects.filter(pk=profile.pk).values_list(
+        "battle_moves", flat=True).first()
+
     BattleMoveTransaction.objects.create(
         chef=author,
         amount=amount,
+        balance_after=balance_after,
         transaction_type=transaction_type,
         reference_content_type=content_type_obj,
         reference_object_id=reference_object_id,
@@ -274,8 +283,14 @@ def spend_moves(author, amount: int, transaction_type: str) -> None:
                 f"Not enough battle moves. Have {profile.battle_moves}, need {amount}."
             )
 
+    # G9: same reason as the award path - read the balance the database
+    # actually holds, never the one Python expected.
+    balance_after = ChefBattleProfile.objects.filter(pk=profile.pk).values_list(
+        "battle_moves", flat=True).first()
+
     BattleMoveTransaction.objects.create(
         chef=author,
         amount=-amount,
+        balance_after=balance_after,
         transaction_type=transaction_type,
     )

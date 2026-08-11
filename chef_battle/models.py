@@ -189,6 +189,26 @@ class Battle(models.Model):
         VOID = "void", "Void (neither chef appeared)"
 
     # Statuses that count as "in progress" for homepage panel and selectors
+    def save(self, *args, **kwargs):
+        """Stamp the season on a new battle, once, and never rewrite it.
+
+        G12, Owner 2026-08-11. The alternative was to set it at every call site
+        that creates a Battle - accept_challenge, the emulation runway, whatever
+        comes next - and the seventh one always forgets. Stamped here on INSERT
+        only: an existing row keeps whatever season it was fought in even if the
+        calendar is edited later, which is the whole reason the field exists
+        rather than deriving the season from a date window every time.
+        """
+        if self._state.adding and self.season_id is None:
+            try:
+                from .season_service import get_active_season
+                active = get_active_season()
+            except Exception:               # pragma: no cover - defensive
+                active = None
+            if active is not None:
+                self.season = active
+        return super().save(*args, **kwargs)
+
     ACTIVE_STATUSES = frozenset([
         Status.SCHEDULED,
         # A battle waiting out the grace period for its second chef is still
@@ -203,6 +223,19 @@ class Battle(models.Model):
     ])
 
     challenge = models.OneToOneField(BattleChallenge, on_delete=models.SET_NULL, null=True, blank=True, related_name="battle")
+    #: G12, Owner 2026-08-11. tz_main.md section 17.3 lists `season` on Battle
+    #: and it was never added: standings were derived from the season's date
+    #: window alone, which works until a season needs re-running, a battle needs
+    #: reassigning, or a battle straddles a boundary. Stamped once at creation
+    #: from the active season and never rewritten, so the record of which season
+    #: a fight belonged to cannot drift when the calendar is edited afterwards.
+    #: NULL for every battle fought before this field existed, and for any
+    #: battle created while no season is active - both are honest states and
+    #: neither is backfilled by guesswork.
+    season = models.ForeignKey(
+        "Season", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="battles", db_index=True,
+    )
     challenger = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battles_as_challenger")
     opponent = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battles_as_opponent")
     theme = models.CharField(max_length=180)
@@ -567,6 +600,18 @@ class BattleMoveTransaction(models.Model):
 
     chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="battle_move_transactions")
     amount = models.IntegerField()
+    #: G9, Owner 2026-08-11. tz_main.md section 17.7 asks for balance_after on
+    #: this ledger and it was never added, so the MOVES ledger could not be
+    #: reconciled the way the TOKEN ledger can - TokenTransaction has carried
+    #: balance_after since it was written, and nothing could prove a chef's move
+    #: balance was the sum of its own history. NULL on every row written before
+    #: this field existed: a number invented for those rows would be a
+    #: reconciliation that reconciles nothing, and a gap that says "unknown" is
+    #: worth more than a plausible fiction.
+    balance_after = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Move balance immediately after this entry. NULL for rows written before 2026-08-11.",
+    )
     transaction_type = models.CharField(
         max_length=30,
         choices=TxType.choices,
@@ -847,6 +892,16 @@ class SeasonStanding(models.Model):
     chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="season_standings")
     score = models.IntegerField(default=0)
     rank_position = models.PositiveIntegerField(null=True, blank=True)
+    #: G10, Owner 2026-08-11. tz_main.md section 17.13 asks for the chef's
+    #: RECORD in that season and the row carried only a score and a position,
+    #: so a season leaderboard could rank chefs but never say what any of them
+    #: actually did. Frozen at close time from the season's own battles, not
+    #: copied from the lifetime counters on the profile - a standing is a
+    #: photograph of one season and must not move when the next one starts.
+    wins = models.PositiveIntegerField(default=0)
+    losses = models.PositiveIntegerField(default=0)
+    streak = models.PositiveIntegerField(
+        default=0, help_text="Longest run of consecutive wins inside this season.")
 
     class Meta:
         ordering = ["rank_position", "-score"]

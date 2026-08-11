@@ -63,6 +63,58 @@ def activate_season(season: Season) -> Season:
     return season
 
 
+
+def _season_record(season) -> dict:
+    """Each chef's wins, losses and longest win streak INSIDE one season.
+
+    G10, Owner 2026-08-11. tz_main.md section 17.13 asks a standing to carry the
+    chef's record and the row held only a score and a position, so a season
+    leaderboard could rank chefs and never say what any of them did.
+
+    Counted from the season's own battles, deliberately NOT copied from the
+    lifetime counters on the profile: those keep rising after the season ends,
+    and a standing is a photograph of one season. A withdrawal, a void and a
+    cancelled battle have no winner and count as neither - the rulebook is
+    explicit that a withdrawal is not a defeat.
+
+    WHICH BATTLES BELONG TO THE SEASON, and the ordering of the two rules
+    matters: a battle stamped with this season's id belongs to it, full stop,
+    even if the calendar was edited afterwards. Only an UNSTAMPED battle falls
+    back to the date window, and that fallback exists solely for the battles
+    fought before Battle.season was added on 2026-08-11 - without it, closing
+    the first season after this release would record every chef as 0-0.
+    """
+    from django.db.models import Q
+    from .models import Battle
+
+    battles = (
+        Battle.objects.filter(status=Battle.Status.COMPLETED, winner__isnull=False)
+        .filter(
+            Q(season=season)
+            | Q(season__isnull=True,
+                created_at__gte=season.starts_at, created_at__lt=season.ends_at)
+        )
+        .order_by("created_at", "pk")
+        .values_list("challenger_id", "opponent_id", "winner_id")
+    )
+
+    record: dict[int, dict] = {}
+    running: dict[int, int] = {}
+    for challenger_id, opponent_id, winner_id in battles:
+        for chef_id in (challenger_id, opponent_id):
+            if chef_id is None:
+                continue
+            row = record.setdefault(chef_id, {"wins": 0, "losses": 0, "streak": 0})
+            if chef_id == winner_id:
+                row["wins"] += 1
+                running[chef_id] = running.get(chef_id, 0) + 1
+                row["streak"] = max(row["streak"], running[chef_id])
+            else:
+                row["losses"] += 1
+                running[chef_id] = 0
+    return record
+
+
 def close_season(season: Season) -> dict:
     """Freeze final standings from the live seasonal_score, then reset scores.
 
@@ -78,6 +130,8 @@ def close_season(season: Season) -> dict:
             .filter(seasonal_score__gt=0)
             .order_by("-seasonal_score", "-wins", "author__name")
         )
+        record = _season_record(season)
+
         # Replace any prior snapshot for this season so a re-close is consistent.
         season.standings.all().delete()
         SeasonStanding.objects.bulk_create([
@@ -86,6 +140,7 @@ def close_season(season: Season) -> dict:
                 chef=p.author,
                 score=p.seasonal_score,
                 rank_position=i + 1,
+                **record.get(p.author_id, {"wins": 0, "losses": 0, "streak": 0}),
             )
             for i, p in enumerate(profiles)
         ])

@@ -212,6 +212,65 @@ REPUTATION_WIN = 15
 SEASONAL_WIN = 10
 
 
+
+# ── What a win is worth against THIS opponent — G8, Owner 2026-08-11 ─────────
+#
+# tz_main.md section 9 says Battle Rating is affected by "opponent strength" and
+# by "repeated opponent reduction"; section 16 lists "diminishing returns vs
+# repeated opponent" among the anti-abuse requirements, and artifact_3 section 9
+# repeats both. None of it was built: a win paid a flat 25 whoever was beaten,
+# so farming one weak neighbour paid exactly what beating the champion paid, and
+# the only control was a 24-hour cooldown on the pair — a block, not a curve.
+#
+# THE SHAPE IS DELIBERATELY SIMPLE, and simple is the point: two multipliers on
+# the flat award, each explainable to a chef in one sentence. Anything cleverer
+# is an Elo implementation nobody asked for, and rating here is a published
+# number a chef reads, not a matchmaking oracle.
+#
+# THE FIVE NUMBERS BELOW ARE MINE, NOT THE OWNER'S. Stated so the next reader
+# does not mistake them for his ruling. Each is one constant.
+
+#: Rating gap at which the strength multiplier reaches its ceiling or floor.
+#: 500 is twenty flat wins apart — far enough that ordinary neighbours in the
+#: ladder barely move the number, close enough that a genuine upset shows.
+RATING_STRENGTH_SPAN = 500
+#: Beating someone far above you pays at most this much of the flat award…
+RATING_STRENGTH_MAX = 1.5
+#: …and beating someone far below you never pays less than this. Not zero: the
+#: battle still happened and the chef still cooked.
+RATING_STRENGTH_MIN = 0.5
+#: Each earlier win over the SAME opponent inside the window halves the next.
+RATING_REPEAT_DECAY = 0.5
+#: …down to this floor, so a rivalry never becomes literally worthless.
+RATING_REPEAT_FLOOR = 0.25
+#: How far back a repeated win counts. A season-length window: beating the same
+#: chef in March and again in August is a rivalry, not farming.
+RATING_REPEAT_WINDOW = timezone.timedelta(days=90)
+
+
+def rating_award_for_win(winner_profile, loser_profile, *, winner=None, loser=None) -> int:
+    """What this win is worth, given who was beaten and how often.
+
+    Returns at least 1: a win always moves the number, or the curve would read
+    as a punishment for winning, which is the opposite of the Owner's ruling
+    that this is a battle of chefs for the fun of it.
+    """
+    gap = (loser_profile.rating or 0) - (winner_profile.rating or 0)
+    strength = 1.0 + (gap / RATING_STRENGTH_SPAN)
+    strength = max(RATING_STRENGTH_MIN, min(RATING_STRENGTH_MAX, strength))
+
+    repeat = 1.0
+    if winner is not None and loser is not None:
+        earlier = Battle.objects.filter(
+            status=Battle.Status.COMPLETED,
+            winner=winner, loser=loser,
+            updated_at__gte=timezone.now() - RATING_REPEAT_WINDOW,
+        ).count()
+        if earlier:
+            repeat = max(RATING_REPEAT_FLOOR, RATING_REPEAT_DECAY ** earlier)
+
+    return max(1, round(RATING_WIN * strength * repeat))
+
 # ── Culinary Reputation from CONTENT — G6, Owner 2026-08-11 ──────────────────
 #
 # The ТЗ builds two ladders on purpose and says why, in tz_main.md section 9 and
@@ -1072,7 +1131,9 @@ def _score_battle(battle: Battle) -> Battle:
 
         old_winner_rank = winner_profile.rank
 
-        rating_delta = RATING_WIN
+        # G8: the flat 25 now reads the opponent and the history between them.
+        rating_delta = rating_award_for_win(
+            winner_profile, loser_profile, winner=winner, loser=loser)
         winner_profile.wins += 1
         winner_profile.win_streak += 1
         if winner_profile.win_streak > winner_profile.best_win_streak:
@@ -1097,6 +1158,19 @@ def _score_battle(battle: Battle) -> Battle:
         penalise(loser_profile, battle=battle, losses=1, reset_streak=True)
         loser_profile.save()
 
+        # rating_delta_challenger / rating_delta_opponent are on the Battle
+        # model (tz_main.md section 17.3) and nothing had ever written them.
+        # Worth writing now that the award is no longer a constant anybody can
+        # infer: with G8 the same fixture pays differently depending on who was
+        # beaten, so the row is the only place the actual figure survives.
+        second_place_delta = RATING_WIN // 2
+        if winner.pk == battle.challenger_id:
+            battle.rating_delta_challenger = rating_delta
+            battle.rating_delta_opponent = second_place_delta
+        else:
+            battle.rating_delta_opponent = rating_delta
+            battle.rating_delta_challenger = second_place_delta
+
         # Award moves with typed transaction records
         from .models import BattleMoveTransaction
         TxType = BattleMoveTransaction.TxType
@@ -1114,10 +1188,18 @@ def _score_battle(battle: Battle) -> Battle:
         loser_profile.save(update_fields=["battle_moves", "updated_at"])
         # The loser's whole share is booked as BATTLE_PARTICIPATION: it is one
         # award, and a new transaction type would be a migration (section 8).
+        # G9: each row records the balance it produced. The two winner rows are
+        # one award booked as two entries, so only the last of them can carry
+        # the final balance - the first is left NULL rather than given a
+        # halfway number the balance never actually held.
         BattleMoveTransaction.objects.bulk_create([
             BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_WIN, transaction_type=TxType.BATTLE_WON),
-            BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_PARTICIPATION, transaction_type=TxType.BATTLE_PARTICIPATION),
-            BattleMoveTransaction(chef=loser, amount=loser_moves, transaction_type=TxType.BATTLE_PARTICIPATION),
+            BattleMoveTransaction(chef=winner, amount=MOVES_BATTLE_PARTICIPATION,
+                                  balance_after=winner_profile.battle_moves,
+                                  transaction_type=TxType.BATTLE_PARTICIPATION),
+            BattleMoveTransaction(chef=loser, amount=loser_moves,
+                                  balance_after=loser_profile.battle_moves,
+                                  transaction_type=TxType.BATTLE_PARTICIPATION),
         ])
 
         # Battle-derived faction contribution (Phase 6): gated by same-faction=0
@@ -1143,7 +1225,8 @@ def _score_battle(battle: Battle) -> Battle:
         battle.status = Battle.Status.COMPLETED
         battle.crown_awarded = True
         battle.result_reason = f"Public vote: {challenger_votes}-{opponent_votes}"
-        battle.save(update_fields=["winner", "loser", "status", "crown_awarded", "result_reason", "updated_at"])
+        battle.save(update_fields=["winner", "loser", "status", "crown_awarded", "result_reason",
+                                   "rating_delta_challenger", "rating_delta_opponent", "updated_at"])
 
         from .models import LedgerEvent
         LedgerEvent.objects.create(

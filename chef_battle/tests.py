@@ -13519,3 +13519,208 @@ class ArtifactPriceFollowsRarityTests(TestCase):
         artifact.refresh_from_db()
         self.assertEqual(artifact.token_cost, 10,
                          "save() may price a new row, never reprice an old one")
+
+
+class RatingReadsTheOpponentTests(TestCase):
+    """G8 — a win is worth what it cost, not a flat 25.
+
+    tz_main.md section 9 asks for "opponent strength" and "repeated opponent
+    reduction"; section 16 lists diminishing returns against a repeated
+    opponent among the anti-abuse requirements. Neither was built: farming one
+    weak neighbour paid exactly what beating the champion paid.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.a = RecipeAuthor.objects.create(
+            user=get_user_model().objects.create_user("g8-a", password="pw"),
+            name="G8 A", slug="g8-a")
+        self.b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("g8-b", password="pw"),
+            name="G8 B", slug="g8-b")
+        self.pa = ChefBattleProfile.objects.create(author=self.a)
+        self.pb = ChefBattleProfile.objects.create(author=self.b)
+
+    def _award(self, winner_rating, loser_rating, **kwargs):
+        from chef_battle.services import rating_award_for_win
+        self.pa.rating, self.pb.rating = winner_rating, loser_rating
+        return rating_award_for_win(self.pa, self.pb, **kwargs)
+
+    def test_equal_ratings_pay_the_flat_award(self):
+        from chef_battle.services import RATING_WIN
+        self.assertEqual(self._award(0, 0), RATING_WIN)
+
+    def test_two_new_chefs_are_unaffected(self):
+        """Everyone starts at 0, so the curve must be invisible until ratings
+        actually diverge — this change must not move today's numbers."""
+        from chef_battle.services import RATING_WIN
+        self.assertEqual(self._award(0, 0), RATING_WIN)
+
+    def test_beating_someone_stronger_pays_more(self):
+        from chef_battle.services import RATING_WIN
+        self.assertGreater(self._award(100, 600), RATING_WIN)
+
+    def test_beating_someone_weaker_pays_less(self):
+        from chef_battle.services import RATING_WIN
+        self.assertLess(self._award(600, 100), RATING_WIN)
+
+    def test_the_curve_is_bounded_at_both_ends(self):
+        from chef_battle.services import RATING_WIN, RATING_STRENGTH_MAX, RATING_STRENGTH_MIN
+        self.assertEqual(self._award(0, 999999), round(RATING_WIN * RATING_STRENGTH_MAX))
+        self.assertEqual(self._award(999999, 0), round(RATING_WIN * RATING_STRENGTH_MIN))
+
+    def test_a_win_always_moves_the_number(self):
+        """However discounted, winning must never pay nothing — that would read
+        as a punishment for winning."""
+        self.assertGreaterEqual(self._award(999999, 0), 1)
+
+    def test_beating_the_same_chef_again_pays_less_each_time(self):
+        from chef_battle.services import rating_award_for_win
+        now = timezone.now()
+        awards = []
+        for _ in range(3):
+            awards.append(rating_award_for_win(self.pa, self.pb, winner=self.a, loser=self.b))
+            Battle.objects.create(
+                challenger=self.a, opponent=self.b, theme="Repeat",
+                status=Battle.Status.COMPLETED, winner=self.a, loser=self.b,
+                start_time=now, submission_deadline=now, voting_deadline=now, end_time=now,
+            )
+        self.assertGreater(awards[0], awards[1])
+        self.assertGreater(awards[1], awards[2])
+
+    def test_an_old_rivalry_is_not_farming(self):
+        from chef_battle.services import rating_award_for_win, RATING_REPEAT_WINDOW
+        long_ago = timezone.now() - RATING_REPEAT_WINDOW - timezone.timedelta(days=1)
+        battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Ancient",
+            status=Battle.Status.COMPLETED, winner=self.a, loser=self.b,
+            start_time=long_ago, submission_deadline=long_ago,
+            voting_deadline=long_ago, end_time=long_ago,
+        )
+        Battle.objects.filter(pk=battle.pk).update(updated_at=long_ago)
+        fresh = rating_award_for_win(self.pa, self.pb, winner=self.a, loser=self.b)
+        self.assertEqual(fresh, rating_award_for_win(self.pa, self.pb))
+
+
+class MovesLedgerRecordsItsBalanceTests(TestCase):
+    """G9 — the moves ledger could not be reconciled against the balance.
+
+    tz_main.md section 17.7 asks for balance_after and it was never added, so
+    nothing could prove a chef's move balance was the sum of its own history —
+    while the token ledger has carried exactly that field since it was written.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.author = RecipeAuthor.objects.create(
+            user=User.objects.create_user("g9-chef", password="pw"),
+            name="G9 Chef", slug="g9-chef")
+        ChefBattleProfile.objects.create(author=self.author, battle_moves=0)
+
+    def test_every_award_and_spend_records_the_balance_it_produced(self):
+        from chef_battle.energy_service import award_moves, spend_moves
+        from chef_battle.models import BattleMoveTransaction
+        TxType = BattleMoveTransaction.TxType
+
+        award_moves(self.author, 5, TxType.ADMIN_ADJUSTMENT)
+        award_moves(self.author, 7, TxType.ADMIN_ADJUSTMENT)
+        spend_moves(self.author, 3, TxType.COMBAT_ACTION_SPENT)
+
+        rows = list(BattleMoveTransaction.objects.filter(chef=self.author)
+                    .order_by("created_at", "pk")
+                    .values_list("amount", "balance_after"))
+        self.assertEqual(rows, [(5, 5), (7, 12), (-3, 9)])
+
+    def test_the_ledger_reconciles_against_the_profile(self):
+        from chef_battle.energy_service import award_moves
+        from chef_battle.models import BattleMoveTransaction
+        TxType = BattleMoveTransaction.TxType
+
+        for amount in (4, 6, 2):
+            award_moves(self.author, amount, TxType.ADMIN_ADJUSTMENT)
+
+        last = (BattleMoveTransaction.objects.filter(chef=self.author)
+                .order_by("-created_at", "-pk").first())
+        profile = ChefBattleProfile.objects.get(author=self.author)
+        self.assertEqual(last.balance_after, profile.battle_moves,
+                         "the last ledger row must agree with the balance it claims to explain")
+
+
+class SeasonStandingCarriesTheRecordTests(TestCase):
+    """G10 and G12 — a standing that can say what the chef actually did.
+
+    A standing carried a score and a position only, so a season leaderboard
+    could rank chefs and never show a record; and no battle carried a season,
+    so the only way to ask which battles belonged to a season was a date
+    window.
+    """
+
+    def setUp(self):
+        from chef_battle.season_service import create_season
+        User = get_user_model()
+        self.a, self.b = [
+            RecipeAuthor.objects.create(
+                user=User.objects.create_user(f"g10-{n}", password="pw"),
+                name=f"G10 {n}", slug=f"g10-{n}")
+            for n in ("a", "b")
+        ]
+        ChefBattleProfile.objects.create(author=self.a, seasonal_score=30)
+        ChefBattleProfile.objects.create(author=self.b, seasonal_score=10)
+        now = timezone.now()
+        self.season = create_season(
+            name="Test Season",
+            starts_at=now - timezone.timedelta(days=1),
+            ends_at=now + timezone.timedelta(days=1),
+            activate=True,
+        )
+
+    def _completed(self, winner, loser):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=winner, opponent=loser, theme="Season Dish",
+            status=Battle.Status.COMPLETED, winner=winner, loser=loser,
+            start_time=now, submission_deadline=now, voting_deadline=now, end_time=now,
+        )
+
+    def test_a_new_battle_is_stamped_with_the_active_season(self):
+        battle = self._completed(self.a, self.b)
+        self.assertEqual(battle.season_id, self.season.pk,
+                         "G12: a battle must record the season it was fought in")
+
+    def test_the_stamp_is_never_rewritten(self):
+        battle = self._completed(self.a, self.b)
+        self.season.status = self.season.Status.ENDED
+        self.season.save(update_fields=["status"])
+        battle.result_reason = "edited later"
+        battle.save(update_fields=["result_reason", "season", "updated_at"])
+        battle.refresh_from_db()
+        self.assertEqual(battle.season_id, self.season.pk)
+
+    def test_closing_a_season_freezes_wins_losses_and_streak(self):
+        from chef_battle.season_service import close_season
+        from chef_battle.models import SeasonStanding
+
+        self._completed(self.a, self.b)
+        self._completed(self.a, self.b)
+        self._completed(self.b, self.a)
+        self._completed(self.a, self.b)
+
+        close_season(self.season)
+
+        first = SeasonStanding.objects.get(season=self.season, chef=self.a)
+        second = SeasonStanding.objects.get(season=self.season, chef=self.b)
+        self.assertEqual((first.wins, first.losses), (3, 1))
+        self.assertEqual((second.wins, second.losses), (1, 3))
+        self.assertEqual(first.streak, 2, "the longest run inside the season, not the lifetime one")
+
+    def test_the_record_is_the_seasons_own_and_not_the_lifetime_counters(self):
+        from chef_battle.season_service import close_season
+        from chef_battle.models import SeasonStanding
+
+        ChefBattleProfile.objects.filter(author=self.a).update(wins=99, losses=42)
+        self._completed(self.a, self.b)
+        close_season(self.season)
+
+        standing = SeasonStanding.objects.get(season=self.season, chef=self.a)
+        self.assertEqual((standing.wins, standing.losses), (1, 0),
+                         "a standing is a photograph of one season, not a copy of the profile")

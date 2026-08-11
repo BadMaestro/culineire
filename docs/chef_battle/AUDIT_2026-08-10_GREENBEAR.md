@@ -484,3 +484,21 @@ field does not exist), G8 (opponent strength and diminishing returns in the
 rating), G9 (`balance_after` on the moves ledger), G10–G12 (season fields), G13
 (four pages), and X15/X20's cosmetic labels. Every one is «будем строить» or a
 weighting, not a defect.
+
+### 9a. Second wave, v2.5.999 — «бери следующие: G8, G9, G10, G12»
+
+| Was | Now |
+|---|---|
+| **G8** — a win paid a flat 25 whoever was beaten; the only repeat control was a 24-hour block on the pair | `rating_award_for_win()` multiplies the flat award by **strength** (from the rating gap, bounded 1.5×–0.5× across 500 points) and by **repeat** (halving per earlier win over the same chef inside 90 days, floored at a quarter), never below 1. **The five numbers are mine.** Nothing moves today: every chef on production sits at 0 rating, so the multiplier is exactly 1.0 and a test pins that. `Battle.rating_delta_*` — on the model since the beginning, never written — is populated too, now that the award is no longer a constant anybody can infer. |
+| **G9** — the moves ledger had no `balance_after`, so it could not be reconciled the way the token ledger can | Both the award and the spend path record it, **read back from the database** after the update rather than computed in Python — the increment is capped and can land beside a concurrent one, and an arithmetic guess would record a balance the row never held. NULL on rows written before today, because an honest gap beats a plausible fiction. |
+| **G10** — a standing carried a score and a position, so a leaderboard could rank chefs and never say what they did | `close_season()` freezes **wins, losses and the longest streak inside that season**, counted from the season's own battles rather than copied from the lifetime counters, which keep rising afterwards. Withdrawals, voids and cancellations count as neither. |
+| **G12** — no battle carried a season; standings were derived from a date window | Stamped in `Battle.save()` on insert only and never rewritten, so the record survives a later edit to the calendar. NULL before today and when no season is active — both honest, neither guessed. The season counter reads the stamp first and falls back to the window only for unstamped rows. |
+
+**This release carries migration 0086**, stated plainly because §8 excludes
+migrations from the standing authorisation: three of the four cards he named
+*are* fields. Additive only, every column nullable or defaulted, nothing
+backfilled, nothing dropped — `migrate chef_battle 0085` reverses it.
+
+**What is left of the whole audit:** G3 (artifact tier by cooking format —
+«будем строить»), G11 (`crown_rule` / `reward_rules_json` on Season), G13 (four
+pages), and two cosmetic labels. Nothing else.
