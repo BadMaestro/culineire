@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-11 · Production baseline: **v2.5.994**
+Last reconciled: 2026-08-11 · Production baseline: **v2.5.996**
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
@@ -29,9 +29,17 @@ views trusted a general site-moderator flag that can outlive the staff bit;
 challenge rank eligibility was never re-checked at acceptance; and the
 reveal flag could desync from what the template already showed under a
 forced or scored transition. All five closed same-day; see the F6-F10
-cards below. F11 (low) and T1/T2 (terminology: TokenWallet vs the required
-TokenAccount naming; raw CSS colour literals vs Arena tokens) remain open,
-pending priority.**
+cards below.**
+**F11/T1/T2 fixed, 2026-08-11 — the rest of the 2026-08-10 audit. F11 (low):
+reward_agreement, payout_statement, battle_chest and changing_room now carry
+the same visibility gate as every other page in the app. T2: five raw CSS
+colour literals in arena.css that restated an existing Arena token's own
+value by hand now reference the token instead. T1: user-facing text on the
+public VAT/refunds page and the Master Console said "wallet" five times;
+all five now say "Token Account", per contract section 9.1. The underlying
+TokenWallet model keeps its name — renaming it is a schema migration on the
+live Stripe payment path and stays flagged for the Owner, not attempted.
+This closes every item from the 2026-08-10 audit except that model rename.**
 Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.

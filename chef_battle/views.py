@@ -2774,6 +2774,7 @@ def chef_battle_profile(request, slug):
 
 
 
+@chef_battle_guard
 @login_required
 def reward_agreement(request):
     """GET: show agreement text. POST: accept it and redirect to payout statement."""
@@ -2802,6 +2803,7 @@ def reward_agreement(request):
     })
 
 
+@chef_battle_guard
 @login_required
 def payout_statement(request):
     """Payout statement page: eligibility, approved tokens, payout history, request button."""
@@ -3022,6 +3024,7 @@ def appreciation_gallery(request):
     })
 
 
+@chef_battle_guard
 @login_required
 def battle_chest(request):
     """Chef's personal knife and tool roll, paginated for large collections."""
@@ -3081,6 +3084,7 @@ def battle_chest(request):
     })
 
 
+@chef_battle_guard
 @login_required
 def changing_room(request):
     """

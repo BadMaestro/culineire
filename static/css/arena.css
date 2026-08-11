@@ -3135,11 +3135,11 @@
     --arena-seam: #ffffff;
   }
   .page--arena #arena-render .arena-cell {
-    stroke: #ffffff;
+    stroke: var(--arena-seam);
   }
   /* Keep sponsors ramp — do not recolour with bronze washes. */
   .page--arena #arena-render .arena-cell[data-occupancy="chef"] {
-    stroke: #ffffff;
+    stroke: var(--arena-seam);
     stroke-width: 1.3;
   }
   .page--arena #arena-render .arena-walkway {
@@ -3407,7 +3407,7 @@
   .page--arena #arena-render [data-ring="6"][data-occupancy="empty"],
   .page--arena #arena-render [data-ring="7"][data-occupancy="empty"],
   .page--arena #arena-render [data-ring="8"][data-occupancy="empty"] {
-    stroke: #ffffff;
+    stroke: var(--arena-seam);
     stroke-width: 1.2;
   }
 
@@ -3485,7 +3485,7 @@
   }
 
   /* Sponsors octagon ramp (exact RING_COLOURS.available). */
-  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: #f4f1ec; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: var(--arena-seat); }
   .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: #ede8df; }
   .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: #e4ddd1; }
 
@@ -3634,7 +3634,7 @@
     opacity: 1;
   }
   .page--arena #arena-render .arena-cell--sponsors-tpl {
-    stroke: #ffffff;
+    stroke: var(--arena-seam);
     stroke-width: 1.5;
   }
   .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring-kind="rank"][data-occupancy="empty"] {

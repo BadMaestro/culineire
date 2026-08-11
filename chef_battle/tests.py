@@ -12923,18 +12923,24 @@ class GiftPricesMatchTheirDocumentTests(TestCase):
 
 @override_settings(CHEF_BATTLE_ENABLED=False)
 class OnboardingAndBattleFlowGuardTests(TestCase):
-    """F6/F7, 2026-08-11: chef_enroll, enroll_success, age_verification (onboarding)
-    and battle_changing_room, battle_recipe_attach, biathlon (GET) carried only
-    @login_required, unlike their sibling battle-flow endpoints which all carry
-    chef_battle_guard. An ordinary non-staff member could self-enroll, receive the
-    enrol bonus, self-certify age, and reach in-battle pages the app-wide gate is
-    meant to hide entirely before release. All six now carry @chef_battle_guard,
+    """F6/F7/F11, 2026-08-11: chef_enroll, enroll_success, age_verification
+    (onboarding), battle_changing_room, battle_recipe_attach, biathlon (GET)
+    (battle flow), and reward_agreement, payout_statement, battle_chest,
+    changing_room (personal pages) carried only @login_required, unlike their
+    sibling battle-flow endpoints which all carry chef_battle_guard. An ordinary
+    non-staff member could self-enroll, receive the enrol bonus, self-certify
+    age, and reach in-battle and personal pages the app-wide gate is meant to
+    hide entirely before release. All ten now carry @chef_battle_guard,
     outermost, same convention as DarkLaunchInvisibilityTests."""
 
     NO_PK_ENDPOINTS = (
         "chef_battle:chef_enroll",
         "chef_battle:enroll_success",
         "chef_battle:age_verification",
+        "chef_battle:reward_agreement",
+        "chef_battle:payout_statement",
+        "chef_battle:battle_chest",
+        "chef_battle:changing_room",
     )
     PK_ENDPOINTS = (
         "chef_battle:battle_changing_room",
@@ -12947,7 +12953,7 @@ class OnboardingAndBattleFlowGuardTests(TestCase):
         self.plain_user = User.objects.create_user("f6f7-plain", password="pw")
         RecipeAuthor.objects.create(user=self.plain_user, name="F6F7 Plain", slug="f6f7-plain")
 
-    def test_ordinary_member_is_404d_on_onboarding(self):
+    def test_ordinary_member_is_404d_on_onboarding_and_personal_pages(self):
         client = Client()
         client.login(username="f6f7-plain", password="pw")
         for name in self.NO_PK_ENDPOINTS:
@@ -12967,7 +12973,7 @@ class OnboardingAndBattleFlowGuardTests(TestCase):
                 f"{name} let a non-staff member past the arena gate",
             )
 
-    def test_anonymous_is_404d_on_all_six(self):
+    def test_anonymous_is_404d_on_all_ten(self):
         client = Client()
         for name in self.NO_PK_ENDPOINTS:
             self.assertEqual(client.get(reverse(name)).status_code, 404)
@@ -13145,3 +13151,71 @@ class ForcedTransitionRevealsEntriesTests(TestCase):
             all(battle.entries.values_list("is_revealed", flat=True)),
             "a battle scored to COMPLETED left an entry unrevealed",
         )
+
+
+class ArenaSeamTokenNotRawLiteralTests(TestCase):
+    """T2, 2026-08-11: five declarations set stroke/fill to a raw #ffffff or
+    #f4f1ec directly, in the same .page--arena scope that defines --arena-seam:
+    #ffffff and --arena-seat: #f4f1ec two lines above them - contract section 12
+    forbids scattered raw colour literals in favour of the named tokens, and
+    these were the token's own value restated by hand instead of referenced.
+    Fixed to var(--arena-seam) / var(--arena-seat). Not exhaustive: several
+    other literals in this file (the sponsors-ring ramp, one runway-note colour)
+    have no matching named token to point at, and inventing one is a design
+    decision, not this cleanup's to make."""
+
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+
+    def test_the_five_known_literals_now_reference_the_token(self):
+        text = self.CSS.read_text(encoding="utf-8")
+        must_not_appear = [
+            ".arena-cell {\n    stroke: #ffffff;",
+            '[data-occupancy="chef"] {\n    stroke: #ffffff;',
+            '[data-occupancy="empty"] {\n    stroke: #ffffff;',
+            ".arena-cell--sponsors-tpl {\n    stroke: #ffffff;",
+            '[data-ring="6"][data-occupancy="empty"] { fill: #f4f1ec; }',
+        ]
+        for snippet in must_not_appear:
+            self.assertNotIn(
+                snippet, text,
+                f"a raw literal reappeared where var(--arena-seam)/var(--arena-seat) "
+                f"should be used instead: {snippet!r}",
+            )
+        self.assertIn("stroke: var(--arena-seam)", text)
+        self.assertIn("fill: var(--arena-seat)", text)
+
+
+class TokenTerminologyNotWalletTests(TestCase):
+    """T1 (partial), 2026-08-11: contract section 9.1 requires TokenAccount /
+    Token Balance / Token Ledger / Token Transaction terminology and forbids
+    introducing new wallet or cash-balance terminology. The public VAT/refunds
+    legal page said 'wallet' four times, and the Master Console's read-only
+    economy hint said 'wallet balances' once - user-facing text is fixed here.
+
+    NOT done by this card: the TokenWallet Django model itself keeps its name.
+    Renaming it is a schema migration on the live Stripe payment/reward path
+    (TokenWallet, TokenTransaction.wallet, TokenOrder.wallet and every view/
+    template/admin reference), which is a bigger, riskier change than a
+    same-day terminology fix and is the Owner's call, not an agent's to make
+    unprompted on a payment-integration model."""
+
+    def test_legal_page_does_not_say_wallet(self):
+        from django.test import Client
+        resp = Client().get(reverse("legal:purchases_and_vat"))
+        page = resp.content.decode().lower()
+        self.assertNotIn("wallet", page)
+        self.assertIn("token account", page)
+
+    def test_master_console_economy_hint_does_not_say_wallet(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        owner_user = User.objects.create_superuser("tt-greenbear", password="pw")
+        RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": owner_user, "name": "TT GreenBear"},
+        )
+        client = Client()
+        client.force_login(owner_user)
+        page = client.get(reverse("chef_battle:master_console")).content.decode().lower()
+        self.assertNotIn("wallet balances", page)
+        self.assertIn("token account balances", page)

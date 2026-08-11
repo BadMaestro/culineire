@@ -156,10 +156,6 @@ UNGUARDED_BY_DESIGN = {
 
     # Signed-in surfaces that authorise per object: author profile, battle
     # participation, moderator status or a fraud gate, checked in the view.
-    "reward_agreement": "login_required; PermissionDenied without an author profile.",
-    "payout_statement": "login_required; PermissionDenied without an author profile.",
-    "battle_chest": "login_required; shows only the caller's own artifacts.",
-    "changing_room": "login_required; shows only the caller's own state.",
     "content_report_submit": "login_required; DSA reporting endpoint, validates its own input.",
     "artifact_generate_image": "login_required; staff/moderator checked in the view.",
 
