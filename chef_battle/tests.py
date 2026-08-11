@@ -14548,3 +14548,66 @@ class ArtifactGenerateImageRequiresBattleVisibilityTests(TestCase):
         )
         self.assertEqual(resp.status_code, 403)
         self.assertFalse(resp.json()["success"])
+
+
+class ChefBattleCssIsLoadedOnceTests(TestCase):
+    """Dead-code audit, round 3 (2026-08-11): base.html loads chef_battle.css
+    once, unconditionally on is_battle_visible via chef_battle_enabled - and
+    40 templates loaded it AGAIN in their own extra_head block on top of that
+    (25 with a different ?v=, guaranteeing a second HTTP fetch of the same
+    138KB file; the rest with the same ?v=, still a second <link> node/CSSOM
+    parse). Each duplicate is removed; base.html's load is now the only one.
+    templates/home.html's copy was additionally unconditional - loaded even
+    when chef_battle_enabled was False, downloading the arena's stylesheet
+    for an ordinary dark-launch visitor who could not see the arena at all."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.staff = User.objects.create_user("css-staff", password="pw", is_staff=True)
+        RecipeAuthor.objects.create(user=self.staff, name="CSS Staff", slug="css-staff")
+
+    def _count(self, resp):
+        return resp.content.count(b"chef_battle.css")
+
+    def test_chef_battle_home_loads_the_stylesheet_once(self):
+        self.client.force_login(self.staff)
+        resp = self.client.get(reverse("chef_battle:home"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(self._count(resp), 1)
+
+    def test_site_homepage_loads_the_stylesheet_once_for_a_visible_viewer(self):
+        self.client.force_login(self.staff)
+        resp = self.client.get(reverse("home"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(self._count(resp), 1)
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_site_homepage_loads_no_stylesheet_for_an_ordinary_visitor(self):
+        resp = self.client.get(reverse("home"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(self._count(resp), 0)
+
+    def test_messaging_inbox_loads_the_stylesheet_at_most_once(self):
+        self.client.force_login(self.staff)
+        resp = self.client.get(reverse("messaging:inbox"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertLessEqual(self._count(resp), 1)
+
+    def test_a_sample_of_edited_templates_still_render_and_load_the_stylesheet_at_most_once(self):
+        # A broad smoke pass across the 40 templates touched by this cleanup -
+        # every one had its extra_head override reduced or removed, and a
+        # broken {% block %}/{% endblock %} pair would surface here as a
+        # TemplateSyntaxError rather than a silent style regression.
+        self.client.force_login(self.staff)
+        names = [
+            "chef_battle:rules", "chef_battle:token_shop", "chef_battle:hall_of_fame",
+            "chef_battle:challenge_list", "chef_battle:my_moves", "chef_battle:rankings",
+            "chef_battle:faction_choose", "chef_battle:season_leaderboard",
+            "chef_battle:notifications_inbox", "chef_battle:age_verification",
+            "chef_battle:artifact_gallery", "chef_battle:enroll_success",
+            "chef_battle:token_checkout_cancel",
+        ]
+        for name in names:
+            resp = self.client.get(reverse(name))
+            self.assertEqual(resp.status_code, 200, f"{name} did not render")
+            self.assertLessEqual(self._count(resp), 1, f"{name} loaded chef_battle.css more than once")

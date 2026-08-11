@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block title %}Submit Battle Entry | CulinEire{% endblock %}
-{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260616d" rel="stylesheet">{% endblock %}
 
 {% block content %}
 <section class="battle-room-hero">
@@ -44,7 +43,6 @@
           <p class="battle-form__help">Only your approved recipes are shown. Your recipe will serve as the battle reference.</p>
           {% for e in form.recipe.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
         </div>
-
 
         <div class="battle-form__field">
           <label class="battle-form__label" for="{{ form.battle_statement.id_for_label }}">
