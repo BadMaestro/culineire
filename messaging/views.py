@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
 from accounts.views import is_moderator
+from chef_battle.access import is_battle_visible
 from .models import Message
 
 logger = logging.getLogger(__name__)
@@ -79,11 +80,13 @@ def inbox(request):
         reverse=True,
     )
 
-    from django.conf import settings as _settings
     battle_events = []
     pending_challenges = []
-    flag_on = getattr(_settings, "CHEF_BATTLE_ENABLED", False)
-    if flag_on or request.user.is_staff or request.user.is_superuser:
+    # F31, 2026-08-11: this used to hand-roll the same three-way check
+    # is_battle_visible() already centralizes - not exploitable on its own
+    # (both arrived at the same answer), but a future edit to the real gate
+    # would silently stop reaching this copy. One gate, one place.
+    if is_battle_visible(request):
         try:
             from chef_battle.models import BattleEvent, BattleChallenge
             from chef_battle.views import get_author_for_user

@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-11 · Production baseline: **v2.5.1005**
+Last reconciled: 2026-08-11 · Production baseline: **v2.5.1006**
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
@@ -90,6 +90,30 @@ templates/home.html, messaging/inbox.html) kept the rest. templates/home.html's
 copy was additionally unconditional — no is_battle_visible check at all — so
 this also stops the site homepage downloading arena CSS for a visitor the
 dark launch is hiding it from. Template-only; no Python, no migration.**
+**F27-F31 fixed, 2026-08-11 — a fourth full audit, told not to trust the
+first three rounds' fixes and to sweep exhaustively for the is_moderator()-
+without-is_battle_visible() gap that had recurred four times (F8/F16/F22/F26).
+None of the five new findings were access-control gaps — that class appears
+fully closed after four rounds. One high: a drawn battle's second-place
+shares were saved with no lock on either chef's profile row, unlike the
+decisive-win branch three lines below it, which already locks both for
+exactly this reason — a chef sharing two battles finishing at once could lose
+one side's update (F27). Two medium: operator_resume shifted every paused
+deadline except waiting_until, the one WAITING status itself reads, so a
+battle paused mid-grace-period and resumed later got walked over on the very
+next sweep instead of a restarted grace period (F28); and resolve_withdrawal
+read the battle off a plain (and possibly stale, cached) FK before its own
+lock, so a battle that finished naturally while a withdrawal sat with a
+moderator could be dragged back to CANCELLED on close (F29). Two low: a
+combat artifact loadout reservation had a narrow race letting two different
+artifacts slip past the three-per-type cap together, game-balance only
+(F30); and the inbox's battle section hand-rolled the same check
+is_battle_visible() already centralises — not exploitable, closed as
+hardening against a fifth instance of the F8/F16/F22/F26 drift (F31). All
+five closed same-day; 18 new tests, 62 focused tests green. This closes
+every finding from all four audit rounds except the TokenWallet model
+rename, gate_dsa_report_threshold, and F24's residual cross-season race —
+all three still the Owner's to rule on.**
 Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.

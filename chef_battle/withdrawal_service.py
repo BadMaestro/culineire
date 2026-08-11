@@ -151,11 +151,19 @@ def resolve_withdrawal(*, withdrawal: BattleWithdrawal, moderator, uphold_penalt
 
     battle = withdrawal.battle
     with transaction.atomic():
+        # F29, 2026-08-11: withdrawal.battle is whatever the caller's request
+        # loaded, which can be stale by the time a moderator's decision lands -
+        # calculate_battle_result or the stall sweep can complete or void the
+        # same battle in between. Re-read it under a lock here and gate the
+        # CANCELLED rewrite on THAT status, so a battle that already finished
+        # naturally is never dragged back to CANCELLED and double-penalised.
+        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+
         if uphold_penalty:
             profile = get_or_create_battle_profile(withdrawal.requester)
             fields = penalise(
                 profile,
-                battle=battle,
+                battle=locked_battle,
                 rating=-BattleWithdrawal.PENALTY_RATING,
                 reputation=-BattleWithdrawal.PENALTY_REPUTATION,
             )
@@ -171,18 +179,23 @@ def resolve_withdrawal(*, withdrawal: BattleWithdrawal, moderator, uphold_penalt
             "penalty_applied", "moderator_note", "reviewed_by", "reviewed_at", "status",
         ])
 
-        if battle.status in Battle.ACTIVE_STATUSES:
-            _release_battle_artifacts_on_finish(battle)
-            battle.status = Battle.Status.CANCELLED
-            battle.waiting_until = None
-            battle.result_reason = f"Withdrawn: {withdrawal.requester.name} pulled out."[:120]
-            battle.save(update_fields=[
+        if locked_battle.status in Battle.ACTIVE_STATUSES:
+            _release_battle_artifacts_on_finish(locked_battle)
+            locked_battle.status = Battle.Status.CANCELLED
+            locked_battle.waiting_until = None
+            locked_battle.result_reason = (
+                f"Withdrawn: {withdrawal.requester.name} pulled out."[:120]
+            )
+            locked_battle.save(update_fields=[
                 "status", "waiting_until", "result_reason", "updated_at",
             ])
+        battle.status = locked_battle.status
+        battle.waiting_until = locked_battle.waiting_until
+        battle.result_reason = locked_battle.result_reason
 
         create_battle_event(
             event_type=BattleEvent.EventType.BATTLE_FINISHED,
-            battle=battle,
+            battle=locked_battle,
             actor=withdrawal.requester,
             target=withdrawal.opponent,
             message=(

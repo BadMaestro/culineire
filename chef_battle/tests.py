@@ -14795,3 +14795,289 @@ class RankLadderLabelsMatchTheSpecTests(TestCase):
                          "rating points decide no rank since X09")
         for threshold in ("0 wins", "3 wins", "21+ wins"):
             self.assertIn(threshold, source)
+
+
+class DrawShareLockingTests(TestCase):
+    """F27, 2026-08-11: _award_draw_shares fetched each chef's profile with
+    get_or_create_battle_profile (no lock) and saved it straight back - unlike
+    the decisive-win branch right below it in _score_battle, which locks both
+    profile rows ordered by pk exactly because a chef can be in more than one
+    battle at once. Two battles finishing together - a draw racing a decisive
+    win, or two draws - that share a chef could each read the same rating/
+    reputation/seasonal_score and lose one side's update. Asserted on the SQL,
+    same convention as ConcurrentScoringSharesOneProfileTests."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.challenger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f27-ch", password="pw"),
+            name="F27 Challenger", slug="f27-ch")
+        self.opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f27-op", password="pw"),
+            name="F27 Opponent", slug="f27-op")
+
+    def _drawn_battle(self, theme):
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme=theme,
+            status=Battle.Status.VOTING, start_time=now - timezone.timedelta(days=1),
+            submission_deadline=now - timezone.timedelta(hours=12),
+            voting_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2))
+        BattleEntry.objects.create(
+            battle=battle, author=self.challenger,
+            moderation_status=BattleEntry.ModerationStatus.APPROVED)
+        BattleEntry.objects.create(
+            battle=battle, author=self.opponent,
+            moderation_status=BattleEntry.ModerationStatus.APPROVED)
+        return battle
+
+    def test_draw_shares_locks_both_profile_rows(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import calculate_battle_result
+
+        battle = self._drawn_battle("F27 Draw Lock")
+        with CaptureQueriesContext(connection) as captured:
+            calculate_battle_result(battle)
+
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper()
+            and "chef_battle_chefbattleprofile" in q["sql"].lower()
+        ]
+        self.assertTrue(
+            locking,
+            "a drawn battle must lock both chef profile rows before crediting "
+            "the second-place share, same as the decisive-win branch",
+        )
+
+    def test_a_chef_drawn_in_two_battles_at_once_is_credited_for_both(self):
+        """Not a true concurrency test (one connection can't race itself) -
+        this guards the locking refactor's arithmetic: both draws must add
+        their share on top of each other, not overwrite."""
+        from .services import calculate_battle_result
+
+        first = self._drawn_battle("F27 Draw One")
+        second = self._drawn_battle("F27 Draw Two")
+        calculate_battle_result(first)
+        calculate_battle_result(second)
+
+        profile = ChefBattleProfile.objects.get(author=self.challenger)
+        self.assertEqual(profile.rating, 24)
+        self.assertEqual(profile.reputation, 14)
+        self.assertEqual(profile.seasonal_score, 10)
+        self.assertEqual(profile.battle_moves, 12)
+
+
+class OperatorResumeShiftsWaitingUntilTests(TestCase):
+    """F28, 2026-08-11: operator_resume shifted submission_deadline/
+    voting_deadline/end_time by the pause duration but left waiting_until -
+    the WAITING-status walkover deadline resolve_start_rituals reads -
+    untouched. A battle paused mid-grace-period and resumed after a long
+    pause kept its old, already-past deadline, so the very next sweep would
+    walk it over or void it instead of restarting the grace period the pause
+    interrupted."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        User = get_user_model()
+        self.owner_user = User.objects.create_superuser("f28-owner", password="pw")
+        self.owner, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f28-a", password="pw"),
+            name="F28 A", slug="f28-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f28-b", password="pw"),
+            name="F28 B", slug="f28-b")
+        now = timezone.now()
+        self.original_waiting_until = now + timezone.timedelta(minutes=10)
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F28 Wait",
+            status=Battle.Status.WAITING, start_time=now,
+            waiting_until=self.original_waiting_until,
+            submission_deadline=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=3),
+        )
+
+    def test_resume_shifts_waiting_until_by_the_pause_duration(self):
+        from .services import operator_emergency_stop, operator_resume
+
+        operator_emergency_stop(
+            battle_id=self.battle.pk, operator_author=self.owner, reason="F28 test pause")
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.PAUSED)
+        self.assertEqual(self.battle.paused_from_status, Battle.Status.WAITING)
+
+        # Simulate an hour-long pause by backdating paused_at underneath it.
+        Battle.objects.filter(pk=self.battle.pk).update(
+            paused_at=timezone.now() - timezone.timedelta(hours=1))
+
+        resumed = operator_resume(
+            battle_id=self.battle.pk, operator_author=self.owner, correlation_id="")
+
+        self.assertEqual(resumed.status, Battle.Status.WAITING)
+        self.assertGreater(resumed.waiting_until, self.original_waiting_until)
+        self.assertGreater(resumed.waiting_until, timezone.now())
+
+    def test_resumed_waiting_battle_is_not_immediately_swept_as_stale(self):
+        from .services import operator_emergency_stop, operator_resume, resolve_start_rituals
+
+        operator_emergency_stop(
+            battle_id=self.battle.pk, operator_author=self.owner, reason="F28 test pause")
+        Battle.objects.filter(pk=self.battle.pk).update(
+            paused_at=timezone.now() - timezone.timedelta(hours=1))
+        operator_resume(battle_id=self.battle.pk, operator_author=self.owner, correlation_id="")
+
+        resolve_start_rituals()
+        self.battle.refresh_from_db()
+        self.assertEqual(
+            self.battle.status, Battle.Status.WAITING,
+            "resuming from a pause must restart the grace period, not leave a "
+            "deadline already in the past for the very next sweep to walk over",
+        )
+
+
+class WithdrawalResolveIgnoresStaleBattleStatusTests(TestCase):
+    """F29, 2026-08-11: resolve_withdrawal read `battle = withdrawal.battle`
+    before its own atomic block and gated the CANCELLED rewrite on that
+    (possibly cached, possibly stale) object's .status. If the battle finished
+    naturally - calculate_battle_result or the stall sweep landing while the
+    withdrawal sat AWAITING_MODERATOR - the stale ACTIVE status would still
+    read as active and closing the withdrawal would drag an already-decided
+    battle back to CANCELLED, discarding its real result."""
+
+    def setUp(self):
+        from .withdrawal_service import request_withdrawal, decide_withdrawal
+        User = get_user_model()
+        self.moderator = User.objects.create_user("f29-mod", password="pw", is_staff=True)
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f29-a", password="pw"),
+            name="F29 A", slug="f29-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f29-b", password="pw"),
+            name="F29 B", slug="f29-b")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F29 theme",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+        self.withdrawal = request_withdrawal(
+            battle=self.battle, author=self.chef_a, reason="F29 reason.")
+        decide_withdrawal(withdrawal=self.withdrawal, author=self.chef_b, with_penalty=False)
+
+    def test_resolve_does_not_cancel_a_battle_that_completed_in_the_meantime(self):
+        from .withdrawal_service import resolve_withdrawal
+
+        # Force the same staleness a real second caller would have: warm the
+        # cached FK now, THEN complete the battle underneath it with a bare
+        # queryset update (as calculate_battle_result would, from elsewhere).
+        _ = self.withdrawal.battle
+        Battle.objects.filter(pk=self.battle.pk).update(
+            status=Battle.Status.COMPLETED, winner=self.chef_b,
+            result_reason="Decisive vote",
+        )
+
+        resolve_withdrawal(
+            withdrawal=self.withdrawal, moderator=self.moderator, uphold_penalty=False)
+
+        self.battle.refresh_from_db()
+        self.assertEqual(
+            self.battle.status, Battle.Status.COMPLETED,
+            "a battle that already finished naturally must not be dragged "
+            "back to CANCELLED by a moderator closing an unrelated withdrawal",
+        )
+        self.assertEqual(self.battle.winner_id, self.chef_b.pk)
+
+    def test_resolve_still_closes_the_withdrawal_itself(self):
+        from .withdrawal_service import resolve_withdrawal
+        from .models import BattleWithdrawal
+
+        _ = self.withdrawal.battle
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.COMPLETED)
+
+        resolve_withdrawal(
+            withdrawal=self.withdrawal, moderator=self.moderator, uphold_penalty=False)
+
+        self.withdrawal.refresh_from_db()
+        self.assertEqual(self.withdrawal.status, BattleWithdrawal.Status.CLOSED)
+
+
+class CombatArtifactReservationLockTests(TestCase):
+    """F30, 2026-08-11: reserving an artifact into a battle's combat loadout
+    read the loadout count, then wrote the reservation, with no lock between
+    the two. Two DIFFERENT artifacts reserved by the same chef at once take
+    different chef_artifact row locks and never collide, so both could read
+    a count one under the cap and together push the loadout one over it.
+    Asserted on the SQL, same convention as the other F20-F30 lock tests -
+    not by racing real threads for a window too narrow to hit reliably."""
+
+    def setUp(self):
+        from .models import Artifact, ChefArtifact, ChefBattleProfile
+        User = get_user_model()
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f30-chef-a", password="pw"),
+            name="F30 Chef A", slug="f30-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f30-chef-b", password="pw"),
+            name="F30 Chef B", slug="f30-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now(), battle_moves=50)
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now(), battle_moves=50)
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="F30 Loadout", status=Battle.Status.ACTIVE,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        artifact = Artifact.objects.create(
+            name="F30 Pan", rarity=Artifact.Rarity.RARE,
+            effect_type="attack", effect_value=5, token_cost=50,
+        )
+        self.chef_artifact = ChefArtifact.objects.create(
+            chef=self.chef_a, artifact=artifact, status=ChefArtifact.Status.AVAILABLE,
+        )
+
+    def test_new_reservation_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import submit_combat_action
+
+        with CaptureQueriesContext(connection) as captured:
+            submit_combat_action(
+                self.battle, self.chef_a, "attack", 3, artifact_id=self.chef_artifact.pk)
+
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(
+            locking,
+            "reserving an artifact into the combat loadout must lock the "
+            "battle row - two different artifacts reserved at once take "
+            "different chef_artifact row locks and never collide otherwise",
+        )
+
+    def test_the_chef_artifact_row_itself_is_also_locked(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import submit_combat_action
+
+        with CaptureQueriesContext(connection) as captured:
+            submit_combat_action(
+                self.battle, self.chef_a, "attack", 3, artifact_id=self.chef_artifact.pk)
+
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_chefartifact" in q["sql"].lower()
+        ]
+        self.assertTrue(
+            locking, "fetching the artifact to reserve must lock its own row too",
+        )

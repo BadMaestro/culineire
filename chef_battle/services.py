@@ -1144,21 +1144,42 @@ def calculate_battle_result(battle: Battle) -> Battle:
 
 
 def _award_draw_shares(battle: Battle) -> None:
-    """Both chefs take the second-place share of a drawn battle."""
+    """Both chefs take the second-place share of a drawn battle.
+
+    F27, 2026-08-11: locked the same way as the decisive-win path below. A
+    chef can be in more than one battle, and two battles finishing at once -
+    a draw racing a decisive win, or two draws - take different battle locks,
+    so both scorings would read the same rating/reputation/seasonal_score and
+    lose an update. Lock both profile rows here, ordered by pk, matching
+    _score_battle's winner/loser lock exactly so the two paths can never
+    deadlock against each other over a shared chef.
+    """
     from .models import BattleMoveTransaction
     from .energy_service import ENERGY_CAP
 
     moves = MOVES_BATTLE_PARTICIPATION + MOVES_BATTLE_WIN // 2
-    for author in (battle.challenger, battle.opponent):
-        profile = get_or_create_battle_profile(author)
-        award_second_place(profile)
-        profile.battle_moves = min(ENERGY_CAP, profile.battle_moves + moves)
-        profile.save()
-        BattleMoveTransaction.objects.create(
-            chef=author,
-            amount=moves,
-            transaction_type=BattleMoveTransaction.TxType.BATTLE_PARTICIPATION,
-        )
+    challenger, opponent = battle.challenger, battle.opponent
+    with transaction.atomic():
+        get_or_create_battle_profile(challenger)
+        get_or_create_battle_profile(opponent)
+        locked_profiles = {
+            profile.author_id: profile
+            for profile in ChefBattleProfile.objects
+            .select_for_update()
+            .filter(author_id__in=[challenger.pk, opponent.pk])
+            .order_by("pk")
+        }
+        for author in (challenger, opponent):
+            profile = locked_profiles[author.pk]
+            author.battle_profile = profile
+            award_second_place(profile)
+            profile.battle_moves = min(ENERGY_CAP, profile.battle_moves + moves)
+            profile.save()
+            BattleMoveTransaction.objects.create(
+                chef=author,
+                amount=moves,
+                transaction_type=BattleMoveTransaction.TxType.BATTLE_PARTICIPATION,
+            )
 
 
 def _score_battle(battle: Battle) -> Battle:
@@ -1596,7 +1617,12 @@ def submit_combat_action(
     chef_artifact = None
     if artifact_id is not None:
         try:
-            chef_artifact = ChefArtifact.objects.select_related("artifact").get(
+            # F30, 2026-08-11: locked. Two combat actions racing for the same
+            # chef+battle (double submit, or two artifacts filed back to back)
+            # used to both read this row's reserved_in_battle_id as unset and
+            # both pass the "not already assigned" check below before either
+            # save() landed.
+            chef_artifact = ChefArtifact.objects.select_for_update().select_related("artifact").get(
                 pk=artifact_id, chef=chef, status=ChefArtifact.Status.AVAILABLE,
             )
         except ChefArtifact.DoesNotExist:
@@ -1611,6 +1637,13 @@ def submit_combat_action(
             raise ValueError("This artifact is already assigned to another battle.")
 
         if chef_artifact.reserved_in_battle_id is None:
+            # The chef_artifact row lock above only covers ONE artifact; two
+            # DIFFERENT artifacts of the same type reserved at once would take
+            # different row locks and never collide, so the loadout count they
+            # both read could each be one under the cap yet together bring the
+            # loadout one over it. Lock the always-existing battle row as a
+            # mutex so any two reservations sharing a battle serialize here.
+            Battle.objects.select_for_update().get(pk=battle.pk)
             loadout_count = ChefArtifact.objects.filter(
                 chef=chef,
                 reserved_in_battle=battle,
@@ -3456,7 +3489,12 @@ def operator_resume(*, battle_id, operator_author, correlation_id=""):
             resumed_at - battle.paused_at if battle.paused_at else timezone.timedelta(0),
         )
         shifted_deadlines = []
-        for field_name in ("submission_deadline", "voting_deadline", "end_time"):
+        # F28, 2026-08-11: waiting_until is the WAITING-status walkover deadline
+        # (resolve_start_rituals section 2) - a battle paused mid-grace-period
+        # and resumed later used to keep the old, now-past deadline, so the very
+        # next sweep would walk it over or void it instead of restarting the
+        # grace period the pause interrupted.
+        for field_name in ("submission_deadline", "voting_deadline", "end_time", "waiting_until"):
             deadline = getattr(battle, field_name)
             if deadline is not None:
                 setattr(battle, field_name, deadline + pause_duration)
