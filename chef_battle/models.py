@@ -29,7 +29,10 @@ HASH_SCHEME_CURRENT = "v2"
 class ChefBattleProfile(models.Model):
     class Rank(models.TextChoices):
         KITCHEN_PORTER = "kitchen_porter", "Kitchen Porter"
-        PREP_COOK = "prep_cook", "Prep Chef"
+        # X20, Owner 2026-08-11: tz_main.md section 10 names this rung
+        # "Prep Cook" and the label said "Prep Chef". The stored value was the
+        # document's all along; only what a chef reads was wrong.
+        PREP_COOK = "prep_cook", "Prep Cook"
         COMMIS_CHEF = "commis_chef", "Commis Chef"
         CHEF_DE_PARTIE = "chef_de_partie", "Chef de Partie"
         SOUS_CHEF = "sous_chef", "Sous Chef"
@@ -902,6 +905,12 @@ class Season(models.Model):
     #: changing them meant a deploy rather than a data edit - which is the
     #: opposite of what a season is for. Blank means "the service default",
     #: so an untouched season behaves exactly as every season has so far.
+    #: G13, Owner 2026-08-11. tz_main.md section 18 asks for /battle/season/<slug>/
+    #: and a season had no slug, so it could only ever be addressed by primary
+    #: key. Filled from the name on save when blank, and never rewritten
+    #: afterwards - a public URL that changes because somebody renamed a season
+    #: is a broken link in every place that ever pointed at it.
+    slug = models.SlugField(max_length=140, unique=True, blank=True)
     crown_rule = models.CharField(
         max_length=200, blank=True,
         help_text="How the crown is decided for this season. Blank = the service default.",
@@ -913,6 +922,18 @@ class Season(models.Model):
 
     class Meta:
         ordering = ["-starts_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            base = slugify(self.name) or "season"
+            candidate, n = base, 2
+            while Season.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                candidate, n = f"{base}-{n}", n + 1
+            self.slug = candidate
+            if "update_fields" in kwargs and kwargs["update_fields"] is not None:
+                kwargs["update_fields"] = list(kwargs["update_fields"]) + ["slug"]
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

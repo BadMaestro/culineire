@@ -2271,15 +2271,20 @@ def battle_vote(request, pk):
 @chef_battle_guard
 def rankings(request):
     profiles = get_rankings()
+    # X09 keyed the ladder to WINS on 2026-08-05 and this column kept
+    # advertising rating points - 100, 200, 300 - which decide nothing and never
+    # matched anything a chef could earn. The numbers are RANK_THRESHOLDS now,
+    # so the ladder on the page is the ladder in the code. X20, 2026-08-11: the
+    # second rung is a Prep Cook, which is what tz_main.md section 10 calls it.
     rank_tiers = [
-        {"slug": "porter",  "name": "Kitchen Porters",   "pts": "0"},
-        {"slug": "prep",    "name": "Prep Chefs",        "pts": "100"},
-        {"slug": "commis",  "name": "Commis Chefs",      "pts": "200"},
-        {"slug": "partie",  "name": "Chefs de Partie",   "pts": "300"},
-        {"slug": "sous",    "name": "Sous Chefs",        "pts": "400"},
-        {"slug": "head",    "name": "Head Chefs",        "pts": "500"},
-        {"slug": "exec",    "name": "Executive Chefs",   "pts": "600"},
-        {"slug": "master",  "name": "Culinary Masters",  "pts": "700+"},
+        {"slug": "porter",  "name": "Kitchen Porters",   "pts": "0 wins"},
+        {"slug": "prep",    "name": "Prep Cooks",        "pts": "3 wins"},
+        {"slug": "commis",  "name": "Commis Chefs",      "pts": "6 wins"},
+        {"slug": "partie",  "name": "Chefs de Partie",   "pts": "9 wins"},
+        {"slug": "sous",    "name": "Sous Chefs",        "pts": "12 wins"},
+        {"slug": "head",    "name": "Head Chefs",        "pts": "15 wins"},
+        {"slug": "exec",    "name": "Executive Chefs",   "pts": "18 wins"},
+        {"slug": "master",  "name": "Culinary Masters",  "pts": "21+ wins"},
     ]
     return render(request, "chef_battle/rankings.html", {
         "profiles": profiles,
@@ -2634,6 +2639,140 @@ def cooking_submit(request, pk):
     return render(request, "chef_battle/cooking_submit.html", {
         "battle": battle,
         "my_entry": my_entry,
+    })
+
+
+@chef_battle_guard
+def battle_history(request):
+    """Every finished battle, newest first — tz_main.md section 18.
+
+    G13, Owner 2026-08-11. The arena shows what is happening and the Hall of
+    Fame shows the first ten; nothing showed the rest, so a battle simply left
+    the site's memory once it dropped off the front. Finished means finished:
+    completed, walkover, void and cancelled all appear, because a battle that
+    ended badly is still part of the record and hiding it would make the
+    history a highlight reel.
+    """
+    from django.core.paginator import Paginator
+
+    finished = (
+        Battle.objects.select_related("challenger", "opponent", "winner", "loser")
+        .filter(status__in=[
+            Battle.Status.COMPLETED, Battle.Status.WALKOVER,
+            Battle.Status.VOID, Battle.Status.CANCELLED,
+        ])
+        .order_by("-end_time", "-pk")
+    )
+    page = Paginator(finished, 25).get_page(request.GET.get("page"))
+    return render(request, "chef_battle/battle_history.html", {
+        "page_obj": page,
+        "battles": page.object_list,
+        "total": finished.count(),
+    })
+
+
+@chef_battle_guard
+def season_detail(request, slug):
+    """One season: its rules, its frozen standings, its battles.
+
+    G13. The season leaderboard showed the CURRENT season only and a closed one
+    became unreachable the moment the next began, so a chef's season could not
+    be linked to. The standings carry wins, losses and streak since G10, which
+    is what makes this page worth having rather than a second leaderboard.
+    """
+    from .models import Season
+    from .season_service import crown_rule, reward_rules
+
+    season = get_object_or_404(Season, slug=slug)
+    standings = season.standings.select_related("chef").order_by("rank_position", "-score")
+    battles = (
+        season.battles.select_related("challenger", "opponent", "winner")
+        .order_by("-end_time", "-pk")[:25]
+    )
+    return render(request, "chef_battle/season_detail.html", {
+        "season": season,
+        "standings": standings,
+        "battles": battles,
+        "crown_rule": crown_rule(season),
+        "reward_rules": reward_rules(season),
+    })
+
+
+@chef_battle_guard
+def crown_holder(request):
+    """Who wears the crown, and who wore it before — tz_main.md section 18.
+
+    G13. The crown is on the arena and nowhere else, so the moment a reign ends
+    there is no page that remembers it. A crown lasts 24 hours (artifact_3
+    section 10), so "nobody right now" is a normal answer and this page says so
+    plainly instead of showing the last holder as if they still held it.
+    """
+    from .models import ChefBattleProfile
+
+    now = timezone.now()
+    holder = (
+        ChefBattleProfile.objects.select_related("author")
+        .filter(crown_until__gt=now)
+        .order_by("-crown_until")
+        .first()
+    )
+    past = (
+        Battle.objects.select_related("winner")
+        .filter(crown_awarded=True, winner__isnull=False)
+        .order_by("-end_time", "-pk")[:20]
+    )
+    most_crowns = (
+        ChefBattleProfile.objects.select_related("author")
+        .filter(crown_count__gt=0)
+        .order_by("-crown_count", "-wins", "author__name")[:10]
+    )
+    return render(request, "chef_battle/crown_holder.html", {
+        "holder": holder,
+        "past_reigns": past,
+        "most_crowns": most_crowns,
+        "server_time": now,
+    })
+
+
+def vote_review(request):
+    """Suspicious votes, for a moderator — tz_main.md section 18.
+
+    G13. The integrity machinery has always existed (gate_self_vote,
+    gate_participant_vote, gate_duplicate_device, gate_vote_rate_ip, and the
+    is_suspicious flag) and the only place to READ it was the Django admin, so
+    the one screen the ТЗ asks for did not exist on the site.
+
+    Moderator-only and checked in the view rather than by chef_battle_guard, the
+    same way cooking_moderation is: a moderator reaching this from the panel is
+    not a chef looking at an arena page. READ-ONLY BY DESIGN - it shows what the
+    gates recorded and changes nothing. Clearing a flag is an admin action, and
+    a review screen that can also edit is a review nobody can trust.
+    """
+    from accounts.views import is_moderator
+    from .access import is_battle_visible
+    # BOTH checks, matching what F8 (v2.5.1000) established for the other
+    # moderator screens: is_moderator alone admits has_bearseeker_privileges
+    # regardless of is_staff, which is a general site-moderation flag and not a
+    # Chef Battles one.
+    if not (is_moderator(request.user) and is_battle_visible(request)):
+        raise Http404
+
+    from .models import BattleVote, VoteIntegrityEvent
+
+    suspicious = (
+        BattleVote.objects.select_related("battle", "voted_for", "voter")
+        .filter(is_suspicious=True)
+        .order_by("-created_at")[:100]
+    )
+    refused = (
+        VoteIntegrityEvent.objects.select_related("battle")
+        .order_by("-created_at")[:100]
+    )
+    return render(request, "chef_battle/vote_review.html", {
+        "suspicious": suspicious,
+        "refused": refused,
+        "suspicious_total": BattleVote.objects.filter(is_suspicious=True).count(),
+        "refused_total": VoteIntegrityEvent.objects.count(),
     })
 
 

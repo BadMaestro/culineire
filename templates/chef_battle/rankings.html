@@ -23,6 +23,8 @@
           <a class="btn-primary" href="{% url 'chef_battle:challenge_create' %}">Challenge A Chef</a>
           <a class="btn-secondary" href="{% url 'chef_battle:season_leaderboard' %}">Season Leaderboard</a>
           <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:crown_holder' %}">The Crown</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:battle_history' %}">Battle History</a>
         </div>
       </div>
     </div>
@@ -34,7 +36,7 @@
 
     <div class="rank-ladder" aria-label="Rank progression ladder">
       <h2 class="rank-ladder__title">Rank Ladder</h2>
-      <p class="rank-ladder__sub">Rating rises and falls with each battle result.</p>
+      <p class="rank-ladder__sub">Wins earn the rank, and a rank once earned is never taken back.</p>
       <div class="rank-ladder__tiers">
         {% for tier in rank_tiers %}
         <div class="rank-tier rank-tier--{{ tier.slug }}">

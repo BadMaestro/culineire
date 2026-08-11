@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}The Crown | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260811-g13" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Chef Battles Arena</p>
+      <h1>The Crown</h1>
+      <p class="battle-room-hero__sub">Who wears it now, who wore it before, and who has worn it most.</p>
+      <div class="battle-actions hero__actions">
+        <div class="hero__actions-list">
+          {% include '_enter_arena_btn.html' %}
+          <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:battle_history' %}">Battle History</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container battle-page">
+
+    {% if holder %}
+    <div class="battle-card">
+      <h2 style="font-family: var(--font-serif);">&#x1F451; {{ holder.author.name }}</h2>
+      <p>Reigning Chef until {{ holder.crown_until|date:"j M Y, H:i" }}.</p>
+      <p class="battle-muted">{{ holder.get_rank_display }} &middot;
+        {{ holder.wins }} win{{ holder.wins|pluralize }} &middot;
+        {{ holder.crown_count }} crown{{ holder.crown_count|pluralize }} in all.</p>
+      <a class="btn-primary" href="{{ holder.author.get_absolute_url }}">See the Chef</a>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>
+        Nobody wears the crown right now. It lasts twenty-four hours from a win,
+        and the last one has run out.
+      </p>
+    </div>
+    {% endif %}
+
+    <h2 style="font-family: var(--font-serif); margin-block: 2rem 1rem;">Most crowns won</h2>
+    {% if most_crowns %}
+    <div class="battle-table">
+      <div class="battle-table__head"><span>Chef</span><span>Crowns</span><span>Wins</span></div>
+      {% for profile in most_crowns %}
+      <a class="battle-table__row" href="{{ profile.author.get_absolute_url }}">
+        <span>{{ profile.author.name }}</span>
+        <strong>{{ profile.crown_count }}</strong>
+        <span>{{ profile.wins }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No crown has been won yet.</p></div>
+    {% endif %}
+
+    <h2 style="font-family: var(--font-serif); margin-block: 2rem 1rem;">Past reigns</h2>
+    {% if past_reigns %}
+    <div class="battle-table">
+      <div class="battle-table__head"><span>Chef</span><span>Won with</span><span>When</span></div>
+      {% for battle in past_reigns %}
+      <a class="battle-table__row" href="{% url 'chef_battle:battle_detail' pk=battle.pk %}">
+        <span>{{ battle.winner.name }}</span>
+        <span>{{ battle.theme }}</span>
+        <span>{{ battle.end_time|date:"j M Y" }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No reign has ended yet.</p></div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

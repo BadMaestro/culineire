@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Battle History | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260811-g13" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Chef Battles Arena</p>
+      <h1>Battle History</h1>
+      <p class="battle-room-hero__sub">Every battle that has finished, newest first.</p>
+      <div class="battle-actions hero__actions">
+        <div class="hero__actions-list">
+          {% include '_enter_arena_btn.html' %}
+          <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:crown_holder' %}">The Crown</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container battle-page">
+    <p class="battle-muted">{{ total }} finished battle{{ total|pluralize }} on record.</p>
+
+    {% if battles %}
+    <div class="battle-table">
+      <div class="battle-table__head">
+        <span>Battle</span>
+        <span>Result</span>
+        <span>Winner</span>
+        <span>Ended</span>
+      </div>
+      {% for battle in battles %}
+      <a class="battle-table__row" href="{% url 'chef_battle:battle_detail' pk=battle.pk %}">
+        <span>{{ battle.challenger.name }} vs {{ battle.opponent.name }}<br>
+          <span class="battle-muted">{{ battle.theme }}</span></span>
+        <span>{{ battle.get_status_display }}</span>
+        <span>{% if battle.winner %}{{ battle.winner.name }}{% else %}&mdash;{% endif %}</span>
+        <span>{{ battle.end_time|date:"j M Y" }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="battle-actions" aria-label="History pages" style="margin-block-start: 1.5rem;">
+      {% if page_obj.has_previous %}
+      <a class="btn-secondary" href="?page={{ page_obj.previous_page_number }}">Newer</a>
+      {% endif %}
+      <span class="battle-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a class="btn-secondary" href="?page={{ page_obj.next_page_number }}">Older</a>
+      {% endif %}
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <p>No battle has finished yet. The first one to end is remembered here.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

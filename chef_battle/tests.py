@@ -630,7 +630,7 @@ class ChefBattleRulesViewTests(TestCase):
         # already promoting on wins, so the rules lied to every player.
         for rank_and_range in (
             "Kitchen Porter (0&ndash;2 wins)",
-            "Prep Chef (3&ndash;5 wins)",
+            "Prep Cook (3&ndash;5 wins)",
             "Commis Chef (6&ndash;8 wins)",
             "Chef de Partie (9&ndash;11 wins)",
             "Sous Chef (12&ndash;14 wins)",
@@ -8581,12 +8581,12 @@ class ArenaRankColumnTests(TestCase):
 
     def test_rank_set_matches_the_owner_ruling(self):
         """Guards the exact conflict that blocked this workstream: a command
-        listed 'Culinary Legend' and omitted 'Prep Chef'. The owner ruled the
+        listed 'Culinary Legend' and omitted this rung. The owner ruled the
         model governs, so this fails loudly if the enum is edited to match a
         document instead of the other way round."""
         labels = [label for _value, label in ChefBattleProfile.Rank.choices]
         self.assertEqual(labels, [
-            "Kitchen Porter", "Prep Chef", "Commis Chef", "Chef de Partie",
+            "Kitchen Porter", "Prep Cook", "Commis Chef", "Chef de Partie",
             "Sous Chef", "Head Chef", "Executive Chef", "Culinary Master",
         ])
 
@@ -14611,3 +14611,187 @@ class ChefBattleCssIsLoadedOnceTests(TestCase):
             resp = self.client.get(reverse(name))
             self.assertEqual(resp.status_code, 200, f"{name} did not render")
             self.assertLessEqual(self._count(resp), 1, f"{name} loaded chef_battle.css more than once")
+
+@override_settings(CHEF_BATTLE_ENABLED=True, SECURE_SSL_REDIRECT=False)
+class ArenaPagesFromTheSpecTests(TestCase):
+    """G13 — the four pages tz_main.md section 18 asks for and nothing answered.
+
+    Battle history, a per-season page, a crown-holder page and a vote-review
+    screen. The last one existed only inside the Django admin, so the site had
+    no answer to a question the ТЗ asks by name.
+    """
+
+    def setUp(self):
+        from chef_battle.season_service import create_season
+        User = get_user_model()
+        self.a, self.b = [
+            RecipeAuthor.objects.create(
+                user=User.objects.create_user(f"g13-{n}", password="pw"),
+                name=f"G13 {n}", slug=f"g13-{n}")
+            for n in ("a", "b")
+        ]
+        ChefBattleProfile.objects.create(author=self.a, crown_count=2, wins=3)
+        ChefBattleProfile.objects.create(author=self.b)
+        now = timezone.now()
+        self.season = create_season(
+            name="Autumn Season",
+            starts_at=now - timezone.timedelta(days=1),
+            ends_at=now + timezone.timedelta(days=1),
+            activate=True,
+        )
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Soda Bread",
+            status=Battle.Status.COMPLETED, winner=self.a, loser=self.b,
+            crown_awarded=True,
+            start_time=now, submission_deadline=now, voting_deadline=now, end_time=now,
+        )
+        self.client = Client()
+
+    def _staff(self):
+        User = get_user_model()
+        user = User.objects.create_user("g13-staff", password="pw", is_staff=True)
+        self.client.force_login(user)
+        return user
+
+    # ── history ──────────────────────────────────────────────────────────────
+
+    def test_history_lists_a_finished_battle(self):
+        self._staff()
+        resp = self.client.get(reverse("chef_battle:battle_history"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Soda Bread")
+
+    def test_history_shows_the_ones_that_ended_badly_too(self):
+        """A void is still part of the record; a history that hides it is a
+        highlight reel."""
+        self._staff()
+        now = timezone.now()
+        Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Nobody Turned Up",
+            status=Battle.Status.VOID,
+            start_time=now, submission_deadline=now, voting_deadline=now, end_time=now,
+        )
+        resp = self.client.get(reverse("chef_battle:battle_history"))
+        self.assertContains(resp, "Nobody Turned Up")
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_history_is_gated_like_every_other_arena_page(self):
+        """With the flag at its real production value, an anonymous caller
+        must see nothing at all - the same 404 the arena answers."""
+        resp = Client().get(reverse("chef_battle:battle_history"))
+        self.assertEqual(resp.status_code, 404)
+
+    # ── season ───────────────────────────────────────────────────────────────
+
+    def test_a_season_has_a_slug_and_a_page_of_its_own(self):
+        self._staff()
+        self.assertTrue(self.season.slug, "G13: a season needs a slug to be addressable")
+        resp = self.client.get(
+            reverse("chef_battle:season_detail", kwargs={"slug": self.season.slug}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Autumn Season")
+
+    def test_the_season_page_shows_its_own_rules(self):
+        self._staff()
+        self.season.reward_rules_json = {"seasonal_win": 40}
+        self.season.crown_rule = "Held by the top of the ladder all season."
+        self.season.save(update_fields=["reward_rules_json", "crown_rule"])
+        resp = self.client.get(
+            reverse("chef_battle:season_detail", kwargs={"slug": self.season.slug}))
+        self.assertContains(resp, "Held by the top of the ladder all season.")
+        self.assertContains(resp, "A win is worth 40 seasonal")
+
+    def test_the_season_page_shows_the_frozen_record(self):
+        from chef_battle.season_service import close_season
+        self._staff()
+        ChefBattleProfile.objects.filter(author=self.a).update(seasonal_score=10)
+        close_season(self.season)
+        resp = self.client.get(
+            reverse("chef_battle:season_detail", kwargs={"slug": self.season.slug}))
+        self.assertContains(resp, "1-0")
+
+    def test_a_slug_survives_a_rename(self):
+        """A public URL that changes because somebody renamed a season is a
+        broken link everywhere that ever pointed at it."""
+        original = self.season.slug
+        self.season.name = "Renamed Entirely"
+        self.season.save(update_fields=["name"])
+        self.season.refresh_from_db()
+        self.assertEqual(self.season.slug, original)
+
+    # ── crown ────────────────────────────────────────────────────────────────
+
+    def test_the_crown_page_says_plainly_when_nobody_wears_it(self):
+        self._staff()
+        resp = self.client.get(reverse("chef_battle:crown_holder"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Nobody wears the crown right now")
+
+    def test_the_crown_page_names_the_holder_and_the_past(self):
+        self._staff()
+        ChefBattleProfile.objects.filter(author=self.a).update(
+            crown_until=timezone.now() + timezone.timedelta(hours=5))
+        resp = self.client.get(reverse("chef_battle:crown_holder"))
+        self.assertContains(resp, "G13 a")
+        self.assertContains(resp, "Soda Bread")   # the reign it came from
+
+    # ── vote review ──────────────────────────────────────────────────────────
+
+    def test_vote_review_is_moderator_only(self):
+        User = get_user_model()
+        User.objects.create_user("g13-plain", password="pw")
+        self.client.login(username="g13-plain", password="pw")
+        self.assertEqual(
+            self.client.get(reverse("chef_battle:vote_review")).status_code, 404)
+
+    def test_vote_review_shows_what_the_gates_recorded(self):
+        from chef_battle.models import BattleVote, VoteIntegrityEvent
+        self._staff()
+        BattleVote.objects.create(
+            battle=self.battle, voted_for=self.a, is_suspicious=True,
+            voter=get_user_model().objects.create_user("g13-voter", password="pw"))
+        VoteIntegrityEvent.objects.create(
+            battle=self.battle, gate_code="self_vote", is_authenticated=True)
+        resp = self.client.get(reverse("chef_battle:vote_review"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "self_vote")
+
+    def test_vote_review_writes_nothing(self):
+        """Read-only by design: a review screen that can also edit is a review
+        nobody can trust."""
+        from chef_battle.models import BattleVote, VoteIntegrityEvent
+        self._staff()
+        BattleVote.objects.create(
+            battle=self.battle, voted_for=self.a, is_suspicious=True,
+            voter=get_user_model().objects.create_user("g13-voter2", password="pw"))
+        before = (BattleVote.objects.count(), VoteIntegrityEvent.objects.count())
+        self.client.get(reverse("chef_battle:vote_review"))
+        self.assertEqual(
+            (BattleVote.objects.count(), VoteIntegrityEvent.objects.count()), before)
+
+
+class RankLadderLabelsMatchTheSpecTests(TestCase):
+    """X20 — the second rung is a Prep Cook.
+
+    tz_main.md section 10 names the eight rungs and the model's label said
+    "Prep Chef". The stored value was the document's all along; only what a
+    chef reads was wrong. The rankings page carried a second, older lie in the
+    same block: a points column advertising 100/200/300, which stopped deciding
+    anything when X09 keyed the ladder to WINS on 2026-08-05.
+    """
+
+    def test_the_ladder_labels_are_the_documents(self):
+        labels = [label for _value, label in ChefBattleProfile.Rank.choices]
+        self.assertEqual(labels, [
+            "Kitchen Porter", "Prep Cook", "Commis Chef", "Chef de Partie",
+            "Sous Chef", "Head Chef", "Executive Chef", "Culinary Master",
+        ])
+
+    def test_the_rankings_ladder_advertises_wins_and_not_rating_points(self):
+        from chef_battle.views import rankings
+        import inspect
+        source = inspect.getsource(rankings)
+        self.assertNotIn('"pts": "100"', source,
+                         "rating points decide no rank since X09")
+        for threshold in ("0 wins", "3 wins", "21+ wins"):
+            self.assertIn(threshold, source)

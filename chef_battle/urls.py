@@ -77,6 +77,13 @@ urlpatterns = [
     path("battles/<int:pk>/moderation/cooking/approve/", views.cooking_moderation_approve, name="cooking_moderation_approve"),
     path("battles/<int:pk>/cooking/submit/", views.cooking_submit, name="cooking_submit"),
     path("hall-of-fame/", views.hall_of_fame, name="hall_of_fame"),
+    # G13, Owner 2026-08-11 - the four pages tz_main.md section 18 asks for and
+    # nothing answered. The paths follow this app's own prefix rather than the
+    # document's /battle/..., which was written before the app was named.
+    path("history/", views.battle_history, name="battle_history"),
+    path("season/<slug:slug>/", views.season_detail, name="season_detail"),
+    path("crown-holder/", views.crown_holder, name="crown_holder"),
+    path("votes/review/", views.vote_review, name="vote_review"),
     path("battles/<int:pk>/ready/", views.battle_set_ready, name="battle_set_ready"),
     path("battles/<int:pk>/chat/send/", views.battle_chat_send, name="battle_chat_send"),
     path("battles/<int:pk>/chat/poll/", views.battle_chat_poll, name="battle_chat_poll"),

@@ -11,6 +11,16 @@
       <p class="battle-kicker">Chef Battles Arena</p>
       <h1>Season Leaderboard</h1>
       <p class="battle-room-hero__sub">{{ season_name|safe }} &middot; Resets each season</p>
+      {% if active_season %}
+      <p class="battle-room-hero__sub">
+        <a href="{% url 'chef_battle:season_detail' slug=active_season.slug %}">This season&rsquo;s own page</a>
+      </p>
+      {% endif %}
+      {% if finished_season %}
+      <p class="battle-room-hero__sub">
+        <a href="{% url 'chef_battle:season_detail' slug=finished_season.slug %}">{{ finished_season.name }} &mdash; final standings</a>
+      </p>
+      {% endif %}
       <div class="battle-actions hero__actions">
         <button aria-expanded="false" aria-label="Show navigation" class="hero__burger" type="button">
           <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 20 18" width="20">
@@ -23,6 +33,8 @@
           {% include '_enter_arena_btn.html' %}
           <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">All-Time Rankings</a>
           <a class="btn-secondary" href="{% url 'chef_battle:hall_of_fame' %}">Hall of Fame</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:crown_holder' %}">The Crown</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:battle_history' %}">Battle History</a>
         </div>
       </div>
     </div>

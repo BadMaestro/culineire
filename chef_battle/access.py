@@ -174,6 +174,12 @@ UNGUARDED_BY_DESIGN = {
         "a Chef Battle one."
     ),
     "cooking_moderation_approve": "Same is_moderator AND is_battle_visible check as cooking_moderation (F8).",
+    "vote_review": (
+        "Moderator-only, the same is_moderator AND is_battle_visible check as "
+        "cooking_moderation, 404 otherwise. G13, 2026-08-11: listed rather than "
+        "decorated for the same reason as its siblings - it is reached from the "
+        "moderation panel, not from an arena page. Read-only by design."
+    ),
     "battle_withdraw_resolve": (
         "login_required + require_POST, and moderator-only: the view raises "
         "Http404 through is_moderator AND is_battle_visible (F8, 2026-08-11) "

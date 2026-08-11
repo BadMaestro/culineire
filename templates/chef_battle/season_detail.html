@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ season.name }} | CulinEire{% endblock %}
+{% block extra_head %}<link href="{% static 'css/chef_battle.css' %}?v=20260811-g13" rel="stylesheet">{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero battle-room-hero--has-panel">
+  <div class="container">
+    <div class="battle-room-hero__copy">
+      <p class="battle-kicker">Chef Battles Arena</p>
+      <h1>{{ season.name }}</h1>
+      <p class="battle-room-hero__sub">One season: its rules, its standings, and the battles fought in it.</p>
+      <div class="battle-actions hero__actions">
+        <div class="hero__actions-list">
+          {% include '_enter_arena_btn.html' %}
+          <a class="btn-secondary" href="{% url 'chef_battle:season_leaderboard' %}">Season Leaderboard</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>
+          <a class="btn-secondary" href="{% url 'chef_battle:battle_history' %}">Battle History</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page-section">
+  <div class="container battle-page">
+
+    <div class="battle-card">
+      <p><strong>{{ season.get_status_display }}</strong> &middot;
+        {{ season.starts_at|date:"j M Y" }} &ndash; {{ season.ends_at|date:"j M Y" }}</p>
+      <p class="battle-muted">Crown rule: {{ crown_rule }}</p>
+      <p class="battle-muted">A win is worth {{ reward_rules.seasonal_win }} seasonal
+        point{{ reward_rules.seasonal_win|pluralize }}; second place and a draw take
+        {{ reward_rules.seasonal_second }}.</p>
+    </div>
+
+    <h2 style="font-family: var(--font-serif); margin-block: 2rem 1rem;">Final standings</h2>
+    {% if standings %}
+    <div class="battle-table">
+      <div class="battle-table__head">
+        <span>#</span><span>Chef</span><span>Score</span><span>W-L</span><span>Best streak</span>
+      </div>
+      {% for standing in standings %}
+      <a class="battle-table__row" href="{{ standing.chef.get_absolute_url }}">
+        <span>{{ standing.rank_position|default:forloop.counter }}</span>
+        <span>{{ standing.chef.name }}</span>
+        <strong>{{ standing.score }}</strong>
+        <span>{{ standing.wins }}-{{ standing.losses }}</span>
+        <span>{{ standing.streak }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>
+        {% if season.status == "active" %}
+        This season is still running &mdash; standings are frozen when it closes.
+        {% else %}
+        No standings were recorded for this season.
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
+
+    <h2 style="font-family: var(--font-serif); margin-block: 2rem 1rem;">Battles this season</h2>
+    {% if battles %}
+    <div class="battle-table">
+      <div class="battle-table__head"><span>Battle</span><span>Result</span><span>Winner</span></div>
+      {% for battle in battles %}
+      <a class="battle-table__row" href="{% url 'chef_battle:battle_detail' pk=battle.pk %}">
+        <span>{{ battle.challenger.name }} vs {{ battle.opponent.name }}</span>
+        <span>{{ battle.get_status_display }}</span>
+        <span>{% if battle.winner %}{{ battle.winner.name }}{% else %}&mdash;{% endif %}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><p>No battle carries this season yet.</p></div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
