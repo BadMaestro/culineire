@@ -3,10 +3,12 @@ from django.utils import timezone
 
 from chef_battle.models import Battle, BattleChallenge
 from chef_battle.services import (
+    _STALLABLE_STATUSES,
     calculate_battle_result,
     expire_stale_challenges,
     handle_no_show_battles,
     resolve_start_rituals,
+    void_stalled_battles,
 )
 
 
@@ -62,6 +64,17 @@ class Command(BaseCommand):
         else:
             handled = handle_no_show_battles()
             self.stdout.write(self.style.SUCCESS(f"Processed {handled} no-show battle(s)."))
+
+        # --- Void battles stalled before they ever reached voting (F20) ---
+        stalled = Battle.objects.filter(
+            status__in=_STALLABLE_STATUSES, end_time__lte=now,
+        )
+        stalled_count = stalled.count()
+        if dry:
+            self.stdout.write(f"[dry-run] Would void {stalled_count} stalled battle(s).")
+        else:
+            voided = void_stalled_battles()
+            self.stdout.write(self.style.SUCCESS(f"Voided {voided} stalled battle(s)."))
 
         # --- Auto-complete expired voting battles (CB-1402) ---
         expired_voting = Battle.objects.filter(

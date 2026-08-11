@@ -4356,6 +4356,60 @@ class ModerationPanelRequiresBattleVisibilityTests(TestCase):
         self.assertEqual(len(resp.context["pending_withdrawals"]), 1)
 
 
+class ModerateClanRequiresBattleVisibilityTests(TestCase):
+    """F22, 2026-08-11: moderate_clan gated only on is_moderator(), the same
+    class of gap F8/F16 already closed on its sibling write action
+    (battle_withdraw_resolve) and read surface (moderation_panel's
+    pending_clans). This one mutates Clan.moderation_status directly -
+    approving makes the clan publicly live - without checking
+    is_battle_visible(). Not previously exploitable (grant_bearseeker always
+    also sets is_staff), but nothing enforced that invariant, and this view
+    lives outside the chef_battle URL namespace so the app's own routed-view
+    guard audit can't see it."""
+
+    def setUp(self):
+        from chef_battle.models import Clan
+
+        User = get_user_model()
+        self.mod_flag_only = User.objects.create_user("f22-modflag", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.mod_flag_only, name="F22 Mod Flag", slug="f22-modflag",
+            has_bearseeker_privileges=True,
+        )
+        self.staff_mod = User.objects.create_user("f22-staff", password="pw", is_staff=True)
+        RecipeAuthor.objects.create(user=self.staff_mod, name="F22 Staff", slug="f22-staff")
+
+        founder = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f22-founder", password="pw"), name="F22 Founder", slug="f22-founder")
+        self.clan = Clan.objects.create(founder=founder, name="F22 Clan", slug="f22-clan")
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_moderator_flag_without_staff_bit_cannot_moderate_clan(self):
+        from chef_battle.models import Clan
+
+        self.client.login(username="f22-modflag", password="pw")
+        resp = self.client.post(
+            reverse("recipes:moderate_clan", kwargs={"slug": self.clan.slug}),
+            {"action": "approve"},
+        )
+        self.assertEqual(resp.status_code, 404)
+        self.clan.refresh_from_db()
+        self.assertEqual(self.clan.moderation_status, Clan.Moderation.PENDING)
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_staff_moderator_can_moderate_clan(self):
+        from chef_battle.models import Clan
+
+        self.client.login(username="f22-staff", password="pw")
+        resp = self.client.post(
+            reverse("recipes:moderate_clan", kwargs={"slug": self.clan.slug}),
+            {"action": "approve"},
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.clan.refresh_from_db()
+        self.assertEqual(self.clan.moderation_status, Clan.Moderation.APPROVED)
+
+
 class ArchitectureNormalisationIsClosedTests(TestCase):
     """The project is CLOSED and OFF the active board — Owner, 2026-08-09.
 

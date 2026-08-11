@@ -524,6 +524,21 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
     end_time = voting_deadline
 
     with transaction.atomic():
+        # F21, 2026-08-11: slot_occupied_reason is checked in the view before
+        # this call, but that read is unlocked - two DIFFERENT pending
+        # challenges to the same chef, accepted near-simultaneously, both see
+        # the slot free before either battle exists. Lock the accepting
+        # chef's profile row first: two concurrent accepts for the same chef
+        # then serialise on it, and the second re-check below runs against
+        # whatever the first transaction actually committed, the same
+        # "authoritative only at the transition it gates" reasoning as F9's
+        # rank re-check above.
+        opponent_profile = get_or_create_battle_profile(challenge.opponent)
+        ChefBattleProfile.objects.select_for_update().get(pk=opponent_profile.pk)
+        slot_error = slot_occupied_reason(challenge.opponent, ignore_challenge=challenge)
+        if slot_error:
+            raise ValueError(slot_error)
+
         challenge.status = BattleChallenge.Status.ACCEPTED
         challenge.accepted_at = now
         challenge.save(update_fields=["status", "accepted_at"])
@@ -1024,6 +1039,82 @@ def _release_battle_artifacts_on_finish(battle: Battle) -> None:
         reserved_in_battle=battle,
         status=ChefArtifact.Status.AVAILABLE,
     ).update(reserved_in_battle=None)
+
+
+#: Statuses reachable via the real combat path with no sweeper covering them
+#: past end_time: INGREDIENT_PENALTY waits on a moderator's approve_cooking_
+#: phase(); COOKING waits on a cooked photo AND its moderation; PRESENTATION
+#: waits on a vote. F20, 2026-08-11: nothing timed these out, and
+#: calculate_battle_result's zero-vote tie-break treated "voting never opened"
+#: the same as "voting opened and tied", paying both chefs a full draw share
+#: for a battle nobody judged.
+_STALLABLE_STATUSES = (
+    Battle.Status.INGREDIENT_PENALTY,
+    Battle.Status.COOKING,
+    Battle.Status.PRESENTATION,
+)
+
+
+def void_stalled_battle(battle: Battle) -> Battle:
+    """Cancel one battle stuck in a _STALLABLE_STATUSES phase past end_time.
+
+    No reward and no penalty to either chef: a moderator backlog on
+    approve_cooking_phase or a photo review is not either chef's fault, and
+    guessing whose photo is missing is worse than paying neither. This is the
+    lazy-evaluation twin of calculate_battle_result - called both from the
+    cron sweep (void_stalled_battles) and inline from battle_detail, the same
+    relationship calculate_battle_result already has with expire_stale_battles
+    and the VOTING-deadline auto-complete.
+    """
+    if battle.status == Battle.Status.COMPLETED:
+        return battle
+    with transaction.atomic():
+        locked = _locked_battle(battle.pk, expected_status=None)
+        if locked.status not in _STALLABLE_STATUSES or locked.end_time > timezone.now():
+            battle.status = locked.status
+            return battle
+        locked.entries.filter(is_revealed=False).update(is_revealed=True)
+        locked.status = Battle.Status.CANCELLED
+        locked.result_reason = "Stalled: the battle did not reach voting before its deadline."
+        locked.save(update_fields=["status", "result_reason", "updated_at"])
+        create_battle_event(
+            event_type=BattleEvent.EventType.BATTLE_FINISHED,
+            battle=locked,
+            message=(
+                f"Chef Battle '{locked.theme}' was cancelled: it did not reach "
+                f"voting before its deadline."
+            ),
+            is_public=True,
+        )
+        battle.status = locked.status
+        battle.result_reason = locked.result_reason
+    return battle
+
+
+def void_stalled_battles() -> int:
+    """Sweep battles past end_time that never reached a votable phase.
+
+    Companion to handle_no_show_battles (which covers MENU_LOCKED/ACTIVE/
+    AWAITING_SUBMISSIONS against submission_deadline) and the VOTING-deadline
+    auto-complete in expire_stale_battles.py (which covers VOTING against
+    voting_deadline). Between them every status but this sweep's three had a
+    timeout; run repeatedly, safe like both.
+    """
+    now = timezone.now()
+    battle_ids = list(
+        Battle.objects.filter(
+            status__in=_STALLABLE_STATUSES,
+            end_time__lte=now,
+        ).values_list("pk", flat=True)
+    )
+    count = 0
+    for battle_id in battle_ids:
+        battle = Battle.objects.get(pk=battle_id)
+        before = battle.status
+        void_stalled_battle(battle)
+        if battle.status != before:
+            count += 1
+    return count
 
 
 def calculate_battle_result(battle: Battle) -> Battle:

@@ -107,14 +107,26 @@ def activate_season(season: Season) -> Season:
         return season
     if season.status == Season.Status.ENDED:
         raise ValueError("An ended season cannot be reactivated.")
-    active = get_active_season()
-    if active is not None and active.pk != season.pk:
-        raise ValueError("Another season is already active — close it first.")
     with transaction.atomic():
-        season.status = Season.Status.ACTIVE
-        season.save(update_fields=["status"])
+        # F24, 2026-08-11: this row was never locked, so two overlapping
+        # roll_seasons runs (the command documents no mutex, same as every
+        # other cron sweep in this app) could both pass the status checks on
+        # the SAME season before either committed and both fire
+        # season_started. Lock the row and re-check under it.
+        locked = Season.objects.select_for_update().get(pk=season.pk)
+        if locked.status == Season.Status.ACTIVE:
+            season.status = locked.status
+            return season
+        if locked.status == Season.Status.ENDED:
+            raise ValueError("An ended season cannot be reactivated.")
+        active = get_active_season()
+        if active is not None and active.pk != locked.pk:
+            raise ValueError("Another season is already active — close it first.")
+        locked.status = Season.Status.ACTIVE
+        locked.save(update_fields=["status"])
         # Integration hook: faction subsystem opens per-season standings.
-        season_started.send(sender=Season, season=season)
+        season_started.send(sender=Season, season=locked)
+        season.status = locked.status
     return season
 
 
@@ -180,18 +192,40 @@ def close_season(season: Season) -> dict:
         raise ValueError("Only an active season can be closed.")
 
     with transaction.atomic():
+        # F24, 2026-08-11: neither this row nor the "is it still active"
+        # check was locked, so two overlapping roll_seasons runs on the SAME
+        # season could both pass the top-of-function check before either
+        # committed - both would snapshot standings, both would reset
+        # seasonal_score, and both would fire season_ended/
+        # season_ended_committed a second time, which issue real
+        # SeasonReward/RewardRecord rows and are not documented as safe to
+        # replay. Lock the row and re-check under it, same pattern as
+        # activate_season above.
+        locked = Season.objects.select_for_update().get(pk=season.pk)
+        if locked.status != Season.Status.ACTIVE:
+            # A concurrent close already won this race and committed - the
+            # function is documented idempotent per season, so hand back the
+            # snapshot that call already froze rather than raise or redo it.
+            season.status = locked.status
+            existing = list(season.standings.order_by("rank_position"))
+            return {
+                "season_id": season.pk,
+                "standings_recorded": len(existing),
+                "champion": existing[0].chef if existing else None,
+            }
+
         profiles = list(
             ChefBattleProfile.objects.select_related("author")
             .filter(seasonal_score__gt=0)
             .order_by("-seasonal_score", "-wins", "author__name")
         )
-        record = _season_record(season)
+        record = _season_record(locked)
 
         # Replace any prior snapshot for this season so a re-close is consistent.
-        season.standings.all().delete()
+        locked.standings.all().delete()
         SeasonStanding.objects.bulk_create([
             SeasonStanding(
-                season=season,
+                season=locked,
                 chef=p.author,
                 score=p.seasonal_score,
                 rank_position=i + 1,
@@ -203,16 +237,17 @@ def close_season(season: Season) -> dict:
         # Reset the live tally so the next season starts from zero.
         ChefBattleProfile.objects.filter(seasonal_score__gt=0).update(seasonal_score=0)
 
-        season.status = Season.Status.ENDED
-        season.save(update_fields=["status"])
+        locked.status = Season.Status.ENDED
+        locked.save(update_fields=["status"])
+        season.status = locked.status
 
         # Integration hook (in-transaction): light, must-be-atomic work only —
         # e.g. finalising FactionSeasonStanding from the frozen standings. A
         # raising receiver rolls back the whole close. See season_signals.py.
         season_ended.send(
             sender=Season,
-            season=season,
-            standings=season.standings.order_by("rank_position"),
+            season=locked,
+            standings=locked.standings.order_by("rank_position"),
         )
 
         # Integration hook (post-commit): heavy / fallible work — e.g. issuing
@@ -220,7 +255,7 @@ def close_season(season: Season) -> dict:
         # transaction commits, so a reward-issuance failure can never roll back
         # the season close. Discarded if the transaction rolls back.
         transaction.on_commit(
-            lambda: season_ended_committed.send(sender=Season, season=season)
+            lambda: season_ended_committed.send(sender=Season, season=locked)
         )
 
     return {

@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-11 · Production baseline: **v2.5.1001**
+Last reconciled: 2026-08-11 · Production baseline: **v2.5.1002**
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
@@ -60,6 +60,26 @@ a losing double-accept race surfaced a bare 500 instead of a message, though
 the OneToOne constraint meant data was never at risk (F19). All eight closed
 same-day. This closes every finding from both the 2026-08-10 and 2026-08-11
 audits except the TokenWallet model rename, still the Owner's to authorise.**
+**F20-F26 fixed, 2026-08-11 — a third full audit, this time also covering
+GreenBear's own G-series work (G1, G3, G6-G12) for the first time. One
+CRITICAL: a battle past its end_time was auto-scored by calculate_battle_result
+regardless of which phase it was actually in — stuck waiting on a moderator's
+cooking-phase approval, a cooked photo, or a presentation vote, it hit the
+zero-vote tie-break and was paid a full draw to both chefs for a fight with no
+combat and no moderated evidence, and since losing carries no penalty this was
+strictly better than an honest loss (F20). One high, in new territory: G1's
+one-slot-per-chef rule had a race across two different pending challenges to
+the same chef (F21). Three medium: clan moderation gated the same way F8/F16
+already closed elsewhere (F22); a written anti-fraud gate on real-money token
+purchases that was never wired in (F23); season close/activate with no row
+lock, letting a cron self-overlap double-fire season-end rewards (F24). Two
+low: F25 was investigated and found NOT to be a bug — GreenBear's own comment
+already documents the tradeoff the audit flagged, so nothing changed; artifact
+image generation missing the same visibility check as F8/F16/F22 (F26). All
+seven closed same-day. This closes every finding from all three audit rounds
+except the TokenWallet model rename, gate_dsa_report_threshold (a moderation-
+policy question, not a bug), and F24's residual cross-season race (needs a
+DB constraint, not row locking) — all three still the Owner's to rule on.**
 Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.

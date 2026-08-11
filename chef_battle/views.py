@@ -42,6 +42,7 @@ from .fraud import (
     gate_repeat_challenge_cooldown,
     gate_self_vote,
     gate_suspended_account,
+    gate_token_purchase_velocity,
     gate_vote_rate_ip,
     gate_withdrawal_consent,
     run_fraud_gates,
@@ -649,11 +650,18 @@ def token_checkout_create(request):
     except (ValueError, TypeError):
         return JsonResponse({"error": "Invalid request."}, status=400)
 
+    # F23, 2026-08-11: gate_token_purchase_velocity was written ("reject if
+    # the wallet has too many completed orders in the last 24 hours") but
+    # never called anywhere - the one real-money purchase path built its own
+    # gate list and left it out. A written, never-wired anti-fraud check on
+    # a real-money flow is worse than not having one.
+    wallet, _ = TokenWallet.objects.get_or_create(chef=author)
     fraud_result = run_fraud_gates([
         (gate_suspended_account, (author,), {}),
         (gate_fraud_flagged, (author,), {}),
         (gate_age_verified, (author,), {}),
         (gate_withdrawal_consent, (withdrawal_waived,), {}),
+        (gate_token_purchase_velocity, (wallet,), {}),
     ])
     if not fraud_result.passed:
         first_fail = next(g for g in fraud_result.gates if not g.passed)
@@ -662,6 +670,7 @@ def token_checkout_create(request):
             "fraud_flagged": "Your account has been flagged. Please contact support.",
             "age_verified": "You must confirm that you are 18 or older before purchasing tokens.",
             "withdrawal_consent": "You must confirm the digital content consent before purchasing tokens.",
+            "token_purchase_velocity": "You have made too many token purchases in the last 24 hours. Please try again later.",
         }
         from django.urls import reverse
         resp = {"error": _CHECKOUT_FRAUD_MESSAGES.get(first_fail.gate, "Purchase not accepted.")}
@@ -1950,10 +1959,18 @@ def battle_detail(request, pk):
     )
 
     # DG-04: page view is a presence heartbeat (public battle room surface)
-    from .services import record_viewer_presence
+    from .services import record_viewer_presence, void_stalled_battle, _STALLABLE_STATUSES
     record_viewer_presence(request, battle=battle)
-    if battle.end_time <= timezone.now() and battle.status != Battle.Status.COMPLETED:
+    now = timezone.now()
+    if battle.end_time <= now and battle.status in (Battle.Status.ACTIVE, Battle.Status.VOTING):
         battle = calculate_battle_result(battle)
+    elif battle.end_time <= now and battle.status in _STALLABLE_STATUSES:
+        # F20, 2026-08-11: calculate_battle_result used to run here for ANY
+        # non-COMPLETED status - a battle stuck in INGREDIENT_PENALTY/COOKING/
+        # PRESENTATION (never voted on) hit its zero-vote tie-break and was
+        # scored as a paid draw. Route those through the same no-reward
+        # cancellation the cron sweep uses instead of a decisive/drawn result.
+        battle = void_stalled_battle(battle)
     else:
         reveal_entries_if_ready(battle)
         battle.refresh_from_db()
@@ -2955,7 +2972,11 @@ def artifact_generate_image(request, pk):
     from .models import Artifact
     from recipes.management.commands.generate_recipe import fetch_image_bytes
 
-    if not (is_moderator(request.user) or request.user.is_staff):
+    # F26, 2026-08-11: same class of gap F8/F16/F22 already closed - is_moderator()
+    # alone admits has_bearseeker_privileges regardless of is_staff, and this
+    # write action triggers a paid AI image generation with no is_battle_visible()
+    # check at all.
+    if not ((is_moderator(request.user) or request.user.is_staff) and is_battle_visible(request)):
         return JsonResponse({"success": False, "error": "Not authorized"}, status=403)
 
     artifact = get_object_or_404(Artifact, pk=pk)

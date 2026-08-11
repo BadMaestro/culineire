@@ -3698,6 +3698,83 @@ ARENA_DESIGN_TASKS = [
         "evidence": "SHIPPED v2.5.1000. Battle.challenge is a unique OneToOneField, so two simultaneous accepts never corrupted data - the second INSERT simply failed at the database. But accept_challenge doesn't lock the challenge row and the view only caught ValueError, so the second request's IntegrityError was unhandled and reached the user as a bare 500 instead of the same 'already answered' message a slightly-later request gets from the top-of-view PENDING check.",
     },
     {
+        "id": "F20", "group": "Release Audit 2026-08-11 (Round 3)", "title": "A battle could be scored as a paid draw from any pre-voting phase, with zero combat and zero moderated evidence",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (battle_detail); chef_battle/services.py (void_stalled_battle, void_stalled_battles, _STALLABLE_STATUSES); chef_battle/management/commands/expire_stale_battles.py",
+        "depends_on": "none",
+        "action": "battle_detail now only auto-scores a battle past end_time via calculate_battle_result when it is ACTIVE or VOTING (the only statuses battle_vote itself accepts). A battle stuck in INGREDIENT_PENALTY/COOKING/PRESENTATION past end_time routes through the new void_stalled_battle instead - cancelled, no reward to either chef. A matching cron sweep (void_stalled_battles) covers the same three statuses, wired into expire_stale_battles.py alongside the existing no-show and voting-deadline sweeps.",
+        "visible_result": "A battle that never reached voting - stuck waiting on a moderator's cooking-phase approval or a cooked photo - is cancelled with no reward, instead of quietly paying both chefs a full draw for a battle nobody judged.",
+        "acceptance": "StalledBattleIsVoidedNotDrawnTests green: all three stallable statuses void correctly, an unexpired stalled battle is left alone, an already-COMPLETED battle is untouched, the sweep voids in bulk, and battle_detail routes correctly for both the stalled and the still-votable case.",
+        "forbidden": "Do not touch calculate_battle_result/_score_battle themselves - admin's force_complete_battles and emulation.py deliberately force a result regardless of phase, and must keep working unconditionally. The fix is which caller reaches them, not what they do once reached.",
+        "evidence": "SHIPPED v2.5.1002. calculate_battle_result/_score_battle only checked status != COMPLETED, never which phase the battle was actually in; battle_detail called it for ANY non-COMPLETED battle whose end_time had passed. _score_battle's zero-vote tie-break can't distinguish 'voting never opened' from 'voting opened and tied 0-0', so a battle that never reached a votable phase was scored as a draw and paid both chefs the full second-place share - rating, reputation, seasonal score, moves - for a battle with no combat and no moderated photo. Since a loss carries no penalty, stalling was strictly better than losing honestly: a rational strategy for a chef who expected to lose. Present since the original MVP (June 2026); not a regression of F1-F19 or any G-series work. get_expired_active_battles (battle_home) and the VOTING-only cron sweep were already phase-safe and needed no change; battle_detail's inline trigger was the one unguarded caller.",
+    },
+    {
+        "id": "F21", "group": "Release Audit 2026-08-11 (Round 3)", "title": "G1's one-slot-per-chef rule had a race across two different pending challenges to the same chef",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/services.py (accept_challenge)",
+        "depends_on": "none",
+        "action": "accept_challenge now locks the accepting chef's ChefBattleProfile row first, then re-checks slot_occupied_reason under that lock before creating the battle - two concurrent accepts for the same chef serialise on the lock instead of both reading the slot as free before either battle exists.",
+        "visible_result": "A chef who somehow fires two near-simultaneous 'accept' requests for two different pending challenges gets one battle and one rejection instead of two live battles at once.",
+        "acceptance": "AcceptChallengeSlotRaceTests green, simulating the race deterministically by committing the first accept and then calling accept_challenge for the second challenge, rather than racing real threads for a window that proves nothing.",
+        "forbidden": "Do not change slot_occupied_reason's own query logic - the read was already correct, the fix is making the two-caller sequence serialise around it, not changing what it computes.",
+        "evidence": "SHIPPED v2.5.1002. slot_occupied_reason was checked unlocked in the view before accept_challenge ran. Two DIFFERENT pending challenges to the same chef (nothing stops two different chefs from both challenging one free opponent), accepted near-simultaneously, both passed the check before either battle existed - F19's IntegrityError guard only protects the SAME challenge being double-accepted (unique Battle.challenge), not this case. New area: G1 shipped 2026-08-11 and had never been checked for concurrency.",
+    },
+    {
+        "id": "F22", "group": "Release Audit 2026-08-11 (Round 3)", "title": "Clan moderation was gated the same way F8/F16 had already closed on its sibling views",
+        "status": "DONE", "owner": "Bolt",
+        "files": "recipes/views.py (moderate_clan)",
+        "depends_on": "F8, F16",
+        "action": "Require is_moderator(user) AND is_battle_visible(request), matching battle_withdraw_resolve (F8) and moderation_panel's pending_clans (F16).",
+        "visible_result": "A moderator without arena access can no longer approve or reject a clan.",
+        "acceptance": "ModerateClanRequiresBattleVisibilityTests green: a has_bearseeker_privileges-only moderator is 404d and the clan stays PENDING; a staff moderator can still approve it.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1002. Gated only on is_moderator() - mutates Clan.moderation_status directly (approving makes the clan publicly live) - the sibling write action to battle_withdraw_resolve, which F8 already fixed. Not previously exploitable (grant_bearseeker always also sets is_staff), but missed by both F8 and F16 because it lives in recipes/views.py, outside the chef_battle URL namespace RoutedViewAccessAuditTests enumerates.",
+    },
+    {
+        "id": "F23", "group": "Release Audit 2026-08-11 (Round 3)", "title": "A written anti-fraud gate on real-money token purchases was never wired in",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (token_checkout_create)",
+        "depends_on": "none",
+        "action": "Add gate_token_purchase_velocity(wallet) to token_checkout_create's fraud gate list, alongside the suspension/fraud/age/consent gates already there.",
+        "visible_result": "A buyer who has completed 5+ token orders in the last 24 hours is blocked from a 6th, with a clear message, instead of the check silently never running.",
+        "acceptance": "TokenPurchaseVelocityGateTests green: the gate itself fails past the threshold and passes under it, and the checkout view now surfaces that failure as a 400 with the right message.",
+        "forbidden": "Do not wire gate_dsa_report_threshold the same way - its own docstring says 'does not block, logs only' but its implementation returns passed=False past the threshold, which WOULD block if run through run_fraud_gates. Whether a DSA-reported account should be blocked from all paid purchases is a moderation-policy question the code never settled; inventing that policy is not this fix's call to make. Left as documented tech-debt for the Owner.",
+        "evidence": "SHIPPED v2.5.1002. gate_token_purchase_velocity's docstring: 'reject if the wallet has too many completed orders in the last 24 hours' - zero call sites anywhere in the repo. token_checkout_create built its own explicit gate list and left it out, on the one real-money purchase path in the app. Same gap GreenBear's 2026-08-10 audit found for a different reason; it survived two 'closed' rounds of security fixes (F1-F19) before being wired in here.",
+    },
+    {
+        "id": "F24", "group": "Release Audit 2026-08-11 (Round 3)", "title": "Season close/activate took no row lock, letting a cron self-overlap double-fire season-end rewards",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/season_service.py (activate_season, close_season)",
+        "depends_on": "none",
+        "action": "Both functions now lock the Season row (select_for_update) and re-check its status under the lock before proceeding. close_season's second racer, finding the season already ENDED under the lock, returns the frozen snapshot instead of raising or reprocessing - matching the function's own documented idempotency claim.",
+        "visible_result": "None visible under normal play - two overlapping roll_seasons runs on the same season now serialise instead of both snapshotting standings and both firing season_ended/season_ended_committed.",
+        "acceptance": "SeasonLifecycleIsLockedAgainstDoubleFireTests green: both functions assert a FOR UPDATE lock in captured SQL, and a second call on an independently-fetched stale copy of the season (simulating a second overlapping cron run) fires season_started/season_ended_committed exactly once, not twice.",
+        "forbidden": "Does not address two DIFFERENT seasons being activated concurrently (a compound edge case needing a DB-level partial-unique constraint on status=ACTIVE, not row locking) - the finding as raised, and the realistic roll_seasons failure mode, is a single cron run overlapping itself on the SAME season. Flagged for the Owner if closing the residual cross-season case is wanted.",
+        "evidence": "SHIPPED v2.5.1002. roll_seasons.py documents no mutex, same as every other cron sweep in this app (handle_no_show_battles, resolve_start_rituals already lock for exactly this reason). close_season's own docstring claims 'idempotent per season' but the claim held only for a full run followed by a later rerun, not for two overlapping runs racing the same unlocked status check - both would snapshot SeasonStanding, both would reset seasonal_score, and both would fire season_ended_committed, which issues real SeasonReward rows. New area: G10/G11 shipped 2026-08-11 and had never been checked for concurrency.",
+    },
+    {
+        "id": "F25", "group": "Release Audit 2026-08-11 (Round 3)", "title": "G3's artifact-tier-by-cooking-format fallback widens to the full rarity table when a chef's pool is exhausted",
+        "status": "REVIEWED - NOT A BUG", "owner": "Bolt",
+        "files": "chef_battle/services.py (_pick_artifact, _DROP_WEIGHTS_BASIC)",
+        "depends_on": "none",
+        "action": "None taken.",
+        "visible_result": "None - behaviour unchanged.",
+        "acceptance": "N/A - reviewed, no code change.",
+        "forbidden": "Do not silently fix this without re-reading the surrounding comment first - it explains the exact tradeoff a change would reopen.",
+        "evidence": "REVIEWED 2026-08-11. The re-audit read this as G3's tier rule silently defeating itself once a chef's basic (common/uncommon) pool is exhausted, falling back to any rarity. GreenBear's own comment immediately above the fallback (services.py, by _DROP_WEIGHTS_BASIC) already states the tradeoff explicitly: 'a pool that comes up empty falls back to the full table rather than paying nothing... a rule about tiers must not become a rule about getting nothing.' A static read cannot see a decision recorded only in a comment; changing this now would override an already-reasoned call without new information. Left untouched.",
+    },
+    {
+        "id": "F26", "group": "Release Audit 2026-08-11 (Round 3)", "title": "Artifact image generation checked moderator/staff but never arena visibility",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (artifact_generate_image); chef_battle/access.py (UNGUARDED_BY_DESIGN)",
+        "depends_on": "F8, F16, F22",
+        "action": "Add is_battle_visible(request) to the existing (is_moderator() or is_staff) check; update the UNGUARDED_BY_DESIGN reason text.",
+        "visible_result": "A moderator without arena access can no longer trigger AI artifact image generation.",
+        "acceptance": "ArtifactGenerateImageRequiresBattleVisibilityTests green: a has_bearseeker_privileges-only moderator gets 403 with CHEF_BATTLE_ENABLED off.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1002. Same class of gap as F8/F16/F22, on a write action that triggers a paid AI image generation call with no is_battle_visible() check at all - consistent with UNGUARDED_BY_DESIGN's documented exemption, but the same drift pattern this audit keeps finding across three rounds now.",
+    },
+    {
         "id": "T2", "group": "Release Audit 2026-08-10", "title": "Raw CSS colour literals stood where the Arena's own tokens already existed",
         "status": "DONE", "owner": "Bolt",
         "files": "static/css/arena.css",
@@ -4119,7 +4196,12 @@ def moderate_recipe(request, slug):
 @require_POST
 @login_required
 def moderate_clan(request, slug):
-    if not is_moderator(request.user):
+    # F22, 2026-08-11: same class of gap as F8/F16 - is_moderator() alone
+    # admits has_bearseeker_privileges regardless of is_staff, and this write
+    # action mutates a Chef Battle model (Clan.moderation_status; approving
+    # makes the clan publicly live) without checking is_battle_visible().
+    from chef_battle.access import is_battle_visible
+    if not (is_moderator(request.user) and is_battle_visible(request)):
         raise Http404
     from chef_battle.models import Clan
 

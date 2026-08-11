@@ -2625,6 +2625,61 @@ class AgeVerificationGateTests(TestCase):
         self.assertIn(resp.status_code, [301, 302])
 
 
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class TokenPurchaseVelocityGateTests(TestCase):
+    """F23, 2026-08-11: gate_token_purchase_velocity ("reject if the wallet
+    has too many completed orders in the last 24 hours") was written but
+    never called anywhere - token_checkout_create built its own gate list and
+    left it out, on the one real-money purchase path in the app. Now wired
+    in, alongside the age/suspension/consent gates already there."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        self.user = User.objects.create_user("f23-buyer", password="pw")
+        self.author = RecipeAuthor.objects.create(user=self.user, name="F23 Buyer", slug="f23-buyer")
+        ChefBattleProfile.objects.create(author=self.author, age_verified=True)
+
+    def test_gate_fails_past_the_daily_order_count(self):
+        from .fraud import gate_token_purchase_velocity
+        from .models import TokenOrder, TokenPackage, TokenWallet
+        wallet, _ = TokenWallet.objects.get_or_create(chef=self.author)
+        package = TokenPackage.objects.create(
+            key="f23-pack", name="F23 Pack", tokens=100, price_eur="10.00", is_active=True)
+        for _ in range(5):
+            TokenOrder.objects.create(
+                wallet=wallet, package=package, status=TokenOrder.Status.COMPLETED,
+                tokens=100, amount_eur_cents=1000)
+        r = gate_token_purchase_velocity(wallet)
+        self.assertFalse(r.passed)
+        self.assertEqual(r.gate, "token_purchase_velocity")
+
+    def test_gate_passes_under_the_daily_order_count(self):
+        from .fraud import gate_token_purchase_velocity
+        from .models import TokenWallet
+        wallet, _ = TokenWallet.objects.get_or_create(chef=self.author)
+        self.assertTrue(gate_token_purchase_velocity(wallet).passed)
+
+    def test_checkout_view_blocks_a_buyer_past_the_daily_order_count(self):
+        from .models import TokenOrder, TokenPackage, TokenWallet
+        wallet, _ = TokenWallet.objects.get_or_create(chef=self.author)
+        package = TokenPackage.objects.create(
+            key="f23-checkout-pack", name="F23 Checkout Pack", tokens=100,
+            price_eur="10.00", is_active=True)
+        for _ in range(5):
+            TokenOrder.objects.create(
+                wallet=wallet, package=package, status=TokenOrder.Status.COMPLETED,
+                tokens=100, amount_eur_cents=1000)
+        self.client.force_login(self.user)
+        resp = self.client.post(
+            reverse("chef_battle:token_checkout_create"),
+            data=json.dumps({"package_id": package.pk, "withdrawal_consent": True}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("too many token purchases", resp.json()["error"])
+
+
 # CB-21xx: Phase 9 — Payout, reward agreement, forbidden claims, content report
 
 
@@ -6276,6 +6331,124 @@ class SeasonCommittedSignalTests(TestCase):
             season_ended_committed.disconnect(committed_receiver)
         # In-txn failure rolled back the close, so post-commit never fired.
         self.assertFalse(fired["committed"])
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class SeasonLifecycleIsLockedAgainstDoubleFireTests(TestCase):
+    """F24, 2026-08-11: activate_season/close_season took no row lock, so two
+    overlapping roll_seasons runs (the command documents no mutex, same as
+    every other cron sweep in this app) could both pass the status check on
+    the SAME season before either committed - close_season would snapshot
+    standings and reset seasonal_score twice and fire season_ended/
+    season_ended_committed a second time, which issue real SeasonReward rows.
+    Asserted on the SQL and by simulating the race deterministically (call
+    once, then call again with the caller's now-stale object), same
+    convention as NoShowSweepIsLockedAgainstDoubleAwardTests and
+    DoubleAcceptRaceReturnsFriendlyMessageTests - not by racing real threads
+    for a window that proves nothing."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        u = User.objects.create_user(username="f24-chef", password="pw")
+        self.author = RecipeAuthor.objects.create(user=u, name="F24 Chef", slug="f24-chef")
+        ChefBattleProfile.objects.create(author=self.author, seasonal_score=20, wins=2)
+        self.now = timezone.now()
+
+    def _active_season(self, name="F24 Season"):
+        from .season_service import create_season
+        return create_season(
+            name=name,
+            starts_at=self.now - timezone.timedelta(days=1),
+            ends_at=self.now + timezone.timedelta(days=1),
+            activate=True,
+        )
+
+    def test_close_season_locks_the_row(self):
+        from django.test.utils import CaptureQueriesContext
+        from django.db import connection
+        from .season_service import close_season
+
+        s = self._active_season()
+        with CaptureQueriesContext(connection) as ctx:
+            close_season(s)
+        locking = [q["sql"] for q in ctx.captured_queries if "FOR UPDATE" in q["sql"].upper()]
+        self.assertTrue(locking, "close_season must take a row lock before snapshotting standings")
+
+    def test_second_close_on_a_stale_object_does_not_double_process(self):
+        from .season_signals import season_ended_committed
+        from .season_service import close_season
+        from .models import Season, SeasonStanding
+
+        s = self._active_season()
+        # A second overlapping cron run would have loaded its OWN copy of
+        # this row before either call committed - fetch that independent,
+        # still-ACTIVE copy now, before the first close runs.
+        stale_copy = Season.objects.get(pk=s.pk)
+        fire_count = {"n": 0}
+
+        def receiver(sender, season, **kwargs):
+            fire_count["n"] += 1
+
+        season_ended_committed.connect(receiver)
+        try:
+            with self.captureOnCommitCallbacks(execute=True):
+                first = close_season(s)
+            self.assertEqual(stale_copy.status, Season.Status.ACTIVE)
+            with self.captureOnCommitCallbacks(execute=True):
+                second = close_season(stale_copy)
+        finally:
+            season_ended_committed.disconnect(receiver)
+
+        self.assertEqual(fire_count["n"], 1, "season_ended_committed must fire only once per close")
+        self.assertEqual(first["standings_recorded"], second["standings_recorded"])
+        self.assertEqual(
+            SeasonStanding.objects.filter(season_id=s.pk).count(),
+            first["standings_recorded"],
+            "a second racing close must not duplicate the standings snapshot",
+        )
+
+    def test_activate_season_locks_the_row(self):
+        from django.test.utils import CaptureQueriesContext
+        from django.db import connection
+        from .season_service import create_season, activate_season
+
+        s = create_season(
+            name="F24 Upcoming",
+            starts_at=self.now + timezone.timedelta(days=10),
+            ends_at=self.now + timezone.timedelta(days=20),
+        )
+        with CaptureQueriesContext(connection) as ctx:
+            activate_season(s)
+        locking = [q["sql"] for q in ctx.captured_queries if "FOR UPDATE" in q["sql"].upper()]
+        self.assertTrue(locking, "activate_season must take a row lock before flipping status")
+
+    def test_second_activate_on_a_stale_object_is_a_harmless_noop(self):
+        from .season_signals import season_started
+        from .season_service import create_season, activate_season
+        from .models import Season
+
+        s = create_season(
+            name="F24 Upcoming 2",
+            starts_at=self.now + timezone.timedelta(days=10),
+            ends_at=self.now + timezone.timedelta(days=20),
+        )
+        # Independent copy, fetched before either call - what a second
+        # overlapping cron run's own in-memory object would look like.
+        stale_copy = Season.objects.get(pk=s.pk)
+        fire_count = {"n": 0}
+
+        def receiver(sender, season, **kwargs):
+            fire_count["n"] += 1
+
+        season_started.connect(receiver)
+        try:
+            activate_season(s)
+            self.assertEqual(stale_copy.status, Season.Status.UPCOMING)
+            activate_season(stale_copy)
+        finally:
+            season_started.disconnect(receiver)
+        self.assertEqual(fire_count["n"], 1, "season_started must fire only once per activation")
 
 
 class RelinkArtifactImagesCommandTests(TestCase):
@@ -14186,3 +14359,192 @@ class SeasonRulesAreDataTests(TestCase):
         self.assertEqual(
             crown_rule(self._season(crown_rule="Top of the ladder holds it all season.")),
             "Top of the ladder holds it all season.")
+
+
+class StalledBattleIsVoidedNotDrawnTests(TestCase):
+    """F20, 2026-08-11: battle_detail's inline auto-trigger called
+    calculate_battle_result for ANY non-COMPLETED battle past end_time, no
+    matter the phase. _score_battle's zero-vote tie-break can't tell "voting
+    never opened" from "voting opened and tied 0-0", so a battle stuck in
+    INGREDIENT_PENALTY (waiting on approve_cooking_phase), COOKING (waiting on
+    a cooked photo and its moderation) or PRESENTATION (waiting on a vote) was
+    scored as a paid draw - full rating/reputation/moves to both chefs for a
+    battle nobody judged, and strictly better than a real loss since losing
+    carries no penalty. Now cancelled with no reward to either side instead."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.ch = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f20-ch", password="pw"), name="F20 Ch", slug="f20-ch")
+        self.op = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f20-op", password="pw"), name="F20 Op", slug="f20-op")
+
+    def _stalled_battle(self, status, theme="F20 Stalled"):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=self.ch, opponent=self.op, theme=theme,
+            status=status, start_time=now - timezone.timedelta(days=3),
+            submission_deadline=now - timezone.timedelta(days=2),
+            voting_deadline=now - timezone.timedelta(hours=1),
+            end_time=now - timezone.timedelta(hours=1),
+        )
+
+    def test_cooking_phase_stalled_battle_is_voided_not_drawn(self):
+        from chef_battle.services import void_stalled_battle
+        battle = self._stalled_battle(Battle.Status.COOKING)
+        void_stalled_battle(battle)
+        self.assertEqual(battle.status, Battle.Status.CANCELLED)
+        self.assertFalse(
+            ChefBattleProfile.objects.filter(author__in=[self.ch, self.op]).exists(),
+            "neither chef should have earned a profile/rating from a battle nobody judged",
+        )
+
+    def test_ingredient_penalty_and_presentation_also_void(self):
+        from chef_battle.services import void_stalled_battle
+        for status in (Battle.Status.INGREDIENT_PENALTY, Battle.Status.PRESENTATION):
+            battle = self._stalled_battle(status, theme=f"F20 {status}")
+            void_stalled_battle(battle)
+            self.assertEqual(battle.status, Battle.Status.CANCELLED)
+
+    def test_not_yet_expired_stalled_battle_is_left_alone(self):
+        from chef_battle.services import void_stalled_battle
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=self.ch, opponent=self.op, theme="F20 Not Yet",
+            status=Battle.Status.COOKING, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            voting_deadline=now + timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=2),
+        )
+        void_stalled_battle(battle)
+        self.assertEqual(battle.status, Battle.Status.COOKING)
+
+    def test_already_completed_battle_is_untouched(self):
+        from chef_battle.services import void_stalled_battle
+        battle = self._stalled_battle(Battle.Status.COOKING)
+        battle.status = Battle.Status.COMPLETED
+        battle.save(update_fields=["status"])
+        void_stalled_battle(battle)
+        self.assertEqual(battle.status, Battle.Status.COMPLETED)
+
+    def test_sweep_voids_all_qualifying_battles(self):
+        from chef_battle.services import void_stalled_battles
+        b1 = self._stalled_battle(Battle.Status.COOKING, theme="F20 Sweep A")
+        b2 = self._stalled_battle(Battle.Status.INGREDIENT_PENALTY, theme="F20 Sweep B")
+        count = void_stalled_battles()
+        self.assertEqual(count, 2)
+        b1.refresh_from_db()
+        b2.refresh_from_db()
+        self.assertEqual(b1.status, Battle.Status.CANCELLED)
+        self.assertEqual(b2.status, Battle.Status.CANCELLED)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_battle_detail_view_voids_a_stalled_battle_instead_of_scoring_it(self):
+        battle = self._stalled_battle(Battle.Status.COOKING)
+        client = Client()
+        client.force_login(self.ch.user)
+        resp = client.get(reverse("chef_battle:battle_detail", kwargs={"pk": battle.pk}))
+        self.assertEqual(resp.status_code, 200)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.CANCELLED)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_battle_detail_view_still_scores_a_votable_battle_normally(self):
+        # Regression: ACTIVE/VOTING past end_time is a real votable phase
+        # (battle_vote's own gate accepts both) and must still resolve
+        # through calculate_battle_result, not be swept as stalled.
+        battle = self._stalled_battle(Battle.Status.VOTING, theme="F20 Real Result")
+        client = Client()
+        client.force_login(self.ch.user)
+        resp = client.get(reverse("chef_battle:battle_detail", kwargs={"pk": battle.pk}))
+        self.assertEqual(resp.status_code, 200)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.COMPLETED)
+        self.assertEqual(battle.result_reason, "Draw by public vote")
+
+
+class AcceptChallengeSlotRaceTests(TestCase):
+    """F21, 2026-08-11: slot_occupied_reason was checked unlocked in the view
+    before accept_challenge ran, so two DIFFERENT pending challenges to the
+    same chef, accepted near-simultaneously, both passed before either battle
+    existed - G1's one-slot rule held for one challenge answered twice (F19's
+    IntegrityError) but not for two different challenges answered together.
+    accept_challenge now locks the accepting chef's profile row and re-checks
+    the slot under it. Simulated deterministically by committing the first
+    accept and then calling accept_challenge for the second challenge, rather
+    than racing real threads for a window that proves nothing."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.x = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f21-x", password="pw"), name="F21 X", slug="f21-x")
+        self.a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f21-a", password="pw"), name="F21 A", slug="f21-a")
+        self.b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f21-b", password="pw"), name="F21 B", slug="f21-b")
+        self.challenge_a = BattleChallenge.objects.create(
+            challenger=self.a, opponent=self.x, theme="F21 Challenge A",
+            expires_at=timezone.now() + timezone.timedelta(hours=12),
+        )
+        self.challenge_b = BattleChallenge.objects.create(
+            challenger=self.b, opponent=self.x, theme="F21 Challenge B",
+            expires_at=timezone.now() + timezone.timedelta(hours=12),
+        )
+
+    def test_second_accept_is_rejected_once_the_first_has_committed(self):
+        from chef_battle.services import accept_challenge
+        accept_challenge(self.challenge_a)
+        with self.assertRaises(ValueError):
+            accept_challenge(self.challenge_b)
+        self.challenge_b.refresh_from_db()
+        self.assertEqual(self.challenge_b.status, BattleChallenge.Status.PENDING)
+        self.assertFalse(Battle.objects.filter(challenge=self.challenge_b).exists())
+
+    def test_view_surfaces_the_slot_error_instead_of_creating_a_second_battle(self):
+        from chef_battle.services import accept_challenge
+        accept_challenge(self.challenge_a)
+        client = Client()
+        client.force_login(self.x.user)
+        with override_settings(CHEF_BATTLE_ENABLED=True):
+            resp = client.post(
+                reverse("chef_battle:challenge_respond", kwargs={"pk": self.challenge_b.pk}),
+                {"action": "accept"},
+            )
+        self.assertEqual(resp.status_code, 302)
+        self.challenge_b.refresh_from_db()
+        self.assertEqual(self.challenge_b.status, BattleChallenge.Status.PENDING)
+
+    def test_the_second_challenge_can_be_accepted_once_the_first_battle_ends(self):
+        from chef_battle.services import accept_challenge
+        battle_a = accept_challenge(self.challenge_a)
+        battle_a.status = Battle.Status.COMPLETED
+        battle_a.save(update_fields=["status"])
+        battle_b = accept_challenge(self.challenge_b)
+        self.assertIsNotNone(battle_b.pk)
+
+
+class ArtifactGenerateImageRequiresBattleVisibilityTests(TestCase):
+    """F26, 2026-08-11: artifact_generate_image checked (is_moderator() or
+    is_staff) with no is_battle_visible() at all - the same class of gap
+    F8/F16/F22 already closed elsewhere, on a write action that triggers a
+    paid AI image generation."""
+
+    def setUp(self):
+        from .models import Artifact
+        User = get_user_model()
+        self.mod_flag_only = User.objects.create_user("f26-modflag", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.mod_flag_only, name="F26 Mod Flag", slug="f26-modflag",
+            has_bearseeker_privileges=True,
+        )
+        self.artifact = Artifact.objects.create(name="F26 Artifact", rarity=Artifact.Rarity.COMMON)
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_moderator_flag_without_staff_bit_cannot_generate_image(self):
+        self.client.login(username="f26-modflag", password="pw")
+        resp = self.client.post(
+            reverse("chef_battle:artifact_generate_image", kwargs={"pk": self.artifact.pk}),
+            {"feedback": ""},
+        )
+        self.assertEqual(resp.status_code, 403)
+        self.assertFalse(resp.json()["success"])

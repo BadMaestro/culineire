@@ -157,7 +157,7 @@ UNGUARDED_BY_DESIGN = {
     # Signed-in surfaces that authorise per object: author profile, battle
     # participation, moderator status or a fraud gate, checked in the view.
     "content_report_submit": "login_required; DSA reporting endpoint, validates its own input.",
-    "artifact_generate_image": "login_required; staff/moderator checked in the view.",
+    "artifact_generate_image": "login_required; staff/moderator AND is_battle_visible() checked in the view (F26, 2026-08-11).",
 
     # Poll and action endpoints that call is_battle_visible directly, because
     # the guard's suspended-POST branch would stack a banner on every poll.
