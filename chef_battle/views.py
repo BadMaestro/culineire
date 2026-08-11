@@ -84,6 +84,7 @@ from .services import (
     calculate_battle_result,
     check_forbidden_claims,
     check_rank_matchup,
+    slot_occupied_reason,
     check_payout_eligibility,
     create_battle_event,
     create_payout_request,
@@ -1773,6 +1774,16 @@ def challenge_create(request):
         form = BattleChallengeForm(request.POST, challenger=author)
         if form.is_valid():
             opponent = form.cleaned_data["opponent"]
+            # ONE SLOT PER CHEF, battle_rules.md - and the slot is taken from
+            # the moment a challenge is ISSUED, not from when it is accepted.
+            # Nothing enforced this until v2.5.995 (audit finding G1): a chef
+            # could hold three live battles at once, which the rulebook forbids
+            # in its first line.
+            slot_error = slot_occupied_reason(author)
+            if slot_error:
+                messages.error(request, slot_error)
+                return render(request, "chef_battle/challenge_form.html", {"form": form})
+
             rank_error = check_rank_matchup(author, opponent)
             if rank_error:
                 messages.error(request, rank_error)
@@ -1875,6 +1886,14 @@ def challenge_respond(request, pk):
 
     action = request.POST.get("action")
     if action == "accept":
+        # An occupied slot forbids ACCEPTING as well as issuing (battle_rules.md,
+        # read in full). The challenge being answered is excluded, or a chef
+        # would be blocked by the very challenge sitting in their inbox.
+        slot_error = slot_occupied_reason(author, ignore_challenge=challenge)
+        if slot_error:
+            messages.error(request, slot_error)
+            return redirect("chef_battle:challenge_list")
+
         cooldown = gate_post_battle_cooldown(author)
         if not cooldown.passed:
             messages.error(request, "You completed a battle recently. Please wait 24 hours before accepting a new challenge.")

@@ -462,3 +462,25 @@ which took two corrections before it was right.
 The largest single item is **G6**. Everything else on the absence list is a
 field, a page or a weighting. G6 is a product idea: the ТЗ builds two ladders on
 purpose, explains why in its own words, and only one of them was built.
+
+---
+
+## 9. Closed on his order, 2026-08-11 — «нет, чиним, правим, работаем!»
+
+Four items from this act, shipped together as **v2.5.997**. Bolt closed F1–F11,
+T1 and T2 in v2.5.988, v2.5.994 and v2.5.996 in parallel, so the whole audit —
+his and mine — is now either fixed or on the list below.
+
+| Was | Now |
+|---|---|
+| **G6** — reputation moved only on battle outcomes, so the two ladders the ТЗ separates on purpose were both PvP-driven | Published recipes, articles, pinches and likes now pay **Culinary Reputation**, credited from inside `award_moves()` at the point that function already reserves for side-rewards: past the anti-farm and once-per-object gates, so a farmed like pays no status either, and **before** the energy cap, because a chef whose move balance is full has still earned what they published. **The three numbers are mine, not his** — recipe 3, article 3, like 1, anchored to the 15 a battle win pays. One constant each. |
+| **G7** — the Board of Memory was a top-twenty-by-wins leaderboard | It is now the **first twenty chefs ever to fight, in arrival order**, taken from each chef's earliest battle by `created_at`. A place is earned by turning up; nothing later can take it. The page says so, and the leaderboard it used to duplicate already exists at `/rankings/`. |
+| **G4's second half** — the Founding Ten were evicted by any later write, because the order came from `updated_at` (`auto_now`) | Ordered by the **BATTLE_FINISHED event**, whose `created_at` is `auto_now_add` and cannot move — which is also the truthful order, when each battle actually finished rather than when its row was last touched. A test moderates a battle after the fact and proves it keeps its seat. |
+| **G1** — one slot per chef, enforced nowhere | `slot_occupied_reason()` enforces it **in full**: the slot is taken from the moment a challenge is **issued**, and an occupied slot refuses **accepting** as well as issuing. It frees when the challenge expires or the battle ends. Wired into both `challenge_create` and `challenge_respond`. |
+| **X14** — `RARITY_TOKEN_COST` was referenced by nothing, so a new Epic cost 10 | `Artifact.save()` prices a **new** row from its rarity when nobody priced it. Deliberately narrow: create only, default only, and never a reprice — an explicit price stays the Owner's lever and no existing row is touched. |
+
+**Still open, and all of it his:** G3 (artifact tier by cooking format — the
+field does not exist), G8 (opponent strength and diminishing returns in the
+rating), G9 (`balance_after` on the moves ledger), G10–G12 (season fields), G13
+(four pages), and X15/X20's cosmetic labels. Every one is «будем строить» or a
+weighting, not a defect.

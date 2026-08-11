@@ -180,6 +180,23 @@ def award_moves(
         except Exception:
             logger.exception("Clan contribution failed for author pk=%s", author.pk)
 
+    # Culinary Reputation — G6, the Owner's order of 2026-08-11. Fires in the
+    # same place and for the same reasons as the faction and clan blocks above:
+    # past the anti-farm and once-per-object gates, so a farmed like pays no
+    # reputation either, and BEFORE the ENERGY_CAP early-return below, because a
+    # chef whose move balance is full has still earned the status. Same savepoint
+    # isolation, so a reputation failure never breaks the moves economy.
+    #
+    # This is the line the ТЗ asked for in tz_main.md section 9 and that nothing
+    # implemented: until now reputation moved only on battle outcomes, so the two
+    # ladders the specification separates on purpose were both PvP-driven.
+    try:
+        with transaction.atomic():
+            from chef_battle.services import award_content_reputation
+            award_content_reputation(author, transaction_type)
+    except Exception:
+        logger.exception("Reputation award failed for author pk=%s", author.pk)
+
     profile = _get_profile(author)
     if profile.infinite_moves:
         # Infinite-balance profiles (greenbear etc.) skip the cap

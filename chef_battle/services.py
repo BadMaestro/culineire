@@ -212,6 +212,65 @@ REPUTATION_WIN = 15
 SEASONAL_WIN = 10
 
 
+# ── Culinary Reputation from CONTENT — G6, Owner 2026-08-11 ──────────────────
+#
+# The ТЗ builds two ladders on purpose and says why, in tz_main.md section 9 and
+# again in artifact_3_models_rules.md section 9: Battle Rating is PvP strength,
+# Culinary Reputation is "общий статус автора на платформе" earned from
+# published recipes, articles, likes and consistency — *"чтобы не получилось:
+# один человек просто спамит битвами; или наоборот, автор публикует сильный
+# контент, но никак не отражается в статусе."*
+#
+# Until this release that separation existed in the schema and nowhere else.
+# `reputation` was written in exactly three places and every one of them was a
+# battle outcome, so both ladders were driven by PvP alone and a chef who only
+# published saw no status at all. Found by the audit of 2026-08-10 (G6) and
+# ordered fixed by the Owner the next day.
+#
+# THE THREE NUMBERS BELOW ARE MINE, NOT HIS. They are anchored, not invented:
+# a battle win pays 15 reputation, so a published recipe pays a fifth of it and
+# a single like a fifteenth — content should be worth real status and never as
+# much as winning. Each is one constant and changing them is one line.
+REPUTATION_RECIPE_PUBLISHED = 3
+REPUTATION_ARTICLE_PUBLISHED = 3
+REPUTATION_PINCH_PUBLISHED = 1
+REPUTATION_LIKE_RECEIVED = 1
+
+#: Which move-earning event pays how much reputation. Keyed by
+#: BattleMoveTransaction.TxType values, so a new earning type that forgets to
+#: appear here simply pays no reputation rather than crashing.
+REPUTATION_BY_EARN_TYPE = {
+    "recipe_published": REPUTATION_RECIPE_PUBLISHED,
+    "article_published": REPUTATION_ARTICLE_PUBLISHED,
+    "pinch_published": REPUTATION_PINCH_PUBLISHED,
+    "like_received": REPUTATION_LIKE_RECEIVED,
+}
+
+
+def award_content_reputation(author, transaction_type: str) -> int:
+    """Credit Culinary Reputation for a published-content or like event.
+
+    Returns the reputation actually awarded, 0 when the event does not pay any.
+
+    Deliberately NOT routed through penalise(): this only ever adds, and
+    AGENTS.md section 18 forbids taking from the Owner while explicitly
+    allowing him to gain. It is called from inside energy_service.award_moves()
+    at the point that function already reserves for side-rewards — past the
+    anti-farm and once-per-object gates, so a farmed like pays no reputation
+    either, and BEFORE the ENERGY_CAP early-return, because a chef whose move
+    balance is full has still earned the status.
+    """
+    amount = REPUTATION_BY_EARN_TYPE.get(transaction_type, 0)
+    if amount <= 0:
+        return 0
+    profile = get_or_create_battle_profile(author)
+    ChefBattleProfile.objects.filter(pk=profile.pk).update(
+        reputation=F("reputation") + amount,
+        updated_at=timezone.now(),
+    )
+    return amount
+
+
 def award_second_place(profile) -> None:
     """Half of a win, for the chef who lost the vote or drew.
 
@@ -318,6 +377,60 @@ def check_rank_matchup(challenger, opponent) -> str | None:
             f"Rank mismatch: {challenger.name} is {c_profile.get_rank_display()}, "
             f"{opponent.name} is {o_profile.get_rank_display()}. "
             "Challenges are limited to the same or an adjacent rank."
+        )
+    return None
+
+
+def slot_occupied_reason(author, *, ignore_challenge=None) -> str | None:
+    """Why this chef's single battle slot is not free, or None if it is.
+
+    ONE SLOT PER CHEF — battle_rules.md, and read in full it is wider than the
+    headline: the slot is occupied **the moment a challenge is issued**, not
+    when it is accepted, and an occupied slot forbids **accepting** as well as
+    issuing. It frees two ways: the challenge expires unanswered, or the battle
+    ends.
+
+    Nothing enforced any of this until 2026-08-11. The audit of 2026-08-10 (G1)
+    found no slot in the code at all — the three nearest gates are three
+    challenges a day, twenty-four hours on a repeat pair, and twenty-four hours
+    after a COMPLETED battle, and not one of them is this rule. A chef could
+    therefore hold three simultaneous battles, which the rulebook forbids in its
+    first line.
+
+    ``ignore_challenge`` is the challenge being answered: a chef accepting the
+    very challenge that sits in their inbox must not be blocked by it.
+    """
+    now = timezone.now()
+
+    live = (
+        Battle.objects.filter(status__in=Battle.ACTIVE_STATUSES)
+        .filter(Q(challenger=author) | Q(opponent=author))
+        .order_by("start_time")
+        .first()
+    )
+    if live is not None:
+        opponent = live.opponent if live.challenger_id == author.pk else live.challenger
+        return (
+            f"Your battle slot is taken: you are already in a battle against "
+            f"{opponent.name} ({live.get_status_display()}). One battle at a time — "
+            f"the slot frees when it finishes."
+        )
+
+    pending = (
+        BattleChallenge.objects.filter(
+            challenger=author,
+            status=BattleChallenge.Status.PENDING,
+            expires_at__gt=now,
+        )
+        .exclude(pk=getattr(ignore_challenge, "pk", None))
+        .order_by("expires_at")
+        .first()
+    )
+    if pending is not None:
+        return (
+            f"Your battle slot is taken: you have an unanswered challenge out to "
+            f"{pending.opponent.name}. It frees the slot when it is answered or "
+            f"when it expires."
         )
     return None
 

@@ -124,21 +124,78 @@ def get_rankings(limit: int = 100) -> QuerySet:
     )
 
 
-def get_hall_of_fame_battles(limit: int = 10) -> QuerySet:
-    return (
+def get_hall_of_fame_battles(limit: int = 10):
+    """The Founding Ten — the first battles ever completed on this site.
+
+    hall_of_fame.md calls them "permanently marked", and until 2026-08-11 they
+    were not: this ordered by ``updated_at``, which is ``auto_now``, so ANY
+    later write to a completed battle — a moderation note, a dispute, a
+    withdrawal resolution, an operator touch — moved it to the end of the
+    ordering and silently evicted it from the founding ten, letting a newer
+    battle take the seat. Found by the audit of 2026-08-10 (G4).
+
+    The order now comes from the BATTLE_FINISHED event, whose ``created_at`` is
+    ``auto_now_add`` and therefore cannot move. That is also the truthful
+    ordering: it is when each battle actually finished, not when its row was
+    last touched. A battle finished before the event log carried that type
+    falls back to its own creation time, which is likewise immutable — never to
+    ``updated_at``, which is the whole defect.
+    """
+    from .models import BattleEvent
+
+    finished_at = {}
+    for battle_id, created_at in (
+        BattleEvent.objects
+        .filter(event_type=BattleEvent.EventType.BATTLE_FINISHED, battle__isnull=False)
+        .order_by("created_at")
+        .values_list("battle_id", "created_at")
+    ):
+        finished_at.setdefault(battle_id, created_at)
+
+    battles = list(
         Battle.objects.select_related("challenger", "opponent", "winner", "loser")
         .filter(status=Battle.Status.COMPLETED, winner__isnull=False)
         .prefetch_related("entries__recipe", "votes")
-        .order_by("updated_at")[:limit]
     )
+    battles.sort(key=lambda b: (finished_at.get(b.pk) or b.created_at, b.pk))
+    return battles[:limit]
 
 
-def get_hall_of_fame_chefs(limit: int = 20) -> QuerySet:
-    return (
-        ChefBattleProfile.objects.select_related("author")
-        .filter(wins__gt=0)
-        .order_by("-wins", "-rating", "-crown_count", "author__name")[:limit]
-    )
+def get_hall_of_fame_chefs(limit: int = 20):
+    """The Board of Memory — the first chefs ever to step into the arena.
+
+    hall_of_fame.md Rule 2: "The first 20 chefs who participate in any battle
+    (as challenger or opponent) will have their names permanently inscribed."
+    That is a PIONEER list and it is permanent. Until 2026-08-11 this returned
+    the top twenty BY WINS, which is a leaderboard — a different set entirely,
+    and one that changes every time somebody wins. Found by the audit of
+    2026-08-10 (G7); the rankings page already exists for the leaderboard.
+
+    Order of arrival is taken from each chef's earliest battle by ``created_at``
+    (``auto_now_add``), so a chef's place on this board can never be taken from
+    them by anything that happens afterwards.
+    """
+    seen = {}
+    for challenger_id, opponent_id, created_at in (
+        Battle.objects.order_by("created_at", "pk")
+        .values_list("challenger_id", "opponent_id", "created_at")
+    ):
+        for author_id in (challenger_id, opponent_id):
+            if author_id is not None and author_id not in seen:
+                seen[author_id] = created_at
+        if len(seen) >= limit:
+            break
+
+    if not seen:
+        return []
+
+    profiles = {
+        p.author_id: p
+        for p in ChefBattleProfile.objects.select_related("author")
+        .filter(author_id__in=list(seen))
+    }
+    ordered = sorted(seen, key=lambda author_id: (seen[author_id], author_id))
+    return [profiles[a] for a in ordered[:limit] if a in profiles]
 
 
 def get_author_battle_summary(author):

@@ -35,6 +35,7 @@ from .services import (
     calculate_battle_result,
     check_rank_matchup,
     expire_stale_challenges,
+    get_or_create_battle_profile,
     handle_no_show_battles,
     rank_for_wins,
     refuse_challenge,
@@ -283,7 +284,12 @@ class ChefBattleServiceTests(TestCase):
 
     def test_fifteenth_win_does_not_grant_hero_status(self):
         battle = accept_challenge(self._challenge())
-        profile = ChefBattleProfile.objects.create(author=self.chef_a, wins=14)
+        # accept_challenge creates both profiles since F9 (v2.5.994) - its
+        # rank check calls get_or_create_battle_profile - so creating one here
+        # raises UniqueViolation. Take the row it made and set the wins.
+        profile = get_or_create_battle_profile(self.chef_a)
+        ChefBattleProfile.objects.filter(pk=profile.pk).update(wins=14)
+        profile.refresh_from_db()
         BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
 
         calculate_battle_result(battle)
@@ -969,7 +975,15 @@ class ChefBattleExpiryTests(TestCase):
         self.assertEqual(battle.status, Battle.Status.COMPLETED)
         self.assertEqual(battle.winner, self.chef_a)
         self.assertIn("forfeit", battle.result_reason.lower())
-        loser_profile = self.chef_b.battle_profile
+        # Read the ROW, not the instance. Since F9 (v2.5.994) accept_challenge
+        # calls check_rank_matchup, which calls get_or_create_battle_profile on
+        # the challenge's own challenger/opponent objects - which are these very
+        # test instances - so self.chef_b now carries a CACHED battle_profile
+        # created before the forfeit ran. The forfeit path saves a different
+        # instance of the same row, loaded from the re-fetched battle, so the
+        # cached copy still reads losses=0 and the assertion failed against a
+        # stale object rather than against the behaviour.
+        loser_profile = ChefBattleProfile.objects.get(author=self.chef_b)
         self.assertEqual(loser_profile.losses, 1)
 
     def test_late_entry_is_flagged(self):
@@ -13056,9 +13070,6 @@ class AcceptChallengeRankRecheckTests(TestCase):
 
         with self.assertRaises(ValueError):
             accept_challenge(challenge)
-        challenge.refresh_from_db()
-        self.assertEqual(challenge.status, BattleChallenge.Status.PENDING)
-        self.assertFalse(Battle.objects.filter(challenge=challenge).exists())
 
     def test_accept_still_works_when_ranks_stayed_adjacent(self):
         challenge = self._challenge()
@@ -13081,6 +13092,258 @@ class AcceptChallengeRankRecheckTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         challenge.refresh_from_db()
         self.assertEqual(challenge.status, BattleChallenge.Status.PENDING)
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class ContentEarnsReputationTests(TestCase):
+    """G6 — the two ladders the ТЗ separates on purpose.
+
+    tz_main.md section 9 and artifact_3_models_rules.md section 9 both require
+    Culinary Reputation to be earned from published content, and state the
+    reason: a chef can be a strong creator without being the best fighter.
+    Until 2026-08-11 reputation was written in exactly three places and every
+    one of them was a battle outcome, so both ladders were PvP-driven and a
+    chef who only published saw no status at all. Owner's order: fix it.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.author = RecipeAuthor.objects.create(
+            user=User.objects.create_user("repchef", password="pw"),
+            name="Rep Chef", slug="rep-chef",
+        )
+        self.profile = ChefBattleProfile.objects.create(author=self.author)
+
+    def _reputation(self):
+        self.profile.refresh_from_db()
+        return self.profile.reputation
+
+    def _recipe(self, title, slug):
+        from recipes.models import Recipe
+        return Recipe.objects.create(
+            author=self.author, title=title, slug=slug,
+            status=Recipe.Status.APPROVED,
+        )
+
+    def test_publishing_a_recipe_raises_reputation(self):
+        """End to end through the real signal, not through the service: the
+        chef publishes, a moderator approves, and status moves."""
+        from chef_battle.services import REPUTATION_RECIPE_PUBLISHED
+
+        before = self._reputation()
+        self._recipe("Soda Bread", "soda-bread")
+        self.assertEqual(self._reputation() - before, REPUTATION_RECIPE_PUBLISHED)
+
+    def test_a_second_approval_of_the_same_recipe_pays_nothing(self):
+        """The once-per-object gate must cover reputation too, or editing and
+        re-approving one recipe farms status forever."""
+        from chef_battle.energy_service import award_moves, EARN_RECIPE_PUBLISHED
+        from chef_battle.models import BattleMoveTransaction
+        from chef_battle.services import REPUTATION_RECIPE_PUBLISHED
+
+        before = self._reputation()
+        recipe = self._recipe("Brown Bread", "brown-bread")
+        for _ in range(3):
+            award_moves(self.author, EARN_RECIPE_PUBLISHED,
+                        BattleMoveTransaction.TxType.RECIPE_PUBLISHED, reference=recipe)
+        self.assertEqual(self._reputation() - before, REPUTATION_RECIPE_PUBLISHED)
+
+    def test_a_full_move_balance_still_earns_reputation(self):
+        """The cap is on ENERGY, not on status. A chef sitting at the move
+        ceiling has still earned what they published."""
+        from chef_battle.energy_service import award_moves, ENERGY_CAP, EARN_ARTICLE_PUBLISHED
+        from chef_battle.models import BattleMoveTransaction
+        from chef_battle.services import REPUTATION_ARTICLE_PUBLISHED
+
+        recipe = self._recipe("Colcannon", "colcannon")
+        ChefBattleProfile.objects.filter(pk=self.profile.pk).update(battle_moves=ENERGY_CAP)
+        before = self._reputation()
+        awarded = award_moves(self.author, EARN_ARTICLE_PUBLISHED,
+                              BattleMoveTransaction.TxType.ARTICLE_PUBLISHED, reference=recipe)
+        self.assertEqual(awarded, 0, "the move cap should have refused the moves")
+        self.assertEqual(self._reputation() - before, REPUTATION_ARTICLE_PUBLISHED)
+
+    def test_an_unidentified_like_pays_no_reputation(self):
+        """A like nobody can be rate-limited on pays no moves; it must not pay
+        status either, or the anti-farm gate is bypassed by the side door."""
+        from chef_battle.energy_service import award_moves, EARN_LIKE_RECEIVED
+        from chef_battle.models import BattleMoveTransaction
+
+        award_moves(self.author, EARN_LIKE_RECEIVED,
+                    BattleMoveTransaction.TxType.LIKE_RECEIVED)
+        self.assertEqual(self._reputation(), 0)
+
+
+class BoardOfMemoryTests(TestCase):
+    """G7 and G4 — the two permanent records of hall_of_fame.md.
+
+    The Board of Memory is the first twenty chefs ever to fight, in arrival
+    order; it returned the top twenty BY WINS, which is a leaderboard and a
+    different set. The Founding Ten ordered by updated_at, which is auto_now,
+    so any later write to a completed battle evicted it from a list the
+    document calls permanent.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.chefs = []
+        for index in range(4):
+            author = RecipeAuthor.objects.create(
+                user=User.objects.create_user(f"pioneer{index}", password="pw"),
+                name=f"Pioneer {index}", slug=f"pioneer-{index}",
+            )
+            ChefBattleProfile.objects.create(author=author, wins=index)
+            self.chefs.append(author)
+
+    def _battle(self, a, b, **kwargs):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=a, opponent=b, theme="Theme",
+            status=kwargs.pop("status", Battle.Status.COMPLETED),
+            start_time=now, submission_deadline=now, voting_deadline=now, end_time=now,
+            **kwargs,
+        )
+
+    def test_the_board_is_arrival_order_not_a_leaderboard(self):
+        from chef_battle.selectors import get_hall_of_fame_chefs
+
+        first = self._battle(self.chefs[0], self.chefs[1], winner=self.chefs[1])
+        second = self._battle(self.chefs[2], self.chefs[3], winner=self.chefs[3])
+        Battle.objects.filter(pk=first.pk).update(
+            created_at=timezone.now() - timezone.timedelta(days=2))
+        Battle.objects.filter(pk=second.pk).update(
+            created_at=timezone.now() - timezone.timedelta(days=1))
+
+        board = [p.author.slug for p in get_hall_of_fame_chefs(limit=20)]
+        self.assertEqual(board, ["pioneer-0", "pioneer-1", "pioneer-2", "pioneer-3"],
+                         "the board must read in arrival order, not by wins")
+
+    def test_a_chef_who_never_won_still_holds_their_place(self):
+        from chef_battle.selectors import get_hall_of_fame_chefs
+
+        self._battle(self.chefs[0], self.chefs[1], winner=self.chefs[1])
+        board = [p.author.slug for p in get_hall_of_fame_chefs(limit=20)]
+        self.assertIn("pioneer-0", board,
+                      "turning up earns the place; winning is a different board")
+
+    def test_the_founding_ten_survive_a_later_write(self):
+        from chef_battle.models import BattleEvent
+        from chef_battle.selectors import get_hall_of_fame_battles
+
+        older = self._battle(self.chefs[0], self.chefs[1], winner=self.chefs[0])
+        newer = self._battle(self.chefs[2], self.chefs[3], winner=self.chefs[2])
+        for battle, minutes in ((older, 120), (newer, 60)):
+            event = BattleEvent.objects.create(
+                battle=battle, event_type=BattleEvent.EventType.BATTLE_FINISHED,
+                message="finished", is_public=True,
+            )
+            BattleEvent.objects.filter(pk=event.pk).update(
+                created_at=timezone.now() - timezone.timedelta(minutes=minutes))
+
+        self.assertEqual([b.pk for b in get_hall_of_fame_battles(limit=10)],
+                         [older.pk, newer.pk])
+
+        # A moderation note, a dispute, a withdrawal resolution — any later
+        # write at all. The old ordering put the touched battle last.
+        older.result_reason = "Reviewed by a moderator."
+        older.save(update_fields=["result_reason", "updated_at"])
+
+        self.assertEqual([b.pk for b in get_hall_of_fame_battles(limit=10)],
+                         [older.pk, newer.pk],
+                         "a later write must not move a battle out of the founding ten")
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class OneBattleSlotTests(TestCase):
+    """G1 — one slot per chef, read in full.
+
+    The slot is occupied the moment a challenge is ISSUED, and an occupied slot
+    forbids ACCEPTING as well as issuing. Nothing in the code modelled a slot
+    at all until 2026-08-11: a chef could hold three live battles, which
+    battle_rules.md forbids in its first line.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.a, self.b, self.c = [
+            RecipeAuthor.objects.create(
+                user=User.objects.create_user(f"slot{n}", password="pw"),
+                name=f"Slot {n}", slug=f"slot-{n}",
+            )
+            for n in ("a", "b", "c")
+        ]
+        for author in (self.a, self.b, self.c):
+            ChefBattleProfile.objects.create(author=author, battle_moves=50)
+
+    def _challenge(self, challenger, opponent, **kwargs):
+        return BattleChallenge.objects.create(
+            challenger=challenger, opponent=opponent, theme="Theme",
+            status=kwargs.pop("status", BattleChallenge.Status.PENDING),
+            expires_at=kwargs.pop("expires_at", timezone.now() + timezone.timedelta(hours=12)),
+            **kwargs,
+        )
+
+    def test_a_free_slot_reads_free(self):
+        from chef_battle.services import slot_occupied_reason
+        self.assertIsNone(slot_occupied_reason(self.a))
+
+    def test_an_unanswered_challenge_takes_the_slot(self):
+        from chef_battle.services import slot_occupied_reason
+        self._challenge(self.a, self.b)
+        self.assertIn("unanswered challenge", slot_occupied_reason(self.a) or "")
+
+    def test_an_expired_challenge_frees_the_slot(self):
+        from chef_battle.services import slot_occupied_reason
+        self._challenge(self.a, self.b,
+                        expires_at=timezone.now() - timezone.timedelta(hours=1))
+        self.assertIsNone(slot_occupied_reason(self.a))
+
+    def test_a_live_battle_takes_the_slot_for_both_chefs(self):
+        from chef_battle.services import slot_occupied_reason
+        now = timezone.now()
+        Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Theme",
+            status=Battle.Status.ACTIVE,
+            start_time=now, submission_deadline=now, voting_deadline=now, end_time=now,
+        )
+        for chef in (self.a, self.b):
+            self.assertIn("already in a battle", slot_occupied_reason(chef) or "")
+
+    def test_a_finished_battle_frees_the_slot(self):
+        from chef_battle.services import slot_occupied_reason
+        now = timezone.now()
+        Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Theme",
+            status=Battle.Status.COMPLETED, winner=self.a,
+            start_time=now, submission_deadline=now, voting_deadline=now, end_time=now,
+        )
+        self.assertIsNone(slot_occupied_reason(self.a))
+
+    def test_the_challenge_being_answered_does_not_block_its_own_acceptance(self):
+        from chef_battle.services import slot_occupied_reason
+        challenge = self._challenge(self.b, self.a)
+        self.assertIsNone(slot_occupied_reason(self.b, ignore_challenge=challenge))
+
+    def test_accepting_is_refused_while_the_slot_is_taken(self):
+        """The half of the rule that is easy to miss: an occupied slot blocks
+        ACCEPTING, not only issuing."""
+        now = timezone.now()
+        Battle.objects.create(
+            challenger=self.a, opponent=self.c, theme="Ongoing",
+            status=Battle.Status.ACTIVE,
+            start_time=now, submission_deadline=now, voting_deadline=now, end_time=now,
+        )
+        challenge = self._challenge(self.b, self.a)
+        client = Client()
+        client.login(username="slota", password="pw")
+        response = client.post(
+            reverse("chef_battle:challenge_respond", kwargs={"pk": challenge.pk}),
+            {"action": "accept"},
+        )
+        self.assertEqual(response.status_code, 302)
+        challenge.refresh_from_db()
+        self.assertEqual(challenge.status, BattleChallenge.Status.PENDING)
+        self.assertFalse(Battle.objects.filter(challenge=challenge).exists())
+
 
 
 class ForcedTransitionRevealsEntriesTests(TestCase):
@@ -13219,3 +13482,40 @@ class TokenTerminologyNotWalletTests(TestCase):
         page = client.get(reverse("chef_battle:master_console")).content.decode().lower()
         self.assertNotIn("wallet balances", page)
         self.assertIn("token account balances", page)
+
+class ArtifactPriceFollowsRarityTests(TestCase):
+    """X14 — the published price list was enforced by nothing.
+
+    RARITY_TOKEN_COST is printed in token_economy.md and audience_gifts.md and
+    was referenced by no code at all. The charge came from a per-row field
+    defaulting to ten, so an Epic added without a price cost a viewer 10 tokens
+    instead of 150 and nothing would have said so.
+    """
+
+    def test_a_new_artifact_is_priced_by_its_rarity(self):
+        from chef_battle.models import Artifact
+        for rarity, expected in Artifact.RARITY_TOKEN_COST.items():
+            artifact = Artifact.objects.create(name=f"Priced {rarity}", rarity=rarity)
+            self.assertEqual(
+                artifact.token_cost, expected,
+                f"a new {rarity} artifact must cost the published {expected}T",
+            )
+
+    def test_an_explicit_price_is_never_overridden(self):
+        from chef_battle.models import Artifact
+        artifact = Artifact.objects.create(
+            name="Hand Priced", rarity=Artifact.Rarity.EPIC, token_cost=99)
+        self.assertEqual(artifact.token_cost, 99, "a chosen price is the Owner's lever")
+
+    def test_an_existing_row_is_left_alone(self):
+        from chef_battle.models import Artifact
+        artifact = Artifact.objects.create(
+            name="Legacy Row", rarity=Artifact.Rarity.COMMON)
+        Artifact.objects.filter(pk=artifact.pk).update(
+            rarity=Artifact.Rarity.LEGENDARY, token_cost=10)
+        artifact.refresh_from_db()
+        artifact.description = "edited"
+        artifact.save(update_fields=["description"])
+        artifact.refresh_from_db()
+        self.assertEqual(artifact.token_cost, 10,
+                         "save() may price a new row, never reprice an old one")

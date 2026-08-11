@@ -614,6 +614,32 @@ class Artifact(models.Model):
     is_active = models.BooleanField(default=True)
     image = models.ImageField(upload_to="chef_battle/artifacts/", blank=True)
 
+    #: The field default, kept as a name so save() can tell "nobody set a price"
+    #: from "somebody chose ten".
+    DEFAULT_TOKEN_COST = 10
+
+    def save(self, *args, **kwargs):
+        """Price a new artifact from its rarity when nobody priced it.
+
+        RARITY_TOKEN_COST is the rulebook's price list — token_economy.md and
+        audience_gifts.md both publish it — and until 2026-08-11 it was
+        referenced by NOTHING. The charge came from this per-row field, whose
+        default is ten, so an Epic added through the admin without a price cost
+        a viewer 10 tokens instead of 150, and nothing anywhere would have said
+        so. The live data happened to be correct and was held there by nobody;
+        the audit of 2026-08-10 found it (X14) and the Owner ordered it closed.
+
+        Deliberately narrow, because a price is his lever and not this method's:
+        it only fills in a price on CREATE, only when the field was left at its
+        default, and only when the rarity's published price is something else.
+        An explicit price of any value, and every existing row, are untouched.
+        """
+        if self._state.adding and self.token_cost == self.DEFAULT_TOKEN_COST:
+            published = self.RARITY_TOKEN_COST.get(self.rarity)
+            if published and published != self.DEFAULT_TOKEN_COST:
+                self.token_cost = published
+        return super().save(*args, **kwargs)
+
     @property
     def effect_label(self):
         """Human-readable combat effect for every artifact card."""

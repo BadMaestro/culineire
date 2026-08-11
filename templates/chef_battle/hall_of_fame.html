@@ -67,9 +67,14 @@
   {% endif %}
 
   {# ── Hall of Fame Chefs ── #}
-  <h2 style="font-family: var(--font-serif); font-size: 1.75rem; margin-block-end: 1.25rem;">
-    Hall of Fame Chefs
+  <h2 style="font-family: var(--font-serif); font-size: 1.75rem; margin-block-end: 0.35rem;">
+    Board of Memory
   </h2>
+  <p style="color: var(--color-muted); margin-block-end: 1.25rem;">
+    The first twenty Chefs ever to step into the arena, in the order they
+    arrived. A place here is earned by turning up, not by winning, and nothing
+    that happens afterwards can take it away.
+  </p>
 
   {% if chefs %}
   <div class="battle-table">
@@ -79,7 +84,7 @@
       <span>Rank</span>
       <span>Wins</span>
       <span>Crowns</span>
-      <span>Rating</span>
+      <span>Reputation</span>
     </div>
     {% for profile in chefs %}
     <a class="battle-table__row" href="{{ profile.author.get_absolute_url }}">
@@ -96,13 +101,14 @@
       <span>{{ profile.get_rank_display }}</span>
       <strong>{{ profile.wins }}</strong>
       <span>{{ profile.crown_count }}</span>
-      <span>{{ profile.rating }}</span>
+      <span>{{ profile.reputation }}</span>
     </a>
     {% endfor %}
   </div>
   {% else %}
   <p style="color: var(--color-muted);">
-    No victories recorded yet. Be the first Chef to win a battle and claim your place here.
+    Nobody has entered the arena yet. Be the first Chef to fight a battle and
+    your name stays on this board for good, win or lose.
   </p>
   {% endif %}
 
