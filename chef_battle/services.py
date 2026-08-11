@@ -3560,6 +3560,13 @@ def operator_moderate_entry(*, entry_id, operator_author, new_status, reason="",
             if battle.status == Battle.Status.COOKING and eligible_entries == 2:
                 battle.status = Battle.Status.PRESENTATION
                 battle.save(update_fields=["status", "updated_at"])
+                # F14, 2026-08-11: PRESENTATION is one of _REVEAL_IMPLIED_TARGETS -
+                # the template shows a dish once is_revealed OR the battle is in
+                # that set. operator_force_status's direct-assign branch reveals
+                # for exactly this reason (F10); this transition reaches the same
+                # target status through the moderation path instead, and missed
+                # the same update.
+                battle.entries.filter(is_revealed=False).update(is_revealed=True)
                 create_battle_event(
                     event_type=BattleEvent.EventType.BATTLE_STARTED,
                     battle=battle,

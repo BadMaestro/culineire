@@ -97,9 +97,17 @@ def force_complete_battles(modeladmin, request, queryset):
 
 @admin.action(description="Reset disputed battles to Voting")
 def reset_disputed_battles(modeladmin, request, queryset):
-    count = queryset.filter(status=Battle.Status.DISPUTED).update(
-        status=Battle.Status.VOTING,
-    )
+    # F18, 2026-08-11: the bare .update() above (force_reveal_entries) already
+    # knew to touch is_revealed before landing on VOTING; this action moved
+    # battles into the same _REVEAL_IMPLIED_TARGETS status and didn't - the
+    # same class of gap F10/F14 closed elsewhere, just via a direct bulk
+    # update instead of a service function.
+    count = 0
+    for battle in queryset.filter(status=Battle.Status.DISPUTED):
+        battle.entries.filter(is_revealed=False).update(is_revealed=True)
+        battle.status = Battle.Status.VOTING
+        battle.save(update_fields=["status", "updated_at"])
+        count += 1
     modeladmin.message_user(request, f"{count} disputed battle(s) reset to voting.", messages.SUCCESS)
 
 

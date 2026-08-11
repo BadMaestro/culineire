@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-11 · Production baseline: **v2.5.999**
+Last reconciled: 2026-08-11 · Production baseline: **v2.5.1000**
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
@@ -40,6 +40,26 @@ all five now say "Token Account", per contract section 9.1. The underlying
 TokenWallet model keeps its name — renaming it is a schema migration on the
 live Stripe payment path and stays flagged for the Owner, not attempted.
 This closes every item from the 2026-08-10 audit except that model rename.**
+**F12-F19 fixed, 2026-08-11 — a second full audit, re-run against the fixed
+code rather than assuming the first pass still held. Two were CRITICAL: a
+chef could submit their dish (and jump the battle straight to VOTING) while
+combat was still running, with zero biathlon and zero moderated photo (F12);
+and a challenge's opponent — the one action that actually seats a chef in a
+real-money arena — was never age-verified, only the challenger was, at
+creation time (F13). Three medium: the one moderation transition into
+PRESENTATION reached through real photo approval missed the reveal-flag
+update F10 added everywhere else (F14); the chef enrolment bonus could be
+credited twice by a double-click, no row lock (F15); and the general-purpose
+moderation panel showed live battle withdrawal/clan queues to any
+site-moderator, the same gap F8 had already closed for the app's own
+moderation views but missed here (F16). Three low: cooking_moderation
+answered 403 instead of 404, the one gate in the app that confirmed its own
+existence to a rejected dark-launch caller (F17); the admin's bulk
+disputed-battle reset carried the same vestigial reveal gap as F14 (F18); and
+a losing double-accept race surfaced a bare 500 instead of a message, though
+the OneToOne constraint meant data was never at risk (F19). All eight closed
+same-day. This closes every finding from both the 2026-08-10 and 2026-08-11
+audits except the TokenWallet model rename, still the Owner's to authorise.**
 Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.

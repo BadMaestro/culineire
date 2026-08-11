@@ -517,19 +517,28 @@ def chef_enroll(request):
         if not confirm_age or not confirm_rules:
             error = "Please tick both boxes to continue."
         else:
+            # F15, 2026-08-11: two concurrent submits (double-click, retried
+            # request) both used to read enrolled_at as None, both wrote it,
+            # and both called award_enrol_bonus - a plain read-modify-write
+            # on chest_moves, so the enrolment bonus could be credited twice.
+            # Lock the row and re-check under it, same pattern as F4/F5.
             now = timezone.now()
-            if profile is None:
-                profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
-            profile.enrolled_at = now
-            if not profile.age_verified:
-                profile.age_verified = True
-                profile.age_confirmed_at = now
-            profile.save(update_fields=["enrolled_at", "age_verified", "age_confirmed_at"])
-            try:
-                from .services import award_enrol_bonus
-                award_enrol_bonus(author)
-            except Exception:
-                logger.exception("Failed to award enrol bonus to author pk=%s", author.pk)
+            with transaction.atomic():
+                if profile is None:
+                    profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
+                profile = ChefBattleProfile.objects.select_for_update().get(pk=profile.pk)
+                if profile.enrolled_at:
+                    return redirect("chef_battle:home")
+                profile.enrolled_at = now
+                if not profile.age_verified:
+                    profile.age_verified = True
+                    profile.age_confirmed_at = now
+                profile.save(update_fields=["enrolled_at", "age_verified", "age_confirmed_at"])
+                try:
+                    from .services import award_enrol_bonus
+                    award_enrol_bonus(author)
+                except Exception:
+                    logger.exception("Failed to award enrol bonus to author pk=%s", author.pk)
             return redirect("chef_battle:enroll_success")
 
     return render(request, "chef_battle/enroll.html", {"error": error})
@@ -1894,6 +1903,16 @@ def challenge_respond(request, pk):
             messages.error(request, slot_error)
             return redirect("chef_battle:challenge_list")
 
+        # F13, 2026-08-11: gate_age_verified ran at challenge_create (on the
+        # challenger), token purchase and gift-sending, but never on the
+        # opponent who accepts - the one action that actually seats a chef in
+        # a real-money arena. A challenge can sit unanswered for up to twelve
+        # hours (X05), so this cannot be assumed to have been checked already.
+        age_result = gate_age_verified(author)
+        if not age_result.passed:
+            messages.error(request, "You must confirm that you are 18 or older before accepting a Chef Battle.")
+            return redirect("chef_battle:challenge_list")
+
         cooldown = gate_post_battle_cooldown(author)
         if not cooldown.passed:
             messages.error(request, "You completed a battle recently. Please wait 24 hours before accepting a new challenge.")
@@ -1902,6 +1921,15 @@ def challenge_respond(request, pk):
             battle = accept_challenge(challenge)
         except ValueError as e:
             messages.error(request, str(e))
+            return redirect("chef_battle:challenge_list")
+        except IntegrityError:
+            # F19, 2026-08-11: accept_challenge doesn't lock the challenge row,
+            # so two simultaneous accepts both pass the PENDING check above and
+            # both reach Battle.objects.create(). Battle.challenge is a unique
+            # OneToOneField, so the data stays correct - the second INSERT just
+            # fails at the database instead of racing past it. Only the error
+            # handling was missing.
+            messages.warning(request, "This challenge has already been answered.")
             return redirect("chef_battle:challenge_list")
         messages.success(request, "Challenge accepted. The battle room is live.")
         return redirect(battle.get_absolute_url())
@@ -1941,7 +1969,9 @@ def battle_detail(request, pk):
         viewer_author
         and battle.author_is_participant(viewer_author)
         and not (viewer_entry and viewer_entry.dish_submitted_at)
-        and battle.status in {Battle.Status.ACTIVE, Battle.Status.VOTING}
+        # F12, 2026-08-11: matches battle_entry_submit's own gate - the dish
+        # entry is a COOKING-phase action, not an ACTIVE/VOTING one.
+        and battle.status == Battle.Status.COOKING
         and timezone.now() <= battle.submission_deadline
     )
 
@@ -2064,11 +2094,17 @@ def battle_entry_submit(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
     if not battle.author_is_participant(author):
         raise PermissionDenied
-    # Lifecycle guard: the dish entry is submitted after combat, never in the
-    # pre-combat phases. Keeps the Chef's Road ordered (declare menu + combat
-    # first) so the UI hiding the button and the server agree.
-    if battle.status in (Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED):
-        messages.error(request, "Declare your menu and finish combat before submitting your dish.")
+    # F12, 2026-08-11: this used to exclude only SCHEDULED/MENU_LOCKED, which
+    # left ACTIVE (combat still running), INGREDIENT_PENALTY (biathlon not
+    # yet run) and every other mid-lifecycle status open. dish_submitted_at
+    # set here is exactly what reveal_entries_if_ready's ACTIVE branch reads
+    # to jump the battle straight to VOTING - so a battle could reach public
+    # voting with zero combat rounds, zero biathlon and zero moderated photo.
+    # cooking_submit() (the real photo upload) already requires COOKING and
+    # an existing entry; this view creates that entry, so it must require the
+    # same phase, not merely "not still in the antechamber".
+    if battle.status != Battle.Status.COOKING:
+        messages.error(request, "Finish combat and the ingredient biathlon before submitting your dish.")
         return redirect(battle.get_absolute_url())
     entry = battle.entries.filter(author=author).first()
     if entry and entry.dish_submitted_at:
@@ -2522,8 +2558,11 @@ def cooking_moderation(request):
     # is_staff too), but nothing enforces that invariant, so this app's own
     # moderation surface also requires is_battle_visible, same as every other
     # page here.
+    # F17, 2026-08-11: Http404, not PermissionDenied - every other gate in
+    # this app (battle_withdraw_resolve included) answers 404 so a rejected
+    # dark-launch caller can't tell the page exists. A 403 confirmed it did.
     if not (is_moderator(request.user) and is_battle_visible(request)):
-        raise PermissionDenied
+        raise Http404
     battles = get_battles_awaiting_cooking_approval()
     return render(request, "chef_battle/cooking_moderation.html", {"battles": battles})
 
@@ -2532,7 +2571,7 @@ def cooking_moderation(request):
 @require_POST
 def cooking_moderation_approve(request, pk):
     if not (is_moderator(request.user) and is_battle_visible(request)):
-        raise PermissionDenied
+        raise Http404
     battle = get_object_or_404(Battle, pk=pk)
     try:
         approve_cooking_phase(battle, request.user)

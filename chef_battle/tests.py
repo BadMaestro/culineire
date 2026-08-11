@@ -13024,10 +13024,21 @@ class ChefBattleModerationRequiresVisibilityTests(TestCase):
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
     def test_moderator_flag_without_staff_bit_is_denied(self):
+        # F17, 2026-08-11: this used to accept either 403 or 404 because the
+        # view raised PermissionDenied while every other gate in the app
+        # answers 404 - the one place that told a rejected dark-launch caller
+        # the page exists. Now pinned to 404 like the rest of the app.
         client = Client()
         client.login(username="f8-modflag", password="pw")
         resp = client.get(reverse("chef_battle:cooking_moderation"))
-        self.assertIn(resp.status_code, (403, 404))
+        self.assertEqual(resp.status_code, 404)
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_moderator_flag_without_staff_bit_is_denied_on_approve(self):
+        client = Client()
+        client.login(username="f8-modflag", password="pw")
+        resp = client.post(reverse("chef_battle:cooking_moderation_approve", args=[1]))
+        self.assertEqual(resp.status_code, 404)
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
     def test_staff_moderator_is_allowed(self):
@@ -13724,3 +13735,324 @@ class SeasonStandingCarriesTheRecordTests(TestCase):
         standing = SeasonStanding.objects.get(season=self.season, chef=self.a)
         self.assertEqual((standing.wins, standing.losses), (1, 0),
                          "a standing is a photograph of one season, not a copy of the profile")
+
+
+class BattleEntrySubmitRequiresCookingPhaseTests(TestCase):
+    """F12, 2026-08-11: battle_entry_submit only excluded SCHEDULED/MENU_LOCKED,
+    so a chef could submit their dish (setting dish_submitted_at) while ACTIVE -
+    before combat resolved, before the ingredient biathlon, before a moderator
+    ever saw a photo. reveal_entries_if_ready's ACTIVE branch reads exactly
+    that field to jump the battle straight to VOTING, so a battle could reach
+    public voting with zero combat and zero moderated evidence. The gate now
+    matches cooking_submit's own: COOKING only, the phase a moderator opens
+    after approve_cooking_phase()."""
+
+    def setUp(self):
+        from recipes.models import Recipe
+        User = get_user_model()
+        u = User.objects.create_user("f12-ch", password="pw")
+        self.ch = RecipeAuthor.objects.create(user=u, name="F12 Ch", slug="f12-ch")
+        self.op = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f12-op", password="pw"), name="F12 Op", slug="f12-op")
+        self.recipe = Recipe.objects.create(
+            title="F12 Dish", slug="f12-dish", author=self.ch,
+            category="meat", short_description="Test",
+            ingredients="egg", method="cook", status=Recipe.Status.APPROVED,
+        )
+        self.now = timezone.now()
+        self.client = Client()
+        self.client.force_login(u)
+
+    def _battle(self, status):
+        return Battle.objects.create(
+            challenger=self.ch, opponent=self.op, theme="F12 Battle",
+            status=status, start_time=self.now,
+            submission_deadline=self.now + timezone.timedelta(hours=1),
+            voting_deadline=self.now + timezone.timedelta(days=1),
+            end_time=self.now + timezone.timedelta(days=2),
+        )
+
+    def _post(self, battle):
+        return self.client.post(
+            reverse("chef_battle:battle_entry_submit", kwargs={"pk": battle.pk}),
+            {"content_type": "photo", "recipe": self.recipe.pk, "battle_statement": "x"},
+        )
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_blocked_while_combat_is_active(self):
+        battle = self._battle(Battle.Status.ACTIVE)
+        resp = self._post(battle)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(battle.entries.count(), 0)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_blocked_during_ingredient_penalty_biathlon(self):
+        battle = self._battle(Battle.Status.INGREDIENT_PENALTY)
+        resp = self._post(battle)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(battle.entries.count(), 0)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_allowed_once_moderator_opens_cooking_phase(self):
+        battle = self._battle(Battle.Status.COOKING)
+        # battle_recipe_attach (MENU_LOCKED-only) is what normally creates
+        # this row before combat; recreate just that much of the setup so the
+        # COOKING-phase submission has an existing author-owned entry to fill in.
+        BattleEntry.objects.create(battle=battle, author=self.ch)
+        resp = self._post(battle)
+        self.assertEqual(resp.status_code, 302)
+        entry = battle.entries.get(author=self.ch)
+        self.assertIsNotNone(entry.dish_submitted_at)
+        self.assertEqual(entry.recipe_id, self.recipe.pk)
+
+
+class ChallengeAcceptRequiresAgeVerificationTests(TestCase):
+    """F13, 2026-08-11: gate_age_verified ran at challenge_create (on the
+    challenger), token purchase and gift-sending, but never on the opponent
+    who accepts - the one action that actually seats a chef in a real-money
+    arena. A challenge can sit unanswered for up to twelve hours (X05), so
+    the challenger's own age check at creation time cannot stand in for it."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.challenger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f13-ch", password="pw"), name="F13 Ch", slug="f13-ch")
+        self.op_user = User.objects.create_user("f13-op", password="pw")
+        self.opponent = RecipeAuthor.objects.create(user=self.op_user, name="F13 Op", slug="f13-op")
+        self.challenge = BattleChallenge.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme="F13 Theme",
+            expires_at=timezone.now() + timezone.timedelta(hours=12),
+        )
+        self.client = Client()
+        self.client.force_login(self.op_user)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_accept_blocked_when_opponent_not_age_verified(self):
+        resp = self.client.post(
+            reverse("chef_battle:challenge_respond", kwargs={"pk": self.challenge.pk}),
+            {"action": "accept"},
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.challenge.refresh_from_db()
+        self.assertEqual(self.challenge.status, BattleChallenge.Status.PENDING)
+        self.assertFalse(Battle.objects.filter(challenge=self.challenge).exists())
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_accept_allowed_once_opponent_confirms_age(self):
+        ChefBattleProfile.objects.create(author=self.opponent, age_verified=True)
+        resp = self.client.post(
+            reverse("chef_battle:challenge_respond", kwargs={"pk": self.challenge.pk}),
+            {"action": "accept"},
+        )
+        self.challenge.refresh_from_db()
+        self.assertEqual(self.challenge.status, BattleChallenge.Status.ACCEPTED)
+        self.assertTrue(Battle.objects.filter(challenge=self.challenge).exists())
+
+
+class ModerateEntryToPresentationRevealsEntriesTests(TestCase):
+    """F14, 2026-08-11: operator_moderate_entry's own COOKING -> PRESENTATION
+    transition (the only place PRESENTATION is ever set) didn't call the
+    reveal update F10 added to operator_force_status and _score_battle - the
+    one path into a _REVEAL_IMPLIED_TARGETS status that missed it, because it
+    runs through real photo moderation rather than the operator console."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        from django.core.files.base import ContentFile
+
+        User = get_user_model()
+        self.owner_user = User.objects.create_superuser("f14-greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "F14 GreenBear"},
+        )
+        ua = User.objects.create_user("f14-chef-a", password="pw")
+        ub = User.objects.create_user("f14-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="F14 Chef A", slug="f14-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="F14 Chef B", slug="f14-chef-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F14 Dish",
+            status=Battle.Status.COOKING, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            voting_deadline=now + timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=2),
+        )
+        self.entry_a = BattleEntry.objects.create(
+            battle=self.battle, author=self.chef_a, dish_submitted_at=now,
+            is_revealed=False, cooked_photo=ContentFile(b"fake", name="a.jpg"),
+            real_photo_confirmed=True,
+        )
+        self.entry_b = BattleEntry.objects.create(
+            battle=self.battle, author=self.chef_b, dish_submitted_at=now,
+            is_revealed=False, cooked_photo=ContentFile(b"fake", name="b.jpg"),
+            real_photo_confirmed=True,
+        )
+
+    def test_second_approval_reveals_both_entries(self):
+        from chef_battle.services import operator_moderate_entry
+
+        operator_moderate_entry(
+            entry_id=self.entry_a.pk, operator_author=self.owner_author,
+            new_status=BattleEntry.ModerationStatus.APPROVED,
+        )
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.COOKING,
+                          "one approval must not move the phase")
+
+        operator_moderate_entry(
+            entry_id=self.entry_b.pk, operator_author=self.owner_author,
+            new_status=BattleEntry.ModerationStatus.APPROVED,
+        )
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.PRESENTATION)
+        self.assertTrue(
+            all(self.battle.entries.values_list("is_revealed", flat=True)),
+            "moderating both photos into PRESENTATION left an entry unrevealed",
+        )
+
+
+class EnrolBonusIsLockedAgainstDoubleCreditTests(TestCase):
+    """F15, 2026-08-11: chef_enroll checked profile.enrolled_at with no lock
+    before calling award_enrol_bonus, which itself does a plain read-modify-
+    write on chest_moves/battle_moves - two concurrent submits (double-click,
+    retried request) both saw enrolled_at=None and both credited the bonus.
+    Now locks the profile row and re-checks enrolled_at under the lock, same
+    pattern as F4/F5 - and the same SQL-mechanism testing convention: assert
+    the lock exists rather than race real threads for a window that proves
+    nothing."""
+
+    def setUp(self):
+        from recipes.models import Recipe
+        User = get_user_model()
+        u = User.objects.create_user("f15-chef", password="pw")
+        self.author = RecipeAuthor.objects.create(user=u, name="F15 Chef", slug="f15-chef")
+        Recipe.objects.create(
+            title="F15 Prior Dish", slug="f15-prior-dish", author=self.author,
+            category="meat", short_description="Test",
+            ingredients="egg", method="cook", status=Recipe.Status.APPROVED,
+        )
+        self.client = Client()
+        self.client.force_login(u)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_enrol_locks_the_profile_row(self):
+        from django.test.utils import CaptureQueriesContext
+        from django.db import connection
+
+        with CaptureQueriesContext(connection) as ctx:
+            self.client.post(reverse("chef_battle:chef_enroll"), {
+                "confirm_age": "1", "confirm_rules": "1",
+            })
+        locking = [q["sql"] for q in ctx.captured_queries if "FOR UPDATE" in q["sql"].upper()]
+        self.assertTrue(locking, "enrolment must take a row lock before crediting the bonus")
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_second_submit_does_not_recredit_the_bonus(self):
+        from chef_battle.models import BattleMoveTransaction
+
+        self.client.post(reverse("chef_battle:chef_enroll"), {
+            "confirm_age": "1", "confirm_rules": "1",
+        })
+        profile = ChefBattleProfile.objects.get(author=self.author)
+        total_after_first = profile.chest_moves + profile.battle_moves
+        self.assertGreater(total_after_first, 0, "the prior approved recipe must have earned a bonus")
+        tx_count_after_first = BattleMoveTransaction.objects.filter(chef=self.author).count()
+
+        # chef_enroll's own top-of-view enrolled_at check short-circuits a
+        # second submit once enrolment succeeded; this pins that the second
+        # request truly leaves the balance and ledger untouched.
+        self.client.post(reverse("chef_battle:chef_enroll"), {
+            "confirm_age": "1", "confirm_rules": "1",
+        })
+        profile.refresh_from_db()
+        self.assertEqual(profile.chest_moves + profile.battle_moves, total_after_first)
+        self.assertEqual(
+            BattleMoveTransaction.objects.filter(chef=self.author).count(),
+            tx_count_after_first,
+        )
+
+
+class ResetDisputedBattlesRevealsEntriesTests(TestCase):
+    """F18, 2026-08-11: the admin bulk action moved DISPUTED battles straight
+    to VOTING (a _REVEAL_IMPLIED_TARGETS status) through a bare queryset
+    .update(), the same class of gap F10/F14 closed elsewhere - just reached
+    through a direct admin bulk update instead of a service function."""
+
+    def setUp(self):
+        User = get_user_model()
+        ua = User.objects.create_user("f18-chef-a", password="pw")
+        ub = User.objects.create_user("f18-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="F18 Chef A", slug="f18-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="F18 Chef B", slug="f18-chef-b")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F18 Dish",
+            status=Battle.Status.DISPUTED, start_time=now,
+            submission_deadline=now - timezone.timedelta(hours=1),
+            voting_deadline=now + timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=2),
+        )
+        for author in (self.chef_a, self.chef_b):
+            BattleEntry.objects.create(
+                battle=self.battle, author=author,
+                battle_statement="Secret.", dish_submitted_at=now, is_revealed=False,
+            )
+
+    def test_bulk_reset_reveals_entries(self):
+        from chef_battle.admin import reset_disputed_battles
+
+        class _FakeModelAdmin:
+            def message_user(self, *a, **k):
+                pass
+
+        reset_disputed_battles(_FakeModelAdmin(), None, Battle.objects.filter(pk=self.battle.pk))
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.VOTING)
+        self.assertTrue(
+            all(self.battle.entries.values_list("is_revealed", flat=True)),
+            "bulk-resetting a disputed battle to VOTING left an entry unrevealed",
+        )
+
+
+class DoubleAcceptRaceReturnsFriendlyMessageTests(TestCase):
+    """F19, 2026-08-11: Battle.challenge is a unique OneToOneField, so data
+    integrity never actually broke under a double-accept race, but
+    accept_challenge doesn't lock the challenge row and the view only caught
+    ValueError - a second concurrent accept hit an unhandled IntegrityError,
+    a bare 500. Simulated deterministically by pre-occupying the OneToOne slot
+    the way a winning concurrent request would, rather than racing real
+    threads for a window that proves nothing."""
+
+    def setUp(self):
+        self.challenger = RecipeAuthor.objects.create(
+            user=get_user_model().objects.create_user("f19-ch", password="pw"),
+            name="F19 Ch", slug="f19-ch")
+        self.op_user = get_user_model().objects.create_user("f19-op", password="pw")
+        self.opponent = RecipeAuthor.objects.create(user=self.op_user, name="F19 Op", slug="f19-op")
+        ChefBattleProfile.objects.create(author=self.opponent, age_verified=True)
+        self.challenge = BattleChallenge.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme="F19 Theme",
+            expires_at=timezone.now() + timezone.timedelta(hours=12),
+        )
+        now = timezone.now()
+        Battle.objects.create(
+            challenge=self.challenge, challenger=self.challenger, opponent=self.opponent,
+            theme="F19 Theme", status=Battle.Status.MENU_LOCKED, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=48),
+            voting_deadline=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=2),
+        )
+        self.client = Client()
+        self.client.force_login(self.op_user)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_racing_accept_gets_a_message_not_a_500(self):
+        resp = self.client.post(
+            reverse("chef_battle:challenge_respond", kwargs={"pk": self.challenge.pk}),
+            {"action": "accept"},
+        )
+        self.assertEqual(resp.status_code, 302)

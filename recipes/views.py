@@ -2432,27 +2432,37 @@ def moderation_panel(request):
     sponsor_attention_count = get_sponsor_moderation_attention_count()
     sponsor_attention_breakdown = get_sponsor_moderation_attention_breakdown()
 
-    from chef_battle.models import Clan
+    # F16, 2026-08-11: this panel is reached by is_moderator() alone, the
+    # same class of gap as F8 - is_moderator() admits has_bearseeker_privileges
+    # regardless of is_staff, so a general-site moderator without arena access
+    # could see live Chef Battle clan and withdrawal queues before the dark
+    # launch is public. The rest of the panel (recipes/articles/pinch) stays
+    # open to every moderator; only the battle-specific sections are gated.
+    from chef_battle.access import is_battle_visible
+    pending_clans = []
+    pending_withdrawals = []
+    if is_battle_visible(request):
+        from chef_battle.models import Clan
 
-    pending_clans = list(
-        Clan.objects.select_related("founder")
-        .filter(moderation_status=Clan.Moderation.PENDING, is_active=True)
-        .prefetch_related("categories")
-        .order_by("-created_at")
-    )
-
-    # Withdrawal requests waiting for the final word (Owner's rule, 2026-08-05).
-    # The chefs answer each other first; a moderator closes it either way.
-    try:
-        from chef_battle.models import BattleWithdrawal
-        pending_withdrawals = list(
-            BattleWithdrawal.objects
-            .select_related("battle", "requester", "opponent")
-            .filter(status=BattleWithdrawal.Status.AWAITING_MODERATOR)
-            .order_by("created_at")
+        pending_clans = list(
+            Clan.objects.select_related("founder")
+            .filter(moderation_status=Clan.Moderation.PENDING, is_active=True)
+            .prefetch_related("categories")
+            .order_by("-created_at")
         )
-    except Exception:
-        pending_withdrawals = []
+
+        # Withdrawal requests waiting for the final word (Owner's rule, 2026-08-05).
+        # The chefs answer each other first; a moderator closes it either way.
+        try:
+            from chef_battle.models import BattleWithdrawal
+            pending_withdrawals = list(
+                BattleWithdrawal.objects
+                .select_related("battle", "requester", "opponent")
+                .filter(status=BattleWithdrawal.Status.AWAITING_MODERATOR)
+                .order_by("created_at")
+            )
+        except Exception:
+            pending_withdrawals = []
 
     return render(request, "moderation/panel.html", {
         "pending_clans": pending_clans,
@@ -3598,6 +3608,94 @@ ARENA_DESIGN_TASKS = [
         "acceptance": "All four carry @chef_battle_guard as the outermost decorator; OnboardingAndBattleFlowGuardTests (extended) green.",
         "forbidden": "Do not change the own-account-only checks underneath - those stay, this adds the missing layer in front of them.",
         "evidence": "SHIPPED v2.5.996. Only @login_required plus an own-account check. Practical exposure was low - a user who cannot reach any gated battle/challenge flow has nothing to see on these four - but it was architecturally inconsistent with the contract's blanket claim that arena, galleries, shop, profiles and rankings are all behind the gate. Guard added outermost to match the rest of the app; exemptions removed.",
+    },
+    {
+        "id": "F12", "group": "Release Audit 2026-08-11 (Re-Audit Round 2)", "title": "A dish could reach public voting with zero combat and zero moderated photo",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (battle_entry_submit, battle_detail's can_submit)",
+        "depends_on": "none",
+        "action": "Require battle.status == COOKING in battle_entry_submit, matching cooking_submit's own gate, instead of merely excluding SCHEDULED/MENU_LOCKED; align can_submit's phase check the same way.",
+        "visible_result": "The dish-submission button and form only appear and work once a moderator has approved the cooking phase; submitting during combat or the ingredient biathlon now redirects with a message instead of quietly working.",
+        "acceptance": "battle_entry_submit rejects ACTIVE and INGREDIENT_PENALTY, accepts COOKING; BattleEntrySubmitRequiresCookingPhaseTests green.",
+        "forbidden": "Do not touch reveal_entries_if_ready's own branches or cooking_submit - the fix is the one gate that let a player-facing action set dish_submitted_at outside COOKING, not the readers of that field.",
+        "evidence": "SHIPPED v2.5.1000. battle_entry_submit only excluded SCHEDULED/MENU_LOCKED, leaving ACTIVE (combat still running), INGREDIENT_PENALTY (biathlon not yet run) and every other mid-lifecycle status open to a dish submission. dish_submitted_at set there is exactly what reveal_entries_if_ready's ACTIVE branch reads to jump the battle straight to VOTING - so a battle could reach public voting with zero combat rounds, zero biathlon, and zero moderated cooked_photo ever uploaded. cooking_submit() (the real photo upload) already required COOKING and an existing entry; battle_entry_submit is what creates that entry, so it now requires the same phase.",
+    },
+    {
+        "id": "F13", "group": "Release Audit 2026-08-11 (Re-Audit Round 2)", "title": "Opponents were never age-verified before accepting a real-money battle",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (challenge_respond)",
+        "depends_on": "none",
+        "action": "Add a gate_age_verified(author) check on the accept branch, alongside the existing rank/cooldown checks, before calling accept_challenge.",
+        "visible_result": "An opponent who has not confirmed 18+ sees an error message and stays on the challenge list instead of entering a real-money battle.",
+        "acceptance": "challenge_respond blocks accept when the opponent's age_verified is False; ChallengeAcceptRequiresAgeVerificationTests green.",
+        "forbidden": "Do not add the check inside accept_challenge itself - it has exactly one production caller (this view); putting the gate there would also silently apply it to the internal demo_battle management command with no fraud pipeline around it to explain the failure.",
+        "evidence": "SHIPPED v2.5.1000. gate_age_verified ran at challenge_create (on the challenger), token purchase and gift-sending, but never on the opponent who accepts - the one action that actually seats a chef in a real-money arena. A challenge can sit unanswered for up to twelve hours (X05), so the challenger's own age check at creation time cannot stand in for it.",
+    },
+    {
+        "id": "F14", "group": "Release Audit 2026-08-11 (Re-Audit Round 2)", "title": "COOKING to PRESENTATION through photo moderation missed the reveal flag F10 was meant to close everywhere",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/services.py (operator_moderate_entry)",
+        "depends_on": "F10",
+        "action": "Reveal both entries when the second cooked-photo approval moves the battle from COOKING to PRESENTATION.",
+        "visible_result": "None visible under normal play - the template already masked this via its status OR fallback. is_revealed now stays accurate through the presentation phase, which the vote gate and admin filters both rely on.",
+        "acceptance": "ModerateEntryToPresentationRevealsEntriesTests green: one approval leaves the battle in COOKING, the second reveals both entries and moves it to PRESENTATION.",
+        "forbidden": "Do not extend _REVEAL_IMPLIED_TARGETS-style logic into operator_moderate_entry generally - this touches only the one transition (COOKING to PRESENTATION) that function actually performs.",
+        "evidence": "SHIPPED v2.5.1000. PRESENTATION is one of F10's _REVEAL_IMPLIED_TARGETS; operator_force_status's direct-assign branch and _score_battle both reveal for exactly that reason. operator_moderate_entry reaches the same target status through real photo moderation - the only place PRESENTATION is ever actually set in production - and F10 missed it because it isn't a force-console path.",
+    },
+    {
+        "id": "F15", "group": "Release Audit 2026-08-11 (Re-Audit Round 2)", "title": "The chef enrolment bonus could be credited twice by a double-click",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (chef_enroll)",
+        "depends_on": "none",
+        "action": "Lock the profile row and re-check enrolled_at under the lock before crediting award_enrol_bonus, same pattern as F4/F5.",
+        "visible_result": "None visible under normal play - a double-click or retried submit now credits the enrolment bonus exactly once instead of once per request that raced past the check.",
+        "acceptance": "EnrolBonusIsLockedAgainstDoubleCreditTests green: asserts a FOR UPDATE lock in the captured SQL, and that a second submit neither changes the balance nor writes a second BattleMoveTransaction.",
+        "forbidden": "Do not touch award_enrol_bonus's own arithmetic - the race was in the caller's check-then-act around enrolled_at, not in how the bonus is calculated or split between chest and battle moves.",
+        "evidence": "SHIPPED v2.5.1000. chef_enroll checked profile.enrolled_at with no lock before calling award_enrol_bonus, which itself does a plain read-modify-write on chest_moves/battle_moves - two concurrent submits both saw enrolled_at=None and both credited the bonus, doubling it and writing two ENROL_BONUS transactions for one registration.",
+    },
+    {
+        "id": "F16", "group": "Release Audit 2026-08-11 (Re-Audit Round 2)", "title": "The general moderation panel showed live battle content the same way F8 had already closed elsewhere",
+        "status": "DONE", "owner": "Bolt",
+        "files": "recipes/views.py (moderation_panel)",
+        "depends_on": "F8",
+        "action": "Gate pending_clans/pending_withdrawals behind is_battle_visible(request), the same invariant F8 added to cooking_moderation/cooking_moderation_approve/battle_withdraw_resolve; leave the rest of the panel open to every moderator.",
+        "visible_result": "A moderator without arena access sees the panel's recipe/article/pinch queues as normal, with the Battle withdrawals and Clans sections empty instead of showing real battle participants and content.",
+        "acceptance": "ModerationPanelRequiresBattleVisibilityTests green: a has_bearseeker_privileges-only moderator sees no battle content and empty context lists; a staff moderator sees both as before.",
+        "forbidden": "Do not gate the whole panel on is_battle_visible - recipes, articles and pinch moderation are general-site duties that must stay available to every moderator regardless of arena visibility.",
+        "evidence": "SHIPPED v2.5.1000. Gated only on is_moderator() - without is_battle_visible() - and unconditionally built pending_withdrawals (BattleWithdrawal with battle/requester/opponent) and pending_clans, both rendered in templates/moderation/panel.html. Exactly the logic F8 closed for the three chef_battle-app moderation views; this is the one general-purpose moderation page that also shows battle data, and it was missed when F8 shipped.",
+    },
+    {
+        "id": "F17", "group": "Release Audit 2026-08-11 (Re-Audit Round 2)", "title": "cooking_moderation answered 403 instead of 404, breaking the dark-launch-is-invisible invariant",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (cooking_moderation, cooking_moderation_approve)",
+        "depends_on": "none",
+        "action": "raise Http404 instead of PermissionDenied on the visibility check, matching battle_withdraw_resolve and every other gate in the app.",
+        "visible_result": "A rejected dark-launch caller now gets the same 404 as every other gated page instead of a 403 that confirmed the page exists.",
+        "acceptance": "ChefBattleModerationRequiresVisibilityTests tightened from assertIn(status, (403, 404)) to assertEqual(status, 404), plus a new POST case for cooking_moderation_approve; both green.",
+        "forbidden": "none - this was a two-line, zero-risk alignment; the prior test already tolerated either code, so nothing else could regress.",
+        "evidence": "SHIPPED v2.5.1000. Every other gate in the app, including the neighbouring battle_withdraw_resolve, answers Http404. These two answered PermissionDenied (403), confirming to a rejected caller that the page exists - the opposite of the app's own stated dark-launch principle. Previously recorded as a tolerated, documented inconsistency rather than an oversight; fixed anyway since the correction was trivial and safe.",
+    },
+    {
+        "id": "F18", "group": "Release Audit 2026-08-11 (Re-Audit Round 2)", "title": "The admin's bulk disputed-battle reset was the one remaining place a battle could reach VOTING unrevealed",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/admin.py (reset_disputed_battles)",
+        "depends_on": "F10",
+        "action": "Iterate and reveal entries per battle before setting VOTING, mirroring force_reveal_entries immediately above it in the same file.",
+        "visible_result": "None visible under normal play - no code path currently sets Battle.Status.DISPUTED at all, so this closes a latent gap in an admin action that would otherwise misbehave the day something does.",
+        "acceptance": "ResetDisputedBattlesRevealsEntriesTests green: the action moves a DISPUTED battle to VOTING and leaves both entries is_revealed=True.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1000. reset_disputed_battles moved DISPUTED battles straight to VOTING (a _REVEAL_IMPLIED_TARGETS status) through a bare queryset .update(), the same class of gap F10/F14 closed elsewhere - just reached through a direct admin bulk update instead of a service function.",
+    },
+    {
+        "id": "F19", "group": "Release Audit 2026-08-11 (Re-Audit Round 2)", "title": "A losing race on challenge accept surfaced a bare 500",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (challenge_respond)",
+        "depends_on": "none",
+        "action": "Catch IntegrityError from accept_challenge's Battle.objects.create() and show 'already answered' instead of letting it become a server error.",
+        "visible_result": "A losing concurrent accept now redirects with a warning message instead of a 500 page.",
+        "acceptance": "DoubleAcceptRaceReturnsFriendlyMessageTests green, simulating the race deterministically by pre-occupying the OneToOne slot rather than racing real threads for a window that proves nothing.",
+        "forbidden": "Do not add a row lock to accept_challenge - Battle.challenge's unique OneToOneField constraint already guarantees the data stays correct; this is error handling for an already-safe race, not a data-integrity fix.",
+        "evidence": "SHIPPED v2.5.1000. Battle.challenge is a unique OneToOneField, so two simultaneous accepts never corrupted data - the second INSERT simply failed at the database. But accept_challenge doesn't lock the challenge row and the view only caught ValueError, so the second request's IntegrityError was unhandled and reached the user as a bare 500 instead of the same 'already answered' message a slightly-later request gets from the top-of-view PENDING check.",
     },
     {
         "id": "T2", "group": "Release Audit 2026-08-10", "title": "Raw CSS colour literals stood where the Arena's own tokens already existed",

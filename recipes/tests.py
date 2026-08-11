@@ -4299,6 +4299,63 @@ class AuthorDetailBattleVisibilityParityTests(TestCase):
         self.assertIsNotNone(resp.context["battle_profile"])
 
 
+class ModerationPanelRequiresBattleVisibilityTests(TestCase):
+    """F16, 2026-08-11: moderation_panel gated only on is_moderator(), the same
+    class of gap F8 closed for cooking_moderation/cooking_moderation_approve/
+    battle_withdraw_resolve - is_moderator() admits has_bearseeker_privileges
+    regardless of is_staff, and this panel unconditionally built pending_clans
+    and pending_withdrawals (real Chef Battle content), the one general-purpose
+    moderation page that does. Not previously exploitable (grant_bearseeker
+    always also sets is_staff), but nothing enforced that invariant."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        from chef_battle.models import Battle, BattleWithdrawal
+
+        User = get_user_model()
+        self.mod_flag_only = User.objects.create_user("f16-modflag", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.mod_flag_only, name="F16 Mod Flag", slug="f16-modflag",
+            has_bearseeker_privileges=True,
+        )
+        self.staff_mod = User.objects.create_user("f16-staff", password="pw", is_staff=True)
+        RecipeAuthor.objects.create(user=self.staff_mod, name="F16 Staff", slug="f16-staff")
+
+        requester = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f16-requester", password="pw"), name="F16 Requester", slug="f16-requester")
+        opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f16-opponent", password="pw"), name="F16 Opponent", slug="f16-opponent")
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=requester, opponent=opponent, theme="F16 Secret Battle Theme",
+            status=Battle.Status.MENU_LOCKED, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            voting_deadline=now + timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=2),
+        )
+        BattleWithdrawal.objects.create(
+            battle=battle, requester=requester, opponent=opponent,
+            reason="F16 test reason", status=BattleWithdrawal.Status.AWAITING_MODERATOR,
+        )
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_moderator_flag_without_staff_bit_sees_no_battle_content(self):
+        self.client.login(username="f16-modflag", password="pw")
+        resp = self.client.get(reverse("recipes:moderation_panel"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, "F16 Secret Battle Theme")
+        self.assertEqual(resp.context["pending_withdrawals"], [])
+        self.assertEqual(resp.context["pending_clans"], [])
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_staff_moderator_sees_battle_content(self):
+        self.client.login(username="f16-staff", password="pw")
+        resp = self.client.get(reverse("recipes:moderation_panel"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "F16 Secret Battle Theme")
+        self.assertEqual(len(resp.context["pending_withdrawals"]), 1)
+
+
 class ArchitectureNormalisationIsClosedTests(TestCase):
     """The project is CLOSED and OFF the active board — Owner, 2026-08-09.
 
