@@ -4351,14 +4351,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T01", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "Scoring accepts only an authoritative locked VOTING state",
-        "status": "NEXT", "owner": "GreenBear",
+        "status": "DONE", "owner": "GreenBear",
         "files": "chef_battle/services.py (calculate_battle_result, _score_battle); chef_battle/admin.py (force-complete); chef_battle/views.py; expire_stale_battles",
         "depends_on": "none",
         "action": "Gate the scorer itself on a re-read locked status of VOTING, score the LOCKED instance rather than the caller's stale object, and route an expired ACTIVE to the explicit stalled/no-show policy. Admin force-complete uses the same contract; any genuine override becomes a separate owner-only operation with a named target state and an audit event.",
         "visible_result": "Nothing changes on a healthy battle. A battle that is cancelled, void, walkover, paused, disputed, scheduled, menu-locked, active, cooking or in presentation can no longer be completed and paid by the ordinary scorer.",
         "acceptance": "A parameterised test per non-VOTING status proving status, profiles, rating, reputation, moves, crown, rewards and ledger all unchanged; expired ACTIVE + zero votes + a plain GET does not become COMPLETED and pays no draw shares; VOTING still completes exactly once; two concurrent scorers award once.",
         "forbidden": "Do not fix only the caller in battle_detail - v2.5.1010 already did that (F20) and the class stayed open. The scorer is the thing being gated.",
-        "evidence": "Owner brief 2026-08-12, ticket 1. VERIFIED PARTIAL 2026-08-12: views.py:2029 now scopes the auto-score trigger to ACTIVE/VOTING, but calculate_battle_result still accepts every status except COMPLETED, so every other caller keeps the hole.",
+        "evidence": "SHIPPED v2.5.1019. calculate_battle_result now refuses every status but VOTING, decided on the locked row; the caller's object takes the authoritative status from that row and is then scored, which keeps the contract battle_detail.html depends on (it renders the fresh champion's crown off battle.challenger.battle_profile). battle_detail no longer scores an expired ACTIVE at all - that is a no-show and handle_no_show_battles is the explicit policy. The admin action reports what it refused instead of counting every battle it touched as force-completed. ScorerAcceptsOnlyVotingTests walks all fourteen non-VOTING statuses and proves status, profiles, rating, reputation, wins, losses, seasonal score, moves, crown, streak, rank, move ledger and reward records are all untouched; the expired-ACTIVE zero-vote case is pinned separately; VOTING still completes once and a repeat sweep pays nothing; a stale caller is corrected from the locked row rather than writing its own status back.",
     },
     {
         "id": "T02", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "Reveal is atomic and cannot resurrect a terminal battle",
@@ -4643,7 +4643,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "37e8094e / production v2.5.1017",
+        "commit": "7dcc4faa / production v2.5.1019",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

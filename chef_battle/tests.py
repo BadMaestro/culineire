@@ -152,7 +152,11 @@ class ChefBattleServiceTests(TestCase):
 
         refuse_challenge(challenge)
         challenge.refresh_from_db()
-        profile = self.chef_b.battle_profile
+        # Read the ROW, not the cached instance. refuse_challenge locks and
+        # writes its own copy of the profile (F70), so self.chef_b's cached
+        # battle_profile is the pre-refusal object and shows nothing moved.
+        # Inherited red on main, found while running T01's suite.
+        profile = ChefBattleProfile.objects.get(author=self.chef_b)
 
         self.assertEqual(challenge.status, BattleChallenge.Status.REFUSED)
         self.assertEqual(profile.refused_battles, 1)
@@ -162,6 +166,10 @@ class ChefBattleServiceTests(TestCase):
         battle = accept_challenge(self._challenge())
         BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
 
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+        battle.status = Battle.Status.VOTING
         calculate_battle_result(battle)
         battle.refresh_from_db()
         winner_profile = self.chef_a.battle_profile
@@ -198,6 +206,16 @@ class ChefBattleServiceTests(TestCase):
         # both would pass the guard and award the win twice.
         first = Battle.objects.get(pk=battle.pk)
         second = Battle.objects.get(pk=battle.pk)
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle. The
+        # row is put in VOTING once, which is where the real flow is when the
+        # deadline passes - and deliberately NOT again before the second call,
+        # because the second caller landing on an already-completed row is the
+        # whole race this test exists for.
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+        first.status = Battle.Status.VOTING
+        second.status = Battle.Status.VOTING
         calculate_battle_result(first)
         calculate_battle_result(second)
 
@@ -223,6 +241,10 @@ class ChefBattleServiceTests(TestCase):
         )
         BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
 
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+        battle.status = Battle.Status.VOTING
         calculate_battle_result(battle)
 
         reserved.refresh_from_db()
@@ -292,6 +314,10 @@ class ChefBattleServiceTests(TestCase):
         profile.refresh_from_db()
         BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
 
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+        battle.status = Battle.Status.VOTING
         calculate_battle_result(battle)
 
         profile.refresh_from_db()
@@ -1455,6 +1481,10 @@ class CrownTests(TestCase):
     def test_winner_receives_24h_crown(self):
         BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
         before = timezone.now()
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.VOTING)
+        self.battle.status = Battle.Status.VOTING
         calculate_battle_result(self.battle)
         profile = self.chef_a.battle_profile
         self.assertIsNotNone(profile.crown_until)
@@ -1463,12 +1493,20 @@ class CrownTests(TestCase):
 
     def test_crown_count_increments_on_win(self):
         BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.VOTING)
+        self.battle.status = Battle.Status.VOTING
         calculate_battle_result(self.battle)
         self.assertEqual(self.chef_a.battle_profile.crown_count, 1)
 
     def test_crown_event_created(self):
         from chef_battle.models import BattleEvent
         BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.VOTING)
+        self.battle.status = Battle.Status.VOTING
         calculate_battle_result(self.battle)
         self.assertTrue(
             self.battle.events.filter(event_type=BattleEvent.EventType.CROWN_AWARDED).exists()
@@ -1477,6 +1515,10 @@ class CrownTests(TestCase):
     def test_battle_completed_event_published_to_news(self):
         from chef_battle.models import BattleEvent
         BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.VOTING)
+        self.battle.status = Battle.Status.VOTING
         calculate_battle_result(self.battle)
         event = self.battle.events.filter(event_type=BattleEvent.EventType.BATTLE_COMPLETED).first()
         self.assertIsNotNone(event)
@@ -1528,6 +1570,10 @@ class ConcurrentScoringSharesOneProfileTests(TransactionTestCase):
 
         winner, battle = self._one_win("sql")
         with CaptureQueriesContext(connection) as captured:
+            # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+            # This is the state the real flow is in when voting closes.
+            Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+            battle.status = Battle.Status.VOTING
             calculate_battle_result(battle)
 
         locking = [
@@ -1546,6 +1592,10 @@ class ConcurrentScoringSharesOneProfileTests(TransactionTestCase):
         badge in battle_detail.html does exactly that. Re-reading the rows under
         a lock left that cache pointing at the pre-battle figures."""
         winner, battle = self._one_win("cache")
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+        battle.status = Battle.Status.VOTING
         calculate_battle_result(battle)
         self.assertEqual(winner.battle_profile.wins, 1)
         self.assertEqual(winner.battle_profile.crown_count, 1)
@@ -1643,6 +1693,10 @@ class AutoCompleteVotingTests(TestCase):
     def test_expired_voting_battle_is_completed_by_calculate(self):
         battle = self._voting_battle_past_deadline()
         BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+        battle.status = Battle.Status.VOTING
         calculate_battle_result(battle)
         battle.refresh_from_db()
         self.assertEqual(battle.status, Battle.Status.COMPLETED)
@@ -2120,6 +2174,10 @@ class BattleCompletionLedgerTests(TestCase):
         v2 = User.objects.create_user("ledger-v2", password="pw")
         BattleVote.objects.create(battle=battle, voter=v1, voted_for=self.chef_a, ip_hash="x1", user_agent_hash="y1")
         BattleVote.objects.create(battle=battle, voter=v2, voted_for=self.chef_a, ip_hash="x2", user_agent_hash="y2")
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+        battle.status = Battle.Status.VOTING
         calculate_battle_result(battle)
         self.assertTrue(
             LedgerEvent.objects.filter(
@@ -7547,6 +7605,10 @@ class DrawRewardUnlockTests(TestCase):
             tokens_granted=10, reason="Pending before draw")
 
         from .services import calculate_battle_result
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+        battle.status = Battle.Status.VOTING
         calculate_battle_result(battle)
         reward.refresh_from_db()
 
@@ -13670,6 +13732,10 @@ class ForcedTransitionRevealsEntriesTests(TestCase):
             voter=get_user_model().objects.create_user("f10-voter", password="pw"),
             voted_for=self.chef_a,
         )
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+        battle.status = Battle.Status.VOTING
         calculate_battle_result(battle)
         self.assertTrue(
             all(battle.entries.values_list("is_revealed", flat=True)),
@@ -14907,6 +14973,10 @@ class DrawShareLockingTests(TestCase):
 
         battle = self._drawn_battle("F27 Draw Lock")
         with CaptureQueriesContext(connection) as captured:
+            # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+            # This is the state the real flow is in when voting closes.
+            Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
+            battle.status = Battle.Status.VOTING
             calculate_battle_result(battle)
 
         locking = [
@@ -14928,7 +14998,13 @@ class DrawShareLockingTests(TestCase):
 
         first = self._drawn_battle("F27 Draw One")
         second = self._drawn_battle("F27 Draw Two")
+        # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
+        # This is the state the real flow is in when voting closes.
+        Battle.objects.filter(pk=first.pk).update(status=Battle.Status.VOTING)
+        first.status = Battle.Status.VOTING
         calculate_battle_result(first)
+        Battle.objects.filter(pk=second.pk).update(status=Battle.Status.VOTING)
+        second.status = Battle.Status.VOTING
         calculate_battle_result(second)
 
         profile = ChefBattleProfile.objects.get(author=self.challenger)
@@ -15151,6 +15227,12 @@ class CombatArtifactReservationLockTests(TestCase):
         )
 
 
+# Inherited red on main, fixed while running T01's gate (2026-08-12): this class
+# drives real views, and CHEF_BATTLE_ENABLED is False by default - which is what
+# the Owner's launch latch says it must be until launch. Without the override the
+# guard answers 404 and every assertion here reads as a failure on any workstation
+# whose .env does not force the flag on.
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class DsaReportThresholdGateTests(TestCase):
     """F32, 2026-08-11: gate_dsa_report_threshold was written and correctly
     returned passed=False past the threshold, but had zero call sites -
@@ -15932,6 +16014,12 @@ class DecideWithdrawalLocksTheWithdrawalTests(TestCase):
         self.assertEqual(self.withdrawal.status, BattleWithdrawal.Status.CLOSED)
 
 
+# Inherited red on main, fixed while running T01's gate (2026-08-12): this class
+# drives real views, and CHEF_BATTLE_ENABLED is False by default - which is what
+# the Owner's launch latch says it must be until launch. Without the override the
+# guard answers 404 and every assertion here reads as a failure on any workstation
+# whose .env does not force the flag on.
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class ChallengeCreateLocksTheSlotTests(TestCase):
     """F49, 2026-08-11: challenge_create's own slot check (slot_occupied_
     reason) ran unlocked, and nothing serialised it against a second POST
@@ -15998,6 +16086,12 @@ class ChallengeCreateLocksTheSlotTests(TestCase):
         self.assertEqual(BattleChallenge.objects.filter(challenger=self.author).count(), 1)
 
 
+# Inherited red on main, fixed while running T01's gate (2026-08-12): this class
+# drives real views, and CHEF_BATTLE_ENABLED is False by default - which is what
+# the Owner's launch latch says it must be until launch. Without the override the
+# guard answers 404 and every assertion here reads as a failure on any workstation
+# whose .env does not force the flag on.
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class ChallengeRespondExpiryLocksTheChallengeTests(TestCase):
     """F50, 2026-08-11: challenge_respond's own inline expiry check
     (expires_at <= now -> EXPIRED) bypassed F38's locking entirely - a
@@ -16262,6 +16356,12 @@ class RecipeEditBattleLockMessageIsNeutralTests(TestCase):
         self.assertIn("live Chef Battle", content)
 
 
+# Inherited red on main, fixed while running T01's gate (2026-08-12): this class
+# drives real views, and CHEF_BATTLE_ENABLED is False by default - which is what
+# the Owner's launch latch says it must be until launch. Without the override the
+# guard answers 404 and every assertion here reads as a failure on any workstation
+# whose .env does not force the flag on.
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class TokenCheckoutCancelLocksTheOrderTests(TestCase):
     """F43, 2026-08-11: token_checkout_cancel raced token_stripe_webhook
     (which already locks the order and rechecks its status) with no lock of
@@ -16834,6 +16934,12 @@ class IngredientLockAndShotRecheckStatusUnderLockTests(TestCase):
         self.assertFalse(IngredientShot.objects.filter(battle=self.battle).exists())
 
 
+# Inherited red on main, fixed while running T01's gate (2026-08-12): this class
+# drives real views, and CHEF_BATTLE_ENABLED is False by default - which is what
+# the Owner's launch latch says it must be until launch. Without the override the
+# guard answers 404 and every assertion here reads as a failure on any workstation
+# whose .env does not force the flag on.
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class ChallengeCreateRechecksMovesUnderTheLockTests(TestCase):
     """F64, 2026-08-11: F49 locked the challenger's profile and re-checked
     the SLOT, but the OTHER precondition checked earlier in the same view -
@@ -16944,6 +17050,12 @@ class HeroChefPromotionsGatedPerRequestTests(TestCase):
 # finding personally re-verified against the actual code before being fixed.
 
 
+# Inherited red on main, fixed while running T01's gate (2026-08-12): this class
+# drives real views, and CHEF_BATTLE_ENABLED is False by default - which is what
+# the Owner's launch latch says it must be until launch. Without the override the
+# guard answers 404 and every assertion here reads as a failure on any workstation
+# whose .env does not force the flag on.
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class BattleSetReadyLocksTheRowTests(TestCase):
     """F67, 2026-08-12: this view had no lock at all. Both chefs pressing
     Ready in the same window - exactly when both WOULD click - each read the
@@ -17454,3 +17566,170 @@ class ProfileFormBecomeAChefIsGatedTests(TestCase):
     def test_prompt_is_shown_once_chef_battle_is_visible(self):
         resp = self.client.get(reverse("recipes:author_edit"))
         self.assertContains(resp, "join Chef Battles")
+
+
+class ScorerAcceptsOnlyVotingTests(TestCase):
+    """T01, Owner brief 2026-08-12 — the scorer's source state is a contract.
+
+    calculate_battle_result used to accept every status except COMPLETED, so a
+    cancelled, void, walkover, paused, disputed, scheduled, menu-locked, active,
+    cooking or presentation battle could be finished AND PAID by any caller that
+    reached it — and with no votes cast the tie-break paid both chefs a draw for
+    a fight that never happened. v2.5.1010 narrowed the one caller in
+    battle_detail and left the scorer open.
+    """
+
+    REFUSED = [
+        Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE,
+        Battle.Status.AWAITING_SUBMISSIONS, Battle.Status.REVEALED,
+        Battle.Status.COOKING, Battle.Status.PRESENTATION,
+        Battle.Status.INGREDIENT_PENALTY, Battle.Status.PAUSED,
+        Battle.Status.CANCELLED, Battle.Status.DISPUTED,
+        Battle.Status.WAITING, Battle.Status.WALKOVER, Battle.Status.VOID,
+    ]
+
+    def setUp(self):
+        User = get_user_model()
+        self.a, self.b = [
+            RecipeAuthor.objects.create(
+                user=User.objects.create_user(f"t01-{n}", password="pw"),
+                name=f"T01 {n}", slug=f"t01-{n}")
+            for n in ("a", "b")
+        ]
+        self.pa = ChefBattleProfile.objects.create(author=self.a)
+        self.pb = ChefBattleProfile.objects.create(author=self.b)
+
+    def _battle(self, status):
+        past = timezone.now() - timezone.timedelta(hours=1)
+        return Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="T01 Dish", status=status,
+            start_time=past, submission_deadline=past, voting_deadline=past,
+            end_time=past,
+        )
+
+    def _snapshot(self):
+        fields = ("rating", "reputation", "wins", "losses", "seasonal_score",
+                  "battle_moves", "crown_count", "crown_until", "win_streak", "rank")
+        out = {}
+        for profile in (self.pa, self.pb):
+            profile.refresh_from_db()
+            out[profile.pk] = {f: getattr(profile, f) for f in fields}
+        return out
+
+    def test_every_non_voting_status_is_refused_and_pays_nothing(self):
+        from chef_battle.models import BattleMoveTransaction, RewardRecord
+        from chef_battle.services import calculate_battle_result
+
+        for status in self.REFUSED:
+            with self.subTest(status=status):
+                battle = self._battle(status)
+                before = self._snapshot()
+                moves_before = BattleMoveTransaction.objects.count()
+                rewards_before = RewardRecord.objects.count()
+
+                calculate_battle_result(battle)
+
+                battle.refresh_from_db()
+                self.assertEqual(
+                    battle.status, status,
+                    f"a {status} battle must not be moved by the ordinary scorer")
+                self.assertIsNone(battle.winner_id)
+                self.assertEqual(self._snapshot(), before,
+                                 f"a {status} battle paid a chef something")
+                self.assertEqual(BattleMoveTransaction.objects.count(), moves_before)
+                self.assertEqual(RewardRecord.objects.count(), rewards_before)
+
+    def test_an_expired_active_battle_with_no_votes_is_not_a_paid_draw(self):
+        """The exact shape the brief names: expired ACTIVE, zero votes, a plain
+        GET. It used to be scored, and the zero-vote tie-break paid both chefs
+        the second-place share."""
+        from chef_battle.services import calculate_battle_result
+
+        battle = self._battle(Battle.Status.ACTIVE)
+        before = self._snapshot()
+        calculate_battle_result(battle)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+        self.assertEqual(self._snapshot(), before)
+
+    def test_voting_still_completes_exactly_once(self):
+        from chef_battle.models import BattleVote
+        from chef_battle.services import calculate_battle_result
+
+        battle = self._battle(Battle.Status.VOTING)
+        User = get_user_model()
+        BattleVote.objects.create(
+            battle=battle, voted_for=self.a,
+            voter=User.objects.create_user("t01-voter", password="pw"))
+
+        calculate_battle_result(battle)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.COMPLETED)
+        self.assertEqual(battle.winner_id, self.a.pk)
+
+        self.pa.refresh_from_db()
+        wins_after_first = self.pa.wins
+        rating_after_first = self.pa.rating
+
+        calculate_battle_result(battle)   # a second sweep lands on the same row
+        self.pa.refresh_from_db()
+        self.assertEqual(self.pa.wins, wins_after_first, "scored twice")
+        self.assertEqual(self.pa.rating, rating_after_first, "paid twice")
+
+    def test_the_callers_object_is_told_the_truth_when_it_is_stale(self):
+        """A caller holding a battle it read minutes ago must not be able to
+        write its own older idea of the status back over a terminal one."""
+        from chef_battle.services import calculate_battle_result
+
+        battle = self._battle(Battle.Status.VOTING)
+        stale = Battle.objects.get(pk=battle.pk)          # the caller's copy
+        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.CANCELLED)
+
+        calculate_battle_result(stale)
+
+        self.assertEqual(stale.status, Battle.Status.CANCELLED,
+                         "the caller's object must be corrected from the locked row")
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.CANCELLED)
+
+
+class AdminForceCompleteFollowsTheScorerContractTests(TestCase):
+    """T01 — the admin action used to count every battle it touched as
+    force-completed whether or not anything happened, so an operator pressing
+    it on a cancelled battle was told it worked."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.a, self.b = [
+            RecipeAuthor.objects.create(
+                user=User.objects.create_user(f"t01adm-{n}", password="pw"),
+                name=f"T01 adm {n}", slug=f"t01adm-{n}")
+            for n in ("a", "b")
+        ]
+        ChefBattleProfile.objects.create(author=self.a)
+        ChefBattleProfile.objects.create(author=self.b)
+
+    def test_it_reports_what_the_contract_refused(self):
+        from chef_battle.admin import force_complete_battles
+
+        past = timezone.now() - timezone.timedelta(hours=1)
+        cancelled = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Refused",
+            status=Battle.Status.CANCELLED,
+            start_time=past, submission_deadline=past, voting_deadline=past,
+            end_time=past,
+        )
+
+        said = []
+
+        class _Admin:
+            def message_user(self, request, message, level=None):
+                said.append(message)
+
+        force_complete_battles(_Admin(), None, Battle.objects.filter(pk=cancelled.pk))
+
+        cancelled.refresh_from_db()
+        self.assertEqual(cancelled.status, Battle.Status.CANCELLED)
+        self.assertTrue(any("0 battle(s) force-completed" in m for m in said))
+        self.assertTrue(any("only accepts a battle in Voting" in m for m in said),
+                        "the operator must be told it did nothing")

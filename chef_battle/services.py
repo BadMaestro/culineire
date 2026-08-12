@@ -1244,15 +1244,68 @@ def calculate_battle_result(battle: Battle) -> Battle:
     if battle.status == Battle.Status.COMPLETED:
         return battle
     with transaction.atomic():
-        # Lock the row and read its status authoritatively. We keep the caller's
-        # own `battle` object and score THAT in place — callers (and tests) rely
-        # on calculate_battle_result mutating the object they passed, not just
-        # the database row — while `locked` holds the row lock for the whole
-        # transaction so a concurrent caller blocks here, then sees COMPLETED.
+        # Lock the row and read its status authoritatively.
         locked = _locked_battle(battle.pk, expected_status=None)
         if locked.status == Battle.Status.COMPLETED:
             battle.status = locked.status
             return battle
+
+        # T01, Owner brief 2026-08-12: THE ONLY STATUS THIS SCORER ACCEPTS IS
+        # VOTING, decided on the locked row and not on whatever the caller was
+        # holding.
+        #
+        # It used to accept everything except COMPLETED, which meant a
+        # CANCELLED, VOID, WALKOVER, PAUSED, DISPUTED, SCHEDULED, MENU_LOCKED,
+        # ACTIVE, COOKING or PRESENTATION battle could be finished and PAID by
+        # any caller that reached it - and with zero votes the tie-break paid
+        # both chefs a draw for a fight that never happened. v2.5.1010 (F20)
+        # narrowed the ONE caller in battle_detail and left the scorer itself
+        # open, which is the fixed-the-symptom-left-the-class pattern this
+        # brief was written against.
+        #
+        # A refusal is silent and harmless on purpose: the callers are a cron
+        # sweep, an admin action and a page view, and none of them should 500
+        # because a battle moved on underneath them. What matters is that
+        # nothing is scored, nothing is paid, and the caller's object is told
+        # the truth about where the battle actually is.
+        if locked.status != Battle.Status.VOTING:
+            logger.info(
+                "Refusing to score battle %s: status is %s, not voting.",
+                locked.pk, locked.status,
+            )
+            battle.status = locked.status
+            return battle
+
+        # Bring the caller's instance up to the locked row's values FIRST, then
+        # score that instance. Both halves matter and the order is the point:
+        #
+        #   - refreshing under the lock means nothing stale of the caller's can
+        #     be written back over the authoritative row, which is what the
+        #     brief asks for;
+        #   - scoring the caller's own object is a contract this codebase
+        #     already depends on. _score_battle points challenger.battle_profile
+        #     and opponent.battle_profile at the rows it just changed, and
+        #     battle_detail.html renders the winner's crown straight off
+        #     battle.challenger.battle_profile.has_crown. Scoring a private
+        #     locked copy instead leaves the caller rendering pre-battle
+        #     figures - a fresh champion with no crown.
+        # Take the authoritative STATUS from the locked row onto the caller's
+        # object and score that object.
+        #
+        # Not refresh_from_db(): that drops the instance's cached challenger and
+        # opponent, and _score_battle deliberately points challenger.battle_profile
+        # and opponent.battle_profile at the rows it has just written, because
+        # battle_detail.html renders the fresh champion's crown straight off
+        # battle.challenger.battle_profile.has_crown. Refreshing hands the
+        # caller a different pair of author objects and leaves the ones it is
+        # actually holding showing pre-battle figures.
+        #
+        # Staleness beyond the status is not a risk here and it is worth saying
+        # why rather than trusting it: the votes are recounted from the database
+        # inside _score_battle, and both profiles are re-read under their own
+        # row locks (F27). The status is the one field the decision turns on,
+        # and it now comes from the locked row.
+        battle.status = locked.status
         return _score_battle(battle)
 
 

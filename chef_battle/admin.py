@@ -121,11 +121,29 @@ def force_reveal_entries(modeladmin, request, queryset):
 @admin.action(description="Force-complete selected battles (recalculate winner)")
 def force_complete_battles(modeladmin, request, queryset):
     from .services import calculate_battle_result
-    count = 0
+    completed, refused = 0, []
     for battle in queryset.exclude(status=Battle.Status.COMPLETED):
         calculate_battle_result(battle)
-        count += 1
-    modeladmin.message_user(request, f"{count} battle(s) force-completed.", messages.SUCCESS)
+        battle.refresh_from_db()
+        if battle.status == Battle.Status.COMPLETED:
+            completed += 1
+        else:
+            refused.append(f"#{battle.pk} ({battle.get_status_display()})")
+    modeladmin.message_user(request, f"{completed} battle(s) force-completed.", messages.SUCCESS)
+    if refused:
+        # T01, Owner brief 2026-08-12: the scorer accepts only VOTING now, and
+        # this action USED TO COUNT EVERY BATTLE IT TOUCHED AS FORCE-COMPLETED
+        # whether or not anything happened - so an operator pressing it on a
+        # cancelled or paused battle was told it worked. It says what it
+        # refused instead. A genuine override is a separate owner-only
+        # operation with a named target state and an audit event, and this
+        # action is deliberately not being turned into one.
+        modeladmin.message_user(
+            request,
+            "Not force-completed - the scorer only accepts a battle in Voting: "
+            + ", ".join(refused),
+            messages.WARNING,
+        )
 
 
 @admin.action(description="Reset disputed battles to Voting")

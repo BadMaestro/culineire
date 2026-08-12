@@ -2027,8 +2027,15 @@ def battle_detail(request, pk):
     from .services import record_viewer_presence, void_stalled_battle, _STALLABLE_STATUSES
     record_viewer_presence(request, battle=battle)
     now = timezone.now()
-    if battle.end_time <= now and battle.status in (Battle.Status.ACTIVE, Battle.Status.VOTING):
+    if battle.end_time <= now and battle.status == Battle.Status.VOTING:
         battle = calculate_battle_result(battle)
+    # T01, 2026-08-12: an expired ACTIVE battle used to be scored here too, and
+    # with no votes cast that meant a paid draw for a fight with no combat and
+    # no evidence. It is a NO-SHOW, and handle_no_show_battles - which runs from
+    # the same cron sweep every fifteen minutes - is the explicit policy for it:
+    # a forfeit win where one chef did submit, a cancellation where neither did.
+    # Deciding that from inside a page view would be guessing; leaving it to the
+    # sweep is the honest answer, and the scorer now refuses ACTIVE outright.
     elif battle.end_time <= now and battle.status in _STALLABLE_STATUSES:
         # F20, 2026-08-11: calculate_battle_result used to run here for ANY
         # non-COMPLETED status - a battle stuck in INGREDIENT_PENALTY/COOKING/
