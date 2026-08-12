@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-11 · Production baseline: **v2.5.1010**
+Last reconciled: 2026-08-11 · Production baseline: **v2.5.1012**
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
@@ -161,6 +161,34 @@ first time to admin.py's bulk actions. Two findings (F39, F40) are races
 between two SEPARATE connections that no sequential TestCase can reproduce
 even with a stale-object simulation - closed on the locking mechanism,
 proven via captured SQL. 114 focused tests green, zero regressions.**
+**F43-F57 fixed, 2026-08-11 — a SECOND independent audit, run fresh against
+origin/main after F34-F42 shipped: 15 more findings (4 CRITICAL, 8 HIGH, 3
+LOW), verdict 69%. Two of them (F47, F48) are bugs in my own F39/F40 fixes
+from hours earlier - both took the right lock and then discarded what it
+returned, still reading the old unlocked object for the check that
+mattered. CRITICAL: token_checkout_cancel raced the Stripe webhook's own
+locked handlers (F43); approve_payout_request's Stripe transfer ran
+unlocked against a concurrent reject, risking a genuine double payout (F44,
+the most severe finding of this round - closed with a pre-flight recheck,
+a Stripe idempotency key, and a loud CRITICAL log for the unavoidable
+residual window); a refund and a dispute on the same order - two different
+Stripe events - could each claw back the full amount (F45); decide_
+withdrawal could reopen a withdrawal resolve_withdrawal had already closed
+(F46). HIGH: F47/F48 above; challenge_create's own slot check was unlocked
+unlike F21's mutex on the other side of the same rule (F49); challenge_
+respond had its own unlocked expiry writer F38 never touched (F50);
+request_withdrawal could open a request against an already-finished battle
+(F51); reset_disputed_battles repeats F34/F35's exact shape (F52); battle
+emulation had no lock at all, Owner-only exposure (F53); demo_battle --end
+repeats F35's pattern, SSH-only exposure (F54). LOW: the recipe-edit
+battle-lock message named Chef Battles to an AUTHOR-tier viewer who should
+see nothing of it during dark launch - the block stays, only the wording
+is now gated (F55); two documentation errors (F56, F57). Same lock-and-
+recheck discipline throughout. Owner's ruling on the standing Stripe
+deferral: it covers work needing configuration on Stripe's own dashboard,
+not pure code bugs that happen to live in Stripe-adjacent files - F43/F44/
+F45 are the latter and were fixed now, not deferred. 42 new tests, 227+
+focused tests green, zero regressions across the full sweep.**
 Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
@@ -507,13 +535,19 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 ## 5. Atomic dispatch queue
 
 **Cleaned and synchronised 2026-08-09**, on the Owner's instruction, after
-Architecture Normalisation closed. The queue holds work still to be done: four
-actionable cards (A19, VD1, MC02, G01) and the historical rows of what shipped.
-The twenty-nine AN cards are off it entirely - see §5a - and no card depends on
-an AN number any more, because a card blocked by a finished foundation is
-blocked forever. The per-card classification, the dependency matrix, the
-cross-card pass and the execution order are in
-`docs/chef_battle/ARENA_BOARD_SYNC_2026_08_09.md`.
+Architecture Normalisation closed. At the time, the queue held four
+actionable cards (A19, VD1, MC02, G01); all four have since closed - A19 and
+G01 DONE (Owner acceptance, 2026-08-09/10), VD1 DONE (Owner accepted the
+visual debt as-is, 2026-08-09, no code changed), MC02 DELETED (Owner's
+order, 2026-08-09, no longer needed). Fixed 2026-08-11 (F57): this section
+had not been updated to say so, and kept calling all four "actionable" long
+after every one of them closed - see §1 and the individual rows in the
+table below for each one's real status. The queue now holds only the
+historical rows of what shipped. The twenty-nine AN cards are off it
+entirely - see §5a - and no card depends on an AN number any more, because a
+card blocked by a finished foundation is blocked forever. The per-card
+classification, the dependency matrix, the cross-card pass and the
+execution order are in `docs/chef_battle/ARENA_BOARD_SYNC_2026_08_09.md`.
 
 The build board contains the full action, files, visible result, acceptance,
 forbidden changes and evidence for every row below.

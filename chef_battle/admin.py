@@ -135,12 +135,24 @@ def reset_disputed_battles(modeladmin, request, queryset):
     # battles into the same _REVEAL_IMPLIED_TARGETS status and didn't - the
     # same class of gap F10/F14 closed elsewhere, just via a direct bulk
     # update instead of a service function.
+    # F52, 2026-08-11: same shape as F34/F35, its two neighbours in this
+    # file - the filtered queryset was fetched once and each row written
+    # with a plain battle.save(), no lock, no recheck. A DISPUTED battle
+    # cancelled by another path while this batch was still working through
+    # earlier rows would be silently reset to VOTING from the stale copy.
+    candidate_ids = list(
+        queryset.filter(status=Battle.Status.DISPUTED).values_list("pk", flat=True)
+    )
     count = 0
-    for battle in queryset.filter(status=Battle.Status.DISPUTED):
-        battle.entries.filter(is_revealed=False).update(is_revealed=True)
-        battle.status = Battle.Status.VOTING
-        battle.save(update_fields=["status", "updated_at"])
-        count += 1
+    for battle_id in candidate_ids:
+        with transaction.atomic():
+            locked = Battle.objects.select_for_update().get(pk=battle_id)
+            if locked.status != Battle.Status.DISPUTED:
+                continue
+            locked.entries.filter(is_revealed=False).update(is_revealed=True)
+            locked.status = Battle.Status.VOTING
+            locked.save(update_fields=["status", "updated_at"])
+            count += 1
     modeladmin.message_user(request, f"{count} disputed battle(s) reset to voting.", messages.SUCCESS)
 
 

@@ -19,6 +19,7 @@ arena is a battle the site itself would have made, not rows written by hand.
 """
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from django.utils import timezone
 
 
@@ -49,8 +50,22 @@ class Command(BaseCommand):
             if battle is None:
                 self.stdout.write("Nothing running.")
                 return
-            battle.status = Battle.Status.CANCELLED
-            battle.save(update_fields=["status"])
+            # F54, 2026-08-11: repeats F35's pattern - a plain save with no
+            # lock or recheck. If a scorer completes this battle between the
+            # query above and this write, it would be silently overwritten
+            # back to CANCELLED. Lock and recheck before writing.
+            with transaction.atomic():
+                locked = Battle.objects.select_for_update().get(pk=battle.pk)
+                if locked.status in (
+                    Battle.Status.COMPLETED, Battle.Status.CANCELLED,
+                    Battle.Status.VOID, Battle.Status.WALKOVER,
+                ):
+                    self.stdout.write(
+                        "Battle #%s already finished (%s); nothing to do." % (
+                            locked.pk, locked.status))
+                    return
+                locked.status = Battle.Status.CANCELLED
+                locked.save(update_fields=["status"])
             self.stdout.write(self.style.SUCCESS(
                 "Battle #%s closed; the arena is quiet again." % battle.pk))
             return

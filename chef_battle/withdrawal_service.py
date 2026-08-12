@@ -79,6 +79,19 @@ def request_withdrawal(*, battle: Battle, author, reason: str) -> BattleWithdraw
 
     other = battle.opponent_for(author)
     with transaction.atomic():
+        # F51, 2026-08-11: can_withdraw's battle.status check above ran
+        # unlocked, before this transaction opened; only the chef's own
+        # allowance profile was locked inside it. A battle that finished
+        # naturally in the gap could still get a withdrawal request created
+        # against it - the request itself, not just its later resolution.
+        # resolve_withdrawal (F29) already refuses to CANCEL a battle that
+        # turns out to have finished, so this could not corrupt the battle
+        # outcome, but it still wastes the chef's allowance and opens a
+        # withdrawal against a battle that no longer needs one.
+        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        if locked_battle.status not in Battle.ACTIVE_STATUSES:
+            raise WithdrawalNotAllowed("This battle cannot be withdrawn from.")
+
         profile = get_or_create_battle_profile(author)
         locked = type(profile).objects.select_for_update().get(pk=profile.pk)
         if locked.withdrawals_remaining <= 0:
@@ -87,7 +100,7 @@ def request_withdrawal(*, battle: Battle, author, reason: str) -> BattleWithdraw
         locked.save(update_fields=["withdrawals_remaining", "updated_at"])
 
         withdrawal = BattleWithdrawal.objects.create(
-            battle=battle, requester=author, opponent=other, reason=reason,
+            battle=locked_battle, requester=author, opponent=other, reason=reason,
         )
         create_battle_event(
             event_type=BattleEvent.EventType.BATTLE_FINISHED,
@@ -124,16 +137,33 @@ def decide_withdrawal(*, withdrawal: BattleWithdrawal, author, with_penalty: boo
     if with_penalty and not opponent_reason:
         raise WithdrawalNotAllowed("Say why the penalty is deserved.")
 
-    withdrawal.opponent_decision = (
-        BattleWithdrawal.OpponentDecision.WITH_PENALTY if with_penalty
-        else BattleWithdrawal.OpponentDecision.WITHOUT_PENALTY
-    )
-    withdrawal.opponent_reason = opponent_reason if with_penalty else ""
-    withdrawal.opponent_decided_at = timezone.now()
-    withdrawal.status = BattleWithdrawal.Status.AWAITING_MODERATOR
-    withdrawal.save(update_fields=[
-        "opponent_decision", "opponent_reason", "opponent_decided_at", "status",
-    ])
+    with transaction.atomic():
+        # F46, 2026-08-11: the AWAITING_OPPONENT check above ran unlocked,
+        # with no transaction at all around the write below. A moderator can
+        # only resolve a withdrawal once it reaches AWAITING_MODERATOR
+        # (resolve_withdrawal, locked since F36) - but if a moderator somehow
+        # closed this withdrawal (CLOSED) while this call was still working
+        # from a stale copy, this write would blindly reopen it back to
+        # AWAITING_MODERATOR, handing resolve_withdrawal a second legitimate-
+        # looking pass at a request it already settled.
+        locked = BattleWithdrawal.objects.select_for_update().get(pk=withdrawal.pk)
+        if locked.status != BattleWithdrawal.Status.AWAITING_OPPONENT:
+            raise WithdrawalNotAllowed("This request has already been answered.")
+
+        locked.opponent_decision = (
+            BattleWithdrawal.OpponentDecision.WITH_PENALTY if with_penalty
+            else BattleWithdrawal.OpponentDecision.WITHOUT_PENALTY
+        )
+        locked.opponent_reason = opponent_reason if with_penalty else ""
+        locked.opponent_decided_at = timezone.now()
+        locked.status = BattleWithdrawal.Status.AWAITING_MODERATOR
+        locked.save(update_fields=[
+            "opponent_decision", "opponent_reason", "opponent_decided_at", "status",
+        ])
+        withdrawal.opponent_decision = locked.opponent_decision
+        withdrawal.opponent_reason = locked.opponent_reason
+        withdrawal.opponent_decided_at = locked.opponent_decided_at
+        withdrawal.status = locked.status
     return withdrawal
 
 

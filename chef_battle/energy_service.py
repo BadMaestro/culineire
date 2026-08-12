@@ -132,8 +132,13 @@ def award_moves(
     # LIKE_ANTI_FARM_MAX_PER_SOURCE through in a day. Locking the profile row
     # serialises the whole function per chef: a second call blocks here
     # until the first commits, then sees what the first actually wrote.
-    profile = _get_profile(author)
-    ChefBattleProfile.objects.select_for_update().get(pk=profile.pk)
+    # F47, 2026-08-11: F39's lock acquired select_for_update() but discarded
+    # the row it returned, still reading the once-per-object/cap logic below
+    # off the earlier, unlocked _get_profile() fetch - the lock serialised
+    # callers but the stale battle_moves value they then reasoned about could
+    # still be wrong if a concurrent award landed while this one was blocked
+    # waiting for the lock. Use the row the lock actually returned.
+    profile = ChefBattleProfile.objects.select_for_update().get(pk=_get_profile(author).pk)
 
     # Publishing a piece of content rewards it ONCE. A recipe (or article/pinch)
     # can transition unapproved -> approved many times — a chef edits an approved

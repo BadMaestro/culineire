@@ -2015,11 +2015,20 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
         # menu exists for that chef. Locking here serialises the two calls -
         # the second blocks until the first fully commits, then correctly
         # sees it.
-        Battle.objects.select_for_update().get(pk=battle.pk)
+        # F48, 2026-08-11: F40's lock acquired select_for_update() but
+        # discarded the row it returned - the status check at the top of this
+        # function ran against the caller's possibly-stale object and was
+        # never re-verified under the lock, so a battle cancelled by another
+        # path while this call waited for the lock could still be written
+        # straight to ACTIVE. Use the row the lock actually returned, and
+        # recheck status with it before creating anything.
+        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        if locked_battle.status != Battle.Status.MENU_LOCKED:
+            raise ValueError("The menu can only be declared in the Changing Room (menu_locked).")
 
-        if battle.battle_ingredients.filter(chef=chef).exists():
+        if locked_battle.battle_ingredients.filter(chef=chef).exists():
             raise ValueError("Your menu is already declared and cannot be changed.")
-        opponent_count = battle.battle_ingredients.filter(chef=battle.opponent_for(chef)).count()
+        opponent_count = locked_battle.battle_ingredients.filter(chef=locked_battle.opponent_for(chef)).count()
         if opponent_count and count != opponent_count:
             raise ValueError(
                 f"Your opponent declared {opponent_count} ingredients — your list must hold the same number."
@@ -2028,7 +2037,7 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
         created = []
         for pos, item in enumerate(ingredients):
             created.append(BattleIngredient.objects.create(
-                battle=battle,
+                battle=locked_battle,
                 chef=chef,
                 name=item["name"].strip(),
                 is_key=bool(item.get("is_key")),
@@ -2037,14 +2046,15 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
 
         # Transition to menu_locked when both chefs have declared
         both_declared = (
-            battle.battle_ingredients.filter(chef=battle.challenger).exists()
-            and battle.battle_ingredients.filter(chef=battle.opponent).exists()
+            locked_battle.battle_ingredients.filter(chef=locked_battle.challenger).exists()
+            and locked_battle.battle_ingredients.filter(chef=locked_battle.opponent).exists()
         )
         if both_declared:
-            battle.status = Battle.Status.ACTIVE
-            battle.save(update_fields=["status"])
+            locked_battle.status = Battle.Status.ACTIVE
+            locked_battle.save(update_fields=["status"])
+            battle.status = locked_battle.status
             create_battle_event(
-                battle=battle,
+                battle=locked_battle,
                 event_type=BattleEvent.EventType.BATTLE_STARTED,
                 message="Both chefs have declared their menus. The battle begins!",
                 is_public=True,
@@ -2865,13 +2875,29 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
 
         buyer_author = getattr(order.wallet, "chef", None)
 
+        # F45, 2026-08-11: charge.refunded and charge.dispute.created are TWO
+        # DIFFERENT Stripe events, with different event ids - the webhook
+        # layer's own dedup (ProcessedTokenStripeEvent, keyed on event_id)
+        # does not catch a genuine SECOND event for the same underlying
+        # charge, and this function had no guard of its own: each call
+        # independently deducted min(wallet.balance, order.tokens), so a
+        # dispute landing after an already-processed refund (or vice versa)
+        # clawed back the full order amount a second time - eating into the
+        # buyer's balance from OTHER, unrelated purchases. The reward
+        # reversal below is already naturally idempotent (a second pass
+        # finds nothing left in PENDING/QUEUED to reverse); the wallet
+        # deduction was the one non-idempotent side effect.
+        already_clawed_back = order.status in (
+            TokenOrder.Status.DISPUTED, TokenOrder.Status.REFUNDED,
+        )
+
         new_status = TokenOrder.Status.DISPUTED if chargeback else TokenOrder.Status.REFUNDED
         order.status = new_status
         order.save(update_fields=["status", "updated_at"])
 
         # Deduct tokens from buyer's wallet if they were credited
         deducted_tokens = 0
-        if buyer_author and order.tokens and order.tokens > 0:
+        if not already_clawed_back and buyer_author and order.tokens and order.tokens > 0:
             wallet = TokenWallet.objects.filter(chef=buyer_author).select_for_update().first()
             if wallet:
                 actual_deduct = min(wallet.balance, order.tokens)
@@ -3144,13 +3170,42 @@ def reject_payout_request(payout_request_id: int, reviewed_by_user, reason: str)
 
 
 def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
-    """Attempt a Stripe Connect transfer for an approved payout. Updates status to PAID on success."""
+    """Attempt a Stripe Connect transfer for an approved payout. Updates status to PAID on success.
+
+    F44, 2026-08-11: reject_payout_request allows rejecting from APPROVED
+    (an admin's legitimate way to give up on a payout whose transfer failed
+    and is stuck), but approve_payout_request calls this function right
+    after its own commit, outside any lock, so a reject landing in that
+    window - or during the Stripe call itself - used to be invisible here:
+    the transfer still went out, and this function blindly overwrote
+    whatever status it found back to PAID, silently erasing a REJECTED
+    verdict and, if the freed reward records were re-submitted and approved
+    a second time, setting up a genuine double payout. A short locked
+    recheck immediately before the Stripe call closes the gap between
+    approve's commit and the transfer starting; the idempotency key stops
+    OUR OWN retries (an admin clicking "retry", a timeout) from creating a
+    second Stripe transfer for one payout. The remaining window - a reject
+    landing during the live Stripe call itself - cannot be closed without
+    holding a DB lock across network I/O, which is worse; it is instead
+    made loud instead of silent: money has already moved by then, so the
+    record is still marked PAID (the honest outcome), but at CRITICAL level
+    so a human reconciles it.
+    """
     from decimal import Decimal
     from .models import LedgerEvent, PayoutRequest
 
     if not payout.stripe_connect_account_id:
         logger.error("No Stripe Connect account ID on PayoutRequest #%s", payout.pk)
         return
+
+    with transaction.atomic():
+        pr = PayoutRequest.objects.select_for_update().get(pk=payout.pk)
+        if pr.status != PayoutRequest.Status.APPROVED:
+            logger.warning(
+                "PayoutRequest #%s is '%s', not APPROVED - skipping Stripe transfer.",
+                payout.pk, pr.status,
+            )
+            return
 
     try:
         import stripe
@@ -3160,10 +3215,17 @@ def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
             currency=payout.currency or "eur",
             destination=payout.stripe_connect_account_id,
             metadata={"payout_request_id": str(payout.pk), "chef": str(payout.chef_id)},
+            idempotency_key=f"payout-transfer-{payout.pk}",
         )
         transfer_id = transfer.get("id", "")
         with transaction.atomic():
             pr = PayoutRequest.objects.select_for_update().get(pk=payout.pk)
+            if pr.status != PayoutRequest.Status.APPROVED:
+                logger.critical(
+                    "PayoutRequest #%s: Stripe transfer %s succeeded but the record is now "
+                    "'%s', not APPROVED - money has moved, marking PAID anyway. RECONCILE.",
+                    payout.pk, transfer_id, pr.status,
+                )
             pr.status = PayoutRequest.Status.PAID
             pr.stripe_transfer_id = transfer_id
             pr.paid_at = timezone.now()

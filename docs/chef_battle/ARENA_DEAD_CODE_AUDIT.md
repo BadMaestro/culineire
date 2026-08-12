@@ -21,7 +21,7 @@ paragraph could.
 | **DUPLICATED** | none. Five stylesheets were merged away in AN4 and AN12; what is left is two files with no shared selector/property pair. |
 | **SUPERSEDED** | none still loaded. |
 | **FEATURE-FLAGGED** | the emulation bots behind `ARENA_SHOW_EMULATION_BOTS`; `live_arena.css` behind the Live Arena preview |
-| **TEST-EMULATION** | `hydrateFixtures()` inside `arena_render.js` — disconnected in v2.5.782 and held by three tests, one written for the sole purpose of stopping a tidy-up |
+| **TEST-EMULATION** | `hydrateFixtures()` inside `arena_deck.js` — disconnected in v2.5.782 and held by three tests, one written for the sole purpose of stopping a tidy-up |
 | **LEGACY BUT REQUIRED** | `octagon_floor_template.js`, `arena_octant_prototype.js` |
 | **DEAD** | **none** |
 | **UNKNOWN** | none — every asset resolved to a category with evidence |

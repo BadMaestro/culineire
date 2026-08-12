@@ -5125,6 +5125,41 @@ class BattleEmulationTests(TestCase):
         with self.assertRaises(OperatorActionError):
             emulation_step(battle_id=real.pk, operator_author=self.owner_author)
 
+    def test_start_emulation_locks_a_bot_profile_as_mutex(self):
+        """F53, 2026-08-11: start_emulation's "one already running" check and
+        the battle it creates had no lock between them - a double-click
+        could pass the check twice before either battle existed. There is
+        no natural single row for "an emulation is running"; the fix locks
+        one of the two bots' own (always-existing) profile rows instead."""
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .emulation import start_emulation
+
+        with CaptureQueriesContext(connection) as captured:
+            start_emulation(operator_author=self.owner_author)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_chefbattleprofile" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "start_emulation must lock a bot profile row as a mutex")
+
+    def test_emulation_step_locks_the_battle_row(self):
+        """F53, 2026-08-11: emulation_step had no lock and no transaction of
+        its own - a double-click, or this call racing a Master Console
+        Cancel on the same battle, had nothing serialising them."""
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .emulation import start_emulation, emulation_step
+
+        battle = start_emulation(operator_author=self.owner_author)
+        with CaptureQueriesContext(connection) as captured:
+            emulation_step(battle_id=battle.pk, operator_author=self.owner_author)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "emulation_step must lock the battle row")
+
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
 class ProfileMergeTests(TestCase):
@@ -6085,6 +6120,39 @@ class TokenChargebackServiceTests(TestCase):
         self.assertEqual(self.order.status, TokenOrder.Status.REFUNDED)
         self.assertEqual(self.wallet.balance, 0)
         self.assertEqual(result["deducted_tokens"], 20)
+
+    def test_a_second_clawback_event_does_not_deduct_twice(self):
+        """F45, 2026-08-11: charge.refunded and charge.dispute.created are
+        TWO DIFFERENT Stripe events - the webhook layer's event-id dedup
+        does not catch a genuine second event for the same underlying
+        charge. A refund followed by a dispute (or vice versa) used to claw
+        back the full order amount a second time, eating into balance from
+        OTHER, unrelated purchases - simulated here by topping the wallet
+        back up between the two calls, as an unrelated purchase would."""
+        from .services import handle_token_order_chargeback
+        from .models import TokenOrder
+
+        first = handle_token_order_chargeback(self.order.pk, chargeback=False)
+        self.wallet.refresh_from_db()
+        self.assertEqual(first["deducted_tokens"], 50)
+        self.assertEqual(self.wallet.balance, 50)  # 100 - 50
+
+        # An unrelated purchase tops the wallet back up.
+        self.wallet.balance = 200
+        self.wallet.save(update_fields=["balance"])
+
+        second = handle_token_order_chargeback(self.order.pk, chargeback=True)
+        self.order.refresh_from_db()
+        self.wallet.refresh_from_db()
+        self.assertEqual(
+            second["deducted_tokens"], 0,
+            "a second clawback event for an already-refunded order must not deduct again",
+        )
+        self.assertEqual(
+            self.wallet.balance, 200,
+            "the unrelated purchase's tokens must survive the second event untouched",
+        )
+        self.assertEqual(self.order.status, TokenOrder.Status.DISPUTED)
 
 
 @override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
@@ -15690,6 +15758,25 @@ class DeclareMenuLocksBattleTests(TestCase):
         self.battle.refresh_from_db()
         self.assertEqual(self.battle.status, Battle.Status.ACTIVE)
 
+    def test_a_stale_declare_on_a_cancelled_battle_is_refused(self):
+        """F48, 2026-08-11: F40's lock acquired select_for_update() but
+        discarded the row it returned, so the MENU_LOCKED check never ran
+        against the locked copy - a battle cancelled by another path while
+        this call waited for the lock could still be written straight to
+        ACTIVE. Unlike the READ COMMITTED gap above, THIS is a stale-object
+        bug and is deterministically provable the same way F29/F41 are."""
+        from .services import declare_menu
+
+        stale_copy = Battle.objects.get(pk=self.battle.pk)
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.CANCELLED)
+
+        with self.assertRaises(ValueError):
+            declare_menu(battle=stale_copy, chef=self.challenger, ingredients=self._menu())
+
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
+        self.assertFalse(self.battle.battle_ingredients.exists())
+
 
 class ApproveCookingPhaseLocksBattleTests(TestCase):
     """F41, 2026-08-11: the INGREDIENT_PENALTY status check ran against
@@ -15783,3 +15870,503 @@ class G13TemplatesCssIsLoadedOnceTests(TestCase):
         resp = self.client.get(reverse("chef_battle:season_detail", kwargs={"slug": season.slug}))
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content.decode().count("chef_battle.css"), 1)
+
+
+class DecideWithdrawalLocksTheWithdrawalTests(TestCase):
+    """F46, 2026-08-11: decide_withdrawal's AWAITING_OPPONENT check ran
+    unlocked with no transaction around the write below it. A moderator who
+    had already CLOSED this withdrawal (resolve_withdrawal, locked since
+    F36) could have it silently reopened back to AWAITING_MODERATOR by a
+    late-arriving opponent decision working from a stale copy, handing
+    resolve_withdrawal a second legitimate-looking pass at a request it had
+    already settled - a different route to the same double-penalty F36
+    closed."""
+
+    def setUp(self):
+        from .withdrawal_service import request_withdrawal
+        User = get_user_model()
+        self.moderator = User.objects.create_user("f46-mod", password="pw", is_staff=True)
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f46-a", password="pw"), name="F46 A", slug="f46-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f46-b", password="pw"), name="F46 B", slug="f46-b")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F46 theme",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+        self.withdrawal = request_withdrawal(
+            battle=self.battle, author=self.chef_a, reason="F46 reason.")
+
+    def test_locks_the_withdrawal_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .withdrawal_service import decide_withdrawal
+
+        with CaptureQueriesContext(connection) as captured:
+            decide_withdrawal(withdrawal=self.withdrawal, author=self.chef_b, with_penalty=False)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battlewithdrawal" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "decide_withdrawal must lock the withdrawal row")
+
+    def test_cannot_reopen_a_withdrawal_a_moderator_already_closed(self):
+        from .withdrawal_service import decide_withdrawal, resolve_withdrawal, WithdrawalNotAllowed
+        from .models import BattleWithdrawal
+
+        # A late-arriving decide_withdrawal call would have loaded its own
+        # copy before the moderator's close committed - fetch that
+        # independent, still-open copy now, before either call below runs.
+        stale_copy = BattleWithdrawal.objects.get(pk=self.withdrawal.pk)
+
+        decide_withdrawal(withdrawal=self.withdrawal, author=self.chef_b, with_penalty=False)
+        resolve_withdrawal(withdrawal=self.withdrawal, moderator=self.moderator, uphold_penalty=False)
+
+        with self.assertRaises(WithdrawalNotAllowed):
+            decide_withdrawal(withdrawal=stale_copy, author=self.chef_b, with_penalty=False)
+
+        self.withdrawal.refresh_from_db()
+        self.assertEqual(self.withdrawal.status, BattleWithdrawal.Status.CLOSED)
+
+
+class ChallengeCreateLocksTheSlotTests(TestCase):
+    """F49, 2026-08-11: challenge_create's own slot check (slot_occupied_
+    reason) ran unlocked, and nothing serialised it against a second POST
+    from the same chef (a double-submit, or two tabs) creating a second
+    challenge before either committed - two pending challenges from one
+    chef, each later acceptable into its own live battle, exactly what the
+    one-slot rule (G1) forbids. accept_challenge already locks the
+    ACCEPTING chef's profile (F21); this is the same mutex on the ISSUING
+    chef's own slot."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("f49-ch", password="pw")
+        self.author = RecipeAuthor.objects.create(user=self.user, name="F49 Challenger", slug="f49-ch")
+        self.opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f49-op", password="pw"), name="F49 Opponent", slug="f49-op")
+        ChefBattleProfile.objects.create(author=self.author, battle_moves=10, age_verified=True)
+        ChefBattleProfile.objects.create(author=self.opponent, age_verified=True)
+        from recipes.models import Recipe
+        self.recipe = Recipe.objects.create(
+            title="F49 Dish", slug="f49-dish", author=self.author,
+            ingredients="salt\npepper", method="Cook.",
+            status=Recipe.Status.APPROVED,
+        )
+        self.client.force_login(self.user)
+
+    def _post(self):
+        return self.client.post(reverse("chef_battle:challenge_create"), {
+            "opponent": self.opponent.pk,
+            "theme_recipe": self.recipe.pk,
+            "theme": "F49 Battle Theme",
+            "battle_type": BattleChallenge.BattleType.PHOTO,
+        })
+
+    def test_a_challenge_is_created_and_the_slot_is_locked(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as captured:
+            resp = self._post()
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(BattleChallenge.objects.filter(
+            challenger=self.author, opponent=self.opponent).exists())
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_chefbattleprofile" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "challenge_create must lock the challenger's own profile row")
+
+    def test_a_second_challenge_is_refused_once_the_slot_is_occupied(self):
+        first = self._post()
+        self.assertEqual(first.status_code, 302)
+        second_opponent = RecipeAuthor.objects.create(
+            user=get_user_model().objects.create_user("f49-op2", password="pw"),
+            name="F49 Opponent 2", slug="f49-op2")
+        ChefBattleProfile.objects.create(author=second_opponent, age_verified=True)
+        resp = self.client.post(reverse("chef_battle:challenge_create"), {
+            "opponent": second_opponent.pk,
+            "theme_recipe": self.recipe.pk,
+            "theme": "F49 Second Battle",
+            "battle_type": BattleChallenge.BattleType.PHOTO,
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(BattleChallenge.objects.filter(challenger=self.author).count(), 1)
+
+
+class ChallengeRespondExpiryLocksTheChallengeTests(TestCase):
+    """F50, 2026-08-11: challenge_respond's own inline expiry check
+    (expires_at <= now -> EXPIRED) bypassed F38's locking entirely - a
+    fourth writer of the challenge's own status, alongside accept_challenge/
+    refuse_challenge/expire_stale_challenges. A stale PENDING-looking
+    challenge (already accepted by a concurrent request) could be
+    overwritten to EXPIRED here, leaving a live Battle behind an EXPIRED
+    challenge."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.challenger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f50-ch", password="pw"), name="F50 Challenger", slug="f50-ch")
+        self.op_user = User.objects.create_user("f50-op", password="pw")
+        self.opponent = RecipeAuthor.objects.create(user=self.op_user, name="F50 Opponent", slug="f50-op")
+        ChefBattleProfile.objects.create(author=self.opponent, age_verified=True)
+        self.challenge = BattleChallenge.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme="F50 Theme",
+            expires_at=timezone.now() - timezone.timedelta(hours=1),
+        )
+        self.client.force_login(self.op_user)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_an_already_accepted_challenge_is_not_overwritten_to_expired(self):
+        from .services import accept_challenge
+
+        accept_challenge(self.challenge)
+        self.assertEqual(self.challenge.status, BattleChallenge.Status.ACCEPTED)
+
+        # The view's own get_object_or_404 fetch, as if it had loaded this
+        # challenge just before the accept committed.
+        stale_challenge = BattleChallenge.objects.get(pk=self.challenge.pk)
+        stale_challenge.status = BattleChallenge.Status.PENDING  # simulate the stale in-memory read
+        # (Directly exercise the view's expiry branch logic via a real request
+        # is simplest: the view refetches with get_object_or_404, so instead
+        # assert the DB-level outcome is never corrupted by posting to it.)
+        resp = self.client.post(
+            reverse("chef_battle:challenge_respond", kwargs={"pk": self.challenge.pk}),
+            {"action": "accept"},
+        )
+        self.challenge.refresh_from_db()
+        self.assertEqual(self.challenge.status, BattleChallenge.Status.ACCEPTED)
+        self.assertTrue(Battle.objects.filter(challenge=self.challenge).exists())
+
+    def test_expiry_locks_the_challenge_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as captured:
+            self.client.post(
+                reverse("chef_battle:challenge_respond", kwargs={"pk": self.challenge.pk}),
+                {"action": "accept"},
+            )
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battlechallenge" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "challenge_respond's expiry write must lock the challenge row")
+        self.challenge.refresh_from_db()
+        self.assertEqual(self.challenge.status, BattleChallenge.Status.EXPIRED)
+
+
+class RequestWithdrawalLocksTheBattleTests(TestCase):
+    """F51, 2026-08-11: can_withdraw's battle.status check ran unlocked,
+    before request_withdrawal's own transaction opened; only the chef's
+    allowance profile was locked inside it. A battle that finished
+    naturally in the gap could still get a withdrawal request created
+    against it, wasting the chef's allowance and opening a withdrawal
+    against a battle that no longer needs one. resolve_withdrawal (F29)
+    still refuses to CANCEL a battle that turns out to have finished, so
+    this could not corrupt the battle outcome - but the wasted allowance
+    and the orphaned withdrawal request were real."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f51-a", password="pw"), name="F51 A", slug="f51-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f51-b", password="pw"), name="F51 B", slug="f51-b")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F51 theme",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+
+    def test_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .withdrawal_service import request_withdrawal
+
+        with CaptureQueriesContext(connection) as captured:
+            request_withdrawal(battle=self.battle, author=self.chef_a, reason="F51 reason.")
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "request_withdrawal must lock the battle row")
+
+    def test_a_withdrawal_is_refused_once_the_battle_has_finished(self):
+        from .withdrawal_service import request_withdrawal, WithdrawalNotAllowed
+        from .models import BattleWithdrawal
+
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.COMPLETED)
+        with self.assertRaises(WithdrawalNotAllowed):
+            request_withdrawal(battle=self.battle, author=self.chef_a, reason="Too late.")
+        self.assertFalse(BattleWithdrawal.objects.filter(battle=self.battle).exists())
+
+
+class AdminResetDisputedBattlesLockedTests(TestCase):
+    """F52, 2026-08-11: same shape as F34/F35, its two neighbours in
+    admin.py - the filtered queryset was fetched once and each row written
+    with a plain battle.save(), no lock, no recheck. A DISPUTED battle
+    cancelled by another path while this batch was still working through
+    earlier rows would be silently reset to VOTING from the stale copy."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f52-a", password="pw"), name="F52 A", slug="f52-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f52-b", password="pw"), name="F52 B", slug="f52-b")
+
+    def _disputed_battle(self, theme):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme=theme,
+            status=Battle.Status.DISPUTED, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+
+    def test_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from chef_battle.admin import reset_disputed_battles
+
+        battle = self._disputed_battle("F52 Lock")
+        qs = Battle.objects.filter(pk=battle.pk)
+        with CaptureQueriesContext(connection) as captured:
+            reset_disputed_battles(_StubModelAdmin(), None, qs)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "reset_disputed_battles must lock each battle row")
+
+    def test_a_battle_cancelled_mid_batch_is_not_reset_to_voting(self):
+        from unittest import mock
+        from django.db.models.query import QuerySet
+        from chef_battle.admin import reset_disputed_battles
+
+        battle_1 = self._disputed_battle("F52 Batch One")
+        battle_2 = self._disputed_battle("F52 Batch Two")
+        self.assertLess(battle_1.pk, battle_2.pk)
+
+        calls = {"n": 0}
+        real_select_for_update = QuerySet.select_for_update
+
+        def spy(self_qs, *args, **kwargs):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                Battle.objects.filter(pk=battle_2.pk).update(status=Battle.Status.CANCELLED)
+            return real_select_for_update(self_qs, *args, **kwargs)
+
+        qs = Battle.objects.filter(pk__in=[battle_1.pk, battle_2.pk]).order_by("pk")
+        with mock.patch.object(QuerySet, "select_for_update", spy):
+            reset_disputed_battles(_StubModelAdmin(), None, qs)
+
+        battle_1.refresh_from_db()
+        battle_2.refresh_from_db()
+        self.assertEqual(battle_1.status, Battle.Status.VOTING)
+        self.assertEqual(battle_2.status, Battle.Status.CANCELLED)
+
+
+class DemoBattleEndLocksTheBattleTests(TestCase):
+    """F54, 2026-08-11: repeats F35's pattern in a management command - a
+    plain save with no lock or recheck. If a scorer completes this battle
+    between the query and the write, --end would silently overwrite it
+    back to CANCELLED."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f54-a", password="pw"), name="F54 A", slug="f54-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f54-b", password="pw"), name="F54 B", slug="f54-b")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F54 theme",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+
+    def test_end_cancels_a_running_battle(self):
+        from io import StringIO
+        from django.core.management import call_command
+
+        call_command("demo_battle", "--end", stdout=StringIO())
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
+
+    def test_end_does_not_overwrite_a_battle_that_already_completed(self):
+        from io import StringIO
+        from django.core.management import call_command
+
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.COMPLETED)
+        out = StringIO()
+        call_command("demo_battle", "--end", stdout=out)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.COMPLETED)
+
+
+class RecipeEditBattleLockMessageIsNeutralTests(TestCase):
+    """F55, 2026-08-11: the recipe-edit battle-lock message named Chef
+    Battles by name to EVERY author, including one on the AUTHOR tier who
+    is supposed to see nothing of the feature during dark launch. The block
+    itself is correct and stays; only the wording changes for a viewer who
+    cannot see the Arena."""
+
+    def setUp(self):
+        from recipes.models import Recipe
+        User = get_user_model()
+        self.plain_user = User.objects.create_user("f55-plain", password="pw")
+        self.plain_author = RecipeAuthor.objects.create(
+            user=self.plain_user, name="F55 Plain", slug="f55-plain")
+        self.staff_user = User.objects.create_user("f55-staff", password="pw", is_staff=True)
+        self.staff_author = RecipeAuthor.objects.create(
+            user=self.staff_user, name="F55 Staff", slug="f55-staff")
+        opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f55-opp", password="pw"), name="F55 Opponent", slug="f55-opp")
+
+        self.recipe = Recipe.objects.create(
+            title="F55 Locked Dish", slug="f55-locked-dish", author=self.plain_author,
+            ingredients="one\ntwo", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=self.plain_author, opponent=opponent, theme="F55 Battle",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+        )
+        BattleEntry.objects.create(battle=battle, author=self.plain_author, recipe=self.recipe)
+        self.edit_url = reverse("recipes:recipe_edit", kwargs={"slug": self.recipe.slug})
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_plain_author_sees_a_neutral_message(self):
+        self.client.force_login(self.plain_user)
+        resp = self.client.get(self.edit_url, follow=True)
+        content = resp.content.decode()
+        self.assertNotIn("live Chef Battle", content)
+        self.assertIn("edited right now", content)
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_staff_sees_the_real_reason(self):
+        self.client.force_login(self.staff_user)
+        resp = self.client.get(self.edit_url, follow=True)
+        content = resp.content.decode()
+        self.assertIn("live Chef Battle", content)
+
+
+class TokenCheckoutCancelLocksTheOrderTests(TestCase):
+    """F43, 2026-08-11: token_checkout_cancel raced token_stripe_webhook
+    (which already locks the order and rechecks its status) with no lock of
+    its own. A stale/cached cancel link, or a redirect racing the webhook,
+    could overwrite an order the webhook had already credited back to
+    "cancelled" - or symmetrically show "cancelled" on a paid order."""
+
+    def setUp(self):
+        from .models import TokenOrder, TokenPackage, TokenWallet
+        User = get_user_model()
+        self.owner_user = User.objects.create_user(username="f43-owner", password="pw")
+        self.owner = RecipeAuthor.objects.create(user=self.owner_user, name="F43 Owner", slug="f43-owner")
+        self.wallet = TokenWallet.objects.create(chef=self.owner)
+        self.package = TokenPackage.objects.create(
+            key="f43-pack", name="F43 Pack", tokens=100, price_eur="10.00"
+        )
+        self.order = TokenOrder.objects.create(
+            wallet=self.wallet, package=self.package, tokens=100, amount_eur_cents=1000
+        )
+        self.url = reverse("chef_battle:token_checkout_cancel")
+
+    def test_locks_the_order_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        self.client.login(username="f43-owner", password="pw")
+        with CaptureQueriesContext(connection) as captured:
+            self.client.get(f"{self.url}?order={self.order.pk}")
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_tokenorder" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "token_checkout_cancel must lock the order row")
+
+    def test_an_already_completed_order_is_not_overwritten_to_cancelled(self):
+        from .models import TokenOrder
+
+        self.order.status = TokenOrder.Status.COMPLETED
+        self.order.save(update_fields=["status"])
+        self.client.login(username="f43-owner", password="pw")
+        self.client.get(f"{self.url}?order={self.order.pk}")
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, TokenOrder.Status.COMPLETED)
+
+
+class PayoutTransferLockedAgainstRejectRaceTests(TestCase):
+    """F44, 2026-08-11: approve_payout_request commits APPROVED and then
+    calls _execute_stripe_connect_transfer outside any lock; reject_payout_
+    request allows rejecting from APPROVED (a legitimate way to give up on a
+    stuck/failed transfer). A reject landing in that gap used to be
+    invisible - the transfer still went out and this function blindly
+    overwrote whatever status it found back to PAID, erasing the REJECTED
+    verdict and, since reject returns the ISSUED reward records to APPROVED
+    for re-request, setting up a genuine double payout."""
+
+    def setUp(self):
+        from decimal import Decimal
+        from .models import PayoutRequest
+        User = get_user_model()
+        self.chef = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f44-chef", password="pw"), name="F44 Chef", slug="f44-chef")
+        self.moderator = User.objects.create_user("f44-mod", password="pw", is_staff=True)
+        self.payout = PayoutRequest.objects.create(
+            chef=self.chef, amount_reward_tokens=100, gross_payout_eur=Decimal("2.50"),
+            status=PayoutRequest.Status.APPROVED,
+            stripe_connect_account_id="acct_f44test",
+        )
+
+    def test_transfer_is_skipped_when_the_payout_is_no_longer_approved(self):
+        from unittest import mock
+        from .models import PayoutRequest
+        from .services import _execute_stripe_connect_transfer
+
+        self.payout.status = PayoutRequest.Status.REJECTED
+        self.payout.save(update_fields=["status"])
+
+        with mock.patch("stripe.Transfer.create") as create:
+            _execute_stripe_connect_transfer(self.payout)
+
+        create.assert_not_called()
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.REJECTED)
+
+    def test_transfer_passes_a_stable_idempotency_key(self):
+        from unittest import mock
+        from .models import PayoutRequest
+
+        from .services import _execute_stripe_connect_transfer
+
+        with mock.patch("stripe.Transfer.create", return_value={"id": "tr_f44"}) as create:
+            _execute_stripe_connect_transfer(self.payout)
+
+        create.assert_called_once()
+        self.assertEqual(
+            create.call_args.kwargs.get("idempotency_key"),
+            f"payout-transfer-{self.payout.pk}",
+        )
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.PAID)
+        self.assertEqual(self.payout.stripe_transfer_id, "tr_f44")
+
+    def test_reject_still_works_from_approved_when_no_transfer_is_in_flight(self):
+        from .services import reject_payout_request
+        from .models import PayoutRequest
+
+        reject_payout_request(self.payout.pk, self.moderator, "chef changed their mind")
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.REJECTED)

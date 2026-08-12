@@ -1932,17 +1932,31 @@ class RecipeUpdateView(AuthorRequiredMixin, UpdateView):
         could drop the dish to a not-found for everyone but the author. Returns
         a redirect response to block on, or None to let the edit proceed.
         """
+        from chef_battle.access import is_battle_visible
         from chef_battle.selectors import active_battle_locking_recipe
         recipe = self.get_object()
         battle = active_battle_locking_recipe(recipe)
         if battle is None:
             return None
-        messages.error(
-            self.request,
-            "This recipe is in a live Chef Battle right now, so it is locked "
-            "until the battle finishes. You can edit it again once the battle "
-            "is over.",
-        )
+        # F55, 2026-08-11: the lock itself is correct - an entered recipe
+        # must stay frozen regardless of who is looking - but the message
+        # named Chef Battles by name to EVERY author, including one on the
+        # AUTHOR tier who is supposed to see nothing of the feature during
+        # dark launch. Keep the block, neutralise the wording for anyone who
+        # cannot see the Arena; staff/superusers (who can) still get the
+        # real reason.
+        if is_battle_visible(self.request):
+            messages.error(
+                self.request,
+                "This recipe is in a live Chef Battle right now, so it is locked "
+                "until the battle finishes. You can edit it again once the battle "
+                "is over.",
+            )
+        else:
+            messages.error(
+                self.request,
+                "This recipe can't be edited right now. Please try again later.",
+            )
         return redirect(recipe.get_absolute_url())
 
     def get(self, request, *args, **kwargs):
@@ -3861,6 +3875,171 @@ ARENA_DESIGN_TASKS = [
         "acceptance": "G13TemplatesCssIsLoadedOnceTests green: all four routes render 200 and contain exactly one 'chef_battle.css' occurrence in the response body.",
         "forbidden": "none.",
         "evidence": "SHIPPED v2.5.1010. GreenBear's G13 work (v2.5.1005) added these four templates after the round-3 CSS cleanup (v2.5.1003) had already fixed the other 40 - a straightforward case of new code landing after a cleanup pass and reintroducing the exact pattern the cleanup removed. LOW severity: 138,630 bytes fetched and parsed twice, no functional or security impact.",
+    },
+    {
+        "id": "F43", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "A paid Stripe checkout could be shown as cancelled, or vice versa",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (token_checkout_cancel)",
+        "depends_on": "none",
+        "action": "Lock the TokenOrder row and recheck its status under the lock before writing CANCELLED, matching the discipline token_stripe_webhook's own handlers (_handle_checkout_completed, _handle_checkout_expired) already use.",
+        "visible_result": "A buyer landing on the Stripe-return cancel page for an order the webhook already completed sees it correctly, instead of the browser page racing the webhook to decide the final status.",
+        "acceptance": "TokenCheckoutCancelLocksTheOrderTests green: FOR UPDATE asserted against chef_battle_tokenorder; an order already COMPLETED is not overwritten to CANCELLED by a visit to the cancel page.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported (second round, run fresh against origin/main after F34-F42 shipped) and verified by direct code read: token_stripe_webhook's own handlers were already correctly locked and rechecked - this view was the one unlocked writer of TokenOrder.status left standing, racing them.",
+    },
+    {
+        "id": "F44", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "A payout could be paid via Stripe and rejected for re-payout at the same time",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/services.py (_execute_stripe_connect_transfer)",
+        "depends_on": "none",
+        "action": "Lock the PayoutRequest row and recheck it is still APPROVED immediately before calling Stripe (closing the gap between approve_payout_request's commit and the transfer starting); pass a stable idempotency_key on stripe.Transfer.create() (stops OUR OWN retries creating a second transfer); log at CRITICAL, rather than silently overwrite, if the record is no longer APPROVED by the time the transfer succeeds (the residual window during the live Stripe call itself - money has moved by then, so PAID is still the honest status, but a human must reconcile it).",
+        "visible_result": "None visible under normal play. A reject landing between approval and the transfer call is now honoured - no transfer is attempted, and the freed reward records are not exposed to a real double payout from that specific race.",
+        "acceptance": "PayoutTransferLockedAgainstRejectRaceTests green: a payout no longer APPROVED at transfer time skips the Stripe call entirely (stripe.Transfer.create asserted not called); a successful transfer passes idempotency_key=f\"payout-transfer-{pk}\"; reject_payout_request still works normally from APPROVED when no transfer is in flight.",
+        "forbidden": "Do not remove APPROVED from reject_payout_request's allowed source statuses - that is the admin's legitimate way to give up on a payout whose transfer failed and is stuck (approve_payout_request explicitly leaves it APPROVED on transfer failure for exactly this reason).",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: approve_payout_request commits APPROVED, then calls the transfer function OUTSIDE any lock; the transfer function itself, on success, blindly wrote PAID regardless of what reject_payout_request might have done to the record in the meantime - and reject explicitly returns ISSUED reward records to APPROVED so the chef can re-request, which is exactly the mechanism a second, legitimate-looking payout could ride to a real double payment. The most severe finding of this round.",
+    },
+    {
+        "id": "F45", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "A refund and a dispute on the same order could each claw back the full amount",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/services.py (handle_token_order_chargeback)",
+        "depends_on": "none",
+        "action": "Gate the wallet-deduction block on whether the order was ALREADY in a clawed-back state (DISPUTED or REFUNDED) when this call started; the reward-reversal block needed no change, being already naturally idempotent (a second pass finds nothing left in PENDING/QUEUED to reverse).",
+        "visible_result": "A buyer's balance is debited once per underlying charge dispute, even if Stripe sends both a refund and a dispute event for it - tokens from OTHER, unrelated purchases are no longer swept up by the second event.",
+        "acceptance": "TokenChargebackServiceTests green (new case added): a chargeback following an already-processed refund deducts 0 tokens and leaves an unrelated top-up untouched, while still recording the new terminal status for audit.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: charge.refunded and charge.dispute.created are two different Stripe events with different event ids: the webhook layer's own ProcessedTokenStripeEvent dedup (keyed on event_id) does not catch a genuine second event for the same underlying charge, and handle_token_order_chargeback itself had no status guard - each call independently deducted min(wallet.balance, order.tokens).",
+    },
+    {
+        "id": "F46", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "A closed withdrawal could be silently reopened and re-resolved",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/withdrawal_service.py (decide_withdrawal)",
+        "depends_on": "F36",
+        "action": "Lock the BattleWithdrawal row and re-check AWAITING_OPPONENT under the lock before writing the opponent's decision.",
+        "visible_result": "None visible under normal play - a late opponent decision working from a stale copy of an already-CLOSED withdrawal is now refused instead of reopening it.",
+        "acceptance": "DecideWithdrawalLocksTheWithdrawalTests green: FOR UPDATE asserted against chef_battle_battlewithdrawal; a decide_withdrawal call on a withdrawal a moderator already closed (stale-object simulation) raises WithdrawalNotAllowed and the withdrawal stays CLOSED.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: F36 (same day, earlier round) locked resolve_withdrawal against a double-resolve, but decide_withdrawal - the OTHER writer of a withdrawal's status, one step earlier in the flow - had no lock of its own. A late decide_withdrawal call could reopen an already-CLOSED withdrawal from AWAITING_OPPONENT-looking staleness, handing resolve_withdrawal a second legitimate pass at it - a different route to the same double-penalty class F36 closed.",
+    },
+    {
+        "id": "F47", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "F39's own fix locked the profile row but never used the locked copy",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/energy_service.py (award_moves)",
+        "depends_on": "F39",
+        "action": "Use the row select_for_update() actually returns for the headroom/cap calculation, instead of discarding it and reading the earlier, unlocked _get_profile() fetch.",
+        "visible_result": "None visible under normal play - the once-per-object dedup was already correctly serialised by the lock; only the cap arithmetic downstream of it could read a stale balance.",
+        "acceptance": "Covered by the existing AwardMovesLocksTheProfileTests (test_infinite_moves_and_cap_behaviour_survive_the_refactor) - regression only; the true-concurrency case this closes needs two separate connections and is not sequentially provable, same as F39 itself.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: F39 added `ChefBattleProfile.objects.select_for_update().get(pk=profile.pk)` but never assigned its return value to anything - the lock was real (correctly serialising the once-per-object/anti-farm checks that run as separate queries after it) but the cap/headroom math a few lines later still read `profile.battle_moves` off the ORIGINAL, unlocked fetch. A ledger entry could then record more moves awarded than the DB-side capped increment actually applied. My own mistake, caught by an independent second-round audit within hours of shipping F39.",
+    },
+    {
+        "id": "F48", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "F40's own fix locked the battle row but never rechecked its status",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/services.py (declare_menu)",
+        "depends_on": "F40",
+        "action": "Use the row select_for_update() actually returns throughout the function, and re-check status == MENU_LOCKED against it before creating anything.",
+        "visible_result": "A stale menu declaration on a battle cancelled by another path is now refused instead of writing the battle straight to ACTIVE.",
+        "acceptance": "DeclareMenuLocksBattleTests green (new case added): a declare_menu call on a battle cancelled underneath a stale battle object (deterministic stale-copy simulation, unlike the READ COMMITTED gap F40 itself closes) raises ValueError and creates no ingredients.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: same shape as F47 - F40 added the lock but discarded its return value, so the MENU_LOCKED precondition check (which runs before the transaction even opens) was never re-verified once inside it. Unlike F47, this specific gap IS deterministically testable, since it is a stale-object bug rather than a pure transaction-isolation race - caught the same way F29/F41 are tested.",
+    },
+    {
+        "id": "F49", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "Issuing a challenge did not lock the issuer's own one-slot rule",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (challenge_create)",
+        "depends_on": "F21",
+        "action": "Lock the challenger's own ChefBattleProfile row and re-check slot_occupied_reason under it, immediately before form.save() - the same mutex accept_challenge (F21) already takes on the ACCEPTING chef, applied here to the ISSUING chef's own slot.",
+        "visible_result": "None visible under normal play - a double-submitted challenge form now serialises instead of risking two pending challenges from one chef.",
+        "acceptance": "ChallengeCreateLocksTheSlotTests green: a normal challenge still creates successfully with the profile row locked (FOR UPDATE asserted); a second challenge once the slot is occupied is refused, same as today.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: F21 locked the ACCEPTING chef's profile inside accept_challenge, but challenge_create's own slot check for the ISSUING chef ran fully unlocked, with form.save() right after it - the same TOCTOU shape F21 had already closed on the other side of the same rule.",
+    },
+    {
+        "id": "F50", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "The challenge-response view had its own unlocked expiry writer, bypassing F38",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/views.py (challenge_respond)",
+        "depends_on": "F38",
+        "action": "Lock the challenge row and re-check status == PENDING under the lock before writing EXPIRED.",
+        "visible_result": "A challenge already accepted by a concurrent request is no longer at risk of being overwritten to EXPIRED by a stale view load, leaving its live Battle intact and correctly reflected.",
+        "acceptance": "ChallengeRespondExpiryLocksTheChallengeTests green: FOR UPDATE asserted against chef_battle_battlechallenge; an already-ACCEPTED challenge (via accept_challenge) is unaffected by a later request to this same view.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: F38, earlier the same day, locked accept_challenge/refuse_challenge/expire_stale_challenges - three writers of a challenge's status - but missed this FOURTH one, a small inline expiry check sitting directly in the challenge_respond view, never routed through any of the three locked functions.",
+    },
+    {
+        "id": "F51", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "A withdrawal request could be created against an already-finished battle",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/withdrawal_service.py (request_withdrawal)",
+        "depends_on": "F29",
+        "action": "Lock the battle row and re-check status in ACTIVE_STATUSES under the lock, alongside the existing allowance-profile lock.",
+        "visible_result": "A withdrawal request against a battle that finished in the same instant is now refused up front, instead of creating an orphaned request and spending the chef's allowance for nothing.",
+        "acceptance": "RequestWithdrawalLocksTheBattleTests green: FOR UPDATE asserted against chef_battle_battle; a request against a battle updated to COMPLETED underneath it is refused and creates no BattleWithdrawal row.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: can_withdraw's battle-status check ran unlocked before request_withdrawal's own transaction opened, which locked only the chef's allowance profile. resolve_withdrawal (F29) already refuses to CANCEL a battle that turns out to have finished, so this could not corrupt the battle outcome - but it still wasted the chef's allowance and left an orphaned withdrawal request open against a battle that no longer needed one.",
+    },
+    {
+        "id": "F52", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "reset_disputed_battles repeats the F34/F35 unlocked-batch pattern",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/admin.py (reset_disputed_battles)",
+        "depends_on": "F34, F35",
+        "action": "Same restructuring as F34/F35: materialise candidate ids up front, then lock and recheck each row inside its own transaction before writing VOTING.",
+        "visible_result": "None visible under normal play - a DISPUTED battle cancelled by another path mid-batch is no longer silently reset to VOTING.",
+        "acceptance": "AdminResetDisputedBattlesLockedTests green: FOR UPDATE asserted; the same one-shot mid-batch interleaving simulation used for F34/F35 confirms a battle cancelled between rows keeps its CANCELLED status.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: this action, admin.py's third bulk battle-status writer alongside force_reveal_entries and cancel_battles, was deliberately left out of the F34/F35 fix - it is a rare, narrow-status (DISPUTED only) action with lower practical exposure than its two neighbours, but the code shape was identical and an independent audit correctly flagged the inconsistency of fixing two of three siblings.",
+    },
+    {
+        "id": "F53", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "Battle emulation had no lock at either the start or step level",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/emulation.py (start_emulation, emulation_step)",
+        "depends_on": "none",
+        "action": "start_emulation now locks one of the two (always-existing) bots' own ChefBattleProfile rows as a mutex before its 'one already running' check. emulation_step is now wrapped in @transaction.atomic with select_for_update() on the initial battle fetch, holding the row lock for the whole multi-stage call - the domain services each branch calls (approve_cooking_phase, calculate_battle_result, etc.) already take the same lock themselves, and a connection never blocks on a lock it already holds.",
+        "visible_result": "None visible under normal play - a double-click on Start Emulation or the Step button, or either racing a Master Console Cancel on the same emulation battle, now serialises instead of risking two emulation battles or a step overwriting a concurrent cancellation.",
+        "acceptance": "BattleEmulationTests green (two new cases): FOR UPDATE asserted for both functions; the full 12-step emulated lifecycle (existing regression test) and the existing 'second emulation blocked' test are unaffected.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: both functions are Owner-only (single operator), so the practical exposure is limited to a double-click rather than an external actor - but the fix is real and complete, closing the same class of gap as everywhere else in this batch. There is no natural single row representing 'an emulation is running', so the fix locks one of the two bots' own profile rows instead, the same 'lock a stable existing row as mutex' pattern F30 already established for the combat artifact loadout.",
+    },
+    {
+        "id": "F54", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "demo_battle --end repeats the F35 unlocked-write pattern",
+        "status": "DONE", "owner": "Bolt",
+        "files": "chef_battle/management/commands/demo_battle.py",
+        "depends_on": "F35",
+        "action": "Lock the battle row and recheck it is not already in a terminal status before writing CANCELLED.",
+        "visible_result": "Running `manage.py demo_battle --end` on a battle that finished naturally in the meantime now reports it as already finished, instead of overwriting it to CANCELLED.",
+        "acceptance": "DemoBattleEndLocksTheBattleTests green: --end still cancels a running battle normally; a battle already COMPLETED is left untouched.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: same unlocked plain-save pattern as F35, just in a management command rather than an admin action. LOWEST practical severity in this batch - the command is only reachable by whoever already has shell/SSH access to the server, the same tier of access that could deploy new code outright.",
+    },
+    {
+        "id": "F55", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "The recipe-edit battle-lock message named Chef Battles to every author",
+        "status": "DONE", "owner": "Bolt",
+        "files": "recipes/views.py (RecipeUpdateView._battle_lock_redirect)",
+        "depends_on": "none",
+        "action": "Keep the edit block exactly as-is; branch the MESSAGE TEXT on is_battle_visible(request) - staff/superusers still see the real reason, everyone else sees a neutral 'can't be edited right now' message.",
+        "visible_result": "An AUTHOR-tier chef whose recipe is locked by a battle they cannot otherwise see now gets a message that does not name Chef Battles at all.",
+        "acceptance": "RecipeEditBattleLockMessageIsNeutralTests green: a plain author sees the neutral message and not the phrase 'live Chef Battle'; staff still sees the real reason.",
+        "forbidden": "Do not weaken or remove the edit block itself - drifting ingredient-line indices mid-battle is the real invariant being protected; only the WORDING shown to a non-visible viewer changes.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified by direct code read: this is a genuine dark-launch information leak, the same class of contract violation F1-F5's original audit closed elsewhere, just never checked on this specific message. LOW severity - it reveals that Chef Battles exists and that this one recipe is in one, nothing more; no other data is exposed.",
+    },
+    {
+        "id": "F56", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "Dead-code audit doc named the wrong file for hydrateFixtures()",
+        "status": "DONE", "owner": "Bolt",
+        "files": "docs/chef_battle/ARENA_DEAD_CODE_AUDIT.md",
+        "depends_on": "none",
+        "action": "Correct the TEST-EMULATION row to name arena_deck.js, where hydrateFixtures() actually lives, instead of arena_render.js.",
+        "visible_result": "None - documentation only.",
+        "acceptance": "grep confirms hydrateFixtures() exists in arena_deck.js and not in arena_render.js.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified directly: a plain factual error in the dead-code audit table, no code impact.",
+    },
+    {
+        "id": "F57", "group": "Independent Audit 2026-08-11 (Round 2)", "title": "The dispatch-queue summary kept calling four closed cards \"actionable\"",
+        "status": "DONE", "owner": "Bolt",
+        "files": "docs/ARENA_BATTLE_PLAN.md (section 5)",
+        "depends_on": "none",
+        "action": "Rewrote the section 5 summary to state each of the four cards' real, current status (A19 DONE, G01 DONE, VD1 DONE, MC02 DELETED - all per their own rows in the same document) instead of continuing to call all four 'actionable'.",
+        "visible_result": "None - documentation only.",
+        "acceptance": "Section 5 no longer contradicts §1's own G01-closed note or the individual A19/VD1/MC02/G01 rows later in the same file.",
+        "forbidden": "none.",
+        "evidence": "SHIPPED v2.5.1012. Independently reported and verified directly: the queue was 'cleaned and synchronised 2026-08-09' with these four cards genuinely open at the time, but the summary sentence was never updated as each one closed over the following two days, even though the individual table rows further down the SAME document were each updated correctly.",
     },
     {
         "id": "F24", "group": "Release Audit 2026-08-11 (Round 3)", "title": "Season close/activate took no row lock, letting a cron self-overlap double-fire season-end rewards",

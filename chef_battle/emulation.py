@@ -103,46 +103,69 @@ def start_emulation(*, operator_author, correlation_id="") -> Battle:
     """Create a fresh SCHEDULED emulation battle between the two bots."""
     _require_owner(operator_author)
 
-    existing = Battle.objects.filter(
-        theme__startswith=EMU_THEME_PREFIX,
-        status__in=list(Battle.ACTIVE_STATUSES) + [
-            Battle.Status.INGREDIENT_PENALTY, Battle.Status.PAUSED,
-        ],
-    ).first()
-    if existing:
-        raise OperatorActionError(
-            f"Emulation battle #{existing.pk} is already running "
-            f"({existing.status}). Finish or cancel it first."
-        )
-
     alpha = _get_or_create_bot(*EMU_CHEFS[0])
     beta = _get_or_create_bot(*EMU_CHEFS[1])
-    now = timezone.now()
-    battle = Battle.objects.create(
-        challenger=alpha,
-        opponent=beta,
-        theme=f"{EMU_THEME_PREFIX} {now:%Y-%m-%d %H:%M}",
-        status=Battle.Status.SCHEDULED,
-        start_time=now,
-        submission_deadline=now + timezone.timedelta(days=1),
-        voting_deadline=now + timezone.timedelta(days=2),
-        end_time=now + timezone.timedelta(days=3),
-    )
-    _operator_event(
-        battle=battle, operator_author=operator_author,
-        action="emulation_start", before="-", after=battle.status,
-        reason="Owner started a battle emulation",
-        correlation_id=correlation_id,
-        extra={"bots": [alpha.slug, beta.slug]},
-    )
+
+    with transaction.atomic():
+        # F53, 2026-08-11: the "one already running" check and the battle it
+        # creates had no lock and no transaction between them - a double-
+        # click could pass the check twice before either battle existed,
+        # starting two emulation battles at once. There is no single row
+        # that naturally represents "an emulation is running" to lock, so
+        # lock one of the two bots' own profile rows instead: every
+        # emulation always uses the SAME two bots, so a second concurrent
+        # start blocks here until the first commits, then correctly sees
+        # its battle in the check below.
+        ChefBattleProfile.objects.select_for_update().get(author=alpha)
+        existing = Battle.objects.filter(
+            theme__startswith=EMU_THEME_PREFIX,
+            status__in=list(Battle.ACTIVE_STATUSES) + [
+                Battle.Status.INGREDIENT_PENALTY, Battle.Status.PAUSED,
+            ],
+        ).first()
+        if existing:
+            raise OperatorActionError(
+                f"Emulation battle #{existing.pk} is already running "
+                f"({existing.status}). Finish or cancel it first."
+            )
+
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=alpha,
+            opponent=beta,
+            theme=f"{EMU_THEME_PREFIX} {now:%Y-%m-%d %H:%M}",
+            status=Battle.Status.SCHEDULED,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=1),
+            voting_deadline=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=3),
+        )
+        _operator_event(
+            battle=battle, operator_author=operator_author,
+            action="emulation_start", before="-", after=battle.status,
+            reason="Owner started a battle emulation",
+            correlation_id=correlation_id,
+            extra={"bots": [alpha.slug, beta.slug]},
+        )
     return battle
 
 
+@transaction.atomic
 def emulation_step(*, battle_id, operator_author, correlation_id="") -> dict:
-    """Advance the emulation battle by exactly one lifecycle stage."""
+    """Advance the emulation battle by exactly one lifecycle stage.
+
+    F53, 2026-08-11: wrapped in one transaction, with the battle row locked
+    for its whole duration - a double-click on the step button, or this call
+    racing a Master Console Cancel on the same emulation battle, used to have
+    nothing serialising them, so a concurrent cancellation could be silently
+    overwritten by an in-flight step. The domain services called from each
+    branch below (approve_cooking_phase, calculate_battle_result, etc.) take
+    the same row lock themselves; re-acquiring it here first is safe - a
+    connection never blocks on a lock it already holds.
+    """
     _require_owner(operator_author)
     try:
-        battle = Battle.objects.select_related("challenger", "opponent").get(
+        battle = Battle.objects.select_related("challenger", "opponent").select_for_update().get(
             pk=battle_id)
     except Battle.DoesNotExist:
         raise OperatorActionError("Battle not found.")

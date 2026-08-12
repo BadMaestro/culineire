@@ -739,9 +739,22 @@ def token_checkout_cancel(request):
             .select_related("package")
             .first()
         )
-    if order and order.status == "pending":
-        order.status = "cancelled"
-        order.save(update_fields=["status", "updated_at"])
+    if order:
+        # F43, 2026-08-11: this browser-return "cancel" page raced the
+        # Stripe webhook (token_stripe_webhook -> _handle_checkout_completed,
+        # which already locks the order and rechecks its status) with no
+        # lock of its own. A user landing here on a stale/cached cancel
+        # link, or a race between the redirect and the webhook, could
+        # overwrite an order the webhook had already credited back to
+        # "cancelled" - or, symmetrically, a paid order could show cancelled
+        # while the buyer's tokens were, in fact, credited. Lock and recheck
+        # before writing.
+        with transaction.atomic():
+            locked_order = TokenOrder.objects.select_for_update().get(pk=order.pk)
+            if locked_order.status == TokenOrder.Status.PENDING:
+                locked_order.status = TokenOrder.Status.CANCELLED
+                locked_order.save(update_fields=["status", "updated_at"])
+            order.status = locked_order.status
     return render(request, "chef_battle/token_checkout_cancel.html", {"order": order})
 
 
@@ -1833,7 +1846,23 @@ def challenge_create(request):
                 messages.error(request, _CHALLENGE_FRAUD_MESSAGES.get(first_fail.gate, "Challenge not accepted."))
                 return render(request, "chef_battle/challenge_form.html", {"form": form})
 
-            challenge = form.save()
+            # F49, 2026-08-11: the slot check above is unlocked, and nothing
+            # serialised it against a second POST from the same chef (a
+            # double-submit, or two tabs) creating a second challenge before
+            # either committed - two pending challenges from one chef, each
+            # of which can later be accepted into its own live battle,
+            # exactly what the one-slot rule forbids. Lock the challenger's
+            # own profile row and re-check the slot under it, the same
+            # mutex accept_challenge already takes on the ACCEPTING chef
+            # (F21) - here it is the ISSUING chef's own slot at risk.
+            with transaction.atomic():
+                challenger_profile = get_or_create_battle_profile(author)
+                ChefBattleProfile.objects.select_for_update().get(pk=challenger_profile.pk)
+                slot_error = slot_occupied_reason(author)
+                if slot_error:
+                    messages.error(request, slot_error)
+                    return render(request, "chef_battle/challenge_form.html", {"form": form})
+                challenge = form.save()
             get_or_create_battle_profile(author)
             get_or_create_battle_profile(challenge.opponent)
             create_battle_event(
@@ -1903,8 +1932,18 @@ def challenge_respond(request, pk):
         messages.warning(request, "This challenge has already been answered.")
         return redirect("chef_battle:challenge_list")
     if challenge.expires_at <= timezone.now():
-        challenge.status = BattleChallenge.Status.EXPIRED
-        challenge.save(update_fields=["status"])
+        # F50, 2026-08-11: this write bypassed F38's locking entirely - a
+        # fourth writer of the challenge's own status, alongside
+        # accept_challenge/refuse_challenge/expire_stale_challenges, none of
+        # which this view call serialised against. A stale PENDING-looking
+        # challenge (already accepted by a concurrent request) could be
+        # overwritten to EXPIRED here, leaving a live Battle behind an
+        # EXPIRED challenge. Lock and recheck before writing.
+        with transaction.atomic():
+            locked = BattleChallenge.objects.select_for_update().get(pk=challenge.pk)
+            if locked.status == BattleChallenge.Status.PENDING:
+                locked.status = BattleChallenge.Status.EXPIRED
+                locked.save(update_fields=["status"])
         messages.warning(request, "This challenge has expired.")
         return redirect("chef_battle:challenge_list")
 
