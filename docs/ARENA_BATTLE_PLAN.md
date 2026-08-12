@@ -4,7 +4,39 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-12 · Production baseline: **v2.5.1016**
+Last reconciled: 2026-08-12 · Production baseline: **v2.5.1017**
+
+**OWNER BRIEF, 2026-08-12 — seventeen tickets, T01–T17, on the board and mine
+alone.** Delivered on the Carpet as message #3509 and dispatched by him with
+one instruction: create every card first, then start. They close the classes
+his last audit named — illegal `Battle.status` transitions, stale-object
+resurrection, lost concurrent updates, money and reward-ledger integrity,
+stored XSS and unsafe uploads, runtime drifting from the rulebook, and dead
+code — in five packages, critical and security first.
+
+**His rulings that bound this work, stated once here so nothing is re-litigated
+in a ticket:** `CHEF_BATTLE_ENABLED` is a **one-way launch latch** — False
+until launch, True after it, and never back — so **F65 is REVIEWED, NOT A BUG**
+and nothing is designed around switching it off again. Stripe Dashboard work is
+outside the brief; everything on OUR side of the webhook is inside it. Where he
+has previously corrected the old ТЗ, the code is the decision — **but a
+required feature that was simply never built is not a decision to cancel it**:
+build it, or stop and ask him.
+
+**A NUMBERING COLLISION, named so nobody trips on it.** His brief calls these
+F67–F83. The board already carries F67–F75 from Bolt's self-directed audit of
+the same day, and they are **different findings** — his F67 is the scorer
+accepting any status, the board's F67 is `battle_set_ready` having no lock. The
+cards are therefore keyed **T01–T17** to his ticket numbers, and each one cites
+the brief rather than an F number.
+
+**Three of his tickets were already partly answered by work that shipped on
+2026-08-12, and the cards say so rather than claiming credit for it:** T03's
+lock is in (F67, v2.5.1016) and only its two-thread barrier test is missing;
+T06 has its battle lock (F69) and still needs the entry lock and the ordering
+proof; T01's caller was scoped at `battle_detail` (F20, v2.5.1010) while the
+scorer itself still accepts every status but COMPLETED, which is exactly the
+"fixed the symptom, left the class" pattern the brief was written against.
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
