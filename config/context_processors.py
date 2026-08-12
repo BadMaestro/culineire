@@ -28,7 +28,20 @@ def _cache_set(key, value, seconds):
 
 
 def hero_chef_promotions(request):
-    """Build cached promotional messages for the animated hero chef."""
+    """Build cached promotional messages for the animated hero chef.
+
+    F65, 2026-08-11: the Chef Battle promo item used to be baked into this
+    SHARED, sitewide cache entry (one key, no viewer dimension), checked
+    against the global CHEF_BATTLE_ENABLED flag only at the moment the
+    cache happened to be repopulated. is_battle_visible() also depends on
+    the REQUESTING viewer (staff/superusers see it even with the flag off),
+    which can never be safely baked into a cache with no per-viewer key -
+    and turning the flag off did not clear the cache, so anyone could see
+    the promo text and the Arena link for up to this entry's TTL after
+    dark-launch was supposed to hide it again. The Chef Battle item is
+    computed fresh per request, outside the cached block, and only the
+    remaining battle-agnostic promotions are cached.
+    """
     cache_key = "hero_chef_promotions_v1"
     promotions = _cache_get(cache_key)
     if promotions is None:
@@ -62,12 +75,6 @@ def hero_chef_promotions(request):
                     "url": reverse("recipes:recipe_detail", kwargs={"slug": latest_recipe["slug"]}),
                 })
 
-            if getattr(settings, "CHEF_BATTLE_ENABLED", False):
-                promotions.append({
-                    "text": "Do you know who’s competing in Chef Battles right now?",
-                    "url": reverse("chef_battle:arena"),
-                })
-
             sponsor = (
                 SponsorCell.objects.filter(
                     ring=0,
@@ -95,6 +102,17 @@ def hero_chef_promotions(request):
                 "text": "I don’t accept tips! Want to thank me?",
                 "url": "https://buymeacoffee.com/bearcave",
             }]
+
+    promotions = list(promotions)
+    try:
+        from chef_battle.access import is_battle_visible
+        if is_battle_visible(request):
+            promotions.insert(min(2, len(promotions)), {
+                "text": "Do you know who’s competing in Chef Battles right now?",
+                "url": reverse("chef_battle:arena"),
+            })
+    except Exception:  # noqa: BLE001 - a broken gate is not a broken page
+        pass
 
     return {"hero_chef_promotions": promotions}
 

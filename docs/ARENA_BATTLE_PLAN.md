@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-11 · Production baseline: **v2.5.1012**
+Last reconciled: 2026-08-11 · Production baseline: **v2.5.1014**
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
@@ -189,6 +189,35 @@ deferral: it covers work needing configuration on Stripe's own dashboard,
 not pure code bugs that happen to live in Stripe-adjacent files - F43/F44/
 F45 are the latter and were fixed now, not deferred. 42 new tests, 227+
 focused tests green, zero regressions across the full sweep.**
+**F58-F66 fixed, 2026-08-11 — a THIRD independent audit found the previous
+round's fixes still incomplete: 9 findings (5 CRITICAL, 1 HIGH, 1 MEDIUM, 2
+LOW). Different in kind from the first two rounds: not new territory, but
+proof the lock-and-recheck pattern had been applied narrowly. CRITICAL:
+F58 - the paid Stripe webhook still refused to complete an order F43's own
+cancel-page fix had marked CANCELLED/EXPIRED first; now a confirmed-paid
+event overrides both (not REFUNDED/DISPUTED, where money already came back
+out). F59 - F44 only reduced the double-payout window and logged CRITICAL
+instead of preventing it; a durable PayoutRequest.PROCESSING status (one
+migration, choices-only) now makes reject/hold structurally unable to act
+while a transfer might be in flight. F60 - a chargeback never touched an
+already-open payout request; it now holds the chef's own open payouts
+directly, and approval re-checks the compliance flag as a second gate.
+F61 - a reward 'locked' for a payout was reserved in name only; expire/
+reverse now honour the reservation. F62 - submit_combat_action's ACTIVE
+check was never re-verified under any lock, in code predating this whole
+audit arc. HIGH: F63 - the identical gap, independently pre-existing in
+place_ingredient_lock/fire_ingredient_shot. MEDIUM: F64 - F49 locked one of
+challenge_create's two preconditions (the slot) but not the other (moves).
+LOW: F65 - a sitewide cache could leak the Chef Battle promo for up to 5
+minutes after the flag went off, since is_battle_visible() depends on the
+viewer and can never be safely baked into a cache keyed on nothing but
+time; F66 - the same doc-drift class as F57, one section earlier. Given the
+pattern this round exposed, ran a full codebase sweep for every
+select_for_update().get() call whose return value goes unused - found
+exactly this round's set, nothing more; the season/observer/accept_
+challenge mutex locks were confirmed correctly scoped (their real checks
+are fresh post-lock queries, not stale field reads). 27 new tests, 73+
+focused tests green, zero regressions.**
 Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.
@@ -496,6 +525,16 @@ broadcast. Anything that belongs to watching a fight belongs on the battle page.
 dependency).** Slice N+1 is not started until slice N is **DONE** (merged,
 deployed and verified). Only one slice is ever in flight, and each agent holds
 at most one card. Nobody starts the next card before the current one is DONE.
+
+**F66, 2026-08-11: this paragraph described Stage 2's (Design Arena
+integration) own dispatch queue, which closed with G01 - §5's table now
+holds only historical, already-shipped rows (see §5's own note), so there
+is no live "table order" left to run slices against. Any execution
+ordering for CURRENT work is governed by declared `depends_on` values on
+each finding/card and, where one exists, the dependency matrix in
+`docs/chef_battle/ARENA_BOARD_SYNC_2026_08_09.md` - not by a fixed row
+position in a now-finished table. Kept here as a record of how Stage 2
+itself was run, not as a rule still in force.**
 
 **Before taking a new card, go to the board first.** Confirm the previous card is
 marked **DONE** in both §5 here and `ARENA_RELEASE_STAGES`/`ARENA_DESIGN_TASKS`

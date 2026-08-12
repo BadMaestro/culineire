@@ -1639,6 +1639,19 @@ def submit_combat_action(
     if action_type not in (BattleCombatAction.ActionType.ATTACK, BattleCombatAction.ActionType.DEFEND):
         raise ValueError("Invalid action type.")
 
+    # F62, 2026-08-11: the ACTIVE check above ran against whatever object the
+    # caller passed in, with nothing locking or rechecking it once this
+    # transaction opened. F30 (below) later added a battle-row lock, but only
+    # as a mutex for the artifact loadout count - its result was discarded,
+    # so a battle cancelled between the caller's fetch and this point could
+    # still have moves deducted, artifacts destroyed, a round created, and
+    # even be pushed into INGREDIENT_PENALTY out of a status the game no
+    # longer considers live. Lock and recheck here, before anything else.
+    locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+    if locked_battle.status != Battle.Status.ACTIVE:
+        raise ValueError("Combat actions are only allowed during an active battle.")
+    battle.status = locked_battle.status
+
     moves_invested = max(COMBAT_MOVES_MIN, min(COMBAT_MOVES_MAX, moves_invested))
 
     profile = get_or_create_battle_profile(chef)
@@ -2101,8 +2114,15 @@ def place_ingredient_lock(*, battle: Battle, chef, ingredient_index: int) -> Ing
     # and leaving the chef with more than MAX_LOCKS. Two locks is a rule of the
     # game, not a hint.
     with transaction.atomic():
-        Battle.objects.select_for_update().get(pk=battle.pk)
-        existing = battle.ingredient_locks.filter(chef=chef).count()
+        # F63, 2026-08-11: the INGREDIENT_PENALTY check above ran against the
+        # caller's object, and this lock's own return value used to be
+        # discarded - a cooking approval or a cancel completing between the
+        # check and this lock meant a stale request could still create a
+        # lock and a public event on a battle already in COOKING/CANCELLED.
+        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        if locked_battle.status != Battle.Status.INGREDIENT_PENALTY:
+            raise ValueError("Locks can only be placed during the ingredient penalty phase.")
+        existing = locked_battle.ingredient_locks.filter(chef=chef).count()
         if existing >= IngredientLock.MAX_LOCKS:
             raise ValueError(f"You can only place {IngredientLock.MAX_LOCKS} locks.")
         lock, created = IngredientLock.objects.get_or_create(
@@ -2138,8 +2158,13 @@ def fire_ingredient_shot(*, battle: Battle, shooter, target_index: int) -> Ingre
     # chef to MAX_SHOTS — and two simultaneous requests both passed it. Three
     # shots is a rule of the game.
     with transaction.atomic():
-        Battle.objects.select_for_update().get(pk=battle.pk)
-        existing_shots = battle.ingredient_shots.filter(shooter=shooter).count()
+        # F63, 2026-08-11: same fix as place_ingredient_lock above - the
+        # INGREDIENT_PENALTY check ran against the caller's object, and this
+        # lock's own return value used to be discarded.
+        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        if locked_battle.status != Battle.Status.INGREDIENT_PENALTY:
+            raise ValueError("Shots can only be fired during the ingredient penalty phase.")
+        existing_shots = locked_battle.ingredient_shots.filter(shooter=shooter).count()
         if existing_shots >= IngredientShot.MAX_SHOTS:
             raise ValueError(f"You can only fire {IngredientShot.MAX_SHOTS} shots.")
         locked_indices = set(
@@ -2719,6 +2744,17 @@ def expire_rewards() -> int:
         status=RewardRecord.Status.ISSUED,
         expires_at__isnull=False,
         expires_at__lt=now,
+    ).exclude(
+        # F61, 2026-08-11: create_payout_request locks a record for a payout
+        # by moving it to ISSUED with this exact status_note - the ONLY thing
+        # that marked it reserved. Nothing here ever checked that note, so a
+        # cron sweep landing while the payout was still open could expire
+        # rewards it had already frozen an amount/eur snapshot against,
+        # leaving the PayoutRequest to pay out for tokens that no longer
+        # existed. Excluded for as long as the note is intact - reject_
+        # payout_request rewrites both status and note when it frees a
+        # record, so a rejected payout's records are never caught by this.
+        status_note__startswith="Locked for PayoutRequest #",
     )
     count = qs.update(status=RewardRecord.Status.EXPIRED)
     return count
@@ -2733,6 +2769,15 @@ def reverse_reward(reward_id: int, note: str = "", reversed_by=None) -> "RewardR
         record = RewardRecord.objects.select_for_update().get(pk=reward_id)
         if record.status != RewardRecord.Status.ISSUED:
             raise ValueError(f"Only ISSUED rewards can be reversed; this one is '{record.status}'.")
+        # F61, 2026-08-11: same reservation gap as expire_rewards above - an
+        # admin reversing a record still locked for an open PayoutRequest
+        # would leave that payout to send money for tokens no longer
+        # backing it.
+        if record.status_note.startswith("Locked for PayoutRequest #"):
+            raise ValueError(
+                f"This reward is reserved for an open payout request ({record.status_note}) "
+                "and cannot be reversed until that request is resolved."
+            )
 
         wallet = TokenWallet.objects.select_for_update().filter(chef=record.recipient).first()
         if wallet:
@@ -2863,7 +2908,7 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
     Returns a summary dict with counts of affected records.
     """
     from .models import (
-        AppreciationGift, LedgerEvent, RewardRecord, TokenOrder, TokenWallet, TokenTransaction,
+        AppreciationGift, LedgerEvent, PayoutRequest, RewardRecord, TokenOrder, TokenWallet, TokenTransaction,
     )
 
     with transaction.atomic():
@@ -2943,11 +2988,29 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
             ).update(is_flagged=True)
 
         # Flag the buyer's profile for compliance review
+        held_payouts = 0
         if buyer_author:
             profile = ChefBattleProfile.objects.filter(author=buyer_author).first()
             if profile and not profile.payout_blocked:
                 profile.payout_blocked = True
                 profile.save(update_fields=["payout_blocked"])
+
+            # F60, 2026-08-11: payout_blocked only ever gated NEW payout
+            # requests (check_payout_eligibility) and, since F60, approval
+            # of a request already open (approve_payout_request) - but a
+            # payout that was APPROVED and had already started its Stripe
+            # transfer before this chargeback landed is now PROCESSING,
+            # not APPROVED, and is deliberately left untouched here: the
+            # money may already be moving, and this is a hold, not a
+            # cancellation. PAID/REVERSED/REJECTED are already terminal.
+            held_payouts = PayoutRequest.objects.filter(
+                chef=buyer_author,
+                status__in=[
+                    PayoutRequest.Status.PENDING,
+                    PayoutRequest.Status.UNDER_REVIEW,
+                    PayoutRequest.Status.APPROVED,
+                ],
+            ).update(status=PayoutRequest.Status.ON_HOLD)
 
         action = "chargeback" if chargeback else "refund"
         LedgerEvent.objects.create(
@@ -2960,11 +3023,12 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
                 "deducted_tokens": deducted_tokens,
                 "reversed_rewards": reversed_rewards,
                 "flagged_gifts": flagged_gifts,
+                "held_payouts": held_payouts,
             },
         )
         logger.info(
-            "handle_token_order_chargeback: order=%s action=%s deducted=%s reversed=%s flagged=%s",
-            token_order_id, action, deducted_tokens, reversed_rewards, flagged_gifts,
+            "handle_token_order_chargeback: order=%s action=%s deducted=%s reversed=%s flagged=%s held_payouts=%s",
+            token_order_id, action, deducted_tokens, reversed_rewards, flagged_gifts, held_payouts,
         )
         return {
             "order_id": token_order_id,
@@ -2972,6 +3036,7 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
             "deducted_tokens": deducted_tokens,
             "reversed_rewards": reversed_rewards,
             "flagged_gifts": flagged_gifts,
+            "held_payouts": held_payouts,
         }
 
 
@@ -3092,7 +3157,7 @@ def approve_payout_request(payout_request_id: int, reviewed_by_user) -> "PayoutR
 
     Sets status to APPROVED (then PAID after transfer). Moves ISSUED reward records to ACKNOWLEDGED.
     """
-    from .models import LedgerEvent, PayoutRequest, RewardRecord
+    from .models import ChefBattleProfile, LedgerEvent, PayoutRequest, RewardRecord
 
     with transaction.atomic():
         try:
@@ -3102,6 +3167,18 @@ def approve_payout_request(payout_request_id: int, reviewed_by_user) -> "PayoutR
 
         if payout.status not in (PayoutRequest.Status.PENDING, PayoutRequest.Status.UNDER_REVIEW):
             raise ValueError(f"PayoutRequest #{payout_request_id} is in status '{payout.status}' and cannot be approved.")
+
+        # F60, 2026-08-11: handle_token_order_chargeback sets payout_blocked
+        # on the chef's profile, but nothing downstream ever checked it -
+        # check_payout_eligibility only gates NEW requests, not the
+        # approval of one already sitting open when the chargeback landed.
+        # Re-check here, at the point that actually sends money.
+        profile = ChefBattleProfile.objects.filter(author=payout.chef).first()
+        if profile and profile.payout_blocked:
+            raise ValueError(
+                f"PayoutRequest #{payout_request_id} cannot be approved: "
+                "this chef's payout eligibility is blocked pending compliance review."
+            )
 
         payout.status = PayoutRequest.Status.APPROVED
         payout.reviewed_by = reviewed_by_user
@@ -3172,24 +3249,19 @@ def reject_payout_request(payout_request_id: int, reviewed_by_user, reason: str)
 def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
     """Attempt a Stripe Connect transfer for an approved payout. Updates status to PAID on success.
 
-    F44, 2026-08-11: reject_payout_request allows rejecting from APPROVED
-    (an admin's legitimate way to give up on a payout whose transfer failed
-    and is stuck), but approve_payout_request calls this function right
-    after its own commit, outside any lock, so a reject landing in that
-    window - or during the Stripe call itself - used to be invisible here:
-    the transfer still went out, and this function blindly overwrote
-    whatever status it found back to PAID, silently erasing a REJECTED
-    verdict and, if the freed reward records were re-submitted and approved
-    a second time, setting up a genuine double payout. A short locked
-    recheck immediately before the Stripe call closes the gap between
-    approve's commit and the transfer starting; the idempotency key stops
-    OUR OWN retries (an admin clicking "retry", a timeout) from creating a
-    second Stripe transfer for one payout. The remaining window - a reject
-    landing during the live Stripe call itself - cannot be closed without
-    holding a DB lock across network I/O, which is worse; it is instead
-    made loud instead of silent: money has already moved by then, so the
-    record is still marked PAID (the honest outcome), but at CRITICAL level
-    so a human reconciles it.
+    F59, 2026-08-11: F44 closed most of the gap between approve's commit and
+    the Stripe call with a locked recheck, but a reject/hold landing during
+    the LIVE Stripe call itself was still only logged, not prevented - the
+    transfer still went out and the freed reward records could be
+    resubmitted for a genuine second payout. The real fix is a durable
+    intermediate status: this function now transitions APPROVED -> PROCESSING
+    in its own committed transaction BEFORE calling Stripe, and
+    reject_payout_request/hold_payout_requests both deliberately exclude
+    PROCESSING from the statuses they can act on - so once this function has
+    committed that transition, nothing can release the reward records until
+    the transfer's outcome is known. On success: PROCESSING -> PAID. On
+    failure: PROCESSING -> APPROVED, restoring the existing retry path (an
+    admin may now legitimately reject it, exactly as before F59).
     """
     from decimal import Decimal
     from .models import LedgerEvent, PayoutRequest
@@ -3206,6 +3278,8 @@ def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
                 payout.pk, pr.status,
             )
             return
+        pr.status = PayoutRequest.Status.PROCESSING
+        pr.save(update_fields=["status", "updated_at"])
 
     try:
         import stripe
@@ -3220,10 +3294,10 @@ def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
         transfer_id = transfer.get("id", "")
         with transaction.atomic():
             pr = PayoutRequest.objects.select_for_update().get(pk=payout.pk)
-            if pr.status != PayoutRequest.Status.APPROVED:
+            if pr.status != PayoutRequest.Status.PROCESSING:
                 logger.critical(
                     "PayoutRequest #%s: Stripe transfer %s succeeded but the record is now "
-                    "'%s', not APPROVED - money has moved, marking PAID anyway. RECONCILE.",
+                    "'%s', not PROCESSING - money has moved, marking PAID anyway. RECONCILE.",
                     payout.pk, transfer_id, pr.status,
                 )
             pr.status = PayoutRequest.Status.PAID
@@ -3243,8 +3317,14 @@ def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
         logger.info("PayoutRequest #%s paid: transfer %s", payout.pk, transfer_id)
     except ImportError:
         logger.error("stripe package not installed — cannot execute transfer for PayoutRequest #%s", payout.pk)
+        PayoutRequest.objects.filter(
+            pk=payout.pk, status=PayoutRequest.Status.PROCESSING,
+        ).update(status=PayoutRequest.Status.APPROVED, updated_at=timezone.now())
     except Exception:
         logger.exception("Stripe transfer failed for PayoutRequest #%s", payout.pk)
+        PayoutRequest.objects.filter(
+            pk=payout.pk, status=PayoutRequest.Status.PROCESSING,
+        ).update(status=PayoutRequest.Status.APPROVED, updated_at=timezone.now())
         raise
 
 

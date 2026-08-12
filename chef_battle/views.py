@@ -1857,7 +1857,23 @@ def challenge_create(request):
             # (F21) - here it is the ISSUING chef's own slot at risk.
             with transaction.atomic():
                 challenger_profile = get_or_create_battle_profile(author)
-                ChefBattleProfile.objects.select_for_update().get(pk=challenger_profile.pk)
+                # F64, 2026-08-11: F49's lock only re-verified the slot; the
+                # OTHER precondition checked earlier in this same view - the
+                # moves/energy minimum - was never re-verified under it. A
+                # concurrent spend (e.g. refusing a different challenge,
+                # which costs MOVES_REFUSE_PENALTY) between the check above
+                # and this lock could drop the real balance below the
+                # minimum while this request still went on to create the
+                # challenge. Use the row the lock actually returns for both
+                # checks.
+                locked_profile = ChefBattleProfile.objects.select_for_update().get(pk=challenger_profile.pk)
+                if not locked_profile.infinite_moves and locked_profile.battle_moves < MOVES_MIN_TO_CHALLENGE:
+                    messages.error(
+                        request,
+                        f"You need at least {MOVES_MIN_TO_CHALLENGE} energy to issue a challenge. "
+                        f"You have {locked_profile.battle_moves}. Publish recipes or articles to earn more."
+                    )
+                    return redirect("chef_battle:challenge_list")
                 slot_error = slot_occupied_reason(author)
                 if slot_error:
                     messages.error(request, slot_error)

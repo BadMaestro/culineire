@@ -816,8 +816,16 @@ def mark_under_review(modeladmin, request, queryset):
 
 @admin.action(description="Put selected payout requests on hold (compliance)")
 def hold_payout_requests(modeladmin, request, queryset):
+    # F59, 2026-08-11: PROCESSING also excluded - a payout whose Stripe
+    # transfer is genuinely in flight cannot be held; the money is already
+    # moving regardless of what this action writes, and yanking it to
+    # ON_HOLD would freeze the reward records under a status that no longer
+    # describes what's actually happening to them.
     count = queryset.exclude(
-        status__in=[PayoutRequest.Status.PAID, PayoutRequest.Status.REVERSED]
+        status__in=[
+            PayoutRequest.Status.PAID, PayoutRequest.Status.REVERSED,
+            PayoutRequest.Status.PROCESSING,
+        ]
     ).update(status=PayoutRequest.Status.ON_HOLD)
     modeladmin.message_user(request, f"{count} payout request(s) placed on hold.", messages.WARNING)
 

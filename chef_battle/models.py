@@ -1622,12 +1622,21 @@ class PayoutRequest(models.Model):
 
     Lifecycle: PENDING → UNDER_REVIEW → APPROVED / REJECTED / ON_HOLD
     Approved requests trigger a Stripe Connect transfer; amounts are immutable after approval.
+
+    F59, 2026-08-11: PROCESSING sits between APPROVED and PAID, entered under
+    a lock immediately before the Stripe transfer call and cleared (back to
+    APPROVED on failure, to PAID on success) immediately after. reject/hold
+    only ever act on PENDING/UNDER_REVIEW/APPROVED - PROCESSING is
+    deliberately excluded everywhere, so a reject or a compliance hold can
+    no longer land in the window where a transfer is genuinely in flight and
+    free the underlying reward records for a second, real payout.
     """
 
     class Status(models.TextChoices):
         PENDING = "pending", "Pending Review"
         UNDER_REVIEW = "under_review", "Under Review"
         APPROVED = "approved", "Approved"
+        PROCESSING = "processing", "Processing (Stripe transfer in flight)"
         REJECTED = "rejected", "Rejected"
         ON_HOLD = "on_hold", "On Hold — Compliance"
         PAID = "paid", "Paid Out"

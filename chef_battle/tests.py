@@ -16370,3 +16370,568 @@ class PayoutTransferLockedAgainstRejectRaceTests(TestCase):
         reject_payout_request(self.payout.pk, self.moderator, "chef changed their mind")
         self.payout.refresh_from_db()
         self.assertEqual(self.payout.status, PayoutRequest.Status.REJECTED)
+
+
+class PaidWebhookOverridesCancelledOrderTests(TestCase):
+    """F58, 2026-08-11: F43 only stopped the browser-return cancel page from
+    overwriting an already-COMPLETED order. It never considered the OTHER
+    direction: if the cancel page's write landed FIRST (setting CANCELLED)
+    before the real paid webhook arrived, the webhook's own guard
+    ("must still be PENDING") refused to credit an order Stripe had
+    genuinely confirmed as paid - a customer could pay real EUR and end up
+    with a permanently "cancelled" order and zero tokens."""
+
+    def setUp(self):
+        from .models import TokenOrder, TokenPackage, TokenWallet
+        User = get_user_model()
+        self.buyer = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f58-buyer", password="pw"), name="F58 Buyer", slug="f58-buyer")
+        self.wallet = TokenWallet.objects.create(chef=self.buyer)
+        self.package = TokenPackage.objects.create(
+            key="f58-pack", name="F58 Pack", tokens=100, price_eur="10.00")
+        self.order = TokenOrder.objects.create(
+            wallet=self.wallet, package=self.package, tokens=100, amount_eur_cents=1000)
+
+    def _paid_session(self):
+        return {
+            "payment_status": "paid",
+            "metadata": {"token_order_id": str(self.order.pk)},
+            "amount_total": 1000,
+            "payment_intent": "pi_f58",
+            "customer": "cus_f58",
+            "currency": "eur",
+        }
+
+    def test_a_paid_event_still_credits_an_order_the_cancel_page_already_marked_cancelled(self):
+        from .stripe_services import _handle_checkout_completed
+        from .models import TokenOrder
+
+        # The browser-return cancel page won the race and landed first.
+        self.order.status = TokenOrder.Status.CANCELLED
+        self.order.save(update_fields=["status"])
+
+        result = _handle_checkout_completed(self._paid_session())
+
+        self.assertIsNotNone(result)
+        self.order.refresh_from_db()
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.order.status, TokenOrder.Status.COMPLETED)
+        self.assertEqual(self.wallet.balance, 100)
+
+    def test_a_paid_event_still_credits_an_expired_order(self):
+        from .stripe_services import _handle_checkout_completed
+        from .models import TokenOrder
+
+        self.order.status = TokenOrder.Status.EXPIRED
+        self.order.save(update_fields=["status"])
+
+        _handle_checkout_completed(self._paid_session())
+
+        self.order.refresh_from_db()
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.order.status, TokenOrder.Status.COMPLETED)
+        self.assertEqual(self.wallet.balance, 100)
+
+    def test_a_paid_event_does_not_recredit_a_refunded_order(self):
+        """Money already came back out on a REFUNDED order - crediting on
+        top of that would be a genuine new bug, not a fix."""
+        from .stripe_services import _handle_checkout_completed
+        from .models import TokenOrder
+
+        self.order.status = TokenOrder.Status.REFUNDED
+        self.order.save(update_fields=["status"])
+
+        _handle_checkout_completed(self._paid_session())
+
+        self.order.refresh_from_db()
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.order.status, TokenOrder.Status.REFUNDED)
+        self.assertEqual(self.wallet.balance, 0)
+
+    def test_a_paid_event_still_credits_a_normal_pending_order(self):
+        from .stripe_services import _handle_checkout_completed
+        from .models import TokenOrder
+
+        _handle_checkout_completed(self._paid_session())
+
+        self.order.refresh_from_db()
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.order.status, TokenOrder.Status.COMPLETED)
+        self.assertEqual(self.wallet.balance, 100)
+
+
+class PayoutProcessingStatusBlocksRejectDuringTransferTests(TestCase):
+    """F59, 2026-08-11: F44's fix only reduced the double-payout window to
+    the live Stripe call itself, and just logged CRITICAL if a reject
+    landed during it - the money still moved either way. The real fix is a
+    durable PROCESSING status: reject_payout_request/hold_payout_requests
+    cannot act on it, because approve_payout_request never leaves it as
+    APPROVED for the duration of the transfer - only across it."""
+
+    def setUp(self):
+        from decimal import Decimal
+        from .models import PayoutRequest
+        User = get_user_model()
+        self.chef = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f59-chef", password="pw"), name="F59 Chef", slug="f59-chef")
+        self.moderator = User.objects.create_user("f59-mod", password="pw", is_staff=True)
+        self.payout = PayoutRequest.objects.create(
+            chef=self.chef, amount_reward_tokens=100, gross_payout_eur=Decimal("2.50"),
+            status=PayoutRequest.Status.APPROVED,
+            stripe_connect_account_id="acct_f59test",
+        )
+
+    def test_the_transfer_call_itself_sees_processing_not_approved(self):
+        """Proves the PROCESSING transition is committed BEFORE Stripe is
+        called, not just claimed - reads the live DB status from inside the
+        mocked Stripe call itself."""
+        from unittest import mock
+        from .models import PayoutRequest
+        from .services import _execute_stripe_connect_transfer
+
+        seen = {}
+
+        def fake_transfer_create(**kwargs):
+            seen["status_during_call"] = PayoutRequest.objects.get(pk=self.payout.pk).status
+            return {"id": "tr_f59_seen"}
+
+        with mock.patch("stripe.Transfer.create", side_effect=fake_transfer_create):
+            _execute_stripe_connect_transfer(self.payout)
+
+        self.assertEqual(seen["status_during_call"], PayoutRequest.Status.PROCESSING)
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.PAID)
+
+    def test_reject_is_refused_once_the_transfer_is_processing(self):
+        from .models import PayoutRequest
+        from .services import reject_payout_request
+
+        self.payout.status = PayoutRequest.Status.PROCESSING
+        self.payout.save(update_fields=["status"])
+
+        with self.assertRaises(ValueError):
+            reject_payout_request(self.payout.pk, self.moderator, "too late")
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.PROCESSING)
+
+    def test_a_successful_transfer_reaches_paid(self):
+        from unittest import mock
+        from .models import PayoutRequest
+        from .services import _execute_stripe_connect_transfer
+
+        with mock.patch("stripe.Transfer.create", return_value={"id": "tr_f59"}):
+            _execute_stripe_connect_transfer(self.payout)
+
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.PAID)
+
+    def test_a_failed_transfer_reverts_processing_to_approved_for_retry(self):
+        from unittest import mock
+        from .models import PayoutRequest
+        from .services import _execute_stripe_connect_transfer
+
+        with mock.patch("stripe.Transfer.create", side_effect=RuntimeError("network down")):
+            with self.assertRaises(RuntimeError):
+                _execute_stripe_connect_transfer(self.payout)
+
+        self.payout.refresh_from_db()
+        self.assertEqual(
+            self.payout.status, PayoutRequest.Status.APPROVED,
+            "a failed transfer must return to APPROVED so an admin can retry or reject",
+        )
+
+    def test_hold_payout_requests_admin_action_excludes_processing(self):
+        from .models import PayoutRequest
+        from .admin import hold_payout_requests
+
+        self.payout.status = PayoutRequest.Status.PROCESSING
+        self.payout.save(update_fields=["status"])
+
+        qs = PayoutRequest.objects.filter(pk=self.payout.pk)
+        hold_payout_requests(_StubModelAdmin(), None, qs)
+
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.PROCESSING)
+
+
+class ChargebackHoldsExistingPayoutsTests(TestCase):
+    """F60, 2026-08-11: handle_token_order_chargeback set payout_blocked on
+    the chef's profile but never touched an already-open PayoutRequest, and
+    approve_payout_request never checked the flag - so a chargeback landing
+    after a payout was requested (but before it was approved) did nothing
+    to stop that payout being approved and paid out of disputed funds."""
+
+    def setUp(self):
+        from decimal import Decimal
+        from .models import ChefBattleProfile, PayoutRequest, TokenOrder, TokenPackage, TokenWallet
+        User = get_user_model()
+        self.chef = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f60-chef", password="pw"), name="F60 Chef", slug="f60-chef")
+        ChefBattleProfile.objects.create(author=self.chef)
+        self.moderator = User.objects.create_user("f60-mod", password="pw", is_staff=True)
+        self.wallet = TokenWallet.objects.create(chef=self.chef, balance=100)
+        self.package = TokenPackage.objects.create(
+            key="f60-pack", name="F60 Pack", tokens=100, price_eur="10.00")
+        self.order = TokenOrder.objects.create(
+            wallet=self.wallet, package=self.package, tokens=100, amount_eur_cents=1000,
+            status=TokenOrder.Status.COMPLETED,
+        )
+        self.payout = PayoutRequest.objects.create(
+            chef=self.chef, amount_reward_tokens=100, gross_payout_eur=Decimal("2.50"),
+            status=PayoutRequest.Status.PENDING,
+        )
+
+    def test_a_chargeback_holds_the_chefs_open_payout(self):
+        from .services import handle_token_order_chargeback
+        from .models import PayoutRequest
+
+        result = handle_token_order_chargeback(self.order.pk, chargeback=True)
+
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.ON_HOLD)
+        self.assertEqual(result["held_payouts"], 1)
+
+    def test_a_chargeback_does_not_touch_an_already_paid_payout(self):
+        from .services import handle_token_order_chargeback
+        from .models import PayoutRequest
+
+        self.payout.status = PayoutRequest.Status.PAID
+        self.payout.save(update_fields=["status"])
+
+        handle_token_order_chargeback(self.order.pk, chargeback=True)
+
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.PAID)
+
+    def test_approval_is_refused_once_the_chef_is_payout_blocked(self):
+        from .services import handle_token_order_chargeback, approve_payout_request
+        from .models import PayoutRequest
+
+        handle_token_order_chargeback(self.order.pk, chargeback=True)
+        self.payout.refresh_from_db()
+        # A moderator manually clears the hold back to PENDING without
+        # noticing the compliance flag is still set - approve must catch it.
+        self.payout.status = PayoutRequest.Status.PENDING
+        self.payout.save(update_fields=["status"])
+
+        with self.assertRaises(ValueError):
+            approve_payout_request(self.payout.pk, self.moderator)
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.PENDING)
+
+
+class RewardReservationIsEnforcedTests(TestCase):
+    """F61, 2026-08-11: create_payout_request "locks" a RewardRecord for a
+    payout by moving it to ISSUED with a status_note - the ONLY thing
+    marking it reserved. expire_rewards() and reverse_reward() both ignored
+    that note entirely, so a cron sweep or an admin action could free a
+    record an open PayoutRequest had already frozen an amount against,
+    leaving that request to pay out for tokens no longer backing it."""
+
+    def setUp(self):
+        from decimal import Decimal
+        from .models import PayoutRequest, RewardRecord
+        User = get_user_model()
+        self.chef = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f61-chef", password="pw"), name="F61 Chef", slug="f61-chef")
+        self.payout = PayoutRequest.objects.create(
+            chef=self.chef, amount_reward_tokens=2000, gross_payout_eur=Decimal("50.00"),
+            status=PayoutRequest.Status.PENDING,
+        )
+        self.record = RewardRecord.objects.create(
+            recipient=self.chef, reward_type=RewardRecord.RewardType.CBR,
+            tokens_granted=2000, reason="F61 test reward",
+            status=RewardRecord.Status.ISSUED,
+            status_note=f"Locked for PayoutRequest #{self.payout.pk}",
+            expires_at=timezone.now() - timezone.timedelta(days=1),
+        )
+
+    def test_expire_rewards_skips_a_record_locked_for_an_open_payout(self):
+        from .services import expire_rewards
+        from .models import RewardRecord
+
+        count = expire_rewards()
+
+        self.record.refresh_from_db()
+        self.assertEqual(count, 0)
+        self.assertEqual(self.record.status, RewardRecord.Status.ISSUED)
+
+    def test_expire_rewards_still_expires_an_unlocked_record(self):
+        from .services import expire_rewards
+        from .models import RewardRecord
+
+        self.record.status_note = ""
+        self.record.save(update_fields=["status_note"])
+
+        count = expire_rewards()
+
+        self.record.refresh_from_db()
+        self.assertEqual(count, 1)
+        self.assertEqual(self.record.status, RewardRecord.Status.EXPIRED)
+
+    def test_reverse_reward_refuses_a_record_locked_for_an_open_payout(self):
+        from .services import reverse_reward
+        from .models import RewardRecord
+
+        with self.assertRaises(ValueError):
+            reverse_reward(self.record.pk)
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.status, RewardRecord.Status.ISSUED)
+
+    def test_a_rejected_payout_releases_the_record_from_the_locked_note(self):
+        """reject_payout_request already rewrites both status (ISSUED ->
+        APPROVED) and status_note ("Returned: payout rejected") when it
+        frees a record - confirms the exclusion's own precondition (the
+        "Locked for PayoutRequest #" note) no longer holds afterwards, so a
+        rejected payout's record is not permanently unreachable by either
+        function; it simply moves on to whatever a normal APPROVED record
+        does next (eligible for a fresh payout request), which is
+        unaffected by this fix."""
+        from .services import reject_payout_request
+        from .models import RewardRecord
+
+        User = get_user_model()
+        moderator = User.objects.create_user("f61-mod", password="pw", is_staff=True)
+        reject_payout_request(self.payout.pk, moderator, "not eligible after all")
+
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.status, RewardRecord.Status.APPROVED)
+        self.assertFalse(self.record.status_note.startswith("Locked for PayoutRequest #"))
+
+
+class CombatActionLocksBattleAndRechecksStatusTests(TestCase):
+    """F62, 2026-08-11: the ACTIVE check ran against the caller's object;
+    F30 later added a battle-row lock for a narrower race (the artifact
+    loadout count) and discarded its result, so the ACTIVE precondition was
+    never re-verified under any lock. A battle cancelled between the
+    caller's fetch and this call could still have moves deducted, artifacts
+    destroyed, a round created, and even be pushed into INGREDIENT_PENALTY
+    out of a status the game no longer considers live."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f62-a", password="pw"), name="F62 A", slug="f62-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f62-b", password="pw"), name="F62 B", slug="f62-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now(), battle_moves=50)
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now(), battle_moves=50)
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="F62 theme",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+
+    def test_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import submit_combat_action
+
+        with CaptureQueriesContext(connection) as captured:
+            submit_combat_action(self.battle, self.chef_a, "attack", 3)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "submit_combat_action must lock the battle row")
+
+    def test_a_stale_action_on_a_cancelled_battle_is_refused(self):
+        from .services import submit_combat_action
+        from .models import BattleCombatAction
+
+        stale_copy = Battle.objects.get(pk=self.battle.pk)
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.CANCELLED)
+
+        with self.assertRaises(ValueError):
+            submit_combat_action(stale_copy, self.chef_a, "attack", 3)
+
+        self.assertFalse(BattleCombatAction.objects.filter(battle=self.battle).exists())
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
+
+
+class IngredientLockAndShotRecheckStatusUnderLockTests(TestCase):
+    """F63, 2026-08-11: same shape as F62 - the INGREDIENT_PENALTY check ran
+    against the caller's object, and the battle-row lock both functions
+    already took (to serialise the lock/shot COUNT check) discarded its
+    result, so the status precondition was never re-verified under it."""
+
+    def setUp(self):
+        from .models import IngredientLock, ChefBattleProfile
+        from recipes.models import Recipe
+        User = get_user_model()
+        self.winner = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f63-w", password="pw"), name="F63 Winner", slug="f63-w")
+        self.loser = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f63-l", password="pw"), name="F63 Loser", slug="f63-l")
+        ChefBattleProfile.objects.create(author=self.winner, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.loser, enrolled_at=timezone.now())
+        recipe = Recipe.objects.create(
+            title="F63 Dish", slug="f63-dish", author=self.loser,
+            ingredients="one\ntwo\nthree\nfour\nfive", method="Cook.",
+            status=Recipe.Status.APPROVED,
+        )
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.winner, opponent=self.loser, theme="F63 theme",
+            status=Battle.Status.INGREDIENT_PENALTY, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+            winner=self.winner, loser=self.loser,
+        )
+        BattleEntry.objects.create(battle=self.battle, author=self.loser, recipe=recipe)
+
+    def test_place_ingredient_lock_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import place_ingredient_lock
+
+        with CaptureQueriesContext(connection) as captured:
+            place_ingredient_lock(battle=self.battle, chef=self.loser, ingredient_index=0)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "place_ingredient_lock must lock the battle row")
+
+    def test_a_stale_lock_placement_on_a_finished_battle_is_refused(self):
+        from .services import place_ingredient_lock
+        from .models import IngredientLock
+
+        stale_copy = Battle.objects.get(pk=self.battle.pk)
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.COOKING)
+
+        with self.assertRaises(ValueError):
+            place_ingredient_lock(battle=stale_copy, chef=self.loser, ingredient_index=0)
+        self.assertFalse(IngredientLock.objects.filter(battle=self.battle).exists())
+
+    def test_fire_ingredient_shot_locks_the_battle_row(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from .services import fire_ingredient_shot
+
+        with CaptureQueriesContext(connection) as captured:
+            fire_ingredient_shot(battle=self.battle, shooter=self.winner, target_index=0)
+        locking = [
+            q["sql"] for q in captured.captured_queries
+            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
+        ]
+        self.assertTrue(locking, "fire_ingredient_shot must lock the battle row")
+
+    def test_a_stale_shot_on_a_finished_battle_is_refused(self):
+        from .services import fire_ingredient_shot
+        from .models import IngredientShot
+
+        stale_copy = Battle.objects.get(pk=self.battle.pk)
+        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.COOKING)
+
+        with self.assertRaises(ValueError):
+            fire_ingredient_shot(battle=stale_copy, shooter=self.winner, target_index=0)
+        self.assertFalse(IngredientShot.objects.filter(battle=self.battle).exists())
+
+
+class ChallengeCreateRechecksMovesUnderTheLockTests(TestCase):
+    """F64, 2026-08-11: F49 locked the challenger's profile and re-checked
+    the SLOT, but the OTHER precondition checked earlier in the same view -
+    the moves/energy minimum - was never re-verified under that lock. A
+    concurrent spend between the two checks could drop the real balance
+    below the minimum while the request still went on to create the
+    challenge."""
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+        User = get_user_model()
+        self.user = User.objects.create_user("f64-ch", password="pw")
+        self.author = RecipeAuthor.objects.create(user=self.user, name="F64 Challenger", slug="f64-ch")
+        self.opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("f64-op", password="pw"), name="F64 Opponent", slug="f64-op")
+        ChefBattleProfile.objects.create(author=self.author, battle_moves=10, age_verified=True)
+        ChefBattleProfile.objects.create(author=self.opponent, age_verified=True)
+        from recipes.models import Recipe
+        self.recipe = Recipe.objects.create(
+            title="F64 Dish", slug="f64-dish", author=self.author,
+            ingredients="salt\npepper", method="Cook.",
+            status=Recipe.Status.APPROVED,
+        )
+        self.client.force_login(self.user)
+
+    def _post(self):
+        return self.client.post(reverse("chef_battle:challenge_create"), {
+            "opponent": self.opponent.pk,
+            "theme_recipe": self.recipe.pk,
+            "theme": "F64 Battle Theme",
+            "battle_type": BattleChallenge.BattleType.PHOTO,
+        })
+
+    def test_a_challenge_is_refused_once_the_real_balance_drops_below_minimum(self):
+        from .models import ChefBattleProfile
+
+        # Simulate a concurrent spend landing between the view's own
+        # up-front check and the locked recheck: the balance shown at the
+        # top of the view was 10 (enough), but by the time the lock is
+        # acquired the real balance has dropped underneath it.
+        ChefBattleProfile.objects.filter(author=self.author).update(battle_moves=0)
+
+        resp = self._post()
+        self.assertEqual(resp.status_code, 302)
+        self.assertFalse(BattleChallenge.objects.filter(challenger=self.author).exists())
+
+    def test_a_normal_challenge_still_succeeds(self):
+        resp = self._post()
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(BattleChallenge.objects.filter(challenger=self.author).exists())
+
+
+class HeroChefPromotionsGatedPerRequestTests(TestCase):
+    """F65, 2026-08-11: the Chef Battle promo item used to be baked into a
+    SHARED, sitewide cache entry with no per-viewer dimension, checked
+    against the global flag only when the cache happened to repopulate -
+    turning the flag off did not clear it, so anyone could see the promo
+    text and the Arena link for up to the cache's 300-second TTL after
+    dark-launch was supposed to hide it again."""
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+        User = get_user_model()
+        self.plain_user = User.objects.create_user("f65-plain", password="pw")
+        RecipeAuthor.objects.create(user=self.plain_user, name="F65 Plain", slug="f65-plain")
+        self.staff_user = User.objects.create_user("f65-staff", password="pw", is_staff=True)
+        RecipeAuthor.objects.create(user=self.staff_user, name="F65 Staff", slug="f65-staff")
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_the_shared_cache_is_warmed_by_a_visible_viewer_first(self):
+        """Populate the shared cache entry while the flag is on, as a staff
+        visit would - this is the scenario that used to leak."""
+        self.client.force_login(self.staff_user)
+        self.client.get(reverse("home"))
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_a_plain_visitor_never_sees_the_promo_even_after_the_cache_was_warmed_while_on(self):
+        from django.core.cache import cache
+        # Warm the shared cache while the flag was on (as the test above
+        # would in a real request sequence) - the Chef Battle item must
+        # never have been part of what got cached.
+        with self.settings(CHEF_BATTLE_ENABLED=True):
+            self.client.force_login(self.staff_user)
+            self.client.get(reverse("home"))
+            self.client.logout()
+
+        self.client.force_login(self.plain_user)
+        resp = self.client.get(reverse("home"))
+        promos = resp.context["hero_chef_promotions"]
+        self.assertFalse(
+            any("Chef Battles" in p["text"] for p in promos),
+            "a plain visitor must not see the Chef Battle promo from a cache warmed by a visible viewer",
+        )
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_a_visible_viewer_does_see_the_promo(self):
+        self.client.force_login(self.staff_user)
+        resp = self.client.get(reverse("home"))
+        promos = resp.context["hero_chef_promotions"]
+        self.assertTrue(any("Chef Battles" in p["text"] for p in promos))

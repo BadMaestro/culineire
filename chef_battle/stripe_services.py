@@ -197,7 +197,18 @@ def _handle_checkout_completed(session) -> Any:
     if order.status == TokenOrder.Status.COMPLETED:
         return order
 
-    if order.status != TokenOrder.Status.PENDING:
+    # F58, 2026-08-11: a paid Stripe event is ground truth and must be able
+    # to complete an order even if OUR OWN side already guessed CANCELLED or
+    # EXPIRED - the browser-return cancel page (F43) or the expiry sweep can
+    # land before this webhook does, and the old strict "must still be
+    # PENDING" check meant a customer who genuinely paid (payment_status ==
+    # "paid", already confirmed above) got a permanently "cancelled" order
+    # and zero tokens for real money charged. REFUNDED/DISPUTED are
+    # different - money has already come back out on those, so crediting on
+    # top would be wrong, and those still bail.
+    if order.status not in (
+        TokenOrder.Status.PENDING, TokenOrder.Status.CANCELLED, TokenOrder.Status.EXPIRED,
+    ):
         logger.warning("Token webhook: order %s in unexpected state %s", order.pk, order.status)
         return order
 
