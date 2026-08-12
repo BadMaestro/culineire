@@ -17733,3 +17733,202 @@ class AdminForceCompleteFollowsTheScorerContractTests(TestCase):
         self.assertTrue(any("0 battle(s) force-completed" in m for m in said))
         self.assertTrue(any("only accepts a battle in Voting" in m for m in said),
                         "the operator must be told it did nothing")
+
+
+
+class RevealIsAtomicAndCannotResurrectTests(TestCase):
+    """T02, Owner brief 2026-08-12 - reveal_entries_if_ready had neither a
+    transaction nor a lock.
+
+    It branched on the CALLER's status, counted entries outside any lock, and
+    then wrote status back. A battle cancelled, voided or paused between that
+    read and that write was dragged back into ACTIVE or VOTING - with both
+    dishes revealed to the public - by nothing heavier than someone opening
+    the battle page.
+    """
+
+    TERMINAL = [
+        Battle.Status.CANCELLED, Battle.Status.VOID, Battle.Status.PAUSED,
+        Battle.Status.WALKOVER, Battle.Status.COMPLETED, Battle.Status.DISPUTED,
+    ]
+
+    def setUp(self):
+        User = get_user_model()
+        self.a, self.b = [
+            RecipeAuthor.objects.create(
+                user=User.objects.create_user(f"t02-{n}", password="pw"),
+                name=f"T02 {n}", slug=f"t02-{n}")
+            for n in ("a", "b")
+        ]
+        ChefBattleProfile.objects.create(author=self.a)
+        ChefBattleProfile.objects.create(author=self.b)
+
+    def _battle(self, status, *, submitted=2, deadline_passed=True):
+        now = timezone.now()
+        offset = -1 if deadline_passed else 1
+        battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="T02 Dish", status=status,
+            start_time=now - timezone.timedelta(hours=2),
+            submission_deadline=now + timezone.timedelta(hours=offset),
+            voting_deadline=now + timezone.timedelta(hours=6),
+            end_time=now + timezone.timedelta(hours=6),
+        )
+        for index, author in enumerate((self.a, self.b)):
+            BattleEntry.objects.create(
+                battle=battle, author=author,
+                dish_submitted_at=now if index < submitted else None,
+            )
+        return battle
+
+    def test_a_battle_that_went_terminal_under_us_is_never_advanced(self):
+        from chef_battle.services import reveal_entries_if_ready
+
+        for source in (Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE):
+            for terminal in self.TERMINAL:
+                with self.subTest(source=source, terminal=terminal):
+                    battle = self._battle(source)
+                    stale = Battle.objects.get(pk=battle.pk)   # the caller's copy
+                    Battle.objects.filter(pk=battle.pk).update(status=terminal)
+
+                    reveal_entries_if_ready(stale)
+
+                    battle.refresh_from_db()
+                    self.assertEqual(battle.status, terminal,
+                                     "a terminal battle was resurrected by a reveal")
+                    self.assertEqual(stale.status, terminal,
+                                     "the caller must be corrected from the locked row")
+                    self.assertFalse(
+                        battle.entries.filter(is_revealed=True).exists(),
+                        "the dishes of a cancelled battle were made public")
+
+    def test_menu_locked_still_opens_combat_when_both_dishes_are_in(self):
+        from chef_battle.services import reveal_entries_if_ready
+
+        battle = self._battle(Battle.Status.MENU_LOCKED, deadline_passed=False)
+        reveal_entries_if_ready(battle)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+        self.assertEqual(battle.entries.filter(is_revealed=True).count(), 2)
+
+    def test_menu_locked_still_opens_combat_on_the_deadline_alone(self):
+        from chef_battle.services import reveal_entries_if_ready
+
+        battle = self._battle(Battle.Status.MENU_LOCKED, submitted=0)
+        reveal_entries_if_ready(battle)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+
+    def test_menu_locked_waits_when_neither_the_dishes_nor_the_deadline_are_in(self):
+        from chef_battle.services import reveal_entries_if_ready
+
+        battle = self._battle(
+            Battle.Status.MENU_LOCKED, submitted=1, deadline_passed=False)
+        reveal_entries_if_ready(battle)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.MENU_LOCKED)
+        self.assertFalse(battle.entries.filter(is_revealed=True).exists())
+
+    def test_active_advances_only_on_both_dishes_and_is_idempotent(self):
+        from chef_battle.services import reveal_entries_if_ready
+
+        battle = self._battle(Battle.Status.ACTIVE)
+        reveal_entries_if_ready(battle)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.VOTING)
+
+        updated_at = battle.updated_at
+        reveal_entries_if_ready(battle)          # a second page view
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.VOTING)
+        self.assertEqual(battle.updated_at, updated_at,
+                         "a repeat reveal wrote to a battle it had already advanced")
+        self.assertEqual(battle.entries.filter(is_revealed=True).count(), 2)
+
+    def test_active_does_not_advance_on_the_deadline_alone(self):
+        """F68 stays closed: an ACTIVE battle past its deadline is a no-show
+        for handle_no_show_battles, not a free trip to a public vote."""
+        from chef_battle.services import reveal_entries_if_ready
+
+        battle = self._battle(Battle.Status.ACTIVE, submitted=1)
+        reveal_entries_if_ready(battle)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+        self.assertFalse(battle.entries.filter(is_revealed=True).exists())
+
+
+class RevealSerialisesAgainstACancellationTests(TransactionTestCase):
+    """T02 - the real interleaving, with two connections and a barrier.
+
+    Captured SQL proves a FOR UPDATE was emitted; it does not prove the reveal
+    WAITS for the cancelling transaction and then re-reads what it committed.
+    One thread holds the battle locked and cancels it; the other calls the
+    reveal on a stale MENU_LOCKED instance and must come out with a cancelled
+    battle and two hidden dishes.
+    """
+
+    def test_a_reveal_that_waits_on_a_cancellation_sees_the_cancellation(self):
+        import threading
+        import time
+        from django.db import connections, transaction
+        from chef_battle.services import reveal_entries_if_ready
+
+        User = get_user_model()
+        a, b = [
+            RecipeAuthor.objects.create(
+                user=User.objects.create_user(f"t02race-{n}", password="pw"),
+                name=f"T02 race {n}", slug=f"t02race-{n}")
+            for n in ("a", "b")
+        ]
+        ChefBattleProfile.objects.create(author=a)
+        ChefBattleProfile.objects.create(author=b)
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=a, opponent=b, theme="T02 race",
+            status=Battle.Status.MENU_LOCKED,
+            start_time=now - timezone.timedelta(hours=2),
+            submission_deadline=now - timezone.timedelta(hours=1),
+            voting_deadline=now + timezone.timedelta(hours=6),
+            end_time=now + timezone.timedelta(hours=6),
+        )
+        for author in (a, b):
+            BattleEntry.objects.create(
+                battle=battle, author=author, dish_submitted_at=now)
+
+        stale = Battle.objects.get(pk=battle.pk)     # read before either thread
+        start = threading.Barrier(2)
+        errors = []
+
+        def cancel():
+            try:
+                start.wait(timeout=10)
+                with transaction.atomic():
+                    locked = Battle.objects.select_for_update().get(pk=battle.pk)
+                    time.sleep(0.4)                  # the reveal blocks in here
+                    locked.status = Battle.Status.CANCELLED
+                    locked.save(update_fields=["status", "updated_at"])
+            except Exception as exc:
+                errors.append(exc)
+            finally:
+                connections.close_all()
+
+        def reveal():
+            try:
+                start.wait(timeout=10)
+                time.sleep(0.1)                      # arrive second, on purpose
+                reveal_entries_if_ready(stale)
+            except Exception as exc:
+                errors.append(exc)
+            finally:
+                connections.close_all()
+
+        threads = [threading.Thread(target=cancel), threading.Thread(target=reveal)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=30)
+
+        self.assertEqual(errors, [])
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.CANCELLED,
+                         "the reveal overwrote a cancellation it had waited for")
+        self.assertFalse(battle.entries.filter(is_revealed=True).exists())

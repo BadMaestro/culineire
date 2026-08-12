@@ -4362,14 +4362,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T02", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "Reveal is atomic and cannot resurrect a terminal battle",
-        "status": "PENDING", "owner": "GreenBear",
-        "files": "chef_battle/services.py (reveal_entries_if_ready); chef_battle/views.py; chef_battle/emulation.py",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "chef_battle/services.py (reveal_entries_if_ready); chef_battle/tests.py",
         "depends_on": "T01",
         "action": "Wrap in transaction.atomic, lock the battle, re-check the allowed source states under the lock, compute the entry count and deadline after the lock, and write only through the locked instance.",
         "visible_result": "A battle cancelled, voided or paused while a chef was submitting stays cancelled, voided or paused, and its entries stay hidden.",
         "acceptance": "Tests for cancel/void/pause committing between submission and reveal, and two concurrent submits; the terminal state is never overwritten, entries are not revealed, events fire once, a repeat call is idempotent.",
         "forbidden": "No write of any kind after a terminal or paused state.",
-        "evidence": "Owner brief 2026-08-12, ticket 2. VERIFIED OPEN 2026-08-12: reveal_entries_if_ready has neither transaction.atomic nor select_for_update.",
+        "evidence": "SHIPPED v2.5.1021. reveal_entries_if_ready now re-reads the source status under select_for_update inside transaction.atomic, counts the submitted dishes and reads the deadline after the lock, and writes only through the locked instance; the caller's object is told the authoritative status, the same contract T01 settled. A cheap pre-check keeps an ordinary page view of a finished battle off the lock, and it can only be stale in the safe direction - everything it lets through is re-decided under the lock. PROVED AGAINST THE OLD CODE FIRST: with the fix stashed, the same tests fail 13 times, including the real two-connection race. RevealIsAtomicAndCannotResurrectTests walks both source states against all six terminal/paused states and asserts the status is not moved, the caller is corrected, and the dishes stay hidden; the three legitimate advances (both dishes in, deadline alone from MENU_LOCKED, both dishes in from ACTIVE) still fire; F68 stays closed (ACTIVE never advances on the deadline alone); a repeat call writes nothing, asserted on updated_at. RevealSerialisesAgainstACancellationTests is a TransactionTestCase with two threads and a barrier: one holds the row locked and cancels it, the other calls the reveal on a stale MENU_LOCKED instance and must come out cancelled with both dishes hidden - captured SQL could not have proved that. 26 focused tests green on PostgreSQL, parallel 8.",
     },
     {
         "id": "T03", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "Two chefs pressing Ready cannot erase each other - proved by a real race",
@@ -4643,7 +4643,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "7dcc4faa / production v2.5.1019",
+        "commit": "7dcc4faa / production v2.5.1021",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

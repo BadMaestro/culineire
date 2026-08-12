@@ -1102,31 +1102,66 @@ def submit_battle_entry(*, battle: Battle, author, recipe=None, article=None, ba
     return entry
 
 
-def reveal_entries_if_ready(battle: Battle) -> None:
-    entries = battle.entries.filter(dish_submitted_at__isnull=False)
-    both_submitted = entries.count() == 2
-    deadline_passed = timezone.now() >= battle.submission_deadline
+#: The only two statuses a reveal may advance FROM. Everything else - and that
+#: includes every terminal state - is left exactly as it is.
+_REVEAL_SOURCE_STATUSES = (Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE)
 
-    if battle.status == Battle.Status.MENU_LOCKED:
-        # Both chefs submitted their recipes — combat can begin
-        if both_submitted or deadline_passed:
-            battle.entries.filter(is_revealed=False).update(is_revealed=True)
-            battle.status = Battle.Status.ACTIVE
-            battle.save(update_fields=["status", "updated_at"])
-    elif battle.status == Battle.Status.ACTIVE:
-        # F68, 2026-08-12: this used to also fire on deadline_passed alone.
-        # dish_submitted_at is only ever set from the COOKING-phase dish
-        # upload (F12 gated battle_entry_submit to require COOKING), so
-        # both_submitted cannot legitimately become true while still ACTIVE -
-        # the deadline_passed fallback was the only thing ever firing here in
-        # production, and it skipped combat resolution, the ingredient
-        # biathlon and cooking entirely, sending an unfought battle straight
-        # to a public vote. A battle stuck ACTIVE past its deadline is now
-        # left for handle_no_show_battles to cancel instead of score.
-        if both_submitted:
-            battle.entries.filter(is_revealed=False).update(is_revealed=True)
-            battle.status = Battle.Status.VOTING
-            battle.save(update_fields=["status", "updated_at"])
+
+def reveal_entries_if_ready(battle: Battle) -> None:
+    """Advance a battle out of MENU_LOCKED/ACTIVE once its dishes are in.
+
+    T02, Owner brief 2026-08-12: this ran with neither a transaction nor a
+    lock. It read the caller's (possibly minutes-old) status, counted entries
+    outside any lock, and then wrote status back - so a battle cancelled,
+    voided or paused between the read and the write was resurrected into
+    ACTIVE or VOTING, with both dishes revealed, by nothing more than a page
+    view. Two chefs submitting at once could both see the same count and both
+    advance. The source state is now re-read under the row lock, the count and
+    the deadline are computed after it, and the only writes go through the
+    locked instance.
+    """
+    if battle.status not in _REVEAL_SOURCE_STATUSES:
+        # Cheap pre-check so an ordinary page view of a finished battle does
+        # not take a row lock. It can only be stale in the safe direction:
+        # anything it lets through is re-decided under the lock below.
+        return
+
+    with transaction.atomic():
+        locked = _locked_battle(battle.pk, expected_status=None)
+        if locked.status not in _REVEAL_SOURCE_STATUSES:
+            # Cancelled, voided, paused or already advanced while we waited.
+            battle.status = locked.status
+            return
+
+        both_submitted = locked.entries.filter(
+            dish_submitted_at__isnull=False).count() == 2
+
+        if locked.status == Battle.Status.MENU_LOCKED:
+            # Both chefs declared their menus - combat can begin.
+            deadline_passed = timezone.now() >= locked.submission_deadline
+            if not (both_submitted or deadline_passed):
+                return
+            target = Battle.Status.ACTIVE
+        else:
+            # F68, 2026-08-12: this used to also fire on deadline_passed alone.
+            # dish_submitted_at is only ever set from the COOKING-phase dish
+            # upload (F12 gated battle_entry_submit to require COOKING), so
+            # both_submitted cannot legitimately become true while still ACTIVE -
+            # the deadline_passed fallback was the only thing ever firing here in
+            # production, and it skipped combat resolution, the ingredient
+            # biathlon and cooking entirely, sending an unfought battle straight
+            # to a public vote. A battle stuck ACTIVE past its deadline is now
+            # left for handle_no_show_battles to cancel instead of score.
+            if not both_submitted:
+                return
+            target = Battle.Status.VOTING
+
+        locked.entries.filter(is_revealed=False).update(is_revealed=True)
+        locked.status = target
+        locked.save(update_fields=["status", "updated_at"])
+        # The caller keeps its own instance (and its cached authors); it is
+        # told the authoritative status, the same contract T01 settled.
+        battle.status = target
 
 
 def _release_battle_artifacts_on_finish(battle: Battle) -> None:
