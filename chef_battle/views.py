@@ -3449,53 +3449,67 @@ def battle_set_ready(request, pk):
 
     is_challenger = author.pk == battle.challenger_id
 
-    if is_challenger:
-        if battle.challenger_ready:
-            messages.info(request, "You already marked yourself as ready.")
+    with transaction.atomic():
+        # F67, 2026-08-12: this view had no lock at all. Both chefs pressing
+        # Ready in the same window - exactly when both WOULD click - each read
+        # the other's flag as still False and wrote it back False on save,
+        # silently erasing whichever one committed first. That chef then had
+        # no way back in (this view refuses any POST once status leaves
+        # SCHEDULED) and lost the grace period to an unearned walkover.
+        # Lock the row and re-read both flags from it before deciding anything.
+        battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        if battle.status != Battle.Status.SCHEDULED:
+            messages.error(request, "This battle is not in the readiness phase.")
             return redirect("chef_battle:battle_detail", pk=pk)
-        battle.challenger_ready = True
-    else:
-        if battle.opponent_ready:
-            messages.info(request, "You already marked yourself as ready.")
-            return redirect("chef_battle:battle_detail", pk=pk)
-        battle.opponent_ready = True
 
-    if battle.challenger_ready and battle.opponent_ready:
-        # OWNER, scenario A6, 2026-08-06: "оба готовы - таймер до матча 15 минут".
-        #
-        # Ready no longer teleports the battle into menu declaration. The twelve
-        # hours are a deadline, not an appointment: two chefs who are both
-        # standing there have their start pulled in to fifteen minutes, the
-        # battle STAYS scheduled and announced, and its pill climbs the Next
-        # Battle board because that board is ordered strictly by time remaining.
-        # resolve_start_rituals() then begins the battle when the clock runs
-        # out - which is the path it was always written for, docstring included.
-        from .services import READY_HEAD_START, pull_start_forward_when_both_ready
+        if is_challenger:
+            if battle.challenger_ready:
+                messages.info(request, "You already marked yourself as ready.")
+                return redirect("chef_battle:battle_detail", pk=pk)
+            battle.challenger_ready = True
+        else:
+            if battle.opponent_ready:
+                messages.info(request, "You already marked yourself as ready.")
+                return redirect("chef_battle:battle_detail", pk=pk)
+            battle.opponent_ready = True
 
-        moved = pull_start_forward_when_both_ready(battle)
-        fields = ["challenger_ready", "opponent_ready", "updated_at"]
-        if moved:
-            fields.insert(2, "start_time")
-        battle.save(update_fields=fields)
-        create_battle_event(
-            event_type=BattleEvent.EventType.BATTLE_STARTED,
-            battle=battle,
-            actor=author,
-            message=(
-                f"Both chefs are ready for '{battle.theme}'. The battle starts in "
-                f"{int(READY_HEAD_START.total_seconds() // 60)} minutes."
-            ),
-            is_public=True,
-        )
-        messages.success(
-            request,
-            "Both chefs are ready. Your battle starts in "
-            f"{int(READY_HEAD_START.total_seconds() // 60)} minutes — watch it "
-            "climb the arena board.",
-        )
-    else:
-        battle.save(update_fields=["challenger_ready", "opponent_ready", "updated_at"])
-        messages.success(request, "You're ready! Waiting for your opponent.")
+        if battle.challenger_ready and battle.opponent_ready:
+            # OWNER, scenario A6, 2026-08-06: "оба готовы - таймер до матча 15 минут".
+            #
+            # Ready no longer teleports the battle into menu declaration. The
+            # twelve hours are a deadline, not an appointment: two chefs who
+            # are both standing there have their start pulled in to fifteen
+            # minutes, the battle STAYS scheduled and announced, and its pill
+            # climbs the Next Battle board because that board is ordered
+            # strictly by time remaining. resolve_start_rituals() then begins
+            # the battle when the clock runs out - which is the path it was
+            # always written for, docstring included.
+            from .services import READY_HEAD_START, pull_start_forward_when_both_ready
+
+            moved = pull_start_forward_when_both_ready(battle)
+            fields = ["challenger_ready", "opponent_ready", "updated_at"]
+            if moved:
+                fields.insert(2, "start_time")
+            battle.save(update_fields=fields)
+            create_battle_event(
+                event_type=BattleEvent.EventType.BATTLE_STARTED,
+                battle=battle,
+                actor=author,
+                message=(
+                    f"Both chefs are ready for '{battle.theme}'. The battle starts in "
+                    f"{int(READY_HEAD_START.total_seconds() // 60)} minutes."
+                ),
+                is_public=True,
+            )
+            messages.success(
+                request,
+                "Both chefs are ready. Your battle starts in "
+                f"{int(READY_HEAD_START.total_seconds() // 60)} minutes — watch it "
+                "climb the arena board.",
+            )
+        else:
+            battle.save(update_fields=["challenger_ready", "opponent_ready", "updated_at"])
+            messages.success(request, "You're ready! Waiting for your opponent.")
 
     return redirect("chef_battle:battle_detail", pk=pk)
 

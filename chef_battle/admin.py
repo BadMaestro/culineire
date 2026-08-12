@@ -838,11 +838,20 @@ class PayoutRequestAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "currency")
     search_fields = ("chef__name", "stripe_transfer_id")
+    # F73, 2026-08-12: status/reviewed_by/reviewed_at/paid_at used to be
+    # plain editable fields on the change form - any staff user with change
+    # permission could hand-type "paid" straight into status, bypassing
+    # approve_payout_request/_execute_stripe_connect_transfer entirely: no
+    # Stripe transfer, no is_suspended/fraud_flag/payout_blocked recheck, no
+    # RewardRecord transition, no ledger event. Everything that moves this
+    # workflow forward now has to go through the actions below (which call
+    # the service functions) or the service layer directly.
     readonly_fields = (
         "chef", "dac7_record", "reward_agreement",
         "amount_reward_tokens", "payout_rate_snapshot", "gross_payout_eur",
         "currency", "stripe_connect_account_id", "stripe_transfer_id",
         "requested_at", "updated_at",
+        "status", "reviewed_by", "reviewed_at", "paid_at",
     )
     ordering = ("-requested_at",)
     actions = [approve_payout_requests, mark_under_review, hold_payout_requests]

@@ -95,6 +95,34 @@ def get_or_create_battle_profile(author):
     return profile
 
 
+def _lock_battle_profiles(*authors) -> dict:
+    """Lock one or more chefs' profile rows, ordered by pk, and return them
+    keyed by author_id.
+
+    F70, 2026-08-12: _score_battle already does exactly this (F27, then
+    extended) because a chef can be in more than one battle at once - two
+    battles finishing at the same moment take DIFFERENT battle-row locks and
+    would otherwise both read the same stale rating/reputation/win_streak,
+    add to it, and write, losing one side's update. That same shape reaches
+    every other place a battle's outcome mutates a profile - walkover,
+    forfeit, void-no-show, a refused challenge, an upheld withdrawal penalty -
+    and none of them locked the profile row before this. Ordered by pk so two
+    calls that share a chef always take the rows in the same order and cannot
+    deadlock against each other.
+    """
+    for author in authors:
+        get_or_create_battle_profile(author)
+    author_ids = [author.pk for author in authors]
+    locked = {
+        profile.author_id: profile
+        for profile in ChefBattleProfile.objects
+        .select_for_update()
+        .filter(author_id__in=author_ids)
+        .order_by("pk")
+    }
+    return {author.pk: locked[author.pk] for author in authors}
+
+
 def rank_for_wins(wins: int) -> str:
     """The rank a chef's win count earns them. X09, Owner 2026-08-05."""
     for threshold, rank in RANK_THRESHOLDS:
@@ -637,7 +665,9 @@ def refuse_challenge(challenge: BattleChallenge) -> None:
         challenge.refused_at = timezone.now()
         challenge.save(update_fields=["status", "refused_at"])
 
-        profile = get_or_create_battle_profile(challenge.opponent)
+        # F70, 2026-08-12: same chef can be in another battle finishing at
+        # this exact moment; lock the profile row before mutating it.
+        profile = _lock_battle_profiles(challenge.opponent)[challenge.opponent.pk]
         fields = penalise(profile, refused=1, reputation=-5)
         if fields:
             profile.save(update_fields=fields)
@@ -793,6 +823,33 @@ def handle_no_show_battles() -> int:
             elif not opponent_submitted:
                 _award_forfeit_win(battle, winner=battle.challenger, loser=battle.opponent)
 
+            elif battle.status in (Battle.Status.MENU_LOCKED, Battle.Status.ACTIVE):
+                # F68, 2026-08-12: "submitted" here only means a BattleEntry
+                # row exists for each chef - both are auto-created at/soon
+                # after accept_challenge, long before combat even starts, so
+                # this branch used to fire for EVERY battle still fighting
+                # (or still in the antechamber) once the 48h submission clock
+                # ran out, jumping straight to VOTING with no combat, no
+                # ingredient biathlon and no cooked photo ever having
+                # happened. That is not a no-show - both chefs are genuinely
+                # engaged - so it is not theirs to lose. Cancel with no
+                # reward and no penalty, the same call F20's void_stalled_battle
+                # already makes for a phase stuck past end_time.
+                battle.entries.filter(is_revealed=False).update(is_revealed=True)
+                battle.status = Battle.Status.CANCELLED
+                battle.result_reason = (
+                    "Stalled: the battle did not reach cooking before its deadline."
+                )
+                battle.save(update_fields=["status", "result_reason", "updated_at"])
+                create_battle_event(
+                    event_type=BattleEvent.EventType.BATTLE_FINISHED,
+                    battle=battle,
+                    message=(
+                        f"Chef Battle '{battle.theme}' was cancelled: it did not "
+                        f"reach cooking before its deadline."
+                    ),
+                    is_public=True,
+                )
             else:
                 # Both submitted but deadline passed without voting closing —
                 # advance to voting so the normal result path can run.
@@ -843,13 +900,17 @@ def _award_walkover_win(battle: Battle, *, winner, loser) -> None:
     the chef who turned up takes the win and keeps their rewards, the absent one
     is penalised. Mirrors the established forfeit mechanic — reputation hit for
     the absentee, no rating change, since no dishes were ever judged."""
-    loser_profile = get_or_create_battle_profile(loser)
+    # F70, 2026-08-12: either chef can be finishing a DIFFERENT battle at the
+    # same instant, which takes a different battle-row lock and would
+    # otherwise race this unlocked read-modify-write on the same profile.
+    locked_profiles = _lock_battle_profiles(winner, loser)
+    loser_profile = locked_profiles[loser.pk]
     fields = penalise(loser_profile, battle=battle, losses=1, reset_streak=True,
                       reputation=-10)
     if fields:
         loser_profile.save(update_fields=fields)
 
-    winner_profile = get_or_create_battle_profile(winner)
+    winner_profile = locked_profiles[winner.pk]
     winner_profile.wins += 1
     winner_profile.win_streak += 1
     promote_rank(winner_profile)
@@ -880,8 +941,11 @@ def _award_walkover_win(battle: Battle, *, winner, loser) -> None:
 def _void_battle_no_show(battle: Battle) -> None:
     """Neither chef appeared. There is no winner, and both are penalised
     (owner decision 2026-07-17: 'оба теряют очки')."""
+    # F70, 2026-08-12: lock both profile rows before mutating - either chef
+    # can be finishing a different battle at this exact moment.
+    locked_profiles = _lock_battle_profiles(battle.challenger, battle.opponent)
     for author in (battle.challenger, battle.opponent):
-        profile = get_or_create_battle_profile(author)
+        profile = locked_profiles[author.pk]
         fields = penalise(profile, battle=battle, reset_streak=True, reputation=-10)
         if fields:
             profile.save(update_fields=fields)
@@ -984,13 +1048,16 @@ def resolve_start_rituals() -> int:
 
 
 def _award_forfeit_win(battle: Battle, *, winner, loser) -> None:
-    loser_profile = get_or_create_battle_profile(loser)
+    # F70, 2026-08-12: lock both profile rows before mutating - either chef
+    # can be finishing a different battle at this exact moment.
+    locked_profiles = _lock_battle_profiles(winner, loser)
+    loser_profile = locked_profiles[loser.pk]
     fields = penalise(loser_profile, battle=battle, losses=1, reset_streak=True,
                       reputation=-10)
     if fields:
         loser_profile.save(update_fields=fields)
 
-    winner_profile = get_or_create_battle_profile(winner)
+    winner_profile = locked_profiles[winner.pk]
     winner_profile.wins += 1
     winner_profile.win_streak += 1
     promote_rank(winner_profile)
@@ -1047,8 +1114,16 @@ def reveal_entries_if_ready(battle: Battle) -> None:
             battle.status = Battle.Status.ACTIVE
             battle.save(update_fields=["status", "updated_at"])
     elif battle.status == Battle.Status.ACTIVE:
-        # Both chefs submitted combat actions — move to voting
-        if both_submitted or deadline_passed:
+        # F68, 2026-08-12: this used to also fire on deadline_passed alone.
+        # dish_submitted_at is only ever set from the COOKING-phase dish
+        # upload (F12 gated battle_entry_submit to require COOKING), so
+        # both_submitted cannot legitimately become true while still ACTIVE -
+        # the deadline_passed fallback was the only thing ever firing here in
+        # production, and it skipped combat resolution, the ingredient
+        # biathlon and cooking entirely, sending an unfought battle straight
+        # to a public vote. A battle stuck ACTIVE past its deadline is now
+        # left for handle_no_show_battles to cancel instead of score.
+        if both_submitted:
             battle.entries.filter(is_revealed=False).update(is_revealed=True)
             battle.status = Battle.Status.VOTING
             battle.save(update_fields=["status", "updated_at"])
@@ -2388,6 +2463,15 @@ def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: 
     except Exception:
         pass
     with transaction.atomic():
+        # F69, 2026-08-12: every sibling function in this phase (declare_menu,
+        # place_ingredient_lock, fire_ingredient_shot, approve_cooking_phase)
+        # locks the battle row and rechecks status under it; this one never
+        # did. A moderator voiding/cancelling the battle in the same window
+        # this chef's upload was in flight would have let the photo attach to
+        # a battle no longer live for it.
+        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        if locked_battle.status != Battle.Status.COOKING:
+            raise ValueError("Battle must be in COOKING status to submit a cooked photo.")
         entry.cooked_photo = photo
         entry.cooked_photo_submitted_at = timezone.now()
         entry.real_photo_confirmed = real_photo_confirmed
@@ -3173,7 +3257,24 @@ def approve_payout_request(payout_request_id: int, reviewed_by_user) -> "PayoutR
         # check_payout_eligibility only gates NEW requests, not the
         # approval of one already sitting open when the chargeback landed.
         # Re-check here, at the point that actually sends money.
+        #
+        # F71, 2026-08-12: that re-check only ever covered payout_blocked.
+        # check_payout_eligibility gates NEW requests on all three of
+        # is_suspended, fraud_flag AND payout_blocked - a chef suspended or
+        # fraud-flagged AFTER submitting a request that is still sitting
+        # PENDING/UNDER_REVIEW sailed through here untouched. Same gate,
+        # same three checks, at the point that actually sends money.
         profile = ChefBattleProfile.objects.filter(author=payout.chef).first()
+        if profile and profile.is_suspended:
+            raise ValueError(
+                f"PayoutRequest #{payout_request_id} cannot be approved: "
+                "this chef's account is suspended."
+            )
+        if profile and profile.fraud_flag:
+            raise ValueError(
+                f"PayoutRequest #{payout_request_id} cannot be approved: "
+                "this chef is flagged for fraud review."
+            )
         if profile and profile.payout_blocked:
             raise ValueError(
                 f"PayoutRequest #{payout_request_id} cannot be approved: "
@@ -3225,11 +3326,20 @@ def reject_payout_request(payout_request_id: int, reviewed_by_user, reason: str)
         payout.rejection_reason = reason
         payout.save(update_fields=["status", "reviewed_by", "reviewed_at", "rejection_reason", "updated_at"])
 
-        # Return ISSUED records to APPROVED so chef can re-request
+        # Return ISSUED records to APPROVED so chef can re-request.
+        #
+        # F72, 2026-08-12: this was status_note__contains=f"PayoutRequest
+        # #{payout.pk}" - an unanchored substring match. "PayoutRequest #1"
+        # is a substring of "PayoutRequest #10", "#11", ..., "#19", "#100"
+        # and so on, so rejecting payout #1 also released every reward record
+        # locked for any payout whose id starts with "1", corrupting the F61
+        # reservation guarantee for payouts that were never touched. The note
+        # is always written as the exact string "Locked for PayoutRequest
+        # #{pk}" (create_payout_request); match that exactly.
         RewardRecord.objects.filter(
             recipient=payout.chef,
             status=RewardRecord.Status.ISSUED,
-            status_note__contains=f"PayoutRequest #{payout.pk}",
+            status_note=f"Locked for PayoutRequest #{payout.pk}",
         ).update(status=RewardRecord.Status.APPROVED, status_note="Returned: payout rejected")
 
         LedgerEvent.objects.create(

@@ -26,6 +26,7 @@ from django.utils import timezone
 
 from .models import Battle, BattleEvent, BattleWithdrawal
 from .services import (
+    _lock_battle_profiles,
     _notify_chef,
     _release_battle_artifacts_on_finish,
     create_battle_event,
@@ -201,7 +202,9 @@ def resolve_withdrawal(*, withdrawal: BattleWithdrawal, moderator, uphold_penalt
         locked_battle = Battle.objects.select_for_update().get(pk=locked_withdrawal.battle_id)
 
         if uphold_penalty:
-            profile = get_or_create_battle_profile(locked_withdrawal.requester)
+            # F70, 2026-08-12: the requester can be finishing a different
+            # battle at this exact moment; lock the profile row first.
+            profile = _lock_battle_profiles(locked_withdrawal.requester)[locked_withdrawal.requester.pk]
             fields = penalise(
                 profile,
                 battle=locked_battle,

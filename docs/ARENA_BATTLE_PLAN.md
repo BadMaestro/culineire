@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-11 · Production baseline: **v2.5.1014**
+Last reconciled: 2026-08-12 · Production baseline: **v2.5.1016**
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
 integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
 to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
@@ -218,6 +218,36 @@ exactly this round's set, nothing more; the season/observer/accept_
 challenge mutex locks were confirmed correctly scoped (their real checks
 are fresh post-lock queries, not stale field reads). 27 new tests, 73+
 focused tests green, zero regressions.**
+**F67-F75 fixed, 2026-08-12 — my own self-directed audit, ordered directly
+after F58-F66 ("ПРОВЕДИ СВОЙ СОБСТВЕННЫЙ ПОЛНЫЙ АУДИТ"): five parallel
+agents (concurrency, payments, game-logic/state-machine, permissions,
+dead-code/docs), every finding personally re-verified before being fixed.
+Nine held up. CRITICAL: F67 - battle_set_ready had no lock at all, so two
+chefs pressing Ready together could have one click silently erased by the
+other's save. F68 - a battle still genuinely being fought could be
+teleported straight to VOTING once its 48h submission clock ran out,
+skipping combat, the ingredient biathlon and cooking entirely - near-
+deterministic, not a race, since combat carries no per-round deadline; now
+cancelled instead, matching F20's own precedent. F71 - approving a payout
+only re-checked payout_blocked, never is_suspended or fraud_flag, at the
+exact point that sends real money. F74 - Stripe does not guarantee webhook
+order; a refund/dispute event arriving before its own checkout-completed
+event was silently and permanently dropped, since the old code marked it
+processed before finding out it had nowhere to apply. HIGH: F70 - the F27
+profile-locking pattern never reached five more places a battle's outcome
+mutates a chef's profile (walkover, forfeit, void-no-show, a refused
+challenge, an upheld withdrawal penalty). F72 - reject_payout_request's
+unanchored substring match could release a reward record reserved for a
+DIFFERENT payout. F73 - PayoutRequest.status was directly editable in
+Django admin, bypassing every service-layer safeguard. MEDIUM: F69 -
+submit_cooked_photo was the one function in its phase with no battle lock.
+LOW: F75 - the profile page's Chef Battle prompt had no visibility gate,
+the same drift class closed four times already. Two items left for the
+Owner: unconditional marketing copy on home/about/signup (may be a
+deliberate teaser, not a leak) and a duplicate version number found in this
+project's own release history (no commit hash on either side to judge which
+is real). 33 new tests, 137 focused tests green, zero regressions. NO
+MIGRATION.**
 Next assignable card: none in Stage 2 — it is finished.
 
 **MC01 was built and then DELETED on the Owner's order the same day (v2.5.842).** It walked the withdrawal through the Master Console as step cards — three columns of text per step. Nothing in it was factually wrong; being a description was the problem. His words: he wants the steps seen LIVE ON THE ARENA, not read. The panel, its module, its stylesheet, its stepper and its tests are gone — no dead code left behind. What replaces it is MC02 and `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`, which is a specification and never a screen: nine rows naming the one thing he must be able to SEE at each step, driven by the existing `emulation.py` (`start_emulation`, `emulation_step`) through the real services. Most rows are TO SPEC and stay that way until he says what they look like. That blocker is gone: A09 closed on 2026-08-06 - the approach in v2.5.844 and the fighter who stayed visible in v2.5.847 - so an emulated bout now has two chefs standing in it.

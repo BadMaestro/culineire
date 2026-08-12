@@ -314,7 +314,24 @@ def _handle_charge_refunded(charge) -> Any:
 
     order = TokenOrder.objects.filter(stripe_payment_intent_id=payment_intent).first()
     if order is None:
-        return None
+        # F74, 2026-08-12: Stripe does not guarantee webhook delivery order.
+        # stripe_payment_intent_id is only ever written by
+        # _handle_checkout_completed, so a refund/dispute event that Stripe
+        # happens to deliver (or that a retry redelivers) before that event
+        # lands here finds no order at all. Returning None used to look like
+        # success: the caller had ALREADY recorded this event_id in
+        # ProcessedTokenStripeEvent before calling this handler, in the same
+        # transaction, so a 200 response permanently marked it done and
+        # Stripe never resent it - the refund/dispute was silently dropped
+        # forever, and the customer kept tokens Stripe had already taken the
+        # money back on. Raising here rolls back that same transaction
+        # (dedup row included), the view returns a non-2xx, and Stripe's own
+        # retry schedule (up to 3 days) gives checkout.session.completed time
+        # to land first.
+        raise TokenPaymentVerificationError(
+            f"Token webhook: no TokenOrder yet for payment_intent {payment_intent} "
+            "(charge.refunded arrived before checkout.session.completed?)."
+        )
 
     handle_token_order_chargeback(order.pk, chargeback=False)
     return order
@@ -331,7 +348,11 @@ def _handle_charge_dispute(dispute) -> Any:
 
     order = TokenOrder.objects.filter(stripe_payment_intent_id=payment_intent).first()
     if order is None:
-        return None
+        # F74, 2026-08-12: same ordering gap as _handle_charge_refunded above.
+        raise TokenPaymentVerificationError(
+            f"Token webhook: no TokenOrder yet for payment_intent {payment_intent} "
+            "(charge.dispute.created arrived before checkout.session.completed?)."
+        )
 
     handle_token_order_chargeback(order.pk, chargeback=True)
     return order
