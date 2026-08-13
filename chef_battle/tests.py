@@ -4227,8 +4227,17 @@ class ArenaMasterModerationTests(TestCase):
         self.assertEqual(resp.status_code, 409)
 
     def test_cooked_photos_wait_for_both_owner_approvals_before_presentation(self):
+        from io import BytesIO
         from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
         from .services import submit_cooked_photo
+
+        # T05, 2026-08-13: a cooked photo is decoded and re-encoded before it is
+        # stored, so these fixtures are real images now instead of b"photo-a".
+        def _jpeg(colour):
+            buffer = BytesIO()
+            Image.new("RGB", (32, 24), colour).save(buffer, format="JPEG")
+            return buffer.getvalue()
 
         self.battle.status = Battle.Status.COOKING
         self.battle.save(update_fields=["status"])
@@ -4236,13 +4245,13 @@ class ArenaMasterModerationTests(TestCase):
         submit_cooked_photo(
             battle=self.battle,
             author=self.chef_a,
-            photo=SimpleUploadedFile("a.jpg", b"photo-a", content_type="image/jpeg"),
+            photo=SimpleUploadedFile("a.jpg", _jpeg((10, 90, 40)), content_type="image/jpeg"),
             real_photo_confirmed=True,
         )
         submit_cooked_photo(
             battle=self.battle,
             author=self.chef_b,
-            photo=SimpleUploadedFile("b.jpg", b"photo-b", content_type="image/jpeg"),
+            photo=SimpleUploadedFile("b.jpg", _jpeg((90, 10, 40)), content_type="image/jpeg"),
             real_photo_confirmed=True,
         )
         self.battle.refresh_from_db()
@@ -17219,7 +17228,16 @@ class SubmitCookedPhotoLocksAndRechecksBattleStatusTests(TestCase):
             end_time=now + timezone.timedelta(days=2),
         )
         BattleEntry.objects.create(battle=self.battle, author=self.chef)
-        self.photo = SimpleUploadedFile("f69.jpg", b"fake-image-bytes", content_type="image/jpeg")
+        # T05, 2026-08-13: this fixture used to be b"fake-image-bytes". The
+        # cooked photo is now decoded and re-encoded before anything is stored,
+        # so a real image is the only thing that reaches the lock this class is
+        # about. Supplying a real image is a corrected precondition, not a
+        # weakened assertion - every assertion below is untouched.
+        from io import BytesIO
+        from PIL import Image
+        buffer = BytesIO()
+        Image.new("RGB", (32, 24), (120, 60, 30)).save(buffer, format="JPEG")
+        self.photo = SimpleUploadedFile("f69.jpg", buffer.getvalue(), content_type="image/jpeg")
 
     def test_locks_the_battle_row(self):
         from django.db import connection
@@ -18145,3 +18163,225 @@ class CombatLogAndChatNeverParseAChefsNameTests(TestCase):
         )
         round_obj.refresh_from_db()
         self.assertIn(self.PAYLOAD, round_obj.log_message)
+
+
+
+class CookedPhotoIsAValidatedNormalisedImageTests(TestCase):
+    """T05, Owner brief 2026-08-12 - BattleEntry.cooked_photo had NO validation.
+
+    Every other image field on the site carries validate_image_upload; this one,
+    the file a chef submits as EVIDENCE of a cooked dish and which the arena
+    publishes after moderation, carried nothing. The chef's own bytes were
+    stored under the chef's own filename and served back from /media, so an
+    .html file, an SVG with a script in it, or a polyglot that is a valid JPEG
+    AND valid HTML went straight onto the site.
+
+    The upload is now decoded and RE-ENCODED. Nothing the uploader supplied
+    survives: not the container, not the metadata, not the name.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.chef = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t05-ch", password="pw"),
+            name="T05 Chef", slug="t05-ch")
+        self.rival = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t05-op", password="pw"),
+            name="T05 Rival", slug="t05-op")
+        ChefBattleProfile.objects.create(author=self.chef)
+        ChefBattleProfile.objects.create(author=self.rival)
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef, opponent=self.rival, theme="T05",
+            status=Battle.Status.COOKING, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        BattleEntry.objects.create(battle=self.battle, author=self.chef)
+        BattleEntry.objects.create(battle=self.battle, author=self.rival)
+
+    # ── helpers ──────────────────────────────────────────────────────────────
+
+    def _image_bytes(self, fmt, size=(64, 48), colour=(200, 100, 50)):
+        from io import BytesIO
+        from PIL import Image
+
+        buffer = BytesIO()
+        Image.new("RGB", size, colour).save(buffer, format=fmt)
+        return buffer.getvalue()
+
+    def _upload(self, name, content, content_type="image/jpeg"):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        return SimpleUploadedFile(name, content, content_type=content_type)
+
+    def _submit(self, upload):
+        from chef_battle.services import submit_cooked_photo
+        return submit_cooked_photo(
+            battle=self.battle, author=self.chef, photo=upload,
+            real_photo_confirmed=True)
+
+    # ── what must be refused ─────────────────────────────────────────────────
+
+    def test_refusals(self):
+        from django.core.exceptions import ValidationError
+        from chef_battle.models import BattleEntry as Entry
+
+        html = b"<html><script>window.__pwned=1</script></html>"
+        svg = (b'<svg xmlns="http://www.w3.org/2000/svg" onload="window.__pwned=1">'
+               b'<text>dish</text></svg>')
+        cases = {
+            "HTML named .html": self._upload("dish.html", html, "text/html"),
+            "HTML named .jpg": self._upload("dish.jpg", html, "image/jpeg"),
+            "SVG named .svg": self._upload("dish.svg", svg, "image/svg+xml"),
+            "SVG named .png": self._upload("dish.png", svg, "image/png"),
+            "a truncated JPEG": self._upload(
+                "dish.jpg", self._image_bytes("JPEG")[:120], "image/jpeg"),
+            "an empty file": self._upload("dish.jpg", b"", "image/jpeg"),
+            "a polyglot": self._upload(
+                "dish.jpg", self._image_bytes("JPEG") + html, "image/jpeg"),
+        }
+        for label, upload in cases.items():
+            with self.subTest(case=label):
+                if label == "a polyglot":
+                    # A polyglot DECODES - no decoder test can refuse it. What
+                    # closes it is that the trailing payload is not pixels and
+                    # therefore is not in the re-encoded file.
+                    entry = self._submit(upload)
+                    entry.refresh_from_db()
+                    stored = entry.cooked_photo.read()
+                    self.assertNotIn(b"<script", stored,
+                                     "the appended payload survived re-encoding")
+                    entry.cooked_photo.delete(save=True)
+                    Entry.objects.filter(pk=entry.pk).update(cooked_photo="")
+                    continue
+                with self.assertRaises(ValidationError):
+                    self._submit(upload)
+                self.assertFalse(
+                    Entry.objects.get(battle=self.battle, author=self.chef).cooked_photo,
+                    f"{label} was stored before it validated")
+
+    def test_a_file_over_the_byte_ceiling_is_refused(self):
+        from django.core.exceptions import ValidationError
+        from recipes.validators import NORMALISED_IMAGE_MAX_BYTES
+
+        oversized = self._upload(
+            "dish.jpg", b"\xff\xd8\xff" + b"\x00" * NORMALISED_IMAGE_MAX_BYTES)
+        with self.assertRaises(ValidationError) as caught:
+            self._submit(oversized)
+        self.assertIn("MB or smaller", caught.exception.messages[0])
+
+    def test_an_image_over_the_pixel_ceiling_is_refused_before_it_is_decoded(self):
+        """A decompression bomb is small on disk and enormous in memory: the
+        dimensions are read from the header and judged before any pixel is
+        allocated."""
+        from django.core.exceptions import ValidationError
+        from recipes.validators import normalise_uploaded_image
+
+        bomb = self._upload("bomb.png", self._image_bytes("PNG", size=(20000, 20000)),
+                            "image/png")
+        with self.assertRaises(ValidationError) as caught:
+            normalise_uploaded_image(bomb, prefix="cooked", max_pixels=1_000_000)
+        self.assertEqual(caught.exception.code, "image_too_large")
+
+    # ── what must be accepted, and what is stored ────────────────────────────
+
+    def test_each_accepted_format_is_stored_under_a_name_this_server_generated(self):
+        from PIL import Image
+
+        for fmt, claimed_name in (("JPEG", "my dish.jpg"),
+                                  ("PNG", "my dish.png"),
+                                  ("WEBP", "my dish.webp")):
+            with self.subTest(fmt=fmt):
+                BattleEntry.objects.filter(
+                    battle=self.battle, author=self.chef).update(cooked_photo="")
+                upload = self._upload(claimed_name, self._image_bytes(fmt))
+                entry = self._submit(upload)
+
+                entry.refresh_from_db()
+                self.assertTrue(entry.cooked_photo)
+                stored_name = entry.cooked_photo.name.rsplit("/", 1)[-1]
+                self.assertTrue(stored_name.startswith("cooked-"),
+                                f"stored as {stored_name}, not a server-generated name")
+                self.assertNotIn("my dish", stored_name)
+                entry.cooked_photo.open()
+                with Image.open(entry.cooked_photo) as image:
+                    self.assertEqual(image.format, fmt)
+                entry.cooked_photo.delete(save=True)
+
+    def test_the_extension_a_chef_typed_does_not_decide_the_format(self):
+        """A real PNG named .jpg is still a PNG, and is stored as one."""
+        from PIL import Image
+
+        entry = self._submit(self._upload("dish.jpg", self._image_bytes("PNG")))
+        entry.refresh_from_db()
+        self.assertTrue(entry.cooked_photo.name.endswith(".png"))
+        entry.cooked_photo.open()
+        with Image.open(entry.cooked_photo) as image:
+            self.assertEqual(image.format, "PNG")
+        entry.cooked_photo.delete(save=True)
+
+    def test_metadata_is_dropped_and_the_hash_is_of_the_stored_file(self):
+        import hashlib
+        from io import BytesIO
+        from PIL import Image
+
+        buffer = BytesIO()
+        secret = b"GPS 53.3498 N, -6.2603 W - the chef's home address"
+        Image.new("RGB", (64, 48), (10, 20, 30)).save(
+            buffer, format="JPEG", comment=secret)
+        raw = buffer.getvalue()
+        self.assertIn(secret, raw, "the fixture itself has no metadata to drop")
+
+        entry = self._submit(self._upload("dish.jpg", raw))
+        entry.refresh_from_db()
+        entry.cooked_photo.open()
+        stored = entry.cooked_photo.read()
+        self.assertNotIn(secret, stored, "the uploader's metadata was stored")
+        self.assertNotEqual(hashlib.sha256(raw).hexdigest(), entry.photo_hash,
+                            "the hash is of the upload, not of what was stored")
+        self.assertEqual(hashlib.sha256(stored).hexdigest(), entry.photo_hash)
+        entry.cooked_photo.delete(save=True)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class CookingSubmitShowsARefusalInsteadOf500Tests(TestCase):
+    """T05 - the chef must be told plainly, and nothing must be stored."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user("t05v-ch", password="pw")
+        self.chef = RecipeAuthor.objects.create(
+            user=self.user, name="T05v Chef", slug="t05v-ch")
+        self.rival = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t05v-op", password="pw"),
+            name="T05v Rival", slug="t05v-op")
+        ChefBattleProfile.objects.create(author=self.chef)
+        ChefBattleProfile.objects.create(author=self.rival)
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef, opponent=self.rival, theme="T05v",
+            status=Battle.Status.COOKING, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        BattleEntry.objects.create(battle=self.battle, author=self.chef)
+        self.client.force_login(self.user)
+
+    def test_an_html_file_named_jpg_is_refused_with_a_sentence(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        response = self.client.post(
+            reverse("chef_battle:cooking_submit", args=[self.battle.pk]),
+            {"cooked_photo": SimpleUploadedFile(
+                "dish.jpg", b"<html><script>1</script></html>", "image/jpeg"),
+             "real_photo_confirmed": "1"},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        said = [m.message for m in response.context["messages"]]
+        self.assertTrue(any("not an image" in m for m in said), said)
+        entry = BattleEntry.objects.get(battle=self.battle, author=self.chef)
+        self.assertFalse(entry.cooked_photo)
+        self.assertEqual(entry.photo_hash, "")

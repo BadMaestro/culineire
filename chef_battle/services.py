@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from newsfeed.models import NewsFeedEntry
 from recipes.models import Recipe
+from recipes.validators import normalise_uploaded_image
 
 from .models import (
     APPRECIATION_GIFT_COST, Artifact, Battle, BattleChallenge, BattleCombatAction,
@@ -2543,13 +2544,20 @@ def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: 
     entry = BattleEntry.objects.get(battle=battle, author=author)
     if entry.cooked_photo:
         raise ValueError("You have already submitted a cooked photo for this battle.")
-    photo_hash = ""
-    try:
-        photo.seek(0)
-        photo_hash = hashlib.sha256(photo.read()).hexdigest()
-        photo.seek(0)
-    except Exception:
-        pass
+    # T05, 2026-08-13: this field had NO validation of any kind. The chef's own
+    # bytes were stored under the chef's own filename and served back from
+    # /media - so an .html file, an SVG with a script in it, or a polyglot that
+    # is a valid JPEG AND valid HTML went straight onto the site. The upload is
+    # now decoded and RE-ENCODED: nothing the uploader supplied survives, not
+    # the container, not the metadata, not the name.
+    photo = normalise_uploaded_image(photo, prefix="cooked")
+    # THE HASH IS TAKEN FROM THE NORMALISED FILE, deliberately. It exists to
+    # spot the same dish submitted twice; hashing the upload would let a chef
+    # defeat it by changing one EXIF byte, and would also mean the stored file
+    # and its recorded hash were different objects.
+    photo.seek(0)
+    photo_hash = hashlib.sha256(photo.read()).hexdigest()
+    photo.seek(0)
     with transaction.atomic():
         # F69, 2026-08-12: every sibling function in this phase (declare_menu,
         # place_ingredient_lock, fire_ingredient_shot, approve_cooking_phase)

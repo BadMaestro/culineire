@@ -4395,14 +4395,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T05", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "A cooked photo is a validated, normalised image and nothing else",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "DONE", "owner": "GreenBear",
         "files": "chef_battle/models.py (BattleEntry.cooked_photo); the cooking submission view/service; recipes/validators.py; media serving",
         "depends_on": "none",
         "action": "Accept only JPEG, PNG and WebP, decided by the decoded image rather than the content type or the extension; byte and pixel ceilings; Pillow decompression-bomb handling; a server-generated name; decode and re-encode so active content and metadata are dropped; nothing is stored before it validates; the hash is taken from the normalised file by a stated rule.",
         "visible_result": "An HTML, SVG or polyglot file is refused with a plain message instead of being stored and served.",
         "acceptance": "Tests for HTML named .html, HTML named .jpg, SVG, a corrupt JPEG, a format/extension mismatch, oversized bytes, excessive dimensions, and valid JPEG/PNG/WebP; the stored name and content type are the normalised ones.",
         "forbidden": "Do not block the fix on a cookieless media origin - that is separate infrastructure, worth recording as defence in depth.",
-        "evidence": "Owner brief 2026-08-12, ticket 5.",
+        "evidence": "SHIPPED v2.5.1027. BattleEntry.cooked_photo carried NO validator at all - every other image field on the site carries validate_image_upload, and the one file a chef submits as evidence of a cooked dish, which the arena publishes after moderation, had nothing: the chef's own bytes stored under the chef's own filename and served back from /media. New recipes.validators.normalise_uploaded_image: byte ceiling (8 MB), header-read dimensions judged BEFORE any pixel is allocated (40 MP) so a decompression bomb never reaches the decoder, format decided by the DECODED image and not by the extension or the browser's content type, then decode and RE-ENCODE to JPEG/PNG/WebP under a server-generated uuid name, with image.info cleared - Pillow writes EXIF and the JPEG comment straight out of it, so without that line the chef's camera GPS survives. The result is a ContentFile: what is stored never existed on the uploader's disk. The hash is taken from the NORMALISED file by a stated rule - hashing the upload would let a chef defeat duplicate detection with one changed metadata byte, and would record a hash of something other than the stored object. cooking_submit answers a refusal as a plain sentence, not a 500, and nothing is stored because normalisation happens before the entry is touched. Tests: HTML named .html, HTML named .jpg, SVG named .svg, SVG named .png, a truncated JPEG, an empty file, over the byte ceiling, over the pixel ceiling, and the polyglot case handled honestly - a valid-JPEG-plus-HTML file DECODES, no decoder test can refuse it, and what closes it is that the appended payload is not pixels and so is not in the re-encoded file. Valid JPEG/PNG/WebP are accepted and stored under cooked-<uuid> with the format the bytes actually are (a PNG named .jpg is stored as .png); metadata is proved dropped and the hash proved to be of the stored file. With the fix stashed every one of these is red. Two older fixtures that passed b\"fake-image-bytes\" now pass a real image - a corrected precondition, assertions untouched. NOT DONE HERE, recorded as defence in depth per the card: a cookieless media origin.",
     },
     {
         "id": "T06", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "The first cooked photo is the evidence, and a race cannot replace it",
@@ -4643,7 +4643,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "7dcc4faa / production v2.5.1025",
+        "commit": "7dcc4faa / production v2.5.1027",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

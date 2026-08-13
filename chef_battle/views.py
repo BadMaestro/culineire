@@ -2706,6 +2706,11 @@ def cooking_submit(request, pk):
                 messages.success(request, "Your cooked dish photo has been submitted!")
             except ValueError as e:
                 messages.error(request, str(e))
+            except ValidationError as e:
+                # T05, 2026-08-13: a refused upload is a plain sentence to the
+                # chef, not a 500. Nothing was stored - the file is normalised
+                # before the entry is touched.
+                messages.error(request, e.messages[0] if e.messages else str(e))
         return redirect("chef_battle:battle_detail", pk=pk)
 
     return render(request, "chef_battle/cooking_submit.html", {
