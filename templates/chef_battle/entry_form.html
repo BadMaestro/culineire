@@ -98,11 +98,21 @@
   var emptyHint = document.getElementById('chat-empty-hint');
   var pollUrl = "{% url 'chef_battle:battle_chat_poll' battle.pk %}";
   var sinceId = 0;
+  function chatPart(tag, css, text) {
+    var node = document.createElement(tag);
+    node.style.cssText = css;
+    node.textContent = text == null ? '' : text;
+    return node;
+  }
   function appendMessage(msg) {
     if (emptyHint) { emptyHint.remove(); emptyHint = null; }
     var el = document.createElement('div');
     el.style.cssText = 'display:flex;gap:.5rem;align-items:baseline;font-size:.9rem;';
-    el.innerHTML = '<span style="color:var(--color-muted);font-size:.75rem;flex-shrink:0;">' + msg.created_at + '</span><strong style="flex-shrink:0;">' + msg.display_name.replace(/</g,'&lt;') + '</strong><span style="word-break:break-word;">' + msg.body.replace(/</g,'&lt;') + '</span>';
+    // T04, 2026-08-13: was innerHTML with a hand-rolled "replace every <" pass.
+    // Nodes and textContent - a chef's name is text, never markup.
+    el.appendChild(chatPart('span', 'color:var(--color-muted);font-size:.75rem;flex-shrink:0;', msg.created_at));
+    el.appendChild(chatPart('strong', 'flex-shrink:0;', msg.display_name));
+    el.appendChild(chatPart('span', 'word-break:break-word;', msg.body));
     chatBox.appendChild(el);
     chatBox.scrollTop = chatBox.scrollHeight;
     sinceId = Math.max(sinceId, msg.id);

@@ -4384,14 +4384,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T04", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "Combat log cannot execute HTML a chef put in their own name",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "DONE", "owner": "GreenBear",
         "files": "BattleRound.log_message; battle state JSON polling; templates/chef_battle/battle_detail.html; every innerHTML in the arena and battle scripts",
         "depends_on": "none",
         "action": "Stop routing user-controlled strings through innerHTML: build the nodes and set textContent. Audit every innerHTML and insertAdjacentHTML in the battle and arena scripts, not only the combat log.",
         "visible_result": "A chef named with an img/script payload renders as that literal text in the log instead of running.",
         "acceptance": "Payload names render literally; the DOM contains no created IMG, SCRIPT or event handler; a browser smoke confirms it.",
         "forbidden": "Server-side escaping alone is not the fix; a name validator is defence in depth, not a substitute for a safe DOM API.",
-        "evidence": "Owner brief 2026-08-12, ticket 4.",
+        "evidence": "SHIPPED v2.5.1025. Seven call sites, all closed with the DOM API rather than escaping. THE REAL ONE: BattleRound.log_message is built server-side out of BOTH chefs' own names and handed to the browser as JSON by battle_state_poll and combat_action; the battle page's combat script and main.js each wrote it into innerHTML, so a chef named with an <img onerror> tag ran script in every spectator's browser, once per round, for as long as the log was on screen. THE SAME SHAPE, FOUR MORE PLACES: the battle chat in battle_detail, biathlon, cooking_submit and entry_form built a message out of display_name and body with a hand-rolled replace-every-< pass, which leaves the ampersand wrong and is one forgotten call site from being an injection again. AND ONE ATTRIBUTE INJECTION: artifact_gallery concatenated a label and a URL into an img tag string, where a single double quote closes the attribute. The arena master console, the lamp console, presence and hero-chef were audited and are already node-built or constant-only. GUARD TEST, not just a fix: CombatLogAndChatNeverParseAChefsNameTests scans every chef_battle template and every arena/main script for innerHTML or insertAdjacentHTML on a line mentioning any tainted field (log_message, display_name, msg.body, combat_winner, challenger_name, opponent_name, dataset.label, data.url) and fails naming file and line - with the fix stashed it names all seven. BROWSER SMOKE, both codepaths side by side on a local harness: the old line creates one IMG node and the onerror handler RUNS; the new one creates zero IMG nodes and renders the payload as literal text. The server still stores the name verbatim and that is deliberate - a chef may call himself what he likes, so the defence has to live in the rendering, which is what the brief says.",
     },
     {
         "id": "T05", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "A cooked photo is a validated, normalised image and nothing else",
@@ -4643,7 +4643,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "7dcc4faa / production v2.5.1023",
+        "commit": "7dcc4faa / production v2.5.1025",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

@@ -18052,3 +18052,96 @@ class BothChefsPressReadyAtOnceTests(TransactionTestCase):
         self.assertEqual(self.battle.start_time, self.original_start,
                          "one chef clicking twice pulled the start forward")
         self.assertEqual(self._started_events().count(), 0)
+
+
+
+class CombatLogAndChatNeverParseAChefsNameTests(TestCase):
+    """T04, Owner brief 2026-08-12 - stored XSS in the combat log.
+
+    BattleRound.log_message is built server-side out of BOTH chefs' own names
+    ("{attacker.name} lands a full hit on {defender.name}"), stored, and then
+    handed to the browser as JSON by battle_state_poll and combat_action. Two
+    call sites wrote it straight into innerHTML - the battle page's own combat
+    script and main.js - so a chef who called himself an <img onerror> tag ran
+    script in every spectator's browser, once per round, for as long as the log
+    was on screen. The battle chat had the same shape with a hand-rolled
+    "replace every <" pass, which leaves the ampersand wrong and is one
+    forgotten call site from being an injection again.
+
+    The fix is the DOM API, not server-side escaping: the payload IS the name,
+    and a name is text.
+    """
+
+    PAYLOAD = '<img src=x onerror="window.__pwned=1">'
+
+    #: Values that reach the browser as JSON and are wholly or partly typed by
+    #: a chef. None of them may ever be concatenated into markup.
+    TAINTED = (
+        "log_message", "display_name", "msg.body", "combat_winner",
+        "challenger_name", "opponent_name", "dataset.label", "data.url",
+    )
+
+    def _scripts(self):
+        from django.conf import settings
+        root = settings.BASE_DIR
+        paths = sorted((root / "templates" / "chef_battle").glob("*.html"))
+        paths += [root / "static" / "js" / "main.js"]
+        paths += sorted((root / "static" / "js").glob("arena_*.js"))
+        return [(p, p.read_text(encoding="utf-8")) for p in paths]
+
+    def test_no_battle_or_arena_script_writes_tainted_data_as_markup(self):
+        offenders = []
+        for path, source in self._scripts():
+            for number, line in enumerate(source.splitlines(), 1):
+                if "innerHTML" not in line and "insertAdjacentHTML" not in line:
+                    continue
+                if "=" not in line and "insertAdjacentHTML" not in line:
+                    continue
+                for token in self.TAINTED:
+                    if token in line:
+                        offenders.append(f"{path.name}:{number}: {line.strip()[:120]}")
+        self.assertEqual(
+            offenders, [],
+            "user-controlled text is being written as markup:\n" + "\n".join(offenders))
+
+    def test_the_combat_log_row_is_built_from_nodes(self):
+        from django.conf import settings
+
+        template = (settings.BASE_DIR / "templates" / "chef_battle"
+                    / "battle_detail.html").read_text(encoding="utf-8")
+        self.assertIn("function buildCombatLogRow(r)", template)
+        self.assertIn("message.textContent = r.log_message;", template)
+
+    def test_the_server_stores_the_payload_verbatim_so_the_browser_is_the_defence(self):
+        """Not a bug - a chef may call himself what he likes, and the log is a
+        record of what he called himself. This pins WHERE the defence lives:
+        the string arrives at the browser intact, so the rendering has to be
+        safe rather than the storage sanitised."""
+        from chef_battle.models import BattleRound
+
+        User = get_user_model()
+        attacker = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t04-a", password="pw"),
+            name=self.PAYLOAD, slug="t04-a")
+        defender = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t04-b", password="pw"),
+            name="T04 Defender", slug="t04-b")
+        ChefBattleProfile.objects.create(author=attacker)
+        ChefBattleProfile.objects.create(author=defender)
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=attacker, opponent=defender, theme="T04",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        round_obj = BattleRound.objects.create(
+            battle=battle, round_number=1, attacker=attacker, defender=defender,
+            attack_power=10, defence_power=5,
+            outcome=BattleRound.Outcome.FULL_HIT,
+            challenger_hits=1, opponent_hits=0,
+            log_message=f"{attacker.name} lands a full hit on {defender.name}. (10 vs 5)",
+        )
+        round_obj.refresh_from_db()
+        self.assertIn(self.PAYLOAD, round_obj.log_message)

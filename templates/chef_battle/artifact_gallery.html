@@ -216,7 +216,16 @@
       if (data.success) {
         var wrap = document.getElementById(wrapId);
         if (wrap) {
-          wrap.innerHTML = '<img alt="' + (activeBtn.dataset.label || '') + '" class="artifact-card__image" id="' + thumbId + '" src="' + data.url + '?t=' + Date.now() + '">';
+          // T04, 2026-08-13: this concatenated an artifact label and a URL
+          // straight into an attribute string, so one double quote in either
+          // closed the attribute and opened whatever followed. Build the node.
+          var image = document.createElement('img');
+          image.alt = activeBtn.dataset.label || '';
+          image.className = 'artifact-card__image';
+          image.id = thumbId;
+          image.src = data.url + '?t=' + Date.now();
+          wrap.textContent = '';
+          wrap.appendChild(image);
         }
         activeBtn.textContent = 'Regenerate';
         closeModal();

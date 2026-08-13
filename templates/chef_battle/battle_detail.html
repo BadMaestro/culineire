@@ -649,6 +649,21 @@
   const turnEl = document.getElementById('combat-turn-indicator');
   const targetRow = document.getElementById('combat-target-row');
 
+  // T04, 2026-08-13: one row of the combat log, built as nodes. The round
+  // number is a number and the message is text - neither is ever parsed as
+  // markup, whatever a chef put in his own name.
+  function buildCombatLogRow(r) {
+    const li = document.createElement('li');
+    const label = document.createElement('span');
+    label.className = 'battle-muted';
+    label.textContent = 'Rd ' + r.round_number + ':';
+    const message = document.createElement('span');
+    message.textContent = r.log_message;
+    li.appendChild(label);
+    li.appendChild(message);
+    return li;
+  }
+
   // Show/hide target selector based on attack vs defend
   function updateTargetRow() {
     if (!targetRow) return;
@@ -695,11 +710,14 @@
       if (roundNum) roundNum.textContent = res.current_round;
 
       if (combatLog && res.rounds && res.rounds.length) {
-        combatLog.innerHTML = '';
+        // T04, 2026-08-13: this line used to be innerHTML, and r.log_message
+        // is built from both chefs' own names - so a chef who called himself
+        // an <img onerror> tag ran script in every spectator's browser, once
+        // per round, for as long as the log was on screen. Nodes and
+        // textContent: the payload is a name, and a name is text.
+        combatLog.textContent = '';
         res.rounds.forEach(function (r) {
-          const li = document.createElement('li');
-          li.innerHTML = '<span class="battle-muted">Rd ' + r.round_number + ':</span><span>' + r.log_message + '</span>';
-          combatLog.appendChild(li);
+          combatLog.appendChild(buildCombatLogRow(r));
         });
       }
 
@@ -725,14 +743,24 @@
   var pollUrl = "{% url 'chef_battle:battle_chat_poll' battle.pk %}";
   var sinceId = 0;
 
+  function chatPart(tag, className, text) {
+    var node = document.createElement(tag);
+    node.className = className;
+    node.textContent = text == null ? '' : text;
+    return node;
+  }
+
   function appendMessage(msg) {
     if (emptyHint) { emptyHint.remove(); emptyHint = null; }
+    // T04, 2026-08-13: this was innerHTML with a hand-rolled "replace every <"
+    // pass. That leaves the ampersand unescaped (so a name containing &amp;
+    // renders as &) and it is one forgotten call site away from being an
+    // injection again. Nodes and textContent instead - nothing here is markup.
     var el = document.createElement('div');
     el.className = 'battle-chat__msg';
-    el.innerHTML =
-      '<time class="battle-chat__msg-time">' + msg.created_at + '</time>' +
-      '<strong class="battle-chat__msg-name">' + msg.display_name.replace(/</g, '&lt;') + '</strong>' +
-      '<span class="battle-chat__msg-body">' + msg.body.replace(/</g, '&lt;') + '</span>';
+    el.appendChild(chatPart('time', 'battle-chat__msg-time', msg.created_at));
+    el.appendChild(chatPart('strong', 'battle-chat__msg-name', msg.display_name));
+    el.appendChild(chatPart('span', 'battle-chat__msg-body', msg.body));
     chatBox.appendChild(el);
     chatBox.scrollTop = chatBox.scrollHeight;
     sinceId = Math.max(sinceId, msg.id);

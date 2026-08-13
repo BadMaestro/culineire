@@ -1353,9 +1353,17 @@ document.addEventListener("DOMContentLoaded", () => {
         // Append new log entries
         var log = document.getElementById("combat-log");
         if (log && d.rounds && d.rounds.length) {
+          // T04, 2026-08-13: log_message is built from both chefs' own names,
+          // and this was innerHTML - a chef named with an <img onerror> tag ran
+          // script in every spectator's browser. Nodes and textContent.
           var latest = d.rounds[d.rounds.length - 1];
           var li = document.createElement("li");
-          li.innerHTML = "<span>Round " + latest.round_number + "</span><span>" + latest.log_message + "</span>";
+          var roundLabel = document.createElement("span");
+          roundLabel.textContent = "Round " + latest.round_number;
+          var roundMessage = document.createElement("span");
+          roundMessage.textContent = latest.log_message;
+          li.appendChild(roundLabel);
+          li.appendChild(roundMessage);
           log.appendChild(li);
           li.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
