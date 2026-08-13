@@ -17932,3 +17932,123 @@ class RevealSerialisesAgainstACancellationTests(TransactionTestCase):
         self.assertEqual(battle.status, Battle.Status.CANCELLED,
                          "the reveal overwrote a cancellation it had waited for")
         self.assertFalse(battle.entries.filter(is_revealed=True).exists())
+
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class BothChefsPressReadyAtOnceTests(TransactionTestCase):
+    """T03, Owner brief 2026-08-12 - the proof the F67 fix was missing.
+
+    F67 (v2.5.1016) put the lock in battle_set_ready and asserted it by finding
+    FOR UPDATE in the captured SQL. That proves a lock was REQUESTED; it does
+    not prove the second chef's request waits for the first to commit and then
+    re-reads the flag it wrote. Two threads, two connections and a barrier do,
+    and this is the exact moment the race happens in real life: both chefs are
+    standing in the antechamber watching the same clock, and they click
+    together.
+
+    Before the lock, each request read the other's flag as False and wrote it
+    back False on save, so whichever committed first was erased - and that chef
+    could not press Ready again once the status left SCHEDULED, losing the grace
+    period to an unearned walkover.
+    """
+
+    def _post_together(self, clients, url):
+        """Fire one POST per client from its own thread, released together."""
+        import threading
+        from django.db import connections
+
+        start = threading.Barrier(len(clients))
+        errors, codes = [], []
+
+        def press(client):
+            try:
+                start.wait(timeout=10)
+                codes.append(client.post(url).status_code)
+            except Exception as exc:          # surfaced below, never swallowed
+                errors.append(exc)
+            finally:
+                connections.close_all()
+
+        threads = [threading.Thread(target=press, args=(c,)) for c in clients]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=30)
+        self.assertEqual(errors, [])
+        return codes
+
+    def setUp(self):
+        User = get_user_model()
+        self.challenger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t03-ch", password="pw"),
+            name="T03 Challenger", slug="t03-ch")
+        self.opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t03-op", password="pw"),
+            name="T03 Opponent", slug="t03-op")
+        ChefBattleProfile.objects.create(author=self.challenger)
+        ChefBattleProfile.objects.create(author=self.opponent)
+        now = timezone.now()
+        self.original_start = now + timezone.timedelta(hours=6)
+        self.battle = Battle.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme="T03 theme",
+            status=Battle.Status.SCHEDULED, start_time=self.original_start,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        self.url = reverse("chef_battle:battle_set_ready", args=[self.battle.pk])
+        self.chef_client = Client()
+        self.chef_client.force_login(self.challenger.user)
+        self.rival_client = Client()
+        self.rival_client.force_login(self.opponent.user)
+
+    def _started_events(self):
+        return BattleEvent.objects.filter(
+            battle=self.battle, event_type=BattleEvent.EventType.BATTLE_STARTED)
+
+    def test_two_simultaneous_clicks_both_survive_and_start_moves_once(self):
+        codes = self._post_together([self.chef_client, self.rival_client], self.url)
+        self.assertEqual(codes, [302, 302])
+
+        self.battle.refresh_from_db()
+        self.assertTrue(self.battle.challenger_ready, "the challenger's click was erased")
+        self.assertTrue(self.battle.opponent_ready, "the opponent's click was erased")
+        self.assertLess(self.battle.start_time, self.original_start,
+                        "both chefs are ready and the start was never pulled forward")
+        self.assertEqual(self.battle.status, Battle.Status.SCHEDULED,
+                         "Ready must not teleport the battle out of SCHEDULED")
+        self.assertEqual(self._started_events().count(), 1,
+                         "the both-ready announcement fired more than once")
+
+    def test_pressing_ready_again_afterwards_changes_nothing(self):
+        self._post_together([self.chef_client, self.rival_client], self.url)
+        self.battle.refresh_from_db()
+        settled_start = self.battle.start_time
+        settled_updated = self.battle.updated_at
+
+        for client in (self.chef_client, self.rival_client):
+            self.assertEqual(client.post(self.url).status_code, 302)
+
+        self.battle.refresh_from_db()
+        self.assertTrue(self.battle.challenger_ready)
+        self.assertTrue(self.battle.opponent_ready)
+        self.assertEqual(self.battle.start_time, settled_start)
+        self.assertEqual(self.battle.updated_at, settled_updated,
+                         "a repeated Ready wrote to the battle again")
+        self.assertEqual(self._started_events().count(), 1)
+
+    def test_one_chef_double_clicking_does_not_make_a_pair(self):
+        """The same chef twice is not both chefs: the second click must not
+        satisfy the pair check on the strength of the first."""
+        second_tab = Client()
+        second_tab.force_login(self.challenger.user)
+        codes = self._post_together([self.chef_client, second_tab], self.url)
+        self.assertEqual(codes, [302, 302])
+
+        self.battle.refresh_from_db()
+        self.assertTrue(self.battle.challenger_ready)
+        self.assertFalse(self.battle.opponent_ready)
+        self.assertEqual(self.battle.start_time, self.original_start,
+                         "one chef clicking twice pulled the start forward")
+        self.assertEqual(self._started_events().count(), 0)

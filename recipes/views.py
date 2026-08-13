@@ -4373,14 +4373,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T03", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "Two chefs pressing Ready cannot erase each other - proved by a real race",
-        "status": "PARTIAL", "owner": "GreenBear",
-        "files": "chef_battle/views.py (battle_set_ready); chef_battle/services.py (pull_start_forward_when_both_ready); chef_battle/tests.py",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "chef_battle/tests.py (BothChefsPressReadyAtOnceTests)",
         "depends_on": "none",
         "action": "The lock itself shipped as F67 on 2026-08-12. What the brief additionally requires is the proof: a TransactionTestCase with two threads and a barrier, not an assertion that FOR UPDATE appears in the SQL.",
         "visible_result": "No change - this is the test that stops the fix regressing.",
         "acceptance": "Two-thread barrier test: both ready flags survive, the start time is pulled forward exactly once, the both-ready event is created once, a repeated POST is idempotent.",
         "forbidden": "Do not substitute a captured-SQL check for the interleaving test.",
-        "evidence": "Owner brief 2026-08-12, ticket 3. VERIFIED DONE-IN-CODE 2026-08-12: battle_set_ready locks the row and re-reads both flags under it (F67, v2.5.1016). The barrier test is what is missing.",
+        "evidence": "SHIPPED v2.5.1023. The lock shipped as F67 in v2.5.1016; this is the proof it was missing. BothChefsPressReadyAtOnceTests is a TransactionTestCase: two logged-in clients, two threads, two connections, one barrier, both POSTing Ready at the same instant - the moment the race actually happens, with both chefs watching the same clock. Both flags survive, the start is pulled forward exactly once, the battle stays SCHEDULED (Ready does not teleport it into menu declaration), and the both-ready announcement is created once. Two more cases: a repeated Ready after the pair has settled writes nothing at all, asserted on updated_at; and one chef double-clicking in two tabs does not satisfy the pair check on the strength of his own first click - the opponent flag stays False, the start does not move, no announcement. PROVED AGAINST THE OLD CODE: with select_for_update taken out and a 0.3s pause inserted at the same point, the challenger's click is erased and the test says so. No production code changed in this ticket.",
     },
     {
         "id": "T04", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "Combat log cannot execute HTML a chef put in their own name",
@@ -4643,7 +4643,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "7dcc4faa / production v2.5.1021",
+        "commit": "7dcc4faa / production v2.5.1023",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
