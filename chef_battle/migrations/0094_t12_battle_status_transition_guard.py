@@ -7,6 +7,9 @@ RETURNS trigger AS $$
 DECLARE allowed_targets text[];
 BEGIN
     IF NEW.status = OLD.status THEN RETURN NEW; END IF;
+    IF current_setting('culineire.allow_battle_status_force', true) = 'on' THEN
+      RETURN NEW;
+    END IF;
     allowed_targets := CASE OLD.status
       WHEN 'scheduled' THEN ARRAY['waiting','menu_locked','cancelled','paused']
       WHEN 'waiting' THEN ARRAY['menu_locked','walkover','void','cancelled','paused']
@@ -23,7 +26,7 @@ BEGIN
       ELSE ARRAY[]::text[]
     END;
     IF NOT NEW.status = ANY(allowed_targets) THEN
-      RAISE EXCEPTION 'illegal Battle.status transition: % -> %', OLD.status, NEW.status
+      RAISE EXCEPTION 'illegal Battle.status transition: %% -> %%', OLD.status, NEW.status
         USING ERRCODE = 'check_violation';
     END IF;
     RETURN NEW;

@@ -5,7 +5,7 @@ import hmac
 import logging
 
 from django.conf import settings
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, connection, transaction
 from django.db import models
 from django.db.models import Count, F, Q, Sum
 from django.urls import NoReverseMatch, reverse
@@ -4008,6 +4008,14 @@ def operator_force_status(
                     f"Result service left battle in '{battle.status}'; not forcing further."
                 )
         else:
+            if connection.vendor == "postgresql":
+                # The database trigger rejects lifecycle transitions that bypass
+                # domain services.  This owner-only service is the audited escape
+                # hatch, so enable the bypass for this transaction only.
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SET LOCAL culineire.allow_battle_status_force = 'on'"
+                    )
             battle.status = target_status
             battle.save(update_fields=["status", "updated_at"])
             if target_status in _REVEAL_IMPLIED_TARGETS:

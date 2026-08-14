@@ -5476,6 +5476,11 @@ class ArenaMasterActionSecurityTests(TransactionTestCase):
                 results.append(r.status_code)
             except Exception as e:
                 errors.append(e)
+            finally:
+                # Thread-local PostgreSQL connections otherwise survive long
+                # enough to block Django from dropping the test database.
+                from django.db import connections
+                connections.close_all()
 
         t1 = threading.Thread(target=do_request, args=(clients[0],))
         t2 = threading.Thread(target=do_request, args=(clients[1],))
@@ -17632,6 +17637,39 @@ class RejectPayoutRequestDoesNotFreeUnrelatedPayoutsTests(TestCase):
         self.assertEqual(self.record_1.status, RewardRecord.Status.APPROVED)
         self.assertEqual(self.record_10.status, RewardRecord.Status.ISSUED)
         self.assertTrue(self.record_10.status_note.startswith("Locked for PayoutRequest #"))
+
+
+class ArenaLifecycleAdminFieldsAreReadOnlyTests(TestCase):
+    """Arena lifecycle/result state may only move through audited services."""
+
+    def test_battle_result_and_status_fields_are_not_directly_editable(self):
+        from django.contrib import admin
+        from .models import Battle
+
+        readonly = set(admin.site._registry[Battle].readonly_fields)
+        self.assertTrue({
+            "status", "winner", "loser", "result_reason",
+            "rating_delta_challenger", "rating_delta_opponent",
+            "crown_awarded",
+        }.issubset(readonly))
+
+    def test_challenge_status_is_not_directly_editable(self):
+        from django.contrib import admin
+        from .models import BattleChallenge
+
+        readonly = set(admin.site._registry[BattleChallenge].readonly_fields)
+        self.assertIn("status", readonly)
+
+    def test_entry_reveal_and_moderation_are_not_directly_editable(self):
+        from django.contrib import admin
+        from .admin import BattleEntryInline
+        from .models import BattleEntry
+
+        expected = {"is_revealed", "moderation_status"}
+        model_readonly = set(admin.site._registry[BattleEntry].readonly_fields)
+        inline_readonly = set(BattleEntryInline.readonly_fields)
+        self.assertTrue(expected.issubset(model_readonly))
+        self.assertTrue(expected.issubset(inline_readonly))
 
 
 class PayoutRequestAdminStatusIsReadOnlyTests(TestCase):

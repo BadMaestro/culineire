@@ -280,7 +280,11 @@ class BattleChallengeAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "battle_type")
     search_fields = ("theme", "challenger__name", "opponent__name")
-    readonly_fields = ("created_at", "accepted_at", "refused_at", "cancelled_at")
+    # Lifecycle state is service-owned. Direct edits can contradict an already
+    # created Battle (for example ACCEPTED -> PENDING) without any audit event.
+    readonly_fields = (
+        "status", "created_at", "accepted_at", "refused_at", "cancelled_at",
+    )
     actions = [cancel_challenges]
     ordering = ("-created_at",)
 
@@ -288,7 +292,11 @@ class BattleChallengeAdmin(admin.ModelAdmin):
 class BattleEntryInline(admin.TabularInline):
     model = BattleEntry
     extra = 0
-    readonly_fields = ("submitted_at", "created_at", "updated_at")
+    # Reveal and moderation must use the audited phase/moderation services.
+    readonly_fields = (
+        "is_revealed", "moderation_status",
+        "submitted_at", "created_at", "updated_at",
+    )
     fields = (
         "author", "recipe", "article", "battle_statement",
         "is_revealed", "is_late", "moderation_status",
@@ -311,7 +319,15 @@ class BattleAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "battle_type", "crown_awarded")
     search_fields = ("theme", "challenger__name", "opponent__name")
-    readonly_fields = ("created_at", "updated_at")
+    # A Battle result is a derived, audited domain outcome. Allowing the admin
+    # form to save VOTING -> COMPLETED (or edit winner/crown/deltas directly)
+    # bypasses scoring while still satisfying the coarse database transition
+    # matrix. Operator actions below are the only supported mutation path.
+    readonly_fields = (
+        "status", "winner", "loser", "result_reason",
+        "rating_delta_challenger", "rating_delta_opponent", "crown_awarded",
+        "created_at", "updated_at",
+    )
     inlines = (BattleEntryInline, BattleEventInline)
     actions = [cancel_battles, force_reveal_entries, force_complete_battles, reset_disputed_battles]
     ordering = ("-created_at",)
@@ -346,7 +362,10 @@ class BattleEntryAdmin(admin.ModelAdmin):
     )
     list_filter = ("moderation_status", "is_revealed", "is_late")
     search_fields = ("battle__theme", "author__name")
-    readonly_fields = ("submitted_at", "created_at", "updated_at")
+    readonly_fields = (
+        "is_revealed", "moderation_status",
+        "submitted_at", "created_at", "updated_at",
+    )
     ordering = ("-submitted_at",)
 
 
