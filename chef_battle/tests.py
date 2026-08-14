@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.db import IntegrityError
+from django.db import IntegrityError, connection, transaction
 from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -6136,7 +6136,7 @@ class TokenChargebackServiceTests(TestCase):
     """
 
     def setUp(self):
-        from .models import TokenWallet, TokenPackage, TokenOrder, ChefBattleProfile
+        from .models import TokenWallet, TokenPackage, TokenOrder, TokenLot, ChefBattleProfile
         User = get_user_model()
         self.user = User.objects.create_user(username="cb-buyer", password="pw")
         self.buyer = RecipeAuthor.objects.create(user=self.user, name="CB Buyer", slug="cb-buyer")
@@ -6148,6 +6148,15 @@ class TokenChargebackServiceTests(TestCase):
         self.order = TokenOrder.objects.create(
             wallet=self.wallet, package=self.package, tokens=50,
             amount_eur_cents=500, status=TokenOrder.Status.COMPLETED,
+        )
+        TokenLot.objects.create(
+            wallet=self.wallet, source_order=self.order,
+            source_type=TokenLot.SourceType.PURCHASE,
+            original_amount=50, remaining_amount=50,
+        )
+        TokenLot.objects.create(
+            wallet=self.wallet, source_type=TokenLot.SourceType.LEGACY,
+            original_amount=50, remaining_amount=50, origin_ambiguous=True,
         )
 
     def test_chargeback_runs_and_locks(self):
@@ -6220,6 +6229,75 @@ class TokenChargebackServiceTests(TestCase):
             "the unrelated purchase's tokens must survive the second event untouched",
         )
         self.assertEqual(self.order.status, TokenOrder.Status.DISPUTED)
+
+    def test_partial_refunds_claw_only_the_new_cumulative_delta(self):
+        from .models import TokenOrder
+        from .services import handle_token_order_chargeback
+
+        first = handle_token_order_chargeback(
+            self.order.pk, refunded_amount_cents=100,
+        )
+        self.wallet.refresh_from_db()
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, TokenOrder.Status.PARTIALLY_REFUNDED)
+        self.assertEqual(first["deducted_tokens"], 10)
+        self.assertEqual(self.wallet.balance, 90)
+
+        duplicate = handle_token_order_chargeback(
+            self.order.pk, refunded_amount_cents=100,
+        )
+        self.assertEqual(duplicate["deducted_tokens"], 0)
+
+        second = handle_token_order_chargeback(
+            self.order.pk, refunded_amount_cents=250,
+        )
+        self.wallet.refresh_from_db()
+        self.order.refresh_from_db()
+        self.assertEqual(second["deducted_tokens"], 15)
+        self.assertEqual(self.order.clawed_tokens, 25)
+        self.assertEqual(self.wallet.balance, 75)
+
+    def test_refunding_order_one_does_not_touch_gift_funded_by_order_two(self):
+        from .models import (
+            AppreciationGift, RewardRecord, TokenLot, TokenOrder,
+            TokenPackage, TokenTransaction,
+        )
+        from .services import debit_tokens, handle_token_order_chargeback, send_appreciation_gift
+
+        debit_tokens(
+            self.buyer, 50, TokenTransaction.TxType.ARTIFACT_BOUGHT,
+            "consume order one before the later purchase",
+        )
+        package_two = TokenPackage.objects.create(
+            key="cb-pack-two", name="CB Pack Two", tokens=50, price_eur="5.00",
+        )
+        order_two = TokenOrder.objects.create(
+            wallet=self.wallet, package=package_two, tokens=50,
+            amount_eur_cents=500, status=TokenOrder.Status.COMPLETED,
+        )
+        self.wallet.balance += 50
+        self.wallet.save(update_fields=["balance"])
+        TokenLot.objects.create(
+            wallet=self.wallet, source_order=order_two,
+            source_type=TokenLot.SourceType.PURCHASE,
+            original_amount=50, remaining_amount=50,
+        )
+        recipient_user = get_user_model().objects.create_user("cb-recipient", password="pw")
+        recipient = RecipeAuthor.objects.create(
+            user=recipient_user, name="CB Recipient", slug="cb-recipient",
+        )
+        gift = send_appreciation_gift(
+            sender_user=self.user, recipient=recipient, gift_type="coffee",
+        )
+        reward = RewardRecord.objects.get(related_gift=gift, recipient=recipient)
+
+        handle_token_order_chargeback(self.order.pk, chargeback=False)
+
+        gift.refresh_from_db()
+        reward.refresh_from_db()
+        self.assertFalse(gift.is_flagged)
+        self.assertEqual(reward.status, RewardRecord.Status.PENDING)
+        self.assertTrue(AppreciationGift.objects.filter(pk=gift.pk).exists())
 
 
 @override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
@@ -16672,7 +16750,7 @@ class ChargebackHoldsExistingPayoutsTests(TestCase):
 
     def setUp(self):
         from decimal import Decimal
-        from .models import ChefBattleProfile, PayoutRequest, TokenOrder, TokenPackage, TokenWallet
+        from .models import ChefBattleProfile, PayoutRequest, TokenLot, TokenOrder, TokenPackage, TokenWallet
         User = get_user_model()
         self.chef = RecipeAuthor.objects.create(
             user=User.objects.create_user("f60-chef", password="pw"), name="F60 Chef", slug="f60-chef")
@@ -16684,6 +16762,11 @@ class ChargebackHoldsExistingPayoutsTests(TestCase):
         self.order = TokenOrder.objects.create(
             wallet=self.wallet, package=self.package, tokens=100, amount_eur_cents=1000,
             status=TokenOrder.Status.COMPLETED,
+        )
+        TokenLot.objects.create(
+            wallet=self.wallet, source_order=self.order,
+            source_type=TokenLot.SourceType.PURCHASE,
+            original_amount=100, remaining_amount=100,
         )
         self.payout = PayoutRequest.objects.create(
             chef=self.chef, amount_reward_tokens=100, gross_payout_eur=Decimal("2.50"),
@@ -16708,9 +16791,77 @@ class ChargebackHoldsExistingPayoutsTests(TestCase):
         self.payout.save(update_fields=["status"])
 
         handle_token_order_chargeback(self.order.pk, chargeback=True)
-
         self.payout.refresh_from_db()
         self.assertEqual(self.payout.status, PayoutRequest.Status.PAID)
+
+    def test_chargeback_during_transfer_finishes_as_paid_disputed(self):
+        from unittest import mock
+        from .models import LedgerEvent, PayoutRequest
+        from .services import _execute_stripe_connect_transfer, handle_token_order_chargeback
+
+        self.payout.status = PayoutRequest.Status.APPROVED
+        self.payout.stripe_connect_account_id = "acct_t07"
+        self.payout.save(update_fields=["status", "stripe_connect_account_id"])
+
+        def transfer_succeeds_after_chargeback(**kwargs):
+            processing = PayoutRequest.objects.get(pk=self.payout.pk)
+            self.assertEqual(processing.status, PayoutRequest.Status.PROCESSING)
+            handle_token_order_chargeback(self.order.pk, chargeback=True)
+            return {"id": "tr_t07_disputed"}
+
+        with mock.patch("stripe.Transfer.create", side_effect=transfer_succeeds_after_chargeback):
+            _execute_stripe_connect_transfer(self.payout)
+
+        self.payout.refresh_from_db()
+        self.assertEqual(self.payout.status, PayoutRequest.Status.PAID_DISPUTED)
+        self.assertEqual(self.payout.stripe_transfer_id, "tr_t07_disputed")
+        self.assertIn("chargeback_during_processing", self.payout.compliance_flags)
+        self.assertTrue(LedgerEvent.objects.filter(
+            actor=self.chef,
+            payload__action="payout_paid_reconciliation_required",
+            payload__payout_request_id=self.payout.pk,
+        ).exists())
+
+    def test_chargeback_marks_the_recipient_payout_funded_by_the_gift(self):
+        from decimal import Decimal
+        from unittest import mock
+        from .models import PayoutRequest, RewardRecord
+        from .services import (
+            _execute_stripe_connect_transfer, handle_token_order_chargeback,
+            send_appreciation_gift,
+        )
+
+        recipient_user = get_user_model().objects.create_user("t07-recipient", password="pw")
+        recipient = RecipeAuthor.objects.create(
+            user=recipient_user, name="T07 Recipient", slug="t07-recipient",
+        )
+        gift = send_appreciation_gift(
+            sender_user=self.chef.user, recipient=recipient, gift_type="coffee",
+        )
+        recipient_payout = PayoutRequest.objects.create(
+            chef=recipient, amount_reward_tokens=20,
+            gross_payout_eur=Decimal("0.50"), status=PayoutRequest.Status.APPROVED,
+            stripe_connect_account_id="acct_t07_recipient",
+        )
+        reward = RewardRecord.objects.get(related_gift=gift, recipient=recipient)
+        reward.status = RewardRecord.Status.ISSUED
+        reward.status_note = f"Locked for PayoutRequest #{recipient_payout.pk}"
+        reward.save(update_fields=["status", "status_note"])
+
+        def transfer_succeeds_after_funding_chargeback(**kwargs):
+            handle_token_order_chargeback(self.order.pk, chargeback=True)
+            return {"id": "tr_t07_recipient"}
+
+        with mock.patch(
+            "stripe.Transfer.create", side_effect=transfer_succeeds_after_funding_chargeback,
+        ):
+            _execute_stripe_connect_transfer(recipient_payout)
+
+        recipient_payout.refresh_from_db()
+        reward.refresh_from_db()
+        self.assertEqual(recipient_payout.status, PayoutRequest.Status.PAID_DISPUTED)
+        self.assertIn("funding_chargeback", recipient_payout.compliance_flags)
+        self.assertEqual(reward.status, RewardRecord.Status.ISSUED)
 
     def test_approval_is_refused_once_the_chef_is_payout_blocked(self):
         from .services import handle_token_order_chargeback, approve_payout_request
@@ -18576,3 +18727,56 @@ class TwoUploadsOfOneDishLeaveOnePhotoTests(TransactionTestCase):
         self.assertTrue(entry_locks, "the entry row is not locked")
         self.assertLess(min(battle_locks), min(entry_locks),
                         "the entry was locked before the battle - deadlock order")
+# T12: this is deliberately a database-level test. A service-only assertion
+# cannot protect admin, cron, a management command, or a stale ORM instance.
+class BattleStatusTransitionDatabaseGuardTests(TransactionTestCase):
+    reset_sequences = True
+
+    def setUp(self):
+        if connection.vendor != "postgresql":
+            self.skipTest("The production transition guard is PostgreSQL-specific.")
+        User = get_user_model()
+        self.a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t12-a", password="pw"),
+            name="T12 A", slug="t12-a",
+        )
+        self.b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t12-b", password="pw"),
+            name="T12 B", slug="t12-b",
+        )
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="T12",
+            status=Battle.Status.SCHEDULED, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=4),
+        )
+
+    def test_a_legal_transition_is_accepted(self):
+        from .state_machine import transition_battle_status
+
+        transition_battle_status(self.battle.pk, Battle.Status.MENU_LOCKED)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.MENU_LOCKED)
+
+    def test_a_terminal_battle_cannot_be_resurrected_by_direct_sql(self):
+        self.battle.status = Battle.Status.CANCELLED
+        self.battle.save(update_fields=["status"])
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.VOTING)
+
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
+
+    def test_a_stale_orm_instance_cannot_overwrite_a_terminal_state(self):
+        stale = Battle.objects.get(pk=self.battle.pk)
+        self.battle.status = Battle.Status.CANCELLED
+        self.battle.save(update_fields=["status"])
+        stale.status = Battle.Status.ACTIVE
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            stale.save(update_fields=["status"])
+
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.CANCELLED)

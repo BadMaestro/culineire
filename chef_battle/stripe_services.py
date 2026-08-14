@@ -226,12 +226,22 @@ def _handle_checkout_completed(session) -> Any:
     wallet.total_purchased = wallet.total_purchased + order.tokens
     wallet.save(update_fields=["balance", "total_purchased", "updated_at"])
 
-    TokenTransaction.objects.create(
+    token_tx = TokenTransaction.objects.create(
         wallet=wallet,
         tx_type=TokenTransaction.TxType.PURCHASE,
         amount=order.tokens,
         balance_after=new_balance,
         description=f"Purchased {order.package.name} ({order.tokens}T)",
+    )
+
+    from .models import TokenLot
+    TokenLot.objects.create(
+        wallet=wallet,
+        source_order=order,
+        source_transaction=token_tx,
+        source_type=TokenLot.SourceType.PURCHASE,
+        original_amount=order.tokens,
+        remaining_amount=order.tokens,
     )
 
     order.status = TokenOrder.Status.COMPLETED
@@ -333,7 +343,13 @@ def _handle_charge_refunded(charge) -> Any:
             "(charge.refunded arrived before checkout.session.completed?)."
         )
 
-    handle_token_order_chargeback(order.pk, chargeback=False)
+    raw_refunded_cents = _get(charge, "amount_refunded", None)
+    refunded_cents = (
+        None if raw_refunded_cents is None else int(raw_refunded_cents)
+    )
+    handle_token_order_chargeback(
+        order.pk, chargeback=False, refunded_amount_cents=refunded_cents,
+    )
     return order
 
 

@@ -2490,7 +2490,7 @@ def credit_tokens(chef, amount: int, tx_type: str, description: str = "", battle
         # under concurrent credits (e.g. webhook retry + gift at once).
         TokenWallet.objects.filter(pk=wallet.pk).update(**fields)
         wallet.refresh_from_db()
-        return TokenTransaction.objects.create(
+        token_tx = TokenTransaction.objects.create(
             wallet=wallet,
             tx_type=tx_type,
             amount=amount,
@@ -2498,6 +2498,15 @@ def credit_tokens(chef, amount: int, tx_type: str, description: str = "", battle
             description=description,
             related_battle=battle,
         )
+        from .models import TokenLot
+        TokenLot.objects.create(
+            wallet=wallet,
+            source_transaction=token_tx,
+            source_type=TokenLot.SourceType.REWARD,
+            original_amount=amount,
+            remaining_amount=amount,
+        )
+        return token_tx
 
 
 def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=None) -> TokenTransaction:
@@ -2506,6 +2515,20 @@ def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=
         raise ValueError("Debit amount must be positive.")
     with transaction.atomic():
         wallet = get_or_create_wallet(chef)
+        wallet = TokenWallet.objects.select_for_update().get(pk=wallet.pk)
+        from .models import TokenLot, TokenSpendAllocation
+        lots = list(TokenLot.objects.select_for_update().filter(
+            wallet=wallet, remaining_amount__gt=0,
+        ).order_by("created_at", "pk"))
+        tracked_balance = sum(lot.remaining_amount for lot in lots)
+        if tracked_balance < wallet.balance:
+            lots.append(TokenLot.objects.create(
+                wallet=wallet,
+                source_type=TokenLot.SourceType.LEGACY,
+                original_amount=wallet.balance - tracked_balance,
+                remaining_amount=wallet.balance - tracked_balance,
+                origin_ambiguous=True,
+            ))
         # Conditional atomic UPDATE: the balance check and the deduction happen
         # in one statement, so two concurrent debits cannot both pass a stale
         # balance check (double spend). Filter fails => insufficient funds.
@@ -2520,7 +2543,7 @@ def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=
                 f"Insufficient tokens: need {amount}T, have {wallet.balance}T."
             )
         wallet.refresh_from_db()
-        return TokenTransaction.objects.create(
+        token_tx = TokenTransaction.objects.create(
             wallet=wallet,
             tx_type=tx_type,
             amount=-amount,
@@ -2528,6 +2551,22 @@ def debit_tokens(chef, amount: int, tx_type: str, description: str = "", battle=
             description=description,
             related_battle=battle,
         )
+        remaining = amount
+        for lot in lots:
+            if remaining <= 0:
+                break
+            allocated = min(lot.remaining_amount, remaining)
+            if not allocated:
+                continue
+            lot.remaining_amount -= allocated
+            lot.save(update_fields=["remaining_amount"])
+            TokenSpendAllocation.objects.create(
+                transaction=token_tx, lot=lot, amount=allocated,
+            )
+            remaining -= allocated
+        if remaining:
+            raise RuntimeError("Token lot ledger does not cover the wallet debit.")
+        return token_tx
 
 
 # ── Cooking phase ─────────────────────────────────────────────────────────────
@@ -2640,7 +2679,7 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
         locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
         if locked_battle.status not in Battle.ACTIVE_STATUSES:
             raise ValueError("Cannot send battle gifts to a battle that is not active.")
-        debit_tokens(
+        token_tx = debit_tokens(
             sender_author, total_cost,
             tx_type=TokenTransaction.TxType.GIFT_SENT,
             description=f"Battle gift: {artifact.name} to {recipient.name} (incl. delivery fee)",
@@ -2653,6 +2692,7 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
             artifact=artifact,
             tokens_spent=total_cost,
             delivery_fee=delivery_fee,
+            token_transaction=token_tx,
         )
         # Battle-locked artifact: locked_to_battle ensures it expires unused after the battle.
         ChefArtifact.objects.create(
@@ -2685,7 +2725,7 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
         raise ValueError("Sender must have a chef profile to send gifts.")
 
     with transaction.atomic():
-        debit_tokens(
+        token_tx = debit_tokens(
             sender_author, cost,
             tx_type=TokenTransaction.TxType.GIFT_SENT,
             description=f"Appreciation gift: {gift_type} → {recipient.name}",
@@ -2696,6 +2736,7 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
             gift_type=gift_type,
             tokens_spent=cost,
             message=message,
+            token_transaction=token_tx,
         )
 
         from .models import LedgerEvent, RewardRecord
@@ -3091,7 +3132,11 @@ def run_next_battle_unlock_for_chef(chef) -> int:
     return count
 
 
-def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False) -> dict:
+def handle_token_order_chargeback(
+    token_order_id: int,
+    chargeback: bool = False,
+    refunded_amount_cents: int | None = None,
+) -> dict:
     """Lock a token order and reverse related rewards when a refund or chargeback occurs.
 
     - Marks the TokenOrder as refunded (or disputed if chargeback=True).
@@ -3104,7 +3149,8 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
     Returns a summary dict with counts of affected records.
     """
     from .models import (
-        AppreciationGift, LedgerEvent, PayoutRequest, RewardRecord, TokenOrder, TokenWallet, TokenTransaction,
+        AppreciationGift, LedgerEvent, PayoutRequest, RewardRecord, TokenLot,
+        TokenOrder, TokenSpendAllocation, TokenWallet, TokenTransaction,
     )
 
     with transaction.atomic():
@@ -3116,52 +3162,93 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
 
         buyer_author = getattr(order.wallet, "chef", None)
 
-        # F45, 2026-08-11: charge.refunded and charge.dispute.created are TWO
-        # DIFFERENT Stripe events, with different event ids - the webhook
-        # layer's own dedup (ProcessedTokenStripeEvent, keyed on event_id)
-        # does not catch a genuine SECOND event for the same underlying
-        # charge, and this function had no guard of its own: each call
-        # independently deducted min(wallet.balance, order.tokens), so a
-        # dispute landing after an already-processed refund (or vice versa)
-        # clawed back the full order amount a second time - eating into the
-        # buyer's balance from OTHER, unrelated purchases. The reward
-        # reversal below is already naturally idempotent (a second pass
-        # finds nothing left in PENDING/QUEUED to reverse); the wallet
-        # deduction was the one non-idempotent side effect.
-        already_clawed_back = order.status in (
-            TokenOrder.Status.DISPUTED, TokenOrder.Status.REFUNDED,
-        )
+        from decimal import Decimal, ROUND_HALF_UP
+        if chargeback:
+            cumulative_refunded_cents = order.amount_eur_cents
+        else:
+            if refunded_amount_cents is None:
+                cumulative_refunded_cents = order.amount_eur_cents
+            else:
+                cumulative_refunded_cents = max(
+                    order.refunded_amount_cents,
+                    min(int(refunded_amount_cents), order.amount_eur_cents),
+                )
+        target_clawed_tokens = int((
+            Decimal(order.tokens) * Decimal(cumulative_refunded_cents)
+            / Decimal(max(order.amount_eur_cents, 1))
+        ).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        delta_tokens = max(0, target_clawed_tokens - order.clawed_tokens)
 
-        new_status = TokenOrder.Status.DISPUTED if chargeback else TokenOrder.Status.REFUNDED
+        if chargeback:
+            new_status = TokenOrder.Status.DISPUTED
+        elif cumulative_refunded_cents >= order.amount_eur_cents:
+            new_status = TokenOrder.Status.REFUNDED
+        else:
+            new_status = TokenOrder.Status.PARTIALLY_REFUNDED
         order.status = new_status
-        order.save(update_fields=["status", "updated_at"])
+        order.refunded_amount_cents = cumulative_refunded_cents
+        order.clawed_tokens = target_clawed_tokens
+        order.save(update_fields=[
+            "status", "refunded_amount_cents", "clawed_tokens", "updated_at",
+        ])
 
         # Deduct tokens from buyer's wallet if they were credited
         deducted_tokens = 0
-        if not already_clawed_back and buyer_author and order.tokens and order.tokens > 0:
+        order_lot = TokenLot.objects.select_for_update().filter(source_order=order).first()
+        if delta_tokens and buyer_author and order_lot:
             wallet = TokenWallet.objects.filter(chef=buyer_author).select_for_update().first()
             if wallet:
-                actual_deduct = min(wallet.balance, order.tokens)
+                actual_deduct = min(wallet.balance, order_lot.remaining_amount, delta_tokens)
                 if actual_deduct > 0:
                     wallet.balance -= actual_deduct
                     wallet.save(update_fields=["balance"])
-                    TokenTransaction.objects.create(
+                    refund_tx = TokenTransaction.objects.create(
                         wallet=wallet,
                         tx_type=TokenTransaction.TxType.REFUND,
                         amount=-actual_deduct,
                         balance_after=wallet.balance,
                         description=f"{'Chargeback' if chargeback else 'Refund'} — order #{order.pk}",
                     )
+                    order_lot.remaining_amount -= actual_deduct
+                    order_lot.save(update_fields=["remaining_amount"])
+                    TokenSpendAllocation.objects.create(
+                        transaction=refund_tx, lot=order_lot, amount=actual_deduct,
+                    )
                     deducted_tokens = actual_deduct
 
-        # Reverse PENDING/QUEUED rewards linked to gifts sent after this order's purchase
+        # Consume unspent tokens from this lot first. Only the remainder of the
+        # new clawback delta can invalidate already-spent tokens. Walk those
+        # allocations newest-first, so an older settled spend is not disturbed
+        # while a newer allocation covers the disputed tail.
+        spent_claw_tokens = max(0, delta_tokens - deducted_tokens)
+        funded_transaction_ids = []
+        if spent_claw_tokens and order_lot:
+            remaining_spent_claw = spent_claw_tokens
+            allocations = TokenSpendAllocation.objects.filter(
+                lot=order_lot, transaction__amount__lt=0,
+            ).exclude(
+                transaction__tx_type=TokenTransaction.TxType.REFUND,
+            ).order_by("-created_at", "-pk")
+            for allocation in allocations:
+                funded_transaction_ids.append(allocation.transaction_id)
+                remaining_spent_claw -= allocation.amount
+                if remaining_spent_claw <= 0:
+                    break
+
+        # Reverse only rewards linked through the allocations actually reached
+        # by this refund. A timestamp is never treated as proof of funding.
         reversed_rewards = 0
+        held_payouts = 0
         buyer_user = getattr(buyer_author, "user", None) if buyer_author else None
         if buyer_user:
-            reversible_statuses = [RewardRecord.Status.PENDING, RewardRecord.Status.QUEUED]
+            reversible_statuses = [
+                RewardRecord.Status.PENDING,
+                RewardRecord.Status.QUEUED,
+                RewardRecord.Status.APPROVED,
+            ]
             gifts = AppreciationGift.objects.filter(
                 sender=buyer_user,
-                sent_at__gte=order.created_at,
+                token_transaction_id__in=funded_transaction_ids,
             ).values_list("pk", flat=True)
 
             rewards_qs = RewardRecord.objects.select_for_update().filter(
@@ -3174,17 +3261,62 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
                 rr.save(update_fields=["status", "status_note", "updated_at"])
                 reversed_rewards += 1
 
+            # A reward already reserved for a payout must never be released
+            # while money may be moving. Tie the compliance marker to the
+            # RECIPIENT's payout that owns the funded reward, not merely to a
+            # payout belonging to the token buyer.
+            reserved_rewards = RewardRecord.objects.select_for_update().filter(
+                related_gift__in=gifts,
+                status=RewardRecord.Status.ISSUED,
+                status_note__startswith="Locked for PayoutRequest #",
+            )
+            for rr in reserved_rewards:
+                try:
+                    reserved_payout_id = int(rr.status_note.rsplit("#", 1)[1])
+                except (IndexError, ValueError):
+                    continue
+                reserved_payout = PayoutRequest.objects.select_for_update().filter(
+                    pk=reserved_payout_id, chef=rr.recipient,
+                ).first()
+                if reserved_payout is None:
+                    continue
+                flags = dict(reserved_payout.compliance_flags or {})
+                flags["funding_chargeback"] = {
+                    "token_order_id": order.pk,
+                    "reward_record_id": rr.pk,
+                    "kind": "chargeback" if chargeback else "refund",
+                    "recorded_at": timezone.now().isoformat(),
+                }
+                reserved_payout.compliance_flags = flags
+                if reserved_payout.status == PayoutRequest.Status.PROCESSING:
+                    flags["chargeback_during_processing"] = flags["funding_chargeback"]
+                    reserved_payout.save(update_fields=["compliance_flags", "updated_at"])
+                elif reserved_payout.status in (
+                    PayoutRequest.Status.PENDING,
+                    PayoutRequest.Status.UNDER_REVIEW,
+                    PayoutRequest.Status.APPROVED,
+                ):
+                    reserved_payout.status = PayoutRequest.Status.ON_HOLD
+                    reserved_payout.save(update_fields=[
+                        "status", "compliance_flags", "updated_at",
+                    ])
+                    held_payouts += 1
+                elif reserved_payout.status == PayoutRequest.Status.PAID:
+                    reserved_payout.status = PayoutRequest.Status.PAID_DISPUTED
+                    reserved_payout.save(update_fields=[
+                        "status", "compliance_flags", "updated_at",
+                    ])
+
         # Flag related gifts for compliance review
         flagged_gifts = 0
         if buyer_user:
             flagged_gifts = AppreciationGift.objects.filter(
                 sender=buyer_user,
-                sent_at__gte=order.created_at,
+                token_transaction_id__in=funded_transaction_ids,
                 is_flagged=False,
             ).update(is_flagged=True)
 
         # Flag the buyer's profile for compliance review
-        held_payouts = 0
         if buyer_author:
             profile = ChefBattleProfile.objects.filter(author=buyer_author).first()
             if profile and not profile.payout_blocked:
@@ -3199,14 +3331,31 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
             # not APPROVED, and is deliberately left untouched here: the
             # money may already be moving, and this is a hold, not a
             # cancellation. PAID/REVERSED/REJECTED are already terminal.
-            held_payouts = PayoutRequest.objects.filter(
-                chef=buyer_author,
-                status__in=[
-                    PayoutRequest.Status.PENDING,
-                    PayoutRequest.Status.UNDER_REVIEW,
-                    PayoutRequest.Status.APPROVED,
-                ],
-            ).update(status=PayoutRequest.Status.ON_HOLD)
+            affected_payouts = list(
+                PayoutRequest.objects.select_for_update().filter(
+                    chef=buyer_author,
+                    status__in=[
+                        PayoutRequest.Status.PENDING,
+                        PayoutRequest.Status.UNDER_REVIEW,
+                        PayoutRequest.Status.APPROVED,
+                        PayoutRequest.Status.PROCESSING,
+                    ],
+                )
+            )
+            for affected_payout in affected_payouts:
+                if affected_payout.status == PayoutRequest.Status.PROCESSING:
+                    flags = dict(affected_payout.compliance_flags or {})
+                    flags["chargeback_during_processing"] = {
+                        "token_order_id": order.pk,
+                        "kind": "chargeback" if chargeback else "refund",
+                        "recorded_at": timezone.now().isoformat(),
+                    }
+                    affected_payout.compliance_flags = flags
+                    affected_payout.save(update_fields=["compliance_flags", "updated_at"])
+                else:
+                    affected_payout.status = PayoutRequest.Status.ON_HOLD
+                    affected_payout.save(update_fields=["status", "updated_at"])
+                    held_payouts += 1
 
         action = "chargeback" if chargeback else "refund"
         LedgerEvent.objects.create(
@@ -3217,6 +3366,9 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
                 "token_order_id": token_order_id,
                 "new_status": new_status,
                 "deducted_tokens": deducted_tokens,
+                "refunded_amount_cents": cumulative_refunded_cents,
+                "target_clawed_tokens": target_clawed_tokens,
+                "delta_tokens": delta_tokens,
                 "reversed_rewards": reversed_rewards,
                 "flagged_gifts": flagged_gifts,
                 "held_payouts": held_payouts,
@@ -3230,6 +3382,9 @@ def handle_token_order_chargeback(token_order_id: int, chargeback: bool = False)
             "order_id": token_order_id,
             "new_status": new_status,
             "deducted_tokens": deducted_tokens,
+            "refunded_amount_cents": cumulative_refunded_cents,
+            "target_clawed_tokens": target_clawed_tokens,
+            "delta_tokens": delta_tokens,
             "reversed_rewards": reversed_rewards,
             "flagged_gifts": flagged_gifts,
             "held_payouts": held_payouts,
@@ -3522,7 +3677,14 @@ def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
                     "'%s', not PROCESSING - money has moved, marking PAID anyway. RECONCILE.",
                     payout.pk, transfer_id, pr.status,
                 )
-            pr.status = PayoutRequest.Status.PAID
+            compliance_flags = dict(pr.compliance_flags or {})
+            disputed_in_flight = bool(
+                compliance_flags.get("chargeback_during_processing")
+            )
+            pr.status = (
+                PayoutRequest.Status.PAID_DISPUTED
+                if disputed_in_flight else PayoutRequest.Status.PAID
+            )
             pr.stripe_transfer_id = transfer_id
             pr.paid_at = timezone.now()
             pr.save(update_fields=["status", "stripe_transfer_id", "paid_at", "updated_at"])
@@ -3530,10 +3692,14 @@ def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
                 event_type=LedgerEvent.EventType.ADMIN_NOTE,
                 actor=payout.chef,
                 payload={
-                    "action": "payout_paid",
+                    "action": (
+                        "payout_paid_reconciliation_required"
+                        if disputed_in_flight else "payout_paid"
+                    ),
                     "payout_request_id": payout.pk,
                     "stripe_transfer_id": transfer_id,
                     "gross_eur": str(payout.gross_payout_eur),
+                    "compliance_flags": compliance_flags,
                 },
             )
         logger.info("PayoutRequest #%s paid: transfer %s", payout.pk, transfer_id)

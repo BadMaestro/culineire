@@ -788,6 +788,10 @@ class ViewerBattleGift(models.Model):
     delivery_fee = models.PositiveIntegerField(default=0, help_text="In-battle delivery fee (equals artifact cost).")
     sent_at = models.DateTimeField(auto_now_add=True, db_index=True)
     is_applied = models.BooleanField(default=False)
+    token_transaction = models.OneToOneField(
+        "TokenTransaction", null=True, blank=True, on_delete=models.PROTECT,
+        related_name="viewer_battle_gift",
+    )
 
     class Meta:
         ordering = ["-sent_at"]
@@ -859,6 +863,10 @@ class AppreciationGift(models.Model):
     message = models.CharField(max_length=200, blank=True)
     sent_at = models.DateTimeField(auto_now_add=True, db_index=True)
     is_flagged = models.BooleanField(default=False, db_index=True, help_text="Flagged for compliance review")
+    token_transaction = models.OneToOneField(
+        "TokenTransaction", null=True, blank=True, on_delete=models.PROTECT,
+        related_name="appreciation_gift",
+    )
 
     class Meta:
         ordering = ["-sent_at"]
@@ -1254,6 +1262,49 @@ class TokenTransaction(models.Model):
         return f"{self.wallet.chef}: {sign}{self.amount}T ({self.tx_type})"
 
 
+class TokenLot(models.Model):
+    """An auditable source bucket for tokens credited to a TokenWallet."""
+
+    class SourceType(models.TextChoices):
+        PURCHASE = "purchase", "Purchase"
+        REWARD = "reward", "Reward / Grant"
+        LEGACY = "legacy", "Legacy balance — origin ambiguous"
+
+    wallet = models.ForeignKey(TokenWallet, on_delete=models.PROTECT, related_name="token_lots")
+    source_order = models.OneToOneField(
+        "TokenOrder", null=True, blank=True, on_delete=models.PROTECT,
+        related_name="token_lot",
+    )
+    source_transaction = models.ForeignKey(
+        TokenTransaction, null=True, blank=True, on_delete=models.PROTECT,
+        related_name="created_lots",
+    )
+    source_type = models.CharField(max_length=16, choices=SourceType.choices)
+    original_amount = models.PositiveIntegerField()
+    remaining_amount = models.PositiveIntegerField()
+    origin_ambiguous = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["created_at", "pk"]
+
+
+class TokenSpendAllocation(models.Model):
+    """FIFO allocation proving which token lot funded a debit transaction."""
+
+    transaction = models.ForeignKey(
+        TokenTransaction, on_delete=models.PROTECT, related_name="spend_allocations"
+    )
+    lot = models.ForeignKey(TokenLot, on_delete=models.PROTECT, related_name="spend_allocations")
+    amount = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["transaction", "lot"], name="unique_token_spend_lot"),
+        ]
+
+
 class TokenOrder(models.Model):
     """Tracks a Stripe checkout session for a token purchase.
 
@@ -1269,6 +1320,7 @@ class TokenOrder(models.Model):
         COMPLETED = "completed", "Completed"
         EXPIRED = "expired", "Expired"
         CANCELLED = "cancelled", "Cancelled"
+        PARTIALLY_REFUNDED = "partial_refund", "Partially Refunded"
         REFUNDED = "refunded", "Refunded"
         DISPUTED = "disputed", "Under Dispute"
 
@@ -1299,6 +1351,8 @@ class TokenOrder(models.Model):
     stripe_customer_id = models.CharField(max_length=255, blank=True, db_index=True, help_text="Stripe Customer ID")
     stripe_invoice_id = models.CharField(max_length=255, blank=True, help_text="Stripe Invoice ID if issued")
     credited_at = models.DateTimeField(null=True, blank=True, help_text="When tokens were credited to the wallet")
+    refunded_amount_cents = models.PositiveIntegerField(default=0)
+    clawed_tokens = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1640,6 +1694,7 @@ class PayoutRequest(models.Model):
         REJECTED = "rejected", "Rejected"
         ON_HOLD = "on_hold", "On Hold — Compliance"
         PAID = "paid", "Paid Out"
+        PAID_DISPUTED = "paid_disputed", "Paid — Reconciliation Required"
         REVERSED = "reversed", "Reversed"
 
     PAYOUT_RATE_EUR_PER_TOKEN = "0.025"  # €0.025 per approved reward token
