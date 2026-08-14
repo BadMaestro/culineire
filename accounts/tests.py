@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from recipes.models import RecipeAuthor
@@ -190,6 +190,31 @@ class AdminSetPasswordTests(TestCase):
         )
         self.assertContains(response, "Admin: Set New Password")
         self.assertContains(response, self.url)
+
+
+class LoginCsrfRecoveryTests(TestCase):
+    def setUp(self):
+        self.client = Client(enforce_csrf_checks=True)
+
+    def test_stale_login_post_redirects_to_a_fresh_form(self):
+        response = self.client.post(
+            reverse("login"),
+            {"username": "someone", "password": "not-logged"},
+        )
+        self.assertRedirects(response, reverse("login"), fetch_redirect_response=False)
+
+        refreshed = self.client.get(reverse("login"))
+        self.assertContains(refreshed, "That sign-in form expired")
+        self.assertContains(refreshed, "csrfmiddlewaretoken")
+
+    def test_other_csrf_failures_remain_forbidden(self):
+        response = self.client.post(reverse("ajax_login"), {})
+        self.assertEqual(response.status_code, 403)
+
+    def test_login_form_prevents_a_second_browser_submission(self):
+        response = self.client.get(reverse("login"))
+        self.assertContains(response, "data-login-form")
+        self.assertContains(response, "button.disabled = true")
 
 
 class CaseInsensitiveLoginTests(TestCase):

@@ -66,6 +66,19 @@ def can_revoke_superuser_privileges(user):
 
 # ── Login ─────────────────────────────────────────────────────────────────────
 
+def csrf_failure(request, reason=""):
+    """Recover a stale duplicated login POST without weakening CSRF elsewhere."""
+    if request.path == reverse("login") and request.method == "POST":
+        messages.error(
+            request,
+            "That sign-in form expired. Please sign in again with the refreshed form.",
+        )
+        return redirect("login")
+
+    from django.views.csrf import csrf_failure as django_csrf_failure
+    return django_csrf_failure(request, reason=reason)
+
+
 class CulinEireLoginView(LoginView):
     authentication_form = SignInForm
     template_name = "registration/login.html"
