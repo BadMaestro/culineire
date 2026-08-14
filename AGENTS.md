@@ -555,11 +555,12 @@ is stale. A lock older than 60 minutes is reported to the Owner, naming the
 agent in it, and cleared only with his word. Never clear another agent's lock
 silently.
 
-### Each agent has his own numbers — Owner, 2026-08-06
+### Each agent has his own numbers — Owner, 2026-08-06; amended 2026-08-14
 
-**Take your next version number by adding TWO to your own last one, never one.**
-GreenBear takes the **odd** numbers, Bolt takes the **even** ones. From v2.5.835
-onwards GreenBear goes 835, 837, 839; Bolt goes 836, 838, 840.
+**Take your next version number by adding THREE to your own last one.** The
+three-agent rotation begins at v2.5.1029: GreenBear takes 1029, 1032, 1035;
+Bolt takes 1030, 1033, 1036; Ember takes every third number, 1031, 1034, 1037.
+This replaces the former odd/even split after the Owner reinstated Ember.
 
 A gap does not matter and a number out of order does not matter. What matters is
 that two agents preparing a release at the same moment cannot reach for the same
@@ -573,7 +574,7 @@ only stops a second DEPLOY; it never stopped a second agent writing the same
 number into his own working tree an hour earlier.
 
 This does not replace the lock. Claim `.agent-chat/deploy.lock` before the bump,
-as before; the parity is what makes a collision impossible rather than merely
+as before; the three-agent rotation makes a collision impossible rather than merely
 detectable.
 
 **The checks, every time, with no exceptions and no shortcuts:**

@@ -1,6 +1,6 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.1030",
+        "version": "2.5.1031",
         "date": "2026-08-14",
         "commit": "384c99fa",
         "title": "Mobile sign-in recovers from a duplicated stale CSRF submission",
