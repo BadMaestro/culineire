@@ -2568,6 +2568,22 @@ def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: 
         locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
         if locked_battle.status != Battle.Status.COOKING:
             raise ValueError("Battle must be in COOKING status to submit a cooked photo.")
+        # T06, 2026-08-13: the battle lock alone does not serialise two uploads
+        # from the SAME chef - two tabs, or one impatient double-submit - and
+        # the "have you already sent one?" check above was made on an instance
+        # read before the transaction opened. Both requests saw an empty photo
+        # and the second silently REPLACED the evidence the moderator was
+        # already looking at, taking the moderation state and the hash with it.
+        # Battle first, then entry, always in that order: every other function
+        # in this phase takes the battle row first, and a second order would be
+        # a deadlock waiting for two chefs to upload at once.
+        entry = (BattleEntry.objects.select_for_update()
+                 .select_related("author")
+                 .get(pk=entry.pk))
+        if not battle.author_is_participant(entry.author):
+            raise ValueError("Only battle participants can submit a cooked photo.")
+        if entry.cooked_photo:
+            raise ValueError("You have already submitted a cooked photo for this battle.")
         entry.cooked_photo = photo
         entry.cooked_photo_submitted_at = timezone.now()
         entry.real_photo_confirmed = real_photo_confirmed

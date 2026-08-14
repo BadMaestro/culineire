@@ -18385,3 +18385,194 @@ class CookingSubmitShowsARefusalInsteadOf500Tests(TestCase):
         entry = BattleEntry.objects.get(battle=self.battle, author=self.chef)
         self.assertFalse(entry.cooked_photo)
         self.assertEqual(entry.photo_hash, "")
+
+
+
+class TwoUploadsOfOneDishLeaveOnePhotoTests(TransactionTestCase):
+    """T06, Owner brief 2026-08-12 - the first cooked photo is the evidence.
+
+    F69 gave submit_cooked_photo the battle lock. That serialises a moderator
+    cancelling the battle against an upload, and it does NOT serialise two
+    uploads from the same chef - two tabs, or one impatient double-submit. The
+    "have you already sent one?" check was made on an entry read BEFORE the
+    transaction opened, so both requests saw an empty photo and the second
+    silently replaced the evidence a moderator may already have been looking
+    at, taking the moderation state and the hash with it.
+    """
+
+    def _jpeg(self, colour):
+        from io import BytesIO
+        from PIL import Image
+        buffer = BytesIO()
+        Image.new("RGB", (48, 32), colour).save(buffer, format="JPEG")
+        return buffer.getvalue()
+
+    def _upload(self, name, colour):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        return SimpleUploadedFile(name, self._jpeg(colour), content_type="image/jpeg")
+
+    def setUp(self):
+        User = get_user_model()
+        self.chef = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t06-ch", password="pw"),
+            name="T06 Chef", slug="t06-ch")
+        self.rival = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t06-op", password="pw"),
+            name="T06 Rival", slug="t06-op")
+        ChefBattleProfile.objects.create(author=self.chef)
+        ChefBattleProfile.objects.create(author=self.rival)
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef, opponent=self.rival, theme="T06",
+            status=Battle.Status.COOKING, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        BattleEntry.objects.create(battle=self.battle, author=self.chef)
+
+    def test_two_simultaneous_uploads_leave_one_photo_and_one_honest_error(self):
+        import threading
+        import time
+        from unittest import mock
+        from django.db import connections
+        from chef_battle import services
+        from chef_battle.services import submit_cooked_photo
+
+        start = threading.Barrier(2)
+        results, refusals, errors = [], [], []
+
+        # The window is real but narrow: both requests read the entry, then
+        # spend time decoding and re-encoding the image before they open their
+        # transaction. Widening THAT step - not the code under test - is what
+        # makes the interleaving happen every run instead of one in twenty.
+        real_normalise = services.normalise_uploaded_image
+
+        def slow_normalise(*args, **kwargs):
+            result = real_normalise(*args, **kwargs)
+            time.sleep(0.3)
+            return result
+
+        def upload(colour, name):
+            try:
+                start.wait(timeout=10)
+                results.append(submit_cooked_photo(
+                    battle=self.battle, author=self.chef,
+                    photo=self._upload(name, colour), real_photo_confirmed=True))
+            except ValueError as refusal:
+                refusals.append(str(refusal))
+            except Exception as exc:
+                errors.append(exc)
+            finally:
+                connections.close_all()
+
+        threads = [
+            threading.Thread(target=upload, args=((10, 200, 10), "first.jpg")),
+            threading.Thread(target=upload, args=((200, 10, 10), "second.jpg")),
+        ]
+        with mock.patch.object(services, "normalise_uploaded_image", slow_normalise):
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join(timeout=30)
+
+        self.assertEqual(errors, [], "a race must not surface as a 500")
+        self.assertEqual(len(results), 1, "both uploads were accepted")
+        self.assertEqual(len(refusals), 1)
+        self.assertIn("already submitted", refusals[0])
+
+        entry = BattleEntry.objects.get(battle=self.battle, author=self.chef)
+        self.assertTrue(entry.cooked_photo)
+        self.assertEqual(entry.cooked_photo.name, results[0].cooked_photo.name,
+                         "the stored photo is not the one the winner submitted")
+
+    def test_the_hash_and_the_moderation_state_belong_to_the_stored_file(self):
+        import hashlib
+        from chef_battle.services import submit_cooked_photo
+
+        entry = submit_cooked_photo(
+            battle=self.battle, author=self.chef,
+            photo=self._upload("dish.jpg", (40, 80, 120)), real_photo_confirmed=True)
+        entry.refresh_from_db()
+        entry.cooked_photo.open()
+        stored = entry.cooked_photo.read()
+        self.assertEqual(hashlib.sha256(stored).hexdigest(), entry.photo_hash)
+        self.assertEqual(entry.moderation_status, BattleEntry.ModerationStatus.PENDING)
+
+    def test_a_cancellation_that_commits_first_wins_and_no_photo_is_stored(self):
+        """The card's own wording: a cancellation committed first must win and
+        refuse the stale upload. Two connections, a barrier, and the canceller
+        holding the battle row while the upload waits for it."""
+        import threading
+        import time
+        from django.db import connections, transaction
+        from chef_battle.services import submit_cooked_photo
+
+        start = threading.Barrier(2)
+        refusals, errors, stored = [], [], []
+
+        def cancel():
+            try:
+                start.wait(timeout=10)
+                with transaction.atomic():
+                    locked = Battle.objects.select_for_update().get(pk=self.battle.pk)
+                    time.sleep(0.4)
+                    locked.status = Battle.Status.CANCELLED
+                    locked.save(update_fields=["status", "updated_at"])
+            except Exception as exc:
+                errors.append(exc)
+            finally:
+                connections.close_all()
+
+        def upload():
+            try:
+                start.wait(timeout=10)
+                time.sleep(0.1)
+                stored.append(submit_cooked_photo(
+                    battle=self.battle, author=self.chef,
+                    photo=self._upload("late.jpg", (7, 7, 7)),
+                    real_photo_confirmed=True))
+            except ValueError as refusal:
+                refusals.append(str(refusal))
+            except Exception as exc:
+                errors.append(exc)
+            finally:
+                connections.close_all()
+
+        threads = [threading.Thread(target=cancel), threading.Thread(target=upload)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(timeout=30)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(stored, [], "a cancelled battle accepted a photo")
+        self.assertEqual(len(refusals), 1)
+        self.assertIn("COOKING", refusals[0])
+        entry = BattleEntry.objects.get(battle=self.battle, author=self.chef)
+        self.assertFalse(entry.cooked_photo)
+        self.assertEqual(entry.photo_hash, "")
+
+    def test_the_battle_row_is_locked_before_the_entry_row(self):
+        """Order is the whole deadlock guarantee, so it is asserted rather than
+        described: every other function in this phase takes the battle first."""
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        from chef_battle.services import submit_cooked_photo
+
+        with CaptureQueriesContext(connection) as captured:
+            submit_cooked_photo(
+                battle=self.battle, author=self.chef,
+                photo=self._upload("dish.jpg", (90, 90, 10)),
+                real_photo_confirmed=True)
+
+        locks = [q["sql"] for q in captured.captured_queries
+                 if "FOR UPDATE" in q["sql"].upper()]
+        battle_locks = [i for i, sql in enumerate(locks)
+                        if "chef_battle_battle\"" in sql.lower()]
+        entry_locks = [i for i, sql in enumerate(locks)
+                       if "chef_battle_battleentry" in sql.lower()]
+        self.assertTrue(battle_locks, "the battle row is not locked")
+        self.assertTrue(entry_locks, "the entry row is not locked")
+        self.assertLess(min(battle_locks), min(entry_locks),
+                        "the entry was locked before the battle - deadlock order")

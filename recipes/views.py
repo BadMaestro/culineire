@@ -4406,14 +4406,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T06", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "The first cooked photo is the evidence, and a race cannot replace it",
-        "status": "PARTIAL", "owner": "GreenBear",
+        "status": "DONE", "owner": "GreenBear",
         "files": "chef_battle/services.py (submit_cooked_photo)",
         "depends_on": "T05",
         "action": "Lock the battle, then the entry, always in that order; re-check COOKING, participation and the empty-photo condition under both locks; a cancellation committed first must win and refuse the stale upload.",
         "visible_result": "Two simultaneous uploads leave one photo and one honest error, and the first accepted photo is not silently replaced.",
         "acceptance": "Concurrency test: one success and one domain error; cancel-before-entry-lock mutates no photo; the moderation state and the hash belong to the file actually stored.",
         "forbidden": "Do not check the status before the transaction and call it settled.",
-        "evidence": "Owner brief 2026-08-12, ticket 6. VERIFIED PARTIAL 2026-08-12: submit_cooked_photo now opens a transaction and locks the battle (F69, v2.5.1016); the entry-level lock and the ordering guarantee still need proving.",
+        "evidence": "SHIPPED v2.5.1029. F69 gave this function the battle lock, which serialises a moderator cancelling the battle against an upload and does NOT serialise two uploads from the SAME chef - two tabs, or one impatient double-submit. The \"have you already sent one?\" check was made on an entry read BEFORE the transaction opened, so both requests saw an empty photo and the second silently REPLACED the evidence a moderator may already have been looking at, taking the moderation status, the note, the reviewer and the hash with it. Now the entry row is locked too, after the battle row and never before it - every sibling in this phase takes the battle first, and a second order would deadlock the moment both chefs upload at once - and participation, COOKING and the empty-photo condition are all re-checked under both locks. TESTS: a two-thread barrier race where the decode step is deliberately slowed (the instrumentation is on the TEST's clock, not on the code under test, so the narrow real window happens every run) - one success, one honest \"already submitted\", one photo stored, and it is the winner's; a cancellation committed first wins and the late upload is refused with nothing stored and no hash written; the hash and the PENDING moderation state belong to the file actually stored; and the lock ORDER is asserted from the captured SQL rather than described. With the fix stashed, both uploads are accepted and the entry is never locked.",
     },
     {
         "id": "T07", "group": "Launch Blockers (Owner brief 2026-08-12)", "title": "A chargeback during PROCESSING cannot end as an ordinary PAID payout",
@@ -4643,7 +4643,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "7dcc4faa / production v2.5.1027",
+        "commit": "7dcc4faa / production v2.5.1029",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-13 · Production baseline: **v2.5.1027**
+Last reconciled: 2026-08-13 · Production baseline: **v2.5.1029**
 
 **OWNER BRIEF, 2026-08-12 — seventeen tickets, T01–T17, on the board and mine
 alone.** Delivered on the Carpet as message #3509 and dispatched by him with
