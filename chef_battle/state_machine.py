@@ -9,6 +9,12 @@ from django.db import transaction
 from .models import Battle
 
 
+TERMINAL_OUTCOMES = {
+    Battle.Status.COMPLETED, Battle.Status.CANCELLED,
+    Battle.Status.DISPUTED, Battle.Status.PAUSED,
+    Battle.Status.WALKOVER, Battle.Status.VOID,
+}
+
 ALLOWED_BATTLE_TRANSITIONS = {
     Battle.Status.SCHEDULED: {
         Battle.Status.WAITING, Battle.Status.MENU_LOCKED,
@@ -63,6 +69,16 @@ ALLOWED_BATTLE_TRANSITIONS = {
     Battle.Status.WALKOVER: set(),
     Battle.Status.VOID: set(),
 }
+
+# Every live phase may be ended by an audited operator/no-show/withdrawal
+# policy. What must never happen is the reverse: a terminal row becoming live.
+for _live_status in (
+    Battle.Status.SCHEDULED, Battle.Status.WAITING, Battle.Status.MENU_LOCKED,
+    Battle.Status.ACTIVE, Battle.Status.AWAITING_SUBMISSIONS,
+    Battle.Status.REVEALED, Battle.Status.INGREDIENT_PENALTY,
+    Battle.Status.COOKING, Battle.Status.PRESENTATION, Battle.Status.VOTING,
+):
+    ALLOWED_BATTLE_TRANSITIONS[_live_status].update(TERMINAL_OUTCOMES)
 
 
 def transition_battle_status(battle_id, target_status, *, updates=None):
