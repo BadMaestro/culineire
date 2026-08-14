@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1030",
+        "date": "2026-08-14",
+        "commit": "384c99fa",
+        "title": "Mobile sign-in recovers from a duplicated stale CSRF submission",
+        "section": "Accounts / Reliability",
+        "summary": "Production evidence at 14:15 Dublin time showed one successful login POST (302) followed in the same second by a duplicate POST carrying the pre-login CSRF token, then four retries of that stale form, all rejected with 'CSRF token from POST incorrect'. The account and authentication backend were healthy; the successful login rotated the CSRF secret exactly as Django requires. The login form now disables its submit control on the first submission, closing the ordinary mobile double-tap path. A custom CSRF failure view recovers only POST /accounts/login/ by redirecting to a freshly tokenised login form with a neutral expiry message; every other endpoint retains Django's strict 403 response. No Owner account data was read or changed. Eleven focused account and CSRF tests passed on PostgreSQL, including the non-login 403 control.",
+    },
+    {
         "version": "2.5.1029",
         "date": "2026-08-13",
         "commit": "36b124a2",
