@@ -4580,6 +4580,28 @@ ARENA_DESIGN_TASKS = [
         "forbidden": "Do not touch the frozen camera or the octagon region (ARENA_BATTLE_PLAN, THE FROZEN ARCHITECTURE). No third Arena stylesheet. No fake pairs in the strip.",
         "evidence": "Owner's ruling of 2026-08-15, section 2d, with the image he supplied identifying the strip. Not started.",
     },
+    {
+        "id": "AA1", "group": "Arena acceptance 2026-08-15", "title": "The poll stops re-sending a constant every ten seconds",
+        "status": "PENDING", "owner": "unassigned",
+        "files": "chef_battle/views.py (PUBLIC_ARENA_STATE_KEYS, arena_state); static/js/arena_render.js; docs/chef_battle/arena_data_layer_spec.md",
+        "depends_on": "none",
+        "action": "Send geometry on the first paint only and carry a geometry_version in the poll; the client refetches the full geometry when that version changes. Add visibilitychange so a hidden tab stops polling, and reconcile the documented cadence with the real one.",
+        "visible_result": "Nothing on screen. The arena costs about a third of what it costs today per viewer.",
+        "acceptance": "Measured before and after with the acceptance test: the poll payload drops from 30.1 KB to under 10 KB, the geometry still arrives on first paint, and a version change still repaints the floor. A hidden tab issues no polls.",
+        "forbidden": "Do not remove a key the renderer binds without changing the renderer in the same commit - an absent key reads as an empty value, which is how the VIP ring and the spirit count were nearly emptied once already.",
+        "evidence": "MEASURED 2026-08-15, docs/chef_battle/ARENA_ACCEPTANCE_AUDIT_2026-08-15.md finding AF1: geometry is 21.4 KB of the 30.1 KB the poll returns, and the data-layer spec itself calls that key static per deploy. POLL_INTERVAL is 10 s, not the 20 s the spec described, and there is no visibilitychange handling, so a background tab polls at full rate. Settle it BEFORE the frontend binds: moving the key afterwards is a rewrite.",
+    },
+    {
+        "id": "AA2", "group": "Arena acceptance 2026-08-15", "title": "Decide what the arena battle popup is - a window or a room",
+        "status": "PENDING", "owner": "unassigned",
+        "files": "chef_battle/views.py (arena_battle_popup); templates/chef_battle/arena_battle_popup.html",
+        "depends_on": "none",
+        "action": "The view already builds the chat, the vote state, the gift catalogue and the viewer's token balance, and the template renders none of them. Either finish Hall Plan C3/C4/C5 in the popup (the data is already there) or stop paying for what is discarded.",
+        "visible_result": "Either a spectator can talk, vote and send a gift without leaving the arena, or nothing changes on screen and two queries per popup stop being run for nothing.",
+        "acceptance": "Whichever the Owner chooses, the view and the template agree: no context key is built that the template does not use, and any new control carries the same 18+/token/legal affordances as the full battle page.",
+        "forbidden": "Do not weaken the age, token or legal gates to fit them into a popup.",
+        "evidence": "docs/chef_battle/ARENA_ACCEPTANCE_AUDIT_2026-08-15.md finding AF2, read off the running code 2026-08-15: recent_chat (20 rows), can_vote/has_voted, appreciation_gifts and viewer_token_balance are all computed and none appears in the template.",
+    },
 ]
 
 
@@ -4687,7 +4709,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "988ce514 source / production v2.5.1039",
+        "commit": "988ce514 source / production v2.5.1041",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

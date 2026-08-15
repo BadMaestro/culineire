@@ -97,8 +97,18 @@ deck around the arena, not in ring cells:
 ## 5. Polling contract
 
 - Initial render: server-rendered context of `arena()`.
-- Refresh: `POST /chef-battle/arena/state/` (CSRF token required) on the
-  existing ~20s arena cycle. The JSON mirrors the context keys 1:1.
+- Refresh: `POST /chef-battle/arena/state/` (CSRF token required). The JSON
+  mirrors the context keys 1:1.
+  **X23, measured 2026-08-15:** the cadence is **10 s**, not the ~20 s this
+  line used to claim (`POLL_INTERVAL = 10000` in `arena_render.js`); the 20 s
+  figure is the separate presence PING. There is no `visibilitychange`
+  handling, so a background tab polls at the same rate.
+  **X24, measured 2026-08-15:** `geometry` is **21.4 KB of the 30.1 KB** each
+  poll returns, and this document itself says it is static per deploy. It is
+  re-sent every cycle to every viewer. See
+  `docs/chef_battle/ARENA_ACCEPTANCE_AUDIT_2026-08-15.md` finding AF1.
+  **X25:** the honest empty centre is `center.type == "empty"`; §3 below still
+  writes `open`, which the code has never produced.
 - The poll is side-effect-free except the presence heartbeat; never mutate
   battle state from the renderer.
 
