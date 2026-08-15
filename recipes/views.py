@@ -4571,14 +4571,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T21", "group": "Pre-battle timeline (Owner ruling 2026-08-15)", "title": "A pair's place in the NEXT BATTLE strip is its remaining time",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "DONE", "owner": "Bolt",
         "files": "chef_battle/selectors.py (get_upcoming_battles); templates/chef_battle/arena.html; static/js/arena_deck.js; static/css/arena.css",
         "depends_on": "T19, T20",
         "action": "The NEXT BATTLE strip - the band directly above the THE KITCHEN FLOOR caption - is the starting position. A pair with 48 hours left stands furthest from it and moves visibly closer as the clock runs down; on the second Ready it takes the nearest place in the queue. Today the pills are ordered soonest-first and carry no distance at all.",
         "visible_result": "The Owner watches an accepted pair travel across the NEXT BATTLE strip towards the starting position as its timer runs down, instead of sitting still in a list.",
         "acceptance": "Position is derived from time remaining, refreshes on the arena's existing thirty-second poll without duplicating listeners, and holds at the supported desktop widths. The strip is not the octagon centre and nothing about the current fight moves.",
         "forbidden": "Do not touch the frozen camera or the octagon region (ARENA_BATTLE_PLAN, THE FROZEN ARCHITECTURE). No third Arena stylesheet. No fake pairs in the strip.",
-        "evidence": "Owner's ruling of 2026-08-15, section 2d, with the image he supplied identifying the strip. Not started.",
+        "evidence": "SHIPPED v2.5.1048. Each row of the strip carries its start time and arena_deck.js writes the gap ahead of it into --arena-next-offset, which the stylesheet transitions - so the pair travels towards the label as its clock runs down, with no animation loop. THE DISTANCE IS SPENT OUT OF THE ROOM THE PILLS DO NOT OCCUPY, measured at paint time: a percentage of the track would have overflowed, because the pills have widths of their own and the arena must fit the screen whole (A07). Measured on a 790px track with the transition disabled: one pair 47.5h out sits 590px from the label, 12h out 152px, 12 minutes out 2px; three pairs land at 2/246/593px on one row, none clipped, no horizontal page scroll; at 1100/790/560/380px tracks the same holds. When the board fills to six pairs the pills alone need 1142px, every offset falls to 0 and it degrades to exactly the two-row queue it was before rather than hiding a departure. Contract tests pin what Python can hold - the row carries a parseable start time and the poll payload uses the same string, or the board silently flattens. THE APPEARANCE ITSELF IS NOT CLAIMED FROM A LOCAL RENDER (AGENTS.md 17.14): the arena is staff-gated, so the numbers above are geometry measured through the shipped code, and how it LOOKS on production is the Owner's screen to judge.",
     },
     {
         "id": "AA1", "group": "Arena acceptance 2026-08-15", "title": "The poll stops re-sending a constant every ten seconds",
@@ -4709,7 +4709,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "9efda1ce source / production v2.5.1045",
+        "commit": "PENDING source / production v2.5.1048",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

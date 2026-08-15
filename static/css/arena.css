@@ -1949,12 +1949,41 @@
  * against the label and lets the rest follow and wrap. The selector still
  * orders by start_time and still stops at six.
  */
+/* T21, Owner 2026-08-15: THE STRIP IS THE STARTING POSITION AND DISTANCE IS
+ * TIME. The list is a track: the pair with 48 hours left stands at the far
+ * end, and its row travels back towards the label as the clock runs down. The
+ * offset is one custom property, written by arena_deck.js and transitioned
+ * here, so the movement costs no animation loop. Without the property - no
+ * JS, or a row with no start time - every row falls at 0 and the board is the
+ * flush row it was before, which is the right thing to degrade to.
+ */
 .arena-next-board__list {
   list-style:none; margin:0; padding:0; min-width:0; flex:1;
+  position:relative;
+  /* Wrapping stays, and it is the reason the distance is measured rather than
+   * assumed. The offsets are spent out of the room the pills leave over, so
+   * while there is room they fit on one line and travel along it; when the
+   * board fills up the room is nil, every offset is 0px, and this falls back
+   * to exactly the queue it was before - two rows, nothing hidden. Measured on
+   * a 790px track: six pills need 1142px of their own, so a nowrap strip would
+   * have clipped the last two departures off the board entirely. */
   display:flex; flex-wrap:wrap; align-items:center;
   gap:.3rem .35rem;
 }
-.arena-next-board__list li { min-width:0; }
+.arena-next-board__list li {
+  min-width:0; flex:none;
+  margin-inline-start:var(--arena-next-offset, 0px);
+  transition:margin-inline-start 900ms cubic-bezier(.22,.61,.36,1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-next-board__list li { transition:none; }
+}
+/* The empty row is a sentence, not a departure: it never travels. */
+.arena-next-board__list li.arena-next-board__empty { margin-inline-start:0; }
+/* The pills are placed by measurement, so they must not be squeezed by the
+ * flex line itself - a shrunk pill would report a width the placement did not
+ * budget for. */
+.arena-next-board__list .arena-next-pill { flex:none; }
 
 /* The pill: two halves with the clock on the seam. The seam is a real divider,
  * not a gap — it is what makes it read as one object holding two chefs rather

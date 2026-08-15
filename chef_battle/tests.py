@@ -19227,3 +19227,53 @@ class ChallengeCarriesItsTaskTests(TestCase):
         self.assertContains(response, "Contesting a recipe of the chef being challenged")
         self.assertContains(response, self.their_recipe.title)
         self.assertContains(response, challenge.message)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class NextBattleStripCarriesItsStartTimeTests(TestCase):
+    """T21, Owner 2026-08-15: the pill's distance from the starting position is
+    its remaining time, so the row itself has to carry the time.
+
+    The placement is arena_deck.js's job and is measured in the browser, not
+    here. What a Python test can hold is the contract underneath it: the row
+    that moves is the <li>, and the time it moves by is on that <li> in a form
+    Date.parse can read. Without it every pill silently falls back to zero and
+    the board is flat again - the exact failure this card was written to end.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.staff = User.objects.create_user(
+            username="t21-staff", password="pw", is_staff=True, is_superuser=True)
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="t21-a", password="pw"),
+            name="Strip Chef A", slug="t21-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="t21-b", password="pw"),
+            name="Strip Chef B", slug="t21-b")
+        self.start = timezone.now() + timezone.timedelta(hours=30)
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="Strip theme",
+            status=Battle.Status.SCHEDULED, start_time=self.start,
+            submission_deadline=self.start + timezone.timedelta(hours=48),
+            voting_deadline=self.start + timezone.timedelta(days=4),
+            end_time=self.start + timezone.timedelta(days=4),
+        )
+
+    def test_the_row_carries_a_parseable_start_time(self):
+        self.client.force_login(self.staff)
+
+        response = self.client.get(reverse("chef_battle:arena"))
+
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn('<li data-start-time="%s"' % self.start.isoformat(), html)
+
+    def test_the_payload_start_time_is_the_same_string_the_row_uses(self):
+        """The poll replaces these rows wholesale, so the two paths have to
+        agree on the format or the board jumps on the first tick."""
+        from .views import _build_arena_payload
+
+        payload = _build_arena_payload()
+
+        self.assertEqual(payload["upcoming"][0]["start_time"], self.start.isoformat())

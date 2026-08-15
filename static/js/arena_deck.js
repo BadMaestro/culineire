@@ -241,6 +241,67 @@
     });
   }
 
+  /* ---- T21: the strip is a distance, not a list ----------------------------
+   *
+   * Owner, 2026-08-15: the NEXT BATTLE strip - the band directly above THE
+   * KITCHEN FLOOR caption - is the STARTING POSITION. A pair that has just
+   * accepted stands furthest from it with 48 hours on the clock, and moves
+   * visibly closer as the timer runs down; on the second Ready it takes the
+   * nearest place in the queue. Until now the pills were ordered by time and
+   * carried no distance at all, so nothing on the screen moved.
+   *
+   * The offset is written as a percentage into a custom property and the CSS
+   * transitions it, so the movement is one declaration rather than an
+   * animation loop. Pills keep their DOM order - soonest first - and a
+   * minimum separation is enforced here so two battles at nearly the same
+   * time cannot stack on top of each other: distance still reads as time,
+   * and the board stays legible, which is the point of it.
+   */
+  var PREPARATION_WINDOW_MS = 48 * 60 * 60 * 1000;
+  var upcomingTicker = null;
+
+  function placeUpcomingPills() {
+    var container = byId('arena-upcoming');
+    if (!container) { return; }
+    var items = container.querySelectorAll('li[data-start-time]');
+    if (!items.length) { return; }
+    var now = Date.now();
+    // The distance is spent out of the room the pills DO NOT already occupy.
+    // A percentage of the track would have been simpler and wrong: the pills
+    // have widths of their own, so percentages plus widths overflow the strip
+    // and wrap it into a stack of rows - and the arena has to fit the screen
+    // whole (A07). Measuring first means the furthest pair sits at the far end
+    // of the strip and the nearest against the label, in one row, at any width.
+    var style = global.getComputedStyle ? global.getComputedStyle(container) : null;
+    var gapPx = style ? (parseFloat(style.columnGap) || 0) : 0;
+    var occupied = gapPx * (items.length - 1);
+    Array.prototype.forEach.call(items, function (item) { occupied += item.offsetWidth; });
+    var available = Math.max(0, container.clientWidth - occupied);
+
+    // The track is a flex row, so what each pill carries is the GAP AHEAD of
+    // it - the distance from the pill before it - and those add up along the
+    // strip. Writing the absolute position into a margin would measure every
+    // pill from its neighbour instead of from the label, which is the mistake
+    // this comment exists to stop somebody making again.
+    var previousPx = 0;
+    Array.prototype.forEach.call(items, function (item) {
+      var startsAt = Date.parse(item.getAttribute('data-start-time') || '');
+      var px;
+      if (Number.isNaN(startsAt)) {
+        px = previousPx;
+      } else {
+        var remaining = Math.max(0, startsAt - now);
+        px = Math.min(1, remaining / PREPARATION_WINDOW_MS) * available;
+      }
+      // Never behind the pill in front of it: the list is ordered soonest
+      // first, and a pill that overtook its neighbour would say the queue runs
+      // the other way.
+      if (px < previousPx) { px = previousPx; }
+      item.style.setProperty('--arena-next-offset', Math.round(px - previousPx) + 'px');
+      previousPx = px;
+    });
+  }
+
   function refreshUpcoming(list) {
     var container = byId('arena-upcoming');
     if (!container || !Array.isArray(list)) { return; }
@@ -290,8 +351,14 @@
       link.appendChild(when);
       link.appendChild(pillSide(battle.opponent, 'opponent'));
       item.appendChild(link);
+      if (battle.start_time) { item.setAttribute('data-start-time', battle.start_time); }
       container.appendChild(item);
     });
+    // T21: place them the moment they exist, then keep them moving between
+    // polls. One interval for the whole board, registered once - the same
+    // pattern as the deadline ticker above, and the reason it is guarded.
+    placeUpcomingPills();
+    if (!upcomingTicker) { upcomingTicker = global.setInterval(placeUpcomingPills, 30000); }
   }
 
   function refreshPanels(data) {
@@ -654,10 +721,21 @@
     refreshBroadcastCopy(data);
   }
 
+  // T21: the server-rendered pills exist before the first poll, so place them
+  // on load too - otherwise the board sits flat for up to thirty seconds.
+  if (global.document) {
+    if (global.document.readyState === 'loading') {
+      global.document.addEventListener('DOMContentLoaded', placeUpcomingPills, { once: true });
+    } else {
+      placeUpcomingPills();
+    }
+  }
+
   global.ArenaDeck = {
     refresh: refresh,
     centreKey: centreKey,
     formatRemaining: formatRemaining,
-    hydrateFixtures: hydrateFixtures
+    hydrateFixtures: hydrateFixtures,
+    placeUpcomingPills: placeUpcomingPills
   };
 })(window);

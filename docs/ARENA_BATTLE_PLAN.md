@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-15 · Production baseline: **v2.5.1045**
+Last reconciled: 2026-08-15 · Production baseline: **v2.5.1048**
 
 ## Ember handoff closure — 2026-08-15
 
@@ -771,7 +771,7 @@ forbidden changes and evidence for every row below.
 | T18 | Owner Authority | GreenBear controls every chef account from its Arena card | Ember | T12 | **DONE v2.5.1037** (commit `4c2bc842`, shipped `2ef0a87e`; migration 0096 applied on production) |
 | T19 | Battle lifecycle | **Acceptance opens the 48-hour preparation window, and the challenge names its task.** Owner's ruling of 2026-08-15, §2d. `accept_challenge()` starts a battle immediately when no start time was proposed; it must instead schedule the start 48 hours out and keep the pair in NEXT BATTLE for that window. The challenge states which task it carries — contesting an existing recipe of the challenged chef, or a new recipe — with the challenger's message. | Bolt | — | **DONE v2.5.1042** — `PREPARATION_WINDOW` in `chef_battle/services.py`; `task_kind` + `contested_recipe` with migration 0097; the challenged chef sees the task before he accepts. Two defects found by the card and fixed with it: `_begin_combat` wrote ACTIVE straight from SCHEDULED/WAITING (illegal under T12 — a ready pair could not start, invisible until acceptance stopped skipping SCHEDULED), and T18's `owner_arena_account_action` carried no `chef_battle_guard`. 1053/1053 green. |
 | T20 | Battle lifecycle | **Both Ready pulls the start in to 30 minutes, not 15.** `READY_HEAD_START` in `chef_battle/services.py`, plus the two documents that print the old number (`docs/chef_battle/battle_rules.md`, `docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md`) and the SA-A6 row above. | unassigned | T19 | **PENDING** |
-| T21 | Arena | **A pair's place in the NEXT BATTLE strip is its remaining time.** Furthest from the starting position at 48 hours, moving visibly closer as the clock runs down; on the second Ready it takes the nearest place in the queue. Today the pills are ordered soonest-first and carry no distance. §2d names the strip: the band directly above THE KITCHEN FLOOR caption, not the octagon centre. | unassigned | T19, T20 | **PENDING** |
+| T21 | Arena | **A pair's place in the NEXT BATTLE strip is its remaining time.** Furthest from the starting position at 48 hours, moving visibly closer as the clock runs down; on the second Ready it takes the nearest place in the queue. Today the pills are ordered soonest-first and carry no distance. §2d names the strip: the band directly above THE KITCHEN FLOOR caption, not the octagon centre. | Bolt | T19, T20 | **DONE v2.5.1048** — the gap ahead of each pill is written into `--arena-next-offset` and transitioned; the distance is spent out of the room the pills leave over, measured at paint time, so nothing overflows. At a 790px track: 47.5h → 590px from the label, 12h → 152px, 12min → 2px. A full board of six falls back to the old two-row queue rather than hiding a departure. Appearance on production is the Owner's to judge (17.14). |
 
 ## 5a. Architecture Normalisation — CLOSED
 

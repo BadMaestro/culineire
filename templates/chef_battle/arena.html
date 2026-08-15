@@ -158,7 +158,15 @@
           the top-right corner and the rest fall away from it - the Owner's
           "the closer to the fight, the higher and further right".
         {% endcomment %}
-        <li>
+        {% comment %}
+          T21, Owner 2026-08-15: the strip IS the starting position, and the
+          pill's distance from it is the time left. The offset is written by
+          arena_deck.js into --arena-next-offset; the start time has to be on
+          the row itself, not only inside the clock, because the row is what
+          moves.
+        {% endcomment %}
+        {# _arena_upcoming() already hands this over as an isoformat string, so it is printed, not re-formatted: the date filter on a string returns nothing at all. #}
+        <li data-start-time="{{ battle.start_time }}">
           <a class="arena-next-pill" href="{{ battle.battle_url }}">
             <span class="arena-next-pill__side">
               <img src="{{ battle.challenger.avatar_url }}" alt="" width="22" height="22" loading="lazy">
