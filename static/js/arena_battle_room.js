@@ -1,119 +1,30 @@
 /*
- * Battle room popup + battle blast.
+ * Battle blast — the arena-wide celebration when a battle finishes.
  *
- * Ported from arena_puzzle.js so both survive the legacy renderer's removal.
- * The popup embeds a server-rendered preview and links to the full-screen
- * Battle Room; the blast celebrates a finished battle for everyone watching the
- * arena, not only the two participants.
+ * Ported from arena_puzzle.js so it survived the legacy renderer's removal.
+ * The blast celebrates a finished battle for everyone watching the arena, not
+ * only the two participants.
+ *
+ * AA6, 2026-08-15: this file also carried a battle-room POPUP - a
+ * server-rendered preview opened by clicking the centre of the floor. AA4
+ * pointed that click at the battle's own broadcast page, which is what
+ * ARENA_BATTLE_PLAN section 2c (Owner, 2026-08-06) always said the target
+ * should be: "a click on the centre takes every spectator off the arena and
+ * onto the battle's own page... the popup is a placeholder, and the target is
+ * a page." That left open(), close(), the focus trap, the popup DOM, the
+ * arena_battle_popup view, its template, its route and its payload key with
+ * no caller at all. They are gone. The module keeps the name it is loaded
+ * under; only the dead half was removed.
  */
 (function (global) {
   'use strict';
 
-  var previousFocus = null;
-  var popupRequestId = 0;
   // null = not yet initialised from the page's own data. Only a *change* after
   // that first snapshot is a fresh result worth celebrating, so a reload never
   // replays the last battle's blast.
   var lastSeenResultId = null;
 
   function byId(id) { return document.getElementById(id); }
-
-  function popupPanel() {
-    var popup = byId('arena-battle-popup');
-    return popup ? popup.querySelector('[role="dialog"]') : null;
-  }
-
-  function mountPopupAtDocumentRoot() {
-    var popup = byId('arena-battle-popup');
-    if (popup && popup.parentElement !== document.body) {
-      // The renderer lives inside an isolated stacking context. A fixed child
-      // cannot escape that context regardless of its own z-index, so mount the
-      // modal at the document root where it can sit above site navigation.
-      document.body.appendChild(popup);
-    }
-  }
-
-  function focusableElements() {
-    var panel = popupPanel();
-    if (!panel) { return []; }
-    return Array.prototype.filter.call(panel.querySelectorAll(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), ' +
-      'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    ), function (element) {
-      return !element.hidden && element.getAttribute('aria-hidden') !== 'true';
-    });
-  }
-
-  function focusPopup() {
-    var closeBtn = byId('arena-popup-close');
-    var panel = popupPanel();
-    if (closeBtn) {
-      closeBtn.focus();
-    } else if (panel) {
-      panel.setAttribute('tabindex', '-1');
-      panel.focus();
-    }
-  }
-
-  /* ---- popup ---- */
-
-  function setLoading(inner, text) {
-    inner.textContent = '';
-    var note = document.createElement('p');
-    note.className = 'arena-popup__loading';
-    note.textContent = text;
-    inner.appendChild(note);
-  }
-
-  function open(popupUrl, battleUrl) {
-    var popup = byId('arena-battle-popup');
-    var inner = byId('arena-popup-inner');
-    if (!popup || !inner) {
-      if (battleUrl) { global.location.href = battleUrl; }
-      return;
-    }
-    var requestId = ++popupRequestId;
-    setLoading(inner, 'Loading battle...');
-    previousFocus = document.activeElement;
-    popup.hidden = false;
-    document.body.style.overflow = 'hidden';
-    focusPopup();
-
-    fetch(popupUrl, { credentials: 'same-origin' })
-      .then(function (response) { return response.ok ? response.text() : null; })
-      .then(function (html) {
-        if (requestId !== popupRequestId || popup.hidden) { return; }
-        if (!html) {
-          setLoading(inner, 'No active battle right now.');
-          return;
-        }
-        // Server-rendered fragment from our own view.
-        inner.innerHTML = html;
-        focusPopup();
-      })
-      .catch(function () {
-        if (requestId !== popupRequestId || popup.hidden) { return; }
-        setLoading(inner, 'Could not load battle.');
-        if (battleUrl) {
-          var link = document.createElement('a');
-          link.href = battleUrl;
-          link.textContent = 'Open full room';
-          inner.querySelector('.arena-popup__loading').appendChild(link);
-        }
-      });
-  }
-
-  function close() {
-    var popup = byId('arena-battle-popup');
-    if (!popup || popup.hidden) { return; }
-    popupRequestId += 1;
-    popup.hidden = true;
-    document.body.style.overflow = '';
-    if (previousFocus && typeof previousFocus.focus === 'function' && document.contains(previousFocus)) {
-      previousFocus.focus();
-    }
-    previousFocus = null;
-  }
 
   /* ---- battle blast ---- */
 
@@ -152,46 +63,13 @@
 
   function init(initialResult) {
     lastSeenResultId = initialResult ? initialResult.battle_id : null;
-    mountPopupAtDocumentRoot();
 
     var dismiss = byId('blast-dismiss');
     if (dismiss) { dismiss.addEventListener('click', dismissBlast); }
-
-    var closeBtn = byId('arena-popup-close');
-    var backdrop = byId('arena-popup-backdrop');
-    if (closeBtn) { closeBtn.addEventListener('click', close); }
-    if (backdrop) { backdrop.addEventListener('click', close); }
-    document.addEventListener('keydown', function (event) {
-      var popup = byId('arena-battle-popup');
-      if (!popup || popup.hidden) { return; }
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        close();
-        return;
-      }
-      if (event.key !== 'Tab') { return; }
-      var focusable = focusableElements();
-      if (!focusable.length) {
-        event.preventDefault();
-        focusPopup();
-        return;
-      }
-      var first = focusable[0];
-      var last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    });
   }
 
   global.ArenaBattleRoom = {
     init: init,
-    open: open,
-    close: close,
     maybeCelebrate: maybeCelebrate
   };
 })(window);

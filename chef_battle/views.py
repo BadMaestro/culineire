@@ -538,6 +538,15 @@ def chef_enroll(request):
                     profile.age_verified = True
                     profile.age_confirmed_at = now
                 profile.save(update_fields=["enrolled_at", "age_verified", "age_confirmed_at"])
+                # AA8, 2026-08-15: a chef stands in their rank ring, not in the
+                # stands - _ensure_spectator_seat() refuses an enrolled author
+                # from this moment on. But nothing ever released the seat this
+                # viewer was already holding, so it stayed occupied until the
+                # 180-second lapse swept it: a seat in the front rows, held by
+                # somebody who is now on the floor, in a hall whose capacity is
+                # a fixed 114.
+                from .arena_seating import release_seat
+                release_seat(author)
                 try:
                     from .services import award_enrol_bonus
                     award_enrol_bonus(author)
@@ -885,6 +894,30 @@ def _emulation_bot_slugs() -> set[str]:
     return {slug for slug, _name in EMU_CHEFS}
 
 
+#: Width of one attack/defence band. Twenty is the plan's own example ("40-60")
+#: and is wide enough that a chef's exact loadout cannot be read back out of it.
+_POTENTIAL_BAND = 20
+
+
+def _potential_band(value: int) -> str:
+    """An indicative range for a chef's artifact potential, or "" for none.
+
+    AA7, 2026-08-15. ARENA_HALL_PLAN A1: the potential is shown as indicative
+    info and the artifact list is never shown. An exact sum is not indicative -
+    with a handful of artifacts it can simply be decomposed back into them - so
+    the arena publishes the band the value falls in and keeps the number.
+
+    Zero means "nothing to indicate" and returns an empty string rather than
+    "0-20", which would advertise a floor the chef has not earned; the tooltip
+    already hides the row when both are empty.
+    """
+    value = int(value or 0)
+    if value <= 0:
+        return ""
+    low = (value // _POTENTIAL_BAND) * _POTENTIAL_BAND
+    return f"{low}–{low + _POTENTIAL_BAND}"
+
+
 def _hidden_bot_slugs() -> set[str]:
     """Bot slugs to exclude from a PUBLIC arena query, or an empty set.
 
@@ -1054,7 +1087,6 @@ def _arena_center(active_battle):
             # Section 2c: the arena is a tabloid and the fight has its own page.
             # This is the link the centre cell carries.
             "battle_url": reverse("chef_battle:battle_broadcast", kwargs={"pk": active_battle.pk}),
-            "popup_url": reverse("chef_battle:arena_battle_popup"),
             "challenger": _arena_fighter_payload(active_battle.challenger, "challenger"),
             "opponent": _arena_fighter_payload(active_battle.opponent, "opponent"),
         }
@@ -1076,85 +1108,6 @@ def _arena_center(active_battle):
         }
 
     return {"type": "empty"}
-
-
-@chef_battle_guard
-@ratelimit(key="ip", rate="120/m", method="GET", block=False)
-def arena_battle_popup(request):
-    """AJAX partial — Battle Room popup embedded on the arena page.
-    Returns an HTML fragment (no base.html). No login required — anonymous visitors
-    can view the popup.
-
-    AA5, 2026-08-15: this carries no @login_required but it IS behind
-    chef_battle_guard, so during the dark launch an anonymous caller gets a
-    404 and never reaches the queries - the hole is one that opens on the day
-    the Arena does, not one standing open now. Limited at 120/m, matching
-    arena_state, because the fragment is fetched on a human click and no
-    legitimate viewer opens it twice a second.
-
-    AA2, Owner ruling 2026-08-06 (ARENA_BATTLE_PLAN.md 2c): this popup is a
-    placeholder for the battle's own page, not a second copy of the
-    broadcast — chat, voting and gifts belong there, not here. It was still
-    computing all three (plus the viewer's token balance) and throwing them
-    away; the template below has never rendered them.
-    """
-    if getattr(request, "limited", False):
-        # An HTML fragment endpoint, so the refusal is a fragment too: the
-        # popup shows a line instead of a blank panel or a JSON blob.
-        return render(request, "chef_battle/arena_battle_popup.html",
-                      {"no_battle": True}, status=429)
-
-    active = list(get_active_battles(limit=1))
-    if not active:
-        return render(request, "chef_battle/arena_battle_popup.html", {"no_battle": True})
-
-    battle = active[0]
-    vote_counts = get_battle_vote_counts(battle)
-
-    challenger_artifacts = list(
-        ChefArtifact.objects
-        .filter(
-            chef=battle.challenger,
-            status__in=[ChefArtifact.Status.AVAILABLE, ChefArtifact.Status.RESERVED],
-        )
-        .select_related("artifact")
-        .order_by("-artifact__effect_value")[:6]
-    )
-    opponent_artifacts = list(
-        ChefArtifact.objects
-        .filter(
-            chef=battle.opponent,
-            status__in=[ChefArtifact.Status.AVAILABLE, ChefArtifact.Status.RESERVED],
-        )
-        .select_related("artifact")
-        .order_by("-artifact__effect_value")[:6]
-    )
-
-    viewer_author = get_author_for_user(request.user) if request.user.is_authenticated else None
-    is_participant = bool(viewer_author and battle.author_is_participant(viewer_author))
-
-    now = timezone.now()
-    time_remaining = None
-    if hasattr(battle, "end_time") and battle.end_time and battle.end_time > now:
-        delta = battle.end_time - now
-        total_s = int(delta.total_seconds())
-        h, rem = divmod(total_s, 3600)
-        m = rem // 60
-        time_remaining = f"{h}h {m}m" if h else f"{m}m"
-
-    return render(request, "chef_battle/arena_battle_popup.html", {
-        "battle": battle,
-        "votes_for_challenger": vote_counts.get(battle.challenger_id, 0),
-        "votes_for_opponent": vote_counts.get(battle.opponent_id, 0),
-        "challenger_artifacts": challenger_artifacts,
-        "opponent_artifacts": opponent_artifacts,
-        "is_participant": is_participant,
-        "time_remaining": time_remaining,
-        # T-AUDIT, 2026-08-15: the footer link promised "full-screen Battle
-        # Room" and delivered battle.get_absolute_url() - the antechamber, not
-        # the broadcast page section 2c named as the actual destination.
-        "broadcast_url": reverse("chef_battle:battle_broadcast", kwargs={"pk": battle.pk}),
-    })
 
 
 def _arena_latest_result():
@@ -1352,8 +1305,16 @@ def _build_arena_payload(*, viewer_author=None):
             "wins": profile.wins,
             "losses": profile.losses,
             "win_streak": profile.win_streak,
-            "atk": agg.get("atk", 0),
-            "def": agg.get("def_", 0),
+            # AA7, 2026-08-15: a BAND, not the sum. ARENA_HALL_PLAN A1 asks
+            # for "an *approximate* attack and defence potential (derived from
+            # artifacts, but the artifacts themselves are NOT shown - only
+            # indicative info)", and its open question 3 offers a range, stars
+            # or a rounded number. The exact aggregate was being shipped, and
+            # for a small loadout an exact sum is reversible into the very
+            # artifact list the plan says must stay hidden. The band is
+            # computed server-side so the precise figure never leaves it.
+            "atk_band": _potential_band(agg.get("atk", 0)),
+            "def_band": _potential_band(agg.get("def_", 0)),
             "in_battle": battle_info is not None,
             "battle_id": battle_info["battle_id"] if battle_info else None,
             "battle_phase": battle_info["battle_phase"] if battle_info else None,

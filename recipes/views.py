@@ -4635,6 +4635,39 @@ ARENA_DESIGN_TASKS = [
         "forbidden": "Do not add a limit so tight that the arena's own 10s poll or 20s ping trips it.",
         "evidence": "SHIPPED v2.5.1065. arena_take_seat had carried @ratelimit(block=False) since it shipped and never read request.limited, so the limit did nothing while looking exactly like a limit - arena_state does the same thing correctly twenty lines away. arena_ping had none at all and writes last_seen_at plus a seat claim per call; now 60/m, three times the renderer's own 20s cadence. arena_battle_popup had none and renders a template plus several queries; now 120/m. CORRECTION TO THIS CARD'S ORIGINAL WORDING: I described the popup as anonymously reachable. It carries no @login_required, but it does carry chef_battle_guard, so during the dark launch an anonymous caller gets a 404 and never reaches the queries - Bolt caught it on the Carpet and I verified it against production (that URL answers 404 anonymously right now) before accepting the correction. It is a hole that opens on the day the Arena opens, not one standing open today. Five new tests, three of which fail on the pre-fix code, including one pinning that dark-launch 404 so the description cannot rot back.",
     },
+    {
+        "id": "AA6", "group": "Arena audit 2026-08-15", "title": "The battle popup was orphaned by AA4 and is removed",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "chef_battle/views.py (arena_battle_popup); chef_battle/urls.py; templates/chef_battle/arena_battle_popup.html; templates/chef_battle/_arena_render_ring.html; static/js/arena_battle_room.js",
+        "depends_on": "AA4",
+        "action": "AA4 pointed the centre click at the battle's own broadcast page, as section 2c always required. That left the popup with no caller at all - not the click, not a link, nothing. Remove the view, the route, the template, the payload key, the popup DOM and the popup half of arena_battle_room.js; keep the blast celebration in that same file.",
+        "visible_result": "None. The centre already goes to the broadcast page; what goes is a surface nobody could reach.",
+        "acceptance": "reverse() of the route raises NoReverseMatch, the template is gone, the renderer no longer mentions popup_url, and the blast still fires.",
+        "forbidden": "Do not remove maybeCelebrate/init - the arena-wide win celebration lives in the same file and is still wired.",
+        "evidence": "SHIPPED v2.5.1068. A consequence of my own AA4 change, found by grepping for the callers afterwards rather than assuming: nothing referenced ArenaBattleRoom.open or popup_url anywhere. This is the same shape as T16's guide.html earlier the same day - a server-rendered surface with no entrance. Bolt's AA2 test class for the popup's trimmed context went with the view it covered, and he was told on the Carpet rather than finding it gone.",
+    },
+    {
+        "id": "AA7", "group": "Arena audit 2026-08-15", "title": "Chef potential is an indicative band, not an exact sum",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "chef_battle/views.py (_potential_band, _build_arena_payload); static/js/arena_render.js; templates/chef_battle/_arena_render_ring.html",
+        "depends_on": "none",
+        "action": "ARENA_HALL_PLAN A1 requires an approximate attack/defence potential and forbids showing the artifacts themselves. Publish the band the value falls in and keep the exact figure on the server.",
+        "visible_result": "A chef card's tooltip reads ATK 40-60 instead of ATK ~47.",
+        "acceptance": "The payload carries atk_band/def_band and no longer carries atk/def; zero is an empty string rather than a 0-20 band; the renderer reads the band.",
+        "forbidden": "Do not publish the exact aggregate anywhere in the public payload.",
+        "evidence": "SHIPPED v2.5.1068. The arena shipped the exact aggregate with a '~' printed in front of it, which is not the same thing as being approximate: with a handful of artifacts an exact sum can be decomposed straight back into the list the plan says must stay hidden. Band width 20 is the plan's own worked example ('40-60'). Its open question 3 (range, stars or rounded number) is answered by the range, which is what the Owner approved in the audit plan.",
+    },
+    {
+        "id": "AA8", "group": "Arena audit 2026-08-15", "title": "A new chef gives up the spectator seat they were holding",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "chef_battle/views.py (chef_enroll)",
+        "depends_on": "none",
+        "action": "Call the existing release_seat() when enrolment succeeds.",
+        "visible_result": "None.",
+        "acceptance": "One test: a seated viewer who enrols no longer holds a seat.",
+        "forbidden": "Do not describe this as a defect - see the evidence.",
+        "evidence": "SHIPPED v2.5.1068 as TIDINESS, NOT A DEFECT, and the correction is the Owner's: he pushed back on my first description of it, and he was right. Enrolment is a SEPARATE procedure from the arena - /chef-battle/enroll/ is linked from the Chef Battles home, the profile form and the author page, and NOT from the arena at all - so the sequence needed is narrow (sit in the stands, navigate away, enrol within three minutes), and the seat lapses on its own after 180 seconds regardless. _ensure_spectator_seat() already refused an enrolled author; the only wrong thing was the stale seat left behind. One line, one test, and I had originally reported it alongside two real findings, which was the wrong proportion.",
+    },
 ]
 
 
@@ -4742,7 +4775,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "335717f5 / production v2.5.1065",
+        "commit": "335717f5 / production v2.5.1068",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

@@ -2574,11 +2574,14 @@
 
     var potential = tip.querySelector('.js-chef-potential');
     if (potential) {
-      var atk = chef.atk || 0;
-      var def = chef['def'] || 0;
-      var show = !chef.is_spectator && (atk > 0 || def > 0);
-      setText(tip.querySelector('.js-chef-atk'), atk);
-      setText(tip.querySelector('.js-chef-def'), def);
+      // AA7: bands, not sums - the server sends "40–60" or "" and the exact
+      // aggregate never reaches the client at all. The template's own "~"
+      // prefix went with the change; a range says "approximate" by itself.
+      var atk = chef.atk_band || '';
+      var def = chef.def_band || '';
+      var show = !chef.is_spectator && (atk !== '' || def !== '');
+      setText(tip.querySelector('.js-chef-atk'), atk || '—');
+      setText(tip.querySelector('.js-chef-def'), def || '—');
       potential.hidden = !show;
     }
 
@@ -2725,6 +2728,13 @@
       if (stage && stageCentre && stageCentre.battle_url) {
         event.stopPropagation();
         fireRipple(svg, stage);
+        // The 150ms lets the ripple be seen before the browser leaves. It is a
+        // post-click flourish, NOT a readiness gate - nothing waits on this
+        // clock for something to become ready, which is the rule the two timer
+        // guards exist to keep. Bolt renamed and sharpened both of them in
+        // T11 so they name the timers they allow instead of counting; I had
+        // briefly deleted this line to satisfy the old blunt count, which
+        // would have thrown away his work to save 150ms nobody asked me to.
         var destination = stageCentre.battle_url;
         global.setTimeout(function () { global.location.href = destination; }, 150);
         return;

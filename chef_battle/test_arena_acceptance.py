@@ -249,7 +249,6 @@ class ArenaStaysInvisibleUntilTheOwnerOpensItTests(TestCase):
         with override_settings(CHEF_BATTLE_ENABLED=False):
             for name, method in (
                 ("chef_battle:arena", "get"),
-                ("chef_battle:arena_battle_popup", "get"),
                 ("chef_battle:arena_state", "post"),
                 ("chef_battle:arena_ping", "post"),
                 ("chef_battle:arena_take_seat", "post"),

@@ -6144,10 +6144,6 @@ class ArenaDarkLaunchTests(TestCase):
         response = self.client.post(reverse("chef_battle:arena_state"))
         self.assertEqual(response.status_code, 404)
 
-    def test_arena_popup_hidden_from_anonymous(self):
-        response = self.client.get(reverse("chef_battle:arena_battle_popup"))
-        self.assertEqual(response.status_code, 404)
-
     def test_arena_blast_hidden_from_anonymous(self):
         response = self.client.get(reverse("chef_battle:arena_blast"))
         self.assertEqual(response.status_code, 404)
@@ -11255,36 +11251,34 @@ class ArenaCentreClickGoesToTheBroadcastPageNotThePopupTests(TestCase):
         self.assertIn("global.location.href = destination", source)
         self.assertIn("stageCentre.battle_url", source)
 
-    @override_settings(CHEF_BATTLE_ENABLED=True)
-    def test_the_popups_own_full_room_link_points_at_the_broadcast_page(self):
-        from django.urls import reverse
-        from .models import ChefBattleProfile
+    def test_the_orphaned_popup_surface_is_gone_entirely(self):
+        """AA6: pointing the click at the page left the popup with no caller at
+        all - not the click, not a link, nothing. Rather than leave a
+        server-rendered surface nobody can reach (the exact shape T16 deleted
+        earlier the same day), the view, its route, its template, its payload
+        key and the popup half of arena_battle_room.js were removed. The blast
+        celebration in that same file is untouched and still wired."""
+        from django.urls import NoReverseMatch, reverse
+        from pathlib import Path
+        from django.conf import settings as django_settings
 
-        User = get_user_model()
-        challenger = RecipeAuthor.objects.create(
-            user=User.objects.create_user("bcast-ch", password="pw"),
-            name="Broadcast Challenger", slug="bcast-ch")
-        opponent = RecipeAuthor.objects.create(
-            user=User.objects.create_user("bcast-op", password="pw"),
-            name="Broadcast Opponent", slug="bcast-op")
-        ChefBattleProfile.objects.create(author=challenger)
-        ChefBattleProfile.objects.create(author=opponent)
-        now = timezone.now()
-        battle = Battle.objects.create(
-            challenger=challenger, opponent=opponent, theme="Broadcast route",
-            status=Battle.Status.ACTIVE, start_time=now,
-            submission_deadline=now + timezone.timedelta(days=2),
-            voting_deadline=now + timezone.timedelta(days=4),
-            end_time=now + timezone.timedelta(days=5),
-        )
+        with self.assertRaises(NoReverseMatch):
+            reverse("chef_battle:arena_battle_popup")
 
-        response = self.client.get(reverse("chef_battle:arena_battle_popup"))
-        broadcast_url = reverse("chef_battle:battle_broadcast", kwargs={"pk": battle.pk})
-        detail_url = battle.get_absolute_url()
-        self.assertNotEqual(broadcast_url, detail_url,
-                            "fixture is meaningless if both URLs happen to match")
-        self.assertContains(response, f'href="{broadcast_url}"')
-        self.assertNotContains(response, f'href="{detail_url}"')
+        base = Path(django_settings.BASE_DIR)
+        self.assertFalse(
+            (base / "templates" / "chef_battle" / "arena_battle_popup.html").exists())
+
+        room = (base / "static" / "js" / "arena_battle_room.js").read_text(encoding="utf-8")
+        self.assertNotIn("function open(", room)
+        self.assertNotIn("arena-popup-inner", room)
+        self.assertIn("maybeCelebrate", room, "the blast must survive the removal")
+
+        ring = (base / "templates" / "chef_battle" / "_arena_render_ring.html").read_text(
+            encoding="utf-8")
+        self.assertNotIn("arena-battle-popup", ring)
+
+        self.assertNotIn("popup_url", self._js())
 
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
@@ -17576,6 +17570,7 @@ class IngredientShotRechecksStatusUnderLockTests(TestCase):
         self.assertFalse(IngredientShot.objects.filter(battle=self.battle).exists())
 
 
+@override_settings(CHEF_BATTLE_ENABLED=True)
 class ChallengeCreateRechecksMovesUnderTheLockTests(TestCase):
     """F64, 2026-08-11: F49 locked the challenger's profile and re-checked
     the SLOT, but the OTHER precondition checked earlier in the same view -
@@ -19662,61 +19657,11 @@ class NextBattleStripCarriesItsStartTimeTests(TestCase):
         self.assertEqual(payload["upcoming"][0]["start_time"], self.start.isoformat())
 
 
-@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
-class ArenaBattlePopupTrimmedContextTests(TestCase):
-    """AA2, Owner ruling 2026-08-06 (ARENA_BATTLE_PLAN.md 2c): the popup is a
-    placeholder for the battle's own page, not a second broadcast, so it was
-    trimmed to only what the template renders. This proves the trim didn't
-    break what the popup is actually for."""
-
-    def setUp(self):
-        User = get_user_model()
-        self.staff = User.objects.create_user(
-            username="aa2-staff", password="pw", is_staff=True, is_superuser=True)
-        self.chef_a = RecipeAuthor.objects.create(
-            user=User.objects.create_user(username="aa2-a", password="pw"),
-            name="Popup Chef A", slug="aa2-a")
-        self.chef_b = RecipeAuthor.objects.create(
-            user=User.objects.create_user(username="aa2-b", password="pw"),
-            name="Popup Chef B", slug="aa2-b")
-        now = timezone.now()
-        self.battle = Battle.objects.create(
-            challenger=self.chef_a, opponent=self.chef_b, theme="Popup theme",
-            status=Battle.Status.ACTIVE, start_time=now,
-            submission_deadline=now + timezone.timedelta(hours=48),
-            voting_deadline=now + timezone.timedelta(days=4),
-            end_time=now + timezone.timedelta(days=4),
-        )
-
-    def test_a_live_battle_renders_the_kept_fields(self):
-        self.client.force_login(self.staff)
-
-        response = self.client.get(reverse("chef_battle:arena_battle_popup"))
-
-        self.assertEqual(response.status_code, 200)
-        html = response.content.decode()
-        self.assertIn("Popup theme", html)
-        self.assertIn("Popup Chef A", html)
-        self.assertIn("Popup Chef B", html)
-        self.assertIn(self.battle.get_absolute_url(), html)
-
-    def test_no_battle_still_renders_the_empty_state(self):
-        self.client.force_login(self.staff)
-        self.battle.status = Battle.Status.CANCELLED
-        self.battle.save(update_fields=["status"])
-
-        response = self.client.get(reverse("chef_battle:arena_battle_popup"))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("No battle is happening right now", response.content.decode())
-
-
-
 @override_settings(CHEF_BATTLE_ENABLED=True)
 class ArenaEndpointsActuallyEnforceTheirRateLimitTests(TestCase):
     """AA5, 2026-08-15 - found by the full Arena audit the Owner ordered.
 
-    Three endpoints, three different faults, and the first is the worst kind:
+    Two endpoints, two faults, and the first is the worst kind:
 
     arena_take_seat carried @ratelimit(block=False) from the day it shipped.
     block=False means the decorator SETS request.limited and leaves the
@@ -19728,10 +19673,9 @@ class ArenaEndpointsActuallyEnforceTheirRateLimitTests(TestCase):
     arena_ping had no limit at all, and writes to ChefBattleProfile and claims
     a seat on every call.
 
-    arena_battle_popup had no limit and renders a template plus several
-    queries. It is NOT anonymously reachable today - chef_battle_guard 404s
-    the dark launch - so this one is a hole that opens on the day the Arena
-    does, and it is fixed before then rather than after.
+    arena_battle_popup had the same fault and was fixed with them, but that
+    endpoint no longer exists: AA6 removed the whole popup surface once AA4
+    left it with no caller, so its two tests went with it.
 
     Each test drives the endpoint past its own limit and asserts the refusal,
     then asserts the SHAPE of the refusal, because a JSON endpoint that starts
@@ -19778,15 +19722,6 @@ class ArenaEndpointsActuallyEnforceTheirRateLimitTests(TestCase):
         self.assertEqual(response.status_code, 429)
         self.assertEqual(response.json()["error"], "rate_limited")
 
-    def test_the_popup_refuses_past_its_limit_and_still_answers_html(self):
-        from django.core.cache import cache
-        cache.clear()
-
-        response = self._drive("get", reverse("chef_battle:arena_battle_popup"), 120)
-        self.assertEqual(response.status_code, 429)
-        self.assertIn("text/html", response["Content-Type"],
-                      "the popup is an HTML fragment endpoint and must stay one")
-
     def test_an_ordinary_viewer_is_never_limited_at_the_real_cadence(self):
         """The renderer pings every 20s and polls state every 10s. A limit that
         a real browser trips is a bug, so the honest cadence is asserted, not
@@ -19798,15 +19733,103 @@ class ArenaEndpointsActuallyEnforceTheirRateLimitTests(TestCase):
             response = self.client.post(reverse("chef_battle:arena_ping"))
             self.assertEqual(response.status_code, 200)
 
-    def test_the_popup_is_not_anonymously_reachable_during_the_dark_launch(self):
-        """Bolt's correction on the Carpet, verified rather than accepted:
-        the popup carries no @login_required but it does carry
-        chef_battle_guard, so today an anonymous caller never reaches the
-        queries at all."""
-        from django.core.cache import cache
-        cache.clear()
-        anonymous = Client()
 
-        with override_settings(CHEF_BATTLE_ENABLED=False):
-            response = anonymous.get(reverse("chef_battle:arena_battle_popup"))
-        self.assertEqual(response.status_code, 404)
+
+class ChefPotentialIsIndicativeNotExactTests(TestCase):
+    """AA7, 2026-08-15. ARENA_HALL_PLAN A1 asks for "an *approximate* attack
+    and defence potential (derived from artifacts, but the artifacts
+    themselves are NOT shown - only indicative info)", and its own open
+    question 3 offers a range, stars or a rounded number.
+
+    The arena shipped the exact aggregate and put a "~" in front of it. For a
+    small loadout an exact sum is not indicative at all: it can be decomposed
+    back into the very artifact list the plan says must stay hidden. The band
+    is computed server-side, so the precise figure never leaves it.
+    """
+
+    def test_a_value_becomes_the_band_it_falls_in(self):
+        from .views import _potential_band
+
+        self.assertEqual(_potential_band(47), "40–60")
+        self.assertEqual(_potential_band(40), "40–60")
+        self.assertEqual(_potential_band(59), "40–60")
+        self.assertEqual(_potential_band(60), "60–80")
+        self.assertEqual(_potential_band(1), "0–20")
+
+    def test_nothing_at_all_is_an_empty_string_not_a_zero_band(self):
+        """"0–20" would advertise a floor the chef has not earned."""
+        from .views import _potential_band
+
+        self.assertEqual(_potential_band(0), "")
+        self.assertEqual(_potential_band(None), "")
+
+    def test_the_payload_carries_the_band_and_not_the_exact_sum(self):
+        from .models import Artifact, ChefArtifact, ChefBattleProfile
+        from .views import _build_arena_payload
+
+        User = get_user_model()
+        author = RecipeAuthor.objects.create(
+            user=User.objects.create_user("aa7-chef", password="pw"),
+            name="AA7 Chef", slug="aa7-chef")
+        ChefBattleProfile.objects.create(
+            author=author, enrolled_at=timezone.now(), last_seen_at=timezone.now())
+        blade = Artifact.objects.create(
+            name="AA7 Blade", rarity=Artifact.Rarity.EPIC,
+            effect_type="attack", effect_value=47, token_cost=10)
+        ChefArtifact.objects.create(
+            chef=author, artifact=blade, status=ChefArtifact.Status.AVAILABLE)
+
+        chefs = [c for cells in _build_arena_payload()["rings"].values() for c in cells]
+        mine = next(c for c in chefs if c["slug"] == "aa7-chef")
+
+        self.assertEqual(mine["atk_band"], "40–60")
+        self.assertNotIn("atk", mine, "the exact aggregate must not be published")
+        self.assertNotIn("def", mine)
+        self.assertEqual(mine["def_band"], "")
+
+    def test_the_renderer_reads_the_band_and_no_longer_the_raw_number(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        source = (Path(django_settings.BASE_DIR) / "static" / "js"
+                  / "arena_render.js").read_text(encoding="utf-8")
+        self.assertIn("chef.atk_band", source)
+        self.assertNotIn("chef.atk ||", source)
+        self.assertNotIn("chef['def'] ||", source)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class EnrollingAsAChefGivesUpTheSpectatorSeatTests(TestCase):
+    """AA8, 2026-08-15: a chef stands in their rank ring, not in the stands.
+
+    _ensure_spectator_seat() refuses an enrolled author, so from the moment of
+    enrolment no new seat is taken - but nothing released the one the viewer
+    was already holding. It sat occupied until the 180-second lapse swept it:
+    a front-row seat held by somebody now on the floor, in a hall whose
+    capacity is a fixed 114.
+    """
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+
+        User = get_user_model()
+        self.user = User.objects.create_user("aa8-viewer", password="pw")
+        self.author = RecipeAuthor.objects.create(
+            user=self.user, name="AA8 Viewer", slug="aa8-viewer")
+        ChefBattleProfile.objects.create(author=self.author, last_seen_at=timezone.now())
+        self.client.force_login(self.user)
+
+    def test_the_seat_is_released_the_moment_the_viewer_enrols(self):
+        from .arena_seating import claim_seat, get_active_seat
+
+        seat = claim_seat(self.author)
+        self.assertIsNotNone(get_active_seat(self.author))
+
+        response = self.client.post(reverse("chef_battle:chef_enroll"),
+                                    {"confirm_age": "1", "confirm_rules": "1"})
+        self.assertEqual(response.status_code, 302)
+
+        self.assertIsNone(get_active_seat(self.author),
+                          "the new chef is still holding a seat in the stands")
+        seat.refresh_from_db()
+        self.assertIsNotNone(seat.released_at)
