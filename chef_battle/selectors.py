@@ -1582,6 +1582,18 @@ def unauthorised_arena_viewers(now=None) -> int:
     )
 
 
+# AA1, 2026-08-15: get_arena_geometry() is built from the static constants
+# below (RANK_RING_SEGMENTS, ChefBattleProfile.Rank.choices, the oval/balcony
+# layout constants) with no DB dependency, so a plain manually-bumped string
+# is the right version marker - not a hash. Hashing the ~21KB dict on every
+# poll would defeat the point of not sending it every poll; hashing source
+# text would false-invalidate on an unrelated comment edit. Bump this by hand
+# whenever a constant get_arena_geometry() derives from actually changes
+# shape - the poll only resends the geometry payload when this differs from
+# what the client last saw.
+ARENA_GEOMETRY_VERSION = "1"
+
+
 def get_arena_geometry() -> dict:
     """Declarative arena structure for the procedural (SVG/Canvas) renderer.
 

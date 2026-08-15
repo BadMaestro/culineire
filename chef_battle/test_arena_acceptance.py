@@ -97,12 +97,20 @@ class ArenaPayloadIsAStableFrontendContractTests(TestCase):
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
 class ArenaCostsWhatAFrontendCanAffordTests(TestCase):
-    """The poll runs every twenty seconds for every viewer at once. Its cost is
-    a product decision, so it is measured and pinned rather than assumed."""
+    """The poll runs every ten seconds for every viewer at once (AA1,
+    2026-08-15: this used to say twenty, conflating the state poll's own
+    POLL_INTERVAL with the separate, slower presence ping). Its cost is a
+    product decision, so it is measured and pinned rather than assumed."""
 
     QUERY_BUDGET_POLL = 60
     QUERY_BUDGET_PAGE = 80
     SIZE_BUDGET_KB = 250
+    # AA1: geometry alone was measured at 21.4KB of a 30.1KB poll response -
+    # static per deploy, and the poll now omits it once the client reports the
+    # current geometry_version. This is the tight budget that actually proves
+    # the improvement; SIZE_BUDGET_KB above is a loose whole-payload ceiling
+    # that would pass before and after this fix either way.
+    GEOMETRY_OMITTED_SIZE_BUDGET_KB = 10
 
     @classmethod
     def setUpTestData(cls):
@@ -163,7 +171,64 @@ class ArenaCostsWhatAFrontendCanAffordTests(TestCase):
               + ", ".join(f"{k}={kb:.1f}KB" for kb, k in parts[:6]))
         self.assertLess(
             size_kb, self.SIZE_BUDGET_KB,
-            f"the arena poll returns {size_kb:.1f} KB every twenty seconds")
+            f"the arena poll returns {size_kb:.1f} KB every ten seconds")
+
+    def test_a_client_reporting_the_current_geometry_version_gets_no_geometry(self):
+        """AA1: the whole point of the version - a poll that already has
+        current geometry should not pay to receive it again."""
+        client = Client()
+        from .selectors import ARENA_GEOMETRY_VERSION
+
+        # geometry_version rides the query string, matching arena_render.js's
+        # own stateUrl() and this same view's existing ?demo=vs precedent -
+        # not the POST body, which this endpoint's own client never sends.
+        response = client.post(
+            reverse("chef_battle:arena_state") + "?geometry_version=" + ARENA_GEOMETRY_VERSION
+        )
+
+        self.assertEqual(response.status_code, 200)
+        import json
+        data = json.loads(response.content)
+        self.assertNotIn("geometry", data)
+        self.assertEqual(data["geometry_version"], ARENA_GEOMETRY_VERSION)
+        size_kb = len(response.content) / 1024
+        print(f"[MEASURED] poll payload with geometry omitted: {size_kb:.1f} KB")
+        self.assertLess(
+            size_kb, self.GEOMETRY_OMITTED_SIZE_BUDGET_KB,
+            f"the arena poll returns {size_kb:.1f} KB when the client already "
+            "has the current geometry version")
+
+    def test_a_client_with_no_or_stale_version_still_gets_full_geometry(self):
+        """A first poll, or one after a real geometry change, must not be
+        silently starved of the floor it needs to draw."""
+        from .selectors import ARENA_GEOMETRY_VERSION, get_arena_geometry
+
+        client = Client()
+        response = client.post(reverse("chef_battle:arena_state"))
+        import json
+        data = json.loads(response.content)
+        self.assertEqual(data["geometry"], get_arena_geometry())
+        self.assertEqual(data["geometry_version"], ARENA_GEOMETRY_VERSION)
+
+        stale = client.post(reverse("chef_battle:arena_state") + "?geometry_version=0")
+        stale_data = json.loads(stale.content)
+        self.assertIn("geometry", stale_data)
+
+    def test_first_paint_always_embeds_full_geometry_regardless_of_the_poll(self):
+        """First paint is a page load, not a poll - it must never depend on
+        any geometry_version the client hasn't received yet."""
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn('id="arena-data-json"', html)
+        import json
+        import re
+        match = re.search(
+            r'<script id="arena-data-json"[^>]*>(.*?)</script>', html, re.S)
+        self.assertIsNotNone(match, "arena-data-json script block not found")
+        embedded = json.loads(match.group(1))
+        self.assertIn("geometry", embedded)
+        self.assertGreater(len(embedded["geometry"].get("rings", [])), 0)
 
     def test_the_page_stays_inside_its_query_budget(self):
         client = Client()

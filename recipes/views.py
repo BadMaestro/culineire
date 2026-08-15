@@ -4582,14 +4582,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "AA1", "group": "Arena acceptance 2026-08-15", "title": "The poll stops re-sending a constant every ten seconds",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "DONE", "owner": "Bolt",
         "files": "chef_battle/views.py (PUBLIC_ARENA_STATE_KEYS, arena_state); static/js/arena_render.js; docs/chef_battle/arena_data_layer_spec.md",
         "depends_on": "none",
         "action": "Send geometry on the first paint only and carry a geometry_version in the poll; the client refetches the full geometry when that version changes. Add visibilitychange so a hidden tab stops polling, and reconcile the documented cadence with the real one.",
         "visible_result": "Nothing on screen. The arena costs about a third of what it costs today per viewer.",
         "acceptance": "Measured before and after with the acceptance test: the poll payload drops from 30.1 KB to under 10 KB, the geometry still arrives on first paint, and a version change still repaints the floor. A hidden tab issues no polls.",
         "forbidden": "Do not remove a key the renderer binds without changing the renderer in the same commit - an absent key reads as an empty value, which is how the VIP ring and the spirit count were nearly emptied once already.",
-        "evidence": "MEASURED 2026-08-15, docs/chef_battle/ARENA_ACCEPTANCE_AUDIT_2026-08-15.md finding AF1: geometry is 21.4 KB of the 30.1 KB the poll returns, and the data-layer spec itself calls that key static per deploy. POLL_INTERVAL is 10 s, not the 20 s the spec described, and there is no visibilitychange handling, so a background tab polls at full rate. Settle it BEFORE the frontend binds: moving the key afterwards is a rewrite.",
+        "evidence": "SHIPPED v2.5.1060. MEASURED BEFORE AND AFTER by the acceptance test itself, printed in its own output: the poll was 30.1 KB (geometry 21.4 KB of it) and is 8.7 KB once the client reports the current version - comfortably under the card's 10 KB target, and the drop is exactly the geometry weight. ARENA_GEOMETRY_VERSION is a manually-bumped constant beside get_arena_geometry() in selectors.py, not a hash: geometry is built from static Python constants with no DB dependency, so hashing the 21 KB dict every poll would defeat the point and hashing source text would false-invalidate on a comment edit. geometry_version rides PUBLIC_ARENA_STATE_KEYS, so one tuple edit threads it through BOTH first paint and every poll; the omission itself lives only in arena_state(), keyed on request.GET (matching this same view's existing ?demo=vs precedent - arena_render.js sends no request body). THE RENDERER WAS CHANGED IN THE SAME COMMIT, per the card's forbidden clause: poll() records the version and its existing 'if (payload.geometry)' branch now means 'geometry actually changed' rather than 'every tick'. visibilitychange pauses the state poll on a hidden tab and resumes it at whatever cadence is in force, including the runway's faster one. IT DELIBERATELY DOES NOT PAUSE THE PRESENCE PING: that is what keeps this viewer visible on everyone else's arena, and stopping it on a backgrounded tab would make a chef vanish from other people's screens - a different change from the one this card asks for. Three new tests: version-matches gets no geometry and is under budget, missing/stale version still gets it in full and it matches get_arena_geometry(), and first paint always embeds it regardless. The data-layer spec's X23/X24 footnotes are folded into plain prose stating the real 10 s cadence. Fixed in passing, red on main before I started: the build board's stage-2 baseline string still read v2.5.1048 against a v2.5.1057 footer, failing ModerationPanelRoleTests' own drift guard.",
     },
     {
         "id": "AA2", "group": "Arena acceptance 2026-08-15", "title": "Decide what the arena battle popup is - a window or a room",
@@ -4709,7 +4709,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "6ce33b87 source / production v2.5.1048",
+        "commit": "PENDING source / production v2.5.1060",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

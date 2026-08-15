@@ -137,6 +137,10 @@
 
   var pollTimer = null;
   var pingTimer = null;
+  // AA1: the geometry_version we last received, from first paint or the most
+  // recent poll. Sent back on every poll so the server can omit the (large,
+  // static-per-deploy) geometry payload when nothing about it has changed.
+  var lastGeometryVersion = null;
   // Latest centre payload, so a stage click knows which battle room to open.
   var stageCentre = null;
   // Ring the viewer currently occupies, or null while they are off the floor.
@@ -2793,17 +2797,27 @@
   }
 
   /**
-   * The poll URL carries ?demo=vs when the page was opened with it.
+   * The poll URL carries ?demo=vs when the page was opened with it, and the
+   * geometry_version we last saw (AA1) so the server can skip resending the
+   * geometry payload when nothing about it has changed.
    *
    * The poll is a POST to a bare path, so the server could not see the query
    * string the page was rendered with — it answered with the real centre and
    * wiped the preview on the first tick. The flag is only ever honoured for a
-   * moderator, server-side; passing it here grants nothing.
+   * moderator, server-side; passing it here grants nothing. geometry_version
+   * rides the same query string rather than a request body: this endpoint's
+   * own post() sends no body today, and request.GET is the established
+   * precedent this same view already reads the demo flag from.
    */
   function stateUrl() {
     var base = '/chef-battle/arena/state/';
+    var params = [];
     var flag = /(^|[?&])demo=(vs|next)(&|$)/.exec(global.location.search);
-    return flag ? base + '?demo=' + flag[2] : base;
+    if (flag) { params.push('demo=' + flag[2]); }
+    if (lastGeometryVersion) {
+      params.push('geometry_version=' + encodeURIComponent(lastGeometryVersion));
+    }
+    return params.length ? base + '?' + params.join('&') : base;
   }
 
   function poll(svg) {
@@ -2811,8 +2825,10 @@
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (payload) {
         if (!payload) { return; }
-        // Geometry is re-read from every payload: ring capacity is a server
-        // decision and may change between polls.
+        if (payload.geometry_version) { lastGeometryVersion = payload.geometry_version; }
+        // Geometry is re-read only when the server actually sent it: AA1
+        // omits the key entirely once the client's reported version matches,
+        // so "geometry present" already means "geometry changed."
         if (payload.geometry) { bind(svg, payload, payload.geometry); fitScene(svg); }
         if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
         paintRunway(payload.runway || null);
@@ -3248,6 +3264,7 @@
     try { payload = JSON.parse(node.textContent); } catch (error) { return; }
     var geometry = payload && payload.geometry;
     if (!geometry || !Array.isArray(geometry.rings) || !geometry.rings.length) { return; }
+    lastGeometryVersion = payload.geometry_version || null;
 
     drawGrid(svg, geometry);
     bind(svg, payload, geometry);
@@ -3310,6 +3327,24 @@
     pollTimer = global.setInterval(function () { poll(svg); }, POLL_INTERVAL);
     arenaSvg = svg;
     pingTimer = global.setInterval(function () { post('/chef-battle/arena/ping/').catch(function () {}); }, PING_INTERVAL);
+
+    // AA1: a hidden tab issues no polls. This pauses only the state poll,
+    // not pingTimer — the presence ping is what keeps THIS viewer visible to
+    // everyone else's screen, and stopping it too on a merely-backgrounded
+    // tab would make a chef vanish from other people's arenas, a bigger and
+    // different change than "stop re-fetching a 30KB payload nobody's
+    // looking at." Resumes at the runway's own faster cadence if one is
+    // active, matching paintRunway's own swap logic.
+    if (global.document && typeof global.document.addEventListener === 'function') {
+      global.document.addEventListener('visibilitychange', function () {
+        if (global.document.hidden) {
+          if (pollTimer) { global.clearInterval(pollTimer); pollTimer = null; }
+        } else if (arenaSvg && !pollTimer) {
+          poll(arenaSvg);
+          pollTimer = global.setInterval(function () { poll(arenaSvg); }, runwayPollMs || POLL_INTERVAL);
+        }
+      });
+    }
   }
 
   /**

@@ -96,19 +96,32 @@ deck around the arena, not in ring cells:
 
 ## 5. Polling contract
 
-- Initial render: server-rendered context of `arena()`.
+- Initial render: server-rendered context of `arena()`. `geometry` is always
+  embedded here in full, via the same `arena-data-json` script block the
+  first paint has always used — nothing about the poll contract below
+  changes what a fresh page load receives.
 - Refresh: `POST /chef-battle/arena/state/` (CSRF token required). The JSON
-  mirrors the context keys 1:1.
-  **X23, measured 2026-08-15:** the cadence is **10 s**, not the ~20 s this
-  line used to claim (`POLL_INTERVAL = 10000` in `arena_render.js`); the 20 s
-  figure is the separate presence PING. There is no `visibilitychange`
-  handling, so a background tab polls at the same rate.
-  **X24, measured 2026-08-15:** `geometry` is **21.4 KB of the 30.1 KB** each
-  poll returns, and this document itself says it is static per deploy. It is
-  re-sent every cycle to every viewer. See
-  `docs/chef_battle/ARENA_ACCEPTANCE_AUDIT_2026-08-15.md` finding AF1.
-  **X25:** the honest empty centre is `center.type == "empty"`; §3 below still
-  writes `open`, which the code has never produced.
+  mirrors the context keys 1:1, with one exception: `geometry`.
+- **The cadence is 10 s** (`POLL_INTERVAL` in `arena_render.js`), not the 20 s
+  a stale version of this line once claimed — 20 s is `PING_INTERVAL`, the
+  separate presence heartbeat, a different request to a different endpoint. A
+  background tab (`document.hidden`) pauses the state poll entirely
+  (`visibilitychange`, AA1, 2026-08-15) and resumes it, at whatever cadence
+  is currently in force, the moment the tab is foregrounded again. The
+  presence ping is deliberately NOT paused by the same listener: stopping it
+  on a merely-backgrounded tab would make that viewer vanish from everyone
+  else's arena, which is a different problem from the payload weight below.
+- **`geometry` is 21.4 KB of a 30.1 KB poll response, and it is static per
+  deploy** — the geometry-building constants only change when a code change
+  ships, never between two polls of the same session. AA1 (2026-08-15) added
+  `geometry_version`, present in every response, and the poll now sends its
+  own last-known version back on the request; the server omits the
+  `geometry` key entirely when the client's version is already current. A
+  client that has never polled, or whose version is stale, still gets it in
+  full. See `docs/chef_battle/ARENA_ACCEPTANCE_AUDIT_2026-08-15.md` finding
+  AF1, which this closes.
+- **X25 (still open):** the honest empty centre is `center.type == "empty"`;
+  §3 below still writes `open`, which the code has never produced.
 - The poll is side-effect-free except the presence heartbeat; never mutate
   battle state from the renderer.
 

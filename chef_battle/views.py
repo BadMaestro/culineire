@@ -59,6 +59,7 @@ from .selectors import (
     get_arena_phase_rail,
     get_arena_deadline,
     get_arena_geometry,
+    ARENA_GEOMETRY_VERSION,
     get_vip_sponsors,
     unauthorised_arena_viewers,
     spectator_capacity,
@@ -1344,6 +1345,12 @@ def _build_arena_payload(*, viewer_author=None):
         "phase_rail": get_arena_phase_rail(),
         "deadline": get_arena_deadline(active_battle),
         "geometry": get_arena_geometry(),
+        # AA1: a manually-bumped marker for the (large, static-per-deploy)
+        # geometry payload above. arena_state() strips "geometry" from its
+        # response when the client already reports this same version, so it
+        # is computed unconditionally here — cheap, both callers need it —
+        # and the conditional omission lives only in arena_state().
+        "geometry_version": ARENA_GEOMETRY_VERSION,
         # Ring 11 belongs to sponsors (ARENA_BATTLE_PLAN 2a). A NEW key, never a
         # renamed one: the keys above are the frozen contract in P00_CONTRACTS.
         "vip_sponsors": get_vip_sponsors(),
@@ -1803,6 +1810,10 @@ PUBLIC_ARENA_STATE_KEYS = (
     "phase_rail",
     "deadline",
     "geometry",
+    # AA1: threading this one key through the shared list is what makes both
+    # first paint (_arena_page_context) and every poll (arena_state) carry
+    # the version with no other change — they already build this same tuple.
+    "geometry_version",
     # Without this the poll would empty the VIP ring thirty seconds after the
     # page loaded: bind() reseats from the poll payload, and a key it cannot
     # find reads as "no sponsors" rather than as "not sent".
@@ -1828,9 +1839,9 @@ def arena_state(request):
     from .services import record_viewer_presence
     record_viewer_presence(request, battle=None)  # arena lobby surface
 
-    # The 20s poll also keeps the polling visitor present, so anyone sitting on
+    # The 10s poll also keeps the polling visitor present, so anyone sitting on
     # the arena stays online (and visible in their cell) without relying solely
-    # on the slower 60s ping heartbeat. Enrolled chefs sit in their rank ring,
+    # on the separate presence ping. Enrolled chefs sit in their rank ring,
     # everyone else in a spectator ring.
     viewer_author = None
     if request.user.is_authenticated:
@@ -1853,7 +1864,21 @@ def arena_state(request):
     demo_next = _demo_upcoming(request, payload["enrolled"])
     if demo_next:
         payload["upcoming"] = demo_next
-    return JsonResponse({key: payload[key] for key in PUBLIC_ARENA_STATE_KEYS})
+
+    response_data = {key: payload[key] for key in PUBLIC_ARENA_STATE_KEYS}
+    # AA1: geometry is the largest key in this response (~21KB of a ~30KB
+    # poll) and is static per deploy — get_arena_geometry() has no DB
+    # dependency at all. Omit it once the client already has the current
+    # version. request.GET, not request.POST, matching this same endpoint's
+    # own existing precedent (the ?demo=vs/next flags below): arena_render.js
+    # sends no request body today, and this needs no new body-encoding to
+    # thread a flag through a POST-method endpoint the same way those already
+    # do. First paint (_arena_page_context) is untouched by this — it always
+    # embeds full geometry and has no other caller to worry about breaking.
+    client_geometry_version = request.GET.get("geometry_version", "")
+    if client_geometry_version and client_geometry_version == response_data["geometry_version"]:
+        del response_data["geometry"]
+    return JsonResponse(response_data)
 
 
 @chef_battle_guard
