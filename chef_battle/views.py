@@ -1080,10 +1080,18 @@ def _arena_center(active_battle):
 
 
 @chef_battle_guard
+@ratelimit(key="ip", rate="120/m", method="GET", block=False)
 def arena_battle_popup(request):
     """AJAX partial — Battle Room popup embedded on the arena page.
     Returns an HTML fragment (no base.html). No login required — anonymous visitors
     can view the popup.
+
+    AA5, 2026-08-15: this carries no @login_required but it IS behind
+    chef_battle_guard, so during the dark launch an anonymous caller gets a
+    404 and never reaches the queries - the hole is one that opens on the day
+    the Arena does, not one standing open now. Limited at 120/m, matching
+    arena_state, because the fragment is fetched on a human click and no
+    legitimate viewer opens it twice a second.
 
     AA2, Owner ruling 2026-08-06 (ARENA_BATTLE_PLAN.md 2c): this popup is a
     placeholder for the battle's own page, not a second copy of the
@@ -1091,6 +1099,12 @@ def arena_battle_popup(request):
     computing all three (plus the viewer's token balance) and throwing them
     away; the template below has never rendered them.
     """
+    if getattr(request, "limited", False):
+        # An HTML fragment endpoint, so the refusal is a fragment too: the
+        # popup shows a line instead of a blank panel or a JSON blob.
+        return render(request, "chef_battle/arena_battle_popup.html",
+                      {"no_battle": True}, status=429)
+
     active = list(get_active_battles(limit=1))
     if not active:
         return render(request, "chef_battle/arena_battle_popup.html", {"no_battle": True})
@@ -1776,12 +1790,21 @@ def arena_preview_prototype(request, share_token):
 
 
 @require_POST
+@ratelimit(key="ip", rate="60/m", method="POST", block=False)
 def arena_ping(request):
-    """Heartbeat — updates last_seen_at for the authenticated chef. Called from JS every 60s."""
+    """Heartbeat — updates last_seen_at for the authenticated chef. Called from JS every 20s.
+
+    AA5, 2026-08-15: this had no limit at all, while writing to
+    ChefBattleProfile and claiming a seat on every call. The renderer sends it
+    every 20 seconds (PING_INTERVAL), so 60/m is three times the honest
+    cadence and cannot trip a real browser, including one that reconnects.
+    """
     # Visibility check only (not the full guard): the guard's suspended-POST
-    # branch would stack a banner message on every 60s heartbeat.
+    # branch would stack a banner message on every heartbeat.
     if not is_battle_visible(request):
         raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
     if not request.user.is_authenticated:
         return JsonResponse({"ok": False}, status=401)
     author = get_author_for_user(request.user)
@@ -1807,9 +1830,18 @@ def arena_take_seat(request):
     The claim refreshes the caller's presence first: a seat granted to someone
     already outside the online window would lapse on the next claim, so the
     heartbeat and the seat are taken together.
+
+    AA5, 2026-08-15: the @ratelimit above has been here since the endpoint
+    shipped, with block=False - which sets request.limited and leaves the
+    decision to the view. The view never read it, so the limit did nothing at
+    all: it looked limited and was not, which is worse than being visibly
+    unlimited, because a reviewer sees the decorator and stops looking.
+    arena_state, twenty lines below, has always done this correctly.
     """
     if not is_battle_visible(request):
         raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
     if not request.user.is_authenticated:
         return JsonResponse({"ok": False, "error": "authentication_required"}, status=401)
 

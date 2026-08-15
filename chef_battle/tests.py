@@ -19539,3 +19539,104 @@ class ArenaBattlePopupTrimmedContextTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("No battle is happening right now", response.content.decode())
+
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class ArenaEndpointsActuallyEnforceTheirRateLimitTests(TestCase):
+    """AA5, 2026-08-15 - found by the full Arena audit the Owner ordered.
+
+    Three endpoints, three different faults, and the first is the worst kind:
+
+    arena_take_seat carried @ratelimit(block=False) from the day it shipped.
+    block=False means the decorator SETS request.limited and leaves the
+    decision to the view - and the view never read it. So the limit did
+    nothing at all while looking, to any reviewer scrolling past, exactly like
+    a limit. arena_state does this correctly twenty lines away, which is what
+    makes it a mistake rather than a policy.
+
+    arena_ping had no limit at all, and writes to ChefBattleProfile and claims
+    a seat on every call.
+
+    arena_battle_popup had no limit and renders a template plus several
+    queries. It is NOT anonymously reachable today - chef_battle_guard 404s
+    the dark launch - so this one is a hole that opens on the day the Arena
+    does, and it is fixed before then rather than after.
+
+    Each test drives the endpoint past its own limit and asserts the refusal,
+    then asserts the SHAPE of the refusal, because a JSON endpoint that starts
+    returning HTML on refusal breaks the caller as surely as no limit at all.
+    """
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+
+        User = get_user_model()
+        self.user = User.objects.create_user("aa5-viewer", password="pw")
+        self.author = RecipeAuthor.objects.create(
+            user=self.user, name="AA5 Viewer", slug="aa5-viewer")
+        ChefBattleProfile.objects.create(author=self.author)
+        self.client.force_login(self.user)
+
+    def tearDown(self):
+        from django.core.cache import cache
+        cache.clear()          # the limiter's counters live here
+
+    def _drive(self, method, url, limit, payload=None):
+        """Call an endpoint limit+1 times and return the last response."""
+        call = getattr(self.client, method)
+        last = None
+        for _ in range(limit + 1):
+            last = call(url, payload or {})
+        return last
+
+    def test_take_seat_refuses_past_its_limit_instead_of_ignoring_it(self):
+        from django.core.cache import cache
+        cache.clear()
+
+        response = self._drive("post", reverse("chef_battle:arena_take_seat"), 60)
+        self.assertEqual(
+            response.status_code, 429,
+            "arena_take_seat still ignores request.limited - the decorator is decorative")
+        self.assertEqual(response.json()["error"], "rate_limited")
+
+    def test_ping_refuses_past_its_limit(self):
+        from django.core.cache import cache
+        cache.clear()
+
+        response = self._drive("post", reverse("chef_battle:arena_ping"), 60)
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response.json()["error"], "rate_limited")
+
+    def test_the_popup_refuses_past_its_limit_and_still_answers_html(self):
+        from django.core.cache import cache
+        cache.clear()
+
+        response = self._drive("get", reverse("chef_battle:arena_battle_popup"), 120)
+        self.assertEqual(response.status_code, 429)
+        self.assertIn("text/html", response["Content-Type"],
+                      "the popup is an HTML fragment endpoint and must stay one")
+
+    def test_an_ordinary_viewer_is_never_limited_at_the_real_cadence(self):
+        """The renderer pings every 20s and polls state every 10s. A limit that
+        a real browser trips is a bug, so the honest cadence is asserted, not
+        assumed: a minute of pinging is three calls, not sixty."""
+        from django.core.cache import cache
+        cache.clear()
+
+        for _ in range(3):
+            response = self.client.post(reverse("chef_battle:arena_ping"))
+            self.assertEqual(response.status_code, 200)
+
+    def test_the_popup_is_not_anonymously_reachable_during_the_dark_launch(self):
+        """Bolt's correction on the Carpet, verified rather than accepted:
+        the popup carries no @login_required but it does carry
+        chef_battle_guard, so today an anonymous caller never reaches the
+        queries at all."""
+        from django.core.cache import cache
+        cache.clear()
+        anonymous = Client()
+
+        with override_settings(CHEF_BATTLE_ENABLED=False):
+            response = anonymous.get(reverse("chef_battle:arena_battle_popup"))
+        self.assertEqual(response.status_code, 404)

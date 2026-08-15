@@ -4626,14 +4626,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "AA5", "group": "Arena audit 2026-08-15", "title": "Three arena endpoints have an inert or missing rate limit",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "DONE", "owner": "GreenBear",
         "files": "chef_battle/views.py (arena_take_seat, arena_ping, arena_battle_popup)",
         "depends_on": "none",
         "action": "arena_take_seat decorates @ratelimit(block=False) and never reads request.limited, so the limit does nothing - arena_state does exactly this correctly two functions away. arena_ping and arena_battle_popup carry no limit at all, and the popup is anonymous-reachable and runs several queries per call.",
         "visible_result": "Nothing on screen. Three endpoints stop being unlimited.",
         "acceptance": "A test per endpoint proving the limit engages, matching arena_state's existing pattern of returning 429 rather than raising.",
         "forbidden": "Do not add a limit so tight that the arena's own 10s poll or 20s ping trips it.",
-        "evidence": "Found by the full Arena audit 2026-08-15 and verified by reading the three views; not fixed in v2.5.1062, which was scoped to the bot leak and the broadcast route. Flagged to Bolt on the Carpet so it is not lost between us.",
+        "evidence": "SHIPPED v2.5.1065. arena_take_seat had carried @ratelimit(block=False) since it shipped and never read request.limited, so the limit did nothing while looking exactly like a limit - arena_state does the same thing correctly twenty lines away. arena_ping had none at all and writes last_seen_at plus a seat claim per call; now 60/m, three times the renderer's own 20s cadence. arena_battle_popup had none and renders a template plus several queries; now 120/m. CORRECTION TO THIS CARD'S ORIGINAL WORDING: I described the popup as anonymously reachable. It carries no @login_required, but it does carry chef_battle_guard, so during the dark launch an anonymous caller gets a 404 and never reaches the queries - Bolt caught it on the Carpet and I verified it against production (that URL answers 404 anonymously right now) before accepting the correction. It is a hole that opens on the day the Arena opens, not one standing open today. Five new tests, three of which fail on the pre-fix code, including one pinning that dark-launch 404 so the description cannot rot back.",
     },
 ]
 
@@ -4742,7 +4742,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "335717f5 / production v2.5.1062",
+        "commit": "335717f5 / production v2.5.1065",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
