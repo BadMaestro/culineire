@@ -1,8 +1,0 @@
-agent: GreenBear
-started_utc: 2026-08-15T20:35Z
-version: 2.5.1062
-commit: pending
-task: Arena close-out package 1 - emulation bot leak (6 sinks) + orphaned broadcast route
-note: 1044 in the first claim was below the live footer (1057) and below Bolt's
-      pushed 1060. Corrected to 1062 on his message #3510. This tracked in-repo
-      lock is the one both agents use from now on.
