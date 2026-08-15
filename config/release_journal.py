@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1051",
+        "date": "2026-08-15",
+        "commit": "PENDING",
+        "title": "T13, T14, T16 - three quick technical tails from the Owner brief",
+        "section": "Chef Battles / Arena / Technical Tails",
+        "summary": "First slice of the nine-card Stage 3 close-out plan. THREE INDEPENDENT CARDS, ONE RELEASE - each verified and evidenced on its own board row, batched here because none shares a file with another and each is a handful of lines. T13: nonce=\"{{ request.csp_nonce }}\" added to the three inline <script> tags that were missing it (battlefield_progress.html, clan_create.html, live_arena_progress.html) - config/csp_middleware.py already enforces CSP with no unsafe-inline, and a repo-wide sweep found these were the only three gaps in the whole templates tree, not a pattern needing a wider fix. T14: chef_battle/management/commands/recalculate_owner_moves.py deleted outright. CORRECTING THE TICKET'S OWN PREMISE ON THE RECORD: it claimed BattleMoveTransaction.reason no longer exists - it does, live, read by the command's own line 51 - so that was never the real defect. The real and sufficient one is AGENTS.md section 20: the command unconditionally rewrote the Owner's protected profile (rank=EXECUTIVE_CHEF, rating=9999, infinite_moves=True) with no guard, dry-run or confirmation. Zero callers anywhere in the repo (cron, docs, tests all checked). T16: templates/chef_battle/guide.html and _battle_wordmark.html deleted, plus the guide-only CSS block (static/css/chef_battle.css, .battle-guide-search/-sections/-section__*/-grid/-card*, confirmed unique to the deleted page by repo-wide grep). Left alone despite similar names: .battle-guide-list/-note (live on challenge_form.html) and .battle-home__wordmark/-title*/-divider* (consumed by home.html's own separate inline markup - the wordmark partial was never included from there, confirmed by reading home.html). The chef_battle:guide URL and its redirect to rules stay exactly as they were, still linked from hall_of_fame.html. No migration, no behavior change visible to any user. manage.py check clean; 32 focused board/image-weight tests green; git diff --check clean. Rollback: git revert this commit, run /srv/culineire/scripts/deploy.sh.",
+    },
+    {
         "version": "2.5.1048",
         "date": "2026-08-15",
         "commit": "6ce33b87",

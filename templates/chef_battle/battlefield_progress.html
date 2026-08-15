@@ -169,7 +169,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
   var list = document.getElementById('manual-tasks-list');
   if (!list) return;

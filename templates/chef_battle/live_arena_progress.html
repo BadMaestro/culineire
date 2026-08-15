@@ -64,7 +64,7 @@
   <p id="la-saved" style="color:#67B74A;font-size:.85rem;height:1.2rem;margin-top:.8rem;"></p>
 </section>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
   var url = "{% url 'chef_battle:live_arena_stage_update' %}";
   var token = document.querySelector('input[name=csrfmiddlewaretoken]').value;

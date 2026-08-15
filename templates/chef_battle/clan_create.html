@@ -69,7 +69,7 @@
   </form>
 </div>
 
-<script>
+<script nonce="{{ request.csp_nonce }}">
 (function () {
   var MAX = {{ max_categories }};
   var form = document.getElementById('clan-create-form');
