@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1057",
+        "date": "2026-08-15",
+        "commit": "PENDING",
+        "title": "T10 - one locking helper for every profile mutation",
+        "section": "Chef Battles / Money Integrity",
+        "summary": "_lock_battle_profiles already existed (F70, v2.5.988, locks one or several ChefBattleProfile rows in ascending pk order) and 5 of 10 call sites already used it correctly - refuse_challenge, _award_walkover_win, _void_battle_no_show, _award_forfeit_win, withdrawal_service.resolve_withdrawal. The other 5 hand-rolled a single-profile select_for_update() (accept_challenge, request_withdrawal, energy_service.award_moves) or duplicated the helper's own ordered dict-comprehension body inline instead of calling it (_award_draw_shares, _score_battle). All five now route through the one helper. NO BEHAVIOUR CHANGE: every two-profile site already ordered its lock by pk, independently, three times over - no live deadlock existed, this closes the fragility of that convention being repeated rather than shared, not a bug. energy_service.award_moves reaches the helper via a function-local import mirroring the file's own existing _get_profile() pattern (energy_service never imports services at module scope, services imports energy_service at module scope, so the dependency only works one way at import time) - no new module, no new circular-import workaround needed, the file's own established convention already solved it. The global lock order - BattleChallenge/BattleWithdrawal, if any, then Battle via _locked_battle, then ChefBattleProfile via this helper - is now written into _lock_battle_profiles' own docstring rather than left to be inferred from seven call sites, naming spend_moves/award_content_reputation's conditional F()-update as the accepted lock-free alternative for the two places that need no Python state after the mutation. Evidence: 75 focused tests across every touched call site (challenge accept/refuse/create, withdrawal request/resolve, draw-share locking, forfeit/walkover, award-moves locking, the scorer's own lock test) green on local PostgreSQL, 8 workers; manage.py check and makemigrations --check --dry-run clean (no model touched); git diff --check clean. No visible change on screen. Rollback: git revert this commit, run /srv/culineire/scripts/deploy.sh - no migration to reverse.",
+    },
+    {
         "version": "2.5.1054",
         "date": "2026-08-15",
         "commit": "08ac88b4",

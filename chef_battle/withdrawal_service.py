@@ -93,8 +93,7 @@ def request_withdrawal(*, battle: Battle, author, reason: str) -> BattleWithdraw
         if locked_battle.status not in Battle.ACTIVE_STATUSES:
             raise WithdrawalNotAllowed("This battle cannot be withdrawn from.")
 
-        profile = get_or_create_battle_profile(author)
-        locked = type(profile).objects.select_for_update().get(pk=profile.pk)
+        locked = _lock_battle_profiles(author)[author.pk]
         if locked.withdrawals_remaining <= 0:
             raise WithdrawalNotAllowed("No withdrawals left.")
         locked.withdrawals_remaining -= 1

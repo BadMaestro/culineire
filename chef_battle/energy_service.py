@@ -119,7 +119,7 @@ def award_moves(
     if amount <= 0:
         return 0
 
-    from chef_battle.models import BattleMoveTransaction, ChefBattleProfile
+    from chef_battle.models import BattleMoveTransaction
     TxType = BattleMoveTransaction.TxType
 
     # F39, 2026-08-11: lock this chef's profile row first, before the
@@ -138,7 +138,8 @@ def award_moves(
     # callers but the stale battle_moves value they then reasoned about could
     # still be wrong if a concurrent award landed while this one was blocked
     # waiting for the lock. Use the row the lock actually returned.
-    profile = ChefBattleProfile.objects.select_for_update().get(pk=_get_profile(author).pk)
+    from chef_battle.services import _lock_battle_profiles
+    profile = _lock_battle_profiles(author)[author.pk]
 
     # Publishing a piece of content rewards it ONCE. A recipe (or article/pinch)
     # can transition unapproved -> approved many times — a chef edits an approved

@@ -110,6 +110,29 @@ def _lock_battle_profiles(*authors) -> dict:
     and none of them locked the profile row before this. Ordered by pk so two
     calls that share a chef always take the rows in the same order and cannot
     deadlock against each other.
+
+    T10, 2026-08-15: this is now the ONE profile-locking helper - every call
+    site that locks a ChefBattleProfile row goes through it, single-profile
+    or multi-profile alike, rather than hand-rolling select_for_update().
+
+    THE GLOBAL LOCK ORDER, documented once here rather than left to be
+    inferred from seven call sites: `BattleChallenge` / `BattleWithdrawal`
+    (whichever "request" object the caller is already holding, if any) ->
+    `Battle` (via `_locked_battle`) -> `ChefBattleProfile` (via this
+    function). No function in this file or `withdrawal_service.py` takes a
+    `ChefBattleProfile` lock and then reaches for a `Battle`/`BattleChallenge`/
+    `BattleWithdrawal` lock afterwards - keep it that way, or two callers that
+    share a chef can deadlock against each other across different entry
+    points instead of just within one.
+
+    A single-profile lock (one author) cannot deadlock against itself, so
+    `energy_service.award_moves` calling this with one author is safe even
+    though it sits outside the request/battle chain above.
+
+    Where NO Python state is needed after the mutation, a conditional F()
+    UPDATE is the accepted lock-free alternative - see
+    `energy_service.spend_moves` and `award_content_reputation` in this file.
+    Do not add a third pattern.
     """
     for author in authors:
         get_or_create_battle_profile(author)
@@ -597,8 +620,7 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
         # whatever the first transaction actually committed, the same
         # "authoritative only at the transition it gates" reasoning as F9's
         # rank re-check above.
-        opponent_profile = get_or_create_battle_profile(challenge.opponent)
-        ChefBattleProfile.objects.select_for_update().get(pk=opponent_profile.pk)
+        _lock_battle_profiles(challenge.opponent)
         slot_error = slot_occupied_reason(challenge.opponent, ignore_challenge=challenge)
         if slot_error:
             raise ValueError(slot_error)
@@ -1402,15 +1424,7 @@ def _award_draw_shares(battle: Battle) -> None:
     moves = MOVES_BATTLE_PARTICIPATION + MOVES_BATTLE_WIN // 2
     challenger, opponent = battle.challenger, battle.opponent
     with transaction.atomic():
-        get_or_create_battle_profile(challenger)
-        get_or_create_battle_profile(opponent)
-        locked_profiles = {
-            profile.author_id: profile
-            for profile in ChefBattleProfile.objects
-            .select_for_update()
-            .filter(author_id__in=[challenger.pk, opponent.pk])
-            .order_by("pk")
-        }
+        locked_profiles = _lock_battle_profiles(challenger, opponent)
         for author in (challenger, opponent):
             profile = locked_profiles[author.pk]
             author.battle_profile = profile
@@ -1473,15 +1487,7 @@ def _score_battle(battle: Battle) -> Battle:
         # change. Lock both profile rows here, ordered by pk so two scorings
         # that share a chef always take the rows in the same order and cannot
         # deadlock against each other.
-        get_or_create_battle_profile(winner)
-        get_or_create_battle_profile(loser)
-        locked_profiles = {
-            profile.author_id: profile
-            for profile in ChefBattleProfile.objects
-            .select_for_update()
-            .filter(author_id__in=[winner.pk, loser.pk])
-            .order_by("pk")
-        }
+        locked_profiles = _lock_battle_profiles(winner, loser)
         winner_profile = locked_profiles[winner.pk]
         loser_profile = locked_profiles[loser.pk]
         # Point each author's cached reverse relation at the row we are about to

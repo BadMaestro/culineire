@@ -4450,14 +4450,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T10", "group": "Money Integrity (Owner brief 2026-08-12)", "title": "One locking helper for every profile mutation, in one stable order",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "DONE", "owner": "Bolt",
         "files": "chef_battle/services.py (refusal, walkover, void, forfeit, withdrawal, counters); chef_battle/energy_service.py",
         "depends_on": "none",
         "action": "One helper that locks one or several profiles in ascending pk order inside the owning transaction, or a conditional F() update where no Python state is needed. Document the global lock order against Battle, Challenge and Withdrawal so no new deadlock is introduced.",
         "visible_result": "Two updates to the same chef arriving together both survive instead of one overwriting the other.",
         "acceptance": "Tests: content reputation against a refusal, a content award against a withdrawal, two terminal battles sharing a chef, forfeit against walkover - both deltas persist.",
         "forbidden": "No new lock ordering that can deadlock against the battle locks.",
-        "evidence": "Owner brief 2026-08-12, ticket 10. Several call sites were locked individually in F39/F47/F70; the brief asks for the single helper and the documented order.",
+        "evidence": "SHIPPED. _lock_battle_profiles already existed (F70, v2.5.988) and 5 of 10 call sites already used it correctly; the other 5 hand-rolled a single-profile select_for_update() or duplicated the helper's own ordered dict-comprehension inline. Routed all five through it: accept_challenge, withdrawal_service.request_withdrawal (which already imported the helper - just wasn't calling it), _award_draw_shares, _score_battle, and energy_service.award_moves (via a function-local import mirroring the file's own existing _get_profile() pattern - no circular-import module needed, since energy_service never imports services at module scope). No behavior change: every two-profile site already ordered by pk, so this is DRY consolidation, not a bug fix - no live deadlock existed. Global lock order (BattleChallenge/BattleWithdrawal -> Battle -> ChefBattleProfile) is now written into _lock_battle_profiles' own docstring, naming spend_moves/award_content_reputation's conditional F()-update as the accepted lock-free alternative. 75 focused tests across every touched call site green on local PostgreSQL; manage.py check and makemigrations --check --dry-run clean (no model change); git diff --check clean.",
     },
     {
         "id": "T11", "group": "State Machine (Owner ruling 2026-08-15)", "title": "Stage 1 winner gets three shots against the loser's two pre-battle blocks",
