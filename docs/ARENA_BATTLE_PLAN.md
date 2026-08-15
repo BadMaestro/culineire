@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-15 · Production baseline: **v2.5.1037**
+Last reconciled: 2026-08-15 · Production baseline: **v2.5.1039**
 
 ## Ember handoff closure — 2026-08-15
 
@@ -588,6 +588,64 @@ What follows from "the arena is a tabloid": the arena keeps the ladder, the
 upcoming board, the seats and the octagon, and does NOT grow a second copy of the
 broadcast. Anything that belongs to watching a fight belongs on the battle page.
 
+## 2d. The pre-battle timeline — the 48 hours, and the NEXT BATTLE queue
+
+**Owner, 2026-08-15.** Discussed with Ember on the same day; Ember went into a
+weekly limit before writing any of it down, so it is recorded here by Bolt on
+the Owner's instruction. **Nothing below is implemented by this entry — it is
+the board taking the ruling, and the cards T19/T20/T21 in §5 carry the work.**
+
+**1. The challenge carries a task.** When two chefs see each other on the Arena,
+one throws a challenge at the other, and the challenge states what is being
+fought over: either a **contest of an existing recipe of the chef being
+challenged** (a check on that recipe), or a **completely new recipe**. The
+challenger writes a **message** saying which of the two he is proposing.
+
+**2. Nothing runs until the challenge is accepted.** There is no timer before
+acceptance.
+
+**3. Acceptance starts 48 hours of preparation.** The window is for creating and
+uploading the recipes, buying the ingredients, preparing the workplace and the
+products, placing the two hidden ingredient blocks, and everything else the fight
+needs. This is the preparation window; it is not the biathlon, whose own rule the
+Owner corrected the same week (`39bcad61`: both chefs place two hidden blocks
+before Stage 1, only the Stage 1 winner shoots, and the old sequential 48-hour
+combat windows are superseded).
+
+**4. The pair is on the Arena from that same moment**, in the **NEXT BATTLE**
+strip — the band immediately above the **THE KITCHEN FLOOR** caption. That strip
+is the **starting position**, and it is not the centre of the octagon and not
+where the current fight happens: it is the pre-start queue above the floor.
+**Distance from the starting position is the timer:** at 48 hours remaining the
+pair stands furthest away, and as the clock runs down the pair moves visibly
+closer.
+
+**5. Ready is the early exit.** If both chefs are ready before the window ends,
+each presses **Ready**. On the second Ready the remaining timer is replaced by
+**30 minutes**, and the pair takes the nearest place in the queue at the starting
+position.
+
+**6. The timer ends, the pair leaves NEXT BATTLE**, walks out onto the Kitchen
+Floor, and **Stage 1** begins.
+
+### The delta against the code, measured 2026-08-15
+
+| Stage | His ruling | Code today |
+|---|---|---|
+| Challenge names a task: existing recipe or a new one | yes | **partly** — `BattleChallenge.theme_recipe` (nullable FK) and `message` already carry it; nothing states the choice explicitly or requires it |
+| No timer before acceptance | yes | **holds** |
+| Acceptance opens a 48-hour preparation window | yes | **MISSING** — `accept_challenge()` sets `start_time = proposed_start_time or now`, so an accepted challenge with no proposed time starts **immediately** (`MENU_LOCKED`). The 48 hours in the code is `submission_deadline = start_time + 48h`, which is the window **after** the start, a different thing |
+| The pair appears in NEXT BATTLE at once | yes | holds — X01's upcoming board, `get_upcoming_battles()` |
+| Position in the strip tracks the remaining time | yes | **MISSING** — the pills are ordered soonest-first; position is list order, not distance |
+| Both Ready pulls the start in to **30 minutes** | yes | **WRONG VALUE** — `READY_HEAD_START = timedelta(minutes=15)`, `chef_battle/services.py:878` |
+| Timer ends → Kitchen Floor → Stage 1 | yes | holds |
+
+**The 15 minutes is superseded, not a defect of SA-A6.** SA-A6 shipped what the
+Owner said on 2026-08-06 («оба готовы — таймер до матча 15 минут»); he changed
+the number to 30 on 2026-08-15 and the later word wins. `battle_rules.md` §"Ready"
+and `docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md` both still print 15 and are
+corrected by T20, not by hand here.
+
 ## 3. Slice gate
 
 1. Start from current `origin/main` in one disposable worktree.
@@ -703,13 +761,17 @@ forbidden changes and evidence for every row below.
 | MC02 | Arena | The withdrawal seen LIVE on the arena, not described — `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`. | unassigned | A09 | **DELETED by the Owner, 2026-08-09 — no longer needed** |
 | SA-A2 | Arena | An accepted challenge seats the pair in adjacent cells, each in his own ring | Bolt | — | DONE v2.5.844 |
 | SA-A4 | Arena | That pairing is stable across leaving and returning | Bolt | SA-A2 | DONE v2.5.844 |
-| SA-A6 | Arena | Both Ready pulls the match in to 15 minutes and the pill climbs the queue | Bolt | — | DONE v2.5.844 |
+| SA-A6 | Arena | Both Ready pulls the match in to 15 minutes and the pill climbs the queue | Bolt | — | DONE v2.5.844 — **the 15 minutes is SUPERSEDED by the Owner's 30 on 2026-08-15 (§2d); T20 carries the change** |
 | B01 | Battle Broadcast | Broadcast shell and confrontation header | Bolt | A19 | **DONE v2.5.874** |
 | B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | DONE |
 | B03 | Battle Broadcast | Broadcast chat and composer | GreenBear | B02 | DONE |
 | R01 | Result / Winner | Champion and runner-up result shell | GreenBear | B03 | DONE |
 | R02 | Result / Winner | Result metrics, status and chat | GreenBear | R01 | DONE |
 | G01 | Release gate | Complete Design Arena regression and production evidence. Full evidence against contract §14: `docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md`. | Bolt + Owner | A19, B03, R02 | **DONE — OWNER SIGN OFF, 2026-08-10.** 12/12 §14 categories accounted for: 10 checked and green, 2 (A18's accessibility gaps, §9 legal/payment) deferred to Stage 3. **Stage 2 (Design Arena visual integration) is CLOSED.** |
+| T18 | Owner Authority | GreenBear controls every chef account from its Arena card | Ember | T12 | **DONE v2.5.1037** (commit `4c2bc842`, shipped `2ef0a87e`; migration 0096 applied on production) |
+| T19 | Battle lifecycle | **Acceptance opens the 48-hour preparation window, and the challenge names its task.** Owner's ruling of 2026-08-15, §2d. `accept_challenge()` starts a battle immediately when no start time was proposed; it must instead schedule the start 48 hours out and keep the pair in NEXT BATTLE for that window. The challenge states which task it carries — contesting an existing recipe of the challenged chef, or a new recipe — with the challenger's message. | unassigned | — | **PENDING** |
+| T20 | Battle lifecycle | **Both Ready pulls the start in to 30 minutes, not 15.** `READY_HEAD_START` in `chef_battle/services.py`, plus the two documents that print the old number (`docs/chef_battle/battle_rules.md`, `docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md`) and the SA-A6 row above. | unassigned | T19 | **PENDING** |
+| T21 | Arena | **A pair's place in the NEXT BATTLE strip is its remaining time.** Furthest from the starting position at 48 hours, moving visibly closer as the clock runs down; on the second Ready it takes the nearest place in the queue. Today the pills are ordered soonest-first and carry no distance. §2d names the strip: the band directly above THE KITCHEN FLOOR caption, not the octagon centre. | unassigned | T19, T20 | **PENDING** |
 
 ## 5a. Architecture Normalisation — CLOSED
 

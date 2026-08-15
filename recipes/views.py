@@ -4547,6 +4547,39 @@ ARENA_DESIGN_TASKS = [
         "forbidden": "No control against GreenBear itself; no staff/superuser substitute for OWNER_SLUG; no physical deletion of required battle, money or Ledger history; no Delete without the server-side checkbox check.",
         "evidence": "SHIPPED v2.5.1037 from source commit 4c2bc842. 33/33 adjacent tests and 18/18 moderation-board tests PASS on local PostgreSQL; Django check, makemigrations --check, node --check and git diff --check clean. Migration 0096 is additive. Owner ruling also permits GreenBear to appear on Arena and join clans/alliances cosmetically while remaining excluded from battles and all competitive aggregates; that separate invariant is not claimed by this card.",
     },
+    {
+        "id": "T19", "group": "Pre-battle timeline (Owner ruling 2026-08-15)", "title": "Accepting a challenge opens the 48-hour preparation window",
+        "status": "PENDING", "owner": "unassigned",
+        "files": "chef_battle/services.py (accept_challenge); chef_battle/models.py (BattleChallenge task/message surfacing); the challenge create/respond views and templates; tests",
+        "depends_on": "none",
+        "action": "The challenge states what is fought over - a contest of an existing recipe of the challenged chef, or a completely new recipe - with the challenger's message saying which. No timer runs before acceptance. On acceptance the battle is scheduled 48 hours out as the preparation window: creating and uploading the recipes, buying ingredients, preparing the products and the workplace. Today accept_challenge sets start_time = proposed_start_time or now, so an accepted challenge with no proposed time starts immediately; the 48 hours already in the code is submission_deadline = start_time + 48h, which is the window AFTER the start and a different thing.",
+        "visible_result": "A chef accepts a challenge and the pair appears in the arena's NEXT BATTLE strip with 48 hours on its timer instead of starting at once.",
+        "acceptance": "Acceptance with no proposed start schedules the start 48 hours ahead and the battle is SCHEDULED, not MENU_LOCKED; the existing submission and voting deadlines keep their documented offsets from the start; the challenge's task and message are visible to the chef being challenged before he accepts. Focused PostgreSQL tests green.",
+        "forbidden": "Do not repurpose submission_deadline as the preparation window. Do not start any timer before acceptance. Do not change the rank-matchup, slot or age gates that accept_challenge already runs.",
+        "evidence": "Owner's ruling of 2026-08-15, recorded in docs/ARENA_BATTLE_PLAN.md section 2d with the measured delta. Discussed with Ember the same day; he reached his weekly limit before writing any of it down. Not started.",
+    },
+    {
+        "id": "T20", "group": "Pre-battle timeline (Owner ruling 2026-08-15)", "title": "Both Ready pulls the start in to 30 minutes, not 15",
+        "status": "PENDING", "owner": "unassigned",
+        "files": "chef_battle/services.py (READY_HEAD_START); docs/chef_battle/battle_rules.md; docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md; docs/ARENA_BATTLE_PLAN.md (SA-A6 row); tests",
+        "depends_on": "T19",
+        "action": "READY_HEAD_START becomes 30 minutes. SA-A6 shipped 15 on his instruction of 2026-08-06; he changed the number on 2026-08-15 and the later word wins. Correct the two rulebook documents that print 15 in the same change.",
+        "visible_result": "Both chefs press Ready and the pair's timer reads 30 minutes as it takes the nearest place in the NEXT BATTLE queue.",
+        "acceptance": "One constant, one value; pull_start_forward_when_both_ready still never pushes a start later; the documents and the board row no longer print 15. Focused PostgreSQL tests green.",
+        "forbidden": "Do not rewrite the ready ritual around the new number. Do not leave 15 printed anywhere as current rule.",
+        "evidence": "Measured 2026-08-15: chef_battle/services.py READY_HEAD_START = timedelta(minutes=15). Not started.",
+    },
+    {
+        "id": "T21", "group": "Pre-battle timeline (Owner ruling 2026-08-15)", "title": "A pair's place in the NEXT BATTLE strip is its remaining time",
+        "status": "PENDING", "owner": "unassigned",
+        "files": "chef_battle/selectors.py (get_upcoming_battles); templates/chef_battle/arena.html; static/js/arena_deck.js; static/css/arena.css",
+        "depends_on": "T19, T20",
+        "action": "The NEXT BATTLE strip - the band directly above the THE KITCHEN FLOOR caption - is the starting position. A pair with 48 hours left stands furthest from it and moves visibly closer as the clock runs down; on the second Ready it takes the nearest place in the queue. Today the pills are ordered soonest-first and carry no distance at all.",
+        "visible_result": "The Owner watches an accepted pair travel across the NEXT BATTLE strip towards the starting position as its timer runs down, instead of sitting still in a list.",
+        "acceptance": "Position is derived from time remaining, refreshes on the arena's existing thirty-second poll without duplicating listeners, and holds at the supported desktop widths. The strip is not the octagon centre and nothing about the current fight moves.",
+        "forbidden": "Do not touch the frozen camera or the octagon region (ARENA_BATTLE_PLAN, THE FROZEN ARCHITECTURE). No third Arena stylesheet. No fake pairs in the strip.",
+        "evidence": "Owner's ruling of 2026-08-15, section 2d, with the image he supplied identifying the strip. Not started.",
+    },
 ]
 
 
@@ -4654,7 +4687,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "4c2bc842 source / production v2.5.1037",
+        "commit": "PENDING source / production v2.5.1039",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
