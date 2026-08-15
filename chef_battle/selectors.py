@@ -1162,11 +1162,32 @@ def _ledger_chain_status(LedgerEvent):
 
 
 # ── Live Arena data panels (arena rebuild) ──────────────────────────────────
+
+def _hidden_bot_slugs() -> set[str]:
+    """Emulation-bot slugs to exclude from a PUBLIC arena panel, or an empty
+    set. T-AUDIT, 2026-08-15: this file's own crown/gift/blast panels had no
+    equivalent of the ring query's exclusion (chef_battle/views.py) - a bot
+    switched off the floor could still hold the crown streak, appear as top
+    supporter or in Recent Battle Gifts, and fire the "starting soon" blast.
+    Same source of truth as views.py's own copy (chef_battle/emulation.py's
+    EMU_CHEFS); a second thin function, never a second list."""
+    from django.conf import settings as django_settings
+    from .emulation import EMU_CHEFS
+
+    if bool(getattr(django_settings, "ARENA_SHOW_EMULATION_BOTS", False)):
+        return set()
+    return {slug for slug, _name in EMU_CHEFS}
+
+
 def get_recent_battle_gifts(battle=None, limit: int = 6) -> list:
     """Recent viewer battle gifts to competing chefs, newest first, for the
     arena 'Recent Battle Gifts' panel. Empty list when none (empty-safe)."""
     from .models import ViewerBattleGift
-    qs = ViewerBattleGift.objects.select_related("recipient", "artifact")
+    qs = (
+        ViewerBattleGift.objects
+        .select_related("recipient", "artifact")
+        .exclude(recipient__slug__in=_hidden_bot_slugs())
+    )
     if battle is not None:
         qs = qs.filter(battle=battle)
     return [
@@ -1221,6 +1242,7 @@ def get_crown_streak() -> int:
     from .models import ChefBattleProfile
     holder = (
         ChefBattleProfile.objects.filter(crown_until__gt=timezone.now())
+        .exclude(author__slug__in=_hidden_bot_slugs())
         .order_by("-crown_until")
         .first()
     )
@@ -1361,10 +1383,13 @@ def get_starting_battle_blast() -> dict | None:
     timer of its own."""
     from .models import Battle
     now = timezone.now()
+    hidden_bots = _hidden_bot_slugs()
     battle = (
         Battle.objects
         .filter(status=Battle.Status.SCHEDULED,
                 start_time__gt=now, start_time__lte=now + BLAST_LEAD)
+        .exclude(challenger__slug__in=hidden_bots)
+        .exclude(opponent__slug__in=hidden_bots)
         .select_related("challenger", "opponent")
         .order_by("start_time")
         .first()

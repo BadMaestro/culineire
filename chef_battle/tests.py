@@ -10896,6 +10896,219 @@ class EmulationBotsAreSwitchedOffTests(TestCase):
         for slug, _name in EMU_CHEFS:
             self.assertIn(slug, seated)
 
+    # ── T-AUDIT, 2026-08-15: six sinks the ring/ladder gate never reached ──
+
+    def _bot_pair(self):
+        from .emulation import EMU_CHEFS
+
+        alpha = RecipeAuthor.objects.get(slug=EMU_CHEFS[0][0])
+        beta = RecipeAuthor.objects.get(slug=EMU_CHEFS[1][0])
+        return alpha, beta
+
+    def test_a_bot_holding_the_crown_does_not_take_the_centre_stage(self):
+        from .views import _arena_center
+        from .models import ChefBattleProfile
+
+        alpha, _beta = self._bot_pair()
+        ChefBattleProfile.objects.filter(author=alpha).update(
+            crown_until=timezone.now() + timezone.timedelta(hours=1), win_streak=4)
+
+        center = _arena_center(None)
+        self.assertEqual(center["type"], "empty",
+                         "a switched-off bot still showed as the crown holder")
+
+    def test_a_bot_holding_the_crown_does_not_feed_the_streak_metric(self):
+        from .selectors import get_crown_streak
+        from .models import ChefBattleProfile
+
+        alpha, _beta = self._bot_pair()
+        ChefBattleProfile.objects.filter(author=alpha).update(
+            crown_until=timezone.now() + timezone.timedelta(hours=1), win_streak=7)
+
+        self.assertEqual(get_crown_streak(), 0)
+
+    def test_a_bot_rehearsal_battle_does_not_take_the_centre_stage(self):
+        """Confirms the leak at the source: get_active_battles() has no bot
+        gate (it is shared with battle_home, which is never asked to have
+        one) - the exclusion has to live in the arena payload itself."""
+        from .models import Battle
+
+        alpha, beta = self._bot_pair()
+        now = timezone.now()
+        Battle.objects.create(
+            challenger=alpha, opponent=beta, theme="rehearsal",
+            status=Battle.Status.ACTIVE,
+            start_time=now, submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        payload = self._payload()
+        self.assertEqual(payload["center"]["type"], "empty",
+                         "a switched-off bot's rehearsal battle held the centre stage")
+
+    def test_a_completed_bot_battle_does_not_fire_the_sitewide_win_celebration(self):
+        """arena_blast() feeds sitewide_blast.js, polled on every page, not
+        only the arena - so this leak was never confined to the floor."""
+        from .views import _arena_latest_result
+        from .models import Battle
+
+        alpha, beta = self._bot_pair()
+        now = timezone.now()
+        Battle.objects.create(
+            challenger=alpha, opponent=beta, theme="rehearsal",
+            status=Battle.Status.COMPLETED, winner=alpha, loser=beta,
+            start_time=now, submission_deadline=now, end_time=now,
+        )
+        self.assertIsNone(_arena_latest_result())
+
+    def test_a_gift_to_a_bot_does_not_appear_in_recent_battle_gifts(self):
+        from .selectors import get_recent_battle_gifts
+        from .models import Artifact, Battle, ViewerBattleGift
+
+        alpha, beta = self._bot_pair()
+        now = timezone.now()
+        rehearsal = Battle.objects.create(
+            challenger=alpha, opponent=beta, theme="rehearsal",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        viewer = get_user_model().objects.create_user("t-audit-viewer", password="pw")
+        artifact = Artifact.objects.create(
+            name="Test Blade", rarity=Artifact.Rarity.COMMON,
+            effect_type="attack", effect_value=5, token_cost=10)
+        ViewerBattleGift.objects.create(
+            battle=rehearsal, recipient=alpha, sender=viewer,
+            artifact=artifact, tokens_spent=10)
+
+        gifts = get_recent_battle_gifts()
+        self.assertFalse(any(g["recipient_slug"] == alpha.slug for g in gifts))
+
+    def test_a_scheduled_bot_battle_does_not_fire_the_starting_soon_blast(self):
+        from .selectors import get_starting_battle_blast
+        from .models import Battle
+
+        alpha, beta = self._bot_pair()
+        now = timezone.now()
+        Battle.objects.create(
+            challenger=alpha, opponent=beta, theme="rehearsal",
+            status=Battle.Status.SCHEDULED,
+            start_time=now + timezone.timedelta(minutes=5),
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        self.assertIsNone(get_starting_battle_blast())
+
+    @override_settings(ARENA_SHOW_EMULATION_BOTS=True)
+    def test_the_switch_restores_all_six_when_it_is_on(self):
+        """The gate must be a real switch, not an accidental permanent hide -
+        every one of the six sinks above answers the other way when the
+        setting is True."""
+        from .views import _arena_center, _arena_latest_result
+        from .selectors import get_crown_streak, get_recent_battle_gifts, get_starting_battle_blast
+        from .models import Artifact, ChefBattleProfile, ViewerBattleGift, Battle
+
+        alpha, beta = self._bot_pair()
+        now = timezone.now()
+        ChefBattleProfile.objects.filter(author=alpha).update(
+            crown_until=now + timezone.timedelta(hours=1), win_streak=3)
+        self.assertEqual(_arena_center(None)["type"], "crown")
+        self.assertEqual(get_crown_streak(), 3)
+
+        completed = Battle.objects.create(
+            challenger=alpha, opponent=beta, theme="rehearsal",
+            status=Battle.Status.COMPLETED, winner=alpha, loser=beta,
+            start_time=now, submission_deadline=now, end_time=now,
+        )
+        result = _arena_latest_result()
+        self.assertIsNotNone(result)
+        self.assertEqual(result["battle_id"], completed.pk)
+
+        viewer = get_user_model().objects.create_user("t-audit-viewer-2", password="pw")
+        artifact = Artifact.objects.create(
+            name="Test Blade 2", rarity=Artifact.Rarity.COMMON,
+            effect_type="attack", effect_value=5, token_cost=10)
+        ViewerBattleGift.objects.create(
+            battle=completed, recipient=alpha, sender=viewer,
+            artifact=artifact, tokens_spent=10)
+        self.assertTrue(any(
+            g["recipient_slug"] == alpha.slug for g in get_recent_battle_gifts()))
+
+        Battle.objects.create(
+            challenger=alpha, opponent=beta, theme="starting soon",
+            status=Battle.Status.SCHEDULED,
+            start_time=now + timezone.timedelta(minutes=5),
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        self.assertIsNotNone(get_starting_battle_blast())
+
+
+class ArenaCentreClickGoesToTheBroadcastPageNotThePopupTests(TestCase):
+    """T-AUDIT, 2026-08-15, section 2c (Owner, 2026-08-06): "a click on the
+    centre takes every spectator off the arena and onto the battle's own
+    page... the popup is a placeholder, and the target is a page."
+
+    battle_broadcast shipped weeks ago (B01-B03/R01-R02, all DONE on the
+    board) and was never reachable from the ordinary click path: the centre
+    click opened ArenaBattleRoom's popup, which used battle_url only as a
+    fallback on a network error or missing DOM, never on the happy path; and
+    the popup's own "Open full-screen Battle Room" link went to
+    battle.get_absolute_url() (battle_detail, the antechamber), not to
+    battle_broadcast. Five finished cards had no way in except typing the
+    URL.
+    """
+
+    def _js(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+    def test_the_centre_click_navigates_to_battle_url_not_the_popup(self):
+        source = self._js()
+        self.assertNotIn(
+            "ArenaBattleRoom.open(stageCentre.popup_url", source,
+            "the centre click still opens the popup instead of the broadcast page")
+        self.assertIn("global.location.href = destination", source)
+        self.assertIn("stageCentre.battle_url", source)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_the_popups_own_full_room_link_points_at_the_broadcast_page(self):
+        from django.urls import reverse
+        from .models import ChefBattleProfile
+
+        User = get_user_model()
+        challenger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("bcast-ch", password="pw"),
+            name="Broadcast Challenger", slug="bcast-ch")
+        opponent = RecipeAuthor.objects.create(
+            user=User.objects.create_user("bcast-op", password="pw"),
+            name="Broadcast Opponent", slug="bcast-op")
+        ChefBattleProfile.objects.create(author=challenger)
+        ChefBattleProfile.objects.create(author=opponent)
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=challenger, opponent=opponent, theme="Broadcast route",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+
+        response = self.client.get(reverse("chef_battle:arena_battle_popup"))
+        broadcast_url = reverse("chef_battle:battle_broadcast", kwargs={"pk": battle.pk})
+        detail_url = battle.get_absolute_url()
+        self.assertNotEqual(broadcast_url, detail_url,
+                            "fixture is meaningless if both URLs happen to match")
+        self.assertContains(response, f'href="{broadcast_url}"')
+        self.assertNotContains(response, f'href="{detail_url}"')
+
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
 class ReadyPullsTheMatchForwardTests(TestCase):

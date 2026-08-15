@@ -886,6 +886,26 @@ def _emulation_bot_slugs() -> set[str]:
     return {slug for slug, _name in EMU_CHEFS}
 
 
+def _hidden_bot_slugs() -> set[str]:
+    """Bot slugs to exclude from a PUBLIC arena query, or an empty set.
+
+    T-AUDIT, 2026-08-15: this is the one gate the switch was always supposed
+    to have. It was written once for the ring query (views.py, enrolled_qs)
+    and once more inline for the crown ladder (_without_switched_off_bots)
+    and never generalised, so six other places that draw from the database
+    independently of the ring - the centre stage's crown holder AND its
+    active-battle occupants, the win-celebration (arena-wide, not just the
+    arena page), the crown streak, the recent-gifts panel and the
+    about-to-start blast - kept showing a bot's name, avatar and rehearsal
+    results while the floor was already clear of him. "Off means off
+    everywhere" was the documented intent (see _without_switched_off_bots
+    below) and was true of the ring and the ladder only.
+    """
+    if _emulation_bots_are_shown():
+        return set()
+    return _emulation_bot_slugs()
+
+
 def _without_switched_off_bots(rows: list) -> list:
     """Strip the test chefs out of a standings list while the switch is off.
 
@@ -895,9 +915,9 @@ def _without_switched_off_bots(rows: list) -> list:
     already clear of it. Switched off has to mean off everywhere on the page,
     or "the test chefs are gone" is true of the part he happened to look at.
     """
-    if _emulation_bots_are_shown():
+    bots = _hidden_bot_slugs()
+    if not bots:
         return rows
-    bots = _emulation_bot_slugs()
     return [row for row in rows if row.get("slug") not in bots]
 
 
@@ -1043,6 +1063,7 @@ def _arena_center(active_battle):
     crown_holder = (
         ChefBattleProfile.objects.select_related("author")
         .filter(crown_until__gt=timezone.now())
+        .exclude(author__slug__in=_hidden_bot_slugs())
         .order_by("-crown_until")
         .first()
     )
@@ -1116,6 +1137,10 @@ def arena_battle_popup(request):
         "opponent_artifacts": opponent_artifacts,
         "is_participant": is_participant,
         "time_remaining": time_remaining,
+        # T-AUDIT, 2026-08-15: the footer link promised "full-screen Battle
+        # Room" and delivered battle.get_absolute_url() - the antechamber, not
+        # the broadcast page section 2c named as the actual destination.
+        "broadcast_url": reverse("chef_battle:battle_broadcast", kwargs={"pk": battle.pk}),
     })
 
 
@@ -1123,10 +1148,20 @@ def _arena_latest_result():
     """Most recently completed battle, for the arena-wide win celebration
     (.battle-blast). The client tracks battle_id and only celebrates a
     battle it hasn't already shown, so this can just always return the
-    single latest one -- no separate "new since" filtering needed here."""
+    single latest one -- no separate "new since" filtering needed here.
+
+    T-AUDIT, 2026-08-15: this feeds arena_blast(), which sitewide_blast.js
+    polls on EVERY page, not only the arena - so a completed rehearsal
+    battle between the two switched-off test chefs used to fire the win
+    celebration site-wide, naming a bot as the winner, wherever a visitor
+    happened to be browsing.
+    """
+    hidden_bots = _hidden_bot_slugs()
     battle = (
         Battle.objects.select_related("winner", "loser")
         .filter(status=Battle.Status.COMPLETED, winner__isnull=False)
+        .exclude(winner__slug__in=hidden_bots)
+        .exclude(loser__slug__in=hidden_bots)
         .order_by("-id")
         .first()
     )
@@ -1221,6 +1256,18 @@ def _build_arena_payload(*, viewer_author=None):
     these queries line for line). Output keys are part of the frozen public
     contract in P00_CONTRACTS.yaml; do not rename them."""
     active_battles = get_active_battles()
+    # T-AUDIT, 2026-08-15: get_active_battles() is shared with battle_home()
+    # (the public battle listing, which has never excluded the test chefs and
+    # is not asked to), so the exclusion happens HERE, only for the arena
+    # payload, not in the selector. A rehearsal bout between the two EMU_CHEFS
+    # showed on the live centre stage - name, avatar, "battle_url" and all -
+    # for as long as it happened to be ACTIVE, switch or no switch.
+    hidden_bots = _hidden_bot_slugs()
+    if hidden_bots:
+        active_battles = [
+            b for b in active_battles
+            if b.challenger.slug not in hidden_bots and b.opponent.slug not in hidden_bots
+        ]
     active_battle = active_battles[0] if active_battles else None
     in_battle_map: dict[int, dict] = {}
     for battle in active_battles:
@@ -1240,12 +1287,15 @@ def _build_arena_payload(*, viewer_author=None):
         .select_related("author")
         .filter(enrolled_at__isnull=False, is_suspended=False)
     )
-    # The test chefs are switched off (Owner, 2026-08-07). Gated HERE, at the one
-    # query everything else on the arena is derived from - the rings, the rank
-    # counts, the legend - so there is no surface where they can come back
-    # through a second path.
-    if not _emulation_bots_are_shown():
-        enrolled_qs = enrolled_qs.exclude(author__slug__in=_emulation_bot_slugs())
+    # The test chefs are switched off (Owner, 2026-08-07). Gated HERE for the
+    # ring/legend/rank-count query - this was once believed to be the one
+    # query everything else on the arena derives from, and it is not: the
+    # centre stage, the win celebration, the crown streak, the gifts panel
+    # and the starting-battle blast each read the database independently and
+    # needed their own gate. See _hidden_bot_slugs().
+    hidden_bots = _hidden_bot_slugs()
+    if hidden_bots:
+        enrolled_qs = enrolled_qs.exclude(author__slug__in=hidden_bots)
     enrolled = list(enrolled_qs.order_by("-rating"))
 
     enrolled_author_ids = {p.author_id for p in enrolled}

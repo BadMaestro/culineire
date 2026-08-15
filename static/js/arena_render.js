@@ -1726,7 +1726,7 @@
     if (!stage) { return; }
     stageCentre = center;
     stage.setAttribute('data-state', center.type || 'empty');
-    stage.style.cursor = center.popup_url ? 'pointer' : 'default';
+    stage.style.cursor = center.battle_url ? 'pointer' : 'default';
     // Same key the command deck stamps on its own live stage, so the effects
     // layer can key both surfaces off one identity.
     var key = global.ArenaDeck ? global.ArenaDeck.centreKey(center) : 'empty';
@@ -2712,13 +2712,21 @@
     // listener on the svg therefore never fired for a click aimed at a chef.
     // Clicks that DO land on the svg still bubble up here, so nothing is lost.
     svg.parentElement.addEventListener('click', function (event) {
-      // The centre stage opens the live battle room, exactly as the legacy
-      // centre cells did.
+      // T-AUDIT, 2026-08-15, section 2c (Owner, 2026-08-06): "a click on the
+      // centre takes every spectator off the arena and onto the battle's own
+      // page... the popup is a placeholder, and the target is a page." The
+      // page (battle_broadcast) shipped as B01-B03/R01-R02 weeks ago; this
+      // click never stopped opening the popup instead, so five finished
+      // cards had no way in except typing the URL by hand. battle_url is
+      // "the link the centre cell carries" (views.py, _arena_center) - so
+      // that is what a click on the centre now follows, with the same
+      // ripple feedback the popup click always gave.
       var stage = event.target.closest && event.target.closest('[data-arena-stage]');
-      if (stage && stageCentre && stageCentre.popup_url) {
+      if (stage && stageCentre && stageCentre.battle_url) {
         event.stopPropagation();
         fireRipple(svg, stage);
-        global.ArenaBattleRoom.open(stageCentre.popup_url, stageCentre.battle_url);
+        var destination = stageCentre.battle_url;
+        global.setTimeout(function () { global.location.href = destination; }, 150);
         return;
       }
       // Owner 2026-08-03: every VIP box answers a click, sold or not. A sold one
