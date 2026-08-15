@@ -1585,6 +1585,16 @@ def _end_user_sessions(user_id):
             logger.exception("Could not inspect session %s during Owner block", session.pk)
 
 
+# RED ON MAIN, NOT MINE, FIXED ON THE WAY PAST (T19, 2026-08-15).
+# RoutedViewAccessAuditTests.test_every_routed_view_is_guarded_or_listed was
+# failing on this view since T18 shipped: it carried no chef_battle_guard and
+# was not in UNGUARDED_BY_DESIGN, which is exactly the fail-open case that
+# test exists to catch. The view is already Owner-only by its own OWNER_SLUG
+# check, so the guard narrows nothing and locks nobody out - the Owner passes
+# is_battle_visible - it puts the view back inside the audit. Outermost, per
+# the correction GreenBear made in v2.5.989: under login_required/require_POST
+# the guard runs late enough for the URL to announce its own existence.
+@chef_battle_guard
 @login_required
 @require_POST
 @transaction.atomic

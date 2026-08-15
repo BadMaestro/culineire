@@ -32,8 +32,10 @@
           <article class="battle-list__block">
             <h3>{{ challenge.theme }}</h3>
             <p>From {{ challenge.challenger.name }} · {{ challenge.get_status_display }}</p>
+            <p class="battle-list__task">{{ challenge.get_task_kind_display }}{% if challenge.contested_recipe %}: <a class="text-link" href="{{ challenge.contested_recipe.get_absolute_url }}">{{ challenge.contested_recipe.title }}</a>{% endif %}</p>
             {% if challenge.message %}<p>{{ challenge.message }}</p>{% endif %}
             {% if challenge.status == "pending" %}
+            <p class="battle-list__note">Accepting starts a 48-hour preparation window before the fight.</p>
             <form class="battle-inline-actions" action="{% url 'chef_battle:challenge_respond' challenge.pk %}" method="post">
               {% csrf_token %}
               <button class="btn-primary battle-cursor-target js-battle-cursor-target" name="action" value="accept" type="submit">Accept</button>
@@ -58,6 +60,7 @@
           <article class="battle-list__block">
             <h3>{{ challenge.theme }}</h3>
             <p>To {{ challenge.opponent.name }} · {{ challenge.get_status_display }}</p>
+            <p class="battle-list__task">{{ challenge.get_task_kind_display }}{% if challenge.contested_recipe %}: {{ challenge.contested_recipe.title }}{% endif %}</p>
             {% if challenge.battle %}<a class="text-link" href="{{ challenge.battle.get_absolute_url }}">Open Battle Room</a>{% endif %}
           </article>
           {% endfor %}

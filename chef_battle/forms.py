@@ -15,10 +15,14 @@ CHALLENGE_ACCEPTANCE_WINDOW = timezone.timedelta(hours=12)
 class BattleChallengeForm(forms.ModelForm):
     class Meta:
         model = BattleChallenge
-        fields = ("opponent", "theme_recipe", "theme", "battle_type", "message", "proposed_start_time")
+        fields = (
+            "opponent", "task_kind", "contested_recipe", "theme_recipe",
+            "theme", "battle_type", "message", "proposed_start_time",
+        )
         widgets = {
             "message": forms.Textarea(attrs={"rows": 4}),
             "proposed_start_time": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "task_kind": forms.RadioSelect,
         }
 
     def __init__(self, *args, challenger=None, **kwargs):
@@ -35,14 +39,63 @@ class BattleChallengeForm(forms.ModelForm):
         self.fields["theme_recipe"].label = "Your recipe for this battle"
         self.fields["theme_recipe"].help_text = "Your opponent will create or attach their own recipe after accepting."
         self.fields["theme"].widget.attrs.setdefault("placeholder", "Best Modern Irish Lamb Dish")
+        # T19: the task the challenge carries. The recipe being contested is
+        # the OPPONENT's, so it cannot be narrowed to one author until the
+        # opponent is chosen - the queryset excludes the challenger's own
+        # recipes and clean() enforces that it belongs to the chef named.
+        self.fields["task_kind"].label = "What is this battle about?"
+        self.fields["task_kind"].help_text = (
+            "Say it plainly, and use the message below to describe what you are proposing."
+        )
+        self.fields["contested_recipe"].queryset = (
+            Recipe.objects.filter(status=Recipe.Status.APPROVED, is_deleted=False)
+            .exclude(author=challenger)
+            .select_related("author")
+            .order_by("author__name", "-created_at")
+        )
+        self.fields["contested_recipe"].required = False
+        self.fields["contested_recipe"].label = "Their recipe you are contesting"
+        self.fields["contested_recipe"].help_text = (
+            "Only for a contested recipe. Leave blank when you are proposing a new one."
+        )
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "authoring-control")
 
     def clean_proposed_start_time(self):
         proposed = self.cleaned_data.get("proposed_start_time")
         if proposed and proposed < timezone.now():
-            raise forms.ValidationError("Choose a future start time, or leave this blank for an immediate battle.")
+            # T19, Owner 2026-08-15: there is no immediate battle any more.
+            # Acceptance opens 48 hours of preparation, and a proposed time
+            # inside that window is ignored in favour of it (accept_challenge).
+            raise forms.ValidationError(
+                "Choose a future start time, or leave this blank to start as soon as "
+                "the 48-hour preparation window ends."
+            )
         return proposed
+
+    def clean(self):
+        cleaned = super().clean()
+        kind = cleaned.get("task_kind")
+        contested = cleaned.get("contested_recipe")
+        opponent = cleaned.get("opponent")
+        if kind == BattleChallenge.TaskKind.CONTEST_RECIPE:
+            if not contested:
+                self.add_error(
+                    "contested_recipe",
+                    "Choose the recipe of theirs you are contesting.",
+                )
+            elif opponent and contested.author_id != opponent.pk:
+                self.add_error(
+                    "contested_recipe",
+                    "That recipe belongs to another chef. Choose one of your opponent's.",
+                )
+        elif contested:
+            self.add_error(
+                "contested_recipe",
+                "A new-recipe challenge does not contest one of their recipes. "
+                "Leave this blank, or switch the task above.",
+            )
+        return cleaned
 
     def save(self, commit=True):
         challenge = super().save(commit=False)

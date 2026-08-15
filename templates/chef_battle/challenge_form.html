@@ -99,6 +99,25 @@
         </div>
 
         <div class="battle-form-section">
+          <p class="battle-form-section__title">The task</p>
+          <div class="battle-form__field">
+            <label class="battle-form__label">{{ form.task_kind.label }}</label>
+            {{ form.task_kind }}
+            <p class="battle-form__help">{{ form.task_kind.help_text }}</p>
+            {% for e in form.task_kind.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+          </div>
+          <div class="battle-form__field">
+            <label class="battle-form__label" for="{{ form.contested_recipe.id_for_label }}">
+              {{ form.contested_recipe.label }}
+              <span class="battle-form__optional">(only for a contested recipe)</span>
+            </label>
+            {{ form.contested_recipe }}
+            <p class="battle-form__help">{{ form.contested_recipe.help_text }}</p>
+            {% for e in form.contested_recipe.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
+          </div>
+        </div>
+
+        <div class="battle-form-section">
           <p class="battle-form-section__title">Theme and message</p>
           <div class="battle-form__field">
             <label class="battle-form__label" for="{{ form.theme_recipe.id_for_label }}">{{ form.theme_recipe.label }}</label>
@@ -132,7 +151,7 @@
               <span class="battle-form__optional">(optional)</span>
             </label>
             {{ form.proposed_start_time }}
-            <p class="battle-form__help">Leave blank to start immediately once your opponent accepts.</p>
+            <p class="battle-form__help">Leave blank to start as soon as the 48-hour preparation window ends. An earlier time cannot shorten that window; if you both want to start sooner, press Ready.</p>
             {% for e in form.proposed_start_time.errors %}<p class="battle-form__error">{{ e }}</p>{% endfor %}
           </div>
         </div>

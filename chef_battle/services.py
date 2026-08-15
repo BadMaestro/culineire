@@ -534,6 +534,19 @@ def slot_occupied_reason(author, *, ignore_challenge=None) -> str | None:
     return None
 
 
+#: T19, Owner 2026-08-15: ACCEPTING A CHALLENGE OPENS FORTY-EIGHT HOURS OF
+#: PREPARATION, and nothing runs before that acceptance. The window is for
+#: creating and uploading the recipes, buying the ingredients, preparing the
+#: products and the workplace, and placing the two hidden blocks.
+#:
+#: It is NOT the 48 hours already in this function. That one is
+#: submission_deadline = start_time + 48h, the window AFTER the fight starts,
+#: and the two were being read as the same rule. Before this, an accepted
+#: challenge carrying no proposed start time began IMMEDIATELY - the pair went
+#: straight to MENU_LOCKED with no preparation at all.
+PREPARATION_WINDOW = timezone.timedelta(hours=48)
+
+
 def accept_challenge(challenge: BattleChallenge) -> Battle:
     # F9, 2026-08-11: check_rank_matchup only ran at challenge_create, not
     # here. A challenge stands for up to twelve hours (X05) and a win moves
@@ -546,7 +559,15 @@ def accept_challenge(challenge: BattleChallenge) -> Battle:
         raise ValueError(rank_error)
 
     now = timezone.now()
-    start_time = challenge.proposed_start_time or now
+    # T19: the preparation window opens HERE, at acceptance, and a proposed
+    # start time can only push the fight further out, never pull it inside the
+    # 48 hours. A challenger who asked for an earlier slot is asking the pair
+    # to cook with no preparation, which is the thing this window exists to
+    # give them; pressing Ready is the sanctioned way to start sooner
+    # (SA-A6/T20), and it is the chefs' own choice rather than the challenger's.
+    earliest_start = now + PREPARATION_WINDOW
+    proposed = challenge.proposed_start_time
+    start_time = proposed if proposed and proposed > earliest_start else earliest_start
     status = Battle.Status.SCHEDULED if start_time > now else Battle.Status.MENU_LOCKED
     submission_deadline = start_time + timezone.timedelta(hours=48)
     voting_deadline = submission_deadline + timezone.timedelta(days=2)
@@ -968,8 +989,23 @@ def _void_battle_no_show(battle: Battle) -> None:
 
 
 def _begin_combat(battle: Battle, *, reason: str) -> None:
-    """Both chefs are in: the battle starts."""
-    battle.status = Battle.Status.ACTIVE
+    """Both chefs are in: the battle starts, at the menu-declaration stage.
+
+    T19, 2026-08-15 - FOUND BY THE PREPARATION WINDOW, NOT INVENTED WITH IT.
+    This wrote ACTIVE directly, and both of its callers reach it from
+    SCHEDULED or from WAITING. T12's transition matrix allows ACTIVE from
+    MENU_LOCKED only, and migration 0094 enforces it in the database, so the
+    write raised IntegrityError and a ready pair could never start. It did not
+    show before because a battle rarely sat in SCHEDULED at all: acceptance
+    used to jump straight to MENU_LOCKED, and the preparation window now puts
+    every battle through the path this function was broken on.
+
+    MENU_LOCKED is the right landing, not a workaround for the matrix:
+    battle_set_ready's own docstring says both chefs ready advances the battle
+    "from SCHEDULED to MENU_LOCKED so they can declare their ingredient
+    lists", and declare_menu owns MENU_LOCKED -> ACTIVE once both menus match.
+    """
+    battle.status = Battle.Status.MENU_LOCKED
     battle.waiting_until = None
     battle.save(update_fields=["status", "waiting_until", "updated_at"])
     create_battle_event(

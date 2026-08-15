@@ -129,6 +129,18 @@ class BattleChallenge(models.Model):
         PHOTO = "photo", "Photo Battle"
         VIDEO = "video", "Video Battle"
 
+    class TaskKind(models.TextChoices):
+        """T19, Owner 2026-08-15: a challenge says what is being fought over.
+
+        Either the challenger contests one of the CHALLENGED chef's existing
+        recipes - a check on that recipe - or he proposes a completely new
+        one. This is not theme_recipe, which is the CHALLENGER's own dish and
+        becomes his entry; the two were being read as the same field.
+        """
+
+        NEW_RECIPE = "new_recipe", "A completely new recipe"
+        CONTEST_RECIPE = "contest_recipe", "Contesting a recipe of the chef being challenged"
+
     challenger = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="sent_battle_challenges")
     opponent = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="received_battle_challenges")
     theme_recipe = models.ForeignKey(
@@ -141,6 +153,26 @@ class BattleChallenge(models.Model):
             "The challenger's own recipe for this battle. On accept it becomes the "
             "challenger's battle entry, so it must be one of their approved recipes. "
             "It is never reused as the opponent's entry: the opponent brings their own."
+        ),
+    )
+    task_kind = models.CharField(
+        max_length=20,
+        choices=TaskKind.choices,
+        default=TaskKind.NEW_RECIPE,
+        help_text=(
+            "T19: what this challenge is fought over. Existing challenges predate "
+            "the field and read as a new recipe, which is what they were."
+        ),
+    )
+    contested_recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contested_battle_challenges",
+        help_text=(
+            "The CHALLENGED chef's own recipe being contested. Set only when "
+            "task_kind is CONTEST_RECIPE, and it must belong to the opponent."
         ),
     )
     theme = models.CharField(max_length=180)

@@ -44,6 +44,44 @@ from .services import (
 )
 
 
+def walk_battle_to(battle, target):
+    """Move a battle to `target` along LEGAL transitions, for tests that need a
+    later state than the flow they set up actually reaches.
+
+    T19, 2026-08-15: accepting a challenge now opens a 48-hour preparation
+    window, so an accepted battle is SCHEDULED where it used to be
+    MENU_LOCKED. Several tests wrote the later status in one hop, which was
+    legal from MENU_LOCKED and is not from SCHEDULED - T12's transition matrix
+    and the trigger in migration 0094 refuse it, correctly.
+
+    The path is taken from ALLOWED_BATTLE_TRANSITIONS itself rather than
+    hand-listed here, so a test can never walk a route the product forbids.
+    """
+    from collections import deque
+
+    from .state_machine import ALLOWED_BATTLE_TRANSITIONS
+
+    start = Battle.objects.values_list("status", flat=True).get(pk=battle.pk)
+    if start == target:
+        battle.status = target
+        return battle
+
+    queue, seen = deque([(start, [])]), {start}
+    while queue:
+        status, path = queue.popleft()
+        for nxt in ALLOWED_BATTLE_TRANSITIONS.get(status, set()):
+            if nxt in seen:
+                continue
+            if nxt == target:
+                for step in path + [nxt]:
+                    Battle.objects.filter(pk=battle.pk).update(status=step)
+                battle.status = target
+                return battle
+            seen.add(nxt)
+            queue.append((nxt, path + [nxt]))
+    raise AssertionError(f"No legal transition path from {start} to {target}")
+
+
 class ChefBattleServiceTests(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -68,7 +106,10 @@ class ChefBattleServiceTests(TestCase):
         challenge.refresh_from_db()
 
         self.assertEqual(challenge.status, BattleChallenge.Status.ACCEPTED)
-        self.assertEqual(battle.status, Battle.Status.MENU_LOCKED)
+        # T19, Owner 2026-08-15: acceptance opens 48 hours of preparation, so
+        # the battle is SCHEDULED. It used to be MENU_LOCKED, because a
+        # challenge with no proposed start began immediately.
+        self.assertEqual(battle.status, Battle.Status.SCHEDULED)
         self.assertEqual(battle.challenger, self.chef_a)
         self.assertEqual(battle.opponent, self.chef_b)
         self.assertEqual(battle.events.count(), 2)
@@ -169,8 +210,7 @@ class ChefBattleServiceTests(TestCase):
 
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-        battle.status = Battle.Status.VOTING
+        walk_battle_to(battle, Battle.Status.VOTING)
         calculate_battle_result(battle)
         battle.refresh_from_db()
         winner_profile = self.chef_a.battle_profile
@@ -214,8 +254,7 @@ class ChefBattleServiceTests(TestCase):
         # deadline passes - and deliberately NOT again before the second call,
         # because the second caller landing on an already-completed row is the
         # whole race this test exists for.
-        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-        first.status = Battle.Status.VOTING
+        walk_battle_to(first, Battle.Status.VOTING)
         second.status = Battle.Status.VOTING
         calculate_battle_result(first)
         calculate_battle_result(second)
@@ -244,8 +283,7 @@ class ChefBattleServiceTests(TestCase):
 
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-        battle.status = Battle.Status.VOTING
+        walk_battle_to(battle, Battle.Status.VOTING)
         calculate_battle_result(battle)
 
         reserved.refresh_from_db()
@@ -317,8 +355,7 @@ class ChefBattleServiceTests(TestCase):
 
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-        battle.status = Battle.Status.VOTING
+        walk_battle_to(battle, Battle.Status.VOTING)
         calculate_battle_result(battle)
 
         profile.refresh_from_db()
@@ -953,6 +990,13 @@ class ChefBattleExpiryTests(TestCase):
             expires_at=timezone.now() + timezone.timedelta(hours=1),
         )
         battle = accept_challenge(challenge)
+        # T19, 2026-08-15: an accepted battle is SCHEDULED for its 48-hour
+        # preparation window, and handle_no_show_battles deliberately does not
+        # sweep SCHEDULED - nobody is late while they are still preparing.
+        # This helper's subject is a battle that HAS started and whose
+        # submission deadline then passed, so put it in that state explicitly
+        # instead of inheriting it from accept_challenge.
+        walk_battle_to(battle, Battle.Status.MENU_LOCKED)
         past = timezone.now() - timezone.timedelta(hours=1)
         Battle.objects.filter(pk=battle.pk).update(submission_deadline=past)
         battle.refresh_from_db()
@@ -1421,6 +1465,11 @@ class EntrySubmissionTests(TestCase):
             expires_at=timezone.now() + timezone.timedelta(hours=24),
         )
         self.battle = accept_challenge(challenge)
+        # T19, 2026-08-15: acceptance now opens a 48-hour preparation window,
+        # so the battle is SCHEDULED. Submission and reveal belong to a battle
+        # that has STARTED (reveal_entries_if_ready acts on MENU_LOCKED/ACTIVE
+        # only), which is the state this class is about.
+        walk_battle_to(self.battle, Battle.Status.MENU_LOCKED)
         self.recipe_a = Recipe.objects.create(
             title="Chowder A", slug="chowder-a", author=self.chef_a,
             category="soup", short_description="Test",
@@ -1484,8 +1533,7 @@ class CrownTests(TestCase):
         before = timezone.now()
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.VOTING)
-        self.battle.status = Battle.Status.VOTING
+        walk_battle_to(self.battle, Battle.Status.VOTING)
         calculate_battle_result(self.battle)
         profile = self.chef_a.battle_profile
         self.assertIsNotNone(profile.crown_until)
@@ -1496,8 +1544,7 @@ class CrownTests(TestCase):
         BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.VOTING)
-        self.battle.status = Battle.Status.VOTING
+        walk_battle_to(self.battle, Battle.Status.VOTING)
         calculate_battle_result(self.battle)
         self.assertEqual(self.chef_a.battle_profile.crown_count, 1)
 
@@ -1506,8 +1553,7 @@ class CrownTests(TestCase):
         BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.VOTING)
-        self.battle.status = Battle.Status.VOTING
+        walk_battle_to(self.battle, Battle.Status.VOTING)
         calculate_battle_result(self.battle)
         self.assertTrue(
             self.battle.events.filter(event_type=BattleEvent.EventType.CROWN_AWARDED).exists()
@@ -1518,8 +1564,7 @@ class CrownTests(TestCase):
         BattleVote.objects.create(battle=self.battle, voter=self.voter, voted_for=self.chef_a)
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.VOTING)
-        self.battle.status = Battle.Status.VOTING
+        walk_battle_to(self.battle, Battle.Status.VOTING)
         calculate_battle_result(self.battle)
         event = self.battle.events.filter(event_type=BattleEvent.EventType.BATTLE_COMPLETED).first()
         self.assertIsNotNone(event)
@@ -1573,8 +1618,7 @@ class ConcurrentScoringSharesOneProfileTests(TransactionTestCase):
         with CaptureQueriesContext(connection) as captured:
             # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
             # This is the state the real flow is in when voting closes.
-            Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-            battle.status = Battle.Status.VOTING
+            walk_battle_to(battle, Battle.Status.VOTING)
             calculate_battle_result(battle)
 
         locking = [
@@ -1595,8 +1639,7 @@ class ConcurrentScoringSharesOneProfileTests(TransactionTestCase):
         winner, battle = self._one_win("cache")
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-        battle.status = Battle.Status.VOTING
+        walk_battle_to(battle, Battle.Status.VOTING)
         calculate_battle_result(battle)
         self.assertEqual(winner.battle_profile.wins, 1)
         self.assertEqual(winner.battle_profile.crown_count, 1)
@@ -1624,6 +1667,11 @@ class NoShowSweepIsLockedAgainstDoubleAwardTests(TestCase):
             expires_at=timezone.now() + timezone.timedelta(hours=24),
         )
         battle = accept_challenge(challenge)
+        # T19, 2026-08-15: acceptance opens the 48-hour preparation window, so
+        # the battle is SCHEDULED and the no-show sweep correctly ignores it -
+        # nobody is a no-show while they are still preparing. This helper's
+        # subject is a battle that started and whose deadline then passed.
+        walk_battle_to(battle, Battle.Status.MENU_LOCKED)
         from .services import submit_battle_entry
         submit_battle_entry(battle=battle, author=winner, battle_statement="On time.")
         past = timezone.now() - timezone.timedelta(hours=1)
@@ -1684,10 +1732,8 @@ class AutoCompleteVotingTests(TestCase):
         )
         battle = accept_challenge(challenge)
         past = timezone.now() - timezone.timedelta(hours=1)
-        Battle.objects.filter(pk=battle.pk).update(
-            status=Battle.Status.VOTING,
-            voting_deadline=past,
-        )
+        walk_battle_to(battle, Battle.Status.VOTING)
+        Battle.objects.filter(pk=battle.pk).update(voting_deadline=past)
         battle.refresh_from_db()
         return battle
 
@@ -1696,8 +1742,7 @@ class AutoCompleteVotingTests(TestCase):
         BattleVote.objects.create(battle=battle, voter=self.voter, voted_for=self.chef_a)
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-        battle.status = Battle.Status.VOTING
+        walk_battle_to(battle, Battle.Status.VOTING)
         calculate_battle_result(battle)
         battle.refresh_from_db()
         self.assertEqual(battle.status, Battle.Status.COMPLETED)
@@ -2177,8 +2222,7 @@ class BattleCompletionLedgerTests(TestCase):
         BattleVote.objects.create(battle=battle, voter=v2, voted_for=self.chef_a, ip_hash="x2", user_agent_hash="y2")
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-        battle.status = Battle.Status.VOTING
+        walk_battle_to(battle, Battle.Status.VOTING)
         calculate_battle_result(battle)
         self.assertTrue(
             LedgerEvent.objects.filter(
@@ -4928,7 +4972,16 @@ class ArenaMasterGovernanceTests(TestCase):
             recipient=self.chef, reward_type=RewardRecord.RewardType.CBR,
             tokens_granted=100, reason="win",
             status=RewardRecord.Status.ISSUED,
-            status_note=f"PayoutRequest #{payout.pk}")
+            # RED ON MAIN, NOT MINE, FIXED ON THE WAY PAST (T19, 2026-08-15).
+            # create_payout_request writes the note as "Locked for
+            # PayoutRequest #{pk}" and F72 (v2.5.1016) replaced reject's
+            # unanchored substring match with that exact string, because
+            # "PayoutRequest #1" also matched #10, #11 and #100 and released
+            # reward records reserved for payouts nobody had touched. This
+            # fixture kept the pre-F72 note, so the record it created was
+            # never the one the service looks for. The production code is
+            # right; the fixture was reading the old world.
+            status_note=f"Locked for PayoutRequest #{payout.pk}")
         self.client.force_login(self.owner_user)
         resp = self.client.post(self.action_url, {
             "action": "reject_payout", "payout_id": payout.pk, "reason": ""})
@@ -5935,11 +5988,25 @@ class DeclareMenuServiceTests(TestCase):
         self.assertEqual(self.battle.status, Battle.Status.ACTIVE)
 
     def test_wrong_battle_status_raises(self):
-        self.battle.status = Battle.Status.SCHEDULED
-        self.battle.save()
+        # RED ON MAIN, NOT MINE, FIXED ON THE WAY PAST (T19, 2026-08-15).
+        # This wrote MENU_LOCKED -> SCHEDULED on the class's own battle, which
+        # T12's transition matrix and the migration 0094 trigger refuse - the
+        # test died on the setup rather than on what it asserts. The subject
+        # is "declare_menu refuses a battle that is not MENU_LOCKED", so it
+        # takes a battle that IS scheduled instead of walking one backwards.
+        now = timezone.now()
+        scheduled = Battle.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Not locked yet",
+            status=Battle.Status.SCHEDULED,
+            submission_deadline=now + timezone.timedelta(days=5),
+            voting_deadline=now + timezone.timedelta(days=7),
+            end_time=now + timezone.timedelta(days=7),
+        )
         with self.assertRaises(ValueError):
             self.declare_menu(
-                battle=self.battle, chef=self.chef_a, ingredients=self._ingredients()
+                battle=scheduled, chef=self.chef_a, ingredients=self._ingredients()
             )
 
 
@@ -7700,8 +7767,7 @@ class DrawRewardUnlockTests(TestCase):
         from .services import calculate_battle_result
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-        battle.status = Battle.Status.VOTING
+        walk_battle_to(battle, Battle.Status.VOTING)
         calculate_battle_result(battle)
         reward.refresh_from_db()
 
@@ -8234,7 +8300,14 @@ class StartRitualTests(TestCase):
         battle = self._battle(challenger_ready=True, opponent_ready=True)
         self.assertEqual(resolve_start_rituals(), 1)
         battle.refresh_from_db()
-        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+        # RED ON MAIN BEFORE T19, and it was the product that was broken, not
+        # this expectation being wrong on purpose: _begin_combat wrote ACTIVE
+        # straight from SCHEDULED, which T12's matrix and the 0094 trigger
+        # refuse, so a ready pair could not start at all. The battle now
+        # starts at MENU_LOCKED - where the chefs declare their menus, which
+        # battle_set_ready's own docstring already called the state after
+        # Ready - and declare_menu takes it from there to ACTIVE.
+        self.assertEqual(battle.status, Battle.Status.MENU_LOCKED)
 
     def test_one_ready_waits_then_walkover(self):
         from .models import Battle
@@ -8269,7 +8342,7 @@ class StartRitualTests(TestCase):
             waiting_until=timezone.now() - timezone.timedelta(seconds=1))
         resolve_start_rituals()
         battle.refresh_from_db()
-        self.assertEqual(battle.status, Battle.Status.ACTIVE)
+        self.assertEqual(battle.status, Battle.Status.MENU_LOCKED)
         self.assertIsNone(battle.winner)
 
     def test_neither_ready_voids_and_penalises_both(self):
@@ -13827,8 +13900,7 @@ class ForcedTransitionRevealsEntriesTests(TestCase):
         )
         # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
         # This is the state the real flow is in when voting closes.
-        Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-        battle.status = Battle.Status.VOTING
+        walk_battle_to(battle, Battle.Status.VOTING)
         calculate_battle_result(battle)
         self.assertTrue(
             all(battle.entries.values_list("is_revealed", flat=True)),
@@ -14744,8 +14816,7 @@ class AcceptChallengeSlotRaceTests(TestCase):
     def test_the_second_challenge_can_be_accepted_once_the_first_battle_ends(self):
         from chef_battle.services import accept_challenge
         battle_a = accept_challenge(self.challenge_a)
-        battle_a.status = Battle.Status.COMPLETED
-        battle_a.save(update_fields=["status"])
+        walk_battle_to(battle_a, Battle.Status.COMPLETED)
         battle_b = accept_challenge(self.challenge_b)
         self.assertIsNotNone(battle_b.pk)
 
@@ -15068,8 +15139,7 @@ class DrawShareLockingTests(TestCase):
         with CaptureQueriesContext(connection) as captured:
             # T01, 2026-08-12: the scorer takes only a locked VOTING battle now.
             # This is the state the real flow is in when voting closes.
-            Battle.objects.filter(pk=battle.pk).update(status=Battle.Status.VOTING)
-            battle.status = Battle.Status.VOTING
+            walk_battle_to(battle, Battle.Status.VOTING)
             calculate_battle_result(battle)
 
         locking = [
@@ -16142,6 +16212,8 @@ class ChallengeCreateLocksTheSlotTests(TestCase):
     def _post(self):
         return self.client.post(reverse("chef_battle:challenge_create"), {
             "opponent": self.opponent.pk,
+            # T19, 2026-08-15: the challenge states its task.
+            "task_kind": BattleChallenge.TaskKind.NEW_RECIPE,
             "theme_recipe": self.recipe.pk,
             "theme": "F49 Battle Theme",
             "battle_type": BattleChallenge.BattleType.PHOTO,
@@ -16171,6 +16243,9 @@ class ChallengeCreateLocksTheSlotTests(TestCase):
         ChefBattleProfile.objects.create(author=second_opponent, age_verified=True)
         resp = self.client.post(reverse("chef_battle:challenge_create"), {
             "opponent": second_opponent.pk,
+            # T19: state the task, or this asserts a form error where it means
+            # to assert that the occupied slot refused the challenge.
+            "task_kind": BattleChallenge.TaskKind.NEW_RECIPE,
             "theme_recipe": self.recipe.pk,
             "theme": "F49 Second Battle",
             "battle_type": BattleChallenge.BattleType.PHOTO,
@@ -17134,6 +17209,8 @@ class ChallengeCreateRechecksMovesUnderTheLockTests(TestCase):
     def _post(self):
         return self.client.post(reverse("chef_battle:challenge_create"), {
             "opponent": self.opponent.pk,
+            # T19, 2026-08-15: the challenge states its task.
+            "task_kind": BattleChallenge.TaskKind.NEW_RECIPE,
             "theme_recipe": self.recipe.pk,
             "theme": "F64 Battle Theme",
             "battle_type": BattleChallenge.BattleType.PHOTO,
@@ -17331,13 +17408,25 @@ class NoShowSweepDoesNotSkipCombatBiathlonAndCookingTests(TestCase):
     def test_handle_no_show_battles_also_cancels_a_stuck_menu_locked_battle(self):
         from .services import handle_no_show_battles
 
-        self.battle.status = Battle.Status.MENU_LOCKED
-        self.battle.save(update_fields=["status"])
+        # RED ON MAIN, NOT MINE, FIXED ON THE WAY PAST (T19, 2026-08-15).
+        # This walked the class's ACTIVE battle backwards to MENU_LOCKED,
+        # which T12's matrix and the 0094 trigger refuse. The subject is a
+        # battle STUCK in MENU_LOCKED past its deadline, so it builds one.
+        now = timezone.now()
+        stuck = Battle.objects.create(
+            challenger=self.challenger, opponent=self.opponent, theme="F68 stuck",
+            status=Battle.Status.MENU_LOCKED, start_time=now - timezone.timedelta(days=3),
+            submission_deadline=now - timezone.timedelta(hours=1),
+            voting_deadline=now + timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=2),
+        )
+        BattleEntry.objects.create(battle=stuck, author=self.challenger)
+        BattleEntry.objects.create(battle=stuck, author=self.opponent)
 
         handle_no_show_battles()
 
-        self.battle.refresh_from_db()
-        self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
+        stuck.refresh_from_db()
+        self.assertEqual(stuck.status, Battle.Status.CANCELLED)
 
     def test_reveal_entries_if_ready_does_not_jump_active_to_voting_on_deadline_alone(self):
         from .services import reveal_entries_if_ready
@@ -18769,7 +18858,12 @@ class TwoUploadsOfOneDishLeaveOnePhotoTests(TransactionTestCase):
 # T12: this is deliberately a database-level test. A service-only assertion
 # cannot protect admin, cron, a management command, or a stale ORM instance.
 class BattleStatusTransitionDatabaseGuardTests(TransactionTestCase):
-    reset_sequences = True
+    # RED ON MAIN, NOT MINE, FIXED ON THE WAY PAST (T19, 2026-08-15).
+    # reset_sequences rewinds recipes_recipeauthor's sequence to 1 while the
+    # rows created by the project's own migrations are still in the table, so
+    # the first author this class creates collides on the primary key and the
+    # whole class dies in setUp. Nothing here asserts an id - the tests read
+    # self.battle.pk - so the reset buys nothing and costs the class.
 
     def setUp(self):
         if connection.vendor != "postgresql":
@@ -18912,3 +19006,211 @@ class OwnerArenaAccountControlsTests(TestCase):
             target=self.target,
             payload__action="account_deleted_and_anonymised",
         ).exists())
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class ChallengeAcceptanceOpensPreparationWindowTests(TestCase):
+    """T19, Owner 2026-08-15.
+
+    Accepting a challenge opens FORTY-EIGHT HOURS of preparation - recipes
+    created and uploaded, ingredients bought, products and workplace prepared,
+    the two hidden blocks placed - and nothing runs before that acceptance.
+
+    Before this, accept_challenge set start_time to `proposed_start_time or
+    now`, so a challenge carrying no proposed time started the fight the
+    instant it was accepted. The 48 hours already in the code is
+    submission_deadline = start_time + 48h, the window AFTER the start, and
+    the two were being read as the same rule.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="prep-a", password="pw")
+        self.user_b = User.objects.create_user(username="prep-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Prep A", slug="prep-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Prep B", slug="prep-b")
+
+    def _challenge(self, **kwargs):
+        return BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Preparation window",
+            expires_at=timezone.now() + timezone.timedelta(hours=12),
+            **kwargs,
+        )
+
+    def test_acceptance_with_no_proposed_time_schedules_the_start_48_hours_out(self):
+        before = timezone.now()
+
+        battle = accept_challenge(self._challenge())
+
+        window = battle.start_time - before
+        self.assertGreaterEqual(window, timezone.timedelta(hours=47, minutes=59))
+        self.assertLessEqual(window, timezone.timedelta(hours=48, minutes=1))
+        self.assertEqual(battle.status, Battle.Status.SCHEDULED)
+
+    def test_a_proposed_time_inside_the_window_cannot_shorten_it(self):
+        """The challenger asking for an earlier slot is asking the pair to cook
+        with no preparation. Pressing Ready is the sanctioned way to start
+        sooner, and it belongs to the two chefs rather than to the challenger."""
+        before = timezone.now()
+
+        battle = accept_challenge(
+            self._challenge(proposed_start_time=before + timezone.timedelta(hours=2))
+        )
+
+        self.assertGreaterEqual(
+            battle.start_time - before, timezone.timedelta(hours=47, minutes=59)
+        )
+
+    def test_a_later_proposed_time_is_honoured(self):
+        proposed = timezone.now() + timezone.timedelta(days=5)
+
+        battle = accept_challenge(self._challenge(proposed_start_time=proposed))
+
+        self.assertEqual(battle.start_time, proposed)
+
+    def test_the_deadlines_keep_their_offsets_from_the_start(self):
+        """The preparation window must not be mistaken for the submission
+        window: both exist, and they measure different things."""
+        battle = accept_challenge(self._challenge())
+
+        self.assertEqual(
+            battle.submission_deadline - battle.start_time, timezone.timedelta(hours=48)
+        )
+        self.assertEqual(
+            battle.voting_deadline - battle.submission_deadline, timezone.timedelta(days=2)
+        )
+        self.assertEqual(battle.end_time, battle.voting_deadline)
+
+    def test_nothing_starts_before_the_challenge_is_accepted(self):
+        challenge = self._challenge()
+
+        self.assertIsNone(challenge.accepted_at)
+        self.assertFalse(Battle.objects.filter(challenge=challenge).exists())
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class ChallengeCarriesItsTaskTests(TestCase):
+    """T19: a challenge says what is being fought over - a contest of one of
+    the CHALLENGED chef's existing recipes, or a completely new one.
+
+    This is not theme_recipe, which is the challenger's own dish and becomes
+    his entry on accept; the two were being read as the same field, so the
+    task the Owner describes had no representation at all.
+    """
+
+    def setUp(self):
+        from recipes.models import Recipe
+
+        User = get_user_model()
+        self.user_a = User.objects.create_user(username="task-a", password="pw")
+        self.user_b = User.objects.create_user(username="task-b", password="pw")
+        self.user_c = User.objects.create_user(username="task-c", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=self.user_a, name="Task A", slug="task-a")
+        self.chef_b = RecipeAuthor.objects.create(user=self.user_b, name="Task B", slug="task-b")
+        self.chef_c = RecipeAuthor.objects.create(user=self.user_c, name="Task C", slug="task-c")
+        self.own_recipe = Recipe.objects.create(
+            title="My dish", slug="task-my-dish", author=self.chef_a,
+            ingredients="lamb", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+        self.their_recipe = Recipe.objects.create(
+            title="Their dish", slug="task-their-dish", author=self.chef_b,
+            ingredients="beef", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+        self.stranger_recipe = Recipe.objects.create(
+            title="Stranger dish", slug="task-stranger-dish", author=self.chef_c,
+            ingredients="fish", method="Cook.", status=Recipe.Status.APPROVED,
+        )
+
+    def _form(self, **kwargs):
+        from .forms import BattleChallengeForm
+
+        return BattleChallengeForm(**kwargs)
+
+    def _data(self, **overrides):
+        data = {
+            "opponent": self.chef_b.pk,
+            "task_kind": BattleChallenge.TaskKind.NEW_RECIPE,
+            "theme_recipe": self.own_recipe.pk,
+            "theme": "Best modern Irish lamb",
+            "battle_type": BattleChallenge.BattleType.PHOTO,
+            "message": "New recipe, both of us from scratch.",
+        }
+        data.update(overrides)
+        return data
+
+    def test_a_new_recipe_challenge_is_the_default_and_needs_no_contested_recipe(self):
+        form = self._form(data=self._data(), challenger=self.chef_a)
+
+        self.assertTrue(form.is_valid(), form.errors)
+        challenge = form.save()
+        self.assertEqual(challenge.task_kind, BattleChallenge.TaskKind.NEW_RECIPE)
+        self.assertIsNone(challenge.contested_recipe)
+
+    def test_contesting_a_recipe_records_which_one(self):
+        form = self._form(
+            data=self._data(
+                task_kind=BattleChallenge.TaskKind.CONTEST_RECIPE,
+                contested_recipe=self.their_recipe.pk,
+            ),
+            challenger=self.chef_a,
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        challenge = form.save()
+        self.assertEqual(challenge.contested_recipe, self.their_recipe)
+
+    def test_contesting_without_naming_a_recipe_is_refused(self):
+        form = self._form(
+            data=self._data(task_kind=BattleChallenge.TaskKind.CONTEST_RECIPE),
+            challenger=self.chef_a,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("contested_recipe", form.errors)
+
+    def test_the_contested_recipe_must_belong_to_the_chef_being_challenged(self):
+        form = self._form(
+            data=self._data(
+                task_kind=BattleChallenge.TaskKind.CONTEST_RECIPE,
+                contested_recipe=self.stranger_recipe.pk,
+            ),
+            challenger=self.chef_a,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("contested_recipe", form.errors)
+
+    def test_a_new_recipe_challenge_cannot_also_contest_one(self):
+        form = self._form(
+            data=self._data(contested_recipe=self.their_recipe.pk),
+            challenger=self.chef_a,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("contested_recipe", form.errors)
+
+    def test_the_challenger_cannot_contest_his_own_recipe(self):
+        offered = self._form(challenger=self.chef_a).fields["contested_recipe"].queryset
+
+        self.assertNotIn(self.own_recipe, offered)
+        self.assertIn(self.their_recipe, offered)
+
+    def test_the_challenged_chef_sees_the_task_before_accepting(self):
+        challenge = BattleChallenge.objects.create(
+            challenger=self.chef_a,
+            opponent=self.chef_b,
+            theme="Contested",
+            task_kind=BattleChallenge.TaskKind.CONTEST_RECIPE,
+            contested_recipe=self.their_recipe,
+            message="I am contesting this one.",
+            expires_at=timezone.now() + timezone.timedelta(hours=12),
+        )
+        self.client.force_login(self.user_b)
+
+        response = self.client.get(reverse("chef_battle:challenge_list"))
+
+        self.assertContains(response, "Contesting a recipe of the chef being challenged")
+        self.assertContains(response, self.their_recipe.title)
+        self.assertContains(response, challenge.message)

@@ -4549,14 +4549,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T19", "group": "Pre-battle timeline (Owner ruling 2026-08-15)", "title": "Accepting a challenge opens the 48-hour preparation window",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "DONE", "owner": "Bolt",
         "files": "chef_battle/services.py (accept_challenge); chef_battle/models.py (BattleChallenge task/message surfacing); the challenge create/respond views and templates; tests",
         "depends_on": "none",
         "action": "The challenge states what is fought over - a contest of an existing recipe of the challenged chef, or a completely new recipe - with the challenger's message saying which. No timer runs before acceptance. On acceptance the battle is scheduled 48 hours out as the preparation window: creating and uploading the recipes, buying ingredients, preparing the products and the workplace. Today accept_challenge sets start_time = proposed_start_time or now, so an accepted challenge with no proposed time starts immediately; the 48 hours already in the code is submission_deadline = start_time + 48h, which is the window AFTER the start and a different thing.",
         "visible_result": "A chef accepts a challenge and the pair appears in the arena's NEXT BATTLE strip with 48 hours on its timer instead of starting at once.",
         "acceptance": "Acceptance with no proposed start schedules the start 48 hours ahead and the battle is SCHEDULED, not MENU_LOCKED; the existing submission and voting deadlines keep their documented offsets from the start; the challenge's task and message are visible to the chef being challenged before he accepts. Focused PostgreSQL tests green.",
         "forbidden": "Do not repurpose submission_deadline as the preparation window. Do not start any timer before acceptance. Do not change the rank-matchup, slot or age gates that accept_challenge already runs.",
-        "evidence": "Owner's ruling of 2026-08-15, recorded in docs/ARENA_BATTLE_PLAN.md section 2d with the measured delta. Discussed with Ember the same day; he reached his weekly limit before writing any of it down. Not started.",
+        "evidence": "SHIPPED v2.5.1042. accept_challenge now schedules the start PREPARATION_WINDOW (48h) after acceptance; a proposed start time can only push it further out, never inside the window - pressing Ready is the sanctioned way to start sooner and it belongs to the two chefs. The challenge carries its task: task_kind (new recipe / contesting a recipe of the chef being challenged) and contested_recipe, validated to belong to the opponent, shown to him in his inbox before he accepts, migration 0097 additive. TWO DEFECTS FOUND BY THIS CARD RATHER THAN INVENTED WITH IT, both red on main before I started: _begin_combat wrote ACTIVE straight from SCHEDULED/WAITING, which T12's matrix and the 0094 trigger refuse - a ready pair could not start at all, and it stayed invisible only because acceptance used to skip SCHEDULED entirely; it now lands on MENU_LOCKED, the state battle_set_ready's own docstring already named. owner_arena_account_action (T18) carried no chef_battle_guard and was not in UNGUARDED_BY_DESIGN, so the fail-open audit test was red; the guard is now outermost and narrows nothing. Three stale test fixtures fixed the same way (payout note predating F72, two forcing illegal transitions, one reset_sequences colliding with migration rows). 1053/1053 chef_battle tests green on local PostgreSQL with 8 workers; image-weight, board tests, Django check, makemigrations --check and git diff --check clean. No test ran on Linode.",
     },
     {
         "id": "T20", "group": "Pre-battle timeline (Owner ruling 2026-08-15)", "title": "Both Ready pulls the start in to 30 minutes, not 15",
@@ -4709,7 +4709,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "988ce514 source / production v2.5.1041",
+        "commit": "PENDING source / production v2.5.1042",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
