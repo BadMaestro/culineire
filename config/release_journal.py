@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1045",
+        "date": "2026-08-15",
+        "commit": "PENDING",
+        "title": "Both chefs ready means thirty minutes, not fifteen",
+        "section": "Chef Battles / Battle lifecycle",
+        "summary": "T20, the second card of the Owner's pre-battle timeline ruling of 2026-08-15. READY_HEAD_START is 30 minutes. He set 15 on 2026-08-06 in scenario A6 («оба готовы - таймер до матча 15 минут»), SA-A6 shipped exactly that in v2.5.844, and he raised it to 30 when he settled the whole timeline; the later word wins, so SA-A6 is marked SUPERSEDED on the board rather than reopened as a defect - it built what he asked for at the time. ONE CONSTANT, because the value lives in one place and every caller reads it. WHAT WAS ADDED BESIDES THE NUMBER: a test that pins the NUMBER. The existing test measured the pulled-in start against READY_HEAD_START itself, so it passed at whatever the constant happened to hold - correct about the mechanism and silent about the rule, which is exactly how a value drifts twice without a red test. The two rulebook documents that printed 15 as the current rule (docs/chef_battle/battle_rules.md, docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md) now print 30 and name the ruling that changed it. Evidence: 1063/1063 chef_battle tests green on local PostgreSQL, 8 workers, 636s; image-weight gate, the two board classes, manage.py check and git diff --check clean. No test ran on Linode. Visible result: two chefs who both press Ready see thirty minutes on their timer instead of fifteen, and their pill sits half an hour from the front of the Next Battle queue. Rollback: git revert the v2.5.1045 commit and run /srv/culineire/scripts/deploy.sh - no migration, no schema.",
+    },
+    {
         "version": "2.5.1042",
         "date": "2026-08-15",
         "commit": "8c0605e9",

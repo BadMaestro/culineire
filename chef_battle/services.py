@@ -887,8 +887,12 @@ def handle_no_show_battles() -> int:
 #: start timer has run out (owner spec: "ВЭЙТИНГ 10 МИНУТ").
 START_RITUAL_GRACE = timezone.timedelta(minutes=10)
 
-#: How soon a battle starts once BOTH chefs have pressed Ready (owner spec,
-#: scenario A6, 2026-08-06: "оба готовы - таймер до матча 15 минут").
+#: How soon a battle starts once BOTH chefs have pressed Ready.
+#:
+#: T20, Owner 2026-08-15: THIRTY minutes. He set 15 on 2026-08-06 (scenario A6,
+#: "оба готовы - таймер до матча 15 минут") and changed it to 30 when he
+#: settled the whole pre-battle timeline; the later word wins, and the value
+#: lives in this one constant so the change is one line rather than a hunt.
 #:
 #: The twelve-hour window is a deadline, not an appointment. Two chefs who are
 #: both standing there should not wait out somebody else's clock, and the queue
@@ -896,7 +900,7 @@ START_RITUAL_GRACE = timezone.timedelta(minutes=10)
 #: is also what moves their pill up the Next Battle board. resolve_start_rituals
 #: has always said this in its own docstring ("pressing Ready only lets them
 #: start sooner"); until now nothing implemented it.
-READY_HEAD_START = timezone.timedelta(minutes=15)
+READY_HEAD_START = timezone.timedelta(minutes=30)
 
 
 def pull_start_forward_when_both_ready(battle) -> bool:

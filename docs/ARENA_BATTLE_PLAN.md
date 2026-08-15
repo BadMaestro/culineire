@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-15 · Production baseline: **v2.5.1042**
+Last reconciled: 2026-08-15 · Production baseline: **v2.5.1045**
 
 ## Ember handoff closure — 2026-08-15
 
@@ -761,7 +761,7 @@ forbidden changes and evidence for every row below.
 | MC02 | Arena | The withdrawal seen LIVE on the arena, not described — `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`. | unassigned | A09 | **DELETED by the Owner, 2026-08-09 — no longer needed** |
 | SA-A2 | Arena | An accepted challenge seats the pair in adjacent cells, each in his own ring | Bolt | — | DONE v2.5.844 |
 | SA-A4 | Arena | That pairing is stable across leaving and returning | Bolt | SA-A2 | DONE v2.5.844 |
-| SA-A6 | Arena | Both Ready pulls the match in to 15 minutes and the pill climbs the queue | Bolt | — | DONE v2.5.844 — **the 15 minutes is SUPERSEDED by the Owner's 30 on 2026-08-15 (§2d); T20 carries the change** |
+| SA-A6 | Arena | Both Ready pulls the match in to 15 minutes and the pill climbs the queue | Bolt | — | DONE v2.5.844 — **the 15 minutes was superseded by the Owner's 30 on 2026-08-15 (§2d); shipped as 30 in T20, v2.5.1045** |
 | B01 | Battle Broadcast | Broadcast shell and confrontation header | Bolt | A19 | **DONE v2.5.874** |
 | B02 | Battle Broadcast | Streams, countdown and support furniture | GreenBear | B01 | DONE |
 | B03 | Battle Broadcast | Broadcast chat and composer | GreenBear | B02 | DONE |

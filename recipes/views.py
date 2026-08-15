@@ -4560,14 +4560,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T20", "group": "Pre-battle timeline (Owner ruling 2026-08-15)", "title": "Both Ready pulls the start in to 30 minutes, not 15",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "DONE", "owner": "Bolt",
         "files": "chef_battle/services.py (READY_HEAD_START); docs/chef_battle/battle_rules.md; docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md; docs/ARENA_BATTLE_PLAN.md (SA-A6 row); tests",
         "depends_on": "T19",
         "action": "READY_HEAD_START becomes 30 minutes. SA-A6 shipped 15 on his instruction of 2026-08-06; he changed the number on 2026-08-15 and the later word wins. Correct the two rulebook documents that print 15 in the same change.",
         "visible_result": "Both chefs press Ready and the pair's timer reads 30 minutes as it takes the nearest place in the NEXT BATTLE queue.",
         "acceptance": "One constant, one value; pull_start_forward_when_both_ready still never pushes a start later; the documents and the board row no longer print 15. Focused PostgreSQL tests green.",
         "forbidden": "Do not rewrite the ready ritual around the new number. Do not leave 15 printed anywhere as current rule.",
-        "evidence": "Measured 2026-08-15: chef_battle/services.py READY_HEAD_START = timedelta(minutes=15). Not started.",
+        "evidence": "SHIPPED v2.5.1045. READY_HEAD_START is 30 minutes, one constant, and a new test pins the NUMBER rather than only the mechanism - the existing test measured against the constant itself and would have passed at any value. battle_rules.md, ARENA_TRUTHFUL_STATE_MATRIX.md and the SA-A6 board row no longer print 15 as the current rule; SA-A6 is marked superseded rather than reopened, because it shipped what he said on 2026-08-06. 1063/1063 chef_battle tests green on local PostgreSQL with 8 workers; image-weight, board tests, Django check and git diff --check clean. No test ran on Linode.",
     },
     {
         "id": "T21", "group": "Pre-battle timeline (Owner ruling 2026-08-15)", "title": "A pair's place in the NEXT BATTLE strip is its remaining time",
@@ -4709,7 +4709,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "8c0605e9 source / production v2.5.1042",
+        "commit": "PENDING source / production v2.5.1045",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "

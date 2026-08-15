@@ -17,7 +17,7 @@ against something measured.
 | No battle at all | Crown holder, or empty | In their own rank rings, scattered by slug hash | Empty | v2.5.848 |
 | Challenge PENDING | unchanged | Scattered like anyone else; they vanish when offline | Empty — a pending challenge is not a booking | v2.5.844 |
 | Challenge ACCEPTED, hours out | Crown, unchanged | **Adjacent cells**, each in his own ring, keyed to the battle id so leaving and returning does not move them | The pill appears, ordered by time remaining | v2.5.844 |
-| Both pressed Ready | **Still the crown** | Still in the rings | Start pulled in to 15 minutes; the pill climbs the queue | v2.5.844 + v2.5.849 |
+| Both pressed Ready | **Still the crown** | Still in the rings | Start pulled in to 30 minutes (Owner, 2026-08-15, T20 — was 15); the pill climbs the queue | v2.5.844 + v2.5.849, value corrected v2.5.1045 |
 | Battle BEGUN | The pair, facing, on the two floor pads | Removed from the rings by the renderer (`isDisplaced`) | The battle leaves the board — it has started | measured 2026-08-06 |
 | Battle CANCELLED / VOID | Crown returns | Back in their rings, `in_battle` false | Empty | measured 2026-08-07 |
 | Any state, no battle | The two fighter pads are **still drawn**, muted | — | — | v2.5.848 + v2.5.850 |

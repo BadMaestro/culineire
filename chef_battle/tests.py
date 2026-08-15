@@ -7636,7 +7636,8 @@ class BattleSetReadyTests(TestCase):
     REWRITTEN 2026-08-06 for the Owner's scenario A6. Ready used to advance the
     battle straight into MENU_LOCKED, which took it off the Next Battle board
     the instant both chefs turned up. His rule: both ready means the match is
-    fifteen minutes away and the pill climbs the queue. The battle stays
+    thirty minutes away (T20, 2026-08-15; it was fifteen until then) and the
+    pill climbs the queue. The battle stays
     SCHEDULED and resolve_start_rituals begins it when the clock runs out.
 
     The class needs CHEF_BATTLE_ENABLED because its two users are plain authors
@@ -8058,9 +8059,9 @@ class ArenaCenterConfrontationContractTests(TestCase):
         """Owner, 2026-08-06: the pair jumps to the centre only when their
         battle BEGINS, and until then the cells by the centre are empty.
 
-        Pressing Ready is not the beginning. Since v2.5.844 it pulls the start
-        in to fifteen minutes, and those fifteen minutes are spent standing in
-        the rings.
+        Pressing Ready is not the beginning. It pulls the start in to thirty
+        minutes (T20, Owner 2026-08-15; fifteen until then), and those minutes
+        are spent standing in the rings.
         """
         from chef_battle.views import _arena_center
         from .models import Battle
@@ -10965,7 +10966,19 @@ class ReadyPullsTheMatchForwardTests(TestCase):
         self.assertEqual(self.battle.start_time, original, "one chef must not move the clock")
         self.assertEqual(self.battle.status, Battle.Status.SCHEDULED)
 
-    def test_both_ready_pulls_the_start_in_to_fifteen_minutes(self):
+    def test_the_ready_head_start_is_thirty_minutes(self):
+        """T20, Owner 2026-08-15: the number itself, pinned.
+
+        The test below measures against READY_HEAD_START, so it passes at any
+        value the constant happens to hold - which is right for the mechanism
+        and proves nothing about the rule. He said fifteen on 2026-08-06 and
+        thirty on 2026-08-15; this is the line that fails if it drifts again.
+        """
+        from .services import READY_HEAD_START
+
+        self.assertEqual(READY_HEAD_START, timezone.timedelta(minutes=30))
+
+    def test_both_ready_pulls_the_start_in_to_thirty_minutes(self):
         from .services import READY_HEAD_START
 
         self._press(self.u_a)

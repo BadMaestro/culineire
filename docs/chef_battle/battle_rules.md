@@ -135,9 +135,11 @@ Battle completes → slot freed; chef can accept or issue a new challenge
 
 ### "Ready" button — CORRECTED to the code, X18, Owner's standing rule 2026-08-10
 
-What runs is the Owner's own scenario A6 of 2026-08-06 — «оба готовы - таймер
-до матча 15 минут» — and it is simpler than the handshake below: when **both**
-chefs have pressed Ready, the start is pulled in to **15 minutes from now**
+What runs is the Owner's rule of 2026-08-15 (T20), which raised his scenario
+A6 of 2026-08-06 — «оба готовы - таймер до матча 15 минут» — to **thirty
+minutes**; the later word wins. It is simpler than the handshake below: when
+**both** chefs have pressed Ready, the start is pulled in to **30 minutes from
+now**
 (`READY_HEAD_START`, `pull_start_forward_when_both_ready()`), which also lifts
 the pair up the Next Battle queue, because that board is ordered by time
 remaining. The start is never pushed later. A chef who is ready alone waits out
