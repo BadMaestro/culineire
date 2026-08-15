@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1034",
+        "date": "2026-08-15",
+        "commit": "da84930c",
+        "title": "Arena critical money and lifecycle boundaries are enforced",
+        "section": "Chef Battles / Arena",
+        "summary": "Ember closes T07, T08, T09 and the critical boundary of T12. A chargeback arriving while a payout transfer is in flight now produces PAID_DISPUTED and an immutable reconciliation event instead of ordinary PAID; reserved rewards cannot silently fund another payout. Purchased tokens are represented by locked FIFO lots and gift spends carry allocations, so refund attribution no longer guesses from timestamps. Partial refunds store cumulative refunded cents and claw only the new proportional token delta. Battle status now has an explicit transition matrix plus PostgreSQL trigger enforcement; the authorized operator override is transaction-local, and lifecycle/result fields are read-only in Django admin so direct edits cannot bypass domain services. Two follow-up corrections preserve audited terminal outcomes from live phases and make both migrations valid PL/pgSQL. No Stripe Dashboard action is included. Local PostgreSQL acceptance: 345 Arena tests passed with 8 workers in 200.725 seconds, zero failures/errors/skips; makemigrations --check --dry-run reported no changes; image-weight gate and git diff --check passed. No test ran on Linode. No visible UI redesign; operators may see PAID_DISPUTED for a payout requiring reconciliation. Rollback: git revert the v2.5.1034 release commit and its three source commits, run /srv/culineire/scripts/deploy.sh, then migrate chef_battle to 0091 only after confirming no v2.5.1034 rows depend on the additive lot/refund fields; otherwise restore forward and reconcile manually.",
+    },
+    {
         "version": "2.5.1031",
         "date": "2026-08-14",
         "commit": "384c99fa",
