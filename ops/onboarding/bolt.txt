@@ -132,8 +132,9 @@ Fixed locations:
     E:\CulinEire Project\Onboarding\Agent Onboarding (bolt).txt
   bootstrap audit:
     E:\CulinEire Project\CulinEire\.agent-chat\heartbeats\bolt-bootstrap.yaml
-  deploy turn lock:
-    E:\CulinEire Project\CulinEire\.agent-chat\deploy.lock
+  deploy turn lock (TRACKED and PUSHED - see CONDITION 1, this is not a
+  local file and it is inside the repository, not one level above it):
+    .agent-chat/deploy.lock on origin/main
 
 The board (the dispatch contract, one card at a time):
     docs/ARENA_BATTLE_PLAN.md on origin/main
@@ -429,24 +430,44 @@ conditions, and neither is negotiable.
 
 CONDITION 1 - THE TURN. Only one deploy is ever in flight.
 
-Before starting, claim the turn:
+THE LOCK IS `.agent-chat/deploy.lock` INSIDE THIS REPOSITORY, AND IT IS
+CLAIMED BY A PUSH. It is not a local file, and it is not the one a level above
+the checkout. This paragraph used to say otherwise, and on 2026-08-15 it cost
+GreenBear and me most of an evening: he claimed the tracked in-repo file, I
+claimed a local one outside the repo exactly as written here, section 8
+protected nothing, and neither of us could see the other. A lock only works if
+the other agent can read it, which means it has to be on origin/main.
 
-  $lock = "E:\CulinEire Project\CulinEire\.agent-chat\deploy.lock"
-  if (Test-Path -LiteralPath $lock) {
-      Get-Content -LiteralPath $lock -Raw
-      "TURN_HELD_BY_ANOTHER_AGENT - wait, do not deploy"
-  } else {
-      @{ agent = "bolt"
-         started_utc = [DateTime]::UtcNow.ToString("o")
-         version = "<the version you are shipping>"
-         commit = "<the commit you are shipping>" } |
-          ConvertTo-Json | Set-Content -LiteralPath $lock -Encoding utf8
-      "TURN_CLAIMED"
-  }
+Before starting, read the lock from origin/main - not from your working tree,
+which is only ever your own copy:
 
-Release it the moment the deploy is verified or abandoned:
+  git fetch origin
+  git show origin/main:.agent-chat/deploy.lock
 
-  Remove-Item -LiteralPath $lock -Force
+If that prints a lock, another agent holds the turn: wait, do not deploy. If it
+fails with "does not exist in origin/main", the turn is free. Claim it, and the
+claim is not made until the push succeeds:
+
+  # .agent-chat/deploy.lock
+  agent: bolt
+  started_utc: <UTC, minute precision>
+  version: <the version you are shipping>
+  commit: pending
+  task: <the card>
+
+  git add .agent-chat/deploy.lock
+  git commit -m "chore(deploy): Bolt claims the lock for <card>"
+  git push origin main
+
+If that push is REJECTED, you did not get the turn - somebody pushed while you
+were preparing. Fetch, look at what arrived, and decide again; do not force it.
+
+Release it the moment the deploy is verified or abandoned, the same way -
+by deleting the file, committing and pushing:
+
+  git rm .agent-chat/deploy.lock
+  git commit -m "chore(deploy): release the lock after <version>"
+  git push origin main
 
 A lock older than 60 minutes is a stale lock, not a running deploy. Say so,
 name the agent in it, and ask the Owner before clearing it. Never clear another
