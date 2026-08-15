@@ -442,10 +442,18 @@ Before starting, read the lock from origin/main - not from your working tree,
 which is only ever your own copy:
 
   git fetch origin
-  git show origin/main:.agent-chat/deploy.lock
+  git ls-tree origin/main .agent-chat/
+  MSYS_NO_PATHCONV=1 git show origin/main:.agent-chat/deploy.lock
 
 If that prints a lock, another agent holds the turn: wait, do not deploy. If it
-fails with "does not exist in origin/main", the turn is free. Claim it, and the
+fails with "does not exist in origin/main", the turn is free.
+
+READ THE ERROR, DO NOT SKIM IT. Two different failures look alike on this
+workstation. "does not exist in origin/main" means the turn is free. "ambiguous
+argument ... unknown revision or path" means Git Bash mangled the colon path
+before git ever saw it and you have learned NOTHING about the lock - that is
+why MSYS_NO_PATHCONV=1 is on the line, and why ls-tree, which has no colon in
+it, is listed first as the answer that cannot be mangled. Claim it, and the
 claim is not made until the push succeeds:
 
   # .agent-chat/deploy.lock
