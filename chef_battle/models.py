@@ -293,6 +293,12 @@ class Battle(models.Model):
     # Start ritual: when only one chef was ready at start_time the battle sits
     # in WAITING until this moment, giving the other chef a last chance.
     waiting_until = models.DateTimeField(null=True, blank=True, db_index=True)
+    # T11, Owner 2026-08-15: the Stage 1 winner has FIFTEEN MINUTES to fire his
+    # three shots. Set when _resolve_round moves the battle into
+    # INGREDIENT_PENALTY; swept by sweep_ingredient_penalty_deadlines(), which
+    # advances the battle to COOKING whether or not the shots were fired, so a
+    # winner who walks away cannot hold his opponent's battle open forever.
+    ingredient_penalty_deadline = models.DateTimeField(null=True, blank=True, db_index=True)
     proposed_combat_time = models.DateTimeField(null=True, blank=True)
     combat_time_confirmed = models.BooleanField(default=False)
     # Emergency Stop (DG-03): set when status -> PAUSED, cleared on resume.
@@ -1105,39 +1111,42 @@ class BattleRound(models.Model):
         return f"Battle {self.battle_id} R{self.round_number}: {self.outcome}"
 
 
-class IngredientLock(models.Model):
-    """Loser's hidden lock on one ingredient line (placed at submission, revealed after biathlon)."""
-
-    MAX_LOCKS = 2
-
-    battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="ingredient_locks")
-    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="ingredient_locks")
-    ingredient_index = models.PositiveSmallIntegerField(help_text="Zero-based line index in recipe.ingredients")
-    is_revealed = models.BooleanField(default=False)
-    placed_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["placed_at"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["battle", "chef", "ingredient_index"],
-                name="unique_lock_per_ingredient",
-            ),
-        ]
-
-    def __str__(self):
-        return f"Lock by {self.chef} on ingredient #{self.ingredient_index} (battle {self.battle_id})"
+# T11, Owner ruling 2026-08-15: IngredientLock is GONE, and its absence is the
+# point of the ticket. The loser used to place two locks AFTER losing, on the
+# raw text lines of his submitted recipe. Both halves of that are superseded:
+# both chefs now place exactly two hidden locks BEFORE Stage 1, and they do it
+# on their declared menu - BattleIngredient.is_key, KEY_COUNT = 2, written by
+# declare_menu, which already refuses a re-declaration and only lets the battle
+# reach ACTIVE once both chefs have declared. The lock the winner shoots at is
+# therefore already in the database before combat starts, and a second parallel
+# "lock" concept would be exactly the duplicate mechanic the standards forbid.
 
 
 class IngredientShot(models.Model):
-    """Winner's shot at one of the loser's ingredient lines."""
+    """The Stage 1 winner's shot at one of the loser's DECLARED ingredients.
+
+    T11, 2026-08-15: this used to carry `target_index`, a line number in the
+    loser's recipe TEXT, matched against IngredientLock rows in the same index
+    space. It now points at the BattleIngredient row itself - the same row
+    round combat eliminates - so a hit and a bounce are decided by the
+    is_key flag the chef set before the fight, not by a second lock table.
+
+    `bounced` IS the reveal: a shot that bounced names a key ingredient the
+    loser had hidden, which is what "reveal each targeted lock when it is hit"
+    asks for. Nothing else needs to be stored to reveal it.
+    """
 
     MAX_SHOTS = 3
 
     battle = models.ForeignKey(Battle, on_delete=models.CASCADE, related_name="ingredient_shots")
     shooter = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="ingredient_shots")
-    target_index = models.PositiveSmallIntegerField(help_text="Zero-based line index in loser's recipe.ingredients")
-    bounced = models.BooleanField(default=False, help_text="True if the shot hit a lock and bounced")
+    target_ingredient = models.ForeignKey(
+        "BattleIngredient",
+        on_delete=models.CASCADE,
+        related_name="shots",
+        help_text="The loser's declared ingredient this shot was aimed at.",
+    )
+    bounced = models.BooleanField(default=False, help_text="True if the shot hit a key ingredient and bounced")
     fired_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1145,7 +1154,7 @@ class IngredientShot(models.Model):
 
     def __str__(self):
         result = "bounced" if self.bounced else "hit"
-        return f"Shot by {self.shooter} at #{self.target_index} ({result}, battle {self.battle_id})"
+        return f"Shot by {self.shooter} at {self.target_ingredient_id} ({result}, battle {self.battle_id})"
 
 
 class BattleIngredient(models.Model):

@@ -338,7 +338,7 @@ def get_master_state() -> dict:
     from django.conf import settings as django_settings
     from django.db.models import Q, Sum
     from .models import (
-        BattleEntry, ContentReport, IngredientLock, IngredientShot,
+        BattleEntry, BattleIngredient, ContentReport, IngredientShot,
         PayoutRequest, TokenTransaction, ViewerBattleGift,
     )
 
@@ -430,9 +430,13 @@ def get_master_state() -> dict:
             combat.append({
                 "battle_id": b.pk,
                 "kind": "biathlon",
-                "locks_placed": b.ingredient_locks.count(),
+                # T11: the two blocks are placed at declare_menu, before
+                # Stage 1, so what this phase counts is shots - the blocks
+                # are already there and are not an action the console waits on.
+                "blocks_placed": b.battle_ingredients.filter(
+                    chef_id=b.loser_id, is_key=True).count() if b.loser_id else 0,
                 "shots_fired": b.ingredient_shots.count(),
-                "max_locks": IngredientLock.MAX_LOCKS,
+                "max_blocks": BattleIngredient.KEY_COUNT,
                 "max_shots": IngredientShot.MAX_SHOTS,
             })
 
@@ -626,39 +630,39 @@ def _monitor_combat_detail(battle):
 
 
 def _monitor_biathlon_detail(battle):
-    """Biathlon lock/shot state for one INGREDIENT_PENALTY battle. Uses the
-    same queries as get_biathlon_state but returns only JSON-safe fields."""
-    from .models import IngredientLock, IngredientShot
+    """Biathlon shot state for one INGREDIENT_PENALTY battle. Uses the same
+    rows as get_biathlon_state but returns only JSON-safe fields.
+
+    T11, 2026-08-15: reads the loser's DECLARED menu (BattleIngredient) rather
+    than the raw text lines of his submitted recipe, and there is no
+    loser-locking step left to count - both chefs blocked two ingredients at
+    declare_menu, before Stage 1. `blocked_ids` stays operator-only: the
+    winner learns which are blocked by bouncing off them, not from this.
+    """
+    from .models import BattleIngredient, IngredientShot
 
     loser, winner = battle.loser, battle.winner
-    loser_entry = (
-        battle.entries.filter(author=loser).select_related("recipe").first()
-        if loser else None
-    )
-    ingredients = []
-    if loser_entry and loser_entry.recipe:
-        ingredients = [
-            line for line in loser_entry.recipe.ingredients.splitlines() if line.strip()
-        ]
-    locks = list(
-        battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True)
+    declared = list(
+        battle.battle_ingredients.filter(chef=loser).order_by("position")
     ) if loser else []
     shots = list(
-        battle.ingredient_shots.filter(shooter=winner).values("target_index", "bounced")
+        battle.ingredient_shots.filter(shooter=winner).values("target_ingredient_id", "bounced")
     ) if winner else []
     return {
         "battle_id": battle.pk,
         "kind": "biathlon",
         "loser": loser.name if loser else None,
         "winner": winner.name if winner else None,
-        "ingredient_count": len(ingredients),
-        # Operator-only: lock indices are hidden from the winner publicly.
-        "lock_indices": locks,
+        "ingredient_count": len(declared),
+        # Operator-only: which of the loser's ingredients are his two blocks.
+        "blocked_ids": [i.pk for i in declared if i.is_key],
+        "eliminated_ids": [i.pk for i in declared if i.is_eliminated],
         "shots": shots,
-        "locks_placed": len(locks),
+        "blocks_placed": sum(1 for i in declared if i.is_key),
+        "max_blocks": BattleIngredient.KEY_COUNT,
         "shots_fired": len(shots),
-        "max_locks": IngredientLock.MAX_LOCKS,
         "max_shots": IngredientShot.MAX_SHOTS,
+        "deadline": battle.ingredient_penalty_deadline.isoformat() if battle.ingredient_penalty_deadline else None,
     }
 
 

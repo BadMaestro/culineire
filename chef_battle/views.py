@@ -98,7 +98,6 @@ from .services import (
     get_biathlon_state,
     get_or_create_battle_profile,
     hash_request_value,
-    place_ingredient_lock,
     refuse_challenge,
     reveal_entries_if_ready,
     submit_cooked_photo,
@@ -2801,23 +2800,15 @@ def biathlon(request, pk):
         "battle": battle,
         "state": state,
         "is_winner": viewer_author and battle.winner_id == viewer_author.pk,
+        # T11: the loser has nothing to DO in this phase any more - his two
+        # blocks were placed before Stage 1, at declare_menu - but he watches
+        # his own list being shot at, so the template still needs to know him.
         "is_loser": viewer_author and battle.loser_id == viewer_author.pk,
     })
 
 
-@chef_battle_guard
-@login_required
-@require_POST
-def biathlon_lock(request, pk):
-    battle = get_object_or_404(Battle, pk=pk)
-    viewer_author = get_author_for_user(request.user)
-    try:
-        index = int(request.POST.get("ingredient_index", -1))
-        place_ingredient_lock(battle=battle, chef=viewer_author, ingredient_index=index)
-        messages.success(request, "Lock placed.")
-    except (ValueError, TypeError) as e:
-        messages.error(request, str(e))
-    return redirect("chef_battle:biathlon", pk=pk)
+# T11, 2026-08-15: biathlon_lock is GONE with the loser-locking step it served.
+# Both chefs place their two blocks before Stage 1 now, through declare_menu.
 
 
 @chef_battle_guard
@@ -2827,10 +2818,12 @@ def biathlon_shoot(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
     viewer_author = get_author_for_user(request.user)
     try:
-        index = int(request.POST.get("target_index", -1))
-        shot = fire_ingredient_shot(battle=battle, shooter=viewer_author, target_index=index)
+        target_id = int(request.POST.get("target_ingredient_id", -1))
+        shot = fire_ingredient_shot(
+            battle=battle, shooter=viewer_author, target_ingredient_id=target_id,
+        )
         if shot.bounced:
-            messages.warning(request, "Your shot bounced off a lock!")
+            messages.warning(request, "Your shot bounced off a hidden block!")
         else:
             messages.success(request, "Direct hit!")
     except (ValueError, TypeError) as e:

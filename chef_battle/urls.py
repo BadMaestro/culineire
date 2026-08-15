@@ -73,7 +73,9 @@ urlpatterns = [
     path("battles/<int:pk>/recipe/", views.battle_recipe_attach, name="battle_recipe_attach"),
     path("battles/<int:pk>/changing-room/declare/", views.battle_declare_menu, name="battle_declare_menu"),
     path("battles/<int:pk>/biathlon/", views.biathlon, name="biathlon"),
-    path("battles/<int:pk>/biathlon/lock/", views.biathlon_lock, name="biathlon_lock"),
+    # T11, 2026-08-15: the biathlon/lock/ route went with the loser-locking
+    # step - both chefs block two ingredients at declare_menu now, before
+    # Stage 1, so there is nothing to POST here any more.
     path("battles/<int:pk>/biathlon/shoot/", views.biathlon_shoot, name="biathlon_shoot"),
     path("moderation/cooking/", views.cooking_moderation, name="cooking_moderation"),
     path("battles/<int:pk>/moderation/cooking/approve/", views.cooking_moderation_approve, name="cooking_moderation_approve"),

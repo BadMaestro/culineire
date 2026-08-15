@@ -100,13 +100,25 @@ egg and butter survive (locked).
   - `eliminated_at` DateTimeField (null)
   - `eliminated_by` FK BattleProfile (null)
 
-- `PostBattlePenalty`:
-  - `battle` FK
-  - `loser_lock_1`, `loser_lock_2` — ingredient names (chosen by loser)
-  - `winner_hit_1`, `winner_hit_2`, `winner_hit_3` — ingredient names (chosen by winner)
-  - `banned_ingredients` — JSONField (list of actually banned ingredient names)
-  - `status`: `pending_locks` → `pending_hits` → `applied`
-  - `apply_deadline` DateTimeField
+- `PostBattlePenalty` — **PROPOSED HERE, NEVER BUILT. Do not go looking for
+  it.** T11 shipped on 2026-08-15 without it, and deliberately: every field
+  it sketches already had a home.
+  - `loser_lock_1/2` are `BattleIngredient.is_key`, set by both chefs at
+    `declare_menu` before Stage 1 — which is where the ruling puts them.
+  - `winner_hit_1/2/3` are `IngredientShot` rows, capped at `MAX_SHOTS = 3`,
+    each pointing at the `BattleIngredient` it was aimed at.
+  - `banned_ingredients` is `BattleIngredient.is_eliminated`, the same field
+    round combat writes, through the one shared `eliminate_ingredient()`.
+  - the `pending_locks → pending_hits → applied` states collapse to the
+    single `ingredient_penalty` battle status: the locks already exist when
+    the phase opens, so there is nothing to be pending on.
+  - `apply_deadline` is `Battle.ingredient_penalty_deadline`, fifteen minutes
+    (`INGREDIENT_PENALTY_WINDOW`), swept by
+    `sweep_ingredient_penalty_deadlines()`.
+  
+  The original sketch is kept above as the record of what was considered; a
+  second model beside `BattleIngredient` would have meant two answers to "is
+  this ingredient protected".
 
 ### Constraints
 - Ingredient count must be equal on both sides before battle goes `active`

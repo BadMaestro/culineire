@@ -2151,8 +2151,7 @@ class SuspensionGateTests(TestCase):
         endpoints = [
             ("chef_battle:battle_set_ready", {}),
             ("chef_battle:battle_declare_menu", {}),
-            ("chef_battle:biathlon_lock", {"ingredient_index": "0"}),
-            ("chef_battle:biathlon_shoot", {"target_index": "0"}),
+            ("chef_battle:biathlon_shoot", {"target_ingredient_id": "0"}),
             ("chef_battle:cooking_submit", {}),
         ]
         for name, payload in endpoints:
@@ -2168,7 +2167,7 @@ class SuspensionGateTests(TestCase):
         """Most arena actions are POST-only, so bouncing a refused POST back to
         its own URL served the suspended user a bare 405 instead of the message."""
         url = reverse("chef_battle:biathlon_shoot", kwargs={"pk": 1})
-        response = self.client.post(url, {"target_index": "0"})
+        response = self.client.post(url, {"target_ingredient_id": "0"})
         self.assertIn(response.status_code, [301, 302])
         self.assertNotEqual(response["Location"], url)
 
@@ -4057,29 +4056,40 @@ class ArenaMasterMonitorTests(TestCase):
         }])
 
     def test_biathlon_detail_matches_orm(self):
-        from recipes.models import Recipe
-        from .models import IngredientLock, IngredientShot
+        """T11, 2026-08-15: the console reads the loser's DECLARED menu now,
+        not the text lines of his submitted recipe, and there is no
+        loser-locking step left to count - both chefs blocked exactly two
+        ingredients at declare_menu, before Stage 1 ever started."""
+        from .models import BattleIngredient, IngredientShot
         battle = self._battle(Battle.Status.INGREDIENT_PENALTY)
         battle.winner = self.chef_a
         battle.loser = self.chef_b
         battle.save(update_fields=["winner", "loser"])
-        recipe = Recipe.objects.create(
-            title="Loser Dish", slug="loser-dish", author=self.chef_b,
-            ingredients="eggs\nflour\nbutter\nmilk\nsugar", method="mix",
-            status=Recipe.Status.APPROVED,
-        )
-        battle.entries.create(author=self.chef_b, recipe=recipe)
-        IngredientLock.objects.create(battle=battle, chef=self.chef_b, ingredient_index=1)
-        IngredientShot.objects.create(battle=battle, shooter=self.chef_a, target_index=1, bounced=True)
-        IngredientShot.objects.create(battle=battle, shooter=self.chef_a, target_index=3, bounced=False)
+        declared = [
+            BattleIngredient.objects.create(
+                battle=battle, chef=self.chef_b, name=name,
+                is_key=is_key, position=position)
+            for position, (name, is_key) in enumerate([
+                ("eggs", False), ("flour", True), ("butter", False),
+                ("milk", False), ("sugar", True),
+            ])
+        ]
+        IngredientShot.objects.create(
+            battle=battle, shooter=self.chef_a,
+            target_ingredient=declared[1], bounced=True)
+        IngredientShot.objects.create(
+            battle=battle, shooter=self.chef_a,
+            target_ingredient=declared[3], bounced=False)
         data = self._state()
         bia = [d for d in data["monitor"]["detail"] if d["kind"] == "biathlon"][0]
         self.assertEqual(bia["ingredient_count"], 5)
-        self.assertEqual(bia["lock_indices"], [1])
-        self.assertEqual(bia["locks_placed"], 1)
+        self.assertEqual(
+            sorted(bia["blocked_ids"]), sorted([declared[1].pk, declared[4].pk]))
+        self.assertEqual(bia["blocks_placed"], 2)
         self.assertEqual(bia["shots_fired"], 2)
         self.assertEqual(
-            sorted(s["target_index"] for s in bia["shots"]), [1, 3])
+            sorted(s["target_ingredient_id"] for s in bia["shots"]),
+            sorted([declared[1].pk, declared[3].pk]))
         self.assertTrue(any(s["bounced"] for s in bia["shots"]))
 
     def test_event_log_append_only_ordering(self):
@@ -4146,7 +4156,7 @@ class ArenaMasterMonitorTests(TestCase):
         )
         # public arena JSON has no declared actions or lock indices
         arena_json = self.client.post(reverse("chef_battle:arena_state")).content.decode()
-        for marker in ("declared_actions", "lock_indices", "moves_invested"):
+        for marker in ("declared_actions", "blocked_ids", "moves_invested"):
             self.assertNotIn(marker, arena_json)
         # anonymous cannot reach the monitor at all
         self.client.logout()
@@ -5211,8 +5221,12 @@ class BattleEmulationTests(TestCase):
         # Real domain artifacts exist
         self.assertEqual(battle.entries.count(), 2)
         self.assertGreater(battle.combat_rounds.count(), 0)
+        # T11: the two blocks are BattleIngredient.is_key rows placed at
+        # declare_menu before Stage 1, not a separate lock table, and the
+        # emulator now really declares them instead of only saying it did.
         self.assertEqual(
-            battle.ingredient_locks.count(), 2)  # IngredientLock.MAX_LOCKS
+            battle.battle_ingredients.filter(chef=battle.loser, is_key=True).count(), 2)
+        self.assertGreater(battle.ingredient_shots.count(), 0)
         self.assertGreater(battle.votes.count(), 0)
         self.assertIsNotNone(battle.winner)
         for entry in battle.entries.all():
@@ -7788,45 +7802,208 @@ class DrawRewardUnlockTests(TestCase):
             self.assertEqual(profile.wins, 0)
 
 
-class BiathlonRecipeSourceIndexTests(TestCase):
-    """Biathlon indices must remain stable when a recipe contains blank lines."""
+class BiathlonWinnerShootsDeclaredIngredientsTests(TestCase):
+    """T11, Owner ruling 2026-08-15: the Stage 1 winner fires three shots at
+    the loser's DECLARED menu, and the loser's two blocks were placed before
+    the battle, at declare_menu, as BattleIngredient.is_key.
+
+    This replaces BiathlonRecipeSourceIndexTests, which pinned the mechanic
+    that was superseded: the loser locking recipe TEXT lines after he had
+    already lost. Those line indices no longer exist in this phase.
+    """
 
     def setUp(self):
-        from recipes.models import Recipe
         User = get_user_model()
         self.winner = RecipeAuthor.objects.create(
-            user=User.objects.create_user("source-winner", password="pw"),
-            name="Source Winner", slug="source-winner")
+            user=User.objects.create_user("declared-winner", password="pw"),
+            name="Declared Winner", slug="declared-winner")
         self.loser = RecipeAuthor.objects.create(
-            user=User.objects.create_user("source-loser", password="pw"),
-            name="Source Loser", slug="source-loser")
+            user=User.objects.create_user("declared-loser", password="pw"),
+            name="Declared Loser", slug="declared-loser")
         self.battle = Battle.objects.create(
-            challenger=self.winner, opponent=self.loser, theme="Source index",
+            challenger=self.winner, opponent=self.loser, theme="Declared menu",
             status=Battle.Status.INGREDIENT_PENALTY, winner=self.winner, loser=self.loser,
             submission_deadline=timezone.now(), end_time=timezone.now())
-        self.recipe = Recipe.objects.create(
-            title="Spaced ingredients", slug="spaced-ingredients", author=self.loser,
-            ingredients="eggs\n\nflour\nbutter", method="Mix.",
-            status=Recipe.Status.APPROVED)
-        self.battle.entries.create(author=self.loser, recipe=self.recipe)
+        # The loser's declared list, exactly as declare_menu would have left
+        # it before Stage 1: five ingredients, the two marked key are his
+        # blocks and stay hidden until a shot bounces off one.
+        from .models import BattleIngredient
+        self.ingredients = [
+            BattleIngredient.objects.create(
+                battle=self.battle, chef=self.loser, name=name,
+                is_key=is_key, position=position,
+            )
+            for position, (name, is_key) in enumerate([
+                ("eggs", False), ("flour", True), ("butter", False),
+                ("saffron", True), ("cream", False),
+            ])
+        ]
+        self.eggs, self.flour, self.butter, self.saffron, self.cream = self.ingredients
 
-    def test_locks_shots_and_survivors_use_original_recipe_line_indices(self):
-        from .services import (
-            fire_ingredient_shot, get_biathlon_state, get_surviving_ingredients,
-            place_ingredient_lock,
+    def _shoot(self, ingredient):
+        from .services import fire_ingredient_shot
+        return fire_ingredient_shot(
+            battle=self.battle, shooter=self.winner, target_ingredient_id=ingredient.pk,
         )
 
-        place_ingredient_lock(battle=self.battle, chef=self.loser, ingredient_index=2)
-        shot = fire_ingredient_shot(battle=self.battle, shooter=self.winner, target_index=3)
-        state = get_biathlon_state(self.battle)
+    def test_a_shot_at_an_unblocked_ingredient_strikes_it_off(self):
+        shot = self._shoot(self.eggs)
 
         self.assertFalse(shot.bounced)
-        self.assertEqual(state["ingredients"], [
-            {"index": 0, "text": "eggs"},
-            {"index": 2, "text": "flour"},
-            {"index": 3, "text": "butter"},
-        ])
-        self.assertEqual(get_surviving_ingredients(self.battle, self.loser), ["eggs", "flour"])
+        self.eggs.refresh_from_db()
+        self.assertTrue(self.eggs.is_eliminated)
+        self.assertEqual(self.eggs.eliminated_by, self.winner)
+
+    def test_a_shot_at_a_block_bounces_and_the_ingredient_survives(self):
+        shot = self._shoot(self.flour)
+
+        self.assertTrue(shot.bounced)
+        self.flour.refresh_from_db()
+        self.assertFalse(
+            self.flour.is_eliminated,
+            "a blocked ingredient must survive the shot that revealed the block")
+
+    def test_the_winner_gets_exactly_three_shots(self):
+        from .services import fire_ingredient_shot
+
+        for ingredient in (self.eggs, self.flour, self.butter):
+            self._shoot(ingredient)
+
+        with self.assertRaises(ValueError):
+            fire_ingredient_shot(
+                battle=self.battle, shooter=self.winner,
+                target_ingredient_id=self.saffron.pk,
+            )
+
+    def test_the_loser_never_shoots(self):
+        from .services import fire_ingredient_shot
+
+        with self.assertRaises(ValueError):
+            fire_ingredient_shot(
+                battle=self.battle, shooter=self.loser,
+                target_ingredient_id=self.eggs.pk,
+            )
+
+    def test_the_winner_cannot_shoot_at_his_own_menu(self):
+        from .models import BattleIngredient
+        from .services import fire_ingredient_shot
+
+        mine = BattleIngredient.objects.create(
+            battle=self.battle, chef=self.winner, name="my own leek",
+            is_key=False, position=0)
+
+        with self.assertRaises(ValueError):
+            fire_ingredient_shot(
+                battle=self.battle, shooter=self.winner, target_ingredient_id=mine.pk,
+            )
+
+    def test_the_same_ingredient_cannot_be_shot_twice(self):
+        from .services import fire_ingredient_shot
+
+        self._shoot(self.eggs)
+
+        with self.assertRaises(ValueError):
+            fire_ingredient_shot(
+                battle=self.battle, shooter=self.winner, target_ingredient_id=self.eggs.pk,
+            )
+
+    def test_a_block_is_revealed_only_once_a_shot_has_bounced_off_it(self):
+        from .services import get_biathlon_state
+
+        before = get_biathlon_state(self.battle)
+        self.assertEqual(before["blocked_ids"], set(),
+                         "an unfired-at block must stay hidden from the winner")
+
+        self._shoot(self.flour)
+        after = get_biathlon_state(self.battle)
+
+        self.assertEqual(after["blocked_ids"], {self.flour.pk})
+        self.assertNotIn(self.saffron.pk, after["blocked_ids"],
+                         "the block nobody shot at is still hidden")
+
+    def test_surviving_ingredients_drop_the_struck_off_ones(self):
+        from .services import get_surviving_ingredients
+
+        self._shoot(self.eggs)      # struck off
+        self._shoot(self.flour)     # bounced, survives
+
+        self.assertEqual(
+            get_surviving_ingredients(self.battle, self.loser),
+            ["flour", "butter", "saffron", "cream"],
+        )
+
+    def test_surviving_ingredients_also_filter_the_winners_own_losses(self):
+        """The bug this card found on the way past: get_surviving_ingredients
+        returned the winner's list unfiltered, so ingredients round combat had
+        already eliminated on his side came back for the cooking phase."""
+        from .models import BattleIngredient
+        from .services import eliminate_ingredient, get_surviving_ingredients
+
+        kept = BattleIngredient.objects.create(
+            battle=self.battle, chef=self.winner, name="lamb", is_key=False, position=0)
+        lost = BattleIngredient.objects.create(
+            battle=self.battle, chef=self.winner, name="thyme", is_key=False, position=1)
+        eliminate_ingredient(lost.pk, by=self.loser)
+
+        surviving = get_surviving_ingredients(self.battle, self.winner)
+
+        self.assertEqual(surviving, ["lamb"])
+        self.assertNotIn(kept.name, [])  # guard against an empty-list false pass
+
+
+class BiathlonDeadlineSweepTests(TestCase):
+    """T11: fifteen minutes, then the phase ends with however many shots were
+    fired. A winner who closes the tab cannot hold the loser's battle open."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.winner = RecipeAuthor.objects.create(
+            user=User.objects.create_user("sweep-winner", password="pw"),
+            name="Sweep Winner", slug="sweep-winner")
+        self.loser = RecipeAuthor.objects.create(
+            user=User.objects.create_user("sweep-loser", password="pw"),
+            name="Sweep Loser", slug="sweep-loser")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.winner, opponent=self.loser, theme="Sweep me",
+            status=Battle.Status.INGREDIENT_PENALTY, winner=self.winner, loser=self.loser,
+            submission_deadline=now + timezone.timedelta(days=1),
+            voting_deadline=now + timezone.timedelta(days=3),
+            end_time=now + timezone.timedelta(days=3))
+
+    def test_a_live_window_is_left_alone(self):
+        from .services import sweep_ingredient_penalty_deadlines
+
+        self.battle.ingredient_penalty_deadline = timezone.now() + timezone.timedelta(minutes=5)
+        self.battle.save(update_fields=["ingredient_penalty_deadline"])
+
+        self.assertEqual(sweep_ingredient_penalty_deadlines(), 0)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.INGREDIENT_PENALTY)
+
+    def test_an_expired_window_advances_the_battle_to_cooking(self):
+        from .services import sweep_ingredient_penalty_deadlines
+
+        self.battle.ingredient_penalty_deadline = timezone.now() - timezone.timedelta(seconds=1)
+        self.battle.save(update_fields=["ingredient_penalty_deadline"])
+
+        self.assertEqual(sweep_ingredient_penalty_deadlines(), 1)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.COOKING)
+
+    def test_a_battle_with_no_deadline_is_never_swept(self):
+        """Belt and braces: a NULL deadline must not read as 'long overdue'."""
+        from .services import sweep_ingredient_penalty_deadlines
+
+        self.assertIsNone(self.battle.ingredient_penalty_deadline)
+        self.assertEqual(sweep_ingredient_penalty_deadlines(), 0)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.INGREDIENT_PENALTY)
+
+    def test_the_window_is_fifteen_minutes_and_opens_when_combat_ends(self):
+        from .services import INGREDIENT_PENALTY_WINDOW
+
+        self.assertEqual(INGREDIENT_PENALTY_WINDOW, timezone.timedelta(minutes=15))
 
 
 class ArenaDataSelectorsTests(TestCase):
@@ -12817,12 +12994,24 @@ class ArenaLifecycleMechanismCountTests(TestCase):
         self.assertEqual(len(re.findall(r"\bfunction init\(", code)), 1)
 
     def test_nothing_gates_the_first_paint_on_a_clock(self):
-        """The master task forbids solving a readiness problem with time. The
-        one setTimeout left is a 900ms ripple cleanup."""
+        """The master task forbids solving a READINESS problem with time.
+
+        RED ON MAIN WHEN T11 ARRIVED, and fixed here rather than around:
+        v2.5.1062 added a second setTimeout - 150ms after a click on the
+        centre, so the ripple is seen before the browser leaves for the
+        broadcast page - and this assertion counted timeouts rather than
+        judging them, so a deliberate post-click flourish read as a
+        readiness gate. Both survivors are named explicitly instead: neither
+        waits on a clock for something to become READY, which is the rule.
+        A third one still fails this test, which is the point of it.
+        """
         code = self._code("arena_render.js")
         timeouts = re.findall(r"setTimeout\(([^;]{0,80})", code)
-        self.assertEqual(len(timeouts), 1, timeouts)
-        self.assertIn("ring.remove()", timeouts[0])
+        self.assertEqual(len(timeouts), 2, timeouts)
+        self.assertIn("ring.remove()", timeouts[0], "the 900ms ripple cleanup")
+        self.assertIn(
+            "location.href", timeouts[1],
+            "the 150ms that lets the ripple be seen before the page navigates away")
 
     def test_the_runway_belongs_to_the_region_not_the_camera(self):
         code = self._code("arena_render.js")
@@ -13316,10 +13505,16 @@ class ArenaRendererReadsBeforeItWritesTests(TestCase):
         self.assertEqual(js.count("new global.ResizeObserver"), 1,
                          "one observer: the frame the scene is fitted into")
 
-    def test_the_only_timer_left_cleans_up_a_finished_ripple(self):
+    def test_the_timers_left_are_a_ripple_cleanup_and_a_navigation_delay(self):
+        """Same drift as test_nothing_gates_the_first_paint_on_a_clock, one
+        class over, and red on main for the same reason: v2.5.1062's centre
+        click added a second timer. Neither of the two waits for something to
+        become ready - one clears a finished ripple, one lets that ripple be
+        seen before the browser leaves the page."""
         js = self._js()
-        self.assertEqual(js.count("global.setTimeout("), 1)
+        self.assertEqual(js.count("global.setTimeout("), 2)
         self.assertIn("global.setTimeout(function () { ring.remove(); }, 900)", js)
+        self.assertIn("global.location.href = destination; }, 150)", js)
 
     def test_the_placer_measures_from_a_base_and_writes_once(self):
         """AN-R1/B replaced the function this used to guard, and the forced
@@ -17321,15 +17516,21 @@ class CombatActionLocksBattleAndRechecksStatusTests(TestCase):
         self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
 
 
-class IngredientLockAndShotRecheckStatusUnderLockTests(TestCase):
-    """F63, 2026-08-11: same shape as F62 - the INGREDIENT_PENALTY check ran
-    against the caller's object, and the battle-row lock both functions
-    already took (to serialise the lock/shot COUNT check) discarded its
-    result, so the status precondition was never re-verified under it."""
+class IngredientShotRechecksStatusUnderLockTests(TestCase):
+    """F63, 2026-08-11: the INGREDIENT_PENALTY check ran against the caller's
+    object, and the battle-row lock the function already took (to serialise
+    the shot COUNT check) discarded its result, so the status precondition was
+    never re-verified under it.
+
+    T11, 2026-08-15: the loser-locking half of this class went with
+    place_ingredient_lock - both chefs block two ingredients at declare_menu
+    now, before Stage 1. THE LOCKING DISCIPLINE ITSELF IS UNCHANGED and is
+    still what these tests pin; only the target field moved from a recipe
+    text-line index to the BattleIngredient row.
+    """
 
     def setUp(self):
-        from .models import IngredientLock, ChefBattleProfile
-        from recipes.models import Recipe
+        from .models import BattleIngredient, ChefBattleProfile
         User = get_user_model()
         self.winner = RecipeAuthor.objects.create(
             user=User.objects.create_user("f63-w", password="pw"), name="F63 Winner", slug="f63-w")
@@ -17337,11 +17538,6 @@ class IngredientLockAndShotRecheckStatusUnderLockTests(TestCase):
             user=User.objects.create_user("f63-l", password="pw"), name="F63 Loser", slug="f63-l")
         ChefBattleProfile.objects.create(author=self.winner, enrolled_at=timezone.now())
         ChefBattleProfile.objects.create(author=self.loser, enrolled_at=timezone.now())
-        recipe = Recipe.objects.create(
-            title="F63 Dish", slug="f63-dish", author=self.loser,
-            ingredients="one\ntwo\nthree\nfour\nfive", method="Cook.",
-            status=Recipe.Status.APPROVED,
-        )
         now = timezone.now()
         self.battle = Battle.objects.create(
             challenger=self.winner, opponent=self.loser, theme="F63 theme",
@@ -17350,31 +17546,8 @@ class IngredientLockAndShotRecheckStatusUnderLockTests(TestCase):
             end_time=now + timezone.timedelta(hours=2),
             winner=self.winner, loser=self.loser,
         )
-        BattleEntry.objects.create(battle=self.battle, author=self.loser, recipe=recipe)
-
-    def test_place_ingredient_lock_locks_the_battle_row(self):
-        from django.db import connection
-        from django.test.utils import CaptureQueriesContext
-        from .services import place_ingredient_lock
-
-        with CaptureQueriesContext(connection) as captured:
-            place_ingredient_lock(battle=self.battle, chef=self.loser, ingredient_index=0)
-        locking = [
-            q["sql"] for q in captured.captured_queries
-            if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
-        ]
-        self.assertTrue(locking, "place_ingredient_lock must lock the battle row")
-
-    def test_a_stale_lock_placement_on_a_finished_battle_is_refused(self):
-        from .services import place_ingredient_lock
-        from .models import IngredientLock
-
-        stale_copy = Battle.objects.get(pk=self.battle.pk)
-        Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.COOKING)
-
-        with self.assertRaises(ValueError):
-            place_ingredient_lock(battle=stale_copy, chef=self.loser, ingredient_index=0)
-        self.assertFalse(IngredientLock.objects.filter(battle=self.battle).exists())
+        self.target = BattleIngredient.objects.create(
+            battle=self.battle, chef=self.loser, name="one", is_key=False, position=0)
 
     def test_fire_ingredient_shot_locks_the_battle_row(self):
         from django.db import connection
@@ -17382,7 +17555,8 @@ class IngredientLockAndShotRecheckStatusUnderLockTests(TestCase):
         from .services import fire_ingredient_shot
 
         with CaptureQueriesContext(connection) as captured:
-            fire_ingredient_shot(battle=self.battle, shooter=self.winner, target_index=0)
+            fire_ingredient_shot(
+                battle=self.battle, shooter=self.winner, target_ingredient_id=self.target.pk)
         locking = [
             q["sql"] for q in captured.captured_queries
             if "FOR UPDATE" in q["sql"].upper() and "chef_battle_battle" in q["sql"].lower()
@@ -17397,16 +17571,11 @@ class IngredientLockAndShotRecheckStatusUnderLockTests(TestCase):
         Battle.objects.filter(pk=self.battle.pk).update(status=Battle.Status.COOKING)
 
         with self.assertRaises(ValueError):
-            fire_ingredient_shot(battle=stale_copy, shooter=self.winner, target_index=0)
+            fire_ingredient_shot(
+                battle=stale_copy, shooter=self.winner, target_ingredient_id=self.target.pk)
         self.assertFalse(IngredientShot.objects.filter(battle=self.battle).exists())
 
 
-# Inherited red on main, fixed while running T01's gate (2026-08-12): this class
-# drives real views, and CHEF_BATTLE_ENABLED is False by default - which is what
-# the Owner's launch latch says it must be until launch. Without the override the
-# guard answers 404 and every assertion here reads as a failure on any workstation
-# whose .env does not force the flag on.
-@override_settings(CHEF_BATTLE_ENABLED=True)
 class ChallengeCreateRechecksMovesUnderTheLockTests(TestCase):
     """F64, 2026-08-11: F49 locked the challenger's profile and re-checked
     the SLOT, but the OTHER precondition checked earlier in the same view -
@@ -17678,8 +17847,9 @@ class NoShowSweepDoesNotSkipCombatBiathlonAndCookingTests(TestCase):
 
 class SubmitCookedPhotoLocksAndRechecksBattleStatusTests(TestCase):
     """F69, 2026-08-12: every sibling function in this phase (declare_menu,
-    place_ingredient_lock, fire_ingredient_shot, approve_cooking_phase)
-    locks the battle row and rechecks status under it; this one never did."""
+    fire_ingredient_shot, approve_cooking_phase) locks the battle row and
+    rechecks status under it; this one never did. (place_ingredient_lock was
+    on that list until T11 deleted it, 2026-08-15.)"""
 
     def setUp(self):
         from django.core.files.uploadedfile import SimpleUploadedFile

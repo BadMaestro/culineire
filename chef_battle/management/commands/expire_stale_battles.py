@@ -8,6 +8,7 @@ from chef_battle.services import (
     expire_stale_challenges,
     handle_no_show_battles,
     resolve_start_rituals,
+    sweep_ingredient_penalty_deadlines,
     void_stalled_battles,
 )
 
@@ -64,6 +65,23 @@ class Command(BaseCommand):
         else:
             handled = handle_no_show_battles()
             self.stdout.write(self.style.SUCCESS(f"Processed {handled} no-show battle(s)."))
+
+        # --- Close the Stage 1 winner's shot window (T11) ---
+        # Fifteen minutes, and it ends the PHASE rather than the battle: a
+        # winner who never fired must not hold his opponent's battle open.
+        # Runs before the stall sweep below deliberately - that one watches
+        # the same status but only at the whole battle's end_time, days away,
+        # and cancels outright, so a phase this can still finish honestly
+        # should reach it first.
+        due_biathlons = Battle.objects.filter(
+            status=Battle.Status.INGREDIENT_PENALTY,
+            ingredient_penalty_deadline__lte=now,
+        ).count()
+        if dry:
+            self.stdout.write(f"[dry-run] Would close {due_biathlons} biathlon window(s).")
+        else:
+            closed = sweep_ingredient_penalty_deadlines()
+            self.stdout.write(self.style.SUCCESS(f"Closed {closed} biathlon window(s)."))
 
         # --- Void battles stalled before they ever reached voting (F20) ---
         stalled = Battle.objects.filter(

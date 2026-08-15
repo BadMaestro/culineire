@@ -18,7 +18,7 @@ from recipes.validators import normalise_uploaded_image
 from .models import (
     APPRECIATION_GIFT_COST, Artifact, Battle, BattleChallenge, BattleCombatAction,
     BattleEntry, BattleEvent, BattleIngredient, BattleRound, ChefArtifact, ChefBattleProfile,
-    IngredientLock, IngredientShot, AppreciationGift, LiveStreamSession,
+    IngredientShot, AppreciationGift, LiveStreamSession,
     OperatorActionIdempotencyKey, ViewerBattleGift, TokenTransaction, TokenWallet,
 )
 
@@ -908,6 +908,17 @@ def handle_no_show_battles() -> int:
 #: Grace period given to a missing chef once their opponent is ready and the
 #: start timer has run out (owner spec: "ВЭЙТИНГ 10 МИНУТ").
 START_RITUAL_GRACE = timezone.timedelta(minutes=10)
+
+#: How long the Stage 1 winner has to fire his three shots before the battle
+#: moves on without them (T11, Owner 2026-08-15: fifteen minutes).
+#:
+#: A LIVE-SESSION timer, sitting with START_RITUAL_GRACE's ten minutes and
+#: READY_HEAD_START's thirty rather than with the 48-hour preparation and
+#: submission windows: combat has just ended and the winner is still at the
+#: screen. It exists so a winner who walks away cannot hold the loser's battle
+#: open indefinitely - sweep_ingredient_penalty_deadlines() advances the battle
+#: to COOKING when it expires, with however many shots were actually fired.
+INGREDIENT_PENALTY_WINDOW = timezone.timedelta(minutes=15)
 
 #: How soon a battle starts once BOTH chefs have pressed Ready.
 #:
@@ -1975,6 +1986,28 @@ def submit_combat_action(
     return action
 
 
+def eliminate_ingredient(ingredient_id: int, *, by) -> bool:
+    """Strike one declared ingredient off a chef's menu. Returns True if it went.
+
+    T11, 2026-08-15: ONE elimination mechanic for both phases that have one.
+    Round combat (_resolve_round) and the Stage 1 winner's three shots
+    (fire_ingredient_shot) both remove an ingredient from the same
+    BattleIngredient row, and both must refuse the same two cases, so they
+    share this instead of writing the rule down twice and drifting apart.
+
+    A conditional UPDATE, deliberately, not a read-then-save: `is_key=False`
+    and `is_eliminated=False` are part of the WHERE clause, so a key
+    ingredient can never be eliminated and an already-eliminated one is never
+    counted twice, whatever two concurrent callers believed when they started.
+    Both callers hold the battle row lock, but the guarantee belongs here.
+    """
+    return bool(
+        BattleIngredient.objects.filter(
+            pk=ingredient_id, is_key=False, is_eliminated=False,
+        ).update(is_eliminated=True, eliminated_at=timezone.now(), eliminated_by=by)
+    )
+
+
 def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
     """Resolve a round when both chefs have submitted actions. Deducts moves."""
     challenger_action = BattleCombatAction.objects.filter(
@@ -2123,17 +2156,10 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
         ).update(is_locked=True)
 
         # Eliminate targeted ingredients on successful hits
-        now = timezone.now()
         if c_round_won and challenger_action.target_ingredient_id:
-            BattleIngredient.objects.filter(
-                pk=challenger_action.target_ingredient_id,
-                is_key=False, is_eliminated=False,
-            ).update(is_eliminated=True, eliminated_at=now, eliminated_by=battle.challenger)
+            eliminate_ingredient(challenger_action.target_ingredient_id, by=battle.challenger)
         if o_round_won and opponent_action.target_ingredient_id:
-            BattleIngredient.objects.filter(
-                pk=opponent_action.target_ingredient_id,
-                is_key=False, is_eliminated=False,
-            ).update(is_eliminated=True, eliminated_at=now, eliminated_by=battle.opponent)
+            eliminate_ingredient(opponent_action.target_ingredient_id, by=battle.opponent)
 
         # Deduct moves via energy_service to create typed transaction records
         from .models import BattleMoveTransaction
@@ -2167,7 +2193,11 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
             else:
                 battle.winner, battle.loser = battle.opponent, battle.challenger
             battle.status = Battle.Status.INGREDIENT_PENALTY
-            battle.save(update_fields=["winner", "loser", "status", "updated_at"])
+            # T11: the winner's shot window opens here and closes on its own.
+            battle.ingredient_penalty_deadline = timezone.now() + INGREDIENT_PENALTY_WINDOW
+            battle.save(update_fields=[
+                "winner", "loser", "status", "ingredient_penalty_deadline", "updated_at",
+            ])
             create_battle_event(
                 battle=battle,
                 event_type=BattleEvent.EventType.BATTLE_STARTED,
@@ -2286,179 +2316,210 @@ def declare_menu(*, battle: Battle, chef, ingredients: list[dict]) -> list[Battl
     return created
 
 
-# ── Biathlon ─────────────────────────────────────────────────────────────────
+# ── Biathlon: the Stage 1 winner's three shots ───────────────────────────────
+#
+# T11, Owner ruling 2026-08-15. The rule, and what it replaced:
+#
+#   Both chefs lock exactly TWO ingredients BEFORE Stage 1 - they do it in the
+#   Changing Room, through declare_menu, as BattleIngredient.is_key. Stage 1
+#   (round combat) then decides one winner. ONLY that winner shoots, exactly
+#   THREE times, at the loser's declared list. The loser never shoots; his two
+#   blocks are the whole of his defence. A shot at a blocked ingredient bounces
+#   and reveals the block; a shot at an unblocked one removes it.
+#
+# What ran before this, and why it is gone: the LOSER placed two locks AFTER
+# he had already lost, on the raw text lines of his submitted recipe, and the
+# winner then shot at those same line numbers. Both halves were superseded at
+# once - the timing (his ruling: "there is no sequential 48-hour loser-lock
+# then winner-hit workflow") and the target. The locks already exist before
+# combat starts, on the declared menu, so IngredientLock and
+# place_ingredient_lock are deleted rather than rewired: a second lock concept
+# beside BattleIngredient.is_key is the duplicate mechanic the standards
+# forbid, and keeping both would leave two answers to "is this ingredient
+# protected".
 
-def recipe_source_ingredient_lines(recipe) -> list[dict]:
-    """Return non-empty recipe ingredients while preserving their source indices.
 
-    Locks, shots and declared menu ingredients persist the line number from the
-    original recipe text.  Never compact this sequence: blank lines must not
-    silently retarget an existing lock or shot.
+def loser_declared_ingredients(battle: Battle):
+    """The loser's declared menu, in declaration order — what the winner shoots at."""
+    if not battle.loser_id:
+        return BattleIngredient.objects.none()
+    return battle.battle_ingredients.filter(chef_id=battle.loser_id).order_by("position")
+
+
+def fire_ingredient_shot(*, battle: Battle, shooter, target_ingredient_id: int) -> IngredientShot:
+    """The Stage 1 winner fires one shot at a loser's declared ingredient.
+
+    Bounces off the two the loser marked key before the battle; otherwise the
+    ingredient is struck off the menu he will cook from.
     """
-    return [
-        {"index": index, "text": line.strip()}
-        for index, line in enumerate(recipe.ingredients.splitlines())
-        if line.strip()
-    ]
-
-
-def place_ingredient_lock(*, battle: Battle, chef, ingredient_index: int) -> IngredientLock:
-    """Loser places a hidden lock on one of their ingredient lines."""
-    if battle.status != Battle.Status.INGREDIENT_PENALTY:
-        raise ValueError("Locks can only be placed during the ingredient penalty phase.")
-    if chef is None:
-        raise ValueError("Only the loser can place ingredient locks.")
-    if battle.loser_id != chef.pk:
-        raise ValueError("Only the loser can place ingredient locks.")
-    loser_entry = battle.entries.filter(author=chef).select_related("recipe").first()
-    if not loser_entry or not loser_entry.recipe:
-        raise ValueError("No recipe found for this entry.")
-    ingredient_indices = {
-        line["index"] for line in recipe_source_ingredient_lines(loser_entry.recipe)
-    }
-    if ingredient_index not in ingredient_indices:
-        raise ValueError("Invalid ingredient index.")
-    # Count and create under the battle row lock. The unique constraint stops a
-    # second lock on the SAME ingredient, but nothing stopped two simultaneous
-    # requests on two different ingredients from both passing the count check
-    # and leaving the chef with more than MAX_LOCKS. Two locks is a rule of the
-    # game, not a hint.
-    with transaction.atomic():
-        # F63, 2026-08-11: the INGREDIENT_PENALTY check above ran against the
-        # caller's object, and this lock's own return value used to be
-        # discarded - a cooking approval or a cancel completing between the
-        # check and this lock meant a stale request could still create a
-        # lock and a public event on a battle already in COOKING/CANCELLED.
-        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
-        if locked_battle.status != Battle.Status.INGREDIENT_PENALTY:
-            raise ValueError("Locks can only be placed during the ingredient penalty phase.")
-        existing = locked_battle.ingredient_locks.filter(chef=chef).count()
-        if existing >= IngredientLock.MAX_LOCKS:
-            raise ValueError(f"You can only place {IngredientLock.MAX_LOCKS} locks.")
-        lock, created = IngredientLock.objects.get_or_create(
-            battle=battle, chef=chef, ingredient_index=ingredient_index
-        )
-        if not created:
-            raise ValueError("This ingredient is already locked.")
-    return lock
-
-
-def fire_ingredient_shot(*, battle: Battle, shooter, target_index: int) -> IngredientShot:
-    """Winner fires one shot at a loser's ingredient line. Bounces off locks."""
     if battle.status != Battle.Status.INGREDIENT_PENALTY:
         raise ValueError("Shots can only be fired during the ingredient penalty phase.")
     if shooter is None:
         raise ValueError("Only the winner can fire ingredient shots.")
     if battle.winner_id != shooter.pk:
         raise ValueError("Only the winner can fire ingredient shots.")
-    loser = battle.loser
-    if not loser:
+    if not battle.loser_id:
         raise ValueError("No loser found for this battle.")
-    loser_entry = battle.entries.filter(author=loser).select_related("recipe").first()
-    if not loser_entry or not loser_entry.recipe:
-        raise ValueError("No loser recipe found.")
-    ingredients = {
-        line["index"]: line["text"]
-        for line in recipe_source_ingredient_lines(loser_entry.recipe)
-    }
-    if target_index not in ingredients:
-        raise ValueError("Invalid ingredient index.")
+
     # Count and fire under the battle row lock. IngredientShot carries no unique
     # constraint of any kind, so the count check was the only thing limiting a
     # chef to MAX_SHOTS — and two simultaneous requests both passed it. Three
     # shots is a rule of the game.
     with transaction.atomic():
-        # F63, 2026-08-11: same fix as place_ingredient_lock above - the
-        # INGREDIENT_PENALTY check ran against the caller's object, and this
-        # lock's own return value used to be discarded.
+        # F63, 2026-08-11: the INGREDIENT_PENALTY check above ran against the
+        # caller's object, and this lock's own return value used to be
+        # discarded - a cooking approval or a cancel completing between the
+        # check and this lock meant a stale request could still fire a shot
+        # and post a public event on a battle already in COOKING/CANCELLED.
         locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
         if locked_battle.status != Battle.Status.INGREDIENT_PENALTY:
             raise ValueError("Shots can only be fired during the ingredient penalty phase.")
         existing_shots = locked_battle.ingredient_shots.filter(shooter=shooter).count()
         if existing_shots >= IngredientShot.MAX_SHOTS:
             raise ValueError(f"You can only fire {IngredientShot.MAX_SHOTS} shots.")
-        locked_indices = set(
-            battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True)
+
+        # The target is re-read under the battle lock, and scoped to the
+        # LOSER's own declared list: a winner cannot shoot at his own menu, at
+        # another battle's rows, or at an ingredient round combat already
+        # removed. Unlike combat's own target query this deliberately DOES
+        # admit is_key rows — bouncing off one, and revealing it, is the point.
+        target = (
+            locked_battle.battle_ingredients
+            .select_for_update()
+            .filter(pk=target_ingredient_id, chef_id=locked_battle.loser_id, is_eliminated=False)
+            .first()
         )
-        bounced = target_index in locked_indices
+        if target is None:
+            raise ValueError("That is not an ingredient you can shoot at.")
+        if locked_battle.ingredient_shots.filter(target_ingredient=target).exists():
+            raise ValueError("You have already fired at that ingredient.")
+
+        bounced = target.is_key
+        if not bounced:
+            eliminate_ingredient(target.pk, by=shooter)
+
         shot = IngredientShot.objects.create(
-            battle=battle,
+            battle=locked_battle,
             shooter=shooter,
-            target_index=target_index,
+            target_ingredient=target,
             bounced=bounced,
         )
-        _post_biathlon_event(battle, shot, ingredients[target_index], bounced)
+        _post_biathlon_event(locked_battle, shot, target.name, bounced)
     return shot
 
 
 def _post_biathlon_event(battle: Battle, shot: IngredientShot, ingredient_name: str, bounced: bool) -> None:
     if bounced:
-        message = f"{battle.winner.name}'s shot at '{ingredient_name}' bounced off a lock."
+        message = f"{battle.winner.name}'s shot at '{ingredient_name}' bounced off a block."
     else:
         message = f"{battle.winner.name}'s shot hit '{ingredient_name}'."
     create_battle_event(battle=battle, event_type=BattleEvent.EventType.BATTLE_STARTED, message=message, actor=battle.winner, is_public=True)
 
 
 def get_biathlon_state(battle: Battle) -> dict:
-    """Return the full biathlon state for the template."""
+    """Return the full biathlon state for the template.
+
+    T11: there is no loser-locking step left to report on - the blocks were
+    placed at declare_menu, before Stage 1 - so the state is the loser's
+    declared list, which of it has been shot at, and how each shot landed.
+    `blocked_ids` carries ONLY blocks a shot has already bounced off: a block
+    nobody has fired at stays hidden, which is what "reveal each targeted lock
+    when it is hit" means.
+    """
     if battle.status != Battle.Status.INGREDIENT_PENALTY:
         return {}
     loser = battle.loser
     winner = battle.winner
-    loser_entry = battle.entries.filter(author=loser).select_related("recipe").first() if loser else None
-    ingredients = []
-    if loser_entry and loser_entry.recipe:
-        ingredients = recipe_source_ingredient_lines(loser_entry.recipe)
-    locks = list(battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True))
-    shots = list(battle.ingredient_shots.filter(shooter=winner).values("target_index", "bounced", "fired_at"))
-    shot_indices = {s["target_index"] for s in shots}
-    loser_locked_own = list(battle.ingredient_locks.filter(chef=loser).values_list("ingredient_index", flat=True))
-    locks_placed = len(loser_locked_own)
+    ingredients = list(loser_declared_ingredients(battle))
+    shots = list(
+        battle.ingredient_shots
+        .filter(shooter=winner)
+        .values("target_ingredient_id", "bounced", "fired_at")
+    ) if winner else []
+    shot_ids = {s["target_ingredient_id"] for s in shots}
+    blocked_ids = {s["target_ingredient_id"] for s in shots if s["bounced"]}
+    hit_ids = {s["target_ingredient_id"] for s in shots if not s["bounced"]}
     shots_fired = len(shots)
-    loser_locks_done = locks_placed >= IngredientLock.MAX_LOCKS
-    winner_shots_done = shots_fired >= IngredientShot.MAX_SHOTS
     return {
         "ingredients": ingredients,
-        "locks": locks,
         "shots": shots,
-        "shot_indices": shot_indices,
-        "locks_placed": locks_placed,
+        "shot_ids": shot_ids,
+        "blocked_ids": blocked_ids,
+        "hit_ids": hit_ids,
         "shots_fired": shots_fired,
-        "max_locks": IngredientLock.MAX_LOCKS,
         "max_shots": IngredientShot.MAX_SHOTS,
-        "loser_locks_done": loser_locks_done,
-        "winner_shots_done": winner_shots_done,
+        "winner_shots_done": shots_fired >= IngredientShot.MAX_SHOTS,
+        "deadline": battle.ingredient_penalty_deadline,
         "loser": loser,
         "winner": winner,
     }
 
 
+def sweep_ingredient_penalty_deadlines() -> int:
+    """Advance battles whose winner never fired his three shots.
+
+    T11: the shot window is fifteen minutes (INGREDIENT_PENALTY_WINDOW). A
+    winner who closes the tab must not be able to hold his opponent's battle
+    open, so the phase ends on the clock with however many shots were fired -
+    including none. Same shape as resolve_start_rituals and
+    handle_no_show_battles: collect ids unlocked, then lock and re-verify each
+    one before acting on it.
+
+    Distinct from void_stalled_battles(), which also watches this status but
+    only fires at the whole battle's end_time, days away, and CANCELS rather
+    than advances. This one ends a phase; that one buries a battle.
+    """
+    now = timezone.now()
+    battle_ids = list(
+        Battle.objects
+        .filter(
+            status=Battle.Status.INGREDIENT_PENALTY,
+            ingredient_penalty_deadline__lte=now,
+        )
+        .values_list("pk", flat=True)
+    )
+    count = 0
+    for battle_id in battle_ids:
+        with transaction.atomic():
+            battle = _locked_battle(battle_id, expected_status=None)
+            if battle.status != Battle.Status.INGREDIENT_PENALTY:
+                continue
+            if not battle.ingredient_penalty_deadline or battle.ingredient_penalty_deadline > now:
+                continue
+            fired = battle.ingredient_shots.count()
+            create_battle_event(
+                battle=battle,
+                event_type=BattleEvent.EventType.BATTLE_STARTED,
+                message=(
+                    f"The biathlon window closed with {fired} of "
+                    f"{IngredientShot.MAX_SHOTS} shots fired. Cooking begins."
+                ),
+                is_public=True,
+            )
+            approve_cooking_phase(battle, moderator=None)
+            count += 1
+    return count
+
+
 # ── Cooking phase moderation ──────────────────────────────────────────────────
 
 def get_surviving_ingredients(battle: Battle, chef) -> list:
-    """Compute which of a chef's recipe ingredients survive the biathlon.
+    """The declared ingredients a chef still has to cook with.
 
-    For the loser: removes lines hit by non-bouncing shots.
-    For the winner: returns the full ingredient list unchanged.
-    Returns an empty list if no recipe entry is found.
+    T11, 2026-08-15: sourced from BattleIngredient.is_eliminated for BOTH
+    chefs. It used to read the loser's RECIPE TEXT and filter it by
+    non-bouncing IngredientShot rows, which was wrong twice over: it ignored
+    the declared menu the fight was actually fought over, and it returned the
+    winner's list completely unfiltered - so ingredients round combat had
+    struck off the WINNER's menu (combat eliminates on either side, and always
+    has) came back for the cooking phase. One field, both chefs, one query.
     """
-    entry = (
-        battle.entries
-        .filter(author=chef)
-        .select_related("recipe")
-        .first()
-    )
-    if not entry or not entry.recipe:
-        return []
-    all_ingredients = recipe_source_ingredient_lines(entry.recipe)
-    if battle.loser and chef.pk == battle.loser.pk:
-        eliminated = set(
-            battle.ingredient_shots
-            .filter(bounced=False)
-            .values_list("target_index", flat=True)
-        )
-        return [line["text"] for line in all_ingredients if line["index"] not in eliminated]
-    return [line["text"] for line in all_ingredients]
+    return [
+        ingredient.name
+        for ingredient in battle.battle_ingredients
+        .filter(chef=chef, is_eliminated=False)
+        .order_by("position")
+    ]
 
 
 def approve_cooking_phase(battle: Battle, moderator) -> Battle:
@@ -2645,8 +2706,8 @@ def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: 
     photo.seek(0)
     with transaction.atomic():
         # F69, 2026-08-12: every sibling function in this phase (declare_menu,
-        # place_ingredient_lock, fire_ingredient_shot, approve_cooking_phase)
-        # locks the battle row and rechecks status under it; this one never
+        # fire_ingredient_shot, approve_cooking_phase) locks the battle row
+        # and rechecks status under it; this one never
         # did. A moderator voiding/cancelling the battle in the same window
         # this chef's upload was in flight would have let the photo attach to
         # a battle no longer live for it.

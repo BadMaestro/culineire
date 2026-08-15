@@ -45,19 +45,45 @@ declared → accepted → menu_locked → active (combat) → ingredient_penalty
 - Combat continues for the declared number of rounds or until energy runs out
 
 ## Phase 5 — Ingredient Penalty (`ingredient_penalty`)
-- Triggered automatically when combat ends
-- Applies only when there is a winner (not a draw — winner determined later,
-  so this phase runs after voting; see note below*)
-- **Loser** places 2 locks on their recipe ingredients (48h deadline)
-- **Winner** strikes 3 ingredients from loser's recipe (48h after loser locks)
-  - Locked → blocked, ingredient survives
-  - Unlocked → banned, loser must replace in submitted recipe
-- **Loser** updates recipe with replacements (72h deadline)
 
-*Note: winner is determined by audience vote in Phase 7. The ingredient
-penalty phase therefore runs AFTER voting completes. Sequence:
-combat ends → cooking → presentation → voting → winner known →
-ingredient penalty applied.
+**Rewritten 2026-08-15 (T11) to describe what actually runs.** This section
+carried two claims that were both wrong, and the second one had the phase
+order backwards.
+
+- Triggered automatically the moment combat ends, by `_resolve_round` — the
+  same write that records the Stage 1 winner and loser.
+- **The two blocks were already placed, before Stage 1.** Both chefs mark
+  exactly two of their declared ingredients as key in the Changing Room
+  (`declare_menu`, `BattleIngredient.is_key`, `KEY_COUNT = 2`). They are
+  hidden from the opponent and cannot be changed once declared.
+- **Only the Stage 1 winner shoots**, exactly three times, at the loser's
+  declared list:
+  - a shot at one of the loser's two blocks **bounces**, the block is revealed
+    by that bounce, and the ingredient survives;
+  - a shot at anything else **strikes the ingredient off** the menu the loser
+    will cook from.
+- **The loser never shoots.** His two blocks are the whole of his defence.
+- **Fifteen minutes** (`INGREDIENT_PENALTY_WINDOW`), then
+  `sweep_ingredient_penalty_deadlines()` advances the battle to Cooking with
+  however many shots were actually fired. A winner who walks away cannot hold
+  his opponent's battle open.
+
+**On the phase order.** This section used to say the penalty runs *after*
+voting, because the winner is decided by the audience. That is not what the
+code does and never was: `_resolve_round` sets `winner`/`loser` from COMBAT
+when the hit cap is reached, and moves the battle straight to
+`ingredient_penalty`. The audience vote later decides the BATTLE's winner and
+overwrites those same two fields. The real sequence is:
+
+```
+combat ends (Stage 1 winner known) → ingredient penalty → cooking →
+presentation → voting → battle winner known
+```
+
+Superseded and named so nobody restores it: there is no post-result lock
+placement, no sequential 48-hour loser-lock-then-winner-hit workflow, and no
+72-hour recipe-replacement step. The Owner's ruling of 2026-08-15 replaced all
+three; see `ingredient_combat.md`.
 
 ## Phase 6 — Cooking (`cooking`)
 - Each chef prepares their dish using only surviving (non-eliminated) ingredients

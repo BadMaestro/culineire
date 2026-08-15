@@ -18,13 +18,13 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import (
-    Battle, BattleEntry, BattleVote, ChefBattleProfile,
-    IngredientLock, IngredientShot,
+    Battle, BattleEntry, BattleIngredient, BattleVote, ChefBattleProfile,
+    IngredientShot,
 )
 from .services import (
     OperatorActionError, _operator_event, _require_owner,
-    approve_cooking_phase, fire_ingredient_shot, place_ingredient_lock,
-    reveal_entries_if_ready, submit_battle_entry, submit_combat_action,
+    approve_cooking_phase, declare_menu, fire_ingredient_shot,
+    submit_battle_entry, submit_combat_action,
     submit_cooked_photo, calculate_battle_result,
 )
 
@@ -186,6 +186,16 @@ def emulation_step(*, battle_id, operator_author, correlation_id="") -> dict:
 
     elif before == Battle.Status.MENU_LOCKED:
         tag = f"{battle.pk}"
+        # T11, 2026-08-15: THE EMULATOR NOW REALLY DECLARES THE MENUS. Its own
+        # note has always said "menus declared" and it never declared one -
+        # it submitted entries and moved on, so an emulated battle reached the
+        # biathlon with no BattleIngredient rows at all. That was invisible
+        # while the biathlon shot at raw recipe TEXT lines; it is fatal now
+        # that the winner shoots at the loser's declared list, and it is why
+        # production carried five old lock/shot rows against zero declared
+        # ingredients. Each bot declares the same six ingredients with the
+        # first two marked key - both chefs, exactly KEY_COUNT, before Stage 1,
+        # which is the rule declare_menu itself enforces.
         for bot in (alpha, beta):
             if not battle.entries.filter(author=bot).exists():
                 submit_battle_entry(
@@ -193,9 +203,29 @@ def emulation_step(*, battle_id, operator_author, correlation_id="") -> dict:
                     recipe=_bot_recipe(bot, tag),
                     battle_statement=f"{bot.name} enters the emulation.",
                 )
-        reveal_entries_if_ready(battle)
-        battle.refresh_from_db()
-        detail = {"note": "menus declared and revealed, combat begins"}
+        # declare_menu is what carries MENU_LOCKED -> ACTIVE, and it must run
+        # while the battle is still MENU_LOCKED, so it goes after the entries
+        # exist and before anything else touches the status.
+        #
+        # reveal_entries_if_ready is NOT called here any more, and that is the
+        # whole reason this step is ordered rather than incidental: it used to
+        # be what advanced MENU_LOCKED -> ACTIVE when no menu was ever
+        # declared. Now that declare_menu does that, calling reveal on an
+        # ACTIVE battle whose entries already carry dish_submitted_at would
+        # take the OTHER branch and jump straight to VOTING - skipping combat,
+        # the biathlon and cooking entirely. The real flow reveals when the
+        # battle leaves ACTIVE for VOTING, and so does the emulator now.
+        for bot in (alpha, beta):
+            if not battle.battle_ingredients.filter(chef=bot).exists():
+                declare_menu(
+                    battle=battle, chef=bot,
+                    ingredients=[
+                        {"name": name, "is_key": index < BattleIngredient.KEY_COUNT}
+                        for index, name in enumerate(EMU_INGREDIENTS)
+                    ],
+                )
+                battle.refresh_from_db()
+        detail = {"note": "both menus declared (two blocks each), combat begins"}
 
     elif before == Battle.Status.ACTIVE:
         rounds = 0
@@ -215,28 +245,29 @@ def emulation_step(*, battle_id, operator_author, correlation_id="") -> dict:
         }
 
     elif before == Battle.Status.INGREDIENT_PENALTY:
+        # T11: no locking step - both bots blocked two ingredients back at
+        # declare_menu. Only the Stage 1 winner shoots, at the loser's own
+        # declared list, and a shot at one of his two blocks bounces.
         loser, winner = battle.loser, battle.winner
-        n = len(EMU_INGREDIENTS)
-        lock_indices = random.sample(range(n), IngredientLock.MAX_LOCKS)
-        for idx in lock_indices:
-            if battle.ingredient_locks.filter(chef=loser).count() >= IngredientLock.MAX_LOCKS:
-                break
-            try:
-                place_ingredient_lock(battle=battle, chef=loser, ingredient_index=idx)
-            except ValueError:
-                pass
+        targets = list(
+            battle.battle_ingredients.filter(chef=loser, is_eliminated=False)
+            .order_by("position").values_list("pk", flat=True)
+        )
+        random.shuffle(targets)
         shots = 0
-        for idx in random.sample(range(n), n):
+        for target_id in targets:
             if shots >= IngredientShot.MAX_SHOTS:
                 break
             try:
-                fire_ingredient_shot(battle=battle, shooter=winner, target_index=idx)
+                fire_ingredient_shot(
+                    battle=battle, shooter=winner, target_ingredient_id=target_id,
+                )
                 shots += 1
             except ValueError:
                 pass
         approve_cooking_phase(battle, operator_author)
         battle.refresh_from_db()
-        detail = {"note": "biathlon played (locks + shots), cooking approved"}
+        detail = {"note": f"biathlon played ({shots} shots fired), cooking approved"}
 
     elif before == Battle.Status.COOKING:
         from .services import operator_moderate_entry
