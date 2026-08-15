@@ -4602,6 +4602,39 @@ ARENA_DESIGN_TASKS = [
         "forbidden": "Do not weaken the age, token or legal gates to fit them into a popup.",
         "evidence": "SHIPPED. NO FRESH OWNER DECISION NEEDED: ARENA_BATTLE_PLAN.md section 2c (Owner, 2026-08-06) already names this exact popup - ArenaBattleRoom, arena_render.js, stageCentre.popup_url, the same identifiers found live in code - a placeholder whose target is a page, and explicitly forbids it growing broadcast content ('does NOT grow a second copy of the broadcast'). Chat/voting/gifts are exactly that content, and B01-B03 (the real destination page) are already DONE. This is 'stop paying for what is discarded', not a fresh decision. arena_battle_popup() no longer builds recent_chat (a 20-row query), can_vote/has_voted (a BattleVote query), appreciation_gifts, or viewer_token_balance (a TokenWallet query) - none of the four ever reached the template. Context is now exactly the seven keys the template reads. Two new focused tests prove a live battle still renders correctly and the empty state still renders; the one existing test on this view (dark-launch 404) is unaffected.",
     },
+    {
+        "id": "AA3", "group": "Arena audit 2026-08-15", "title": "Switched-off test chefs leaked through six sinks, one of them site-wide",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "chef_battle/views.py (_hidden_bot_slugs, _build_arena_payload, _arena_center, _arena_latest_result); chef_battle/selectors.py (_hidden_bot_slugs, get_crown_streak, get_recent_battle_gifts, get_starting_battle_blast)",
+        "depends_on": "none",
+        "action": "Apply the emulation-bot switch at every public arena read, not only at the ring query and the crown ladder.",
+        "visible_result": "With the switch off, a test chef cannot hold the centre stage, cannot appear as crown holder, cannot feed the crown streak, cannot show in Recent Battle Gifts, and cannot fire either the win celebration or the starting-soon blast - the last two of which appear on every page of the site.",
+        "acceptance": "One test per sink proving the bot is absent with the switch off, plus one proving all six answer the other way with ARENA_SHOW_EMULATION_BOTS=True, so the gate is a switch and not a permanent hide.",
+        "forbidden": "Do not gate get_active_battles() itself - it is shared with battle_home(), the public battle listing, which is not asked to hide anything.",
+        "evidence": "SHIPPED v2.5.1062. Found by the full Arena audit the Owner ordered on 2026-08-15. The switch's own documented intent is 'off means off everywhere on the page' and it was true of two reads out of eight. The two blast paths are the serious ones: arena_blast() feeds sitewide_blast.js on EVERY page, so a completed rehearsal bout between the two EMU_CHEFS could fire a site-wide winner celebration naming a test chef, anywhere a visitor was browsing, with the floor already clear of him. 13 new tests, 8 of which fail on the pre-fix code.",
+    },
+    {
+        "id": "AA4", "group": "Arena audit 2026-08-15", "title": "The broadcast page had no way in - five DONE cards with no entrance",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "static/js/arena_render.js (centre click); chef_battle/views.py (arena_battle_popup); templates/chef_battle/arena_battle_popup.html",
+        "depends_on": "none",
+        "action": "Make the centre click navigate to battle_broadcast as section 2c requires, and point the popup's own 'Open full-screen Battle Room' link at the broadcast page instead of the antechamber.",
+        "visible_result": "Clicking the centre of the arena during a live battle takes the spectator to the battle's own broadcast page, which until now could only be reached by typing its URL.",
+        "acceptance": "The renderer's click path asserted from source; the popup footer's href asserted against a live battle, with the antechamber URL explicitly excluded.",
+        "forbidden": "Do not re-add to the popup anything AA2 removed from it.",
+        "evidence": "SHIPPED v2.5.1062. Section 2c (Owner, 2026-08-06) calls the popup a placeholder and the page the target; B01-B03/R01-R02 built that page and were all marked DONE. The centre click nevertheless still opened the popup - battle_url, described in the code as 'the link the centre cell carries', was only ever used as a fallback for a missing DOM or a thrown fetch. The popup's own footer link resolved battle.get_absolute_url(), which is battle_detail, the antechamber. So the broadcast page was reachable only by typing the URL or by causing a network error.",
+    },
+    {
+        "id": "AA5", "group": "Arena audit 2026-08-15", "title": "Three arena endpoints have an inert or missing rate limit",
+        "status": "PENDING", "owner": "unassigned",
+        "files": "chef_battle/views.py (arena_take_seat, arena_ping, arena_battle_popup)",
+        "depends_on": "none",
+        "action": "arena_take_seat decorates @ratelimit(block=False) and never reads request.limited, so the limit does nothing - arena_state does exactly this correctly two functions away. arena_ping and arena_battle_popup carry no limit at all, and the popup is anonymous-reachable and runs several queries per call.",
+        "visible_result": "Nothing on screen. Three endpoints stop being unlimited.",
+        "acceptance": "A test per endpoint proving the limit engages, matching arena_state's existing pattern of returning 429 rather than raising.",
+        "forbidden": "Do not add a limit so tight that the arena's own 10s poll or 20s ping trips it.",
+        "evidence": "Found by the full Arena audit 2026-08-15 and verified by reading the three views; not fixed in v2.5.1062, which was scoped to the bot leak and the broadcast route. Flagged to Bolt on the Carpet so it is not lost between us.",
+    },
 ]
 
 
@@ -4709,7 +4742,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "PENDING source / production v2.5.1060",
+        "commit": "335717f5 / production v2.5.1062",
         "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
                         "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
                         "number is measured and was CORRECTED on 2026-08-05 "
