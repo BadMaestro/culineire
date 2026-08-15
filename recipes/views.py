@@ -4786,7 +4786,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "b06b2007 / production v2.5.1075",
+        "commit": "b06b2007 / production v2.5.1078",
         "verification": "Stage 2 is CLOSED - the Owner signed off G01 on 2026-08-10 and every "
                         "card A00 through G01 is DONE and deployed. (T15, 2026-08-15: this line "
                         "opened by confirming a production version that was 242 releases "
@@ -4831,16 +4831,33 @@ ARENA_RELEASE_STAGES = [
                      "legal/payment gate (real Stripe token purchases) are DEFERRED TO THIS STAGE "
                      "on his explicit word - not to be worked before it. See "
                      "docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md.",
+                     "OWNER, 2026-08-16, SUPERSEDES THE LINE ABOVE FOR PAYMENTS: 'Stripe is not "
+                     "being done at all for now.' The section-14 legal/payment gate is DEFERRED "
+                     "AGAIN, out of this stage's working set entirely. It is not cancelled and it "
+                     "is not an agent's to restart: AGENTS.md section 8 keeps payment, payout, "
+                     "Stripe and legal outside every standing authorisation, so this waits for his "
+                     "explicit word and nothing else.",
+                     "CONSEQUENCE, stated rather than left for someone to discover: with payments "
+                     "deferred and Mobile Arena frozen (this plan, 'not a blocker for this desktop "
+                     "plan'), the ONLY work item still named in this stage is A18's two "
+                     "accessibility gaps. The Owner dismissed them in conversation on 2026-08-16 "
+                     "and Bolt withdrew them, but he issued NO ruling, so the criterion above "
+                     "stands exactly as written and no agent starts them without his word. "
+                     "Everything else this stage is waiting for is his: whether the Arena launches "
+                     "without real-money token purchases, and then his release approval.",
                      "Owner grants explicit release approval."],
         "dependencies": "Stage 2 A00-G01 complete.",
         "blockers": [],
         "branch": "Not approved", "commit": "Not approved",
         "verification": "OWNER, 2026-08-10: G01 signed off. Stage started on his word.",
         "updated": "2026-08-10T00:00:00.000Z",
-        "next_action": "A18's two gaps and G01's section 14 legal/payment gate are this stage's "
-                       "opening items. Full production release still needs the Owner's separate, "
-                       "explicit release approval - his G01 sign-off starts this stage, it is not "
-                       "that approval.",
+        "next_action": "NOTHING IS ASSIGNABLE HERE WITHOUT HIM. Payments are deferred by the Owner "
+                       "(2026-08-16) and Mobile Arena is frozen; A18's two gaps are the only work "
+                       "item still named, and they need his word. The stage is waiting on him: first "
+                       "whether the Arena launches without real-money token purchases, then his "
+                       "separate explicit release approval - his G01 sign-off started this stage "
+                       "and is not that approval. The only NEXT card on the board is T22, which "
+                       "is not a launch blocker.",
     },
 ]
 

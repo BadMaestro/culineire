@@ -4,7 +4,22 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-16 · Production baseline: **v2.5.1075**
+Last reconciled: 2026-08-16 · Production baseline: **v2.5.1078**
+
+## Owner ruling, 2026-08-16 — Stripe is not being worked
+
+His words, verbatim: "страйп пока не делаем вообще".
+The contract section-14 legal/payment gate
+leaves Stage 3's working set entirely. **Deferred, not cancelled**, and not an
+agent's to restart: AGENTS.md section 8 keeps payment, payout, Stripe and legal
+outside every standing authorisation this project has granted, so it waits on
+his explicit word and nothing else.
+
+With payments deferred and Mobile Arena frozen, the only work item still named
+in Stage 3 is A18's two accessibility gaps — and he issued no ruling on those,
+so their criterion stands as written. Everything else the stage waits for is
+his: whether the Arena launches without real-money token purchases, and then his
+release approval.
 
 ## T17 — the acceptance gate closed, and with it the 2026-08-12 brief — 2026-08-16
 
