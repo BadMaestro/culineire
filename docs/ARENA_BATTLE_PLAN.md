@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-16 · Production baseline: **v2.5.1072**
+Last reconciled: 2026-08-16 · Production baseline: **v2.5.1075**
 
 ## T17 — the acceptance gate closed, and with it the 2026-08-12 brief — 2026-08-16
 
@@ -72,7 +72,11 @@ last package.
 - T18 does not yet implement the separate Owner-avatar contract: GreenBear may
   appear and join clans/alliances cosmetically, adds only a clan reputation
   blessing, and must be excluded from challenges, battles and every competitive
-  aggregate. Record/build that invariant separately rather than expanding T18.
+  aggregate. **RECORDED as card T22 on the Owner's instruction, 2026-08-16.**
+  It is the board's only NEXT card and it is unassigned - the Owner assigns it.
+  The protective half is already in (`is_immortal()` at the penalty, the rank
+  demotion and the refusal charge); the exclusion half is not, and T22 cites the
+  three gaps by call site.
 
 **OWNER BRIEF, 2026-08-12 — seventeen tickets, T01–T17, on the board and mine
 alone.** Delivered on the Carpet as message #3509 and dispatched by him with
