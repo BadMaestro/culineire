@@ -1,0 +1,5 @@
+agent: Bolt
+started_utc: 2026-08-16T00:20Z
+version: 2.5.1074
+commit: pending
+task: T17 acceptance gate - the full suite and the browser smoke, over both agents' work
