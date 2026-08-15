@@ -1,0 +1,5 @@
+agent: GreenBear
+started_utc: 2026-08-15T20:35Z
+version: 2.5.1044
+commit: pending
+task: Arena full close-out package 1 - emulation bot leak (6 sinks) + orphaned broadcast route
