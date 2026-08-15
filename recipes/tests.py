@@ -493,6 +493,37 @@ class ModerationPanelRoleTests(TestCase):
             f"ARENA_BATTLE_PLAN baseline is v{baseline.group(1)}, footer is v{shipped}",
         )
 
+    def test_no_stage_claims_a_current_production_version_in_free_prose(self):
+        """T15, 2026-08-15: the cheap consistency guard the card asked for.
+
+        The test above pins the two fields that are SUPPOSED to carry the
+        live version - the stage's `commit` and the plan's baseline line -
+        against the footer, every run. The drift T15 cleaned up was in free
+        prose nothing looked at: `verification` opened "Production v2.5.823
+        confirmed" and stayed there for 242 releases.
+
+        It bans the CLAIM, not the number. "shipped as v2.5.792 and was
+        reverted in v2.5.793" is history and stays true forever; "production
+        is v2.5.823" was true for about an hour. Only the second shape rots,
+        so only the second shape is refused.
+        """
+        import re
+        from recipes.views import ARENA_RELEASE_STAGES
+
+        claim = re.compile(r"production\s+(?:is\s+|at\s+)?v?2\.5\.[0-9]+", re.IGNORECASE)
+        offenders = []
+        for stage in ARENA_RELEASE_STAGES:
+            for field in ("verification", "purpose", "next_action", "owners"):
+                for found in claim.findall(stage.get(field) or ""):
+                    offenders.append(f"{stage['id']}.{field}: {found!r}")
+
+        self.assertEqual(
+            offenders, [],
+            "These stage fields state a CURRENT production version in prose "
+            "nothing verifies; the checked ones are `commit` and the plan's "
+            "baseline line: " + "; ".join(offenders),
+        )
+
     def test_moderation_panel_links_to_deployment_journal(self):
         self.client.force_login(self.owner)
 

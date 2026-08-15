@@ -4505,14 +4505,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T15", "group": "Technical Tails (Owner brief 2026-08-12)", "title": "The board and the rulebook say what the code actually does",
-        "status": "PENDING", "owner": "GreenBear",
+        "status": "DONE", "owner": "Bolt",
         "files": "recipes/views.py (ARENA_RELEASE_STAGES); docs/chef_battle/artifact_3_models_rules.md; AGENTS.md-adjacent docs",
         "depends_on": "none",
         "action": "Remove the stale v2.5.823, the stale 'A09 next assignable' and the stale 2026-07-29 verification from the moderation board; show Stage 2 closed and the real baseline; correct the 24h battle window to 48h or mark it superseded; write down that CHEF_BATTLE_ENABLED is a one-way launch latch and that F65 is REVIEWED, NOT A BUG.",
         "visible_result": "The moderation board stops advertising a version and a next card that have not been true for weeks.",
         "acceptance": "Consistency tests where they are cheap, so the literal versions and rules cannot drift apart again.",
         "forbidden": "Do not turn the launch latch into an emergency kill switch without the Owner's decision.",
-        "evidence": "Owner brief 2026-08-12, ticket 15, and his ruling that the flag never returns to False after launch.",
+        "evidence": "SHIPPED. Four corrections. (1) The stage-2 verification line opened by confirming a production version 242 releases behind the footer AND named A09 as the next assignable card while A09's own row two fields away had read DONE for days - a board contradicting itself in one screen. It now states plainly that Stage 2 closed on the Owner's G01 sign-off of 2026-08-10. The A06 measurement paragraph underneath it is NOT stale and is kept verbatim. (2) last_verified was stuck on 2026-07-29 for seventeen days; set to the date this actually ran, and deliberately NOT switched to timezone.now() - a self-updating field would claim fresh verification on every page load while nothing was verified, replacing an honest staleness with a dishonest freshness. (3) artifact_3_models_rules.md said the submission deadline is 24 hours after acceptance/start; the code has said 48 hours after the START since accept_challenge was written, and since T19 acceptance opens a separate 48-hour preparation window first, so both halves of that sentence were wrong. The unrelated 24-hour CROWN duration in the same file is correct and untouched. (4) The one-way launch latch and F65-is-not-a-bug are now written where an implementer looks for rules, as a pointer to ARENA_BATTLE_PLAN rather than a second copy of his words. NEW CONSISTENCY TEST, which the card asked for: no stage may state a CURRENT production version in free prose that nothing verifies. It bans the claim, not the number - 'shipped as v2.5.792 and reverted in v2.5.793' is history and stays true forever, 'production is v2.5.823' was true for an hour. It caught my own explanatory quote of the stale line on the first run, which is the test working. AGENTS.md itself was NOT edited: the latch already lives in ARENA_BATTLE_PLAN, one of its own listed active documents, and section 13 reserves the constitution for Owner-approved amendments.",
     },
     {
         "id": "T16", "group": "Technical Tails (Owner brief 2026-08-12)", "title": "Remove the unreachable guide page and the orphan wordmark",
@@ -4776,9 +4776,17 @@ ARENA_RELEASE_STAGES = [
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
         "commit": "335717f5 / production v2.5.1068",
-        "verification": "Production v2.5.823 confirmed. A00-A08, AR0-AR5, A11 and A12 are DONE "
-                        "and deployed; A09 is the next assignable card and it is UNASSIGNED. Its "
-                        "number is measured and was CORRECTED on 2026-08-05 "
+        "verification": "Stage 2 is CLOSED - the Owner signed off G01 on 2026-08-10 and every "
+                        "card A00 through G01 is DONE and deployed. (T15, 2026-08-15: this line "
+                        "opened by confirming a production version that was 242 releases "
+                        "stale, and named A09 as the next "
+                        "assignable card while A09's own row had read DONE for days - a board "
+                        "contradicting itself two fields apart, and the stale version was 242 "
+                        "releases behind the footer. The live baseline is the 'commit' field "
+                        "above, which the drift guard in ModerationPanelRoleTests pins against "
+                        "the footer on every run; it is not restated here, where nothing checks "
+                        "it.) The A06 measurement below is NOT stale and is kept: it was "
+                        "CORRECTED on 2026-08-05 "
                         "(ops/audits/arena/A06_remeasure_2026-08-04.md section 6a): the fighters "
                         "are TWO blocks, 190x212, centred at x 700 and x 1220 - exactly 260px "
                         "either side of the 1920 canvas centre, symmetric to the pixel. The "
@@ -4851,7 +4859,14 @@ def _arena_build_context():
         "active_stage": next(s for s in ARENA_RELEASE_STAGES if s["status"] == "IN PROGRESS"),
         "blocker_count": sum(len(s["blockers"]) for s in ARENA_RELEASE_STAGES),
         "release_readiness": "NOT READY",
-        "last_verified": "2026-07-29T12:30:00.000Z",
+        # T15, 2026-08-15: hand-set, and deliberately NOT timezone.now(). It
+        # read 2026-07-29 for seventeen days because nobody updated it, which
+        # is the honest failure of a hand-set field. Computing it per request
+        # would replace that with a dishonest one: the board would claim fresh
+        # verification on every page load while nothing was verified. Set it
+        # when a human actually verifies the board, and let it go stale
+        # visibly when they do not.
+        "last_verified": "2026-08-15T21:00:00.000Z",
         "design_task_total": len(ARENA_DESIGN_TASKS),
         "design_task_done_count": sum(
             task["status"] == "DONE" for task in ARENA_DESIGN_TASKS

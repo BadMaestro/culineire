@@ -4,6 +4,21 @@
 
 This document defines the core data structure, lifecycle statuses and business rules for the Chef’s Battle system.
 
+## Two Owner rulings that bind everything below (T15, 2026-08-15)
+
+Recorded here because this document is where an implementer looks for the
+rules, and both were being re-litigated from other files. The full text and
+his own words are in `docs/ARENA_BATTLE_PLAN.md`; this is a pointer, not a
+second copy.
+
+- **`CHEF_BATTLE_ENABLED` is a ONE-WAY LAUNCH LATCH.** False until launch,
+  True after it, and never back. Nothing is designed around switching it off
+  again — no drain path, no cache-tail behaviour after a hypothetical
+  switch-off, no "what if it is turned off mid-battle".
+- **F65 is REVIEWED, NOT A BUG.** It reported public Arena promo appearing
+  once the flag goes on. That is correct behaviour, not a defect, and it
+  follows from the latch above.
+
 ---
 
 # 1. Core model map
@@ -121,7 +136,7 @@ Main public duel entity after challenge acceptance.
 | ---------------------------------- | -------------------------------------------------------- |
 | Created from accepted challenge    | Battle should normally originate from `BattleChallenge`. |
 | Two participants only in MVP       | Group battles can come later.                            |
-| Submission deadline required       | Default MVP: 24 hours after acceptance/start.            |
+| Submission deadline required       | **48 hours after the battle STARTS** (`accept_challenge`), not 24, and not from acceptance - acceptance opens a separate 48-hour preparation window first (T19). Corrected 2026-08-15 (T15); the 24 was never what the code did. |
 | Voting deadline required           | Voting window should be explicit.                        |
 | Winner only after completion       | Prevent inconsistent result states.                      |
 | Result reason required             | Example: public_vote, no_show, admin_decision.           |
