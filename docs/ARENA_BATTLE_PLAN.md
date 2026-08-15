@@ -4,7 +4,57 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-15 · Production baseline: **v2.5.1071**
+Last reconciled: 2026-08-16 · Production baseline: **v2.5.1072**
+
+## T17 — the acceptance gate closed, and with it the 2026-08-12 brief — 2026-08-16
+
+The gate ran once, last, and over both agents' work. GreenBear held the card and
+handed it to Bolt on the Carpet (#3515) when AA6/AA7/AA8 turned out to be his
+last package.
+
+- **The full suite, one run, nothing excluded.** PostgreSQL
+  (`django.db.backends.postgresql`, database `culineire`), Django 5.2.13,
+  `manage.py test --noinput --parallel 8` on eight cores. Nine test databases
+  created and destroyed — eight worker clones and the parent — so the worker
+  count is visible in the log rather than asserted. **2133 tests, 1029.795s,
+  OK (skipped=3), exit 0. Zero failures, zero errors, zero pre-existing
+  failures.** Nothing was deselected or weakened to reach green.
+- **Three test counts exist and they are three scopes, not three answers:**
+  2133 is the whole project, 1094 is `chef_battle` alone (T11's figure), and
+  GreenBear's pre-release 1344 is a third selection, not reproduced here and
+  not explained here.
+- The run's log prints `eu: failed / records=0` and `network down` from the
+  sanctions-screening tests driving their own failure paths. Asserted outcomes
+  inside a suite that finished OK — not breakage.
+- **Gates:** `manage.py check` no issues; `makemigrations --check --dry-run`
+  reports no changes, so T11's `0097`/`0098` are committed and match the
+  models; `git diff --check` clean.
+- **The browser smoke: 21/21 surfaces, 0 failed, 0 unresolved names.** GETs
+  only against the local development database — no POST, no write, no
+  demonstration data, and no production write. Every address comes from
+  `reverse()`: an earlier pass hand-typed six paths and reported them as 404s,
+  which reads exactly like a broken page and was not one, and a later pass
+  guessed three URL *names* that do not exist. A name either resolves or the
+  smoke fails loudly, which is how those three were caught.
+- The four non-200s are all correct behaviour: `cooking_submit` and
+  `battle_changing_room` return 403 to a non-participant; `master_console`,
+  `live_arena_progress` and `live_arena_preview` return 404 to a
+  staff+superuser who is not the Owner, which is DG-01 working.
+- **The one item the smoke cannot answer, said plainly.** The console
+  reconciliation display cannot be *rendered* by an agent: DG-01 admits
+  `OWNER_SLUG`, or superuser plus `RecipeAuthor.has_arena_console_access`.
+  Section 1a/18 makes the Owner's account untouchable and section 20 reserves
+  that flag to him, so granting either to myself would be the violation, not
+  the evidence. What renders it is this same green run, where an Owner exists
+  only inside an ephemeral test database:
+  `ArenaMasterConsoleAccessTests`, `ArenaMasterStateTests`,
+  `ArenaMasterActionTests`, `ConsoleArenaMirrorTests`, and for the
+  reconciliation display specifically
+  `ArenaMasterEconomyTests.test_flows_reconcile_to_ledger`, which asserts the
+  console's headline totals reconcile against the same signed ledger they are
+  drawn from.
+- Per section 17.14 nothing above is a claim about how any page **looks** on
+  production. This is status codes, routing and the absence of tracebacks.
 
 ## Ember handoff closure — 2026-08-15
 
