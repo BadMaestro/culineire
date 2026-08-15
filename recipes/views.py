@@ -4536,6 +4536,17 @@ ARENA_DESIGN_TASKS = [
         "forbidden": "No production writes for a demonstration. No weakened assertions. No captured SQL standing in for an interleaving test.",
         "evidence": "Owner brief 2026-08-12, ticket 17.",
     },
+    {
+        "id": "T18", "group": "Owner Authority (Owner ruling 2026-08-15)", "title": "GreenBear controls every chef account from its Arena card",
+        "status": "IMPLEMENTATION COMPLETE — LOCAL ONLY", "owner": "Ember",
+        "files": "accounts/auth_backends.py; accounts/middleware.py; chef_battle models/migration 0096/views/urls/tests; Arena tooltip template/JS/CSS",
+        "depends_on": "T12",
+        "action": "Show Mute, timed full-site Block and Delete Account controls in every non-Owner chef card only while logged in as OWNER_SLUG. Mute rejects Arena chat until its deadline. Block destroys active sessions and rejects new authentication until its deadline. Delete requires a server-checked confirmation checkbox, deletes the login and personal data, and anonymises the retained battle/financial history as Deleted Chef so the immutable audit chain and historical records survive.",
+        "visible_result": "GreenBear opens any other chef card on the Arena floor and sees Mute, Block with a date/time, and Delete Account with a confirmation checkbox. No other viewer sees the controls.",
+        "acceptance": "Owner-only and self-protection checks; Mute blocks chat; Block removes an existing session and refuses login; Delete without checkbox is refused; confirmed Delete removes User and personal profile data but keeps anonymised history and an immutable ADMIN_NOTE. PostgreSQL access/chat/login/initial-render/image regression set green.",
+        "forbidden": "No control against GreenBear itself; no staff/superuser substitute for OWNER_SLUG; no physical deletion of required battle, money or Ledger history; no Delete without the server-side checkbox check.",
+        "evidence": "LOCAL commit 4c2bc842, NOT PUSHED, NOT ON origin/main, NOT DEPLOYED. 33/33 tests PASS on local PostgreSQL, parallel 8; Django check, makemigrations --check, node --check and git diff --check clean. Migration 0096 is additive. Owner ruling also permits GreenBear to appear on Arena and join clans/alliances cosmetically while remaining excluded from battles and all competitive aggregates; that separate invariant is not claimed by this card.",
+    },
 ]
 
 
