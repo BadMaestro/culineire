@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1037",
+        "date": "2026-08-15",
+        "commit": "4c2bc842",
+        "title": "GreenBear controls chef accounts from the Arena floor",
+        "section": "Chef Battles / Arena / Owner Authority",
+        "summary": "T18 gives the OWNER_SLUG account, and no staff or ordinary superuser substitute, Mute, timed full-site Block and Delete Account controls inside every other chef's Arena card. Mute rejects Arena chat until the chosen deadline. Block destroys active sessions and the authentication backend refuses new login until expiry. Delete is refused unless the server receives the dedicated confirmation checkbox; when confirmed it deletes the User login and personal profile data while retaining mandatory battle, payment and immutable-ledger history under the anonymised name Deleted Chef. Every action writes an immutable ADMIN_NOTE, and GreenBear cannot target itself. This release also carries the Owner's corrected T11 rule as documentation: both chefs place two secret ingredient blocks before Stage 1, only the Stage 1 winner fires three shots, and the loser never shoots; no combat implementation is claimed here. Additive migration 0096 creates the restriction record. Local PostgreSQL evidence: 33/33 adjacent Arena/access/chat/login/image tests and 18/18 moderation-board tests passed; Django check, makemigrations --check, node --check and git diff --check clean. No test ran on Linode. Visible result: while logged in as GreenBear, opening another chef's Arena card shows the three controls and time/confirmation fields. Rollback: revert the v2.5.1037 release commit plus 338707c8, 4c2bc842 and 39bcad61, run /srv/culineire/scripts/deploy.sh, then migrate chef_battle to 0095 after confirming no active restriction rows need preserving.",
+    },
+    {
         "version": "2.5.1034",
         "date": "2026-08-15",
         "commit": "da84930c",

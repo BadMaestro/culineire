@@ -4,13 +4,12 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-15 · Production baseline: **v2.5.1034**
+Last reconciled: 2026-08-15 · Production baseline: **v2.5.1037**
 
-## Ember handoff — 2026-08-15
+## Ember handoff closure — 2026-08-15
 
-- Production and `origin/main`: `v2.5.1034`, commit `eee3afef`.
-- Local branch `codex/login-csrf-recovery` contains two undelivered product
-  commits plus this board/handoff record; all are ahead of its remote.
+- T18 release target: `v2.5.1037`; the former local-only handoff is closed by
+  this release.
 - `39bcad61` corrects T11 by Owner ruling: both chefs place two hidden blocks
   before Stage 1; only the Stage 1 winner gets three shots; the loser never
   shoots. The old sequential 48-hour windows are superseded.
@@ -18,8 +17,8 @@ Last reconciled: 2026-08-15 · Production baseline: **v2.5.1034**
   Arena chef cards. Delete removes login and personal data while anonymising
   mandatory history. Migration `0096` is additive. Local PostgreSQL regression:
   33/33 PASS; Django, migration, JS, image-weight and diff checks green.
-- Neither local commit is pushed, merged or deployed. Do not report either as
-  production work. Reconcile against `origin/main` before continuing.
+- T11 documentation and T18 are shipped together in `v2.5.1037`; T11 remains a
+  corrected specification, not a claim that the combat mechanic is implemented.
 - T18 does not yet implement the separate Owner-avatar contract: GreenBear may
   appear and join clans/alliances cosmetically, adds only a clan reputation
   blessing, and must be excluded from challenges, battles and every competitive

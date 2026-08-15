@@ -1,4 +1,4 @@
-# Ember session handoff - 2026-08-15
+# Ember session handoff - 2026-08-15 (closed by v2.5.1037)
 
 This is a short local-work handoff, not a source of dynamic truth. On restart,
 read the mandatory cold-start documents from `origin/main`, then reconcile every
@@ -15,7 +15,7 @@ hash below.
 - Local PostgreSQL keepalive: stopped
 - Tests on Linode: none
 
-## Local commits not delivered
+## Commits delivered by v2.5.1037
 
 1. `39bcad61 docs(arena): correct Stage 1 ingredient combat rule`
    - T11 now records the Owner's actual mechanic.
@@ -44,10 +44,9 @@ hash below.
 
 ## Next safe action
 
-Reconcile/fetch first. If these commits are still absent from `origin/main`,
-review the two commits, run the Arena-only PostgreSQL acceptance manifest, then
-prepare a new Ember release number by adding three to 1034 (`v2.5.1037`). Read
-AGENTS.md sections 8 and 17 immediately before any deploy. Never test on Linode.
+This handoff is closed by release `v2.5.1037`. On restart, verify the live
+footer and production HEAD rather than trusting this sentence, then take the
+next card from the board. Never test on Linode.
 
 The separate GreenBear game contract is not implemented by T18: GreenBear may
 appear on Arena and join clans/alliances for cosmetics plus a clan-reputation
