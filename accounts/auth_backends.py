@@ -18,6 +18,7 @@ so no live account changed meaning.
 """
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+from django.utils import timezone
 
 
 class CaseInsensitiveModelBackend(ModelBackend):
@@ -57,3 +58,15 @@ class CaseInsensitiveModelBackend(ModelBackend):
         if user.check_password(password) and self.user_can_authenticate(user):
             return user
         return None
+
+    def user_can_authenticate(self, user):
+        if not super().user_can_authenticate(user):
+            return False
+        author = getattr(user, "recipe_author_profile", None)
+        if author is None:
+            return True
+        from chef_battle.models import OwnerAccountRestriction
+        return not OwnerAccountRestriction.objects.filter(
+            author=author,
+            blocked_until__gt=timezone.now(),
+        ).exists()

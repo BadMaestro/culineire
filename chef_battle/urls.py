@@ -16,6 +16,8 @@ urlpatterns = [
     path("arena/state/", views.arena_state, name="arena_state"),
     path("arena/blast/", views.arena_blast, name="arena_blast"),
     path("arena/react/", views.arena_react, name="arena_react"),
+    path("arena/owner/account-action/", views.owner_arena_account_action,
+         name="owner_arena_account_action"),
     # Read-only, token-gated preview links (owner request, 2026-07-23). The
     # secret is the <token> segment, from ARENA_PREVIEW_SHARE_TOKEN; unset means
     # both 404. Neither widens Arena access — /chef-battle/arena/ stays

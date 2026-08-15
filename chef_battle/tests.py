@@ -18,6 +18,7 @@ from .models import (
     APPRECIATION_GIFT_COST,
     Battle,
     BattleChallenge,
+    BattleChatMessage,
     BattleEntry,
     BattleEvent,
     BattleVote,
@@ -18818,3 +18819,96 @@ class BattleStatusTransitionDatabaseGuardTests(TransactionTestCase):
 
         self.battle.refresh_from_db()
         self.assertEqual(self.battle.status, Battle.Status.CANCELLED)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True, OWNER_SLUG="greenbear")
+class OwnerArenaAccountControlsTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.owner_user = User.objects.create_superuser(
+            username="greenbear", email="owner@example.test", password="owner-pass"
+        )
+        self.owner, _ = RecipeAuthor.objects.update_or_create(
+            slug="greenbear", defaults={"user": self.owner_user, "name": "GreenBear"}
+        )
+        self.target_user = User.objects.create_user(
+            username="target-chef", email="target@example.test", password="target-pass"
+        )
+        self.target = RecipeAuthor.objects.create(
+            user=self.target_user, name="Target Chef", slug="target-chef", bio="personal biography"
+        )
+        ChefBattleProfile.objects.update_or_create(
+            author=self.owner, defaults={"enrolled_at": timezone.now()}
+        )
+        ChefBattleProfile.objects.create(author=self.target, enrolled_at=timezone.now())
+        self.action_url = reverse("chef_battle:owner_arena_account_action")
+
+    def _until(self):
+        return (timezone.now() + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M")
+
+    def test_only_owner_sees_controls_and_cannot_target_self(self):
+        self.client.force_login(self.owner_user)
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertContains(response, "Delete Account")
+        response = self.client.post(self.action_url, {
+            "chef_slug": "greenbear", "action": "mute", "until": self._until(),
+        })
+        self.assertEqual(response.status_code, 404)
+
+        self.client.force_login(self.target_user)
+        response = self.client.post(self.action_url, {
+            "chef_slug": "greenbear", "action": "mute", "until": self._until(),
+        })
+        self.assertEqual(response.status_code, 404)
+
+    def test_mute_prevents_arena_chat_until_deadline(self):
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=self.owner,
+            opponent=self.target,
+            status=Battle.Status.ACTIVE,
+            theme="Mute test",
+            submission_deadline=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=4),
+        )
+        self.client.force_login(self.owner_user)
+        self.client.post(self.action_url, {
+            "chef_slug": self.target.slug, "action": "mute", "until": self._until(),
+        })
+        self.client.force_login(self.target_user)
+        self.client.post(reverse("chef_battle:battle_chat_send", args=[battle.pk]), {"body": "blocked"})
+        self.assertFalse(BattleChatMessage.objects.filter(battle=battle, body="blocked").exists())
+
+    def test_block_ends_sessions_and_prevents_login_until_deadline(self):
+        target_client = Client()
+        self.assertTrue(target_client.login(username="target-chef", password="target-pass"))
+        self.client.force_login(self.owner_user)
+        self.client.post(self.action_url, {
+            "chef_slug": self.target.slug, "action": "block", "until": self._until(),
+        })
+        self.assertNotIn("_auth_user_id", target_client.session)
+        self.assertFalse(target_client.login(username="target-chef", password="target-pass"))
+
+    def test_delete_requires_checkbox_then_removes_login_and_anonymises_history(self):
+        User = get_user_model()
+        self.client.force_login(self.owner_user)
+        response = self.client.post(self.action_url, {
+            "chef_slug": self.target.slug, "action": "delete",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(User.objects.filter(pk=self.target_user.pk).exists())
+
+        self.client.post(self.action_url, {
+            "chef_slug": self.target.slug, "action": "delete", "confirm_delete": "on",
+        })
+        self.assertFalse(User.objects.filter(pk=self.target_user.pk).exists())
+        self.target.refresh_from_db()
+        self.assertIsNone(self.target.user_id)
+        self.assertEqual(self.target.name, "Deleted Chef")
+        self.assertEqual(self.target.slug, f"deleted-chef-{self.target.pk}")
+        self.assertEqual(self.target.bio, "")
+        self.assertTrue(LedgerEvent.objects.filter(
+            event_type=LedgerEvent.EventType.ADMIN_NOTE,
+            target=self.target,
+            payload__action="account_deleted_and_anonymised",
+        ).exists())

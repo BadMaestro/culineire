@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 
 from django.contrib import messages
+from django.contrib.sessions.models import Session
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -16,6 +17,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.utils.dateformat import format as date_format
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -1557,7 +1559,113 @@ def arena(request):
     context = _arena_page_context(
         request, viewer_author=viewer_author, user_enrolled=user_enrolled, allow_demo=True,
     )
+    context["viewer_is_owner"] = bool(
+        viewer_author and viewer_author.slug == settings.OWNER_SLUG
+    )
     return render(request, "chef_battle/arena.html", context)
+
+
+def _owner_action_deadline(raw_value):
+    value = parse_datetime((raw_value or "").strip())
+    if value is None:
+        raise ValidationError("Choose a valid date and time.")
+    if timezone.is_naive(value):
+        value = timezone.make_aware(value, timezone.get_current_timezone())
+    if value <= timezone.now():
+        raise ValidationError("The restriction must end in the future.")
+    return value
+
+
+def _end_user_sessions(user_id):
+    for session in Session.objects.filter(expire_date__gt=timezone.now()).iterator():
+        try:
+            if str(session.get_decoded().get("_auth_user_id")) == str(user_id):
+                session.delete()
+        except Exception:
+            logger.exception("Could not inspect session %s during Owner block", session.pk)
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def owner_arena_account_action(request):
+    """GreenBear-only account controls from a chef card on the Arena floor."""
+    actor = get_author_for_user(request.user)
+    if actor is None or actor.slug != settings.OWNER_SLUG:
+        raise Http404
+
+    target = get_object_or_404(
+        RecipeAuthor.objects.select_for_update(),
+        slug=request.POST.get("chef_slug", ""),
+    )
+    if target.slug == settings.OWNER_SLUG:
+        raise Http404
+
+    from .models import LedgerEvent, OwnerAccountRestriction
+    action = request.POST.get("action", "")
+    restriction, _ = OwnerAccountRestriction.objects.select_for_update().get_or_create(
+        author=target,
+        defaults={"updated_by": request.user},
+    )
+
+    if action in {"mute", "block"}:
+        try:
+            until = _owner_action_deadline(request.POST.get("until"))
+        except ValidationError as exc:
+            messages.error(request, exc.messages[0])
+            return redirect("chef_battle:arena")
+        field = "muted_until" if action == "mute" else "blocked_until"
+        setattr(restriction, field, until)
+        restriction.updated_by = request.user
+        restriction.save(update_fields=[field, "updated_by", "updated_at"])
+        if action == "block" and target.user_id:
+            _end_user_sessions(target.user_id)
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.ADMIN_NOTE,
+            actor=actor,
+            target=target,
+            payload={"action": action, "until": until.isoformat(), "source": "arena_chef_menu"},
+        )
+        action_label = "muted" if action == "mute" else "blocked"
+        messages.warning(request, f'{target.name} is {action_label} until {until:%Y-%m-%d %H:%M %Z}.')
+        return redirect("chef_battle:arena")
+
+    if action != "delete" or request.POST.get("confirm_delete") != "on":
+        messages.error(request, "Deletion requires the confirmation checkbox.")
+        return redirect("chef_battle:arena")
+
+    target_label = target.name
+    target_user = target.user
+    LedgerEvent.objects.create(
+        event_type=LedgerEvent.EventType.ADMIN_NOTE,
+        actor=actor,
+        target=target,
+        payload={
+            "action": "account_deleted_and_anonymised",
+            "target_label": target_label,
+            "source": "arena_chef_menu",
+        },
+    )
+    if target_user is not None:
+        _end_user_sessions(target_user.pk)
+        target_user.delete()
+        target.user = None
+    if target.avatar:
+        target.avatar.delete(save=False)
+    target.name = "Deleted Chef"
+    target.slug = f"deleted-chef-{target.pk}"
+    target.bio = ""
+    target.avatar = None
+    target.has_bearseeker_privileges = False
+    target.can_generate_ai_images = False
+    target.has_arena_console_access = False
+    target.save(update_fields=[
+        "user", "name", "slug", "bio", "avatar", "has_bearseeker_privileges",
+        "can_generate_ai_images", "has_arena_console_access",
+    ])
+    restriction.delete()
+    messages.warning(request, f'Account "{target_label}" was deleted and its required history anonymised.')
+    return redirect("chef_battle:arena")
 
 
 # Vendored copy of Ember's isolated visual-shell prototype, for the read-only
@@ -2877,6 +2985,15 @@ def battle_chat_send(request, pk):
     body = request.POST.get("body", "").strip()[:300]
     if not body:
         return redirect("chef_battle:battle_detail", pk=pk)
+
+    if request.user.is_authenticated:
+        from .models import OwnerAccountRestriction
+        author = get_author_for_user(request.user)
+        if author and OwnerAccountRestriction.objects.filter(
+            author=author, muted_until__gt=timezone.now()
+        ).exists():
+            messages.error(request, "You are temporarily muted in Arena chat.")
+            return redirect("chef_battle:battle_detail", pk=pk)
 
     if request.user.is_authenticated:
         display_name = request.user.get_full_name() or request.user.username

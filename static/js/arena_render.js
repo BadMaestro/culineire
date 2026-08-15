@@ -2586,6 +2586,16 @@
       challenge.hidden = !canChallenge;
     }
 
+    var ownerControls = tip.querySelector('.js-arena-owner-controls');
+    if (ownerControls) {
+      var ownerSlug = viewer.slug || '';
+      ownerControls.hidden = !chef.slug || chef.slug === ownerSlug;
+      var slugInput = ownerControls.querySelector('.js-owner-chef-slug');
+      if (slugInput) { slugInput.value = chef.slug || ''; }
+      var confirmDelete = ownerControls.querySelector('.js-owner-delete-confirm');
+      if (confirmDelete) { confirmDelete.checked = false; }
+    }
+
     tip.hidden = false;
     position(tip, anchor);
   }

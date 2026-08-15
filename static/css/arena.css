@@ -411,6 +411,59 @@
   color: var(--surface);
 }
 
+.arena-owner-controls {
+  display: grid;
+  gap: .55rem;
+  margin-top: .75rem;
+  padding-top: .7rem;
+  border-top: 1px solid var(--line);
+}
+
+.arena-owner-controls[hidden] { display: none; }
+
+.arena-owner-controls__time,
+.arena-owner-controls__confirm {
+  display: grid;
+  gap: .3rem;
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.arena-owner-controls__time input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: .4rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.arena-owner-controls__buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .4rem;
+}
+
+.arena-owner-controls button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: .42rem .55rem;
+  background: var(--surface-soft);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.arena-owner-controls__confirm {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+}
+
+.arena-owner-controls .arena-owner-controls__delete {
+  border-color: var(--danger, var(--accent-bronze-dark));
+  color: var(--danger, var(--accent-bronze-dark));
+  font-weight: 700;
+}
+
 /* ------------------------------------------------------------------ */
 /* Battle Room popup modal                                            */
 /* ------------------------------------------------------------------ */

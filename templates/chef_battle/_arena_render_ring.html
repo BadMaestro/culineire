@@ -73,6 +73,26 @@ window.ARENA_CROWN_ASSETS = {
     <a class="arena-tooltip__link" href="#">View Profile</a>
     <a class="arena-tooltip__challenge js-challenge-btn" href="#" hidden>Challenge</a>
   </div>
+  {% if viewer_is_owner %}
+  <form class="arena-owner-controls js-arena-owner-controls" method="post"
+        action="{% url 'chef_battle:owner_arena_account_action' %}" hidden>
+    {% csrf_token %}
+    <input class="js-owner-chef-slug" type="hidden" name="chef_slug" value="">
+    <label class="arena-owner-controls__time">
+      Until
+      <input class="js-owner-action-until" type="datetime-local" name="until">
+    </label>
+    <div class="arena-owner-controls__buttons">
+      <button type="submit" name="action" value="mute">Mute</button>
+      <button type="submit" name="action" value="block">Block</button>
+    </div>
+    <label class="arena-owner-controls__confirm">
+      <input class="js-owner-delete-confirm" type="checkbox" name="confirm_delete">
+      Confirm permanent account deletion
+    </label>
+    <button class="arena-owner-controls__delete" type="submit" name="action" value="delete">Delete Account</button>
+  </form>
+  {% endif %}
 </div>
 
 <div id="arena-battle-popup" class="arena-popup" hidden>

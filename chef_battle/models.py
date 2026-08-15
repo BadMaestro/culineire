@@ -2408,3 +2408,31 @@ class BattleWithdrawal(models.Model):
 
     def __str__(self):
         return f"Withdrawal #{self.pk}: {self.requester} from battle #{self.battle_id} ({self.status})"
+
+
+class OwnerAccountRestriction(models.Model):
+    """Owner-imposed, time-bounded site and Arena-chat restrictions."""
+
+    author = models.OneToOneField(
+        RecipeAuthor,
+        on_delete=models.CASCADE,
+        related_name="owner_account_restriction",
+    )
+    muted_until = models.DateTimeField(null=True, blank=True, db_index=True)
+    blocked_until = models.DateTimeField(null=True, blank=True, db_index=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="owner_account_restrictions_set",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def is_muted(self, *, at=None):
+        at = at or timezone.now()
+        return bool(self.muted_until and self.muted_until > at)
+
+    def is_blocked(self, *, at=None):
+        at = at or timezone.now()
+        return bool(self.blocked_until and self.blocked_until > at)
