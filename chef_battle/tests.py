@@ -19277,3 +19277,52 @@ class NextBattleStripCarriesItsStartTimeTests(TestCase):
         payload = _build_arena_payload()
 
         self.assertEqual(payload["upcoming"][0]["start_time"], self.start.isoformat())
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, CHEF_BATTLE_ENABLED=True)
+class ArenaBattlePopupTrimmedContextTests(TestCase):
+    """AA2, Owner ruling 2026-08-06 (ARENA_BATTLE_PLAN.md 2c): the popup is a
+    placeholder for the battle's own page, not a second broadcast, so it was
+    trimmed to only what the template renders. This proves the trim didn't
+    break what the popup is actually for."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.staff = User.objects.create_user(
+            username="aa2-staff", password="pw", is_staff=True, is_superuser=True)
+        self.chef_a = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="aa2-a", password="pw"),
+            name="Popup Chef A", slug="aa2-a")
+        self.chef_b = RecipeAuthor.objects.create(
+            user=User.objects.create_user(username="aa2-b", password="pw"),
+            name="Popup Chef B", slug="aa2-b")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, theme="Popup theme",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(hours=48),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=4),
+        )
+
+    def test_a_live_battle_renders_the_kept_fields(self):
+        self.client.force_login(self.staff)
+
+        response = self.client.get(reverse("chef_battle:arena_battle_popup"))
+
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn("Popup theme", html)
+        self.assertIn("Popup Chef A", html)
+        self.assertIn("Popup Chef B", html)
+        self.assertIn(self.battle.get_absolute_url(), html)
+
+    def test_no_battle_still_renders_the_empty_state(self):
+        self.client.force_login(self.staff)
+        self.battle.status = Battle.Status.CANCELLED
+        self.battle.save(update_fields=["status"])
+
+        response = self.client.get(reverse("chef_battle:arena_battle_popup"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("No battle is happening right now", response.content.decode())

@@ -4593,14 +4593,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "AA2", "group": "Arena acceptance 2026-08-15", "title": "Decide what the arena battle popup is - a window or a room",
-        "status": "PENDING", "owner": "unassigned",
+        "status": "DONE", "owner": "Bolt",
         "files": "chef_battle/views.py (arena_battle_popup); templates/chef_battle/arena_battle_popup.html",
         "depends_on": "none",
         "action": "The view already builds the chat, the vote state, the gift catalogue and the viewer's token balance, and the template renders none of them. Either finish Hall Plan C3/C4/C5 in the popup (the data is already there) or stop paying for what is discarded.",
         "visible_result": "Either a spectator can talk, vote and send a gift without leaving the arena, or nothing changes on screen and two queries per popup stop being run for nothing.",
         "acceptance": "Whichever the Owner chooses, the view and the template agree: no context key is built that the template does not use, and any new control carries the same 18+/token/legal affordances as the full battle page.",
         "forbidden": "Do not weaken the age, token or legal gates to fit them into a popup.",
-        "evidence": "docs/chef_battle/ARENA_ACCEPTANCE_AUDIT_2026-08-15.md finding AF2, read off the running code 2026-08-15: recent_chat (20 rows), can_vote/has_voted, appreciation_gifts and viewer_token_balance are all computed and none appears in the template.",
+        "evidence": "SHIPPED. NO FRESH OWNER DECISION NEEDED: ARENA_BATTLE_PLAN.md section 2c (Owner, 2026-08-06) already names this exact popup - ArenaBattleRoom, arena_render.js, stageCentre.popup_url, the same identifiers found live in code - a placeholder whose target is a page, and explicitly forbids it growing broadcast content ('does NOT grow a second copy of the broadcast'). Chat/voting/gifts are exactly that content, and B01-B03 (the real destination page) are already DONE. This is 'stop paying for what is discarded', not a fresh decision. arena_battle_popup() no longer builds recent_chat (a 20-row query), can_vote/has_voted (a BattleVote query), appreciation_gifts, or viewer_token_balance (a TokenWallet query) - none of the four ever reached the template. Context is now exactly the seven keys the template reads. Two new focused tests prove a live battle still renders correctly and the empty state still renders; the one existing test on this view (dark-launch 404) is unaffected.",
     },
 ]
 

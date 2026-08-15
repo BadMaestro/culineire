@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1054",
+        "date": "2026-08-15",
+        "commit": "PENDING",
+        "title": "AA2 - the battle popup stops paying for a broadcast it never shows",
+        "section": "Chef Battles / Arena",
+        "summary": "AA2 asked which of two things the arena's battle-centre popup is: a window that opens onto the real battle page, or its own small room with chat, voting and gifts. NO FRESH OWNER DECISION WAS NEEDED - ARENA_BATTLE_PLAN.md section 2c, his own ruling of 2026-08-06, already names this exact popup (ArenaBattleRoom / arena_render.js / stageCentre.popup_url, the same identifiers live in the code today) a placeholder whose target is the battle's own page, and forbids it growing a second copy of the broadcast. Chat, voting and gifts are precisely that broadcast, and the real destination page (B01-B03) is already built and DONE. arena_battle_popup() was computing all four anyway and rendering none: a 20-row BattleChatMessage query for chat nobody saw, a BattleVote existence check for a vote button that was never drawn, an appreciation-gift catalogue construction, and a TokenWallet balance lookup. All four, and their now-unused imports, are gone. The view builds exactly the seven keys the template reads - battle, both vote counts, both artifact lists, is_participant, time_remaining - nothing more. Two new focused tests prove a live battle still renders its theme, both chef names and the link to the full battle page, and that the empty state still renders when nothing is active; the one existing test on this view (404 for anonymous during dark launch) is unaffected and still passes. No migration, no template change, no visible difference on screen - the card's own visible_result names this outcome explicitly as one of the two acceptable ones. Rollback: git revert this commit, run /srv/culineire/scripts/deploy.sh.",
+    },
+    {
         "version": "2.5.1051",
         "date": "2026-08-15",
         "commit": "24e0d04d",

@@ -1061,10 +1061,14 @@ def _arena_center(active_battle):
 def arena_battle_popup(request):
     """AJAX partial — Battle Room popup embedded on the arena page.
     Returns an HTML fragment (no base.html). No login required — anonymous visitors
-    can view the popup; voting and gifts require auth and are gated in the target views.
-    """
-    from .models import AppreciationGiftType, APPRECIATION_GIFT_COST, APPRECIATION_GIFT_EMOJI
+    can view the popup.
 
+    AA2, Owner ruling 2026-08-06 (ARENA_BATTLE_PLAN.md 2c): this popup is a
+    placeholder for the battle's own page, not a second copy of the
+    broadcast — chat, voting and gifts belong there, not here. It was still
+    computing all three (plus the viewer's token balance) and throwing them
+    away; the template below has never rendered them.
+    """
     active = list(get_active_battles(limit=1))
     if not active:
         return render(request, "chef_battle/arena_battle_popup.html", {"no_battle": True})
@@ -1091,37 +1095,8 @@ def arena_battle_popup(request):
         .order_by("-artifact__effect_value")[:6]
     )
 
-    recent_chat = list(
-        BattleChatMessage.objects
-        .filter(battle=battle, is_hidden=False)
-        .order_by("created_at")[:20]
-    )
-
     viewer_author = get_author_for_user(request.user) if request.user.is_authenticated else None
     is_participant = bool(viewer_author and battle.author_is_participant(viewer_author))
-
-    can_vote = bool(
-        viewer_author
-        and battle.status in {Battle.Status.ACTIVE, Battle.Status.VOTING}
-        and not is_participant
-    )
-    has_voted = False
-    if can_vote:
-        has_voted = BattleVote.objects.filter(battle=battle, voter=request.user).exists()
-
-    appreciation_gifts = [
-        {
-            "type": k,
-            "label": AppreciationGiftType(k).label,
-            "cost": v,
-            "emoji": APPRECIATION_GIFT_EMOJI.get(k, "🎁"),
-        }
-        for k, v in APPRECIATION_GIFT_COST.items()
-    ]
-    viewer_token_balance = 0
-    if viewer_author:
-        wallet = TokenWallet.objects.filter(chef=viewer_author).first()
-        viewer_token_balance = wallet.balance if wallet else 0
 
     now = timezone.now()
     time_remaining = None
@@ -1138,13 +1113,7 @@ def arena_battle_popup(request):
         "votes_for_opponent": vote_counts.get(battle.opponent_id, 0),
         "challenger_artifacts": challenger_artifacts,
         "opponent_artifacts": opponent_artifacts,
-        "recent_chat": recent_chat,
-        "viewer_author": viewer_author,
         "is_participant": is_participant,
-        "can_vote": can_vote,
-        "has_voted": has_voted,
-        "appreciation_gifts": appreciation_gifts,
-        "viewer_token_balance": viewer_token_balance,
         "time_remaining": time_remaining,
     })
 
