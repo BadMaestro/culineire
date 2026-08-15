@@ -40,25 +40,27 @@ Energy cost:
 
 ---
 
-## After Battle: Winner's Penalty
+## Stage 1 result: winner's three shots
 
-Once the battle is decided by **audience vote**, the post-battle ingredient
-penalty is applied:
+Owner ruling, 2026-08-15: the two locks are not placed after the result. Both
+chefs place exactly two hidden locks during pre-battle menu declaration. Stage 1
+then determines which chef attacks.
 
 | Role | Privilege |
 |------|-----------|
-| **Winner** | Gets **3 hits** — can remove/replace 3 ingredients from the loser's recipe |
-| **Loser** | Gets **2 locks** — can protect 2 ingredients from the winner's hits |
+| **Stage 1 winner** | Gets exactly **3 hits** against the loser's declared ingredients |
+| **Stage 1 loser** | Does not shoot; defends with the **2 locks placed before the battle** |
 
 ### How it works:
 
-1. The **loser** first applies their 2 locks (secret, same as during combat)
-2. The **winner** then selects 3 ingredients from the loser's recipe to hit
-3. System reveals locks:
+1. Before Stage 1, **both chefs** secretly lock exactly 2 ingredients in their own recipe.
+2. Stage 1 determines the winner; the loser cannot shoot or change their locks.
+3. The **Stage 1 winner** selects exactly 3 ingredients from the loser's recipe to hit.
+4. System reveals targeted locks:
    - Hits on **unlocked** ingredients → those ingredients are **banned**:
      the loser must replace them in the submitted recipe
    - Hits on **locked** ingredients → blocked, ingredient survives
-4. The loser receives a notification listing which ingredients were banned
+5. The loser receives a notification listing which ingredients were banned
    and must update their recipe accordingly before a deadline
 
 ### Key ingredient protection rule
@@ -108,13 +110,14 @@ egg and butter survive (locked).
 
 ### Constraints
 - Ingredient count must be equal on both sides before battle goes `active`
-- Post-battle penalty triggered only when battle `status == completed` and
-  there is a winner (not a draw)
-- Loser must apply locks before winner can make hits (sequential flow)
-- Deadline: loser has 48h to lock, winner has 48h after that to hit,
-  loser has 72h to update recipe after ban notification
+- Both chefs must lock exactly 2 ingredients before Stage 1 starts
+- Locks are immutable once Stage 1 starts and hidden from the opponent
+- Only the Stage 1 winner may make exactly 3 hits; the loser never shoots
+- There is no sequential 48-hour loser-lock then winner-hit workflow
+- A draw and a missed pre-battle/action deadline require explicit deterministic outcomes
 
 ### UI flow
-- Loser sees: "The battle is over. Protect 2 ingredients before [deadline]."
-- Winner sees: "Choose 3 ingredients to ban from [loser]'s recipe." (after loser locks)
+- Both chefs see before Stage 1: "Protect exactly 2 key ingredients before [deadline]."
+- Stage 1 winner sees: "Choose 3 ingredients from [loser]'s recipe to hit."
+- Stage 1 loser sees no firing control and cannot alter their locks
 - Loser sees result: "[salt, chives, pepper] have been banned from your recipe. Update it by [deadline]."
