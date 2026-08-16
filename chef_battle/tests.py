@@ -13298,6 +13298,116 @@ class ArenaReadinessLifecycleTests(TestCase):
             )
 
 
+class ArenaAmbientAtmosphereTests(TestCase):
+    """T28 — six decorative effects the F1 gap list found missing against the
+    design template. Every effect must exist, and every effect must be
+    switched off under prefers-reduced-motion, following this file's own
+    established one-block-per-effect convention rather than a single master
+    block."""
+
+    def _css(self):
+        from pathlib import Path
+
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena_atmosphere.css"
+        ).read_text(encoding="utf-8")
+
+    def _html(self):
+        from pathlib import Path
+
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR)
+            / "templates"
+            / "chef_battle"
+            / "arena.html"
+        ).read_text(encoding="utf-8")
+
+    def _assert_keyframe_is_reduced_motion_gated(self, css, keyframe_name, selector_fragment):
+        self.assertIn(f"@keyframes {keyframe_name}", css)
+        self.assertIn(selector_fragment, css)
+        # The animation is actually applied somewhere using this keyframe...
+        self.assertIn(f"animation: {keyframe_name}", css)
+        # ...and every rule using it is inside a reduced-motion block that
+        # turns it off, not merely declared once anywhere in the file.
+        reduced_blocks = css.split("@media (prefers-reduced-motion: reduce) {")[1:]
+        found = any(selector_fragment in block.split("\n}", 1)[0] for block in reduced_blocks)
+        self.assertTrue(
+            found,
+            f"{selector_fragment} has no prefers-reduced-motion block turning off {keyframe_name}",
+        )
+
+    def test_light_shafts_exist_and_are_reduced_motion_gated(self):
+        css = self._css()
+        self._assert_keyframe_is_reduced_motion_gated(
+            css, "arena-shaft-sway", ".arena-atmo-shaft"
+        )
+
+    def test_dust_motes_exist_and_are_reduced_motion_gated(self):
+        css = self._css()
+        self._assert_keyframe_is_reduced_motion_gated(
+            css, "arena-mote-float", ".arena-atmo-mote"
+        )
+
+    def test_rising_gifts_exist_and_are_reduced_motion_gated(self):
+        css = self._css()
+        self._assert_keyframe_is_reduced_motion_gated(
+            css, "arena-gift-rise", ".arena-atmo-gift"
+        )
+
+    def test_ticker_actually_scrolls_and_is_reduced_motion_gated(self):
+        css = self._css()
+        self._assert_keyframe_is_reduced_motion_gated(
+            css, "arena-ticker-run", ".arena-activity-ticker__track"
+        )
+        # The mask/overflow that makes the scroll read as a ticker rather
+        # than an overflowing box.
+        self.assertIn(".arena-activity-ticker {", css)
+        self.assertIn("overflow: hidden", css)
+
+    def test_crown_holder_pulse_exists_and_is_reduced_motion_gated(self):
+        css = self._css()
+        self._assert_keyframe_is_reduced_motion_gated(
+            css, "arena-crown-pulse", ".arena-live-chef--crown"
+        )
+
+    def test_live_dot_exists_and_is_reduced_motion_gated(self):
+        css = self._css()
+        # Reuses arena.css's existing arena-live-pulse keyframe (the ribbon
+        # variant's own dot) rather than inventing a duplicate - the header
+        # copy's ::before is already a text separator, so this is ::after.
+        self.assertIn("#arena-live-note.is-live::after", css)
+        self.assertIn("animation: arena-live-pulse", css)
+        reduced_blocks = css.split("@media (prefers-reduced-motion: reduce) {")[1:]
+        found = any(
+            "#arena-live-note.is-live::after" in block.split("\n}", 1)[0]
+            for block in reduced_blocks
+        )
+        self.assertTrue(found, "the header live dot has no reduced-motion block")
+
+    def test_ticker_spans_keep_their_ids_so_arena_deck_js_is_unaffected(self):
+        html = self._html()
+        for span_id in (
+            "arena-ticker-phase",
+            "arena-top-supporter",
+            "arena-ticker-watching",
+        ):
+            self.assertIn(f'id="{span_id}"', html)
+        self.assertIn("arena-activity-ticker__track", html)
+
+    def test_no_bare_zindex_number_sneaks_in(self):
+        """The layer-ladder test elsewhere in this file already forbids a bare
+        z-index number in arena_atmosphere.css; this is the same rule stated
+        for the specific selector T28 added, so a regression here is caught
+        by name rather than only by the general sweep."""
+        css = self._css()
+        block = css.split(".arena-atmosphere-fx {", 1)[1].split("}", 1)[0]
+        self.assertIn("z-index: var(", block)
+
+
 class ArenaStylesheetHasNoSupersededDeclarationTests(TestCase):
     """AN13, master task 8A — a declaration that can never win is not code.
 
@@ -19942,3 +20052,46 @@ class OwnerIsPresentButOutsideTheCompetitionTests(TestCase):
 
         self.assertTrue(is_immortal(self.owner_profile))
         self.assertFalse(is_immortal(self.chef_profile))
+
+    def test_he_does_not_hold_the_arena_centre_crown(self):
+        """T22's original enumeration covered the ladders, the ladder panel,
+        the dropdown and season standings, but not _arena_center()'s own
+        crown query - a SEPARATE read path from get_crown_streak (which
+        already excludes him). Found 2026-08-16 while verifying T28: his
+        crown_until is set a decade out, so without this exclusion the arena
+        centre stage shows him as Crown holder while the adjacent Crown
+        Streak metric (already fixed) shows 0 for the same reign - a visible
+        self-contradiction on one page."""
+        from .views import _arena_center
+
+        ChefBattleProfile.objects.filter(pk=self.owner_profile.pk).update(
+            crown_until=timezone.now() + timezone.timedelta(days=3650))
+        self.assertEqual(_arena_center(active_battle=None)["type"], "empty")
+
+    def test_he_does_not_hold_the_crown_holder_page_either(self):
+        """G13's dedicated 'who wears the crown' page had the same gap as the
+        arena centre - a second, independent read path onto the same field."""
+        from django.test import Client
+
+        ChefBattleProfile.objects.filter(pk=self.owner_profile.pk).update(
+            crown_until=timezone.now() + timezone.timedelta(days=3650))
+        with override_settings(CHEF_BATTLE_ENABLED=True):
+            response = Client().get(reverse("chef_battle:crown_holder"))
+        self.assertNotIn(self.owner.name.encode(), response.content)
+
+    def test_the_master_console_hides_his_crown_too_if_it_is_ever_reset(self):
+        """Owner ruling, 2026-08-16, reversing the first instinct: the console
+        is his mirror of truth, but a hand-set crown_until on his own account
+        is not truth - T22 already makes it structurally impossible for him
+        to win a real one (check_owner_not_in_battle refuses every challenge
+        naming him), so any value there is leftover test fixture, never a
+        real event. If it is ever set again by mistake - exactly as the
+        production 2036 date was - the console must not surface it either.
+        Everything else the console reports (real chefs, real counts, real
+        battles) is untouched and remains fully unfiltered."""
+        from .selectors import get_master_state
+
+        ChefBattleProfile.objects.filter(pk=self.owner_profile.pk).update(
+            crown_until=timezone.now() + timezone.timedelta(days=3650))
+        state = get_master_state()
+        self.assertIsNone(state["arena"]["crown_holder"])

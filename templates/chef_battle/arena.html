@@ -28,12 +28,37 @@
   winner. Verified declaration by declaration, not by eye.
 {% endcomment %}
 <link href="{% static 'css/arena.css' %}?v=20260815-owner-controls" rel="stylesheet">
-<link href="{% static 'css/arena_atmosphere.css' %}?v=20260808-an12-two-sheets" rel="stylesheet">
+<link href="{% static 'css/arena_atmosphere.css' %}?v=20260816-t28-ambient" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
 {% include "chef_battle/_arena_deck_svg.html" %}
 <main class="arena-command-deck" aria-labelledby="arena-command-title">
+  {% comment %}
+    T28 — six decorative atmosphere elements (light shafts, dust motes, rising
+    gift glyphs). Pure decoration: no identity, no state, no pointer events.
+    All animation lives in arena_atmosphere.css section F; this block only
+    provides the minimum DOM the CSS needs (a single pseudo-element cannot
+    carry three independently-timed shafts, N staggered motes and M staggered
+    gifts at once). aria-hidden because none of it is content.
+  {% endcomment %}
+  <div class="arena-atmosphere-fx" aria-hidden="true">
+    <span class="arena-atmo-shaft"></span>
+    <span class="arena-atmo-shaft"></span>
+    <span class="arena-atmo-shaft"></span>
+    <span class="arena-atmo-mote"></span>
+    <span class="arena-atmo-mote"></span>
+    <span class="arena-atmo-mote"></span>
+    <span class="arena-atmo-mote"></span>
+    <span class="arena-atmo-mote"></span>
+    <span class="arena-atmo-mote"></span>
+    <span class="arena-atmo-mote"></span>
+    <span class="arena-atmo-mote"></span>
+    <span class="arena-atmo-gift">🎁</span>
+    <span class="arena-atmo-gift">💚</span>
+    <span class="arena-atmo-gift">☘</span>
+    <span class="arena-atmo-gift">🍾</span>
+  </div>
   {% comment %}
     The approved Cooking Widget is an independent left HUD overlay, not part
     of the top lifecycle header. It owns the identity and the existing live
@@ -409,9 +434,16 @@
       {% endif %}
     </div>
     <div class="arena-activity-ticker" aria-label="Arena activity" id="arena-activity-ticker">
-      <span id="arena-ticker-phase">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</span>
-      <span id="arena-top-supporter">{% if arena_data.top_supporter %}Top Supporter: {{ arena_data.top_supporter.name }} {{ arena_data.top_supporter.tokens }}T{% else %}Top Supporter: —{% endif %}</span>
-      <span id="arena-ticker-watching">{{ arena_data.metrics.active_viewers|default:0 }} watching</span>
+      {% comment %}
+        T28/G4 — the track scrolls (arena_atmosphere.css section F); the three
+        spans keep their existing IDs unchanged, so arena_deck.js's
+        getElementById lookups (byId('arena-ticker-phase') etc.) are untouched.
+      {% endcomment %}
+      <div class="arena-activity-ticker__track">
+        <span id="arena-ticker-phase">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</span>
+        <span id="arena-top-supporter">{% if arena_data.top_supporter %}Top Supporter: {{ arena_data.top_supporter.name }} {{ arena_data.top_supporter.tokens }}T{% else %}Top Supporter: —{% endif %}</span>
+        <span id="arena-ticker-watching">{{ arena_data.metrics.active_viewers|default:0 }} watching</span>
+      </div>
     </div>
     <div class="arena-crowd-rail__actions">
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Browse rankings</a>

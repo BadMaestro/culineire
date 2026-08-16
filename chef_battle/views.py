@@ -1097,6 +1097,7 @@ def _arena_center(active_battle):
         ChefBattleProfile.objects.select_related("author")
         .filter(crown_until__gt=timezone.now())
         .exclude(author__slug__in=_hidden_bot_slugs())
+        .exclude(author__slug__in=_uncompeting_slugs())  # T22
         .order_by("-crown_until")
         .first()
     )
@@ -2948,12 +2949,16 @@ def crown_holder(request):
     holder = (
         ChefBattleProfile.objects.select_related("author")
         .filter(crown_until__gt=now)
+        .exclude(author__slug__in=_hidden_bot_slugs())
+        .exclude(author__slug__in=_uncompeting_slugs())  # T22
         .order_by("-crown_until")
         .first()
     )
     past = (
         Battle.objects.select_related("winner")
         .filter(crown_awarded=True, winner__isnull=False)
+        .exclude(winner__slug__in=_hidden_bot_slugs())
+        .exclude(winner__slug__in=_uncompeting_slugs())  # T22
         .order_by("-end_time", "-pk")[:20]
     )
     most_crowns = (

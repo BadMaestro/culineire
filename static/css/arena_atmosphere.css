@@ -871,3 +871,172 @@
 .page--arena .arena-rank-spine__label {
   display: none;
 }
+
+/* ============================================================================
+   T28 — Arena ambient atmosphere, six effects. F1 (the gap list, v2.5.1110)
+   found the hall's panels and data already match the design template; only
+   ambience was missing. Every effect here is decorative: no identity, no
+   state, no pointer events, and none of it touches the octagon geometry, the
+   camera, or any panel's measured position. Each section carries its own
+   prefers-reduced-motion block, matching this file's existing convention
+   (sections A-E) rather than one master block at the end.
+   ========================================================================= */
+
+/* ── F. Light shafts (G1) — three angled beams swaying over the deck. ── */
+.page--arena .arena-atmosphere-fx {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: var(--arena-z-under);
+}
+.page--arena .arena-atmo-shaft {
+  position: absolute;
+  top: -8%;
+  width: 22%;
+  height: 70%;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent-bronze) 16%, transparent) 0%,
+    color-mix(in srgb, var(--accent-bronze) 7%, transparent) 45%,
+    transparent 85%);
+  clip-path: polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%);
+  filter: blur(1.4rem);
+  transform-origin: 50% 0%;
+  animation: arena-shaft-sway 12s ease-in-out infinite;
+}
+.page--arena .arena-atmo-shaft:nth-child(1) { left: 12%; animation-delay: 0s; }
+.page--arena .arena-atmo-shaft:nth-child(2) { left: 42%; width: 26%; animation-delay: -4s; }
+.page--arena .arena-atmo-shaft:nth-child(3) { left: 70%; animation-delay: -8s; }
+@keyframes arena-shaft-sway {
+  0%, 100% { opacity: 0.5; transform: rotate(-2deg) scaleX(1); }
+  50%      { opacity: 0.85; transform: rotate(2deg) scaleX(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page--arena .arena-atmo-shaft {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ── G. Dust motes (G2) — a handful of drifting particles, not a crowd. ── */
+.page--arena .arena-atmo-mote {
+  position: absolute;
+  bottom: 18%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-bronze) 85%, white);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent-bronze) 60%, transparent);
+  opacity: 0;
+  animation: arena-mote-float 14s linear infinite;
+}
+.page--arena .arena-atmo-mote:nth-child(4) { left: 14%; animation-delay: 0s; }
+.page--arena .arena-atmo-mote:nth-child(5) { left: 27%; animation-delay: -2.3s; }
+.page--arena .arena-atmo-mote:nth-child(6) { left: 41%; animation-delay: -4.6s; }
+.page--arena .arena-atmo-mote:nth-child(7) { left: 55%; animation-delay: -6.9s; }
+.page--arena .arena-atmo-mote:nth-child(8) { left: 63%; animation-delay: -9.2s; }
+.page--arena .arena-atmo-mote:nth-child(9) { left: 76%; animation-delay: -11.5s; }
+.page--arena .arena-atmo-mote:nth-child(10) { left: 84%; animation-delay: -1.4s; }
+.page--arena .arena-atmo-mote:nth-child(11) { left: 92%; animation-delay: -7.8s; }
+@keyframes arena-mote-float {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  12%  { opacity: 0.55; }
+  88%  { opacity: 0.35; }
+  100% { transform: translate(0.9rem, -11rem); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page--arena .arena-atmo-mote {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* ── H. Gift glyphs rising from the crowd (G3) — decorative only; the real
+   gift-notification mechanism lives elsewhere and is unaffected. ── */
+.page--arena .arena-atmo-gift {
+  position: absolute;
+  bottom: 14%;
+  font-size: 1.1rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 0.5rem color-mix(in srgb, var(--hall-green) 55%, transparent));
+  opacity: 0;
+  animation: arena-gift-rise 9s ease-out infinite;
+}
+.page--arena .arena-atmo-gift:nth-child(12) { left: 20%; animation-delay: 0s; }
+.page--arena .arena-atmo-gift:nth-child(13) { left: 48%; animation-delay: -2.5s; font-size: 1.3rem; }
+.page--arena .arena-atmo-gift:nth-child(14) { left: 68%; animation-delay: -5s; }
+.page--arena .arena-atmo-gift:nth-child(15) { left: 85%; animation-delay: -7.5s; font-size: 1.25rem; }
+@keyframes arena-gift-rise {
+  0%   { transform: translateY(0) scale(0.85); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translateY(-9rem) scale(1.05); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page--arena .arena-atmo-gift {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* ── I. Activity ticker actually scrolls (G4). The three spans keep their
+   existing IDs (arena_deck.js's getElementById calls are untouched); only a
+   new track wrapper was added in the template. ── */
+.page--arena .arena-activity-ticker {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.page--arena .arena-activity-ticker__track {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  width: max-content;
+  animation: arena-ticker-run 22s linear infinite;
+}
+@keyframes arena-ticker-run {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page--arena .arena-activity-ticker__track {
+    animation: none;
+  }
+}
+
+/* ── J. Crown-holder badge pulses gently (G5). ── */
+.page--arena .arena-live-chef--crown,
+.page--arena .arena-live-centre--crown {
+  animation: arena-crown-pulse 3.2s ease-in-out infinite;
+}
+@keyframes arena-crown-pulse {
+  0%, 100% { filter: drop-shadow(0 0 0.35rem color-mix(in srgb, var(--accent-bronze) 35%, transparent)); }
+  50%      { filter: drop-shadow(0 0 0.7rem color-mix(in srgb, var(--accent-bronze) 55%, transparent)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page--arena .arena-live-chef--crown,
+  .page--arena .arena-live-centre--crown {
+    animation: none;
+  }
+}
+
+/* ── K. "Live Now" dot blinks in the cooking-widget header (G6). The header
+   copy's ::before is already spoken for as a text separator (" · ", arena.css
+   line ~5013), so this uses ::after instead - free on this element and an ID
+   selector, which does not fight that class-selector rule for the cascade. ── */
+.page--arena .arena-cooking-widget #arena-live-note.is-live::after {
+  content: "";
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-left: 0.35rem;
+  border-radius: 50%;
+  background: var(--hall-red);
+  box-shadow: 0 0 0.5rem color-mix(in srgb, var(--hall-red) 65%, transparent);
+  vertical-align: middle;
+  animation: arena-live-pulse 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page--arena .arena-cooking-widget #arena-live-note.is-live::after {
+    animation: none;
+  }
+}

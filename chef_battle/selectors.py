@@ -377,6 +377,7 @@ def get_master_state() -> dict:
     crown = (
         ChefBattleProfile.objects.select_related("author")
         .filter(crown_until__gt=now)
+        .exclude(author__slug__in=_uncompeting_slugs())  # T31
         .order_by("-crown_until")
         .first()
     )
