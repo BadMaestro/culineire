@@ -121,10 +121,13 @@ sync before T11/T15/T17 → **3515** mine (lock free, my last package, T17 to hi
 
 ## Still open, and deliberately not mine to start
 
-- **A18's two accessibility gaps**, deferred by the Owner to Stage 3 on
-  2026-08-10: focus rings on four of the first six deck controls, and 9.2 px
-  rank chips.
-- **VD1**, the overflow at the Owner's own viewport, which he froze as visual
-  debt — not to be "fixed" quietly.
+**NOTHING FROM THE ARENA IS OPEN ANY MORE.** The two items this section used to
+list — A18's accessibility gaps (focus rings on four of the first six deck
+controls, 9.2 px rank chips) and VD1 (the overflow at the Owner's own viewport)
+— were **CANCELLED by the Owner on 2026-08-16**. Asked what they were, he
+answered that they are long gone and that nothing is to be done with them, and
+told me to delete them. Struck from the board, the plan, the acceptance act and
+the visual-debt file; the frozen architecture in that file is untouched. Do not
+resurrect either one, and do not treat the deleted text as an oversight.
 - The full audit act is `docs/chef_battle/ARENA_ACCEPTANCE_AUDIT_2026-08-15.md`;
   its four conditions are all now closed except what T17 certifies.

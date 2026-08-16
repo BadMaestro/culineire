@@ -42,9 +42,13 @@ at 9.2px, both flagged as too small for a legibility/contrast check. Reduced
 motion is covered by `@media (prefers-reduced-motion:reduce)` rules audited
 in the AN normalisation report but not re-measured here.
 
-**Not fixed, but no longer open against this stage.** The two A18 gaps above
-are real; **the Owner deferred both, 2026-08-10, to Stage 3
-(release-readiness)** rather than have them worked now.
+**Not fixed, and now cancelled outright.** The two A18 gaps above were real
+when measured; the Owner deferred both on 2026-08-10 to Stage 3
+(release-readiness), and then **CANCELLED both on 2026-08-16** — told they were
+among the last items still carried on the Arena, he answered that they are long
+gone and that nothing is to be done with them. Stage 3 no longer holds them.
+The measurement above stands as a record of what was found on 2026-08-07; it is
+not an open item.
 
 ## 3. State and action parity
 

@@ -153,17 +153,22 @@ layer boundaries the spec already names (geometry / data binding / effects).
    board and measured against the code: two of the eight stages are missing and
    one carries the wrong number. **This is the largest visible Arena gap and it
    is frontend-shaped.**
-4. **Two accessibility items stay deferred by his 2026-08-10 decision**: focus
-   rings on four of the first six deck controls, and 9.2 px rank chips. They
-   are Stage 3, and a frontend rebuild is the natural moment to close them
-   rather than inherit them.
+4. ~~Two accessibility items stay deferred by his 2026-08-10 decision: focus
+   rings on four of the first six deck controls, and 9.2 px rank chips.~~
+   **CANCELLED by the Owner, 2026-08-16.** Told on that day that these were
+   among the last items still carried on the Arena, he answered that they are
+   long gone and that nothing is to be done with them. Struck, not deferred:
+   the frontend rebuild does not inherit them and Stage 3 does not hold them.
 
 ---
 
 ## 8. What is explicitly NOT in this acceptance
 
 - Stripe, payouts, refunds and the token economy — the Owner's instruction.
-- `VD1`, the overflow at his own viewport, which he froze as visual debt.
+- ~~`VD1`, the overflow at his own viewport, which he froze as visual debt.~~
+  **CANCELLED by the Owner, 2026-08-16 — long gone, nothing to be done, card
+  deleted.** It is out of this acceptance because it no longer exists, not
+  because it was excluded from scope.
 - The Hall-Plan stages beyond the popup (B2–B5 teleport choreography, D1
   antechamber): the renderer has displacement and a teleport flash, the
   choreography itself is not built and is not claimed here.

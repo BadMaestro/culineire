@@ -3277,7 +3277,7 @@ ARENA_DESIGN_TASKS = [
         "visible_result": "Supported desktop widths remain usable and visually stable.",
         "acceptance": "Stepper one row; contrast >=7:1 recorded; all click targets keyboard-operable; reduced motion passes.",
         "forbidden": "Mobile redesign is frozen and not part of this ticket.",
-        "evidence": "MEASURED ON PRODUCTION AT 1280x800 AND 1920x1080, 2026-08-07, by GreenBear; the card stays open and its owner is unchanged. NO HORIZONTAL OVERFLOW at either width. ONE DEFECT FOUND AND FIXED IN v2.5.861 BECAUSE IT WAS MINE: the deck is sized 100svh - var(--arena-header-h) and measureHeader() set that variable from the HEADER ELEMENT alone - 146px - while the header itself starts 77px down the page, under the site utility bar. So the arena overflowed the screen by exactly the height of that bar, and A07's promise of the whole arena on one screen was quietly false at 1920. It now measures everything above the deck, not the header's own height. STILL OPEN FOR WHOEVER TAKES THIS CARD: only two of the first six focusable controls on the deck show any focus ring (no outline and no box-shadow on the rest), and the rank chips render at 9.2px, which is small for a contrast and legibility check. Neither was touched - A18 is not mine and two agents on one card is what cost us A09's approach stage, built twice in one hour. CLOSED by Bolt after final Arena Hall composition: 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab (docs/ARENA_BATTLE_PLAN.md). THE TWO GAPS ABOVE - focus rings, chip contrast - DEFERRED BY THE OWNER, 2026-08-10, to Stage 3 (release-readiness); not to be worked before it.",
+        "evidence": "MEASURED ON PRODUCTION AT 1280x800 AND 1920x1080, 2026-08-07, by GreenBear; the card stays open and its owner is unchanged. NO HORIZONTAL OVERFLOW at either width. ONE DEFECT FOUND AND FIXED IN v2.5.861 BECAUSE IT WAS MINE: the deck is sized 100svh - var(--arena-header-h) and measureHeader() set that variable from the HEADER ELEMENT alone - 146px - while the header itself starts 77px down the page, under the site utility bar. So the arena overflowed the screen by exactly the height of that bar, and A07's promise of the whole arena on one screen was quietly false at 1920. It now measures everything above the deck, not the header's own height. TWO FURTHER GAPS WERE FOUND AND REPORTED, NOT FIXED: only two of the first six focusable controls on the deck showed any focus ring (no outline and no box-shadow on the rest), and the rank chips rendered at 9.2px, which is small for a contrast and legibility check. Neither was touched - A18 is not mine and two agents on one card is what cost us A09's approach stage, built twice in one hour. CLOSED by Bolt after final Arena Hall composition: 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab (docs/ARENA_BATTLE_PLAN.md). THE TWO GAPS ARE CANCELLED - OWNER RULING, 2026-08-16. They had been deferred by him on 2026-08-10 to Stage 3 (release-readiness). Told on 2026-08-16 that they were still carried as the only open items left on the Arena, he answered that they are long gone and that nothing is to be done with them, and instructed GreenBear to delete them. They are struck, not carried: no Stage 3 inherits them and no card reopens them.",
     },
     {
         "id": "A19", "group": "Arena Hall", "title": "Owner visual acceptance — Arena Hall",
@@ -4734,7 +4734,6 @@ ARENA_NORMALISATION_CLOSURE = {
         "docs/chef_battle/ARENA_VISUAL_DEBT.md",
     ],
     "carried_out": [
-        "VD1 - the large-desktop composition, a visual/layout card of its own",
         "MC02 - the withdrawal seen live, a product card of its own",
         "static-asset residue - maintenance debt",
     ],
@@ -4786,7 +4785,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "3c9d52db / production v2.5.1078",
+        "commit": "pending / production v2.5.1080",
         "verification": "Stage 2 is CLOSED - the Owner signed off G01 on 2026-08-10 and every "
                         "card A00 through G01 is DONE and deployed. (T15, 2026-08-15: this line "
                         "opened by confirming a production version that was 242 releases "
@@ -4837,27 +4836,33 @@ ARENA_RELEASE_STAGES = [
                      "is not an agent's to restart: AGENTS.md section 8 keeps payment, payout, "
                      "Stripe and legal outside every standing authorisation, so this waits for his "
                      "explicit word and nothing else.",
+                     "OWNER, 2026-08-16, SUPERSEDES THE 2026-08-10 LINE FOR ACCESSIBILITY: A18's "
+                     "two gaps (focus rings on 4 of 6 deck controls, 9.2px rank chips) are "
+                     "CANCELLED. The ruling Bolt correctly declined to assume has now been given. "
+                     "Asked by GreenBear what the two remaining Arena items were, the Owner "
+                     "answered that they are long gone and that nothing is to be done with them, "
+                     "and instructed him to delete them. Struck, not deferred: this stage does not "
+                     "hold them, no card reopens them, and the 2026-08-10 line above is history "
+                     "rather than a live criterion.",
                      "CONSEQUENCE, stated rather than left for someone to discover: with payments "
-                     "deferred and Mobile Arena frozen (this plan, 'not a blocker for this desktop "
-                     "plan'), the ONLY work item still named in this stage is A18's two "
-                     "accessibility gaps. The Owner dismissed them in conversation on 2026-08-16 "
-                     "and Bolt withdrew them, but he issued NO ruling, so the criterion above "
-                     "stands exactly as written and no agent starts them without his word. "
-                     "Everything else this stage is waiting for is his: whether the Arena launches "
-                     "without real-money token purchases, and then his release approval.",
+                     "deferred, Mobile Arena frozen (this plan, 'not a blocker for this desktop "
+                     "plan') and A18's gaps now cancelled, THIS STAGE HAS NO WORK ITEM LEFT IN IT. "
+                     "Everything it waits for is the Owner's: whether the Arena launches without "
+                     "real-money token purchases, and then his release approval.",
                      "Owner grants explicit release approval."],
         "dependencies": "Stage 2 A00-G01 complete.",
         "blockers": [],
         "branch": "Not approved", "commit": "Not approved",
         "verification": "OWNER, 2026-08-10: G01 signed off. Stage started on his word.",
         "updated": "2026-08-10T00:00:00.000Z",
-        "next_action": "NOTHING IS ASSIGNABLE HERE WITHOUT HIM. Payments are deferred by the Owner "
-                       "(2026-08-16) and Mobile Arena is frozen; A18's two gaps are the only work "
-                       "item still named, and they need his word. The stage is waiting on him: first "
-                       "whether the Arena launches without real-money token purchases, then his "
-                       "separate explicit release approval - his G01 sign-off started this stage "
-                       "and is not that approval. The only NEXT card on the board is T22, which "
-                       "is not a launch blocker.",
+        "next_action": "NOTHING IS ASSIGNABLE HERE AT ALL. Payments are deferred by the Owner "
+                       "(2026-08-16), Mobile Arena is frozen, and A18's two gaps - the last work "
+                       "item this stage still named - were CANCELLED by him the same day. The "
+                       "stage is waiting on him and on nothing else: first whether the Arena "
+                       "launches without real-money token purchases, then his separate explicit "
+                       "release approval - his G01 sign-off started this stage and is not that "
+                       "approval. The only NEXT card on the board is T22, which is not a launch "
+                       "blocker.",
     },
 ]
 

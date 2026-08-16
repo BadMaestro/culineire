@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-16 · Production baseline: **v2.5.1078**
+Last reconciled: 2026-08-16 · Production baseline: **v2.5.1080**
 
 ## Owner ruling, 2026-08-16 — Stripe is not being worked
 
@@ -15,10 +15,25 @@ agent's to restart: AGENTS.md section 8 keeps payment, payout, Stripe and legal
 outside every standing authorisation this project has granted, so it waits on
 his explicit word and nothing else.
 
-With payments deferred and Mobile Arena frozen, the only work item still named
-in Stage 3 is A18's two accessibility gaps — and he issued no ruling on those,
-so their criterion stands as written. Everything else the stage waits for is
-his: whether the Arena launches without real-money token purchases, and then his
+## Owner ruling, 2026-08-16 — A18's two accessibility gaps and VD1 are cancelled
+
+The ruling the Stripe record above correctly declined to assume has since been
+given. Asked what the two remaining Arena items were, he answered — **his words,
+verbatim: "этого всего давно нет - удали не делаем с этим ничего"** — and
+instructed GreenBear to delete them.
+
+- **A18's two accessibility gaps** — focus rings missing on four of the first
+  six deck controls, and 9.2 px rank chips — measured on production 2026-08-07,
+  deferred by him to Stage 3 on 2026-08-10. **CANCELLED.**
+- **VD1**, the overflow at his own viewport reported 2026-08-09, which he had
+  already accepted as-is the same day. **CANCELLED, card deleted.** Its brief is
+  gone from `docs/chef_battle/ARENA_VISUAL_DEBT.md`; that file now carries only
+  VD2 and the frozen architecture, and **the freeze itself is untouched** — the
+  four camera values and the accepted 1280x800 composition remain the contract.
+
+Struck, not deferred: no stage inherits them and no card reopens them. **Stage 3
+now has no work item left in it at all.** Everything it waits for is his:
+whether the Arena launches without real-money token purchases, and then his
 release approval.
 
 ## T17 — the acceptance gate closed, and with it the 2026-08-12 brief — 2026-08-16
@@ -125,8 +140,8 @@ proof; T01's caller was scoped at `battle_detail` (F20, v2.5.1010) while the
 scorer itself still accepts every status but COMPLETED, which is exactly the
 "fixed the symptom, left the class" pattern the brief was written against.
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
-integration) is CLOSED.** A18's accessibility gaps and §9 legal/payment move
-to Stage 3 (release-readiness), now open. VD1 stays deliberately deferred.
+integration) is CLOSED.** §9 legal/payment moves
+to Stage 3 (release-readiness), now open. **A18's two accessibility gaps and VD1 were CANCELLED by the Owner, 2026-08-16** — told they were the last items still carried on the Arena, he answered that they are long gone and that nothing is to be done with them. Struck, not deferred; Stage 3 does not inherit them.
 **X06/X07/X08/X11 ruled by the Owner, 2026-08-10 — the running code was right
 in all four cases (battle window 48h+2d voting, moves 5/5/10/1, combat moves
 1-5, eight token packages); the archived docs are corrected to match, no code
@@ -783,8 +798,9 @@ and erases no important files** — focused PostgreSQL tests, `manage.py check` 
 **Cleaned and synchronised 2026-08-09**, on the Owner's instruction, after
 Architecture Normalisation closed. At the time, the queue held four
 actionable cards (A19, VD1, MC02, G01); all four have since closed - A19 and
-G01 DONE (Owner acceptance, 2026-08-09/10), VD1 DONE (Owner accepted the
-visual debt as-is, 2026-08-09, no code changed), MC02 DELETED (Owner's
+G01 DONE (Owner acceptance, 2026-08-09/10), VD1 CANCELLED (Owner accepted the
+visual debt as-is on 2026-08-09 with no code changed, then deleted the card
+outright on 2026-08-16), MC02 DELETED (Owner's
 order, 2026-08-09, no longer needed). Fixed 2026-08-11 (F57): this section
 had not been updated to say so, and kept calling all four "actionable" long
 after every one of them closed - see §1 and the individual rows in the
@@ -823,9 +839,9 @@ forbidden changes and evidence for every row below.
 | A15 | Arena Hall | Effects and artifacts preservation pass | GreenBear | A07–A10 | DONE |
 | A16 | Arena Hall | CulinEire branding and K-mark audit | unassigned | A11–A14 | DONE |
 | A17 | Integrity | Truthful visual state matrix | Bolt | A09–A16 | **DONE** — `docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md`, measured on production |
-| A18 | Integrity | Desktop accessibility and responsive gate | Bolt | A17 | **DONE** — 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab. Two named gaps (focus rings, rank-chip contrast) **deferred by the Owner, 2026-08-10, to Stage 3 (release-readiness)** |
+| A18 | Integrity | Desktop accessibility and responsive gate | Bolt | A17 | **DONE** — 1920/1440/1280/375 swept, 0px overflow, keyboard verified with real Tab. Two named gaps (focus rings, rank-chip contrast) were deferred by the Owner on 2026-08-10 and **CANCELLED by him on 2026-08-16 — long gone, nothing to be done, struck rather than carried** |
 | A19 | Arena Hall | Owner visual acceptance — Arena Hall. **Architecture prerequisite satisfied** (normalisation closed at v2.5.960). Owner-only; nothing to implement. | Owner | architecture prerequisite satisfied | **DONE — Owner accepted 2026-08-09, no punch list returned** |
-| VD1 | Arena Hall | **Final Arena visual/layout cleanup** — the large-desktop composition the Owner reported on 2026-08-09. Full brief and the four defects that must be told apart first: `docs/chef_battle/ARENA_VISUAL_DEBT.md`. | unassigned | A19 | **DONE — Owner accepted the debt as-is, 2026-08-09. NO CODE CHANGED: this closes by his decision, not by a fix. The composition is unchanged from what A07/AN normalisation left; nothing in PAGE LAYOUT or OCTAGON_REGION was touched.** |
+| VD1 | Arena Hall | ~~Final Arena visual/layout cleanup — the large-desktop composition the Owner reported on 2026-08-09.~~ | — | — | **CANCELLED by the Owner, 2026-08-16 — the overflow is long gone and nothing is to be done with it. He had already accepted the debt as-is on 2026-08-09; this deletes the card outright. NO CODE EVER CHANGED FOR IT. The brief was removed from `docs/chef_battle/ARENA_VISUAL_DEBT.md`, which now carries only VD2 and the frozen architecture — the freeze itself is untouched.** |
 | MC01 | Master Console | Battle Cancellation Simulation — the withdrawal, step by step | Bolt | v2.5.830 | **DELETED by the Owner** |
 | MC02 | Arena | The withdrawal seen LIVE on the arena, not described — `docs/chef_battle/ARENA_EMULATION_VISUAL_STEPS.md`. | unassigned | A09 | **DELETED by the Owner, 2026-08-09 — no longer needed** |
 | SA-A2 | Arena | An accepted challenge seats the pair in adjacent cells, each in his own ring | Bolt | — | DONE v2.5.844 |
@@ -866,7 +882,8 @@ the live Arena is staff-gated. It does not keep the engineering task open.
 Three items were carried OUT of the block, each with its own owner: **VD1** the
 large-desktop composition, **MC02** the withdrawal seen live, and the
 static-asset residue as maintenance debt. They are cards in their own right
-above; they are not AN work.
+above; they are not AN work. **VD1 and MC02 have both since been cancelled by
+the Owner** — MC02 on 2026-08-09, VD1 on 2026-08-16.
 
 ## 6. How to assign a card
 
