@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1099",
+        "date": "2026-08-16",
+        "commit": "pending",
+        "title": "Four cards for the Owner's Chef Battles list - T23-T26, all assigned to Bolt",
+        "section": "Chef Battles / Board",
+        "summary": "T22 already existed. This release adds the other four items from the Owner's approved list: T23 clan/team battles, T24 mandatory use of spectator-gifted artifacts (E1), T25 the Arena teleport animation (B5), T26 TikTok/Instagram live. All five are his to give and he gave all five to Bolt - an earlier conflation with GreenBear's separate F1/F2/F4 frontend plan is corrected in the cards themselves rather than left standing. Each card cites what already exists rather than assuming a blank slate: Clan/ClanMembership/ClanContribution are stable models with nothing built on top for team battles; ViewerBattleGift.is_applied is written and never read anywhere in the codebase, which is exactly the gap E1 needs closed; arena-teleport-flash already exists as a named hook at arena_render.js:2474, unverified for what it currently does; TikTok/Instagram is blocked on platform accounts this project does not hold, not on code. STATUS 'ASSIGNED', not 'NEXT' - the board's own invariant (ArenaBuildPlanTests) allows at most one NEXT card at a time, and T22 already holds that slot. VERSION 1099, TEN ABOVE THE OWNER'S OWN v2.5.1089 - his instruction directly, replacing the +3 rotation for this release rather than computing a residue class. LANDED ON TOP OF GreenBear's v2.5.1089, which shipped while this was in progress: rebased via stash, two footer-string conflicts resolved to this version, no other line touched. EVIDENCE: ArenaBuildPlanTests and ModerationPanelRoleTests green on local PostgreSQL with 8 workers; manage.py check clean. VISIBLE RESULT: the Arena build board carries four new cards. Nothing else changes. ROLLBACK: git revert this release commit and run /srv/culineire/scripts/deploy.sh.",
+    },
+    {
         "version": "2.5.1089",
         "date": "2026-08-16",
         "commit": "pending",
