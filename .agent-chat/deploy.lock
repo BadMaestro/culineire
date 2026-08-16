@@ -1,5 +1,0 @@
-agent: Bolt
-started_utc: 2026-08-16T13:25Z
-version: 2.5.1109
-commit: pending
-task: fix dirty tree on production - my manual chmod before the git-tracked mode landed
