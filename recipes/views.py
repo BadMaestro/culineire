@@ -4659,14 +4659,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T29", "group": "Frontend plan (Owner-approved 2026-08-16)", "title": "F2 - chef relocation choreography, static (no animation)",
-        "status": "ASSIGNED", "owner": "GreenBear",
-        "files": "chef_battle/views.py (_arena_center, ring occupancy); static/js/arena_render.js; templates/chef_battle/_arena_render_ring.html",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "chef_battle/views.py (new _battle_is_at_centre(), _arena_center(), _build_arena_payload()'s ring filter); chef_battle/tests.py (ArenaFighterStaysOnTheFloorTests, rewritten)",
         "depends_on": "none",
-        "action": "Challenge accepted -> both chefs face each other (own ring, opposite/aligned cells per rank). Battle time -> both move to the centre stage and disappear from their ring cells (moved, not duplicated). Battle complete -> both return to their original ring cells. Position is derived from state on every poll; no new model. Explicitly STATIC - no transition animation between positions, which is T25/Stage B5, already assigned to Bolt.",
-        "visible_result": "A chef's position on the Arena floor reflects the battle's current phase.",
-        "acceptance": "Ring occupancy, centre-stage occupancy and empty-ring state are all correct at every phase transition, proven by polling the same payload the client uses. Does not touch T25's animation hook (arena-teleport-flash) or the frozen camera/geometry.",
-        "forbidden": "No animation work - that is T25, Bolt's. No new database field for position; derive it from existing battle/ring state.",
-        "evidence": "CREATED 2026-08-16, Owner-approved plan item 2 (F2).",
+        "action": "Challenge accepted -> both chefs face each other (already shipped: arena_render.js's seatBattlePairs, scenario A2/A4). Battle time -> both move to the centre stage and vacate their ring cells (moved, not duplicated). Battle complete -> both return automatically once in_battle clears. A REAL CONFLICT FOUND BEFORE WRITING CODE: A09 (shipped, tested) deliberately kept a fighter in his ring cell for the WHOLE duration his battle was ACTIVE_STATUSES, specifically so an offline chef's ring never looked empty mid-bout - the exact opposite of this card's 'disappear from ring cells'. Put to the Owner rather than guessed at; his ruling: remove from the ring while centred, narrowing A09 rather than reverting it.",
+        "visible_result": "A chef's position on the Arena floor reflects the battle's current phase; his ring cell is occupied only while his battle has NOT reached the centre stage.",
+        "acceptance": "_battle_is_at_centre() is now the ONE function both _arena_center() (what to draw there) and the ring filter (who vacates for it) read, so the two can never disagree about the same battle. A09's original guarantee is UNCHANGED for the approach stage (SCHEDULED/MENU_LOCKED never reach centre) - only the centred window is new. Proven directly against the poll payload: 5 focused tests, including one asserting a centred fighter is present AT THE CENTRE (not nowhere) via the same battle_id.",
+        "forbidden": "No animation work - that is T25, Bolt's, untouched (arena-teleport-flash not referenced). No new database field for position; derived from existing battle/ring state via the new at_centre payload key.",
+        "evidence": "SHIPPED v2.5.1116. FOUND WHILE IMPLEMENTING: static/js/arena_render.js already carries isDisplaced(chef, center) (undocumented on the board, untested by any Python string-slicing test until now) which filters a centred fighter OUT OF THE RENDER regardless of what the server payload contains - so the fighter was never actually drawn twice on screen, even before this card. What this card closes is the DATA layer: the raw poll payload's rings dict still listed him, which is what the Owner's 'убрать из кольца' targeted. No JS or template change was needed - isDisplaced() now simply never has anything to filter for a centred battle, since the server no longer sends it. Verified no other test depends on the old dual-presence payload shape (grepped every 'in_battle'/'rings' reference in chef_battle/tests.py).",
     },
     {
         "id": "T30", "group": "Frontend plan (Owner-approved 2026-08-16)", "title": "F4 - battle_detail becomes the antechamber",
@@ -4884,7 +4884,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "72582795 / production v2.5.1115",
+        "commit": "pending / production v2.5.1116",
         "verification": "Stage 2 is CLOSED - the Owner signed off G01 on 2026-08-10 and every "
                         "card A00 through G01 is DONE and deployed. (T15, 2026-08-15: this line "
                         "opened by confirming a production version that was 242 releases "

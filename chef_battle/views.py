@@ -1052,30 +1052,38 @@ def _arena_upcoming():
     ]
 
 
+def _battle_is_at_centre(battle) -> bool:
+    """THE CENTRE IS FOR A BATTLE THAT HAS STARTED, AND FOR NOTHING ELSE.
+    The single source of truth for 'is this battle on the centre stage right
+    now', shared by _arena_center() (what to draw there) and T29's ring
+    occupancy (whether the two fighters should vacate their ring cells for
+    it) — the two must never be allowed to disagree about the same battle.
+
+    Owner, 2026-08-06, twice in one day. First: accepting a challenge threw
+    both avatars out of their rings into the cells by the centre while the
+    battle room still read "Awaiting readiness". Then, when readiness became
+    the gate: THE PAIR JUMPS TO THE CENTRE ONLY WHEN THEIR BATTLE BEGINS, and
+    until then, with no other battle running, THE CELLS BY THE CENTRE ARE
+    EMPTY. Pressing Ready is not the beginning — since v2.5.844 it only pulls
+    the start in to fifteen minutes, and those fifteen minutes are still spent
+    standing in the rings.
+
+    So SCHEDULED and MENU_LOCKED never reach the centre, whatever the ready
+    flags say, and a battle whose start_time is still ahead does not either.
+    `facing_pair` is therefore no longer produced; the renderer keeps the
+    branch because the type remains part of the payload contract.
+    """
+    if battle is None:
+        return False
+    not_begun = battle.status in {Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED}
+    return not not_begun and battle.start_time <= timezone.now()
+
+
 def _arena_center(active_battle):
     """Centre-cell payload: active battle takes priority, then the current
     Crown holder (if any), else empty. Shared by arena() and arena_state()."""
-    # THE CENTRE IS FOR A BATTLE THAT HAS STARTED, AND FOR NOTHING ELSE.
-    #
-    # Owner, 2026-08-06, twice in one day. First: accepting a challenge threw
-    # both avatars out of their rings into the cells by the centre while the
-    # battle room still read "Awaiting readiness". Then, when readiness became
-    # the gate: THE PAIR JUMPS TO THE CENTRE ONLY WHEN THEIR BATTLE BEGINS, and
-    # until then, with no other battle running, THE CELLS BY THE CENTRE ARE
-    # EMPTY. Pressing Ready is not the beginning — since v2.5.844 it only pulls
-    # the start in to fifteen minutes, and those fifteen minutes are still spent
-    # standing in the rings.
-    #
-    # So SCHEDULED and MENU_LOCKED never reach the centre, whatever the ready
-    # flags say, and a battle whose start_time is still ahead does not either.
-    # `facing_pair` is therefore no longer produced; the renderer keeps the
-    # branch because the type remains part of the payload contract.
-    if active_battle:
-        not_begun = active_battle.status in {
-            Battle.Status.SCHEDULED, Battle.Status.MENU_LOCKED,
-        }
-        if not_begun or active_battle.start_time > timezone.now():
-            active_battle = None
+    if not _battle_is_at_centre(active_battle):
+        active_battle = None
 
     if active_battle:
         return {
@@ -1240,11 +1248,22 @@ def _build_arena_payload(*, viewer_author=None):
         ]
     active_battle = active_battles[0] if active_battles else None
     in_battle_map: dict[int, dict] = {}
+    # T29, Owner ruling 2026-08-16, narrowing A09: a fighter whose battle is
+    # ON THE CENTRE STAGE right now vacates his ring cell for it - moved, not
+    # duplicated. A09's own guarantee (a fighter's ring cell never empties
+    # just because his heartbeat lapsed) still holds for every OTHER phase -
+    # the approach stage (SCHEDULED/MENU_LOCKED) never reaches the centre
+    # (_battle_is_at_centre), so those fighters keep standing in their rings
+    # exactly as A09 shipped them. _battle_is_at_centre() is the one function
+    # both this filter and _arena_center() read, so the two can never
+    # disagree about the same battle.
+    centred_battle_ids = {b.id for b in active_battles if _battle_is_at_centre(b)}
     for battle in active_battles:
         info = {
             "battle_id": battle.id,
             "battle_phase": battle.status,
             "battle_url": battle.get_absolute_url(),
+            "at_centre": battle.id in centred_battle_ids,
         }
         in_battle_map[battle.challenger_id] = info
         in_battle_map[battle.opponent_id] = info
@@ -1323,6 +1342,10 @@ def _build_arena_payload(*, viewer_author=None):
             "battle_id": battle_info["battle_id"] if battle_info else None,
             "battle_phase": battle_info["battle_phase"] if battle_info else None,
             "battle_url": battle_info["battle_url"] if battle_info else None,
+            # T29: true only while this fighter's battle is ON THE CENTRE
+            # STAGE (_battle_is_at_centre) - the window where he has moved
+            # there and his ring cell must vacate for it.
+            "at_centre": bool(battle_info and battle_info["at_centre"]),
             "is_online": (
                 profile.author.slug in always_on
                 or bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff)
@@ -1347,16 +1370,23 @@ def _build_arena_payload(*, viewer_author=None):
             # chefs_by_rank stays complete so the legend/roster counts still
             # reflect every enrolled chef.
             #
-            # A09: A FIGHTER IS NEVER FILTERED OUT OF HIS OWN BATTLE. The online
-            # window is 180 seconds of heartbeat, and a chef who closes the tab
-            # disappeared from the floor mid-bout — his own battle ran with an
-            # empty ring, which is the one thing the arena exists to show
-            # (ARENA_BATTLE_PLAN 2b: so that they can see each other). Being in
-            # an active battle is itself a state worth drawing, whether or not
-            # the man is looking at the page.
+            # A09: A FIGHTER IS NEVER FILTERED OUT OF HIS OWN BATTLE FOR BEING
+            # OFFLINE. The online window is 180 seconds of heartbeat, and a
+            # chef who closes the tab before his battle even begins (the
+            # approach stage - SCHEDULED/MENU_LOCKED, never shown at centre)
+            # must not vanish from the floor; that would leave a ring looking
+            # unused, which is the one thing the arena exists to show
+            # (ARENA_BATTLE_PLAN 2b).
+            #
+            # T29, Owner ruling 2026-08-16, NARROWING A09: once that battle IS
+            # on the centre stage (_battle_is_at_centre - active_battle["at_centre"]
+            # above), the fighter has moved there and his ring cell empties for
+            # it - moved, not duplicated in both places at once. A09's own
+            # guarantee is unchanged for every phase that never reaches the
+            # centre; only the centred window is new.
             rank.value: [
                 c for c in chefs_by_rank[rank.value]
-                if c["is_online"] or c["in_battle"]
+                if c["is_online"] or (c["in_battle"] and not c["at_centre"])
             ]
             for rank in ChefBattleProfile.Rank
         },

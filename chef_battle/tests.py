@@ -11489,17 +11489,46 @@ class ArenaFighterStaysOnTheFloorTests(TestCase):
     def test_an_offline_chef_with_no_battle_is_still_not_on_the_floor(self):
         self.assertNotIn("a09-a", self._ring_slugs())
 
-    def test_both_fighters_hold_their_cells_while_the_battle_runs(self):
-        self._battle(Battle.Status.COOKING)
+    def test_both_fighters_hold_their_cells_during_the_approach_stage(self):
+        """A09's original guarantee, UNCHANGED: SCHEDULED/MENU_LOCKED never
+        reach the centre stage (_battle_is_at_centre), so an offline fighter
+        in the approach stage must still hold his ring cell - the empty-ring
+        defect A09 was built to close."""
+        self._battle(Battle.Status.SCHEDULED)
         slugs = self._ring_slugs()
         self.assertIn("a09-a", slugs)
         self.assertIn("a09-b", slugs)
 
-    def test_they_leave_the_floor_again_once_the_battle_is_over(self):
+    def test_they_vacate_their_ring_cells_once_the_battle_reaches_the_centre(self):
+        """T29, Owner ruling 2026-08-16, NARROWING A09: once a battle is ON
+        THE CENTRE STAGE (COOKING here, start_time already past), the two
+        fighters have moved there and must not also stand in their rings -
+        moved, not duplicated in both places."""
+        self._battle(Battle.Status.COOKING)
+        slugs = self._ring_slugs()
+        self.assertNotIn("a09-a", slugs)
+        self.assertNotIn("a09-b", slugs)
+
+    def test_a_centred_fighter_is_present_at_the_centre_not_nowhere(self):
+        """The other half of 'moved, not duplicated': vacating the ring must
+        not mean vanishing. _arena_center() is the single source of truth
+        this same filter reads (_battle_is_at_centre), so the two can never
+        both say 'not here'."""
+        from .views import _arena_center
+
         battle = self._battle(Battle.Status.COOKING)
-        self.assertIn("a09-a", self._ring_slugs())
+        center = _arena_center(battle)
+        self.assertEqual(center["type"], "active_battle")
+        self.assertEqual(center["battle_id"], battle.pk)
+
+    def test_they_return_to_the_floor_once_the_battle_is_over(self):
+        battle = self._battle(Battle.Status.COOKING)
+        self.assertNotIn("a09-a", self._ring_slugs())
         battle.status = Battle.Status.COMPLETED
         battle.save(update_fields=["status"])
+        # COMPLETED is not in ACTIVE_STATUSES, so in_battle is False again and
+        # the stale heartbeat (3h old, set in setUp) is what decides - offline,
+        # no battle, so the chef is correctly off the floor, same as before.
         self.assertNotIn("a09-a", self._ring_slugs())
 
 
