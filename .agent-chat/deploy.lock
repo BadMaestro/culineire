@@ -1,5 +1,0 @@
-agent: Bolt
-started_utc: 2026-08-16T13:20Z
-version: 2.5.1109
-commit: pending
-task: ops/deploy/predeploy_chown.sh - self-healing preflight for the root-owned-files trap (Carpet 3524/3525)
