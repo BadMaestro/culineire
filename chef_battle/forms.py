@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django import forms
+from django.conf import settings
 from django.utils import timezone
 
 from recipes.models import Recipe, RecipeAuthor
@@ -28,7 +29,16 @@ class BattleChallengeForm(forms.ModelForm):
     def __init__(self, *args, challenger=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.challenger = challenger
-        self.fields["opponent"].queryset = RecipeAuthor.objects.filter(user__isnull=False).exclude(pk=getattr(challenger, "pk", None)).order_by("name")
+        # T22: the Owner is outside the competition, so he is not offered as an
+        # opponent. This is presentation only - the refusal that actually holds
+        # is check_owner_not_in_battle() on the server, because a POST can name
+        # any pk regardless of what the dropdown showed.
+        self.fields["opponent"].queryset = (
+            RecipeAuthor.objects.filter(user__isnull=False)
+            .exclude(pk=getattr(challenger, "pk", None))
+            .exclude(slug=settings.OWNER_SLUG)
+            .order_by("name")
+        )
         # Only an approved recipe can carry a battle: accepting the challenge
         # attaches this one as the challenger's entry, and the audience has to
         # be able to read what it is voting on.

@@ -67,10 +67,31 @@ def get_recent_completed_battles(limit: int = 10) -> QuerySet:
     )
 
 
+def _uncompeting_slugs() -> set[str]:
+    """Slugs that must never appear in a COMPETITIVE aggregate.
+
+    T22: the Owner is present on the Arena and may wear a clan, but he is
+    outside the competition - his rank is hand-set (migrations 0020/0025), so a
+    ladder keyed to WINS would carry an account that never earned its place.
+    `is_immortal()` in services.py already stops the game taking anything FROM
+    him; this stops it counting him.
+
+    Deliberately separate from `_hidden_bot_slugs()` even though both end up as
+    an `.exclude()`: bots are hidden by a switch that can be turned back on
+    (ARENA_SHOW_EMULATION_BOTS), the Owner's exclusion is a permanent rule with
+    no switch. One function per reason, so neither can be flipped by accident
+    while trying to change the other.
+    """
+    from django.conf import settings as django_settings
+    slug = getattr(django_settings, "OWNER_SLUG", None)
+    return {slug} if slug else set()
+
+
 def get_top_profiles(limit: int = 10) -> QuerySet:
     return (
         ChefBattleProfile.objects.select_related("author")
         .filter(enrolled_at__isnull=False)
+        .exclude(author__slug__in=_uncompeting_slugs())
         .annotate(rank_order=_RANK_ORDER)
         .order_by("-rating", "-rank_order", "-wins", "author__name")[:limit]
     )
@@ -119,6 +140,7 @@ def get_rankings(limit: int = 100) -> QuerySet:
     return (
         ChefBattleProfile.objects.select_related("author")
         .filter(enrolled_at__isnull=False)
+        .exclude(author__slug__in=_uncompeting_slugs())
         .annotate(rank_order=_RANK_ORDER)
         .order_by("-rating", "-rank_order", "-wins", "author__name")[:limit]
     )
@@ -1247,6 +1269,7 @@ def get_crown_streak() -> int:
     holder = (
         ChefBattleProfile.objects.filter(crown_until__gt=timezone.now())
         .exclude(author__slug__in=_hidden_bot_slugs())
+        .exclude(author__slug__in=_uncompeting_slugs())
         .order_by("-crown_until")
         .first()
     )
@@ -1261,6 +1284,7 @@ def get_crown_ladder(limit: int = 8) -> list:
     start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     rows = (
         Battle.objects.filter(crown_awarded=True, winner__isnull=False, end_time__gte=start)
+        .exclude(winner__slug__in=_uncompeting_slugs())
         .values("winner__name", "winner__slug")
         .annotate(crowns=Count("id"))
         .order_by("-crowns", "winner__name")[:limit]

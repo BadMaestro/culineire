@@ -179,6 +179,41 @@ def is_immortal(profile) -> bool:
     return bool(slug) and slug == getattr(_settings, "OWNER_SLUG", None)
 
 
+def is_owner_author(author) -> bool:
+    """True for the Owner's RecipeAuthor.
+
+    The AUTHOR-side twin of `is_immortal()`, which takes a ChefBattleProfile.
+    Both read exactly the same thing - `settings.OWNER_SLUG` - so the two
+    halves of the Owner-avatar contract cannot drift apart: `is_immortal()`
+    stops the game TAKING anything from him, this one stops the game COUNTING
+    him. T22 exists because only the first half was ever built.
+
+    Not a generalisation of the hardcoded "greenbear" that AGENTS.md section 18
+    protects - those slugs in views, templates and presence stay exactly as they
+    are. This is the same OWNER_SLUG check the profile side already makes,
+    given a name so no caller invents its own answer.
+    """
+    from django.conf import settings as _settings
+    slug = getattr(author, "slug", None)
+    return bool(slug) and slug == getattr(_settings, "OWNER_SLUG", None)
+
+
+def check_owner_not_in_battle(challenger, opponent) -> str | None:
+    """Refuse any challenge that would put the Owner in a battle.
+
+    SERVER-SIDE, not merely hidden from the form's dropdown - T22's acceptance
+    requires the refusal to survive a hand-crafted POST. Both directions are
+    checked: he cannot be challenged, and his account cannot issue one either,
+    so the exclusion does not depend on which side of the form he lands on.
+    """
+    if is_owner_author(opponent) or is_owner_author(challenger):
+        return (
+            "GreenBear does not take part in battles. He is present on the "
+            "Arena and may join clans, but he is outside the competition."
+        )
+    return None
+
+
 def is_rehearsal_battle(battle) -> bool:
     """A battle between the two emulation bots and nobody else.
 

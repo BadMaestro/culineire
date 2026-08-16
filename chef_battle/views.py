@@ -52,6 +52,7 @@ from .fraud import (
 )
 from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleIngredient, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet, VoteIntegrityEvent
 from .selectors import (
+    _uncompeting_slugs,
     get_active_battles,
     get_upcoming_battles,
     get_arena_metrics,
@@ -88,6 +89,7 @@ from .services import (
     approve_cooking_phase,
     calculate_battle_result,
     check_forbidden_claims,
+    check_owner_not_in_battle,
     check_rank_matchup,
     slot_occupied_reason,
     check_payout_eligibility,
@@ -470,6 +472,7 @@ def season_leaderboard(request):
     profiles = (
         ChefBattleProfile.objects.select_related("author")
         .filter(seasonal_score__gt=0)
+        .exclude(author__slug__in=_uncompeting_slugs())  # T22
         .order_by("-seasonal_score", "-wins", "author__name")[:50]
     )
     if active:
@@ -1972,6 +1975,14 @@ def challenge_create(request):
             slot_error = slot_occupied_reason(author)
             if slot_error:
                 messages.error(request, slot_error)
+                return render(request, "chef_battle/challenge_form.html", {"form": form})
+
+            # T22: the Owner is outside the competition. Checked here, on the
+            # server, and not only by hiding him from the form's dropdown - a
+            # hand-crafted POST names an opponent pk directly.
+            owner_error = check_owner_not_in_battle(author, opponent)
+            if owner_error:
+                messages.error(request, owner_error)
                 return render(request, "chef_battle/challenge_form.html", {"form": form})
 
             rank_error = check_rank_matchup(author, opponent)

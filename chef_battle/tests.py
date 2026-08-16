@@ -19833,3 +19833,112 @@ class EnrollingAsAChefGivesUpTheSpectatorSeatTests(TestCase):
                           "the new chef is still holding a seat in the stands")
         seat.refresh_from_db()
         self.assertIsNotNone(seat.released_at)
+
+
+class OwnerIsPresentButOutsideTheCompetitionTests(TestCase):
+    """T22, Owner ruling: GreenBear stands on the Arena and may wear a clan,
+    but he is outside the competition.
+
+    Half of this contract has always been in - is_immortal() stops the game
+    TAKING anything from his account at the penalty, the rank demotion and the
+    refusal charge. The other half was never built: nothing stopped the game
+    COUNTING him. He appeared in the opponent dropdown, and he stood in a
+    public ladder keyed to WINS while his rank is hand-set by migrations
+    0020/0025 - a place no battle earned.
+    """
+
+    def setUp(self):
+        from .models import ChefBattleProfile
+
+        User = get_user_model()
+        # The Owner's author already exists - migration 0020 creates it and
+        # 0025 gives it the infinite balance. Take it rather than creating a
+        # second one; AGENTS.md section 18 means this row is never invented.
+        self.owner = RecipeAuthor.objects.get(slug=settings.OWNER_SLUG)
+        self.owner_profile, _ = ChefBattleProfile.objects.get_or_create(
+            author=self.owner)
+        ChefBattleProfile.objects.filter(pk=self.owner_profile.pk).update(
+            enrolled_at=timezone.now(), rating=9999, wins=0, seasonal_score=500)
+        self.owner_profile.refresh_from_db()
+
+        self.chef_user = User.objects.create_user("t22-chef", password="pw")
+        self.chef = RecipeAuthor.objects.create(
+            user=self.chef_user, name="T22 Chef", slug="t22-chef")
+        self.chef_profile = ChefBattleProfile.objects.create(
+            author=self.chef, enrolled_at=timezone.now(),
+            rating=10, wins=1, seasonal_score=5,
+        )
+
+    def test_he_is_absent_from_the_public_ladder(self):
+        from .selectors import get_rankings
+
+        slugs = [p.author.slug for p in get_rankings()]
+        self.assertIn("t22-chef", slugs, "the ordinary chef vanished - the filter is too wide")
+        self.assertNotIn(settings.OWNER_SLUG, slugs)
+
+    def test_he_is_absent_from_the_top_profiles_panel(self):
+        from .selectors import get_top_profiles
+
+        slugs = [p.author.slug for p in get_top_profiles()]
+        self.assertIn("t22-chef", slugs)
+        self.assertNotIn(settings.OWNER_SLUG, slugs)
+
+    def test_his_rating_of_9999_does_not_head_the_ladder(self):
+        """The specific failure this card exists to stop: ordered by -rating,
+        a hand-set 9999 puts him first on a board that means 'best chef'."""
+        from .selectors import get_rankings
+
+        top = list(get_rankings())
+        self.assertTrue(top, "ladder is empty - the test proves nothing")
+        self.assertNotEqual(top[0].author.slug, settings.OWNER_SLUG)
+
+    def test_a_challenge_naming_him_is_refused_by_the_server(self):
+        """Not merely hidden from the dropdown - the acceptance requires the
+        refusal to survive a POST that names his pk directly."""
+        from .services import check_owner_not_in_battle
+
+        self.assertIsNotNone(check_owner_not_in_battle(self.chef, self.owner))
+
+    def test_he_cannot_issue_a_challenge_either(self):
+        """Both directions - the exclusion must not depend on which side of
+        the form he lands on."""
+        from .services import check_owner_not_in_battle
+
+        self.assertIsNotNone(check_owner_not_in_battle(self.owner, self.chef))
+
+    def test_two_ordinary_chefs_are_still_allowed_to_fight(self):
+        """The guard must refuse him, not everybody."""
+        from .services import check_owner_not_in_battle
+
+        other_user = get_user_model().objects.create_user("t22-other", password="pw")
+        other = RecipeAuthor.objects.create(
+            user=other_user, name="Other", slug="t22-other")
+        self.assertIsNone(check_owner_not_in_battle(self.chef, other))
+
+    def test_he_is_not_offered_in_the_opponent_dropdown(self):
+        from .forms import BattleChallengeForm
+
+        form = BattleChallengeForm(challenger=self.chef)
+        offered = [a.slug for a in form.fields["opponent"].queryset]
+        self.assertNotIn(settings.OWNER_SLUG, offered)
+
+    def test_he_takes_no_season_standing(self):
+        """A season is the most permanent competitive record the game keeps."""
+        from .views import season_leaderboard  # noqa: F401  (import proves the view loads)
+        from .selectors import _uncompeting_slugs
+        from .models import ChefBattleProfile
+
+        ranked = (
+            ChefBattleProfile.objects.filter(seasonal_score__gt=0)
+            .exclude(author__slug__in=_uncompeting_slugs())
+        )
+        self.assertNotIn(settings.OWNER_SLUG,
+                         [p.author.slug for p in ranked])
+
+    def test_the_protective_half_is_untouched(self):
+        """This card ADDS an exclusion; it does not trade the protection away.
+        is_immortal() must still answer True for him afterwards."""
+        from .services import is_immortal
+
+        self.assertTrue(is_immortal(self.owner_profile))
+        self.assertFalse(is_immortal(self.chef_profile))

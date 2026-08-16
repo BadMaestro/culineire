@@ -232,9 +232,14 @@ def close_season(season: Season) -> dict:
                 "champion": existing[0].chef if existing else None,
             }
 
+        # T22: the Owner is outside the competition, so he cannot take a
+        # season standing either - a season is the most permanent competitive
+        # record this game keeps.
+        from .selectors import _uncompeting_slugs
         profiles = list(
             ChefBattleProfile.objects.select_related("author")
             .filter(seasonal_score__gt=0)
+            .exclude(author__slug__in=_uncompeting_slugs())
             .order_by("-seasonal_score", "-wins", "author__name")
         )
         record = _season_record(locked)
