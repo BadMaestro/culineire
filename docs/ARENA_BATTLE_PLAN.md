@@ -4,16 +4,31 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-16 · Production baseline: **v2.5.1080**
+Last reconciled: 2026-08-16 · Production baseline: **v2.5.1081**
 
-## Owner ruling, 2026-08-16 — Stripe is not being worked
+## Owner ruling, 2026-08-16 — Stripe was never an Arena gate, and leaves this plan
 
-His words, verbatim: "страйп пока не делаем вообще".
-The contract section-14 legal/payment gate
-leaves Stage 3's working set entirely. **Deferred, not cancelled**, and not an
-agent's to restart: AGENTS.md section 8 keeps payment, payout, Stripe and legal
-outside every standing authorisation this project has granted, so it waits on
-his explicit word and nothing else.
+He said first, verbatim: **"страйп пока не делаем вообще"**, which was recorded
+here as a deferral. He then corrected the premise, and the correction is the
+ruling that matters — **his words, verbatim: "запуск Арены никак не связан с
+запуском Stripe. Запуск Stripe — это последняя задача при запуске всего
+Chef Battles приложения, поэтому удали из плана всё что с этим связано"**.
+
+So this is **not a deferral and not a cancellation — it is a structural
+correction**. The contract section-14 legal/payment gate was attached to the
+Arena's release stage on 2026-08-10 and **did not belong there**. It is not an
+Arena criterion, it does not gate the Arena's release, and no Arena stage
+inherits it. Every reference tying the two together is removed from this plan,
+from `ARENA_RELEASE_STAGES` and from the G01 evidence act.
+
+It remains real work at its own scope: **the final task of launching the whole
+Chef Battles application.** It is not an agent's to start there either — AGENTS.md
+section 8 keeps payment, payout, Stripe and legal outside every standing
+authorisation this project grants, so it waits on his explicit word.
+
+**The question this removes, rather than answers:** the board had been asking
+whether the Arena could launch without real-money token purchases. It was never
+a question — the two launches are unconnected.
 
 ## Owner ruling, 2026-08-16 — A18's two accessibility gaps and VD1 are cancelled
 
@@ -32,9 +47,10 @@ instructed GreenBear to delete them.
   four camera values and the accepted 1280x800 composition remain the contract.
 
 Struck, not deferred: no stage inherits them and no card reopens them. **Stage 3
-now has no work item left in it at all.** Everything it waits for is his:
-whether the Arena launches without real-money token purchases, and then his
-release approval.
+now has no work item left in it at all.** Its closing sentence, written before
+the Stripe ruling above, said the stage was also waiting on whether the Arena
+could launch without real-money token purchases; that is corrected here rather
+than left standing. **The only thing Stage 3 waits for is his release approval.**
 
 ## T17 — the acceptance gate closed, and with it the 2026-08-12 brief — 2026-08-16
 
@@ -140,8 +156,7 @@ proof; T01's caller was scoped at `battle_detail` (F20, v2.5.1010) while the
 scorer itself still accepts every status but COMPLETED, which is exactly the
 "fixed the symptom, left the class" pattern the brief was written against.
 · **G01 signed off by the Owner, 2026-08-10 — Stage 2 (Design Arena visual
-integration) is CLOSED.** §9 legal/payment moves
-to Stage 3 (release-readiness), now open. **A18's two accessibility gaps and VD1 were CANCELLED by the Owner, 2026-08-16** — told they were the last items still carried on the Arena, he answered that they are long gone and that nothing is to be done with them. Struck, not deferred; Stage 3 does not inherit them.
+integration) is CLOSED.** Stage 3 (release-readiness) is now open and **carries nothing**. **§9 legal/payment was moved here on 2026-08-10 and REMOVED AGAIN by the Owner, 2026-08-16**: the Arena launch and the Stripe launch are unconnected, and Stripe is the last task of the whole Chef Battles application — a structural error corrected, not a deferral. **A18's two accessibility gaps and VD1 were CANCELLED by the Owner, 2026-08-16** — told they were the last items still carried on the Arena, he answered that they are long gone and that nothing is to be done with them. Struck, not deferred; Stage 3 does not inherit any of it.
 **X06/X07/X08/X11 ruled by the Owner, 2026-08-10 — the running code was right
 in all four cases (battle window 48h+2d voting, moves 5/5/10/1, combat moves
 1-5, eight token packages); the archived docs are corrected to match, no code

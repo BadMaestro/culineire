@@ -134,6 +134,21 @@ Twelve of twelve §14 categories are accounted for: ten with real, checked
 evidence, two - A18's accessibility gaps and §9 legal/payment - deferred by
 the Owner, 2026-08-10, to Stage 3 (release-readiness). **The Owner signed off
 the same day.** G01 is DONE. Stage 2 (Design Arena visual integration) is
-CLOSED; Stage 3 opens with A18's two gaps and §9 legal/payment as its first
-items, plus its own separate, still-outstanding requirement - the Owner's
-explicit release approval - which this sign-off is not.
+CLOSED.
+
+> **CORRECTION, 2026-08-16 — both deferrals above are void, by two separate
+> Owner rulings on the same day. This act is kept as it was written; only this
+> note is added, because rewriting an evidence act after the fact would destroy
+> the thing it exists to be.**
+>
+> - **§9 legal/payment is NOT an Arena item and never was.** His ruling: the
+>   Arena launch and the Stripe launch are unconnected, and Stripe is the LAST
+>   task of launching the whole Chef Battles application. Deferring it "to Stage
+>   3" was a structural error in this act, not a schedule. It is removed from
+>   the Arena plan entirely; it does not gate the Arena's release.
+> - **A18's two accessibility gaps are CANCELLED**, struck rather than deferred,
+>   on his instruction to GreenBear.
+>
+> What Stage 3 actually opened with, therefore, is nothing: no work item and no
+> open question, only the Owner's separate explicit release approval, which this
+> sign-off is not.

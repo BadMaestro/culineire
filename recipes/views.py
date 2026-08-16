@@ -4785,7 +4785,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "c43c06f3 / production v2.5.1080",
+        "commit": "pending / production v2.5.1081",
         "verification": "Stage 2 is CLOSED - the Owner signed off G01 on 2026-08-10 and every "
                         "card A00 through G01 is DONE and deployed. (T15, 2026-08-15: this line "
                         "opened by confirming a production version that was 242 releases "
@@ -4825,17 +4825,21 @@ ARENA_RELEASE_STAGES = [
         "criteria": ["All A00-G01 tickets accepted and marked DONE with evidence.",
                      "Full test suite green on PostgreSQL.",
                      "Production smoke checks and rollback path verified.",
-                     "OWNER, 2026-08-10: A18's two open accessibility gaps (focus rings on 4 of 6 "
-                     "deck controls, 9.2px rank-chip contrast) and G01's contract section-14 "
-                     "legal/payment gate (real Stripe token purchases) are DEFERRED TO THIS STAGE "
-                     "on his explicit word - not to be worked before it. See "
+                     "OWNER, 2026-08-10, HISTORY - both halves have since been struck: A18's two "
+                     "accessibility gaps and G01's contract section-14 legal/payment gate were "
+                     "deferred TO this stage on his word. See the two rulings below and "
                      "docs/chef_battle/G01_RELEASE_GATE_EVIDENCE.md.",
-                     "OWNER, 2026-08-16, SUPERSEDES THE LINE ABOVE FOR PAYMENTS: 'Stripe is not "
-                     "being done at all for now.' The section-14 legal/payment gate is DEFERRED "
-                     "AGAIN, out of this stage's working set entirely. It is not cancelled and it "
-                     "is not an agent's to restart: AGENTS.md section 8 keeps payment, payout, "
-                     "Stripe and legal outside every standing authorisation, so this waits for his "
-                     "explicit word and nothing else.",
+                     "OWNER, 2026-08-16, PAYMENTS WERE NEVER AN ARENA GATE AND ARE REMOVED FROM "
+                     "THIS PLAN: 'the Arena launch is in no way connected to the Stripe launch - "
+                     "the Stripe launch is the LAST task in launching the whole Chef Battles "
+                     "application'. This is not a deferral and it is a correction of a structural "
+                     "error: the section-14 legal/payment gate was placed on the Arena's release "
+                     "stage on 2026-08-10 and did not belong there. It is not an Arena criterion, "
+                     "it does not gate the Arena's release, and no Arena stage inherits it. It "
+                     "remains real work at its own scope - the final task of the Chef Battles "
+                     "application launch - and it is not an agent's to start there either: "
+                     "AGENTS.md section 8 keeps payment, payout, Stripe and legal outside every "
+                     "standing authorisation this project grants.",
                      "OWNER, 2026-08-16, SUPERSEDES THE 2026-08-10 LINE FOR ACCESSIBILITY: A18's "
                      "two gaps (focus rings on 4 of 6 deck controls, 9.2px rank chips) are "
                      "CANCELLED. The ruling Bolt correctly declined to assume has now been given. "
@@ -4845,24 +4849,29 @@ ARENA_RELEASE_STAGES = [
                      "hold them, no card reopens them, and the 2026-08-10 line above is history "
                      "rather than a live criterion.",
                      "CONSEQUENCE, stated rather than left for someone to discover: with payments "
-                     "deferred, Mobile Arena frozen (this plan, 'not a blocker for this desktop "
-                     "plan') and A18's gaps now cancelled, THIS STAGE HAS NO WORK ITEM LEFT IN IT. "
-                     "Everything it waits for is the Owner's: whether the Arena launches without "
-                     "real-money token purchases, and then his release approval.",
+                     "removed from this plan entirely, Mobile Arena frozen (this plan, 'not a "
+                     "blocker for this desktop plan') and A18's gaps cancelled, THIS STAGE HAS NO "
+                     "WORK ITEM LEFT IN IT AND NO OPEN QUESTION EITHER. The question this line "
+                     "used to carry - whether the Arena could launch without real-money token "
+                     "purchases - is answered and gone: the Owner ruled on 2026-08-16 that the two "
+                     "launches are unconnected, so it was never a question. All that remains is "
+                     "his explicit release approval.",
                      "Owner grants explicit release approval."],
         "dependencies": "Stage 2 A00-G01 complete.",
         "blockers": [],
         "branch": "Not approved", "commit": "Not approved",
         "verification": "OWNER, 2026-08-10: G01 signed off. Stage started on his word.",
         "updated": "2026-08-10T00:00:00.000Z",
-        "next_action": "NOTHING IS ASSIGNABLE HERE AT ALL. Payments are deferred by the Owner "
-                       "(2026-08-16), Mobile Arena is frozen, and A18's two gaps - the last work "
-                       "item this stage still named - were CANCELLED by him the same day. The "
-                       "stage is waiting on him and on nothing else: first whether the Arena "
-                       "launches without real-money token purchases, then his separate explicit "
-                       "release approval - his G01 sign-off started this stage and is not that "
-                       "approval. The only NEXT card on the board is T22, which is not a launch "
-                       "blocker.",
+        "next_action": "NOTHING IS ASSIGNABLE HERE AT ALL, AND ONE SIGNATURE IS ALL THAT IS LEFT. "
+                       "Payments are removed from this plan by the Owner (2026-08-16: the Arena "
+                       "launch and the Stripe launch are unconnected, and Stripe is the last task "
+                       "of the whole Chef Battles application, not of the Arena). Mobile Arena is "
+                       "frozen. A18's two gaps - the last work item this stage still named - were "
+                       "CANCELLED by him the same day. Nothing here is waiting on an agent and "
+                       "nothing here is waiting on an unanswered question: what remains is his "
+                       "separate, explicit release approval, which his 2026-08-10 G01 sign-off "
+                       "started this stage but is not. The only NEXT card on the board is T22, "
+                       "which is not a launch blocker.",
     },
 ]
 
