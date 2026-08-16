@@ -23,6 +23,79 @@
     0 8px 40px rgba(0, 0, 0, 0.5);
 }
 
+/* ── Аура Мастера вокруг аватара (владелец, 2026-08-16) ──
+   Та же аура, что горит вокруг его клетки на арене: кольцо 1, Master.
+   Там она собрана из трёх вещей (arena.css .arena-cell-spark[data-ring="1"]):
+     1. бегущий пунктир по контуру - arena-spot-run, stroke-dashoffset;
+     2. цветовой цикл через весь спектр - arena-spark-prism, 7s;
+     3. свечение того же цвета - drop-shadow(0 0 15px var(--spark-colour)).
+
+   На арене это SVG и цвет ведётся через `stroke`. Аватар в профиле - это
+   HTML <img> в круге, у него stroke нет, поэтому пунктир рисуется
+   conic-gradient'ом по кольцу и крутится, а цвет ведётся через одну
+   переменную --god-aura-colour, которую анимирует @property. Без @property
+   браузер не умеет интерполировать произвольную переменную и цвет прыгал бы
+   ступенями вместо перелива.
+
+   Красный держит начало, середину и конец цикла - как на арене, чтобы кольцо
+   читалось красным, сквозь которое проходит остальное, а не радугой. */
+@property --god-aura-colour {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #ff2f3b;
+}
+
+.hero--greenbear .hero-author-avatar-badge {
+  position: relative;
+  display: inline-block;
+  --god-aura-colour: #ff2f3b;
+  animation: god-aura-prism 7s linear infinite;
+}
+
+/* Кольцо: бегущий пунктир вокруг аватара. */
+.hero--greenbear .hero-author-avatar-badge::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  padding: 3px;
+  background: conic-gradient(
+    var(--god-aura-colour) 0deg 43deg,
+    transparent 43deg 360deg
+  );
+  /* Вырезаем середину, оставляя только ободок - иначе это залитый круг. */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 15px var(--god-aura-colour));
+  animation: god-aura-run 2.4s linear infinite;
+}
+
+/* Аватар остаётся над кольцом. */
+.hero--greenbear .hero-author-avatar,
+.hero--greenbear .champion-coin {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes god-aura-run {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes god-aura-prism {
+  0%, 100% { --god-aura-colour: #ff2f3b; }
+  14%      { --god-aura-colour: #ff8a3b; }
+  26%      { --god-aura-colour: #ffd93b; }
+  38%      { --god-aura-colour: #ff2f3b; }
+  52%      { --god-aura-colour: #3bd77f; }
+  64%      { --god-aura-colour: #3bc8ff; }
+  76%      { --god-aura-colour: #ff2f6d; }
+  88%      { --god-aura-colour: #b46bff; }
+}
+
 /* ── Имя: светлый градиент — читается на тёмном фоне ── */
 .author-name--god,
 .author-name--greenbear {
@@ -66,5 +139,16 @@
   .author-name--greenbear {
     animation: none;
     background-position: 0% 0;
+  }
+
+  /* Аура остаётся видимой, но перестаёт крутиться и переливаться:
+     кольцо замирает целым, а не обрубком дуги. */
+  .hero--greenbear .hero-author-avatar-badge {
+    animation: none;
+  }
+
+  .hero--greenbear .hero-author-avatar-badge::before {
+    animation: none;
+    background: var(--god-aura-colour);
   }
 }
