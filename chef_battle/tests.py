@@ -20281,3 +20281,145 @@ class TheOwnerWearsACrownOnTheFloorNotARankAuraTests(TestCase):
         self.assertIn("crown-rival", flags)
         self.assertFalse(flags["crown-rival"],
                          "an ordinary Executive Chef was marked as the Owner")
+
+
+class SpectatorGiftsMustBeUsedNotHoardedTests(TestCase):
+    """E1 (T24), Owner's rule: a chef MAY use their own artifacts but MUST use
+    the ones spectators gifted them during this battle.
+
+    A gift is somebody else's tokens spent on this fight, and it expires
+    unused when the battle ends - hoarding it while cooking with your own kit
+    makes the audience's stake decorative.
+    """
+
+    def setUp(self):
+        from .models import Artifact, ChefArtifact, ChefBattleProfile
+
+        User = get_user_model()
+        ua = User.objects.create_user("e1-chef-a", password="pw")
+        ub = User.objects.create_user("e1-chef-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="E1 A", slug="e1-chef-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="E1 B", slug="e1-chef-b")
+        ChefBattleProfile.objects.create(
+            author=self.chef_a, enrolled_at=timezone.now(), battle_moves=50)
+        ChefBattleProfile.objects.create(
+            author=self.chef_b, enrolled_at=timezone.now(), battle_moves=50)
+
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="Gifted Dish", status=Battle.Status.ACTIVE,
+            start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        self.attack_art = Artifact.objects.create(
+            name="Gifted Cleaver", rarity=Artifact.Rarity.RARE,
+            effect_type="attack", effect_value=5, token_cost=50,
+        )
+        self.own = ChefArtifact.objects.create(
+            chef=self.chef_a, artifact=self.attack_art,
+            status=ChefArtifact.Status.AVAILABLE,
+        )
+
+    def _gift(self, artifact=None):
+        from .models import ChefArtifact
+        return ChefArtifact.objects.create(
+            chef=self.chef_a, artifact=artifact or self.attack_art,
+            source=ChefArtifact.Source.BATTLE_GIFT,
+            status=ChefArtifact.Status.AVAILABLE,
+            locked_to_battle=self.battle,
+        )
+
+    def test_attacking_with_nothing_is_refused_while_a_gift_waits(self):
+        from .services import submit_combat_action
+
+        self._gift()
+        with self.assertRaises(ValueError) as caught:
+            submit_combat_action(self.battle, self.chef_a, "attack", 3)
+        self.assertIn("has to be", str(caught.exception).lower())
+
+    def test_attacking_with_your_own_kit_is_refused_while_a_gift_waits(self):
+        """The precise failure the rule exists to stop: cooking with your own
+        artifact while the audience's sits unused."""
+        from .services import submit_combat_action
+
+        self._gift()
+        with self.assertRaises(ValueError):
+            submit_combat_action(
+                self.battle, self.chef_a, "attack", 3, artifact_id=self.own.pk)
+
+    def test_using_the_gift_is_accepted(self):
+        from .services import submit_combat_action
+
+        gift = self._gift()
+        action = submit_combat_action(
+            self.battle, self.chef_a, "attack", 3, artifact_id=gift.pk)
+        self.assertEqual(action.artifact_used_id, gift.pk)
+
+    def test_a_defence_gift_does_not_block_an_attack(self):
+        """Enforced per effect type. An attack cannot spend a defence
+        artifact, so requiring it would make the action impossible rather
+        than merely constrained."""
+        from .models import Artifact
+        from .services import submit_combat_action
+
+        shield = Artifact.objects.create(
+            name="Gifted Lid", rarity=Artifact.Rarity.RARE,
+            effect_type="defence", effect_value=4, token_cost=40,
+        )
+        self._gift(artifact=shield)
+
+        action = submit_combat_action(
+            self.battle, self.chef_a, "attack", 3, artifact_id=self.own.pk)
+        self.assertEqual(action.artifact_used_id, self.own.pk)
+
+    def test_a_chef_with_no_gifts_is_unaffected(self):
+        from .services import submit_combat_action
+
+        action = submit_combat_action(
+            self.battle, self.chef_a, "attack", 3, artifact_id=self.own.pk)
+        self.assertEqual(action.artifact_used_id, self.own.pk)
+
+    def test_consuming_a_gifted_artifact_marks_the_gift_applied(self):
+        """ViewerBattleGift.is_applied existed from the first migration and was
+        never once written - the flag the admin filters on always read False."""
+        from .models import ViewerBattleGift
+        from .services import submit_combat_action
+
+        gift_row = ViewerBattleGift.objects.create(
+            battle=self.battle, recipient=self.chef_a,
+            artifact=self.attack_art, tokens_spent=100, delivery_fee=50,
+        )
+        gift = self._gift()
+
+        submit_combat_action(self.battle, self.chef_a, "attack", 3, artifact_id=gift.pk)
+        submit_combat_action(self.battle, self.chef_b, "defend", 1)
+
+        gift_row.refresh_from_db()
+        self.assertTrue(gift_row.is_applied,
+                        "the spectator's gift reached the fight and nothing recorded it")
+
+    def test_only_one_gift_row_is_marked_per_consumption(self):
+        """Two viewers may send the same artifact to the same chef - the model
+        says so. One consumption must not clear both their names."""
+        from .models import ViewerBattleGift
+        from .services import submit_combat_action
+
+        first = ViewerBattleGift.objects.create(
+            battle=self.battle, recipient=self.chef_a,
+            artifact=self.attack_art, tokens_spent=100, delivery_fee=50,
+        )
+        second = ViewerBattleGift.objects.create(
+            battle=self.battle, recipient=self.chef_a,
+            artifact=self.attack_art, tokens_spent=100, delivery_fee=50,
+        )
+        gift = self._gift()
+
+        submit_combat_action(self.battle, self.chef_a, "attack", 3, artifact_id=gift.pk)
+        submit_combat_action(self.battle, self.chef_b, "defend", 1)
+
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertEqual([first.is_applied, second.is_applied], [True, False])

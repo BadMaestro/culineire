@@ -1972,6 +1972,27 @@ def submit_combat_action(
             chef_artifact.reserved_in_battle = battle
             chef_artifact.save(update_fields=["reserved_in_battle"])
 
+    # E1 (T24), Owner's rule: a chef MAY use their own artifacts, but MUST use
+    # the ones spectators gifted them during this battle. A gift is somebody
+    # else's tokens spent on this fight; hoarding it while cooking with your
+    # own kit makes the audience's stake decorative.
+    #
+    # Enforced PER EFFECT TYPE, and that is the whole subtlety: an attack
+    # cannot spend a defence artifact, so "you must use your gift" can only
+    # mean "of the gifts that COULD be used for the action you are taking,
+    # use one". A chef holding only a gifted defence artifact is free to
+    # attack with whatever they like.
+    #
+    # AppreciationGift is untouched by this and must stay untouched - flowers
+    # and a coffee are applause, not equipment, and the rulebook says so.
+    _required = _unused_battle_gift_artifacts(chef, locked_battle, action_type)
+    if _required and (chef_artifact is None or chef_artifact.pk not in {a.pk for a in _required}):
+        _names = ", ".join(sorted(a.artifact.name for a in _required))
+        raise ValueError(
+            "Spectators sent you something for this battle and it has to be "
+            f"used: {_names}. Choose one of those for this action."
+        )
+
     # Validate target ingredient: must belong to the opponent, not be locked, not already eliminated.
     target_ingredient = None
     if target_ingredient_id is not None and action_type == BattleCombatAction.ActionType.ATTACK:
@@ -2019,6 +2040,42 @@ def submit_combat_action(
             _resolve_round(battle, round_number)
 
     return action
+
+
+def _unused_battle_gift_artifacts(chef, battle, action_type) -> list:
+    """Spectator gifts this chef still owes to this battle, for this action.
+
+    E1 (T24): a gift delivered mid-battle is locked to that battle
+    (`send_battle_artifact` sets `locked_to_battle`) and expires unused when
+    it ends. The rule the board has carried since Phase FE-3 is that the chef
+    MUST spend it rather than let it lapse.
+
+    Filtered by EFFECT TYPE, because an attack cannot spend a defence
+    artifact - returning a defence gift while the chef is attacking would
+    make the action impossible instead of merely constrained. Both spellings
+    of "defence" are matched: the older catalogue rows use the British one
+    and `submit_combat_action` already normalises for the same reason.
+
+    Returns a list, not a queryset - the caller needs both a membership test
+    and the names for its error message.
+    """
+    from .models import BattleCombatAction as _BCA
+
+    effect_types = (
+        ("attack",) if action_type == _BCA.ActionType.ATTACK
+        else ("defense", "defence")
+    )
+    return list(
+        ChefArtifact.objects
+        .filter(
+            chef=chef,
+            locked_to_battle=battle,
+            source=ChefArtifact.Source.BATTLE_GIFT,
+            status=ChefArtifact.Status.AVAILABLE,
+            artifact__effect_type__in=effect_types,
+        )
+        .select_related("artifact")
+    )
 
 
 def eliminate_ingredient(ingredient_id: int, *, by) -> bool:
@@ -2184,6 +2241,29 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
                 ca.consumed_at = timezone.now()
                 ca.consumed_in_battle = battle
                 ca.save(update_fields=["status", "consumed_at", "consumed_in_battle"])
+                # E1 (T24): ViewerBattleGift.is_applied existed from the first
+                # migration and was never once written - the flag the admin
+                # filters on always read False. It means something now: the
+                # spectator's gift reached the fight it was bought for.
+                # Marked HERE, at consumption, not at delivery: a gift sitting
+                # in a chef's kit has not been used yet, and this is inside
+                # the same transaction as the consumption it records.
+                if ca.source == ChefArtifact.Source.BATTLE_GIFT:
+                    # Oldest unapplied gift of that artifact first. Two viewers
+                    # can send the same artifact to the same chef - the model's
+                    # own docstring allows it - so this marks ONE, by pk, not
+                    # every matching row. (A slice cannot be .update()d in
+                    # Django, hence the pk round-trip rather than [:1].update().)
+                    _gift_pk = (
+                        ViewerBattleGift.objects
+                        .filter(battle=battle, recipient=ca.chef,
+                                artifact_id=ca.artifact_id, is_applied=False)
+                        .order_by("sent_at")
+                        .values_list("pk", flat=True)
+                        .first()
+                    )
+                    if _gift_pk is not None:
+                        ViewerBattleGift.objects.filter(pk=_gift_pk).update(is_applied=True)
 
         # Lock both actions
         BattleCombatAction.objects.filter(

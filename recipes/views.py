@@ -4604,14 +4604,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T24", "group": "Chef Battles roadmap (Owner list, 2026-08-16)", "title": "E1 - mandatory use of spectator-gifted artifacts",
-        "status": "ASSIGNED", "owner": "Bolt",
+        "status": "DONE", "owner": "Bolt",
         "files": "chef_battle/models.py (ViewerBattleGift.is_applied, models.py:816-836); chef_battle/services.py (combat resolution - _resolve_round at services.py:2011, fire_ingredient_shot at services.py:2349); templates/chef_battle/biathlon.html; public rules docs; tests",
         "depends_on": "none",
         "action": "Verified 2026-08-16: ViewerBattleGift.is_applied is WRITTEN and never READ - grep across chef_battle finds it nowhere outside the model and the admin list_display. A chef may already receive a gifted artifact, but nothing in combat resolution checks or requires its use. The battlefield board's own line (views.py:392) already states the rule precisely: chefs may use their own artifacts, but MUST use artifacts gifted by spectators during the battle; appreciation gifts never affect the battle - that second clause distinguishes ViewerBattleGift (combat-relevant) from AppreciationGift (cosmetic, models.py:892, already correctly inert). This is a combat logic change plus a public rules update, not a data-model change - is_applied already exists to carry the flag.",
         "visible_result": "A chef who received a gifted artifact during the battle cannot complete the round without having used it; the rules page states this plainly.",
         "acceptance": "Combat resolution refuses to resolve a round for a chef holding an unused, applicable ViewerBattleGift; is_applied is set the moment the artifact is actually used, not on receipt; AppreciationGift remains provably inert to any combat number. Focused PostgreSQL tests green.",
         "forbidden": "Do not make AppreciationGift affect combat - the board's own rule forbids it explicitly. Do not retroactively require gifts already sent before this ships.",
-        "evidence": "CREATED 2026-08-16 on the Owner's instruction (list item 3), assigned to Bolt. is_applied's zero-reads gap verified by repo-wide grep on 2026-08-16.",
+        "evidence": "SHIPPED 2026-08-16. SMALLER THAN THE CARD FEARED, BECAUSE THE MECHANIC ALREADY EXISTED. submit_combat_action() already accepts an artifact, checks its effect type matches the action, reserves it against a loadout cap and locks the row; _resolve_round() already applies the bonus and consumes it. Nothing needed inventing - what was missing was only the COMPULSION. New _unused_battle_gift_artifacts() finds the chef's still-unspent BATTLE_GIFT artifacts locked to this battle, and submit_combat_action refuses any action that ignores one. ENFORCED PER EFFECT TYPE, and that is the subtlety the card did not state: an attack cannot spend a defence artifact, so requiring a defence gift on an attack would make the action IMPOSSIBLE rather than constrained. A chef holding only a gifted shield may attack with whatever they like; a chef holding a gifted cleaver may not attack without it. Both spellings of defence are matched - the older catalogue rows use the British one and submit_combat_action already normalises for exactly this reason. AppreciationGift is untouched and provably inert to combat, as the rulebook requires: flowers are applause, not equipment. ViewerBattleGift.is_applied NOW MEANS SOMETHING. It has existed since the first migration (0008) and was never once written, so the flag the admin filters on always read False. It is set at CONSUMPTION, not at delivery - a gift sitting in a chef's kit has not been used - and inside the same transaction as the consumption it records. Exactly ONE row is marked per consumption, oldest first: the model's own docstring allows two viewers to send the same artifact to the same chef, and one consumption must not clear both their names. EVIDENCE: 7 new tests, including the precise failure the rule exists to stop (cooking with your own artifact while the audience's sits unused), the per-effect-type carve-out, and the two-senders case. The 15 existing CombatArtifactTests pass unchanged - no existing combat path was altered, only gated.",
     },
     {
         "id": "T25", "group": "Chef Battles roadmap (Owner list, 2026-08-16)", "title": "Stage B5 - teleport animation",
@@ -4884,7 +4884,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "287a02aa / production v2.5.1116",
+        "commit": "pending / production v2.5.1117",
         "verification": "Stage 2 is CLOSED - the Owner signed off G01 on 2026-08-10 and every "
                         "card A00 through G01 is DONE and deployed. (T15, 2026-08-15: this line "
                         "opened by confirming a production version that was 242 releases "
