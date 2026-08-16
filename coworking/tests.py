@@ -365,3 +365,124 @@ class AgentSendCommandTests(TestCase):
         path = self._body("body")
         with self.assertRaises(CommandError):
             self._run(from_agent="greenbear", to_agent="greenbear", body_file=path)
+
+
+class CoworkingListSyncTests(TestCase):
+    """coworking_list is the one command an agent runs to see who is working on
+    what right now. It exists because a stale status row and unread mail both
+    read as silence, and silence was mistaken for synchronisation on
+    2026-08-16: four messages sat unread while their sender believed the
+    recipient had read them and was working alongside him, not in parallel on
+    the same ground."""
+
+    def setUp(self):
+        self.bolt = CoworkingAgent.objects.create(agent_id="bolt", label="Bolt")
+        self.gb = CoworkingAgent.objects.create(agent_id="greenbear", label="GreenBear")
+
+    def _run(self, **kwargs):
+        out = StringIO()
+        call_command("coworking_list", stdout=out, **kwargs)
+        return out.getvalue()
+
+    def test_unread_mail_is_reported_per_recipient_not_globally(self):
+        CoworkingMessage.send(from_agent="greenbear", to_agent="bolt", body="one")
+        CoworkingMessage.send(from_agent="greenbear", to_agent="bolt", body="two")
+        out = self._run()
+        self.assertIn("bolt", out)
+        self.assertIn("2 UNREAD", out)
+        # greenbear received nothing, so his line must say zero, not be silent.
+        self.assertRegex(out, r"greenbear\s+0 unread")
+
+    def test_a_read_message_stops_counting_as_unread(self):
+        m = CoworkingMessage.send(from_agent="greenbear", to_agent="bolt", body="one")
+        m.mark_read()
+        out = self._run()
+        self.assertRegex(out, r"bolt\s+0 unread")
+
+    def test_stale_active_row_is_flagged_rather_than_trusted(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        self.bolt.status = CoworkingAgent.Status.ACTIVE
+        self.bolt.last_seen = timezone.now() - timedelta(hours=6)
+        self.bolt.save()
+        out = self._run()
+        self.assertIn("STALE", out)
+
+    def test_a_recently_active_row_is_not_flagged(self):
+        self.bolt.status = CoworkingAgent.Status.ACTIVE
+        self.bolt.save()  # last_seen defaults to auto_now-adjacent recent value
+        from django.utils import timezone
+
+        self.bolt.last_seen = timezone.now()
+        self.bolt.save()
+        out = self._run()
+        self.assertNotIn("STALE", out)
+
+    def test_idle_agent_is_never_flagged_stale_regardless_of_age(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        self.bolt.status = CoworkingAgent.Status.IDLE
+        self.bolt.last_seen = timezone.now() - timedelta(days=30)
+        self.bolt.save()
+        out = self._run()
+        self.assertNotIn("STALE", out)
+
+    def test_no_lock_file_reports_free_rather_than_crashing(self):
+        # The test settings BASE_DIR points at the real repo, whose lock file
+        # this session already released - so this exercises the true no-lock
+        # path rather than a synthetic one.
+        out = self._run()
+        self.assertIn("DEPLOY LOCK:", out)
+
+    def test_deploy_lock_holder_is_shown_when_the_file_exists(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            lock_dir = Path(tmp) / ".agent-chat"
+            lock_dir.mkdir()
+            (lock_dir / "deploy.lock").write_text(
+                "agent: Bolt\nstarted_utc: 2026-08-16T00:00Z\nversion: 2.5.9999\n"
+                "commit: pending\ntask: testing the lock reader\n",
+                encoding="utf-8",
+            )
+            with mock.patch("django.conf.settings.BASE_DIR", Path(tmp)):
+                out = self._run()
+        self.assertIn("HELD BY Bolt", out)
+        self.assertIn("2.5.9999", out)
+
+    def test_agent_filter_narrows_the_agent_list_only(self):
+        CoworkingMessage.send(from_agent="greenbear", to_agent="bolt", body="one")
+        out = self._run(agent="greenbear")
+        agents_section, _, mail_section = out.partition("UNREAD MAIL")
+        self.assertIn("greenbear", agents_section)
+        self.assertNotIn("bolt", agents_section)
+        # Mail totals must still cover everyone, not just the filtered agent.
+        self.assertIn("bolt", mail_section)
+        self.assertIn("1 UNREAD", mail_section)
+
+    def test_shared_memory_is_printed_so_a_fact_told_only_in_mail_is_not_the_goal(self):
+        from coworking.models import CoworkingSharedMemory
+
+        shared = CoworkingSharedMemory.load()
+        shared.open_questions = ["Who takes T22?"]
+        shared.completed_today = ["v2.5.1080 shipped"]
+        shared.project_memory = ["Octagon geometry is frozen"]
+        shared.save()
+
+        out = self._run()
+        self.assertIn("SHARED MEMORY", out)
+        self.assertIn("Who takes T22?", out)
+        self.assertIn("v2.5.1080 shipped", out)
+        self.assertIn("Octagon geometry is frozen", out)
+
+    def test_empty_shared_memory_says_none_recorded_rather_than_being_silent(self):
+        out = self._run()
+        self.assertIn("open questions: none recorded", out)
+        self.assertIn("completed today: none recorded", out)
+        self.assertIn("standing facts: none recorded", out)

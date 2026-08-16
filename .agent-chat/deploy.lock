@@ -1,0 +1,5 @@
+agent: GreenBear
+started_utc: 2026-08-16T12:05Z
+version: 2.5.1089
+commit: pending
+task: Owner ruling 2026-08-16 - full mutual sync with Bolt. Upgrade coworking_list to show lock+agents+unread mail+shared memory in one command, and populate the shared memory that stood empty since 2026-07-28
