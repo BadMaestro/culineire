@@ -90,6 +90,7 @@ from .services import (
     calculate_battle_result,
     check_forbidden_claims,
     check_owner_not_in_battle,
+    is_owner_author,
     check_rank_matchup,
     slot_occupied_reason,
     check_payout_eligibility,
@@ -1326,6 +1327,13 @@ def _build_arena_payload(*, viewer_author=None):
                 profile.author.slug in always_on
                 or bool(profile.last_seen_at and profile.last_seen_at >= online_cutoff)
             ),
+            # 2026-08-16: the Owner wears a gold crown on the floor, not a
+            # rank aura. His rank is hand-set (migrations 0020/0025), so
+            # without this he renders as an ordinary ring-2 Executive Chef
+            # and is visually indistinguishable from any chef who earns that
+            # rank. is_owner_author() is T22's single answer to "is this the
+            # Owner" - not a second OWNER_SLUG comparison.
+            "is_owner": is_owner_author(profile.author),
         })
 
     return {

@@ -1535,6 +1535,9 @@
     });
     Array.prototype.forEach.call(svg.querySelectorAll('.arena-cell-spark'), function (spark) {
       spark.removeAttribute('data-lit');
+      // Cleared with data-lit, not separately: a crown left behind on a cell
+      // the Owner has moved off would hand his aura to whoever sits there next.
+      spark.removeAttribute('data-owner');
     });
 
     lightRows(svg, geometry);
@@ -1572,7 +1575,13 @@
         var spark = svg.querySelector(
           '.arena-cell-spark[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]'
         );
-        if (spark) { spark.setAttribute('data-lit', 'true'); }
+        if (spark) {
+          spark.setAttribute('data-lit', 'true');
+          // 2026-08-16: the Owner wears a gold crown, not a rank aura. His
+          // rank is hand-set, so without this he lights up as an ordinary
+          // ring-2 Executive Chef like anybody who earns that rank.
+          if (entity.is_owner) { spark.setAttribute('data-owner', 'true'); }
+        }
       }
       if (entity.slug && entity.slug === viewerSlug()) { seatedRing = assignment.ring; }
 

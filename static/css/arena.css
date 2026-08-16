@@ -6523,6 +6523,59 @@
   to { stroke-dashoffset: 0; }
 }
 
+/* ── ВЕНЕЦ. The crown of the site's gods — Owner, 2026-08-16 ───────────────
+   Every aura above is EARNED: a chef climbs to a ring and takes that ring's
+   light. This one cannot be reached by climbing. It is set from the payload
+   (`is_owner`, chef_battle/views.py, answered by services.is_owner_author())
+   and applied in arena_render.js beside `data-lit`.
+
+   IT HAS TO EXIST BECAUSE THE OWNER'S RANK IS HAND-SET. Migrations 0020/0025
+   put him at EXECUTIVE_CHEF, so without this rule he lights up on the floor
+   as an ordinary ring-2 chef, identical to anyone who earns that rank.
+
+   Deliberately AFTER the per-ring rules, so it wins on cascade order without
+   needing !important - the ring rules and this one have equal specificity
+   (both are one class + two attributes), so source order is what decides,
+   and that is stated here because it is the kind of thing a later tidy-up
+   moves and silently breaks.
+
+   Matched to the profile-page crown in god_mode.css: same two golds, same
+   three-layer glow, same breathing, no direction of travel. */
+.page--arena #arena-render .arena-cell-spark[data-lit="true"][data-owner="true"] {
+  --spark-weight: 4.6;
+  --spark-alpha: 1;
+  /* Unbroken: no dash, so nothing runs round the cell. */
+  stroke-dasharray: none;
+  stroke: #ffd700;
+  filter:
+    drop-shadow(0 0 10px #ffd700)
+    drop-shadow(0 0 30px #ffd700)
+    drop-shadow(0 0 55px #e8b923);
+  /* The dash animation is replaced outright rather than added to - a crown
+     that also ran clockwise would be the exact thing this replaces. */
+  animation: arena-crown-breathe 4.5s ease-in-out infinite,
+             arena-crown-shimmer 4.5s ease-in-out infinite;
+}
+
+/* Light swelling and receding on every side at once - never travelling. */
+@keyframes arena-crown-breathe {
+  0%, 100% { opacity: 0.78; }
+  50%      { opacity: 1; }
+}
+
+/* Two shades of one metal, so the gold never becomes another colour. */
+@keyframes arena-crown-shimmer {
+  0%, 100% { stroke: #ffd700; }
+  50%      { stroke: #e8b923; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"][data-owner="true"] {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* Owner 2026-07-31 — the strobe on the beamless lamps. Three rings out of every
    lamp, small, medium and large, in the tricolour: green, white, orange.
 

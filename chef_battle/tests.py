@@ -20095,3 +20095,160 @@ class OwnerIsPresentButOutsideTheCompetitionTests(TestCase):
             crown_until=timezone.now() + timezone.timedelta(days=3650))
         state = get_master_state()
         self.assertIsNone(state["arena"]["crown_holder"])
+
+
+class ClanWearsItsTopChefsAuraTests(TestCase):
+    """Owner's rule, 2026-08-16: a clan's aura is the aura of its most senior
+    chef.
+
+    Ranked, not scored - get_clan_top_contributors() next door orders by season
+    points, which changes every time somebody cooks. A clan's face should not
+    flicker week to week.
+    """
+
+    def setUp(self):
+        from .models import ChefBattleProfile, Clan, ClanMembership
+
+        User = get_user_model()
+        self.clan = Clan.objects.create(
+            founder=self._author("clan-founder", "Founder"),
+            name="Aura Clan", slug="aura-clan",
+            moderation_status=Clan.Moderation.APPROVED,
+        )
+        self._join(self.clan.founder, ClanMembership.Role.FOUNDER)
+
+    def _author(self, slug, name):
+        User = get_user_model()
+        user = User.objects.create_user(slug, password="pw")
+        return RecipeAuthor.objects.create(user=user, name=name, slug=slug)
+
+    def _join(self, author, role=None):
+        from .models import ClanMembership
+        return ClanMembership.objects.create(
+            clan=self.clan, chef=author,
+            role=role or ClanMembership.Role.MEMBER,
+            status=ClanMembership.Status.ACTIVE,
+        )
+
+    def _profile(self, author, rank, rating=0):
+        from .models import ChefBattleProfile
+        return ChefBattleProfile.objects.create(
+            author=author, rank=rank, rating=rating, enrolled_at=timezone.now())
+
+    def test_the_highest_ranked_member_carries_the_aura(self):
+        from .clan_selectors import get_clan_top_chef
+        from .models import ChefBattleProfile
+
+        self._profile(self.clan.founder, ChefBattleProfile.Rank.PREP_COOK)
+        star = self._author("clan-star", "Star")
+        self._join(star)
+        self._profile(star, ChefBattleProfile.Rank.HEAD_CHEF)
+
+        top = get_clan_top_chef(self.clan)
+        self.assertEqual(top.author.slug, "clan-star",
+                         "the founder outranked a Head Chef - ordering is wrong")
+
+    def test_rating_breaks_a_rank_tie(self):
+        from .clan_selectors import get_clan_top_chef
+        from .models import ChefBattleProfile
+
+        self._profile(self.clan.founder, ChefBattleProfile.Rank.SOUS_CHEF, rating=10)
+        rival = self._author("clan-rival", "Rival")
+        self._join(rival)
+        self._profile(rival, ChefBattleProfile.Rank.SOUS_CHEF, rating=99)
+
+        self.assertEqual(get_clan_top_chef(self.clan).author.slug, "clan-rival")
+
+    def test_the_owner_never_becomes_the_clans_face(self):
+        """His rank is hand-set. Letting him wear the clan's aura would hand any
+        clan he joins the best aura on the site for nothing - which is exactly
+        why his own aura is a separate gold crown instead."""
+        from .clan_selectors import get_clan_top_chef
+        from .models import ChefBattleProfile
+
+        self._profile(self.clan.founder, ChefBattleProfile.Rank.PREP_COOK)
+        owner = RecipeAuthor.objects.get(slug=settings.OWNER_SLUG)
+        self._join(owner)
+        ChefBattleProfile.objects.update_or_create(
+            author=owner,
+            defaults={"rank": ChefBattleProfile.Rank.CULINARY_MASTER,
+                      "rating": 9999, "enrolled_at": timezone.now()},
+        )
+
+        top = get_clan_top_chef(self.clan)
+        self.assertIsNotNone(top)
+        self.assertNotEqual(top.author.slug, settings.OWNER_SLUG)
+        self.assertEqual(top.author.slug, "clan-founder")
+
+    def test_a_clan_of_unenrolled_members_has_no_aura(self):
+        from .clan_selectors import get_clan_top_chef
+
+        self.assertIsNone(get_clan_top_chef(self.clan),
+                          "no ChefBattleProfile exists - there is no aura to wear")
+
+
+class RankMapsToTheOctagonsOwnRingNumberTests(TestCase):
+    """rank_to_ring_index() is the INVERSE of _RANK_ORDER and the two are easy
+    to confuse: pick the wrong one and a chef's aura comes out upside down -
+    a Kitchen Porter wearing the Culinary Master's light."""
+
+    def test_every_rank_maps_to_the_ring_geometry_actually_builds(self):
+        from .selectors import get_arena_geometry, rank_to_ring_index
+
+        rings = [r for r in get_arena_geometry()["rings"] if r.get("kind") == "rank"]
+        self.assertEqual(len(rings), 8)
+        for ring in rings:
+            self.assertEqual(
+                rank_to_ring_index(ring["key"]), ring["index"],
+                f"{ring['key']} maps to ring {rank_to_ring_index(ring['key'])} "
+                f"but geometry puts it on ring {ring['index']}",
+            )
+
+    def test_the_master_is_ring_one_and_the_porter_is_ring_eight(self):
+        from .models import ChefBattleProfile
+        from .selectors import rank_to_ring_index
+
+        self.assertEqual(rank_to_ring_index(ChefBattleProfile.Rank.CULINARY_MASTER), 1)
+        self.assertEqual(rank_to_ring_index(ChefBattleProfile.Rank.KITCHEN_PORTER), 8)
+
+    def test_an_unknown_rank_loses_its_aura_rather_than_breaking_the_page(self):
+        from .selectors import rank_to_ring_index
+
+        self.assertEqual(rank_to_ring_index("archmage"), 0)
+
+
+class TheOwnerWearsACrownOnTheFloorNotARankAuraTests(TestCase):
+    """His rank is hand-set to EXECUTIVE_CHEF by migrations 0020/0025. Without
+    an explicit marker he renders on the arena floor as an ordinary ring-2
+    chef, indistinguishable from anyone who earns that rank."""
+
+    def test_the_payload_marks_the_owner_and_nobody_else(self):
+        from .models import ChefBattleProfile
+        from .views import _build_arena_payload
+
+        owner = RecipeAuthor.objects.get(slug=settings.OWNER_SLUG)
+        ChefBattleProfile.objects.update_or_create(
+            author=owner,
+            defaults={"rank": ChefBattleProfile.Rank.EXECUTIVE_CHEF,
+                      "enrolled_at": timezone.now(),
+                      "last_seen_at": timezone.now()},
+        )
+        User = get_user_model()
+        other_user = User.objects.create_user("crown-rival", password="pw")
+        other = RecipeAuthor.objects.create(
+            user=other_user, name="Rival", slug="crown-rival")
+        ChefBattleProfile.objects.create(
+            author=other, rank=ChefBattleProfile.Rank.EXECUTIVE_CHEF,
+            enrolled_at=timezone.now(), last_seen_at=timezone.now())
+
+        payload = _build_arena_payload()
+        flags = {}
+        for chefs in payload["chefs_by_rank"].values():
+            for chef in chefs:
+                flags[chef["slug"]] = chef["is_owner"]
+
+        self.assertIn(settings.OWNER_SLUG, flags, "the Owner is not on the floor at all")
+        self.assertTrue(flags[settings.OWNER_SLUG])
+        self.assertIn("crown-rival", flags)
+        self.assertFalse(flags["crown-rival"],
+                         "an ordinary Executive Chef was marked as the Owner")

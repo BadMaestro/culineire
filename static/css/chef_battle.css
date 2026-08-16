@@ -4732,3 +4732,173 @@ a.battle-home__pulse-msg:hover {
   letter-spacing: 0.02em;
 }
 .site-battle-widget__enter-link .chef-battle-cta__label { text-align: left; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RANK AURA — the Arena's own per-rank ring light, wearable outside the Arena
+   ═══════════════════════════════════════════════════════════════════════════
+   Owner's rule, 2026-08-16: a CLAN's aura is the aura of its most senior chef.
+
+   The values below are NOT new. Every colour, weight and glow radius is
+   carried across unchanged from the octagon's own table
+   (static/css/arena.css, .arena-cell-spark[data-ring="N"]) so a Head Chef
+   looks like a Head Chef whichever page he is standing on. If that table
+   changes, this one has to change with it - they are two renderings of one
+   rule, not two rules.
+
+   WHY THE SHAPE IS BUILT DIFFERENTLY HERE. On the Arena the aura is a real
+   SVG polygon `stroke` with a dash running round it. A clan page has an
+   HTML <img>, which has no stroke, so the ring is a conic-gradient masked
+   down to a rim - the same technique already proven on the Owner's profile
+   avatar in god_mode.css. Same light, different substrate.
+
+   data-rank-ring is the OCTAGON's numbering: 1 = Culinary Master (top),
+   8 = Kitchen Porter. It comes from selectors.rank_to_ring_index(), which
+   is the inverse of the leaderboard's _RANK_ORDER - see that function's
+   docstring, the two directions are easy to confuse.
+   ------------------------------------------------------------------------ */
+@property --rank-aura-colour {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #ffffff;
+}
+
+.rank-aura {
+  --rank-aura-colour: #ffffff;   /* rings 6-8: the octagon's default white */
+  --rank-aura-weight: 1.4;       /* rim thickness in px, mirrors --spark-weight */
+  --rank-aura-alpha: 0.42;       /* mirrors --spark-alpha */
+  --rank-aura-glow: 2px;         /* mirrors --spark-glow */
+
+  position: relative;
+  display: inline-block;
+  line-height: 0;               /* no descender gap under the avatar */
+}
+
+.rank-aura__avatar {
+  display: block;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  position: relative;
+  z-index: 1;
+}
+
+.rank-aura::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * (var(--rank-aura-weight) * 1px) - 4px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  padding: calc(var(--rank-aura-weight) * 1px);
+  opacity: var(--rank-aura-alpha);
+  /* A 43deg lit wedge, matching the octagon's `stroke-dasharray: 12 88`
+     proportion (12/100 of the perimeter, ~43deg of a circle). */
+  background: conic-gradient(
+    var(--rank-aura-colour) 0deg 43deg,
+    transparent 43deg 360deg
+  );
+  /* Cut the middle out so this reads as a rim, not a filled disc. */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 var(--rank-aura-glow) var(--rank-aura-colour));
+  animation: rank-aura-run 2.4s linear infinite;
+}
+
+/* ---- intensity, carried across from arena.css unchanged ---- */
+.rank-aura[data-rank-ring="8"] { --rank-aura-weight: 1.4; --rank-aura-alpha: 0.42; --rank-aura-glow: 2px; }
+.rank-aura[data-rank-ring="7"],
+.rank-aura[data-rank-ring="4"] { --rank-aura-weight: 2.1; --rank-aura-alpha: 0.66; --rank-aura-glow: 4px; }
+.rank-aura[data-rank-ring="6"],
+.rank-aura[data-rank-ring="3"] { --rank-aura-weight: 2.8; --rank-aura-alpha: 0.86; --rank-aura-glow: 7px; }
+.rank-aura[data-rank-ring="5"] { --rank-aura-weight: 1.4; --rank-aura-alpha: 0.42; --rank-aura-glow: 2px; }
+.rank-aura[data-rank-ring="2"] { --rank-aura-weight: 3.4; --rank-aura-alpha: 0.95; --rank-aura-glow: 10px; }
+.rank-aura[data-rank-ring="1"] { --rank-aura-weight: 4.2; --rank-aura-alpha: 1;    --rank-aura-glow: 15px; }
+
+/* ---- colour, carried across from arena.css unchanged ---- */
+.rank-aura[data-rank-ring="5"],
+.rank-aura[data-rank-ring="4"] { --rank-aura-colour: #4db8ff; }
+
+/* Rose with a shimmer: the rim drifts between deep rose and a pale pink, so
+   the light is never one flat colour. The glow keeps the deep tone - a halo
+   that changed with it would read as flicker rather than sheen. */
+.rank-aura[data-rank-ring="3"],
+.rank-aura[data-rank-ring="2"] {
+  --rank-aura-colour: #ff4d6d;
+  animation: rank-aura-rose 3.6s ease-in-out infinite;
+}
+
+/* The Master carries every colour, and red carries the cycle: it holds the
+   start, the middle and the end, so the ring reads red with the rest passing
+   through it rather than as a rainbow. */
+.rank-aura[data-rank-ring="1"] {
+  --rank-aura-colour: #ff2f3b;
+  animation: rank-aura-prism 7s linear infinite;
+}
+
+@keyframes rank-aura-run {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rank-aura-rose {
+  0%, 100% { --rank-aura-colour: #ff4d6d; }
+  50%      { --rank-aura-colour: #ffa8c8; }
+}
+
+@keyframes rank-aura-prism {
+  0%, 100% { --rank-aura-colour: #ff2f3b; }
+  14%      { --rank-aura-colour: #ff8a3b; }
+  26%      { --rank-aura-colour: #ffd93b; }
+  38%      { --rank-aura-colour: #ff2f3b; }
+  52%      { --rank-aura-colour: #3bd77f; }
+  64%      { --rank-aura-colour: #3bc8ff; }
+  76%      { --rank-aura-colour: #ff2f6d; }
+  88%      { --rank-aura-colour: #b46bff; }
+}
+
+/* ---- the clan-page block that carries it ---- */
+.clan-aura {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-block-start: 1rem;
+}
+
+.clan-aura__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.clan-aura__label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.clan-aura__rank {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+/* Respect the system "reduce motion" setting (WCAG 2.2 SC 2.2.2), as the
+   Arena's own effects and god_mode.css already do. The aura stays visible;
+   it stops moving, and the rim closes into a full ring rather than freezing
+   as a stranded arc. */
+@media (prefers-reduced-motion: reduce) {
+  .rank-aura::before,
+  .rank-aura[data-rank-ring="1"],
+  .rank-aura[data-rank-ring="2"],
+  .rank-aura[data-rank-ring="3"] {
+    animation: none;
+  }
+
+  .rank-aura::before {
+    background: var(--rank-aura-colour);
+  }
+}

@@ -1648,15 +1648,45 @@ def unauthorised_arena_viewers(now=None) -> int:
 ARENA_GEOMETRY_VERSION = "1"
 
 
+def rank_ring_order() -> list[tuple[str, str]]:
+    """Ranks in RING order: position 1 is Culinary Master, position 8 is
+    Kitchen Porter.
+
+    The one place that knows which way round the octagon is numbered. It is
+    the INVERSE of `_RANK_ORDER` at the top of this file, which scores the
+    other way for the leaderboard (8 = Master) - the two are easy to confuse
+    and a caller that picks the wrong one silently gets a chef's aura upside
+    down, so both now have a name and a stated direction.
+    """
+    from .models import ChefBattleProfile
+    return list(reversed(ChefBattleProfile.Rank.choices))
+
+
+def rank_to_ring_index(rank: str) -> int:
+    """Ring number for a rank: 1 = Culinary Master ... 8 = Kitchen Porter.
+
+    0 for an unknown rank rather than an exception: this feeds a CSS
+    attribute, and a chef with a rank the octagon does not know about should
+    lose their aura, not take the page down with them.
+
+    Added 2026-08-16 for the clan aura, which needs this mapping outside the
+    arena payload - a clan's aura is its highest-ranked member's aura, and
+    that is computed on a clan page where no arena geometry is built.
+    """
+    for i, (value, _label) in enumerate(rank_ring_order(), start=1):
+        if value == rank:
+            return i
+    return 0
+
+
 def get_arena_geometry() -> dict:
     """Declarative arena structure for the procedural (SVG/Canvas) renderer.
 
     Owner 2026-07-24: chef octagon uses RANK_RING_SEGMENTS; spectators are an
     oval around the floor (spectator_oval), not polar rings on the same grid.
     """
-    from .models import ChefBattleProfile
     rings = [{"index": 0, "kind": "stage", "key": "stage", "label": "Centre Stage", "segments": 1}]
-    for i, (value, label) in enumerate(reversed(ChefBattleProfile.Rank.choices), start=1):
+    for i, (value, label) in enumerate(rank_ring_order(), start=1):
         rings.append({
             "index": i,
             "kind": "rank",

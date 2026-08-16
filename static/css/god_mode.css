@@ -23,77 +23,86 @@
     0 8px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* ── Аура Мастера вокруг аватара (владелец, 2026-08-16) ──
-   Та же аура, что горит вокруг его клетки на арене: кольцо 1, Master.
-   Там она собрана из трёх вещей (arena.css .arena-cell-spark[data-ring="1"]):
-     1. бегущий пунктир по контуру - arena-spot-run, stroke-dashoffset;
-     2. цветовой цикл через весь спектр - arena-spark-prism, 7s;
-     3. свечение того же цвета - drop-shadow(0 0 15px var(--spark-colour)).
+/* ── ВЕНЕЦ. Аура богов сайта (владелец, 2026-08-16) ──
+   ЧТО БЫЛО НЕ ТАК С ПРЕДЫДУЩЕЙ ВЕРСИЕЙ. Она была дословной копией ауры
+   кольца 1 арены - тот же #ff2f3b, тот же радужный цикл, то же бегущее
+   кольцо. То есть первый же шеф, дошедший до Culinary Master, выглядел бы
+   ровно как владелец сайта. Аура ранга достижима; эта - нет.
 
-   На арене это SVG и цвет ведётся через `stroke`. Аватар в профиле - это
-   HTML <img> в круге, у него stroke нет, поэтому пунктир рисуется
-   conic-gradient'ом по кольцу и крутится, а цвет ведётся через одну
-   переменную --god-aura-colour, которую анимирует @property. Без @property
-   браузер не умеет интерполировать произвольную переменную и цвет прыгал бы
-   ступенями вместо перелива.
+   ТРИ ТРЕБОВАНИЯ ВЛАДЕЛЬЦА И КАК ОНИ ЗДЕСЬ РЕШЕНЫ:
 
-   Красный держит начало, середину и конец цикла - как на арене, чтобы кольцо
-   читалось красным, сквозь которое проходит остальное, а не радугой. */
+   1. "Чистое золото, уникальное для богов сайта" - #ffd700, уходящее в
+      более глубокий янтарь #e8b923 и обратно. Плоское золото на свечении
+      читается мёртвым, поэтому оттенка два, но оба внутри золота: цвет
+      никогда не попадает в красный/розовый/синий диапазон рангов, так что
+      спутать венец с аурой ранга нельзя ни в одной фазе анимации.
+
+   2. "Усиль свечение в три раза" - НЕ один радиус втрое шире (это даёт
+      размытое пятно, а не яркость), а ТРИ сложенных слоя drop-shadow с
+      растущим радиусом: 10px / 30px / 55px. Так набирается и яркость у
+      кромки, и дальность, как у настоящего ореола.
+
+   3. "Плавающий свет во все стороны как венец, а не полоса, бегущая по
+      часовой" - убраны и conic-gradient с его светящимся клином, и вращение.
+      Кольцо теперь сплошное, замкнутое, неподвижное, а движется только
+      яркость: венец дышит (god-aura-breathe, 4.5s), разгораясь и угасая
+      сразу со всех сторон. drop-shadow светит наружу от всего силуэта
+      формы во все стороны - потому кольцо и остаётся формой, а не просто
+      тенью на самом аватаре.
+
+   Висит на обёртке .hero-author-avatar-badge, а не на аватаре: аватар это
+   <img>, замещаемый элемент, ::before на нём не отрисовывается вообще. */
 @property --god-aura-colour {
   syntax: "<color>";
   inherits: false;
-  initial-value: #ff2f3b;
+  initial-value: #ffd700;
 }
 
 .hero--greenbear .hero-author-avatar-badge {
   position: relative;
   display: inline-block;
-  --god-aura-colour: #ff2f3b;
-  animation: god-aura-prism 7s linear infinite;
+  --god-aura-colour: #ffd700;
+  animation: god-aura-shimmer 4.5s ease-in-out infinite;
 }
 
-/* Кольцо: бегущий пунктир вокруг аватара. */
 .hero--greenbear .hero-author-avatar-badge::before {
   content: "";
   position: absolute;
-  inset: -7px;
+  inset: -8px;
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-  padding: 3px;
-  background: conic-gradient(
-    var(--god-aura-colour) 0deg 43deg,
-    transparent 43deg 360deg
-  );
-  /* Вырезаем середину, оставляя только ободок - иначе это залитый круг. */
+  padding: 4px;
+  /* Сплошное кольцо: ни клина, ни разрыва, ни направления. */
+  background: var(--god-aura-colour);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  filter: drop-shadow(0 0 15px var(--god-aura-colour));
-  animation: god-aura-run 2.4s linear infinite;
+  filter:
+    drop-shadow(0 0 10px var(--god-aura-colour))
+    drop-shadow(0 0 30px var(--god-aura-colour))
+    drop-shadow(0 0 55px var(--god-aura-colour));
+  animation: god-aura-breathe 4.5s ease-in-out infinite;
 }
 
-/* Аватар остаётся над кольцом. */
+/* Аватар и монета чемпиона остаются над венцом. */
 .hero--greenbear .hero-author-avatar,
 .hero--greenbear .champion-coin {
   position: relative;
   z-index: 1;
 }
 
-@keyframes god-aura-run {
-  to { transform: rotate(360deg); }
+/* Свет разгорается и угасает сразу со всех сторон - никакого направления. */
+@keyframes god-aura-breathe {
+  0%, 100% { opacity: 0.72; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.035); }
 }
 
-@keyframes god-aura-prism {
-  0%, 100% { --god-aura-colour: #ff2f3b; }
-  14%      { --god-aura-colour: #ff8a3b; }
-  26%      { --god-aura-colour: #ffd93b; }
-  38%      { --god-aura-colour: #ff2f3b; }
-  52%      { --god-aura-colour: #3bd77f; }
-  64%      { --god-aura-colour: #3bc8ff; }
-  76%      { --god-aura-colour: #ff2f6d; }
-  88%      { --god-aura-colour: #b46bff; }
+/* Золото остаётся золотом: два оттенка одного металла, не смена цвета. */
+@keyframes god-aura-shimmer {
+  0%, 100% { --god-aura-colour: #ffd700; }
+  50%      { --god-aura-colour: #e8b923; }
 }
 
 /* ── Имя: светлый градиент — читается на тёмном фоне ── */
@@ -141,14 +150,16 @@
     background-position: 0% 0;
   }
 
-  /* Аура остаётся видимой, но перестаёт крутиться и переливаться:
-     кольцо замирает целым, а не обрубком дуги. */
+  /* Венец остаётся во всю силу, но перестаёт дышать и переливаться:
+     кольцо и так сплошное, так что замирать ему нечем - гаснет только
+     движение, свет остаётся на полной яркости. */
   .hero--greenbear .hero-author-avatar-badge {
     animation: none;
   }
 
   .hero--greenbear .hero-author-avatar-badge::before {
     animation: none;
-    background: var(--god-aura-colour);
+    opacity: 1;
+    transform: none;
   }
 }

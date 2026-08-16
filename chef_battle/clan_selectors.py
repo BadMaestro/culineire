@@ -112,6 +112,44 @@ def get_clan_standing(clan, season) -> dict:
     }
 
 
+def get_clan_top_chef(clan):
+    """The clan's aura-bearer: its highest-RANKED active member, or None.
+
+    Owner's rule, 2026-08-16: **a clan's aura is the aura of the most senior
+    chef in it.** Auras already vary by rank on the Arena floor; this is the
+    same aura, worn by the clan.
+
+    Ranked, not scored. `get_clan_top_contributors()` next door orders by
+    SEASON POINTS, which is a different question and changes every time
+    somebody cooks - the clan's face should not flicker between members
+    week to week. Ordering here is the same as the public ladder's:
+    `_RANK_ORDER` descending, then rating, so "top chef" means one thing on
+    this site and not two.
+
+    THE OWNER IS EXCLUDED, by the same `_uncompeting_slugs()` that keeps him
+    out of the rankings (T22). He may wear a clan - the contract says so
+    explicitly - but his rank is hand-set, so letting him be the clan's face
+    would hand any clan he joins the best aura on the site for nothing. The
+    exclusion is the whole reason his own aura is being made unique instead.
+    """
+    from .models import ChefBattleProfile
+    from .selectors import _RANK_ORDER, _uncompeting_slugs
+
+    member_ids = (
+        ClanMembership.objects.filter(
+            clan=clan, status=ClanMembership.Status.ACTIVE, left_at__isnull=True
+        ).values_list("chef_id", flat=True)
+    )
+    return (
+        ChefBattleProfile.objects.filter(author_id__in=member_ids)
+        .exclude(author__slug__in=_uncompeting_slugs())
+        .select_related("author")
+        .annotate(rank_order=_RANK_ORDER)
+        .order_by("-rank_order", "-rating", "author__name")
+        .first()
+    )
+
+
 def get_clan_top_contributors(clan, season, limit: int = 15) -> list:
     """Members who contributed most to this clan this season, points desc."""
     if season is None:

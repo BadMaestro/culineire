@@ -11,6 +11,21 @@
       <p class="battle-kicker">Chef Battle Clan</p>
       <h1>{{ clan.crest_icon }} {{ clan.name }}</h1>
       <p class="battle-room-hero__sub">{{ season_label }}</p>
+      {% if top_chef %}
+      {# Owner's rule, 2026-08-16: the clan wears its most senior chef's aura.
+         data-rank-ring is the octagon's own ring number, 1 = Culinary Master. #}
+      <div class="clan-aura">
+        <span class="rank-aura" data-rank-ring="{{ top_chef_ring }}">
+          <img class="rank-aura__avatar" src="{{ top_chef.author.display_avatar_url }}"
+               alt="" aria-hidden="true">
+        </span>
+        <span class="clan-aura__caption">
+          <span class="clan-aura__label">Clan aura</span>
+          <a href="{% url 'recipes:author_detail' top_chef.author.slug %}">{{ top_chef.author.name }}</a>
+          <span class="clan-aura__rank">{{ top_chef.get_rank_display }}</span>
+        </span>
+      </div>
+      {% endif %}
     </div>
   </div>
 </section>
