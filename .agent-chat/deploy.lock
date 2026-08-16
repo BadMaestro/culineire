@@ -1,0 +1,5 @@
+agent: GreenBear
+started_utc: 2026-08-16T13:10Z
+version: 2.5.1114
+commit: pending
+task: T28 - Arena ambient atmosphere (six CSS-only effects, arena_atmosphere.css)
