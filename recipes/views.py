@@ -4785,7 +4785,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "5295a607 / production v2.5.1084",
+        "commit": "pending / production v2.5.1087",
         "verification": "Stage 2 is CLOSED - the Owner signed off G01 on 2026-08-10 and every "
                         "card A00 through G01 is DONE and deployed. (T15, 2026-08-15: this line "
                         "opened by confirming a production version that was 242 releases "
@@ -4818,7 +4818,7 @@ ARENA_RELEASE_STAGES = [
     },
     {
         "n": 3, "id": "release-readiness",
-        "title": "Release readiness & full verification", "status": "IN PROGRESS",
+        "title": "Release readiness & full verification", "status": "DONE",
         "purpose": "Full verification and the Owner's explicit release sign-off once the visual "
                    "integration matches the reference.",
         "owners": "Whichever agent holds the card (no gate-holder) + Owner (approval)",
@@ -4856,22 +4856,35 @@ ARENA_RELEASE_STAGES = [
                      "purchases - is answered and gone: the Owner ruled on 2026-08-16 that the two "
                      "launches are unconnected, so it was never a question. All that remains is "
                      "his explicit release approval.",
-                     "Owner grants explicit release approval."],
+                     "OWNER, 2026-08-16, THE LAST CRITERION LEAVES THIS STAGE TOO: the Arena's "
+                     "release approval is not an Arena item - it moves into the Chef Battles "
+                     "application specification, where the launch actually happens. The Arena does "
+                     "not ship on its own and is not signed off on its own; it ships when Chef "
+                     "Battles ships. Stage 3 therefore holds NOTHING - not a work item, not an "
+                     "open question, and now not a signature either. The same instruction moved "
+                     "the E2 gift-resale mechanic, the CHEF_BATTLE_ENABLED switch, the Stripe "
+                     "go-ahead, the first sandbox battles and the manual moderation of the first "
+                     "20-30 out of Arena acceptance; all five already lived on the Chef Battles "
+                     "battlefield board rather than here, so for those this line is a record and "
+                     "not a move. The AllFresh / sponsor pilot was deleted from the specification "
+                     "outright on the same instruction."],
         "dependencies": "Stage 2 A00-G01 complete.",
         "blockers": [],
         "branch": "Not approved", "commit": "Not approved",
         "verification": "OWNER, 2026-08-10: G01 signed off. Stage started on his word.",
         "updated": "2026-08-10T00:00:00.000Z",
-        "next_action": "NOTHING IS ASSIGNABLE HERE AT ALL, AND ONE SIGNATURE IS ALL THAT IS LEFT. "
-                       "Payments are removed from this plan by the Owner (2026-08-16: the Arena "
-                       "launch and the Stripe launch are unconnected, and Stripe is the last task "
-                       "of the whole Chef Battles application, not of the Arena). Mobile Arena is "
-                       "frozen. A18's two gaps - the last work item this stage still named - were "
-                       "CANCELLED by him the same day. Nothing here is waiting on an agent and "
-                       "nothing here is waiting on an unanswered question: what remains is his "
-                       "separate, explicit release approval, which his 2026-08-10 G01 sign-off "
-                       "started this stage but is not. The only NEXT card on the board is T22, "
-                       "which is not a launch blocker.",
+        "next_action": "CLOSED - THERE IS NOTHING HERE, INCLUDING THE SIGNATURE. Verification is "
+                       "complete: all A00-G01 accepted, the full suite green on PostgreSQL (2133 "
+                       "tests, T17), the production smoke passed and the rollback path verified "
+                       "and re-tagged. Everything else this stage ever carried has been taken out "
+                       "of it by the Owner on 2026-08-16 - payments, because the Arena and Stripe "
+                       "launches are unconnected; A18's gaps and VD1, cancelled; and finally the "
+                       "release approval itself, which belongs to the Chef Battles application "
+                       "specification because that is where the launch happens. The Arena does not "
+                       "ship alone and is not signed off alone. Do not reopen this stage to hold "
+                       "Chef Battles work: that work has its own board at "
+                       "chef_battle:battlefield_progress. The only NEXT card is T22, which is "
+                       "Owner-authority work and not a launch item.",
     },
 ]
 
@@ -4898,7 +4911,14 @@ def _arena_build_context():
         "stages": ARENA_RELEASE_STAGES,
         "total": len(ARENA_RELEASE_STAGES),
         "done_count": sum(s["status"] == "DONE" for s in ARENA_RELEASE_STAGES),
-        "active_stage": next(s for s in ARENA_RELEASE_STAGES if s["status"] == "IN PROGRESS"),
+        # 2026-08-16: "active_stage" DELETED, not defaulted to None. It ran
+        # next(... "IN PROGRESS") with no default, so the moment Stage 3 closed
+        # and no stage was IN PROGRESS the whole build board raised
+        # StopIteration and 500'd - the exact defect fixed for next_design_task
+        # in v2.5.778 and left standing here beside it. The fix is deletion
+        # rather than a default because the key had ONE producer and ZERO
+        # consumers: no template reads it, no test asserts it. A default would
+        # have kept a value nobody uses and hidden that.
         "blocker_count": sum(len(s["blockers"]) for s in ARENA_RELEASE_STAGES),
         "release_readiness": "NOT READY",
         # T15, 2026-08-15: hand-set, and deliberately NOT timezone.now(). It

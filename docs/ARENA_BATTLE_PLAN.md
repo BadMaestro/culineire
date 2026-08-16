@@ -4,7 +4,29 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-16 · Production baseline: **v2.5.1084**
+Last reconciled: 2026-08-16 · Production baseline: **v2.5.1087**
+
+## Owner ruling, 2026-08-16 — the Arena has no acceptance of its own; Stage 3 is CLOSED
+
+Given a numbered list for approval, he moved six items **out of Arena acceptance
+and into the Chef Battles specification**, and deleted a seventh outright:
+
+- the **E2** gift-resale mechanic, the **`CHEF_BATTLE_ENABLED`** switch, the
+  **Stripe** go-ahead, the **first 5–10 sandbox battles** and the **manual
+  moderation of the first 20–30** — all five already lived on the Chef Battles
+  battlefield board rather than in this plan, so for those this is a record, not
+  a move;
+- **the Arena's release approval itself.** This one was genuinely here, as Stage
+  3's last remaining exit criterion. **The Arena does not ship on its own and is
+  not signed off on its own — it ships when Chef Battles ships.**
+- **AllFresh / sponsor pilot: deleted from the specification.** One row, one
+  place (`chef_battle/views.py`, Phase 3), gone.
+
+**Stage 3 is therefore DONE.** Its verification half is complete — all A00–G01
+accepted, 2133 tests green on PostgreSQL, production smoke passed, rollback path
+verified and re-tagged — and its approval half no longer belongs to it. Nothing
+is assignable here. Chef Battles work goes on the battlefield board, not into a
+reopened Arena stage.
 
 ## Owner ruling, 2026-08-16 — Stripe was never an Arena gate, and leaves this plan
 
