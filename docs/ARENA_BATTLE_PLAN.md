@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-16 · Production baseline: **v2.5.1099**
+Last reconciled: 2026-08-16 · Production baseline: **v2.5.1109**
 
 ## Owner ruling, 2026-08-16 — the Arena has no acceptance of its own; Stage 3 is CLOSED
 
