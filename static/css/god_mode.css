@@ -49,31 +49,9 @@
   animation: god-gold-flow 5s linear 1 forwards;
 }
 
-/* ── Лапы медведя слева и справа ── */
-.author-name--god::before,
-.author-name--greenbear::before,
-.author-name--god::after,
-.author-name--greenbear::after {
-  font-size: 0.75em;
-  display: inline-block;
-  background: none;
-  -webkit-background-clip: initial;
-  background-clip: border-box;
-  filter: opacity(0.75);
-}
-
-.author-name--god::before,
-.author-name--greenbear::before {
-  content: "🐾";
-  margin-right: 0.35em;
-  transform: scaleX(-1);
-}
-
-.author-name--god::after,
-.author-name--greenbear::after {
-  content: "🐾";
-  margin-left: 0.35em;
-}
+/* Лапы медведя удалены по прямому указанию владельца, 2026-08-16: они
+   отрисовывались неверно - правая появлялась, левая нет. Остаётся только
+   золотой перелив по буквам. */
 
 /* ── Анимация перелива ── */
 @keyframes god-gold-flow {
