@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-17 · Production baseline: **v2.5.1127**
+Last reconciled: 2026-08-17 · Production baseline: **v2.5.1129**
 
 ## Owner ruling, 2026-08-17 — ALL CLAN WORK IS SEASON 2
 
