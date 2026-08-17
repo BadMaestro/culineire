@@ -4257,7 +4257,16 @@ class ArenaBuildPlanShareLinkTests(TestCase):
         byte-for-byte against the moderator page: a signed-in response also
         carries session-driven chrome the anonymous one has no reason to."""
         resp = self.client.get(self.url())
-        for marker in ["Arena Build Plan", "Design Arena visual integration", "NOT READY"]:
+        # 2026-08-17: the third marker was "NOT READY" - the literal value of
+        # the release-readiness metric. That value became derived (it had been
+        # a constant that would have read NOT READY for ever, including after
+        # launch), and this test broke, which is the test doing its job badly:
+        # it is meant to prove the shared copy carries the WHOLE board, not to
+        # pin what one metric currently says. Marker changed to the metric's
+        # LABEL, which is structural and does not move when the board's state
+        # does.
+        for marker in ["Arena Build Plan", "Design Arena visual integration",
+                       "Release readiness"]:
             self.assertContains(resp, marker)
 
     def test_the_start_control_is_not_reachable_from_the_share_link(self):
