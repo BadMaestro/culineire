@@ -27,6 +27,7 @@ from .clan_selectors import (
     get_alliance_clans,
     get_clan_alliance,
     get_clan_roster,
+    clan_is_blessed,
     get_clan_standing,
     get_clan_top_chef,
     get_clan_top_contributors,
@@ -113,8 +114,12 @@ def clan_detail(request, slug):
     alliance_membership = get_clan_alliance(clan)
 
     # Owner's rule, 2026-08-16: the clan wears its most senior chef's aura.
+    # And 2026-08-17: unless the Owner himself is in it, in which case the
+    # whole clan burns gold - his aura IS the blessing. Cosmetic only; it
+    # adds no rating, no reputation and no points to anybody.
     top_chef = get_clan_top_chef(clan)
     top_chef_ring = rank_to_ring_index(top_chef.rank) if top_chef else None
+    blessed = clan_is_blessed(clan)
 
     viewer_founder = is_founder(author, clan) if author else False
     my_membership = get_active_membership(author) if author else None
@@ -140,6 +145,7 @@ def clan_detail(request, slug):
             "contributors": contributors,
             "top_chef": top_chef,
             "top_chef_ring": top_chef_ring,
+            "clan_blessed": blessed,
             "member_cap": CLAN_MEMBER_CAP,
             "alliance_membership": alliance_membership,
             "viewer_founder": viewer_founder,

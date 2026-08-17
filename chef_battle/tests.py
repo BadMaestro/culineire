@@ -20619,3 +20619,122 @@ class ChefsTravelBetweenCellsInsteadOfJumpingTests(TestCase):
         tail = css[css.index(".arena-occupant--moving"):]
         self.assertIn("prefers-reduced-motion", tail)
         self.assertIn(".arena-occupant--moving { transition: none; }", tail)
+
+
+class AGodInTheClanBlessesItAndGivesItNothingTests(TestCase):
+    """Owner, 2026-08-17: his gold aura IS the clan blessing.
+
+    "Если я в клане, значит аура всего клана светится золотом - это
+    исключительно косметическое явление - никаких + к рейтингу или репутации
+    физически это не даёт, лишь осознание того что это клан бога."
+
+    Recorded here because the requirement had been paraphrased downstream into
+    "adds a clan reputation blessing", which is not his wording, and a
+    Clan.reputation column was nearly built for it - a number that would have
+    ranked clans by whose side he took.
+    """
+
+    def setUp(self):
+        from .models import ChefBattleProfile, Clan, ClanMembership
+
+        User = get_user_model()
+        fu = User.objects.create_user("bless-founder", password="pw")
+        self.founder = RecipeAuthor.objects.create(
+            user=fu, name="Founder", slug="bless-founder")
+        ChefBattleProfile.objects.create(
+            author=self.founder, rank=ChefBattleProfile.Rank.PREP_COOK,
+            enrolled_at=timezone.now())
+
+        self.clan = Clan.objects.create(
+            founder=self.founder, name="Blessed", slug="blessed-clan",
+            moderation_status=Clan.Moderation.APPROVED,
+        )
+        ClanMembership.objects.create(
+            clan=self.clan, chef=self.founder,
+            role=ClanMembership.Role.FOUNDER,
+            status=ClanMembership.Status.ACTIVE,
+        )
+        self.owner = RecipeAuthor.objects.get(slug=settings.OWNER_SLUG)
+
+    def _owner_joins(self, status=None):
+        from .models import ClanMembership
+        return ClanMembership.objects.create(
+            clan=self.clan, chef=self.owner,
+            role=ClanMembership.Role.MEMBER,
+            status=status or ClanMembership.Status.ACTIVE,
+        )
+
+    def test_an_ordinary_clan_is_not_blessed(self):
+        from .clan_selectors import clan_is_blessed
+
+        self.assertFalse(clan_is_blessed(self.clan))
+
+    def test_a_clan_he_stands_in_is_blessed(self):
+        from .clan_selectors import clan_is_blessed
+
+        self._owner_joins()
+        self.assertTrue(clan_is_blessed(self.clan))
+
+    def test_a_pending_request_does_not_bless_anything(self):
+        """He has to actually be in it, not to have knocked."""
+        from .models import ClanMembership
+        from .clan_selectors import clan_is_blessed
+
+        self._owner_joins(status=ClanMembership.Status.PENDING)
+        self.assertFalse(clan_is_blessed(self.clan))
+
+    def test_leaving_takes_the_blessing_with_him(self):
+        from .clan_selectors import clan_is_blessed
+
+        membership = self._owner_joins()
+        self.assertTrue(clan_is_blessed(self.clan))
+        membership.left_at = timezone.now()
+        membership.save(update_fields=["left_at"])
+        self.assertFalse(clan_is_blessed(self.clan))
+
+    def test_the_blessing_gives_the_clan_nothing(self):
+        """THE POINT OF THE WHOLE RULE. Cosmetic only - no points, no
+        standing, no rating moved by his presence."""
+        from .models import ClanContribution, ClanSeasonStanding
+        from .clan_selectors import clan_is_blessed
+
+        before_points = ClanContribution.objects.filter(clan=self.clan).count()
+        before_standings = ClanSeasonStanding.objects.filter(clan=self.clan).count()
+
+        self._owner_joins()
+        self.assertTrue(clan_is_blessed(self.clan))
+
+        self.assertEqual(
+            ClanContribution.objects.filter(clan=self.clan).count(), before_points,
+            "the blessing wrote to the points ledger - it must touch nothing")
+        self.assertEqual(
+            ClanSeasonStanding.objects.filter(clan=self.clan).count(), before_standings,
+            "the blessing created a standing - it must touch nothing")
+
+    def test_he_still_never_becomes_the_clans_aura_bearer(self):
+        """Blessing and top-chef are different questions. He blesses the clan;
+        he does not represent it, and his hand-set rank must not make him its
+        face - the T22 exclusion still holds."""
+        from .clan_selectors import clan_is_blessed, get_clan_top_chef
+        from .models import ChefBattleProfile
+
+        ChefBattleProfile.objects.update_or_create(
+            author=self.owner,
+            defaults={"rank": ChefBattleProfile.Rank.CULINARY_MASTER,
+                      "rating": 9999, "enrolled_at": timezone.now()},
+        )
+        self._owner_joins()
+
+        self.assertTrue(clan_is_blessed(self.clan))
+        top = get_clan_top_chef(self.clan)
+        self.assertIsNotNone(top)
+        self.assertEqual(top.author.slug, "bless-founder")
+
+    def test_no_reputation_column_was_added_to_clan(self):
+        """The requirement was paraphrased into "a clan reputation blessing"
+        and nearly became a number. It is an aura. Nothing ranks clans by
+        whose side he took."""
+        from .models import Clan
+
+        fields = {f.name for f in Clan._meta.get_fields()}
+        self.assertNotIn("reputation", fields)

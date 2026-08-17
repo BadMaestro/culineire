@@ -137,14 +137,22 @@ last package.
   33/33 PASS; Django, migration, JS, image-weight and diff checks green.
 - T11 documentation and T18 are shipped together in `v2.5.1037`; T11 remains a
   corrected specification, not a claim that the combat mechanic is implemented.
-- T18 does not yet implement the separate Owner-avatar contract: GreenBear may
-  appear and join clans/alliances cosmetically, adds only a clan reputation
-  blessing, and must be excluded from challenges, battles and every competitive
-  aggregate. **RECORDED as card T22 on the Owner's instruction, 2026-08-16.**
-  It is the board's only NEXT card and it is unassigned - the Owner assigns it.
-  The protective half is already in (`is_immortal()` at the penalty, the rank
-  demotion and the refusal charge); the exclusion half is not, and T22 cites the
-  three gaps by call site.
+- T18 did not implement the separate Owner-avatar contract. **Card T22, CLOSED
+  2026-08-17.** He is excluded from challenges, battles and every competitive
+  aggregate; the protective half (`is_immortal()` at the penalty, the rank
+  demotion and the refusal charge) is untouched and still passes.
+- **The "clan reputation blessing" in the line above was never the Owner's
+  wording** and is struck. Traced 2026-08-17: the phrase existed only in
+  Ember's T18 handoff summary and in the T22 card quoting it. His canonical
+  rules do not contain it; what he wrote about clans is that GreenBear
+  **founds** one like any chef (`clans_alliances_rules.md`, his worked
+  example). **His ruling, 2026-08-17: the blessing IS the gold aura.** A clan
+  he stands in burns gold instead of wearing its top chef's rank aura -
+  cosmetic only, no rating, no reputation, no points, "only the knowledge that
+  this is a god's clan". Reputation is a human matter, not a field: a god's
+  standing is that he can delete and punish accounts that break the rules.
+  A `Clan.reputation` column was one word from being built and would have been
+  exactly wrong - a number ranking clans by whose side he took.
 
 **OWNER BRIEF, 2026-08-12 — seventeen tickets, T01–T17, on the board and mine
 alone.** Delivered on the Carpet as message #3509 and dispatched by him with

@@ -12,16 +12,22 @@
       <h1>{{ clan.crest_icon }} {{ clan.name }}</h1>
       <p class="battle-room-hero__sub">{{ season_label }}</p>
       {% if top_chef %}
-      {# Owner's rule, 2026-08-16: the clan wears its most senior chef's aura. data-rank-ring is the octagon's own ring number, 1 = Culinary Master. #}
+      {# Owner's rule, 2026-08-16: the clan wears its most senior chef's aura. data-rank-ring is the octagon's own ring number, 1 = Culinary Master. 2026-08-17: unless the Owner is a member, and then the clan burns gold instead - his aura IS the blessing. Cosmetic only: no rating, no reputation, no points. #}
       <div class="clan-aura">
-        <span class="rank-aura" data-rank-ring="{{ top_chef_ring }}">
+        <span class="rank-aura{% if clan_blessed %} rank-aura--blessed{% endif %}"
+              data-rank-ring="{{ top_chef_ring }}">
           <img class="rank-aura__avatar" src="{{ top_chef.author.display_avatar_url }}"
                alt="" aria-hidden="true">
         </span>
         <span class="clan-aura__caption">
-          <span class="clan-aura__label">Clan aura</span>
-          <a href="{% url 'recipes:author_detail' top_chef.author.slug %}">{{ top_chef.author.name }}</a>
-          <span class="clan-aura__rank">{{ top_chef.get_rank_display }}</span>
+          {% if clan_blessed %}
+            <span class="clan-aura__label clan-aura__label--blessed">Blessed clan</span>
+            <span class="clan-aura__rank">A god stands in this clan</span>
+          {% else %}
+            <span class="clan-aura__label">Clan aura</span>
+            <a href="{% url 'recipes:author_detail' top_chef.author.slug %}">{{ top_chef.author.name }}</a>
+            <span class="clan-aura__rank">{{ top_chef.get_rank_display }}</span>
+          {% endif %}
         </span>
       </div>
       {% endif %}

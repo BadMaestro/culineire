@@ -150,6 +150,42 @@ def get_clan_top_chef(clan):
     )
 
 
+def clan_is_blessed(clan) -> bool:
+    """True when the Owner is an active member of this clan.
+
+    THE BLESSING IS THE AURA, NOT A NUMBER - Owner, 2026-08-17, correcting a
+    requirement that had been paraphrased downstream into "adds a clan
+    reputation blessing" and was never his wording. In his own words: his
+    gold aura IS the blessing. If he is in a clan, the whole clan's aura
+    burns gold. It gives NOTHING - no rating, no reputation, no points, no
+    advantage of any kind - only the knowledge that this is a god's clan.
+
+    Reputation, he said, is a human matter, not a field: a god's standing is
+    that he can delete and punish accounts that break the rules.
+
+    So this returns a flag for the template and touches no score. It is the
+    exact opposite of the Clan.reputation column that was nearly built: that
+    would have been a number ranking clans by whose side he took.
+
+    Reads settings.OWNER_SLUG directly rather than borrowing
+    `_uncompeting_slugs()`. That helper answers "who is kept out of the
+    competitive tables" and today happens to hold the same single slug - but
+    the questions are different, and the day it also excludes something else
+    every clan holding that thing would light up gold.
+    """
+    from django.conf import settings as _settings
+
+    slug = getattr(_settings, "OWNER_SLUG", None)
+    if not slug:
+        return False
+    return ClanMembership.objects.filter(
+        clan=clan,
+        status=ClanMembership.Status.ACTIVE,
+        left_at__isnull=True,
+        chef__slug=slug,
+    ).exists()
+
+
 def get_clan_top_contributors(clan, season, limit: int = 15) -> list:
     """Members who contributed most to this clan this season, points desc."""
     if season is None:

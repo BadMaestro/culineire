@@ -4941,3 +4941,60 @@ a.battle-home__pulse-msg:hover {
     background: var(--rank-aura-colour);
   }
 }
+
+/* ── БЛАГОСЛОВЕНИЕ. A god stands in this clan — Owner, 2026-08-17 ──────────
+   His gold aura IS the blessing. If he is a member, the whole clan burns
+   gold instead of wearing its top chef's rank aura.
+
+   PURELY COSMETIC. It adds no rating, no reputation, no points and no
+   advantage of any kind - only the knowledge that this is a god's clan. A
+   Clan.reputation column was nearly built for this and would have been
+   exactly wrong: a number ranking clans by whose side he took.
+
+   Same crown as god_mode.css and the arena floor: #ffd700 to #e8b923, three
+   stacked drop-shadows, a solid ring that breathes rather than a wedge
+   running clockwise. Declared AFTER the per-ring rules so it overrides
+   whatever rank the clan's top chef holds - cascade order, and this comment
+   is the warning that moving it silently reverts a blessed clan to a rose
+   or a white rim.
+   ------------------------------------------------------------------------ */
+.rank-aura--blessed {
+  --rank-aura-colour: #ffd700;
+  --rank-aura-weight: 4.6;
+  --rank-aura-alpha: 1;
+  animation: rank-aura-blessed-shimmer 4.5s ease-in-out infinite;
+}
+
+.rank-aura--blessed::before {
+  /* Solid: no wedge, no gap, no direction of travel. */
+  background: var(--rank-aura-colour);
+  filter:
+    drop-shadow(0 0 10px var(--rank-aura-colour))
+    drop-shadow(0 0 30px var(--rank-aura-colour))
+    drop-shadow(0 0 55px var(--rank-aura-colour));
+  animation: rank-aura-blessed-breathe 4.5s ease-in-out infinite;
+}
+
+@keyframes rank-aura-blessed-breathe {
+  0%, 100% { opacity: 0.78; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.03); }
+}
+
+@keyframes rank-aura-blessed-shimmer {
+  0%, 100% { --rank-aura-colour: #ffd700; }
+  50%      { --rank-aura-colour: #e8b923; }
+}
+
+.clan-aura__label--blessed {
+  color: #b8860b;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rank-aura--blessed,
+  .rank-aura--blessed::before {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
