@@ -5670,6 +5670,27 @@
   #arena-render .arena-teleport-flash { display: none; }
 }
 
+/* B5 (T25) — a chef changing cell travels there instead of jumping.
+   The board's own sequencing: "ship static relocation first (done via B2+B3),
+   animate second per original handoff advice." B2/B3 and F2 shipped the
+   static half; this is the second.
+
+   The transition is declared ONLY on the moving class, not on .arena-occupant
+   itself, because the occupants layer is rebuilt from scratch every poll: a
+   transition on every occupant would fire on the twenty-odd chefs who did not
+   move, on every single paint. arena_render.js adds the class only when it has
+   a real previous position AND that position differs.
+
+   1.6s against a 10s poll: long enough to read as travel, finished long
+   before the next paint could interrupt it. */
+#arena-render .arena-occupant--moving {
+  transition: transform 1.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #arena-render .arena-occupant--moving { transition: none; }
+}
+
 /* ---- occupants ---- */
 
 #arena-render .arena-occupant {

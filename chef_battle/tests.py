@@ -20423,3 +20423,80 @@ class SpectatorGiftsMustBeUsedNotHoardedTests(TestCase):
         first.refresh_from_db()
         second.refresh_from_db()
         self.assertEqual([first.is_applied, second.is_applied], [True, False])
+
+
+class ChefsTravelBetweenCellsInsteadOfJumpingTests(TestCase):
+    """B5 (T25) — the second half of the relocation the board sequenced.
+
+    Its own line: "ship static relocation first (done via B2+B3), animate
+    second per original handoff advice." B2/B3 and F2 shipped the static half;
+    a chef who changed cell vanished from one and appeared in another, because
+    the occupants layer is wiped and rebuilt on every poll and nothing
+    recorded where anybody had been.
+    """
+
+    def _js(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+    def _css(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
+        ).read_text(encoding="utf-8")
+
+    def test_the_renderer_remembers_where_each_chef_stood(self):
+        js = self._js()
+        self.assertIn("previousCellCentres", js)
+        self.assertIn("lastCellCentres", js)
+
+    def test_the_two_maps_are_swapped_before_any_occupant_is_drawn(self):
+        """One map would be overwritten mid-loop and every chef would end up
+        comparing against himself, so nothing would ever animate.
+
+        Asserted INSIDE bind(), not across the file: appendOccupant is defined
+        above bind() and source order says nothing about execution order. What
+        matters is that the swap runs before bind() starts appending."""
+        js = self._js()
+        body = js[js.index("function bind(svg, payload, geometry)"):]
+        body = body[:body.index("\n  function ", 1)]
+        swap = body.index("previousCellCentres = lastCellCentres")
+        first_append = body.index("appendOccupant(")
+        self.assertLess(swap, first_append,
+                        "the swap must precede the first append, or the map is half-written")
+
+    def test_the_transition_is_scoped_to_chefs_that_actually_moved(self):
+        """A transition on .arena-occupant itself would fire on every chef on
+        the floor on every poll, twenty-odd of whom did not move."""
+        css = self._css()
+        self.assertIn(".arena-occupant--moving", css)
+        self.assertIn("transition: transform", css)
+        self.assertNotIn("#arena-render .arena-occupant {\n  transition", css)
+
+    def test_a_chef_appearing_for_the_first_time_does_not_slide_in(self):
+        """Without the previous-position guard a new arrival would fly in from
+        the SVG origin, which reads as a bug rather than as movement."""
+        js = self._js()
+        self.assertIn("if (was &&", js)
+
+    def test_the_move_is_animated_by_css_not_by_a_timer(self):
+        """The renderer's timer budget is pinned by AN20; B5 must not spend
+        it, and a CSS transition is also what lets prefers-reduced-motion
+        switch the whole thing off in one place."""
+        js = self._js()
+        moving = js[js.index("arena-occupant--moving"):]
+        moving = moving[:moving.index("lastCellCentres[slug] = here")]
+        self.assertNotIn("setTimeout", moving)
+        self.assertNotIn("requestAnimationFrame", moving)
+
+    def test_reduced_motion_turns_the_travel_off(self):
+        css = self._css()
+        tail = css[css.index(".arena-occupant--moving"):]
+        self.assertIn("prefers-reduced-motion", tail)
+        self.assertIn(".arena-occupant--moving { transition: none; }", tail)

@@ -1472,6 +1472,30 @@
     group.appendChild(dot);
   }
 
+  /**
+   * B5 (T25) — where each chef stood on the LAST paint, by slug.
+   *
+   * The occupants layer is wiped and rebuilt from scratch on every poll, so a
+   * chef who changes cell simply vanishes from one and appears in another.
+   * That is the "static relocation" B2/B3/F2 shipped; B5 is the second half
+   * the board always said would come after it, and to animate a move you have
+   * to know where the chef was, which nothing recorded.
+   *
+   * Two maps, not one. `previousCellCentres` is last paint's, read while this
+   * paint is being drawn; `lastCellCentres` is this paint's, written as each
+   * occupant lands. bind() swaps them before rebuilding, so a chef who leaves
+   * the floor drops out instead of accumulating - the map is never larger
+   * than the number of chefs currently on it. One map would be overwritten
+   * mid-loop and every chef would compare against himself.
+   */
+  var lastCellCentres = {};
+  var previousCellCentres = {};
+
+  function cellCentre(seat) {
+    var box = seat.getBBox();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  }
+
   function appendOccupant(svg, layer, assignment) {
     var entity = assignment.entity || {};
     var selector = '.arena-cell[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]';
@@ -1514,11 +1538,54 @@
 
     appendOnlineDot(group, assignment, seat);
     layer.appendChild(group);
+
+    // B5 (T25) — animate the relocation instead of jumping it.
+    //
+    // The chef is already drawn in his NEW cell. If he was somewhere else on
+    // the last paint, we offset him back to where he was, force the browser
+    // to accept that as the starting state, then release the offset - CSS
+    // carries him across. Going this way round rather than animating towards
+    // the new cell means the clip-path, the avatar and the online dot are all
+    // already correct for the destination; only the whole group slides.
+    //
+    // No per-frame JavaScript and no timers: the transition lives in
+    // arena.css, so `prefers-reduced-motion` can switch it off there with
+    // everything else, and a backgrounded tab costs nothing.
+    var slug = entity.slug || '';
+    var here = cellCentre(seat);
+    if (slug) {
+      var was = previousCellCentres[slug];
+      // A chef appearing for the first time has no previous position and must
+      // NOT slide in from the origin - only a real move animates.
+      if (was && (Math.abs(was.x - here.x) > 0.5 || Math.abs(was.y - here.y) > 0.5)) {
+        group.setAttribute('class', 'arena-occupant arena-occupant--moving');
+        group.style.transform =
+          'translate(' + (was.x - here.x).toFixed(2) + 'px, ' +
+          (was.y - here.y).toFixed(2) + 'px)';
+        // A deliberate synchronous reflow, of the kind AN20's guard test
+        // explicitly allows: "each read depends on the write above it". The
+        // browser would otherwise coalesce setting the offset and clearing it
+        // into one style recalculation, leaving nothing to transition FROM.
+        // Cost is bounded by chefs who ACTUALLY MOVED - normally none, and a
+        // rank change or a fighter taking the centre moves one or two. This
+        // is not a per-occupant read; it is inside the branch that already
+        // proved the cell changed.
+        void group.getBoundingClientRect();
+        group.style.transform = '';
+      }
+      lastCellCentres[slug] = here;
+    }
   }
 
   function bind(svg, payload, geometry) {
     var occupants = svg.querySelector('[data-arena-layer="occupants"]');
     while (occupants.firstChild) { occupants.removeChild(occupants.firstChild); }
+
+    // B5 (T25): this paint's positions become the ones the next paint animates
+    // from. Swapped here, before a single occupant is drawn, so appendOccupant
+    // reads a map that is complete and finished with.
+    previousCellCentres = lastCellCentres;
+    lastCellCentres = {};
 
     // The balconies are not seats and hold no occupant records, so they are
     // settled here, before the seat machinery runs, and never touched by it.
