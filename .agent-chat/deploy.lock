@@ -1,0 +1,5 @@
+agent: Bolt
+started_utc: 2026-08-17T13:00Z
+version: 2.5.1131
+commit: pending
+task: fix the test my own release_readiness change broke
