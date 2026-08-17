@@ -1,5 +1,0 @@
-agent: GreenBear
-started_utc: 2026-08-17T08:15Z
-version: 2.5.1122
-commit: pending
-task: T30 - F4, the antechamber gets its head-to-head record and a rules link; fixed a live multi-line {# #} comment leak in battle_detail.html and clan_detail.html
