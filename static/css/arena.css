@@ -1521,7 +1521,9 @@
 
 /* Arena Hall presentation boundary.
  *
- * Layout belongs to arena_command_deck.css. Colour comes only through --hall-*
+ * Layout belongs to the deck-layout rules further down THIS file (the old
+ * arena_command_deck.css was merged here in AN12 and no longer exists).
+ * Colour comes only through --hall-*
  * (aliases of CulinEire_colour_font_scheme.pdf / site tokens in base.css).
  * Stage = ink-derived dark hall; floor plate stays parchment via --hall-floor-*.
  */
@@ -1748,10 +1750,11 @@
    was: static/css/arena_deck_polish.css
    ================================================================== */
 
-/* Arena command-deck POLISH LAYER — GreenBear (Senior FE), refines Ember's
-   arena_command_deck classes toward the owner reference. Loads AFTER
-   arena_command_deck.css. Refines (does not restructure) — coordinate with Ember
-   before restyling the same class in arena_command_deck.css.
+/* Arena command-deck POLISH LAYER — refines the deck classes toward the owner
+   reference. Both this layer and the classes it refines live in THIS file:
+   arena_command_deck.css and arena_deck_polish.css were merged here in AN12
+   and neither exists. Refines, does not restructure - so a change here must
+   be checked against the deck-layout block above rather than against a file.
    Palette per arena_rebuild_plan.md sec 6 (warm CulinEire, gold accents). */
 
 .arena-command-deck {
@@ -1924,7 +1927,7 @@
  *
  * It rides inside the ribbon, which is already positioned full width at the top
  * of the stage. v2.5.822 gave it its own <aside> and it rendered unstyled on top
- * of the arena — every deck panel in arena_command_deck.css is placed by naming
+ * of the arena — every deck panel in this file's deck-layout block is placed by naming
  * its class in three separate lists (chrome, coordinates, colour), and
  * .arena-interface-rail is display:contents, so a class in none of those lists
  * has no box and nowhere to stand.
@@ -3472,7 +3475,8 @@
   }
   /* The outer stands are the DARK crowd bowl wrapping the lit floor (reference:
      "the dark IS the crowd"). This is the winning rule for empty spectator seats
-     (.page--arena raises its specificity above arena_render.css), so the bowl's
+     (.page--arena raised its specificity above the renderer sheet back when that
+     was a separate file; both live here since AN12), so the bowl's
      darkness is set here: ink-dominant, with the bronze seam keeping the rings
      distinct so it reads as a packed crowd, not mud. */
   .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
@@ -5435,7 +5439,7 @@
    they are deliberately outside the seating key. AR3 hangs the lanterns in the
    moat; AR5 dresses the VIP band for sponsors. */
 
-/* Both blocks are scoped .page--arena on purpose. arena_deck_polish.css carries
+/* Both blocks are scoped .page--arena on purpose. The polish layer below carries
    `.page--arena #arena-render .arena-cell { stroke: #fff }`, which outranks a
    plain `#arena-render .arena-cell--moat` on specificity no matter the load
    order — the same trap that made v2.5.686 a silent no-op (see AR0 audit).
@@ -5866,7 +5870,7 @@
    what depth actually is.
 
    Scoped .page--arena on purpose, and this is the second time that trap has been
-   paid for in this file: arena_deck_polish.css owns the stand colour with
+   paid for in this file: the polish layer owns the stand colour with
    `.page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"]`,
    which outranks a plain #arena-render rule at any load order. The comment at
    the top of this file says exactly that about the moat, and the first cut of

@@ -1,9 +1,10 @@
 /* ────────────────────────────────────────────────────────────────────────
    Arena EFFECTS LAYER — GreenBear (Senior FE).
-   Pure CSS/SVG-filter atmosphere over Ember's arena_command_deck classes.
-   ZERO image files, ZERO structural changes, does NOT touch Ember's JS.
-   Loads AFTER arena_deck_polish.css so it only adds glow/depth on top of the
-   established palette. All motion is gated behind prefers-reduced-motion.
+   Pure CSS/SVG-filter atmosphere over the deck classes in arena.css.
+   ZERO image files, ZERO structural changes, does NOT touch the renderer's JS.
+   Loads AFTER arena.css - which is where arena_command_deck.css and
+   arena_deck_polish.css both went in AN12 - so it only adds glow and depth
+   on top of the established palette. All motion is gated behind prefers-reduced-motion.
    Reuses the --ad-* palette vars declared on .arena-command-deck.
    ──────────────────────────────────────────────────────────────────────── */
 
