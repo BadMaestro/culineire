@@ -1,0 +1,5 @@
+agent: Bolt
+started_utc: 2026-08-17T08:25Z
+version: 2.5.1119
+commit: pending
+task: T25 - B5, chefs travel between cells instead of jumping
