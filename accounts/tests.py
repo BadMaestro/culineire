@@ -408,6 +408,33 @@ class AvatarGalleryIsAChoiceNeverAnAssignmentTests(TestCase):
         self.assertNotIn("{#", body)
         self.assertNotIn("#}", body)
 
+    def test_the_gallery_dialog_outranks_the_site_header(self):
+        """It shipped at z-index 60 against a header at 120, so the dialog opened
+        UNDERNEATH the navigation: the backdrop dimmed the page but not the
+        header, and the panel's own title and close button sat behind the logo.
+
+        Asserted as a comparison against the header's real value rather than a
+        hard-coded number, so raising the header later fails here instead of
+        silently burying the dialog again.
+        """
+        from pathlib import Path
+        import re
+
+        from django.conf import settings as django_settings
+
+        css_dir = Path(django_settings.BASE_DIR) / "static" / "css"
+        auth_css = (css_dir / "auth.css").read_text(encoding="utf-8")
+        header_css = (css_dir / "header.css").read_text(encoding="utf-8")
+
+        block = auth_css[auth_css.index(".auth-avatar-modal {"):]
+        block = block[:block.index("}")]
+        dialog_z = int(re.search(r"z-index:\s*(\d+)", block).group(1))
+
+        highest_header_z = max(
+            int(value) for value in re.findall(r"z-index:\s*(\d+)", header_css)
+        )
+        self.assertGreater(dialog_z, highest_header_z)
+
 
 class BearseekerAdminTierTests(TestCase):
     """The tier and the staff bit are one thing, not two.

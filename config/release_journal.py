@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1140",
+        "date": "2026-08-17",
+        "commit": "pending",
+        "title": "The portrait gallery was opening underneath the site header",
+        "section": "Accounts",
+        "summary": "THE OWNER'S SCREENSHOT CARRIED THE ANSWER AND I READ IT WRONG THE FIRST TIME. He reported the first row of portraits being cut off in a portrait window; I diagnosed centred overflow and vh-versus-dvh, shipped v2.5.1139, and the second screenshot looked identical. The tell was in the picture all along: the page was dimmed by the backdrop but THE SITE HEADER WAS NOT. Nothing was being clipped by scrolling - the dialog was simply painted BEHIND the navigation. z-index 60 on the dialog against a header at 120 (header.css) and sticky bars at 9997. The panel's own title and close button sat behind the logo, and what looked like a scrolled-away heading was a heading covered up. It is 10060 now, above the whole navigation stack. REPRODUCED BEFORE FIXING, not guessed: elementFromPoint over the centre of the dialog's own header returned ce-header__logo-text - the site's logo, sitting on top of the dialog. After the fix the same probes return the dialog at its header, at the first row of portraits, at the close button, and at the top-left corner of the viewport, which is the backdrop finally covering the header it was supposed to cover. A GUARD THAT CANNOT ROT: the new test parses the real z-index out of auth.css and compares it against the HIGHEST z-index in header.css, so raising the header later fails this test instead of quietly burying the dialog again. WHAT v2.5.1139 GOT RIGHT ANYWAY, and stays: centring with auto margins on a scrollable backdrop so a panel taller than its box cannot have its top pushed out of reach, 82dvh instead of 82vh because vh measures the large viewport on a device, and focus landing on the close button rather than the first tile so the browser has no reason to scroll the panel on open. The dialog header is sticky now as well, so the title and close stay reachable however far down the 96 portraits the person scrolls. Verified at 360x380, shorter than any real device. One stylesheet rule, one focus target, one test.",
+    },
+    {
         "version": "2.5.1139",
         "date": "2026-08-17",
         "commit": "pending",

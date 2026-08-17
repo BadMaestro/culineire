@@ -354,7 +354,12 @@
 .auth-avatar-modal {
     position: fixed;
     inset: 0;
-    z-index: 60;
+    /* Above the site header. It was 60 against a header that sits at 120
+       (header.css) and sticky bars up at 9997, so the dialog opened UNDERNEATH
+       the navigation: the backdrop dimmed the page but not the header, and the
+       panel's own title and close button were hidden behind it. A dialog covers
+       the site or it is not a dialog. */
+    z-index: 10060;
     display: flex;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -382,11 +387,19 @@
     box-shadow: 0 24px 60px rgb(31 44 37 / 0.28);
 }
 
+/* Sticky so the title and the close button stay reachable however far down the
+   96 portraits the person has scrolled - and so a panel that somehow opens
+   scrolled still shows its own heading. */
 .auth-avatar-modal__head {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
+    padding-block: 0.35rem;
+    background: var(--paper, #fbf7ef);
 }
 
 .auth-avatar-modal__head h2 {

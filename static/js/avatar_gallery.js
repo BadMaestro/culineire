@@ -28,20 +28,23 @@
   function showModal() {
     lastFocus = document.activeElement;
     modal.removeAttribute('hidden');
-    // Focus moves into the dialog so a keyboard user is not left behind on the
-    // page underneath it. preventScroll because focusing a tile lets the browser
-    // scroll it into view, and its idea of "into view" can push the first row of
-    // portraits out of sight - which is the bug this guards against, not a
-    // theoretical one.
-    var first = modal.querySelector('.auth-avatar-grid__item');
-    var target = first || close;
-    try {
-        target.focus({ preventScroll: true });
-    } catch (err) {
-        target.focus();
+    // Focus moves into the dialog so a keyboard user is not stranded on the page
+    // underneath. It lands on the CLOSE BUTTON, which sits at the top of the
+    // panel, and not on the first portrait: focusing a tile lets the browser
+    // scroll it into view on its own terms, and it did - the dialog opened with
+    // its own heading scrolled out of sight. preventScroll and the resets below
+    // were not enough on their own, because that scroll can land a frame later.
+    // Giving focus to something already at the top removes the reason for it.
+    var panel = modal.querySelector('.auth-avatar-modal__panel');
+    var target = close || modal.querySelector('.auth-avatar-grid__item');
+    if (target) {
+        try {
+            target.focus({ preventScroll: true });
+        } catch (err) {
+            target.focus();
+        }
     }
     modal.scrollTop = 0;
-    var panel = modal.querySelector('.auth-avatar-modal__panel');
     if (panel) { panel.scrollTop = 0; }
     document.addEventListener('keydown', onKey);
   }
