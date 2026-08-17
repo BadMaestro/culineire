@@ -6,6 +6,11 @@ than one ring, also three up or three down, by the compass. Anyone further away
 does not get the words at all -- they see "Talking Something" over the speaker's
 head instead.
 
+This is not a game mechanic and not a limit imposed on anyone. It is the nature
+of hearing, and the hall reproduces it (his words, same day): in a real room the
+people beside you are audible and the far side is a murmur. Everything below
+follows from taking that seriously.
+
 Two consequences shape this module:
 
 * **Reach is decided on the server.** A viewer out of range never receives the
@@ -54,8 +59,8 @@ def _spectator_rings() -> dict[int, dict]:
 def _rank_rings() -> set[int]:
     """Ring indices belonging to the chefs' octagon.
 
-    A chef's cell is decided by the scatter from his slug and he cannot move to
-    a better one, so distance would be a punishment he has no way to answer.
+    A chef's cell is decided by the scatter from his slug and he cannot get up
+    and move, so the hall's hearing cannot apply to him (see ``can_hear``).
     """
     return {
         ring["index"] for ring in get_arena_geometry()["rings"]
@@ -84,11 +89,17 @@ def can_hear(speaker_ring: int, speaker_cell: int,
 
     A seat always hears itself.
 
-    A CHEF HEARS EVERYTHING (the Owner, 2026-08-17). He stands in a rank ring of
-    the octagon, and unlike a spectator he cannot get up and move closer: his
-    cell is fixed by the scatter from his slug so it holds still across polls.
-    Proximity is a rule about choosing where to sit, so it cannot be applied to
-    someone who was never given the choice.
+    The limit on a spectator is not a penalty and is not a game mechanic: it is
+    HOW HEARING WORKS, and the hall reproduces it (the Owner, 2026-08-17). A
+    person three seats away is audible and a person thirty seats away is not,
+    and someone free to walk over to a conversation lives under that honestly.
+
+    A CHEF HEARS EVERYTHING (the Owner, same day). Not because distance would be
+    unfair to him, but because he is fixed in place: his cell in a rank ring is
+    set by the scatter from his slug so it holds still across polls, and he
+    cannot walk anywhere. The one thing that makes real hearing livable -- moving
+    closer -- is the thing he does not have, so the hall carries every line to
+    him instead.
 
     A row pointing at geometry that no longer exists hears nothing and is heard
     by nobody -- the stands and the octagon are the only places this conversation
