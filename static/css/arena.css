@@ -5682,6 +5682,19 @@
   display: none;
 }
 
+/* "You are here" - the viewer's own seat, Owner 2026-08-17.
+   Bronze rather than the shared label's dark outline, so the two never read
+   as the same thing: "Sit here" is an offer that follows the pointer, this is
+   a fact that stays put. It takes no pointer events and is set on the element
+   in JS, so nothing here can catch a click meant for the chair beneath it. */
+#arena-render .arena-seat-label--mine {
+  fill: var(--accent-bronze);
+  stroke: var(--brand-dark);
+  stroke-width: 2.4px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 /* ---- teleport ---- */
 
 /* Chefs taking the centre. chef_battle.css carries a flash of the same name,

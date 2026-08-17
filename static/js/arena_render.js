@@ -905,6 +905,22 @@
     });
     label.textContent = 'Sit here';
     svg.appendChild(label);
+
+    // "You are here" - Owner, 2026-08-17.
+    //
+    // A SECOND element rather than a second mode on the one above, because the
+    // two are opposites in every way that matters: "Sit here" follows the
+    // pointer and vanishes when it leaves, "You are here" is anchored to one
+    // seat and stays. Sharing a node would mean a hover over a free chair
+    // erasing the marker telling you where you sit, and restoring it on
+    // mouseleave - state to get wrong for no gain.
+    var mine = el('text', {
+      'text-anchor': 'middle', 'dominant-baseline': 'central',
+      'pointer-events': 'none', hidden: 'hidden',
+      class: 'arena-seat-label arena-seat-label--mine'
+    });
+    mine.textContent = 'You are here';
+    svg.appendChild(mine);
   }
 
   /* ---------------------------------------------------------------- */
@@ -1560,7 +1576,50 @@
     seatSponsors(svg, payload.vip_sponsors);
 
     markSeatable(svg, geometry);
+    markMySeat(svg);
     stampStage(svg, payload.center || { type: 'empty' });
+  }
+
+  /**
+   * "You are here" over the viewer's own seat - Owner, 2026-08-17.
+   *
+   * Placed at the END of bind(), after every occupant has landed, because the
+   * seat it marks is found by the slug that bind() has just stamped on the
+   * cells. Running it earlier would read a floor that is still half the
+   * previous poll's.
+   *
+   * Anchored on the cell's own centroid rather than a measured box: every cell
+   * already carries data-centroid-x/y from the generator that drew it, and a
+   * getBBox() here would be a synchronous layout read on every poll to
+   * recover a number the element is holding out for us.
+   *
+   * A chef gets it too. He cannot MOVE - that is a spectator's option - but he
+   * still deserves to be told which of two hundred cells is his.
+   */
+  function markMySeat(svg) {
+    var label = svg.querySelector('.arena-seat-label--mine');
+    if (!label) { return; }
+    var slug = viewerSlug();
+    if (!slug) { label.setAttribute('hidden', 'hidden'); return; }
+
+    var seat = svg.querySelector('.arena-cell[data-entity-slug="' + slug + '"]');
+    if (!seat) { label.setAttribute('hidden', 'hidden'); return; }
+
+    var cx = parseFloat(seat.getAttribute('data-centroid-x'));
+    var cy = parseFloat(seat.getAttribute('data-centroid-y'));
+    if (!isFinite(cx) || !isFinite(cy)) { label.setAttribute('hidden', 'hidden'); return; }
+
+    // Above the head, not across the face: a marker that covers the avatar it
+    // points at defeats itself. The lift is a fraction of the cell's own
+    // radial band so it scales with the ring rather than drifting on the
+    // outer ones.
+    var inner = parseFloat(seat.getAttribute('data-ring-inner'));
+    var outer = parseFloat(seat.getAttribute('data-ring-outer'));
+    var band = (isFinite(inner) && isFinite(outer)) ? Math.abs(outer - inner) : 14;
+    label.setAttribute('x', cx.toFixed(2));
+    label.setAttribute('y', (cy - band * 0.62).toFixed(2));
+    label.setAttribute('font-size', Math.min(11, Math.max(5, band * 0.42)).toFixed(1));
+    label.removeAttribute('hidden');
   }
 
   /**
@@ -1664,10 +1723,13 @@
   }
 
   /**
-   * Which free seats this viewer may take. Derived from where they are sitting
-   * right now rather than from a hardcoded rule: a chef reseats inside their own
-   * rank ring, a spectator anywhere in the galleries. Anonymous visitors cannot
-   * sit at all, so they are never offered a seat.
+   * Which free seats this viewer may take: the galleries, and only those.
+   *
+   * Moving seat is a SPECTATOR'S option (Owner, 2026-08-17) - an author moves
+   * to sit beside somebody. A chef's cell is decided by the scatter from his
+   * slug so it holds still across polls, and a rank ring is a rank rather
+   * than a seating preference, so a rank cell is never offered to anybody.
+   * Anonymous visitors cannot sit at all and are never offered a seat.
    */
   function markSeatable(svg, geometry) {
     var kindByRing = {};

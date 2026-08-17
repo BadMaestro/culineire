@@ -20808,3 +20808,76 @@ class SeatMovingIsASpectatorOnlyOptionTests(TestCase):
         future reader's false lead."""
         js = self._js()
         self.assertNotIn("seatedRing", js)
+
+
+class YouAreHereMarksTheViewersOwnSeatTests(TestCase):
+    """Owner, 2026-08-17: a seated viewer is told which cell is his.
+
+    Built as a SECOND label element rather than a second mode on the existing
+    "Sit here", because the two are opposites: one follows the pointer and
+    disappears when it leaves, the other is anchored and stays. Sharing a node
+    would have a hover over any free chair erase the marker telling you where
+    you sit.
+    """
+
+    def _js(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+    def _css(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
+        ).read_text(encoding="utf-8")
+
+    def test_it_is_its_own_element_not_a_mode_on_sit_here(self):
+        js = self._js()
+        self.assertIn("arena-seat-label--mine", js)
+        self.assertIn("'You are here'", js)
+        # "Sit here" keeps its own node and its own text.
+        self.assertIn("label.textContent = 'Sit here';", js)
+
+    def test_it_is_placed_after_every_occupant_has_landed(self):
+        """It finds the seat by the slug bind() stamps on the cells, so running
+        it earlier would read a floor still half the previous poll's."""
+        js = self._js()
+        body = js[js.index("function bind(svg, payload, geometry)"):]
+        body = body[:body.index("\n  function ", 1)]
+        self.assertLess(
+            body.index("appendOccupant(svg, occupants, assignment);"),
+            body.index("markMySeat(svg);"),
+            "the marker is placed before the occupants it points at",
+        )
+
+    def test_it_hides_itself_for_anyone_not_seated(self):
+        """An anonymous visitor, and a logged-in author who has not taken a
+        seat, must not see a marker floating over somebody else's chair."""
+        js = self._js()
+        body = js[js.index("function markMySeat("):]
+        body = body[:body.index("\n  }") + 4]
+        self.assertIn("if (!slug) { label.setAttribute('hidden', 'hidden'); return; }", body)
+        self.assertIn("if (!seat) { label.setAttribute('hidden', 'hidden'); return; }", body)
+
+    def test_it_reads_the_centroid_instead_of_measuring_layout(self):
+        """Every cell already carries its centroid from the generator that drew
+        it; a getBBox() here would be a synchronous layout read on every poll
+        to recover a number the element is holding out for us."""
+        js = self._js()
+        body = js[js.index("function markMySeat("):]
+        body = body[:body.index("\n  }") + 4]
+        self.assertIn("data-centroid-x", body)
+        self.assertNotIn("getBBox", body)
+        self.assertNotIn("getBoundingClientRect", body)
+
+    def test_the_two_labels_are_visually_distinct(self):
+        css = self._css()
+        self.assertIn(".arena-seat-label--mine", css)
+        block = css[css.index("#arena-render .arena-seat-label--mine"):]
+        block = block[:block.index("}") + 1]
+        self.assertIn("var(--accent-bronze)", block)

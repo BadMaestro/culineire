@@ -608,6 +608,50 @@ class ArenaSeat(models.Model):
         return f"Seat r{self.ring_index}c{self.seat_index} ({state})"
 
 
+class ArenaChatMessage(models.Model):
+    """One line spoken from one seat in the arena stands.
+
+    This is the hall talking, which is a different thing from
+    ``BattleChatMessage``: that one is the battle page's chat and every viewer
+    reads every line of it. Here a line carries the seat it was spoken from,
+    because who hears it depends on where the listener is sitting. The renderer
+    shows the words to neighbours and a "Talking Something" label to everyone
+    else; the reach itself is decided server-side in ``arena_chat`` so a client
+    never receives text it was not meant to read.
+
+    The seat is copied onto the row rather than followed through ``ArenaSeat``
+    on purpose. A speaker may stand up, leave, or be reseated, and the line
+    still has to be judged from where it was actually said.
+
+    Nothing here expires. The Owner's rule (2026-08-17) is that the chat keeps
+    everything written from the start of a battle to its end, so there is no
+    TTL, no sweep and no purge on this model.
+    """
+
+    battle = models.ForeignKey(
+        Battle, null=True, blank=True, on_delete=models.CASCADE,
+        related_name="arena_chat_messages",
+    )
+    speaker = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="arena_chat_messages",
+    )
+    display_name = models.CharField(max_length=60)
+    body = models.CharField(max_length=300)
+    ring_index = models.PositiveSmallIntegerField()
+    seat_index = models.PositiveSmallIntegerField()
+    is_hidden = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        indexes = [
+            models.Index(fields=["battle", "id"], name="arena_chat_since_idx"),
+        ]
+
+    def __str__(self):
+        return f"r{self.ring_index}c{self.seat_index} {self.display_name}: {self.body[:40]}"
+
+
 class BattleEvent(models.Model):
     class EventType(models.TextChoices):
         CHALLENGE_CREATED = "challenge_created", "Challenge Created"
