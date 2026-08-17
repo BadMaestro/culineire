@@ -29,9 +29,20 @@
     lastFocus = document.activeElement;
     modal.removeAttribute('hidden');
     // Focus moves into the dialog so a keyboard user is not left behind on the
-    // page underneath it.
+    // page underneath it. preventScroll because focusing a tile lets the browser
+    // scroll it into view, and its idea of "into view" can push the first row of
+    // portraits out of sight - which is the bug this guards against, not a
+    // theoretical one.
     var first = modal.querySelector('.auth-avatar-grid__item');
-    (first || close).focus();
+    var target = first || close;
+    try {
+        target.focus({ preventScroll: true });
+    } catch (err) {
+        target.focus();
+    }
+    modal.scrollTop = 0;
+    var panel = modal.querySelector('.auth-avatar-modal__panel');
+    if (panel) { panel.scrollTop = 0; }
     document.addEventListener('keydown', onKey);
   }
 

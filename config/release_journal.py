@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1139",
+        "date": "2026-08-17",
+        "commit": "pending",
+        "title": "The gallery cut off its own first row of portraits in a portrait window",
+        "section": "Accounts",
+        "summary": "THE OWNER, ON HIS TABLET IN PORTRAIT: the first line of portraits is clipped. TWO CAUSES, BOTH REAL, BOTH FIXED. (1) CENTRED OVERFLOW. The backdrop centred the panel with place-items:center, and a centred child that grows TALLER than its container has its top pushed outside the box, where scrolling cannot reach it - the browser can only scroll towards the end, never before the start. So the first row went off the top and stayed there. The scroll now lives on the backdrop and the panel centres with margin:auto, which yields instead of clipping when the room runs out. (2) vh MEASURES THE WRONG VIEWPORT ON A PHONE OR TABLET. max-block-size:82vh is 82% of the LARGE viewport - the one without the browser bars - so on a real device the panel was allowed to be taller than the area the person can actually see, which is exactly what fed cause (1). It is 82dvh now, with the vh line kept above it as the fallback. A THIRD CONTRIBUTOR REMOVED WHILE IN THERE: opening the dialog focuses the first tile so a keyboard user is not stranded on the page underneath, and focus() lets the browser scroll that tile into view on its own terms. It is focus({preventScroll:true}) now, with both scroll containers explicitly reset to the top, so the gallery always opens showing its first row. WHY THIS WAS NOT CAUGHT: the earlier check measured 1280x720 and 375x812, and at both of those the panel FITS - the bug only appears when the panel is taller than the viewport. MEASURED AFTER THE FIX at 400x560 and at 360x380, the latter far shorter than any real device: the panel top stays on screen (34px), the first row sits inside the panel, and after scrolling to the bottom and back the first row returns intact at the same offset. CSS braces balanced 145/145. No template, no Python, no migration - one stylesheet rule and one focus call.",
+    },
+    {
         "version": "2.5.1138",
         "date": "2026-08-17",
         "commit": "pending",

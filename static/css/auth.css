@@ -346,12 +346,18 @@
     cursor: pointer;
 }
 
+/* Overflow-safe centering. A centred child that grows taller than its container
+   has its TOP pushed out of the box and unreachable by scrolling - which is how
+   the first row of portraits got cut off in a portrait window. The scroll lives
+   on the backdrop and the panel centres with auto margins, which yield instead
+   of clipping when there is not enough room. */
 .auth-avatar-modal {
     position: fixed;
     inset: 0;
     z-index: 60;
-    display: grid;
-    place-items: center;
+    display: flex;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 1rem;
     background: rgb(31 44 37 / 0.55);
 }
@@ -361,8 +367,14 @@
 }
 
 .auth-avatar-modal__panel {
+    margin: auto;
     inline-size: min(680px, 100%);
+    /* dvh, not vh: on a phone or tablet vh measures the LARGE viewport, the one
+       without the browser's own bars, so 82vh can be taller than the area the
+       person can actually see. vh stays as the fallback for anything that does
+       not know dvh. */
     max-block-size: 82vh;
+    max-block-size: 82dvh;
     overflow-y: auto;
     padding: 1.1rem 1.2rem 1.4rem;
     border-radius: 20px;
