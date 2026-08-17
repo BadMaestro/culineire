@@ -803,6 +803,45 @@
   transform: translateY(-1px);
 }
 
+/* T30/D1: head-to-head record and the rules link. */
+.antechamber-h2h {
+  text-align: center;
+  font-size: 0.8rem;
+  color: rgba(255, 248, 238, 0.75);
+  margin: 0.2rem 0 0.6rem;
+}
+
+.antechamber-h2h strong {
+  color: #f8d28a;
+  font-weight: 700;
+}
+
+.antechamber-h2h__count {
+  color: rgba(255, 248, 238, 0.45);
+  font-size: 0.72rem;
+}
+
+.antechamber-h2h--first {
+  color: rgba(255, 248, 238, 0.5);
+  font-style: italic;
+}
+
+.antechamber-rules-link {
+  text-align: center;
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+}
+
+.antechamber-rules-link a {
+  color: rgba(255, 248, 238, 0.6);
+  text-decoration: underline;
+}
+
+.antechamber-rules-link a:hover,
+.antechamber-rules-link a:focus-visible {
+  color: #f8d28a;
+}
+
 @media (max-width: 600px) {
   .antechamber-compare {
     grid-template-columns: 1fr;

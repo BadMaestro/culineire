@@ -83,6 +83,19 @@
       </div>
     </div>
 
+    {# T30/D1: head-to-head - how THIS pair has fared against each other, distinct from the individual W/L already shown per chef above. #}
+    {% if head_to_head.total > 0 %}
+    <p class="antechamber-h2h" aria-label="Head-to-head record">
+      Head-to-head:
+      <strong>{{ battle.challenger.name }} {{ head_to_head.chef_a_wins }}</strong>
+      &ndash;
+      <strong>{{ head_to_head.chef_b_wins }} {{ battle.opponent.name }}</strong>
+      <span class="antechamber-h2h__count">({{ head_to_head.total }} previous battle{{ head_to_head.total|pluralize }})</span>
+    </p>
+    {% else %}
+    <p class="antechamber-h2h antechamber-h2h--first">First meeting between these two chefs.</p>
+    {% endif %}
+
     {# SCHEDULED: readiness gate #}
     {% if battle.status == "scheduled" %}
     <div class="antechamber-ready" role="group" aria-label="Readiness">
@@ -110,6 +123,11 @@
       <a class="antechamber-cta__btn" href="{% url 'chef_battle:arena' %}">Watch Live in Arena &#8594;</a>
     </div>
     {% endif %}
+
+    {# T30/D1: the antechamber's "rules" - always visible, whatever the phase. #}
+    <p class="antechamber-rules-link">
+      <a href="{% url 'chef_battle:rules' %}">Read the Chef Battles rules &rarr;</a>
+    </p>
 
     {% comment %}
       Withdrawing from an accepted battle - Owner's rule, 2026-08-05.

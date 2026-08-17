@@ -9567,6 +9567,125 @@ class BattleDetailA11yTests(TestCase):
         self.assertIn('class="battle-kicker battle-kicker--active" role="status"', html)
 
 
+class HeadToHeadSelectorTests(TestCase):
+    """T30/D1: the antechamber's 'statistics' - how THIS pair has fared
+    against each other, distinct from each chef's overall W/L already shown
+    per chef card."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.a = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t30-a", password="pw"),
+            name="T30 Chef A", slug="t30-a")
+        self.b = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t30-b", password="pw"),
+            name="T30 Chef B", slug="t30-b")
+        self.stranger = RecipeAuthor.objects.create(
+            user=User.objects.create_user("t30-c", password="pw"),
+            name="T30 Chef C", slug="t30-c")
+
+    def _completed(self, challenger, opponent, winner):
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=challenger, opponent=opponent, winner=winner,
+            theme="T30 head-to-head", status=Battle.Status.COMPLETED,
+            start_time=now, submission_deadline=now, end_time=now,
+        )
+
+    def test_two_strangers_have_no_history(self):
+        from .selectors import get_head_to_head
+
+        record = get_head_to_head(self.a, self.b)
+        self.assertEqual(record, {"total": 0, "chef_a_wins": 0, "chef_b_wins": 0})
+
+    def test_wins_are_tallied_regardless_of_which_side_challenged(self):
+        """The same pair meets twice with the roles reversed - a real
+        occurrence, since either can challenge the other next time."""
+        from .selectors import get_head_to_head
+
+        self._completed(self.a, self.b, winner=self.a)
+        self._completed(self.b, self.a, winner=self.b)
+        self._completed(self.a, self.b, winner=self.a)
+
+        record = get_head_to_head(self.a, self.b)
+        self.assertEqual(record["total"], 3)
+        self.assertEqual(record["chef_a_wins"], 2)
+        self.assertEqual(record["chef_b_wins"], 1)
+
+    def test_a_third_chefs_battles_do_not_count(self):
+        from .selectors import get_head_to_head
+
+        self._completed(self.a, self.stranger, winner=self.a)
+        self._completed(self.stranger, self.b, winner=self.stranger)
+
+        record = get_head_to_head(self.a, self.b)
+        self.assertEqual(record["total"], 0)
+
+    def test_a_battle_still_running_does_not_count(self):
+        from .selectors import get_head_to_head
+
+        now = timezone.now()
+        Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="T30 still running",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=2),
+        )
+        record = get_head_to_head(self.a, self.b)
+        self.assertEqual(record["total"], 0)
+
+    def test_the_current_battle_itself_is_excluded(self):
+        """The battle the antechamber is FOR has not been decided yet (or was
+        just decided) and must not count itself as history."""
+        from .selectors import get_head_to_head
+
+        current = self._completed(self.a, self.b, winner=self.a)
+        record = get_head_to_head(self.a, self.b, exclude_pk=current.pk)
+        self.assertEqual(record["total"], 0)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class BattleDetailHeadToHeadTemplateTests(TestCase):
+    """The selector's output actually reaches the page."""
+
+    def setUp(self):
+        User = get_user_model()
+        ua = User.objects.create_user("t30t-a", password="pw")
+        ub = User.objects.create_user("t30t-b", password="pw")
+        self.chef_a = RecipeAuthor.objects.create(user=ua, name="T30T Chef A", slug="t30t-a")
+        self.chef_b = RecipeAuthor.objects.create(user=ub, name="T30T Chef B", slug="t30t-b")
+        ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b,
+            theme="T30 Antechamber", status=Battle.Status.ACTIVE,
+            start_time=now, submission_deadline=now + timezone.timedelta(days=2),
+            end_time=now + timezone.timedelta(days=5),
+        )
+        self.url = reverse("chef_battle:battle_detail", kwargs={"pk": self.battle.pk})
+
+    def test_first_meeting_says_so(self):
+        html = self.client.get(self.url).content.decode()
+        self.assertIn("First meeting between these two chefs.", html)
+
+    def test_a_real_history_shows_the_tally(self):
+        past_now = timezone.now()
+        Battle.objects.create(
+            challenger=self.chef_a, opponent=self.chef_b, winner=self.chef_a,
+            theme="T30 earlier meeting", status=Battle.Status.COMPLETED,
+            start_time=past_now, submission_deadline=past_now, end_time=past_now,
+        )
+        html = self.client.get(self.url).content.decode()
+        self.assertIn("Head-to-head:", html)
+        self.assertIn("(1 previous battle)", html)
+
+    def test_the_rules_link_is_always_present(self):
+        html = self.client.get(self.url).content.decode()
+        self.assertIn(reverse("chef_battle:rules"), html)
+        self.assertIn("Read the Chef Battles rules", html)
+
+
 class ArenaSeatingTests(TestCase):
     """Stage 3C — real spectator seating.
 

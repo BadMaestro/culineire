@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from django.db import models
-from django.db.models import Case, Count, IntegerField, QuerySet, When
+from django.db.models import Case, Count, IntegerField, Q, QuerySet, When
 from django.utils import timezone
 
 from .models import Battle, BattleChallenge, BattleEvent, BattleVote, ChefBattleProfile
@@ -118,6 +118,39 @@ def get_battle_vote_counts(battle: Battle) -> dict[int, int]:
         row["voted_for"]: row["total"]
         for row in battle.votes.values("voted_for").annotate(total=Count("id"))
     }
+
+
+def get_head_to_head(chef_a, chef_b, *, exclude_pk=None) -> dict:
+    """T30/D1: how these two chefs have fared against each other before -
+    the 'statistics' half of the antechamber the Hall Plan asks for, keyed
+    to THIS matchup specifically rather than each chef's overall record
+    (which the antechamber cards already show).
+
+    Real data only, same discipline as get_crown_ladder: COMPLETED battles
+    with a decided winner only - a battle still running, or one that ended
+    in a no-reward cancellation/void with no winner, tells nothing about who
+    has beaten whom. Symmetric in (chef_a, chef_b) - which side is the
+    "challenger" of THIS battle does not change who is being compared.
+    """
+    qs = Battle.objects.filter(
+        status=Battle.Status.COMPLETED,
+        winner__isnull=False,
+    ).filter(
+        (Q(challenger=chef_a) & Q(opponent=chef_b))
+        | (Q(challenger=chef_b) & Q(opponent=chef_a))
+    )
+    if exclude_pk is not None:
+        qs = qs.exclude(pk=exclude_pk)
+    total = 0
+    a_wins = 0
+    b_wins = 0
+    for winner_id in qs.values_list("winner_id", flat=True):
+        total += 1
+        if winner_id == chef_a.pk:
+            a_wins += 1
+        elif winner_id == chef_b.pk:
+            b_wins += 1
+    return {"total": total, "chef_a_wins": a_wins, "chef_b_wins": b_wins}
 
 
 def get_sent_challenges(author, limit: int = 20) -> QuerySet:

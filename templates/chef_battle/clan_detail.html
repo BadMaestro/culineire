@@ -12,8 +12,7 @@
       <h1>{{ clan.crest_icon }} {{ clan.name }}</h1>
       <p class="battle-room-hero__sub">{{ season_label }}</p>
       {% if top_chef %}
-      {# Owner's rule, 2026-08-16: the clan wears its most senior chef's aura.
-         data-rank-ring is the octagon's own ring number, 1 = Culinary Master. #}
+      {# Owner's rule, 2026-08-16: the clan wears its most senior chef's aura. data-rank-ring is the octagon's own ring number, 1 = Culinary Master. #}
       <div class="clan-aura">
         <span class="rank-aura" data-rank-ring="{{ top_chef_ring }}">
           <img class="rank-aura__avatar" src="{{ top_chef.author.display_avatar_url }}"

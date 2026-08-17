@@ -4670,14 +4670,14 @@ ARENA_DESIGN_TASKS = [
     },
     {
         "id": "T30", "group": "Frontend plan (Owner-approved 2026-08-16)", "title": "F4 - battle_detail becomes the antechamber",
-        "status": "ASSIGNED", "owner": "GreenBear",
-        "files": "templates/chef_battle/battle_detail.html; chef_battle/views.py (battle_detail)",
+        "status": "DONE", "owner": "GreenBear",
+        "files": "chef_battle/selectors.py (new get_head_to_head()); chef_battle/views.py (battle_detail); templates/chef_battle/battle_detail.html; static/css/chef_battle.css; chef_battle/tests.py (HeadToHeadSelectorTests, BattleDetailHeadToHeadTemplateTests)",
         "depends_on": "none",
-        "action": "Rules, ratings, statistics, chef comparison, and a prominent transition to the Arena, per ARENA_HALL_PLAN Stage D.",
-        "visible_result": "battle_detail reads as the pre-battle antechamber the Hall Plan describes rather than a bare detail page.",
-        "acceptance": "Not yet defined pending the page's current content audit.",
-        "forbidden": "No change to the Arena page itself or its frozen composition.",
-        "evidence": "CREATED 2026-08-16, Owner-approved plan item 3 (F4).",
+        "action": "AUDITED FIRST, PER THE CARD'S OWN 'PENDING CONTENT AUDIT' LINE, RATHER THAN REBUILDING BLIND: battle_detail.html already carries the antechamber naming throughout (antechamber-compare, antechamber-card, antechamber-cta), already shows chef comparison with rank/rating/streak, already has the readiness gate and a prominent 'Watch Live in Arena' CTA - D1's chef-comparison and arena-transition asks were already done. The genuinely missing two, confirmed by grep before writing code: no link anywhere to chef_battle:rules (which exists), and no statistics beyond each chef's own overall W/L - specifically nothing about how THIS pair has fared against EACH OTHER. Built only those two: get_head_to_head(chef_a, chef_b, exclude_pk=...) - COMPLETED battles with a decided winner only, symmetric in which side challenged, the current battle excluded from its own history - wired into battle_detail's context and rendered as a compact line in the antechamber, plus an always-visible rules link.",
+        "visible_result": "The antechamber shows 'Head-to-head: Name X - Y Name (N previous battles)' or 'First meeting between these two chefs', and a rules link, on every battle page regardless of phase.",
+        "acceptance": "13 focused tests: the selector (strangers have no history; wins tally correctly regardless of which side challenged in each past meeting; a third chef's battles never count; a battle still running is not history; the current battle excludes itself) and the template (first-meeting copy; a real tally renders; the rules link is always present).",
+        "forbidden": "No change to the Arena page itself or its frozen composition - none made. D2 (chef combat actions - arena popup vs antechamber) is already settled by AA6 deleting the popup outright; combat already happens on this page (combat-round-heading) and nothing here reopens that question.",
+        "evidence": "SHIPPED v2.5.1122. A REAL BUG FOUND AND FIXED ALONG THE WAY, ON THE LIVE SITE, NOT JUST MINE: a multi-line {# #} Django comment is not a comment - it closes at the end of its own line, and a second line is page text (config.tests.TemplateCommentHygieneTests, added 2026-07-20 after exactly this happened once before). Mine, in battle_detail.html, was caught by that guard before ever shipping. A SECOND, ALREADY-LIVE instance was found by the SAME guard while fixing mine: templates/chef_battle/clan_detail.html, from Bolt's v2.5.1115 clan-aura release, printing three lines of developer note under every clan page's aura block on production. Fixed in the same commit as mine rather than filed separately - the guard was red on the tree either way and both fixes are one line each. Verified live in the browser (not just by test) against a real local PostgreSQL battle in both states - a pair with one prior meeting, and a pair meeting for the first time - through the local dev server, not the string-only test assertions.",
     },
     {
         "id": "T31", "group": "Owner Authority (Owner ruling 2026-08-15)", "title": "T22's crown exclusion did not cover the arena centre stage, the crown-holder page, or the Master Console",
@@ -4884,7 +4884,7 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "ceaba214 / production v2.5.1121",
+        "commit": "pending / production v2.5.1122",
         "verification": "Stage 2 is CLOSED - the Owner signed off G01 on 2026-08-10 and every "
                         "card A00 through G01 is DONE and deployed. (T15, 2026-08-15: this line "
                         "opened by confirming a production version that was 242 releases "

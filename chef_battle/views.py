@@ -66,6 +66,7 @@ from .selectors import (
     spectator_capacity,
     get_starting_battle_blast,
     get_battle_vote_counts,
+    get_head_to_head,
     get_crown_ladder,
     get_crown_streak,
     get_expired_active_battles,
@@ -2251,6 +2252,11 @@ def battle_detail(request, pk):
         battle.refresh_from_db()
 
     vote_counts = get_battle_vote_counts(battle)
+    # T30/D1: the antechamber's "statistics" - how this pair has fared against
+    # EACH OTHER, distinct from the individual W/L already shown per chef.
+    head_to_head = get_head_to_head(
+        battle.challenger, battle.opponent, exclude_pk=battle.pk,
+    )
     entries = battle.entries.select_related("author", "recipe", "article").order_by("submitted_at")
     events = battle.events.select_related("actor", "target").filter(is_public=True).order_by("-created_at")[:20]
     viewer_author = get_author_for_user(request.user) if request.user.is_authenticated else None
@@ -2351,6 +2357,7 @@ def battle_detail(request, pk):
         "entries": entries,
         "events": events,
         "vote_counts": vote_counts,
+        "head_to_head": head_to_head,
         "votes_for_challenger": vote_counts.get(battle.challenger_id, 0),
         "votes_for_opponent": vote_counts.get(battle.opponent_id, 0),
         "viewer_author": viewer_author,
