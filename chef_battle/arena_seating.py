@@ -201,6 +201,13 @@ def public_seat(seat: ArenaSeat) -> dict:
     where the person is sitting. No email, no username, no account id, no
     session or request fingerprint: nothing here that the arena page does not
     already publish about a visible spectator.
+
+    ``avatar_is_default`` says whether the picture in the cell is one of the
+    three illustrated stand-ins rather than an uploaded photograph. The "You are
+    here" marker reads it (the Owner, 2026-08-17), and since that marker only
+    ever appears over the viewer's OWN seat, callers are expected to keep this
+    key on that one row and drop it from the rest: a boolean repeated across a
+    full hall is payload weight buying nothing.
     """
     rows = {ring["index"]: ring.get("row") for ring in get_arena_geometry()["rings"]}
     author = seat.viewer
@@ -211,4 +218,5 @@ def public_seat(seat: ArenaSeat) -> dict:
         "name": author.name,
         "slug": author.slug,
         "avatar_url": author.display_avatar_url,
+        "avatar_is_default": not bool(author.avatar),
     }

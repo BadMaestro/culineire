@@ -1193,6 +1193,11 @@ def _get_spectators(online_cutoff, limit=None, *, viewer_author=None):
             continue
         row = public_seat(seat)
         row["is_self"] = bool(viewer_id and seat.viewer_id == viewer_id)
+        # Only the viewer's own seat carries it: the marker that reads this flag
+        # never appears over anyone else's chair, and a boolean on all 114 rows
+        # is weight on every poll for nothing.
+        if not row["is_self"]:
+            row.pop("avatar_is_default", None)
         out.append(row)
         if len(out) >= limit:
             break
@@ -1316,6 +1321,7 @@ def _build_arena_payload(*, viewer_author=None):
     }
 
     chefs_by_rank = {choice.value: [] for choice in ChefBattleProfile.Rank}
+    viewer_id = getattr(viewer_author, "pk", None)
     for profile in enrolled:
         agg = artifact_agg.get(profile.author_id, {})
         battle_info = in_battle_map.get(profile.author_id)
@@ -1359,6 +1365,13 @@ def _build_arena_payload(*, viewer_author=None):
             # Owner" - not a second OWNER_SLUG comparison.
             "is_owner": is_owner_author(profile.author),
         })
+        # Only on the viewer's own record. The "You are here" marker is the sole
+        # reader, it never appears over another chef's cell, and a boolean on
+        # every enrolled chef is weight on every poll for nothing.
+        if viewer_id and profile.author_id == viewer_id:
+            chefs_by_rank[profile.rank][-1]["avatar_is_default"] = (
+                not bool(profile.author.avatar)
+            )
 
     return {
         "active_battle": active_battle,

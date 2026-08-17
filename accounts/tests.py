@@ -305,6 +305,97 @@ class CaseInsensitiveLoginTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
 
 
+class AvatarGalleryIsAChoiceNeverAnAssignmentTests(TestCase):
+    """The Owner, 2026-08-17.
+
+    He asked for the site's 96 generated portraits to be used for authors with
+    no photograph, picked by the gender chosen at registration. Then he stopped
+    it himself, and the reason governs this whole feature: the portraits are
+    realistic and carry racial features, skin colour and age, and we have no
+    right to attribute those to a real person.
+
+    So the gallery ships as a door the person opens: a "More portraits" button
+    on the registration form. Nothing may ever write gallery_avatar for him.
+    """
+
+    def _payload(self, **extra):
+        data = {
+            "username": "GalleryUser",
+            "email": "gallery@example.com",
+            "default_avatar": RecipeAuthor.DefaultAvatar.NEUTRAL,
+            "password1": "AnotherPass123!",
+            "password2": "AnotherPass123!",
+        }
+        data.update(extra)
+        return data
+
+    def test_a_new_author_is_given_no_portrait_at_all(self):
+        """The whole point. Signing up without opening the gallery leaves the
+        field empty, and the illustration the person picked stands."""
+        from accounts.forms import SignUpForm
+
+        form = SignUpForm(data=self._payload())
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["gallery_avatar"], "")
+
+    def test_a_portrait_the_person_picked_is_kept(self):
+        from accounts.forms import SignUpForm
+
+        form = SignUpForm(data=self._payload(gallery_avatar="face-37"))
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["gallery_avatar"], "face-37")
+
+    def test_a_hand_made_post_cannot_write_an_arbitrary_string(self):
+        """The field is hidden, which makes it exactly as editable as any other
+        thing a client sends. An unchecked value would render as a broken image
+        on every page the author appears on."""
+        from accounts.forms import SignUpForm
+
+        for bad in ("face-97", "face-00", "../../etc/passwd", "male-avatar", "face-1"):
+            form = SignUpForm(data=self._payload(gallery_avatar=bad))
+            self.assertFalse(form.is_valid(), f"{bad!r} was accepted")
+            self.assertIn("gallery_avatar", form.errors)
+
+    def test_the_chosen_portrait_outranks_the_illustration_but_not_a_photograph(self):
+        from django.contrib.auth import get_user_model
+
+        user = get_user_model().objects.create_user("galleryauthor", password="pw")
+        author = RecipeAuthor.objects.create(
+            user=user, name="Gallery Author", slug="gallery-author",
+            default_avatar=RecipeAuthor.DefaultAvatar.NEUTRAL,
+        )
+        self.assertIn("neutral-avatar", author.display_avatar_url)
+
+        author.gallery_avatar = "face-12"
+        author.save(update_fields=["gallery_avatar"])
+        self.assertIn("crowd/face-12", author.display_avatar_url)
+
+    def test_a_stale_key_falls_back_instead_of_raising(self):
+        """A row written before a portrait was removed must not turn a profile
+        page into a 500."""
+        from django.contrib.auth import get_user_model
+
+        user = get_user_model().objects.create_user("staleauthor", password="pw")
+        author = RecipeAuthor.objects.create(
+            user=user, name="Stale", slug="stale-author",
+            default_avatar=RecipeAuthor.DefaultAvatar.FEMALE,
+            gallery_avatar="face-99",
+        )
+        self.assertIn("female-avatar", author.display_avatar_url)
+
+    def test_the_gallery_is_offered_on_the_registration_page(self):
+        response = self.client.get(reverse("signup"))
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        self.assertIn("avatar-gallery-open", body)
+        self.assertIn("More portraits", body)
+        self.assertIn("js/avatar_gallery.js", body)
+        # Every portrait is offered, and the count is the named set's, not a
+        # glob over whatever happens to be on this machine's disk.
+        from recipes.avatar_gallery import GALLERY_COUNT
+        self.assertEqual(body.count('data-avatar-key="face-'), GALLERY_COUNT)
+
+
 class BearseekerAdminTierTests(TestCase):
     """The tier and the staff bit are one thing, not two.
 

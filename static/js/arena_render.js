@@ -1518,6 +1518,7 @@
       seat.setAttribute('data-occupancy', 'empty');
       seat.setAttribute('data-state', 'idle');
       seat.removeAttribute('data-entity-slug');
+      seat.removeAttribute('data-avatar-default');
       seat.chefRecord = null;
     });
     Array.prototype.forEach.call(svg.querySelectorAll('.arena-cell-spark'), function (spark) {
@@ -1553,6 +1554,7 @@
       seat.setAttribute('data-occupancy', assignment.occupancy);
       seat.setAttribute('data-state', assignment.state);
       seat.setAttribute('data-entity-slug', entity.slug || '');
+      seat.setAttribute('data-avatar-default', entity.avatar_is_default ? '1' : '0');
       seat.chefRecord = assignment.occupancy === 'spectator' ? asSpectator(entity) : entity;
 
       // The spark belongs to chefs, not to every occupant: a gallery spectator
@@ -1593,8 +1595,15 @@
    * getBBox() here would be a synchronous layout read on every poll to
    * recover a number the element is holding out for us.
    *
-   * A chef gets it too. He cannot MOVE - that is a spectator's option - but he
-   * still deserves to be told which of two hundred cells is his.
+   * ONLY FOR SOMEONE WHO CANNOT FIND HIMSELF (the Owner, 2026-08-17). A person
+   * who uploaded his own photograph spots it in the hall unaided, and a label
+   * over it is clutter telling him what he already knows. The marker is for the
+   * viewer wearing one of the three illustrated stand-ins, who is looking at a
+   * face shared with everyone else who never uploaded one.
+   *
+   * This is not a spectator/chef distinction. A chef without his own picture is
+   * in exactly the same position and gets the marker; a spectator with one does
+   * not.
    */
   function markMySeat(svg) {
     var label = svg.querySelector('.arena-seat-label--mine');
@@ -1604,6 +1613,9 @@
 
     var seat = svg.querySelector('.arena-cell[data-entity-slug="' + slug + '"]');
     if (!seat) { label.setAttribute('hidden', 'hidden'); return; }
+    if (seat.getAttribute('data-avatar-default') !== '1') {
+      label.setAttribute('hidden', 'hidden'); return;
+    }
 
     var cx = parseFloat(seat.getAttribute('data-centroid-x'));
     var cy = parseFloat(seat.getAttribute('data-centroid-y'));

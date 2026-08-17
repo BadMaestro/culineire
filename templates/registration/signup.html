@@ -10,6 +10,7 @@
 {% block extra_head %}
 <link href="{% static 'css/auth.css' %}" rel="stylesheet">
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer nonce="{{ request.csp_nonce }}"></script>
+<script defer src="{% static 'js/avatar_gallery.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -107,6 +108,39 @@
                                     <span>{{ radio.choice_label }}</span>
                                 </label>
                                 {% endfor %}
+                            </div>
+                            <button type="button" class="auth-avatar-more" id="avatar-gallery-open"
+                                    aria-haspopup="dialog">More portraits</button>
+
+                            {# The picked portrait, shown next to the three so the
+                               choice is visible without reopening the gallery. #}
+                            <div class="auth-avatar-chosen" id="avatar-gallery-chosen" hidden>
+                                <img alt="" id="avatar-gallery-chosen-img" src="">
+                                <span>Your portrait</span>
+                                <button type="button" id="avatar-gallery-clear">Remove</button>
+                            </div>
+
+                            <div class="auth-avatar-modal" id="avatar-gallery-modal" hidden
+                                 role="dialog" aria-modal="true" aria-labelledby="avatar-gallery-title">
+                                <div class="auth-avatar-modal__panel">
+                                    <div class="auth-avatar-modal__head">
+                                        <h2 id="avatar-gallery-title">Choose a portrait</h2>
+                                        <button type="button" id="avatar-gallery-close"
+                                                aria-label="Close">&times;</button>
+                                    </div>
+                                    <p class="auth-avatar-modal__hint">
+                                        Pick one if you like, or keep the illustration above.
+                                        You can upload your own photo later.
+                                    </p>
+                                    <div class="auth-avatar-grid">
+                                        {% for key, url in avatar_gallery %}
+                                        <button type="button" class="auth-avatar-grid__item"
+                                                data-avatar-key="{{ key }}" data-avatar-url="{{ url }}">
+                                            <img alt="" loading="lazy" src="{{ url }}">
+                                        </button>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
                             {% else %}
                             {{ field }}

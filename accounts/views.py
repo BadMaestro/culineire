@@ -161,6 +161,10 @@ class SignUpView(CreateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["turnstile_site_key"] = settings.TURNSTILE_SITE_KEY
+        # The "More" gallery. Built here rather than in the template so the set
+        # of acceptable keys has one source, shared with the form's validation.
+        from recipes.avatar_gallery import gallery_choices
+        ctx["avatar_gallery"] = gallery_choices()
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -196,6 +200,7 @@ class SignUpView(CreateView):
                 name=author_name,
                 slug=self._unique_author_slug(author_name),
                 default_avatar=form.cleaned_data["default_avatar"],
+                gallery_avatar=form.cleaned_data.get("gallery_avatar", ""),
             )
 
         if not require_confirmation:

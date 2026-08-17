@@ -49,6 +49,13 @@ class SignUpForm(UserCreationForm):
         initial=RecipeAuthor.DefaultAvatar.NEUTRAL,
         widget=forms.RadioSelect,
     )
+    # Filled by the "More" gallery, which is a picker over the same three-radio
+    # field: the person opens it and chooses a portrait. Optional by design and
+    # never written for him -- see recipes/avatar_gallery.py for why.
+    gallery_avatar = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(attrs={"id": "id_gallery_avatar"}),
+    )
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={
@@ -56,6 +63,23 @@ class SignUpForm(UserCreationForm):
             "placeholder": "you@example.com (Mandatory)",
         }),
     )
+
+    def clean_gallery_avatar(self):
+        """Accept only a real gallery key.
+
+        The field is hidden, which means it is exactly as editable as anything
+        else a client sends. Validating against the named set keeps a hand-made
+        POST from writing an arbitrary string that later renders as a broken
+        image on every page the author appears on.
+        """
+        from recipes.avatar_gallery import is_gallery_key
+
+        value = (self.cleaned_data.get("gallery_avatar") or "").strip()
+        if not value:
+            return ""
+        if not is_gallery_key(value):
+            raise forms.ValidationError("Choose a portrait from the gallery.")
+        return value
 
     class Meta(UserCreationForm.Meta):
         model = get_user_model()

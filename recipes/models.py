@@ -123,6 +123,18 @@ class RecipeAuthor(models.Model):
         choices=DefaultAvatar.choices,
         default=DefaultAvatar.NEUTRAL,
     )
+    # A portrait the person picked for himself from the "More" gallery on the
+    # registration form (recipes/avatar_gallery.py). Blank means he did not, and
+    # the illustrated stand-in above stands. NOTHING WRITES THIS ON HIS BEHALF:
+    # the Owner, 2026-08-17, forbade assigning these realistic faces by default
+    # because they carry racial features, skin colour and age no one may
+    # attribute to a real person.
+    gallery_avatar = models.CharField(
+        "Chosen gallery portrait",
+        max_length=16,
+        blank=True,
+        default="",
+    )
     bio = models.TextField("Short author bio", blank=True)
     avatar = models.ImageField(
         upload_to=author_avatar_upload_to,
@@ -174,6 +186,13 @@ class RecipeAuthor(models.Model):
             # untouched file otherwise.
             from recipes.media_utils import webp_url
             return webp_url(self.avatar) or self.avatar.url
+        # A portrait he picked himself outranks the illustrated stand-in, and
+        # only ever exists because he opened the gallery and chose it.
+        if self.gallery_avatar:
+            from recipes.avatar_gallery import gallery_url
+            chosen = gallery_url(self.gallery_avatar)
+            if chosen:
+                return chosen
         default_avatar_files = {
             self.DefaultAvatar.MALE: "male-avatar.webp",
             self.DefaultAvatar.FEMALE: "female-avatar.webp",

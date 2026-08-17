@@ -298,6 +298,134 @@
     background: rgb(139 115 85 / 0.08);
 }
 
+/* The "More" gallery, 2026-08-17. A door the person opens himself: the site
+   owns 96 realistic portraits and may not hand one to anybody automatically. */
+.auth-avatar-more {
+    margin-block-start: 0.6rem;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--brand);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.auth-avatar-more:hover {
+    border-color: var(--brand);
+    background: rgb(139 115 85 / 0.08);
+}
+
+.auth-avatar-chosen {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-block-start: 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.auth-avatar-chosen img {
+    inline-size: 56px;
+    block-size: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--brand);
+}
+
+.auth-avatar-chosen button {
+    border: 0;
+    background: transparent;
+    color: var(--brand);
+    font: inherit;
+    font-size: 0.74rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.auth-avatar-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgb(31 44 37 / 0.55);
+}
+
+.auth-avatar-modal[hidden] {
+    display: none;
+}
+
+.auth-avatar-modal__panel {
+    inline-size: min(680px, 100%);
+    max-block-size: 82vh;
+    overflow-y: auto;
+    padding: 1.1rem 1.2rem 1.4rem;
+    border-radius: 20px;
+    background: var(--paper, #fbf7ef);
+    box-shadow: 0 24px 60px rgb(31 44 37 / 0.28);
+}
+
+.auth-avatar-modal__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.auth-avatar-modal__head h2 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.auth-avatar-modal__head button {
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.auth-avatar-modal__hint {
+    margin: 0.35rem 0 0.9rem;
+    font-size: 0.78rem;
+    color: var(--muted, #6f6a60);
+}
+
+.auth-avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 0.55rem;
+}
+
+.auth-avatar-grid__item {
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+}
+
+.auth-avatar-grid__item img {
+    display: block;
+    inline-size: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    object-fit: cover;
+    background: rgb(255 255 255 / 0.9);
+}
+
+.auth-avatar-grid__item:hover,
+.auth-avatar-grid__item:focus-visible {
+    border-color: var(--brand);
+    outline: none;
+}
+
 .auth-help {
     color: var(--muted);
     font-size: 0.92rem;

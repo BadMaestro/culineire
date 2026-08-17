@@ -9921,11 +9921,23 @@ class ArenaSeatingTests(TestCase):
 
     def test_public_seat_carries_no_personal_data(self):
         """Exactly the three public author fields the arena payload already
-        published for a spectator, plus where the person is sitting."""
+        published for a spectator, plus where the person is sitting.
+
+        ``avatar_is_default`` joined them on 2026-08-17 and was weighed against
+        this test rather than waved past it. It is a bare boolean saying which
+        of two pictures the cell is already showing everybody -- an uploaded
+        photograph or one of the three illustrated stand-ins. Both are visible
+        in the hall, so it discloses nothing a spectator does not publish by
+        sitting down, and it is not a fact about the person: it is a fact about
+        the image. The view drops it from every row but the viewer's own.
+        """
         from .arena_seating import claim_seat, public_seat
         viewer = self._viewer("private")
         payload = public_seat(claim_seat(viewer))
-        self.assertEqual(set(payload), {"ring", "cell", "row", "name", "slug", "avatar_url"})
+        self.assertEqual(set(payload), {
+            "ring", "cell", "row", "name", "slug", "avatar_url", "avatar_is_default",
+        })
+        self.assertIsInstance(payload["avatar_is_default"], bool)
         blob = json.dumps(payload)
         self.assertNotIn(viewer.user.username, blob)
         self.assertNotIn("email", blob)
@@ -20881,3 +20893,49 @@ class YouAreHereMarksTheViewersOwnSeatTests(TestCase):
         block = css[css.index("#arena-render .arena-seat-label--mine"):]
         block = block[:block.index("}") + 1]
         self.assertIn("var(--accent-bronze)", block)
+
+    def test_only_a_viewer_wearing_a_stand_in_avatar_is_told_where_he_is(self):
+        """Owner, 2026-08-17: he knows where he is, and so does any chef with his
+        own picture. The marker is for the person looking at a face shared with
+        everyone else who never uploaded one."""
+        js = self._js()
+        body = js[js.index("function markMySeat("):]
+        body = body[:body.index("\n  }") + 4]
+        self.assertIn("data-avatar-default", body)
+        # The gate comes AFTER the seat is found: a viewer with no seat at all is
+        # hidden by the earlier guard, not by this one.
+        self.assertLess(
+            body.index("if (!seat) {"),
+            body.index("data-avatar-default"),
+        )
+
+    def test_the_renderer_is_told_which_avatar_a_cell_is_wearing(self):
+        """The gate above is worthless if the flag never reaches the cell."""
+        js = self._js()
+        self.assertIn("seat.setAttribute('data-avatar-default'", js)
+        # And it must be cleared with the rest of the occupancy, or a cell that
+        # empties keeps the previous occupant's answer.
+        self.assertIn("seat.removeAttribute('data-avatar-default');", js)
+
+    def test_the_seat_payload_says_whether_the_avatar_is_a_stand_in(self):
+        """Server side of the same rule, and it must stay a bare boolean: the
+        hall publishes no file name and no fact about the person."""
+        from chef_battle.arena_seating import public_seat
+        from chef_battle.models import ArenaSeat
+
+        author = self._make_author("no-picture-here")
+        seat = ArenaSeat.objects.create(viewer=author, ring_index=100, seat_index=1)
+        row = public_seat(seat)
+        self.assertIs(row["avatar_is_default"], True)
+        self.assertNotIn("avatar", [k for k in row if k.endswith("_path")])
+
+    def _make_author(self, slug):
+        from django.contrib.auth import get_user_model
+        from recipes.models import RecipeAuthor
+
+        user = get_user_model().objects.create_user(
+            username=slug, email=f"{slug}@example.com", password="x",
+        )
+        return RecipeAuthor.objects.get_or_create(
+            user=user, defaults={"name": slug, "slug": slug},
+        )[0]
