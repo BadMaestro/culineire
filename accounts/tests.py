@@ -395,6 +395,19 @@ class AvatarGalleryIsAChoiceNeverAnAssignmentTests(TestCase):
         from recipes.avatar_gallery import GALLERY_COUNT
         self.assertEqual(body.count('data-avatar-key="face-'), GALLERY_COUNT)
 
+    def test_no_template_comment_leaks_onto_the_page(self):
+        """v2.5.1137 shipped a two-line {# ... #} to production and the Owner
+        read my note to myself sitting in the middle of his registration form.
+
+        Django's {# #} is SINGLE-LINE: the opener is not matched across a
+        newline, so a wrapped comment renders as text. Multi-line notes must use
+        {% comment %}. This asserts the rendered page, not the file, because the
+        file looked perfectly reasonable both times.
+        """
+        body = self.client.get(reverse("signup")).content.decode()
+        self.assertNotIn("{#", body)
+        self.assertNotIn("#}", body)
+
 
 class BearseekerAdminTierTests(TestCase):
     """The tier and the staff bit are one thing, not two.

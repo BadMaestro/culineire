@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1138",
+        "date": "2026-08-17",
+        "commit": "pending",
+        "title": "A template comment was reading itself out loud on the registration form",
+        "section": "Accounts",
+        "summary": "THE OWNER OPENED THE PAGE HE HAD JUST ASKED FOR AND FOUND MY NOTE TO MYSELF PRINTED IN THE MIDDLE OF IT, between the avatar picker and the email field: 'The picked portrait, shown next to the three so the choice is visible without reopening the gallery.' DJANGO'S {# #} IS SINGLE-LINE. The opener is not matched across a newline, so a comment wrapped onto a second line stops being a comment and becomes text. Multi-line notes take {% comment %}. THIS IS THE SECOND TIME I HAVE SHIPPED EXACTLY THIS, the first being eight lines of commentary above the header of the entire site, and the standing instruction after that one was to open the page and LOOK at it. I did open it - and the local dev server handed me a CACHED template, so the page I inspected was the previous render and agreed with me. Reading the file back would not have helped either: the file looks perfectly reasonable both times. A GUARD NOW STANDS ON THE RENDERED PAGE, not on the file: test_no_template_comment_leaks_onto_the_page asserts neither {# nor #} survives into the response of the signup view. It fails on the broken template and passes on the fixed one, and it is cheap enough to copy onto any other page that grows commentary. Verified after restarting the dev server so the check ran against the real render: the text is gone, More portraits is present, all 96 tiles and the chosen-portrait block intact. NOTHING ELSE CHANGED - one comment converted, one test added.",
+    },
+    {
         "version": "2.5.1137",
         "date": "2026-08-17",
         "commit": "pending",
