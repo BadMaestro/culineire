@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1126",
+        "date": "2026-08-17",
+        "commit": "pending",
+        "title": "T26 - TikTok/Instagram live integration deferred to Season 2, access TOR sent to the Owner",
+        "section": "Chef Battles roadmap / Owner Authority",
+        "summary": "T26's card assumed a social-media link would satisfy it; the Owner clarified he wants a real live stream of the cooking phase pushed into TikTok/Instagram, which is a different and much larger thing than the outbound links already in the site footer. Neither platform's Live API is self-serve: TikTok needs a developer account plus a Live Streaming API application (1-3 week external turnaround, not guaranteed), and Instagram/Meta needs a Business Account, business verification with a real registration document, and Instagram Graph API App Review. None of this is an agent's to start - it needs his identity, his business documents, his logins. Wrote docs/chef_battle/T26_LIVE_API_ACCESS_TOR.md as a step-by-step sequence doable from a phone (what to prepare, the exact menu paths on each platform, what to send back once each item exists), and sent it to him directly by email through the site's OWN configured mailer - the same django.core.mail.send_mail pattern chef_battle/stripe_services.py already uses for purchase confirmations, not a new integration - so he could read it on a tablet on a bus rather than needing a terminal. Told the same day, he deferred the card to Season 2 himself: nothing to build until at least one platform approves access, and no launch requirement depends on it. Unassigned rather than left sitting on an agent - a card with nothing buildable should not read as someone's active work. CROSS-REFERENCED WITH BOLT (Carpet #3531): the Owner separately widened T23's Season-2 deferral from 'clan/team battles' to 'all of clans' the same day (v2.5.1125), which does not touch T26 - the two are unrelated roadmap items that happened to close in the same session, and the version numbers landed adjacent (1125/1126) purely from a real deploy-lock race between the two of us, resolved by re-fetching after his release rather than by either agent skipping the claim protocol. VISIBLE RESULT: the board no longer shows an assigned agent chasing a card that cannot move without the Owner's own external paperwork. ROLLBACK: git revert this release commit and run ops/deploy/predeploy_chown.sh then scripts/deploy.sh. No migration, no schema, no data.",
+    },
+    {
         "version": "2.5.1125",
         "date": "2026-08-17",
         "commit": "a162c964",
