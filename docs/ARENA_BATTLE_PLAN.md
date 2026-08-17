@@ -160,8 +160,10 @@ last package.
   2026-08-17.** He is excluded from challenges, battles and every competitive
   aggregate; the protective half (`is_immortal()` at the penalty, the rank
   demotion and the refusal charge) is untouched and still passes.
-- **The "clan reputation blessing" in the line above was never the Owner's
-  wording** and is struck. Traced 2026-08-17: the phrase existed only in
+- **The "clan reputation blessing" that T18's handoff summary attributed to
+  him was never the Owner's wording** and is struck. (The bullet above no
+  longer carries the phrase - it was rewritten in the same pass, so this note
+  quotes it rather than pointing at it.) Traced 2026-08-17: the phrase existed only in
   Ember's T18 handoff summary and in the T22 card quoting it. His canonical
   rules do not contain it; what he wrote about clans is that GreenBear
   **founds** one like any chef (`clans_alliances_rules.md`, his worked

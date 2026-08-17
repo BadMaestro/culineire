@@ -1,0 +1,5 @@
+agent: Bolt
+started_utc: 2026-08-17T11:30Z
+version: 2.5.1127
+commit: pending
+task: board audit - stale card fields, a wrong acceptance criterion, two fields that could never change
