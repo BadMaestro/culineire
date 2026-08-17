@@ -108,7 +108,15 @@ def can_hear(speaker_ring: int, speaker_cell: int,
     if (speaker_ring, speaker_cell) == (listener_ring, listener_cell):
         return True
 
-    if listener_ring in _rank_rings():
+    rank = _rank_rings()
+    if listener_ring in rank:
+        return True
+
+    # And the hall hears HIM from anywhere. A chef on the floor is what the room
+    # came to watch, and the same fixed cell that stops him walking closer would
+    # otherwise leave him readable by nobody but the handful of seats nearest the
+    # octagon -- reading everything and answering into silence.
+    if speaker_ring in rank:
         return True
 
     rings = _spectator_rings()
