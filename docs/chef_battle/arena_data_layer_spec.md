@@ -56,11 +56,15 @@ geometry = {
 |---|---|---|---|
 | `rank` (1..8) | `rings` (top-level payload key) | `{rank_value: [chef, ...]}` | Keyed by the **same `key`** as `geometry.rings[i].key`. Only chefs online in the last heartbeat window appear; offline chefs vanish until the next poll. |
 | `spectator` (9..12) | `spectators` | `[{name, avatar_url, ...}]` | Flat list; distribute across the 4 spectator rings the same way `buildSpectatorPolarSlots()` already does (fill inner spectator ring first). |
-| `stage` (0) | `center` | `{type: "active_battle"\|"facing_pair"\|"crown_holder"\|"open", ...}` | See §3. |
+| `stage` (0) | `center` | `{type: "active_battle"\|"crown"\|"empty", ...}` | See §3. `facing_pair` is a dead value - never produced, kept only as a renderer branch (see §3). |
 
 Chef record (unchanged contract, do not rename):
 `{name, slug, avatar_url, rank, rank_label, rating, wins, losses, win_streak,
-atk, def, in_battle, battle_id, battle_phase, battle_url, is_online}`.
+atk_band, def_band, in_battle, at_centre, battle_id, battle_phase, battle_url, is_online}`.
+Corrected 2026-08-17: `atk`/`def` (exact sums) were replaced by `atk_band`/
+`def_band` (AA7, 2026-08-15) - an indicative range, never the exact
+artifact-derived total. `at_centre` (T29, 2026-08-16) is new: true only
+while this fighter's own battle is on the centre stage.
 
 - **Identity:** `slug` is the stable identity for cell diffing between polls.
   Re-render a cell only when its occupant slug or `in_battle` changes.
@@ -68,8 +72,14 @@ atk, def, in_battle, battle_id, battle_phase, battle_url, is_online}`.
   `geometry.rings[i].key == chef.rank`. Cell assignment within the ring must
   be deterministic (e.g. stable ordering by the payload list order) so chefs
   do not jump between cells on every poll.
-- **In-battle rule (existing behaviour, keep):** chefs whose `battle_phase`
-  is in the centre/facing phases vacate their ring cell (move, not duplicate).
+- **In-battle rule (T29, 2026-08-16, narrowing the original "keep"):** a
+  fighter vacates his ring cell only while `at_centre` is true - i.e. while
+  `_battle_is_at_centre()` says his battle is on the centre stage. The
+  approach stage (SCHEDULED/MENU_LOCKED) never reaches centre, so a fighter
+  there keeps standing in his ring exactly as before; `in_battle` alone is
+  not the signal, `at_centre` is. `_battle_is_at_centre()` and this filter
+  read the same function, so the ring and the centre stage can never
+  disagree about the same battle.
 
 ## 3. Centre stage (`center`)
 
@@ -77,9 +87,15 @@ atk, def, in_battle, battle_id, battle_phase, battle_url, is_online}`.
 
 - `active_battle` — two-cell VS layout; fields include both chefs, `battle_id`,
   `battle_url`, `battle_phase`, `status_display`, `theme`.
-- `facing_pair` — pre-combat facing cells (SCHEDULED / MENU_LOCKED).
-- `crown_holder` — the crown occupant (name/slug/avatar, `crown_until`).
-- `open` — honest empty stage; render the empty state, never a fake battle.
+- `crown` — the crown occupant (name/slug/avatar, `crown_until`). Corrected
+  2026-08-17: this line previously read `crown_holder`, which the code has
+  never produced.
+- `empty` — honest empty stage; render the empty state, never a fake battle.
+  Corrected 2026-08-17, closing X25 (below): this line previously read
+  `open`, which the code has never produced.
+- `facing_pair` is a dead value — see the X22 note at the top of this
+  document; not restated here to avoid two slightly different explanations
+  of the same fact.
 
 ## 4. Command deck / HUD (not positioned by geometry)
 
@@ -120,8 +136,9 @@ deck around the arena, not in ring cells:
   client that has never polled, or whose version is stale, still gets it in
   full. See `docs/chef_battle/ARENA_ACCEPTANCE_AUDIT_2026-08-15.md` finding
   AF1, which this closes.
-- **X25 (still open):** the honest empty centre is `center.type == "empty"`;
-  §3 below still writes `open`, which the code has never produced.
+- **X25 CLOSED, 2026-08-17:** the honest empty centre is
+  `center.type == "empty"`; §3 above now says so, corrected from the stale
+  `open` this line and §3 both used to carry.
 - The poll is side-effect-free except the presence heartbeat; never mutate
   battle state from the renderer.
 

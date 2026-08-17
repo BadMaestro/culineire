@@ -1,0 +1,5 @@
+agent: GreenBear
+started_utc: 2026-08-17T12:50Z
+version: 2.5.1134
+commit: pending
+task: Doc-only Arena spec reconciliation - arena_data_layer_spec.md (center.type, atk/def_band, at_centre, X22/X25 closed) and ARENA_HALL_PLAN.md (Work Plan reconciled, dead popup stage marked cancelled, open questions closed). Announced to Bolt, Carpet #3532, no overlap with his Arena-completion task.
