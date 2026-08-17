@@ -4,7 +4,26 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-17 · Production baseline: **v2.5.1123**
+Last reconciled: 2026-08-17 · Production baseline: **v2.5.1125**
+
+## Owner ruling, 2026-08-17 — ALL CLAN WORK IS SEASON 2
+
+He deferred T23 (clan and team battles) to Season 2, restating his own
+2026-07-14 rule, and then **widened it the same day to clans entirely**.
+
+That takes the **Season-1 call-an-ally hook** with it — the one unbuilt piece
+of the clan foundation, which T23 had named and deliberately left unassigned
+as an open question to him. It is no longer open; it is deferred.
+
+**Already built, now idle until Season 2:** `Clan`, `ClanMembership`, the
+request→approve join flow, the `ClanContribution` ledger,
+`ClanSeasonStanding`, `Alliance` and the clan↔alliance link, the clan pages,
+and this month the clan aura (`v2.5.1115`) and the Owner's blessing
+(`v2.5.1123`).
+
+**Measured on production, and it is the context for the call:** zero clans,
+zero alliances, zero clan memberships, against four battles. Nothing built
+around clans has been seen by a single person.
 
 ## Owner ruling, 2026-08-16 — the Arena has no acceptance of its own; Stage 3 is CLOSED
 
