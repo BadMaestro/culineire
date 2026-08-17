@@ -8685,16 +8685,19 @@ class ArenaGeometryTests(TestCase):
         self.assertEqual(counts, sorted(counts))
         # Owner mockup counts need not be multiples of 8 (uneven per side).
 
-    def test_spectator_rows_are_two_top_and_two_bottom_only(self):
-        """AR4 / plan §2a: author seats are two rows top and two rows bottom.
-        The left and right banks of the former oval are gone, not just empty."""
+    def test_spectator_gallery_is_one_closed_ring_two_rows(self):
+        """Owner, 2026-08-17: seats go all the way round the octagon, built
+        from octagon cells - superseding both the 2026-07-24 oval rule and the
+        2026-07-29 top/bottom-only contract (§2a). The MEANING of §2a survives:
+        balconies still stand behind the author rows, now all the way round
+        instead of only above and below."""
         from .selectors import get_arena_geometry, SPECTATOR_OVAL_ROWS
         g = get_arena_geometry()
         oval = g["spectator_oval"]
-        self.assertEqual(oval["rows_by_side"], {"top": 2, "bottom": 2})
-        self.assertEqual({s["side"] for s in oval["seats"]}, {"top", "bottom"})
+        self.assertEqual(oval["rows_by_side"], {"ring": 2})
+        self.assertEqual({s["side"] for s in oval["seats"]}, {"ring"})
         rings = [r for r in g["rings"] if r["kind"] == "spectator"]
-        self.assertEqual({r["side"] for r in rings}, {"top", "bottom"})
+        self.assertEqual({r["side"] for r in rings}, {"ring"})
         by_side = {}
         for r in rings:
             by_side.setdefault(r["side"], []).append(r["row"])
@@ -8705,8 +8708,8 @@ class ArenaGeometryTests(TestCase):
                     self.assertEqual(r["rows_total"], rows)
 
     def test_spectator_counts_frozen_for_stable_ids(self):
-        """Packing may densify pitch/gap, but ring/cell capacity stays 114, and
-        the surviving top/bottom rings keep the ids they had under the oval."""
+        """Packing may densify pitch/gap, but ring/cell capacity stays 114 -
+        the same total the two banks held, spread around the whole ring."""
         from .selectors import (
             SPECTATOR_OVAL_COUNTS,
             SPECTATOR_OVAL_ROWS,
@@ -8720,18 +8723,34 @@ class ArenaGeometryTests(TestCase):
         oval = get_arena_geometry()["spectator_oval"]
         self.assertEqual(oval["capacity"], 114)
         self.assertEqual(spectator_capacity(), 114)
-        self.assertEqual(oval["counts_by_side"]["top"], [28, 29])
-        self.assertEqual(oval["counts_by_side"]["bottom"], [28, 29])
-        # Ring ids are unchanged for the rows that survived: top 100/101 and
-        # bottom 120/121, so nobody already seated there is moved by AR4.
-        self.assertEqual({s["ring"] for s in oval["seats"]}, {100, 101, 120, 121})
-        # First seat on each frozen ring keeps cell 0.
+        self.assertEqual(oval["counts_by_side"]["ring"], [56, 58])
+        self.assertEqual({s["ring"] for s in oval["seats"]}, {100, 101})
+        # First seat on each ring keeps cell 0.
         by_ring = {}
         for seat in oval["seats"]:
             by_ring.setdefault(seat["ring"], []).append(seat["cell"])
         for ring, cells in by_ring.items():
             self.assertEqual(cells[0], 0)
             self.assertEqual(cells, list(range(len(cells))))
+
+    def test_no_seat_or_balcony_escapes_the_octagon_ring(self):
+        """Every seat and every balcony stand sits strictly outside the chef
+        octagon and strictly inside the gallery's own outer edge - nobody
+        stands ON the floor and nobody stands off the drawn canvas."""
+        import math
+        from .selectors import get_arena_geometry
+        g = get_arena_geometry()
+        floor_r = g["spectator_oval"]["floor_outer_radius"]
+        for seat in g["spectator_oval"]["seats"]:
+            r = math.hypot(seat["x"], seat["y"])
+            self.assertGreater(r, floor_r, "a seat sits inside the chef floor")
+        seat_max = max(
+            math.hypot(s["x"], s["y"]) for s in g["spectator_oval"]["seats"]
+        )
+        for stand in g["balconies"]["stands"]:
+            r = math.hypot(stand["x"], stand["y"])
+            self.assertGreater(r, seat_max,
+                               "a balcony stand sits inside the author rows")
 
 
     def test_get_spectators_respects_capacity_limit(self):
@@ -10092,15 +10111,23 @@ class SpiritBalconyTests(TestCase):
     # ---- geometry --------------------------------------------------------
 
     def test_balconies_stand_behind_the_author_rows(self):
-        """Behind means further out than every seat, on the same two arcs.
+        """Behind means further out than every seat, all the way round.
 
-        Measured as elliptical depth, not as raw distance from the centre. The
-        band is an ellipse (rx = R x 1.08, ry = R x 0.92), so a stand near the
-        vertical can sit at a smaller raw radius than a seat out at the
-        diagonal while still being strictly behind it. Undoing the ellipse
-        recovers R, which is the number that actually orders the rows — a raw
-        radius comparison here fails on correct geometry, which is exactly what
-        it did when this test was first written the lazy way.
+        THE MEASURE CHANGED WITH THE GEOMETRY, and the history is kept because
+        it is a trap either way. This used to undo an ellipse -
+        (x/1.08)^2 + (y/0.92)^2 - because the hall was an OVAL: rx = R x 1.08,
+        ry = R x 0.92, so a stand near the vertical could sit at a smaller raw
+        radius than a seat out at the diagonal while still being strictly
+        behind it, and a raw comparison failed on correct geometry. That is
+        what it did when the test was first written the lazy way.
+
+        The Owner replaced the oval with a closed RING on 2026-08-17, so the
+        ellipse is gone and undoing it would now be the wrong correction -
+        the same mistake, pointing the other way. Raw distance from the centre
+        is the honest measure of a circle.
+
+        What is asserted has not moved: a balcony always stands behind every
+        author seat.
         """
         from .selectors import get_arena_geometry
 
@@ -10108,10 +10135,10 @@ class SpiritBalconyTests(TestCase):
         seats = g["spectator_oval"]["seats"]
         stands = g["balconies"]["stands"]
         self.assertTrue(stands)
-        self.assertEqual({s["side"] for s in stands}, {"top", "bottom"})
+        self.assertEqual({s["side"] for s in stands}, {"ring"})
 
         def depth(p):
-            return (((p["x"] / 1.08) ** 2) + ((p["y"] / 0.92) ** 2)) ** 0.5
+            return ((p["x"] ** 2) + (p["y"] ** 2)) ** 0.5
 
         self.assertGreater(min(depth(b) for b in stands), max(depth(s) for s in seats))
 
@@ -13333,8 +13360,17 @@ class ArenaReadinessLifecycleTests(TestCase):
         self.assertIn("box.width > 0 && box.height > 0", body)
 
     def test_the_scene_is_announced_only_after_everything_is_placed(self):
+        """Anchored on fitScene() itself, not on a line inside it.
+
+        This used to find the block by splitting on "billboardFaces(svg);" - a
+        call belonging to the atmospheric crowd, deleted with it on 2026-08-17,
+        which took the anchor and this test down with it. What the test guards
+        did not change at all: the scene must not be announced ready before the
+        furniture has a real position. A guard belongs on the thing it guards,
+        so it fails when that breaks and not when a neighbour is removed.
+        """
         js = self._js()
-        block = js.split("billboardFaces(svg);", 1)[1].split("\n  }", 1)[0]
+        block = js.split("function fitScene(", 1)[1].split("\n  }", 1)[0]
         self.assertIn("placeRankSpine(svg);", block)
         self.assertIn("paintRankLadder(svg);", block)
         self.assertLess(
@@ -20738,3 +20774,37 @@ class AGodInTheClanBlessesItAndGivesItNothingTests(TestCase):
 
         fields = {f.name for f in Clan._meta.get_fields()}
         self.assertNotIn("reputation", fields)
+
+
+class SeatMovingIsASpectatorOnlyOptionTests(TestCase):
+    """Owner, 2026-08-17: "у зрителей нет ранговых колец, они все за пределами
+    октагона, октагон только для шефов". Sit-here used to offer a seated chef
+    the other empty cells of HIS OWN RANK RING - a choice he does not have,
+    since his cell is decided by the scatter from his slug and a rank ring is
+    a rank, not a seating preference. Moving is social and belongs to
+    spectators, who move to sit beside somebody.
+    """
+
+    def _js(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+    def test_markseatable_only_ever_offers_gallery_cells(self):
+        js = self._js()
+        body = js[js.index("function markSeatable"):]
+        body = body[:body.index("\n  function ", 1)]
+        self.assertIn("kindByRing[ring] === 'spectator'", body)
+        self.assertNotIn("kindByRing[seatedRing]", body,
+                         "a rank ring must never be offered as re-seatable")
+        self.assertNotIn("=== 'rank'", body)
+
+    def test_seatedring_state_is_gone_not_merely_unread(self):
+        """It became write-only the moment rank rings stopped being
+        re-seatable - a variable nothing reads is worse than useless, it is a
+        future reader's false lead."""
+        js = self._js()
+        self.assertNotIn("seatedRing", js)

@@ -5563,17 +5563,45 @@
   cursor: pointer;
 }
 
-/* Spectator galleries read cooler than the floor, mixed off --ink so they stay
-   inside the palette. The scheme has no blue token; if the reference's slate
-   gallery becomes a brand colour, it belongs in base.css, not here. */
-/* Spectator galleries: occupied only. Empty seat discs were a grey dot grid
-   around the floor — hide paint, keep nodes for seating logic/faces. */
+/* THE AUTHOR GALLERY IS VISIBLE WHEN IT IS EMPTY. Owner, 2026-08-17.
+ *
+ * These cells used to be hidden outright - fill:none, stroke:none, opacity:0 -
+ * with the note "empty seat discs were a grey dot grid around the floor". That
+ * was true, and the cause was not emptiness: the stands had FIVE units of
+ * radial depth for seats about thirteen across, because g1Radii clamped
+ * standsOuter to 520 against a floor of 515. They were not a dot grid because
+ * they were empty; they were a dot grid because they were crushed. The clamp
+ * is gone and the seats are octagon cells now, so an empty chair can simply
+ * look like an empty chair.
+ *
+ * A hall you can see is the point of the change: an author picks a free seat,
+ * and can move to sit beside somebody. An invisible gallery offers neither.
+ *
+ * Cooler than the floor, mixed off --ink so the gallery stays inside the
+ * palette - the scheme has no blue token, and if the reference's slate ever
+ * becomes a brand colour it belongs in base.css, not here. */
 #arena-render [data-ring-kind="spectator"][data-occupancy="empty"],
 #arena-render .arena-cell--oval-seat[data-occupancy="empty"] {
-  fill: none;
-  stroke: none;
-  opacity: 0;
-  pointer-events: none;
+  fill: color-mix(in srgb, var(--arena-floor-8) 62%, var(--ink) 8%);
+  stroke: color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+  stroke-width: 0.8;
+  opacity: 0.72;
+}
+
+/* A free chair answers the pointer; that is how "Sit here" is offered. */
+#arena-render .arena-cell--oval-seat[data-seatable="true"] {
+  cursor: pointer;
+  stroke: color-mix(in srgb, var(--accent-bronze) 78%, transparent);
+  opacity: 0.92;
+}
+
+/* Taken: the same language as a rank cell in use - the parchment lifts and the
+   bronze seam closes, so occupied reads at a glance without a second colour. */
+#arena-render .arena-cell--oval-seat:not([data-occupancy="empty"]) {
+  fill: var(--arena-floor-7);
+  stroke: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
+  stroke-width: 1;
+  opacity: 1;
 }
 
 /* AR5 — balcony spirits (ARENA_BATTLE_PLAN §2a).
@@ -6086,10 +6114,6 @@
   text-align: center;
 }
 
-/* Billboarding: CSS rotateX squashes faces on the floor plane.
-   billboardFaces() in arena_render.js measures each .arena-crowd-figure and
-   un-squashes it; do not add a global scaleY here. */
-
 /* Crown at the centre — no drop-shadow (bled past the outer shell). */
 #arena-render .arena-stage[data-state="crown"],
 #arena-render .arena-stage[data-state="active_battle"],
@@ -6232,21 +6256,6 @@
   #arena-render { filter: none; }
 }
 
-/* The preview crowd sits in shadow: dimmed and warmed toward the stage light,
-   so a real spectator's own avatar reads as a lit face among them rather than
-   as one more identical head. */
-#arena-render .arena-crowd-figure {
-  /* Depth comes in on the element as --crowd-dim, so the stylesheet still owns
-     the property and the row still owns the number. A flat opacity here would
-     beat a presentation attribute on the figure and flatten the bowl — a CSS
-     declaration outranks an SVG attribute, which is not obvious until it costs
-     an afternoon.
-
-     The saturate/brightness/sepia that used to sit here is gone rather than
-     kept as decoration: arena_atmosphere.css kills every filter on this floor
-     with an, so it had never once applied. */
-  opacity: var(--crowd-dim, 0.55);
-}
 
 /* ============================================================================
  * Floor material = sponsors octagon palette (sponsors_puzzle.js RING_COLOURS).

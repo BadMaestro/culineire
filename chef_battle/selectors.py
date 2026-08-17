@@ -1517,19 +1517,35 @@ def get_vip_sponsors() -> list[dict]:
 
 
 # Spectators sit around the octagon (NOT in chef cells).
-# AR4 / ARENA_BATTLE_PLAN §2a (Owner 2026-07-29): real interactive seats belong
-# to authors, in TWO ROWS TOP AND TWO ROWS BOTTOM. The former four-sided
-# 290-seat oval is superseded — the left and right banks are gone, and the
-# space they held is where AR5 puts the spirit balconies.
-SPECTATOR_OVAL_ROWS = {"top": 2, "bottom": 2}
+#
+# OWNER, 2026-08-17: THE GALLERY IS A CLOSED RING. "рисуем везде где есть
+# свободное место вокруг октагона... представь, что ты пришел смотреть бокс,
+# и встаешь туда где есть хорошее свободное место."
+#
+# This supersedes the letter of ARENA_BATTLE_PLAN §2a (Owner 2026-07-29),
+# which put author seats in TWO ROWS TOP AND TWO ROWS BOTTOM and left the
+# left and right flanks empty. The MEANING of §2a is kept exactly: the
+# balconies still stand behind the author rows, they are simply behind them
+# all the way round now instead of only above and below.
+#
+# It also supersedes the 2026-07-24 rule that spectators are an OVAL rather
+# than rings on the octagon's own grid. His word today is that the gallery is
+# built from the same cells as the rank rings - "механика и форма".
+#
+# Two rows, not more: he was asked and chose to keep the capacity and give
+# the rows room to breathe rather than add rows.
+SPECTATOR_OVAL_ROWS = {"ring": 2}
 
-# M04: freeze per-row seat counts so ring/cell ids stay stable when packing
-# constants (pitch/gap) tighten toward the mockup crowd. Sum = 114.
-# Top and bottom keep the counts and the ring ids they already had, so nobody
-# already seated there is moved by this change.
+# Counts per row, inner first. Sum = 114, UNCHANGED from the two-bank layout
+# (28+29 top, 28+29 bottom) - the same seats, spread around the whole octagon
+# instead of packed into two arcs. The outer row holds two more than the inner
+# one because it is longer.
+#
+# Frozen deliberately (M04): ring/cell ids stay stable when packing constants
+# tighten, so a seated viewer is never walked to another chair by a spacing
+# change.
 SPECTATOR_OVAL_COUNTS = {
-    "top": (28, 29),
-    "bottom": (28, 29),
+    "ring": (56, 58),
 }
 
 # Legacy name kept as alias for imports; capacity now comes from oval packing.
@@ -1547,38 +1563,39 @@ def _oval_seat_list(floor_outer_radius=220.0, seat_pitch=None):
     """
     import math
 
-    # Denser mockup packing: tighter pitch/gap than the initial oval ship.
     pitch = seat_pitch if seat_pitch is not None else max(11.0, floor_outer_radius * 0.045)
     gap = floor_outer_radius * 0.055
-    # AR4: top and bottom only. The arcs and the side indices are the ones the
-    # four-sided oval already used, so ring ids 100/101 and 120/121 keep meaning
-    # exactly the seats they meant before.
-    sides = (
-        ("top", SPECTATOR_OVAL_ROWS["top"], -math.pi * 0.75, -math.pi * 0.25),
-        ("bottom", SPECTATOR_OVAL_ROWS["bottom"], math.pi * 0.25, math.pi * 0.75),
-    )
-    side_index = {"top": 0, "right": 1, "bottom": 2, "left": 3}
+    # OWNER, 2026-08-17: one closed ring per row, all the way round the
+    # octagon. The two arcs (top -0.75pi..-0.25pi, bottom 0.25pi..0.75pi) that
+    # left the flanks empty are gone.
+    #
+    # A ring is CIRCULAR, not elliptical: the seats are drawn as segments of an
+    # octagonal ring by the same generator that draws the rank rings, and an
+    # ellipse would put a seat's centre off its own cell. The old rx/ry
+    # stretch (1.08 / 0.92) went with the oval and goes with it.
+    #
+    # Ring ids stay in the same 100+ space and cells stay 0..n-1, so the
+    # ArenaSeat contract keeps its shape. Nobody is walked to another chair by
+    # this: production carries zero occupied seats.
+    rows = SPECTATOR_OVAL_ROWS["ring"]
+    counts = SPECTATOR_OVAL_COUNTS["ring"]
     out = []
-    for key, rows, a0, a1 in sides:
-        counts = SPECTATOR_OVAL_COUNTS[key]
-        for row in range(rows):
-            radius = floor_outer_radius + gap + (row + 0.5) * pitch * 1.02
-            rx = radius * 1.08
-            ry = radius * 0.92
-            arc = a1 - a0
-            count = counts[row]
-            ring_id = _FIRST_SPECTATOR_RING + side_index[key] * 10 + row
-            for cell in range(count):
-                t = (cell + 0.5) / count
-                angle = a0 + arc * t
-                out.append({
-                    "side": key,
-                    "row": row,
-                    "cell": cell,
-                    "ring": ring_id,
-                    "x": rx * math.cos(angle),
-                    "y": ry * math.sin(angle),
-                })
+    for row in range(rows):
+        radius = floor_outer_radius + gap + (row + 0.5) * pitch * 1.02
+        count = counts[row]
+        ring_id = _FIRST_SPECTATOR_RING + row
+        for cell in range(count):
+            # Half-step offset so a seat sits in the MIDDLE of its cell rather
+            # than on the seam between two.
+            angle = (cell + 0.5) / count * math.tau
+            out.append({
+                "side": "ring",
+                "row": row,
+                "cell": cell,
+                "ring": ring_id,
+                "x": radius * math.cos(angle),
+                "y": radius * math.sin(angle),
+            })
     return out
 
 
@@ -1593,8 +1610,11 @@ def spectator_capacity() -> int:
 # absent from seat_map(), nothing is ever written to ArenaSeat for it, and no
 # name, avatar or profile is attached to it. A spirit is a count made visible,
 # never a person made up.
-BALCONY_ROWS = {"top": 2, "bottom": 2}
-BALCONY_COUNTS = {"top": (24, 22), "bottom": (24, 22)}
+# Owner, 2026-08-17: behind the author ring, and therefore a ring too. The
+# counts are the two banks' totals merged (24+24 and 22+22), so the balconies
+# hold exactly as many spirits as before, spread all the way round.
+BALCONY_ROWS = {"ring": 2}
+BALCONY_COUNTS = {"ring": (48, 44)}
 
 
 def _balcony_stand_list(floor_outer_radius=220.0, seat_pitch=None):
@@ -1612,31 +1632,24 @@ def _balcony_stand_list(floor_outer_radius=220.0, seat_pitch=None):
 
     pitch = seat_pitch if seat_pitch is not None else max(11.0, floor_outer_radius * 0.045)
     gap = floor_outer_radius * 0.055
-    sides = (
-        ("top", -math.pi * 0.75, -math.pi * 0.25),
-        ("bottom", math.pi * 0.25, math.pi * 0.75),
-    )
+    seat_rows = SPECTATOR_OVAL_ROWS["ring"]
+    counts = BALCONY_COUNTS["ring"]
     out = []
-    for key, a0, a1 in sides:
-        seat_rows = SPECTATOR_OVAL_ROWS.get(key, 0)
-        counts = BALCONY_COUNTS[key]
-        for row in range(BALCONY_ROWS[key]):
-            depth = seat_rows + row
-            radius = floor_outer_radius + gap + (depth + 0.5) * pitch * 1.02
-            rx = radius * 1.08
-            ry = radius * 0.92
-            arc = a1 - a0
-            count = counts[row]
-            for cell in range(count):
-                t = (cell + 0.5) / count
-                angle = a0 + arc * t
-                out.append({
-                    "side": key,
-                    "row": row,
-                    "index": cell,
-                    "x": rx * math.cos(angle),
-                    "y": ry * math.sin(angle),
-                })
+    for row in range(BALCONY_ROWS["ring"]):
+        # Row indices continue past the author rows, so a balcony can never
+        # land on a seat however the packing constants move.
+        depth = seat_rows + row
+        radius = floor_outer_radius + gap + (depth + 0.5) * pitch * 1.02
+        count = counts[row]
+        for cell in range(count):
+            angle = (cell + 0.5) / count * math.tau
+            out.append({
+                "side": "ring",
+                "row": row,
+                "index": cell,
+                "x": radius * math.cos(angle),
+                "y": radius * math.sin(angle),
+            })
     return out
 
 

@@ -143,8 +143,6 @@
   var lastGeometryVersion = null;
   // Latest centre payload, so a stage click knows which battle room to open.
   var stageCentre = null;
-  // Ring the viewer currently occupies, or null while they are off the floor.
-  var seatedRing = null;
   // Centre identity from the last bind; null until the first one, so a page
   // load does not replay an arrival that happened before the viewer arrived.
   var centreKey = null;
@@ -200,7 +198,23 @@
     var stageR = tpl ? tpl.CROWN_OUTER : 85;
     var gap = tpl ? tpl.GAP : 3;
     STAGE_RADIUS = stageR - gap;
-    var standsOuter = Math.min(520, floorOuter + 48);
+    // THE STANDS HAD FIVE UNITS OF DEPTH AND ASKED FOR FORTY-EIGHT.
+    //
+    // This was `Math.min(520, floorOuter + 48)`. With floorOuter 515 the
+    // request was 563 and the answer was 520, so the whole gallery - 114
+    // seats in two rows - was squeezed into a band FIVE units deep while a
+    // single seat is about thirteen across. They overlapped into the "grey
+    // dot grid around the floor" that a later card hid with opacity:0, so
+    // the seats were not hidden for being empty; they were hidden for being
+    // crushed.
+    //
+    // The canvas was never the constraint: viewBox is 0 0 1100 1100, centre
+    // 550, and the octagon ends at 515 - thirty-five units stood unused.
+    // The ceiling now leaves a small margin to the canvas edge so a seat's
+    // stroke and glow are not clipped, and the +48 request is honoured when
+    // it fits.
+    var CANVAS_EDGE_MARGIN = 6;
+    var standsOuter = Math.min(TPL_CX - CANVAS_EDGE_MARGIN, floorOuter + 48);
     var rankStep = (floorOuter - stageR) / 6;
     return {
       standsOuter: standsOuter,
@@ -270,10 +284,17 @@
     return points.map(pointString).join(' ');
   }
 
-  // Owner 2026-07-24: spectators sit in an oval around the chef octagon
-  // (3 rows L/R, 2 rows T/B) — not in floor cells.
-  // Prefer BE spectator_oval.seats (centre-relative) so ring/cell ids match
-  // ArenaSeat; scale them onto the drawn floor outer radius.
+  // The author gallery: a CLOSED RING of cells around the chef octagon.
+  //
+  // Owner, 2026-08-17, replacing two earlier rules of his own. The 2026-07-24
+  // rule made the gallery an OVAL and kept it off the octagon's grid; the
+  // 2026-07-29 contract (§2a) put author seats in two banks, top and bottom,
+  // and left the flanks empty. His words today: seats go "везде где есть
+  // свободное место вокруг октагона", built from "тот же код, что и соты
+  // октагона" - mechanics and form.
+  //
+  // The backend still owns the seat contract, so ring/cell ids continue to
+  // match ArenaSeat; only the shape they are drawn in has changed.
   function drawSpectatorOval(svg, geometry, step, defs) {
     var project = projector();
     var layer = el('g', { 'data-arena-layer': 'spectator-oval' });
@@ -281,14 +302,11 @@
     var floorR = props.floorOuter;
     var standsOuter = props.standsOuter;
     var oval = geometry.spectator_oval || {};
-    // The backend owns the stable seat contract. Keep its ring/cell ids intact;
-    // the fallback mirrors ArenaGeometry's AR4 layout — two rows top, two
-    // bottom, 114 author seats. The left and right banks are gone (§2a).
-    var rowsBySide = oval.rows_by_side || { top: 2, bottom: 2 };
-    var countsBySide = oval.counts_by_side || {
-      top: [28, 29],
-      bottom: [28, 29]
-    };
+    // The backend owns the stable seat contract. These defaults only matter if
+    // the payload arrives without one, and they mirror it: two rows, 56 inner
+    // and 58 outer, 114 author seats all the way round.
+    var rowsBySide = oval.rows_by_side || { ring: 2 };
+    var countsBySide = oval.counts_by_side || { ring: [56, 58] };
     var beFloor = oval.floor_outer_radius || 220;
     var seats = (Array.isArray(oval.seats) && oval.seats.length)
       ? oval.seats
@@ -298,55 +316,115 @@
 
     // Remap radial depth so outermost seat CENTRE sits at STANDS_RATIO
     // (G5: ~1.46 so bbox ≈ 1.60). Angle preserved.
+    // THE FURTHEST THING IN THE HALL, not the furthest SEAT.
+    //
+    // This measured seats only, and drawBalconies() then mapped balcony radii
+    // through the same scale - but a balcony stands BEHIND the seats, so its
+    // plan radius is larger than any seat's and it mapped past standsOuter,
+    // off the canvas. It never showed while the stands were crushed into five
+    // units and everything landed on top of the floor edge; giving the gallery
+    // real depth is what would have thrown the spirits over the rim.
     var maxBe = beFloor;
-    seats.forEach(function (seat) {
-      var rb = Math.hypot(seat.x || 0, seat.y || 0);
-      if (rb > maxBe) { maxBe = rb; }
-    });
+    function stretchTo(list) {
+      (list || []).forEach(function (item) {
+        var rb = Math.hypot(item.x || 0, item.y || 0);
+        if (rb > maxBe) { maxBe = rb; }
+      });
+    }
+    stretchTo(seats);
+    stretchTo((geometry.balconies || {}).stands);
     var depthBe = Math.max(1e-6, maxBe - beFloor);
     var depthSvg = standsOuter - floorR;
 
+    // OWNER, 2026-08-17: THE GALLERY IS BUILT FROM THE OCTAGON'S OWN CELLS.
+    // "это тот же код, что и соты октагона" - mechanics AND form. Each seat is
+    // a segment of an octagonal ring, drawn by tpl.ringSegmentPath(), the same
+    // generator the rank rings use. Circles are gone.
+    //
+    // The row's band is derived from the backend radii rather than from a
+    // second copy of the packing constants: the seats of one row all share a
+    // radius, so half the gap to the neighbouring row is this row's half-depth.
+    var tpl = global.ArenaOctagon;
+    var seatGap = Math.max(1.2, depthSvg * 0.05);
+
+    // Group the backend's seats by ring so each row knows its own radius and
+    // cell count without trusting a constant that could drift from the payload.
+    var byRing = {};
     seats.forEach(function (seat) {
-      var rBe = Math.hypot(seat.x || 0, seat.y || 0);
-      var ang = Math.atan2(seat.y || 0, seat.x || 0);
-      var rSvg;
-      if (rBe <= beFloor) {
-        rSvg = rBe * (floorR / beFloor);
-      } else {
-        rSvg = floorR + ((rBe - beFloor) / depthBe) * depthSvg;
-      }
-      var planX = TPL_CX + Math.cos(ang) * rSvg;
-      var planY = TPL_CY + Math.sin(ang) * rSvg;
-      var pt = project({ x: planX, y: planY });
-      var pitch = Math.max(8, floorR * 0.032);
-      var depth = (seat.row || 0) / Math.max(1, (rowsBySide[seat.side] || 4) - 1);
-      var r = Math.max(3.6, pitch * (0.40 - 0.06 * depth));
-      // G6-FIX: seat circle + crowd face share this host for one transform chain.
-      var seatGroup = el('g', { class: 'arena-seat-group', 'data-arena-seat-host': 'true' });
-      var circle = el('circle', {
-        cx: pt.x.toFixed(2),
-        cy: pt.y.toFixed(2),
-        r: r.toFixed(2),
-        'data-ring': String(seat.ring),
-        'data-ring-key': 'oval_' + (seat.side || 'x') + '_' + (seat.row || 0),
-        'data-ring-kind': 'spectator',
-        'data-cell': String(seat.cell),
-        'data-side': seat.side || '',
-        'data-row': String(seat.row != null ? seat.row : ''),
-        'data-centroid-x': pt.x.toFixed(2),
-        'data-centroid-y': pt.y.toFixed(2),
-        'data-occupancy': 'empty',
-        'data-state': 'idle',
-        'vector-effect': 'non-scaling-stroke',
-        class: 'arena-cell arena-cell--oval-seat'
+      var key = String(seat.ring);
+      if (!byRing[key]) { byRing[key] = { seats: [], rBe: 0 }; }
+      byRing[key].seats.push(seat);
+      byRing[key].rBe = Math.hypot(seat.x || 0, seat.y || 0);
+    });
+    var ringKeys = Object.keys(byRing).sort(function (a, b) {
+      return byRing[a].rBe - byRing[b].rBe;
+    });
+
+    // Half the distance between adjacent rows, so bands touch without overlap.
+    // One row on its own gets the whole remaining depth.
+    function bandHalfDepth(i) {
+      var here = mapRadius(byRing[ringKeys[i]].rBe);
+      if (ringKeys.length < 2) { return Math.max(2, (standsOuter - here)); }
+      var other = i === 0
+        ? mapRadius(byRing[ringKeys[1]].rBe)
+        : mapRadius(byRing[ringKeys[i - 1]].rBe);
+      return Math.max(2, Math.abs(other - here) / 2);
+    }
+
+    function mapRadius(rBe) {
+      if (rBe <= beFloor) { return rBe * (floorR / beFloor); }
+      return floorR + ((rBe - beFloor) / depthBe) * depthSvg;
+    }
+
+    ringKeys.forEach(function (key, rowIndex) {
+      var entry = byRing[key];
+      var mid = mapRadius(entry.rBe);
+      var half = bandHalfDepth(rowIndex);
+      var innerR = mid - half;
+      var outerR = mid + half;
+      var count = entry.seats.length;
+      var sweep = (Math.PI * 2) / count;
+      // A gap in ANGLE, so a seam is the same width on a short cell and a long
+      // one - the rank rings divide theirs the same way.
+      var angGap = seatGap / Math.max(1, outerR);
+
+      entry.seats.forEach(function (seat) {
+        var startAngle = seat.cell * sweep + angGap;
+        var endAngle = (seat.cell + 1) * sweep - angGap;
+        var d = tpl.ringSegmentPath(TPL_CX, TPL_CY, innerR, outerR, startAngle, endAngle);
+        var centroid = tpl.segmentCentroid(TPL_CX, TPL_CY, innerR, outerR, startAngle, endAngle);
+
+        // G6-FIX: the seat and anything hosted on it share one transform chain.
+        var seatGroup = el('g', { class: 'arena-seat-group', 'data-arena-seat-host': 'true' });
+        var cell = el('path', {
+          d: d,
+          'data-ring': String(seat.ring),
+          'data-ring-key': 'gallery_' + rowIndex,
+          'data-ring-kind': 'spectator',
+          'data-cell': String(seat.cell),
+          'data-side': seat.side || 'ring',
+          'data-row': String(seat.row != null ? seat.row : rowIndex),
+          'data-ring-inner': innerR.toFixed(2),
+          'data-ring-outer': outerR.toFixed(2),
+          'data-ring-count': String(count),
+          'data-centroid-x': centroid.x.toFixed(2),
+          'data-centroid-y': centroid.y.toFixed(2),
+          'data-occupancy': 'empty',
+          'data-state': 'idle',
+          'vector-effect': 'non-scaling-stroke',
+          class: 'arena-cell arena-cell--oval-seat'
+        });
+        seatGroup.appendChild(cell);
+        layer.appendChild(seatGroup);
+
+        // The seated viewer's portrait is masked with this clip. It was a
+        // circle when the seat was one; it is the CELL now, so a face fills
+        // its chair the way a chef's fills a rank cell. Losing this clip is
+        // how a viewer once became unable to appear in the stands at all.
+        var clip = el('clipPath', { id: 'arena-clip-' + seat.ring + '-' + seat.cell });
+        clip.appendChild(el('path', { d: d }));
+        defs.appendChild(clip);
       });
-      seatGroup.appendChild(circle);
-      layer.appendChild(seatGroup);
-      var clip = el('clipPath', { id: 'arena-clip-' + seat.ring + '-' + seat.cell });
-      clip.appendChild(el('circle', {
-        cx: pt.x.toFixed(2), cy: pt.y.toFixed(2), r: r.toFixed(2)
-      }));
-      defs.appendChild(clip);
     });
     svg.appendChild(layer);
     drawBalconies(svg, geometry, layer, {
@@ -448,49 +526,6 @@
   // Both are one outline at the floor's outer radius: a wide neutral stroke
   // for the walkway, a thin bronze stroke over it for the rim. Drawn between
   // the cells and the crowd so faces sit in front of it, never behind.
-  // Atmospheric crowd stand-ins. Currently unreachable on purpose: the
-  // Owner switched the figures off and arena_atmosphere.css hides
-  // .arena-crowd-figure. Card A08 (crowd bowl depth / atmospheric
-  // population) is what turns them back on, so this stays disconnected
-  // rather than deleted, and the paid face assets stay in static/.
-  function appendCrowdFigure(svg, ring, cell, geometry, radius) {
-    var href = crowdFaceFor(ring, cell, geometry);
-    if (!href) { return; }
-    var seat = svg.querySelector('.arena-cell[data-ring="' + ring + '"][data-cell="' + cell + '"]');
-    if (!seat) { return; }
-    var seatGroup = seat.parentNode;
-    if (!seatGroup) { return; }
-    var cx = parseFloat(seat.getAttribute('cx'));
-    var cy = parseFloat(seat.getAttribute('cy'));
-    var seatR = parseFloat(seat.getAttribute('r'));
-    var seatSize = seatR * 2;
-    var jitter = seatJitter(ring, cell);
-    // A portrait sits IN its seat, so it never grows past the seat either.
-    var size = Math.min(faceDiameter(geometry, ring, radius) * jitter.scale, seatSize);
-    // Off-centre by up to a fifth of the seat in each direction.
-    var offsetX = jitter.x * seatSize * 0.4;
-    var offsetY = jitter.y * seatSize * 0.4;
-
-    var figure = el('g', {
-      'pointer-events': 'none',
-      class: 'arena-crowd-figure'
-    });
-    // Round portrait, not a slice of the seat's polygon. One shared clip path
-    // in objectBoundingBox units serves every face whatever its size.
-    var image = el('image', {
-      href: href,
-      x: (cx - size / 2 + offsetX).toFixed(2),
-      y: (cy - size / 2 + offsetY).toFixed(2),
-      width: size.toFixed(2), height: size.toFixed(2),
-      // The portraits are cut out now, so the seat behind them shows through.
-      // No circular clip: a round mask over a head-and-shoulders cut-out chops
-      // the shoulders off and puts the carton back.
-      preserveAspectRatio: 'xMidYMid meet'
-    });
-    image.style.filter = faceLighting(geometry, ring);
-    figure.appendChild(image);
-    seatGroup.appendChild(figure);
-  }
 
   function drawWalkway(svg, geometry, step) {
     var props = g1Radii(geometry);
@@ -842,7 +877,6 @@
       'data-arena-stage': 'true',
       class: 'arena-stage'
     }));
-    shell.appendChild(el('g', { 'data-arena-layer': 'crowd' }));
     shell.appendChild(el('g', { 'data-arena-layer': 'sponsors' }));
     shell.appendChild(el('g', { 'data-arena-layer': 'occupants' }));
     shell.appendChild(sparks);
@@ -1158,26 +1192,7 @@
     return (h >>> 0);
   }
 
-  function crowdFaceFor(ring, cell, geometry) {
-    var faces = global.ARENA_CROWD_FACES || [];
-    if (!faces.length) { return null; }
-    // C4: round/ only (96). Near/mid/far is faceLighting() via rowDepth — no tiers/ rewrite.
-    return faces[seatHash(ring, cell) % faces.length];
-  }
 
-  // Nobody in a hall sits perfectly on the centre of their seat, and a grid of
-  // heads on exact centres is what made the stands read as a carton. Each face
-  // is nudged off centre by a fraction of the seat, and its size varies a
-  // little around the row's own size — both from the same seat hash, so they
-  // never move between polls.
-  function seatJitter(ring, cell) {
-    var h = seatHash(ring, cell);
-    return {
-      x: (((h >>> 4) & 0xff) / 255 - 0.5),
-      y: (((h >>> 12) & 0xff) / 255 - 0.5),
-      scale: 0.9 + ((h >>> 20) & 0xff) / 255 * 0.2
-    };
-  }
 
   // Face size, from the measured mockup (docs/chef_battle/arena_mockup_spec.md
   // §4): a portrait is 0.06 of the floor's own radius, 0.07 in the front row
@@ -1209,9 +1224,6 @@
     return 0;
   }
 
-  function faceDiameter(geometry, ring, radius) {
-    return radius * (FACE_NEAR + (FACE_FAR - FACE_NEAR) * rowDepth(geometry, ring));
-  }
 
   // Depth of light. Size alone does not read as distance: with every face at
   // full brightness the back row shines as hard as the front and the
@@ -1237,135 +1249,28 @@
     });
   }
 
-  function faceLighting(geometry, ring) {
-    var depth = rowDepth(geometry, ring);
-    var brightness = 1 - FACE_DIM * depth;
-    var saturation = 1 - FACE_DESATURATE * depth;
-    return 'brightness(' + brightness.toFixed(3) + ') saturate(' + saturation.toFixed(3) + ')';
-  }
 
-  // G6: atmospheric stand-ins in EMPTY spectator seats — DISABLED (Owner 2026-07-27).
-  // The paid face assets under static/images/crowd/ stay on disk for a later
-  // real crowd pass; do not delete them. fillCrowd only clears leftover
-  // .arena-crowd-figure nodes so polls do not leave ghosts. Real payload
-  // spectators still render via appendOccupant / occupants layer.
-  // A08 — how many atmospheric rows stand behind the real ones, and how far
-  // apart. Fractions of the distance from the floor centre, so the bowl grows
-  // with the stage instead of drifting off it at another size.
-  var CROWD_ROWS = 3;
-  var CROWD_ROW_STEP = 0.085;
+  // THE ATMOSPHERIC CROWD IS GONE. Owner, 2026-08-17.
+  //
+  // Three rows of real face photographs stood behind the seats as scenery. On
+  // screen each was 3-4 PIXELS across at 30-62% opacity - measured, not
+  // guessed - so a photograph of a person read as a black dot, and a ring of
+  // black dots around the octagon is what he reported. The assets were fine:
+  // 96 files in git, 192 on production, nothing broken. The size was the bug.
+  //
+  // Removed rather than enlarged: with the author gallery now visible and the
+  // spirits lighting the balconies by real count, the hall is described by two
+  // honest things. Ninety-six drawn spectators around an empty arena would be
+  // the invented viewers the plan forbids in production.
+  //
+  // The face assets under static/images/crowd/ stay on disk. They are paid
+  // work and not litter; they are simply not drawn.
+  //
+  // Deleted with it, because it existed only to serve it: fillCrowd,
+  // crowdFaceFor, seatJitter, faceDiameter, faceLighting, billboardFaces, the
+  // crowd layer, and appendCrowdFigure - which had already been unreachable,
+  // defined and called from nowhere.
 
-  /**
-   * The atmospheric crowd: the hall BEHIND the seats, never the seats.
-   *
-   * On 2026-07-27 the Owner had the crowd faces stopped (v2.5.612) because they
-   * were stand-in portraits sitting IN EMPTY SEATS — a face where a person was
-   * not. The files were kept, in his words, "for a later real crowd pass", and
-   * this is that pass. The line he drew is the one thing this function must not
-   * cross, so nothing here ever touches a seat element: the figures live in
-   * their own layer, behind the stands, carry no slug, no occupancy, no online
-   * state and no pointer events. They are scenery, and they cannot be clicked,
-   * hovered, counted or mistaken for somebody who is present.
-   *
-   * Placement is derived from the seats that were actually drawn rather than
-   * from a second copy of the seating geometry: each figure is a real seat's own
-   * position pushed further from the floor centre. So if the seat contract
-   * changes again, the crowd follows it instead of drifting behind it — which is
-   * exactly how the last seating change left a whole rank ring with no beacon.
-   *
-   * Left and right are deliberately left empty: that is where AR5 puts the
-   * spirit balconies, and painting them now would only be repainted then.
-   */
-  function fillCrowd(svg, geometry, assignments) {
-    var layer = svg.querySelector('[data-arena-layer="crowd"]');
-    if (!layer) { return; }
-    while (layer.firstChild) { layer.removeChild(layer.firstChild); }
-    Array.prototype.forEach.call(svg.querySelectorAll('.arena-crowd-figure'), function (figure) {
-      if (figure.parentNode) { figure.parentNode.removeChild(figure); }
-    });
-
-    var faces = global.ARENA_CROWD_FACES || [];
-    if (!faces.length) { return; }
-
-    // The outermost real row on each side is what the crowd stands behind.
-    var anchors = [];
-    ['top', 'bottom'].forEach(function (side) {
-      var seats = svg.querySelectorAll('[data-ring-kind="spectator"][data-side="' + side + '"]');
-      var outerRow = -1;
-      Array.prototype.forEach.call(seats, function (seat) {
-        var row = parseInt(seat.getAttribute('data-row'), 10);
-        if (isFinite(row) && row > outerRow) { outerRow = row; }
-      });
-      Array.prototype.forEach.call(seats, function (seat) {
-        if (parseInt(seat.getAttribute('data-row'), 10) !== outerRow) { return; }
-        var x = parseFloat(seat.getAttribute('cx'));
-        var y = parseFloat(seat.getAttribute('cy'));
-        var r = parseFloat(seat.getAttribute('r'));
-        if (isFinite(x) && isFinite(y)) { anchors.push({ x: x, y: y, r: isFinite(r) ? r : 5.6, side: side }); }
-      });
-    });
-    if (!anchors.length) { return; }
-
-    var defs = svg.querySelector('defs');
-    var clipReady = svg.querySelector('#arena-crowd-face-clip') !== null;
-    if (defs && !clipReady) {
-      var clip = el('clipPath', { id: 'arena-crowd-face-clip', clipPathUnits: 'objectBoundingBox' });
-      clip.appendChild(el('circle', { cx: '0.5', cy: '0.5', r: '0.5' }));
-      defs.appendChild(clip);
-    }
-
-    var index = 0;
-    for (var row = 1; row <= CROWD_ROWS; row++) {
-      var push = 1 + row * CROWD_ROW_STEP;
-      // Further back is smaller and dimmer. Opacity, not filter: every filter on
-      // this floor is killed by an !important in arena_atmosphere.css written to
-      // stop avatar glow escaping the rim, and that is what silently swallowed
-      // the seat rows' own depth until A08 measured it.
-      var scale = 1 - row * 0.11;
-      var dim = 0.62 - (row - 1) * 0.16;
-      for (var i = 0; i < anchors.length; i++) {
-        // Alternate rows are offset by half a seat so the crowd does not read as
-        // a grid of columns marching away from the floor.
-        if (row % 2 === 1 && i === anchors.length - 1) { continue; }
-        var a = anchors[i];
-        var b = row % 2 === 1 ? anchors[i + 1] : null;
-        // NEVER PAIR ACROSS THE TWO BANKS. Owner, 2026-08-06: he circled a
-        // smudge on the floor at three o'clock. The anchors are the top bank
-        // followed by the bottom bank in one list, so on an offset row the pair
-        // (i, i+1) at the seam was the LAST seat of the top row and the FIRST of
-        // the bottom one — and the midpoint of a seat above the floor and a seat
-        // below it lands in the middle of the floor. Three rows, two of them
-        // offset, so it put exactly two faces on the boards: measured at radius
-        // 420, inside the rank rings, and 485, on the sponsors' ring, both at
-        // angle 0. A crowd figure belongs behind the seats and nowhere else.
-        if (b && b.side !== a.side) { continue; }
-        var ax = b ? (a.x + b.x) / 2 : a.x;
-        var ay = b ? (a.y + b.y) / 2 : a.y;
-        var x = TPL_CX + (ax - TPL_CX) * push;
-        var y = TPL_CY + (ay - TPL_CY) * push;
-        var size = a.r * 2 * scale;
-
-        var figure = el('image', {
-          href: faces[index % faces.length],
-          x: (x - size / 2).toFixed(2),
-          y: (y - size / 2).toFixed(2),
-          width: size.toFixed(2),
-          height: size.toFixed(2),
-          preserveAspectRatio: 'xMidYMid slice',
-          'clip-path': 'url(#arena-crowd-face-clip)',
-          // Depth as a custom property, not an opacity attribute: the stylesheet
-          // sets opacity from it, and a CSS declaration outranks an SVG
-          // attribute — an attribute here would simply be ignored.
-          style: '--crowd-dim: ' + dim.toFixed(2),
-          'pointer-events': 'none',
-          'aria-hidden': 'true',
-          class: 'arena-crowd-figure'
-        });
-        layer.appendChild(figure);
-        index++;
-      }
-    }
-  }
 
   function initialOf(entity) {
     var source = (entity.name || entity.slug || '').trim();
@@ -1593,7 +1498,6 @@
 
     // Clear every transient attribute first: a poll may free a cell, and a
     // stale occupancy left on it would outlive its occupant.
-    seatedRing = null;
     Array.prototype.forEach.call(svg.querySelectorAll('.arena-cell[data-ring]'), function (seat) {
       seat.setAttribute('data-occupancy', 'empty');
       seat.setAttribute('data-state', 'idle');
@@ -1610,7 +1514,6 @@
     lightRows(svg, geometry);
 
     var assignments = buildAssignments(payload, geometry);
-    fillCrowd(svg, geometry, assignments);
 
     assignments.forEach(function (assignment) {
       var seat = svg.querySelector(
@@ -1650,7 +1553,6 @@
           if (entity.is_owner) { spark.setAttribute('data-owner', 'true'); }
         }
       }
-      if (entity.slug && entity.slug === viewerSlug()) { seatedRing = assignment.ring; }
 
       appendOccupant(svg, occupants, assignment);
     });
@@ -1774,15 +1676,21 @@
     Array.prototype.forEach.call(svg.querySelectorAll('.arena-cell[data-ring]'), function (polygon) {
       var ring = Number(polygon.getAttribute('data-ring'));
       var seatable = false;
+      // Owner, 2026-08-17: MOVING SEAT IS A SPECTATOR'S OPTION AND NOBODY
+      // ELSE'S. "у зрителей нет ранговых колец, они все за пределами
+      // октагона, октагон только для шефов".
+      //
+      // This used to offer a seated CHEF the other empty cells of his own rank
+      // ring, which reads as a choice he does not have: a chef's cell is
+      // decided by the scatter from his slug so it stays put across polls, and
+      // a rank ring is a rank, not a seating preference. Only the galleries
+      // are ever offered now, to anybody, and the branch that treated a rank
+      // ring as re-seatable is gone rather than narrowed.
+      //
+      // The point of the option is social, and it is why it belongs to
+      // spectators alone: an author moves to sit NEXT TO somebody.
       if (viewerSlug() && polygon.getAttribute('data-occupancy') === 'empty') {
-        if (seatedRing !== null) {
-          seatable = kindByRing[seatedRing] === 'rank'
-            ? ring === seatedRing
-            : kindByRing[ring] === 'spectator';        } else {
-          // Not on the floor yet: a chef's rank ring is unknown until the
-          // payload seats them, so only the galleries can be offered.
-          seatable = kindByRing[ring] === 'spectator';
-        }
+        seatable = kindByRing[ring] === 'spectator';
       }
       if (seatable) { polygon.setAttribute('data-seatable', 'true'); }
       else { polygon.removeAttribute('data-seatable'); }
@@ -3021,7 +2929,6 @@
 
     placeOctagon(svg, camera);
 
-    billboardFaces(svg);
     placeRankSpine(svg);
     paintRankLadder(svg);
     // Everything measured off the octagon now holds a real position, so the
@@ -3321,33 +3228,6 @@
 
 
 
-  // Billboarding: a face lying on the tilted floor plane is squashed, and a
-  // person in a hall looks at the camera instead. The old fix pre-stretched
-  // every face by the same 1/cos(56deg) = 1.79, which only works for an
-  // orthographic tilt. Under perspective the squash depends on how far the
-  // seat is from the camera: measured on prod, the front row came out 0.75
-  // wide-to-tall (over-corrected) while the back rows came out 1.16-1.34
-  // (under-corrected). No single number is right for both.
-  //
-  // So each face is corrected by its own measurement: multiply its current
-  // stretch by its rendered width/height until the box is square. One pass
-  // lands it; the second is the residue.
-  function billboardFaces(svg) {
-    var faces = svg.querySelectorAll('.arena-crowd-figure image');
-    if (!faces.length) { return; }
-
-    for (var pass = 0; pass < 2; pass++) {
-      for (var i = 0; i < faces.length; i++) {
-        var face = faces[i];
-        var box = face.getBoundingClientRect();
-        if (!(box.width > 0) || !(box.height > 0)) { continue; }
-        var current = parseFloat(face.getAttribute('data-billboard')) || 1;
-        var corrected = current * (box.width / box.height);
-        face.setAttribute('data-billboard', corrected.toFixed(4));
-        face.style.transform = 'scaleY(' + corrected.toFixed(4) + ')';
-      }
-    }
-  }
 
   function init() {
     var svg = document.getElementById('arena-render');

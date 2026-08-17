@@ -4,7 +4,82 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-17 · Production baseline: **v2.5.1134**
+Last reconciled: 2026-08-17 · Production baseline: **v2.5.1135**
+
+## Owner ruling, 2026-08-17 — the gallery is a closed ring built from octagon cells
+
+He sent a live screenshot: what should have been the author gallery read as
+a ring of black dots around the octagon. The finding was three separate
+things that are easy to confuse, and the dots were the third: **author
+seats** (114, two rows) sat invisible by design (`opacity: 0`); **spirits**
+(unauthorised visitors) light balconies behind them, correctly at zero
+before launch; a decorative **atmospheric crowd** of 96 real face photographs
+rendered at **3–4 pixels on screen** (measured: `pitch = floorR×0.032`,
+seat radius `pitch×0.40`, scene fit 0.79308) — a photograph that small reads
+as a dot. Assets were intact, git and production both; the size was the
+defect.
+
+Separately, the seats were invisible not from emptiness but from crowding:
+`standsOuter = Math.min(520, floorOuter + 48)` asked for 48 units of depth
+and received 5, because `floorOuter` is 515 — 114 seats roughly 13 units
+across were squeezed into a band 5 deep. The canvas held the room the whole
+time: `viewBox 1100×1100`, centre 550, octagon edge 515 — 35 units sat
+unused.
+
+**His ruling, three parts:**
+
+1. **"рисуем везде где есть свободное место вокруг октагона... представь,
+   что ты пришел смотреть бокс, и встаешь туда где есть хорошее свободное
+   место."** Supersedes the 2026-07-29 §2a contract's letter (two rows top,
+   two rows bottom) while keeping its meaning: author seats and the spirit
+   balconies behind them are now a **closed ring** all the way round the
+   octagon, not two arcs. Two rows, 114 seats — asked directly, he chose to
+   give them room rather than add rows.
+2. **"это тот же код, что и соты октагона, тот же принцип"** — mechanics
+   *and* form, confirmed explicitly. Supersedes the 2026-07-24 rule that
+   spectators are an oval, off the octagon's own grid. Seats are now drawn
+   with the same generator that draws the rank rings
+   (`ArenaOctagon.ringSegmentPath`).
+3. **"у зрителей нет ранговых колец, они все за пределами октагона, октагон
+   только для шефов"** — confirms rank rings 1–10 stay chef-only, unchanged;
+   the gallery ring is a separate, outer ring with its own identity.
+
+**What shipped:** `standsOuter`'s clamp raised from 5 units of depth to
+~29 (small margin kept to the canvas edge); `_oval_seat_list()` and
+`_balcony_stand_list()` (`chef_battle/selectors.py`) rewritten from two arcs
+to one closed ring each; `drawSpectatorOval()` (`arena_render.js`) rewritten
+to draw `<path>` octagon segments instead of `<circle>` seats; empty gallery
+cells made visible in the octagon's own palette instead of hidden;
+`markSeatable()` no longer offers a seated chef his own rank ring — moving
+seats is a spectator's option only, per point 3; the atmospheric crowd
+(`fillCrowd`, `crowdFaceFor`, `seatJitter`, `faceDiameter`, `faceLighting`,
+`billboardFaces`, the crowd SVG layer, the 96-URL face list shipped on every
+page load) removed outright rather than enlarged — with the gallery now
+visible and spirits real, 96 invented faces around an empty arena would be
+exactly the fake viewers this plan forbids in production. Face assets stay
+on disk, unwired.
+
+**A real defect the fix exposed rather than caused:** `maxBe`, the plan-space
+radius the whole stand depth is scaled against, measured only seats. Balcony
+stands sit further out in plan space than any seat, so once the gallery got
+real depth the balconies would have mapped past the canvas edge — invisible
+before only because everything was crushed onto the floor's rim already.
+Fixed by measuring balconies into the same stretch.
+
+**Not touched:** the camera (`rotateX(42deg)`, perspective 1500px, origin
+50% 40%), the octagon's own radius (515) and ring radii, `placeOctagon`,
+page layout, the two-stylesheet rule. `arena-shell-clip` clips to the
+octagon's contour; the gallery is drawn outside that group and was never
+inside it.
+
+**Left for separate cards, each needing his own ruling before code:**
+"You are here" over a seated viewer's own avatar (the `arena-seat-label`
+element exists, a second mode does not); a gendered fallback avatar when an
+author has none (`male-96`/`female-96`/`neutral-96` assets exist, but
+`RecipeAuthor` has no gender field — a new field, a new registration
+question, personal data); proximity chat, 3 cells, with a "Talking
+Something" label for anyone out of range (no arena chat exists at all today,
+only the in-battle one).
 
 ## Owner ruling, 2026-08-17 — ALL CLAN WORK IS SEASON 2
 
