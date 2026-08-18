@@ -934,9 +934,11 @@
 .arena-command-deck__metrics,
 .arena-command-deck__floor,
 .arena-command-deck__ladder,
+.arena-command-deck__guide,
 .arena-command-deck__gifts,
 .arena-command-deck__crowd-rail,
 .arena-chat,
+.arena-command-deck__command,
 .arena-command-deck__phase-rail {
   border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
   background: color-mix(in srgb, var(--surface) 90%, transparent);
@@ -946,7 +948,21 @@
 .arena-command-deck__header { grid-area: header; display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.1rem 1.25rem; border-radius: 1.1rem; }
 .arena-command-deck__eyebrow, .arena-panel__kicker { margin: 0; color: var(--arena-gold); font-size: .69rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 .arena-command-deck__header h1 { margin: .12rem 0; font-family: var(--font-serif); font-size: clamp(1.55rem, 3vw, 2.3rem); line-height: 1; color: var(--arena-ink); }
-.arena-command-deck__live-note, .arena-command-deck__floor-copy, .arena-command-deck__phase-copy, .arena-command-deck__gift-copy { margin: .35rem 0 0; color: var(--arena-muted); font-size: .82rem; line-height: 1.5; }
+.arena-command-deck__live-note, .arena-command-deck__floor-copy, .arena-command-deck__phase-copy, .arena-command-deck__gift-copy, .arena-command-deck__guide-copy { margin: .35rem 0 0; color: var(--arena-muted); font-size: .82rem; line-height: 1.5; }
+.arena-command-deck__guide-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .5rem;
+  color: var(--accent-bronze-dark);
+  font-weight: 700;
+  font-size: .78rem;
+  text-decoration: none;
+}
+.arena-command-deck__guide-link:hover,
+.arena-command-deck__guide-link:focus-visible {
+  text-decoration: underline;
+}
 
 .arena-command-deck__phase-rail { grid-area: phase-rail; border-radius: 1rem; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: .45rem; }
 .arena-command-deck__phase-rail.is-open .arena-phase-step { opacity: .82; }
@@ -982,6 +998,34 @@
 
 .arena-command-deck__phase-card { grid-area: phase; align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__phase-name { font: 700 1.15rem/1.1 var(--font-serif); }
+/* Owner mockup, 2026-08: the "current phase" block sits below the ARENA
+   STATUS title now, its own icon+label+value row - reuses the same round
+   icon-badge look the panel titles use rather than a second style. */
+.arena-phase-current {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.5rem 0 0.7rem;
+}
+.arena-phase-current__ico {
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: 0 0 auto;
+  padding: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+  border-radius: 50%;
+  color: var(--accent-bronze-dark);
+  background: color-mix(in srgb, var(--accent-bronze) 10%, var(--surface));
+  box-sizing: content-box;
+}
+.arena-phase-current__label {
+  margin: 0;
+  color: var(--arena-gold);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
 /* Mockup-style phase timer (Owner auto-refresh countdown). */
 .arena-command-deck__phase-card .arena-panel__title {
   display: flex;
@@ -1028,6 +1072,45 @@
 .arena-command-deck__metrics { grid-area: metrics; }
 .arena-metric { min-width: 0; padding: .45rem .1rem; align-items: baseline; justify-content: space-between; gap: .5rem; border-top: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
 .arena-metric:first-child { border-top: 0; }
+
+/* ARENA COMMAND — 4x2 icon-tile grid, Owner mockup 2026-08. Fixed 4 columns
+   rather than auto-fill: eight destinations is a closed set, not a list that
+   grows, so the grid should never reflow into 3 or 5 columns as the panel
+   resizes. */
+.arena-command-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+}
+.arena-command-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  padding: .5rem .25rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 22%, transparent);
+  border-radius: .6rem;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  color: var(--arena-ink);
+  text-align: center;
+  text-decoration: none;
+}
+.arena-command-tile:hover,
+.arena-command-tile:focus-visible {
+  border-color: var(--arena-gold);
+  background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
+}
+.arena-command-tile .arena-ico {
+  width: 1.3rem;
+  height: 1.3rem;
+  color: var(--accent-bronze-dark);
+}
+.arena-command-tile span {
+  font-size: .6rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: .01em;
+}
 .arena-metric span { font-weight: 700; white-space: nowrap; }
 .arena-ico { margin-right: .28rem; color: var(--arena-gold); fill: currentColor; }
 .arena-metric strong { flex: 0 0 auto; font: 700 1.1rem/1 var(--font-serif); }
@@ -1092,7 +1175,7 @@
 .arena-rank-spine__step b { place-items: center; border-radius: 999px; font-size: .9em; }
 .arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { color: var(--brand-dark); }
 
-.arena-command-deck__ladder, .arena-command-deck__gifts { align-self: start; border-radius: 1rem; padding: 1.05rem; }
+.arena-command-deck__ladder, .arena-command-deck__guide, .arena-command-deck__gifts, .arena-command-deck__command { align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__ladder { grid-area: ladder; }
 .arena-command-deck__gifts { grid-area: gifts; }
 
@@ -1232,6 +1315,66 @@
 .arena-crowd-rail__status b { color: var(--arena-cappuccino); }
 .arena-crowd-rail__actions { display: flex; flex: 0 0 auto; align-items: center; gap: .5rem; }
 .arena-crowd-rail__actions .btn-secondary { min-height: 2.25rem; padding-inline: .8rem; font-size: .7rem; }
+
+/* Owner mockup, 2026-08: medallion + Enter Arena + Issue a Challenge, each
+   button carrying a title and a subtitle line. Replaces the previous
+   Browse-rankings-plus-one-contextual-button row. */
+.arena-lower-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .6rem;
+}
+.arena-lower-actions__medallion {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--hall-dark-1, #1c1712);
+  box-shadow: 0 0 0 2px var(--arena-gold);
+}
+.arena-lower-actions__medallion .arena-ico {
+  width: 1.3rem;
+  height: 1.3rem;
+  color: var(--arena-gold);
+}
+.arena-lower-actions__primary,
+.arena-lower-actions__secondary {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  padding: .55rem 1.1rem;
+  border: 0;
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+}
+.arena-lower-actions__primary {
+  background: var(--hall-dark-1, #1c1712);
+  color: var(--surface);
+}
+.arena-lower-actions__primary .arena-lower-actions__title::after {
+  content: "\203A";
+  margin-inline-start: .35rem;
+}
+.arena-lower-actions__secondary {
+  border: 1px solid color-mix(in srgb, var(--brand) 35%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--arena-ink);
+}
+.arena-lower-actions__title {
+  font-weight: 800;
+  font-size: .78rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.arena-lower-actions__subtitle {
+  font-size: .66rem;
+  opacity: .8;
+}
 .arena-command-deck__crowd-rail .ce-nav__link { flex: 0 0 auto; }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1276,6 +1419,63 @@
   border: 0;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* ARENA FLOOR FRAME — Owner mockup, 2026-08. A parchment border with four gold
+   corner flourishes drawn OVER the existing full-viewport floor (Stage16's
+   "the floor becomes the whole viewport" stands - this is a layer on top of
+   it, not a return to the boxed-floor grid it replaced). inset:0 on the
+   floor's own positioned box (.arena-command-deck__floor is position:absolute
+   above the mobile breakpoint, so this needs no context of its own).
+   pointer-events:none throughout: a frame must never steal a click the
+   octagon or a panel would otherwise receive. z-index is --arena-z-panel, the
+   scale's existing "above the floor, below the interactive panels" step - the
+   frame's own ink lives only at its edges, so it never actually covers the
+   caption or the octagon it visually surrounds. */
+.arena-floor-frame {
+  position: absolute;
+  inset: 2%;
+  z-index: var(--arena-z-panel);
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--arena-gold) 55%, transparent);
+  border-radius: 1.4rem;
+}
+/* Four corners, four real elements: a single div has only one ::before and
+   one ::after, not enough for four flourishes at once. */
+.arena-floor-frame__corner {
+  position: absolute;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 2px solid var(--arena-gold);
+  opacity: .75;
+}
+.arena-floor-frame__corner--nw {
+  top: -1px;
+  left: -1px;
+  border-right: 0;
+  border-bottom: 0;
+  border-top-left-radius: 1.4rem;
+}
+.arena-floor-frame__corner--ne {
+  top: -1px;
+  right: -1px;
+  border-left: 0;
+  border-bottom: 0;
+  border-top-right-radius: 1.4rem;
+}
+.arena-floor-frame__corner--sw {
+  bottom: -1px;
+  left: -1px;
+  border-right: 0;
+  border-top: 0;
+  border-bottom-left-radius: 1.4rem;
+}
+.arena-floor-frame__corner--se {
+  bottom: -1px;
+  right: -1px;
+  border-left: 0;
+  border-top: 0;
+  border-bottom-right-radius: 1.4rem;
 }
 
 .arena-command-deck__floor > .arena-floor-stage {
@@ -1327,6 +1527,14 @@
 /* 3G R2 — wrappers are display:contents (no layout change). Only the lower
    broadcast bar is restyled so the frame closes edge-to-edge. */
 .arena-interface-rail {
+  display: contents;
+}
+/* Same treatment as the rail itself: these two wrappers only get real boxes
+   above the mobile breakpoint (see the 3G block below). Below it they must
+   stay display:contents too, or their children stop being direct grid items
+   and lose the grid-area that places them in the mobile single-column stack. */
+.arena-left-stack,
+.arena-right-stack {
   display: contents;
 }
 
@@ -1612,7 +1820,9 @@
  * in normal flow, so all eight ranks stay present. placeRankSpine() clears its
  * measured inline top/left/width at this width, so the stylesheet owns it. */
 @media (max-width: 767px) {
-  .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; grid-template-columns: 1fr; grid-template-areas: "header" "phase" "phase-rail" "metrics" "floor" "crowd" "chat" "ladder" "gifts"; gap: .65rem; }
+  .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; grid-template-columns: 1fr; grid-template-areas: "header" "phase" "phase-rail" "metrics" "command" "floor" "crowd" "chat" "guide" "ladder" "gifts"; gap: .65rem; }
+  .arena-command-deck__guide { grid-area: guide; }
+  .arena-command-deck__command { grid-area: command; }
   .arena-command-deck__header, .arena-command-deck__floor-head, .arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
   .arena-command-deck__phase-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -2186,6 +2396,24 @@
 
 /* ── Gifts (A12) ── */
 .arena-command-deck__gift-copy { margin:.2rem 0 0; }
+/* Owner mockup: a large decorative gift box sits in the card. Reuses the same
+   #ad-gift symbol already in the header rather than commissioning new art -
+   see the plan's note on this. Positioned so it sits behind the copy text,
+   not over it. */
+.arena-command-deck__gifts {
+  position: relative;
+  overflow: hidden;
+}
+.arena-gift-illustration {
+  position: absolute;
+  right: -.6rem;
+  bottom: -.6rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  color: var(--arena-gold);
+  opacity: .28;
+  pointer-events: none;
+}
 /* ── Crowd rail (A13) ── */
 .arena-command-deck__crowd-rail {
   background:var(--ad-s3); border:1px solid var(--ad-line); border-radius:12px;
@@ -2778,6 +3006,39 @@
   color: var(--ink);
   font: 700 1.05rem/1.1 var(--font-serif, "Playfair Display", serif);
 }
+/* Owner mockup, 2026-08 rebuild: every one of the 7 panel headers is ONE
+   line - an icon and a bold capital label. Reuses .arena-panel__kicker's
+   existing small gold-caps look rather than redefining .arena-panel__heading,
+   which stays exactly as it always was: .arena-command-deck__eyebrow (the
+   page's own "Chef Battles Arena" line) and .arena-command-deck__phase-name
+   (the big "Open Floor" value) both still depend on it and must not shrink. */
+.arena-panel__title > .arena-panel__kicker {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+/* Decorative flanking arrows on the right column's two headers only (LIVE
+   ARENA METRICS, ARENA COMMAND) - ornament, not a control. */
+.arena-panel__title--flanked {
+  gap: .4rem;
+}
+.arena-panel__title--flanked::before,
+.arena-panel__title--flanked::after {
+  content: "";
+  flex: 0 0 auto;
+  width: .55rem;
+  height: .55rem;
+  border-block-start: 1px solid var(--arena-gold);
+  border-inline-end: 1px solid var(--arena-gold);
+  opacity: .65;
+}
+.arena-panel__title--flanked::before {
+  transform: rotate(-135deg);
+}
+.arena-panel__title--flanked::after {
+  order: 3;
+  transform: rotate(45deg);
+}
 .arena-panel__title > .arena-ico {
   width: 1.25rem;
   height: 1.25rem;
@@ -3097,17 +3358,45 @@
     left: 1.2%;
     width: min(15.5rem, 17.5%);
   }
-  .arena-command-deck__metrics,
-  .arena-command-deck__gifts {
-    right: 1.2%;
-    width: min(15.5rem, 17.5%);
-  }
-  .arena-command-deck__phase-card,
-  .arena-command-deck__metrics {
+  .arena-command-deck__phase-card {
     top: 14%;
   }
-  .arena-command-deck__gifts {
+  /* The right column is a single stack too, same reasoning as the left one:
+     LIVE ARENA METRICS, ARENA COMMAND and BATTLE GIFTS are three panels of
+     variable content height, and three independent percentages could only
+     ever be right on one screen size at a time. metrics keeps its natural
+     height, the command grid keeps its natural height (it never wraps - a
+     fixed 4x2 of icon tiles), and gifts takes whatever room is left, the
+     same way spectator chat does on the left. */
+  .arena-right-stack {
+    position: absolute;
+    right: 1.2%;
+    top: 14%;
     bottom: 9%;
+    width: min(15.5rem, 17.5%);
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    z-index: var(--arena-z-cells);
+  }
+  .arena-right-stack > .arena-command-deck__metrics,
+  .arena-right-stack > .arena-command-deck__command {
+    flex: 0 0 auto;
+  }
+  .arena-right-stack > .arena-command-deck__gifts {
+    flex: 1 1 auto;
+    min-height: 5.5rem;
+  }
+  .arena-right-stack > .arena-command-deck__metrics,
+  .arena-right-stack > .arena-command-deck__command,
+  .arena-right-stack > .arena-command-deck__gifts {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
   }
   /* The Owner's mockup reads down the left column: status, crown ladder, then
      the spectator chat lowest of all. The chat takes the ladder's old footing
@@ -3144,7 +3433,8 @@
     gap: .55rem;
     z-index: var(--arena-z-cells);
   }
-  .arena-left-stack > .arena-command-deck__ladder {
+  .arena-left-stack > .arena-command-deck__ladder,
+  .arena-left-stack > .arena-command-deck__guide {
     flex: 0 0 auto;
   }
   .arena-left-stack > .arena-chat {
@@ -3186,6 +3476,7 @@
   /* Inside the stack the two are laid out by it, not by coordinates of their
      own - one owner for one position. */
   .arena-left-stack > .arena-command-deck__ladder,
+  .arena-left-stack > .arena-command-deck__guide,
   .arena-left-stack > .arena-chat {
     position: relative;
     left: auto;

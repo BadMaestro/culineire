@@ -77,25 +77,38 @@
   </header>
 
   <section class="arena-command-deck__phase-card" aria-label="Current arena state">
+    {% comment %}
+      Owner mockup, 2026-08: ARENA STATUS is its own title row now, and
+      "current phase" moved out of the header into a labelled block below it
+      with its own hourglass icon - the header used to BE the phase name, which
+      is why this card had no title of its own before. Every id below is
+      unchanged from the previous markup (A11's comments on arena-phase-deadline
+      and arena-phase-refresh still apply verbatim) - only nesting moved.
+    {% endcomment %}
     <header class="arena-panel__title">
-      <div>
-        <p class="arena-panel__kicker">Phase</p>
-        <h2 id="arena-current-phase" class="arena-command-deck__phase-name arena-panel__heading">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</h2>
-      </div>
-      {% comment %}
-        A11: this slot holds the AUTHORITATIVE clock — the deadline the server
-        is counting to, reconciled against server_time by refreshDeadline() so a
-        client with a skewed clock still shows the right number. It used to hold
-        the 30 s page-refresh countdown, which looked exactly like a battle
-        clock in the reference's clock position and counted something else
-        entirely: the poll, not the phase. The refresh countdown is not gone; it
-        moved down to the gauge, which is the thing it actually measures.
-      {% endcomment %}
-      <p id="arena-phase-deadline" class="arena-command-deck__phase-deadline{% if not arena_data.deadline %} is-empty{% endif %}" data-deadline-iso="{{ arena_data.deadline.deadline_iso|default:'' }}" data-deadline-kind="{{ arena_data.deadline.kind|default:'' }}">
-        <span id="arena-deadline-label">{{ arena_data.deadline.label|default:"Live deadline" }}</span>
-        <strong>{% if arena_data.deadline %}{{ arena_data.deadline.seconds_remaining }} seconds remaining{% else %}No active deadline{% endif %}</strong>
-      </p>
+      <svg class="arena-ico" aria-hidden="true"><use href="#ad-shield"></use></svg>
+      <h2 class="arena-panel__kicker">Arena status</h2>
     </header>
+    <div class="arena-phase-current">
+      <svg class="arena-ico arena-phase-current__ico" aria-hidden="true"><use href="#ad-hourglass"></use></svg>
+      <div>
+        <p class="arena-phase-current__label">Current phase</p>
+        <h3 id="arena-current-phase" class="arena-command-deck__phase-name">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</h3>
+      </div>
+    </div>
+    {% comment %}
+      A11: this slot holds the AUTHORITATIVE clock — the deadline the server
+      is counting to, reconciled against server_time by refreshDeadline() so a
+      client with a skewed clock still shows the right number. It used to hold
+      the 30 s page-refresh countdown, which looked exactly like a battle
+      clock in the reference's clock position and counted something else
+      entirely: the poll, not the phase. The refresh countdown is not gone; it
+      moved down to the gauge, which is the thing it actually measures.
+    {% endcomment %}
+    <p id="arena-phase-deadline" class="arena-command-deck__phase-deadline{% if not arena_data.deadline %} is-empty{% endif %}" data-deadline-iso="{{ arena_data.deadline.deadline_iso|default:'' }}" data-deadline-kind="{{ arena_data.deadline.kind|default:'' }}">
+      <span id="arena-deadline-label">{{ arena_data.deadline.label|default:"Live deadline" }}</span>
+      <strong>{% if arena_data.deadline %}{{ arena_data.deadline.seconds_remaining }} seconds remaining{% else %}No active deadline{% endif %}</strong>
+    </p>
     {% comment %}
       One row, not two: the gauge and its number are the same fact, and the
       reference panel spends this space on a hairline. Giving the demoted
@@ -129,13 +142,6 @@
         <dd id="arena-facts-viewers">{{ arena_data.metrics.active_viewers|default:0 }}</dd>
       </div>
     </dl>
-    {% comment %}
-      A11: the deadline paragraph that used to sit here has MOVED into the phase
-      header above, where the reference panel puts its clock. It is the same
-      element with the same id, moved and not duplicated — two nodes sharing
-      arena-phase-deadline would leave byId() updating whichever came first and
-      the other one frozen on the page.
-    {% endcomment %}
   </section>
   </section>
 
@@ -226,11 +232,8 @@
   <div class="arena-left-stack">
   <aside class="arena-command-deck__ladder" aria-label="Today's crown ladder">
     <header class="arena-panel__title">
-      <div>
-        <p class="arena-panel__kicker">Today's ladder</p>
-        <h2 class="arena-panel__heading">Crown ladder</h2>
-      </div>
       <svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>
+      <h2 class="arena-panel__kicker">Crown ladder</h2>
     </header>
     <ol id="arena-crown-ladder" class="arena-ladder-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
       {% for chef in crown_ladder %}
@@ -255,6 +258,17 @@
     <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View Full Ladder</a>
   </aside>
 
+  <aside class="arena-command-deck__guide" aria-label="Arena guide">
+    <header class="arena-panel__title">
+      <svg class="arena-ico" aria-hidden="true"><use href="#ad-book"></use></svg>
+      <h2 class="arena-panel__kicker">Arena guide</h2>
+    </header>
+    <p class="arena-command-deck__guide-copy">
+      {% if user_enrolled %}Your station is ready. Choose an opponent when the kitchen calls.{% else %}Take a seat in the stands, or step onto the floor when you are ready to cook.{% endif %}
+    </p>
+    <a class="arena-command-deck__guide-link" href="{% url 'chef_battle:rules' %}">How Chef Battles works <span aria-hidden="true">&rarr;</span></a>
+  </aside>
+
   {% comment %}
     Spectator chat. The Owner's rules, 2026-08-17: one room for spectators and
     chefs; a spectator hears three cells either side of his own and three rows
@@ -268,10 +282,7 @@
            data-feed-url="{% url 'chef_battle:arena_chat_feed' %}"
            data-send-url="{% url 'chef_battle:arena_chat_send' %}">
     <header class="arena-panel__title">
-      <div>
-        <p class="arena-panel__kicker">Spectator chat</p>
-        <h2 class="arena-panel__heading">The stands</h2>
-      </div>
+      <h2 class="arena-panel__kicker">Spectator chat</h2>
       <span class="arena-chat__live" id="arena-chat-live" hidden>Live</span>
     </header>
 
@@ -293,13 +304,11 @@
   </div>
 
   <div class="arena-interface-rail arena-interface-rail--right" role="group" aria-label="Arena broadcast rail">
+  <div class="arena-right-stack">
   <section class="arena-command-deck__metrics" aria-label="Arena metrics">
-    <header class="arena-panel__title">
-      <div>
-        <p class="arena-panel__kicker">Live signals</p>
-        <h2 class="arena-panel__heading">Arena pulse</h2>
-      </div>
+    <header class="arena-panel__title arena-panel__title--flanked">
       <svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>
+      <h2 class="arena-panel__kicker">Live arena metrics</h2>
     </header>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong id="arena-metric-viewers">{{ arena_data.metrics.active_viewers }}</strong></div>
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-vote"></use></svg>Public votes</span><strong id="arena-metric-votes">{{ arena_data.metrics.public_votes }}</strong></div>
@@ -307,14 +316,64 @@
     <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong id="arena-crown-streak">{{ crown_streak|default:0 }}</strong></div>
   </section>
 
+  <nav class="arena-command-deck__command" aria-label="Arena command">
+    <header class="arena-panel__title arena-panel__title--flanked">
+      <svg class="arena-ico" aria-hidden="true"><use href="#ad-star"></use></svg>
+      <h2 class="arena-panel__kicker">Arena command</h2>
+    </header>
+    <div class="arena-command-grid">
+      <a class="arena-command-tile" href="{% url 'chef_battle:master_console' %}">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-shield"></use></svg>
+        <span>Master Console</span>
+      </a>
+      <a class="arena-command-tile" href="{% url 'chef_battle:challenge_list' %}">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-swords"></use></svg>
+        <span>Challenges</span>
+      </a>
+      <a class="arena-command-tile" href="{% url 'chef_battle:battle_chest' %}">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-knife"></use></svg>
+        <span>Knife Roll</span>
+      </a>
+      <a class="arena-command-tile" href="{% url 'chef_battle:season_leaderboard' %}">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-emblem"></use></svg>
+        <span>Season</span>
+      </a>
+      <a class="arena-command-tile" href="{% url 'chef_battle:changing_room' %}">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-hanger"></use></svg>
+        <span>Changing Room</span>
+      </a>
+      <a class="arena-command-tile" href="{% url 'chef_battle:rankings' %}">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-podium"></use></svg>
+        <span>Rankings</span>
+      </a>
+      <a class="arena-command-tile" href="{% url 'chef_battle:token_shop' %}">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-chest"></use></svg>
+        <span>Treasury</span>
+      </a>
+      <a class="arena-command-tile" href="{% url 'chef_battle:appreciation_gallery' %}">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+        <span>Gifts</span>
+      </a>
+    </div>
+  </nav>
+
   <aside class="arena-command-deck__gifts" aria-label="Recent battle gifts">
     <header class="arena-panel__title">
-      <div>
-        <p class="arena-panel__kicker">Recent gifts</p>
-        <h2 class="arena-panel__heading">Battle gifts</h2>
-      </div>
       <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+      <h2 class="arena-panel__kicker">Battle gifts</h2>
     </header>
+    {% comment %}
+      The illustration is decorative and unconditional - it stays whether or
+      not there are gifts, matching the mockup. The list beneath it must stay
+      a plain <ul id="arena-recent-gifts"> at all times: arena_deck.js's
+      refreshRecentGifts() writes into this exact element by id on every poll,
+      clearing it and appending either real <li> rows or its own
+      arena-panel__empty row (appendPanelEmpty()). Wrapping the <ul> itself in
+      an {% if %} would remove it from the DOM whenever the server-rendered
+      page starts empty, and the live poll would then find nothing to write
+      into - gifts sent after page load would never appear without a reload.
+    {% endcomment %}
+    <svg class="arena-gift-illustration" aria-hidden="true"><use href="#ad-gift"></use></svg>
     <ul id="arena-recent-gifts" class="arena-gift-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
       {% for gift in recent_gifts %}
         <li>
@@ -326,16 +385,31 @@
         <li class="arena-panel__empty">No battle gifts have been delivered yet.</li>
       {% endfor %}
     </ul>
-    <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks; nothing is created from this page.</p>
+    <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks.</p>
     {% if active_battle %}
-    <a class="btn-primary" href="{% url 'chef_battle:battle_detail' active_battle.pk %}#battle-gifts-title">Send a Gift</a>
+    <a class="btn-primary" href="{% url 'chef_battle:battle_detail' active_battle.pk %}#battle-gifts-title">View Gift Shop</a>
     {% else %}
-    <a class="btn-primary" href="{% url 'chef_battle:appreciation_gallery' %}">Send a Gift</a>
+    <a class="btn-primary" href="{% url 'chef_battle:appreciation_gallery' %}">View Gift Shop</a>
     {% endif %}
   </aside>
   </div>
+  </div>
 
   <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
+    {% comment %}
+      Owner mockup, 2026-08: a parchment frame with gold corner flourishes
+      around the floor. Pure decoration on top of the existing full-viewport
+      floor (A07/Stage16's "the floor becomes the whole viewport" is not
+      reversed) - inset:0, pointer-events:none, so it never intercepts a click
+      the octagon or a panel would otherwise receive. Nothing about the octagon
+      itself changes; this is a layer drawn OVER it.
+    {% endcomment %}
+    <div class="arena-floor-frame" aria-hidden="true">
+      <span class="arena-floor-frame__corner arena-floor-frame__corner--nw"></span>
+      <span class="arena-floor-frame__corner arena-floor-frame__corner--ne"></span>
+      <span class="arena-floor-frame__corner arena-floor-frame__corner--sw"></span>
+      <span class="arena-floor-frame__corner arena-floor-frame__corner--se"></span>
+    </div>
     <p class="arena-floor-caption">
       <span>The kitchen floor</span>
       <strong id="arena-floor-caption-strong">{% if active_battle %}Live cooking in progress{% elif arena_data.center.type == 'crown' %}Crown holds the centre{% else %}The floor holds the show{% endif %}</strong>
@@ -489,14 +563,47 @@
         <span id="arena-ticker-watching">{{ arena_data.metrics.active_viewers|default:0 }} watching</span>
       </div>
     </div>
-    <div class="arena-crowd-rail__actions">
-      <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Browse rankings</a>
+    {% comment %}
+      Owner mockup, 2026-08: a medallion and TWO actions, not the previous
+      "Browse rankings" + one contextual button. Backend is unchanged - this
+      is the same three-state action (challenge_create /
+      arena_take_seat / login) that always lived here, relabelled Enter Arena
+      and given a subtitle, sitting centre. Issue a Challenge is a second,
+      always-present link straight to challenge_create for anyone signed in
+      (or to login for anyone who is not) - a plain link to an existing URL,
+      no new view logic. Browse rankings is not deleted from the site, only
+      from this bar - ARENA COMMAND's Rankings tile already covers it.
+    {% endcomment %}
+    <div class="arena-lower-actions">
+      <span class="arena-lower-actions__medallion" aria-hidden="true">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
+      </span>
       {% if user_enrolled %}
-        <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}"><span class="chef-battle-cta__label">Issue a Challenge</span></a>
+        <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
+          <span class="arena-lower-actions__title">Enter Arena</span>
+          <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+        </a>
       {% elif request.user.is_authenticated %}
-        <button type="button" class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}"><span class="chef-battle-cta__label">Join the Crowd</span></button>
+        <button type="button" class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}">
+          <span class="arena-lower-actions__title">Enter Arena</span>
+          <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+        </button>
       {% else %}
-        <a class="ce-nav__link ce-nav__link--battle battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}"><span class="chef-battle-cta__label">Join the Crowd</span></a>
+        <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
+          <span class="arena-lower-actions__title">Enter Arena</span>
+          <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+        </a>
+      {% endif %}
+      {% if request.user.is_authenticated %}
+        <a class="arena-lower-actions__secondary" href="{% url 'chef_battle:challenge_create' %}">
+          <span class="arena-lower-actions__title">Issue a Challenge</span>
+          <span class="arena-lower-actions__subtitle">Challenge an opponent when you're ready.</span>
+        </a>
+      {% else %}
+        <a class="arena-lower-actions__secondary" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
+          <span class="arena-lower-actions__title">Issue a Challenge</span>
+          <span class="arena-lower-actions__subtitle">Challenge an opponent when you're ready.</span>
+        </a>
       {% endif %}
     </div>
   </footer>
