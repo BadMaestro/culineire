@@ -1138,7 +1138,11 @@
 }
 .arena-chat__log {
   flex: 1 1 auto;
-  min-height: 3.5rem;
+  /* NOT a minimum. The composer is the one thing in this panel that must always
+     be reachable - a chat you can read but not write to is not a chat - and a
+     floor under the log pushed it out of the panel on a short screen. The log
+     shrinks to nothing before the composer gives up a pixel. */
+  min-height: 0;
   overflow-y: auto;
   margin: 0;
   padding: 0;
@@ -3127,13 +3131,14 @@
     left: 1.2%;
     bottom: 9%;
     width: min(15.5rem, 17.5%);
-    /* The status card above is sized by its CONTENT, so no percentage top is
-       safe for the stack - it would sit inside the card on one screen and leave
-       a hole on another. The stack is anchored to the floor and capped instead,
-       and the cap is the measured room: at 1280x720 the card ends 197px above
-       the stack's footing, which is 34% of the floor. Taller screens give the
-       chat more of the log without ever reaching the card. */
-    max-height: 46%;
+    /* The status card above is sized by its CONTENT, so no percentage is right
+       on two screens at once: a cap tuned at 1280x720 left the pair three
+       pixels short at 1000x625 and the composer fell out of its panel. The page
+       MEASURES where the card ends and publishes it, the way it already
+       publishes the header's height, and the stack simply starts there. The
+       percentage remains only as a fallback for the moment before the first
+       measurement lands. */
+    top: var(--arena-left-stack-top, 54%);
     display: flex;
     flex-direction: column;
     gap: .55rem;
@@ -3154,7 +3159,6 @@
      On a tall screen - the Owner's tablet, any desktop over 900px - none of
      this applies and the ladder is its natural height. */
   @media (max-height: 900px) {
-    .arena-left-stack { max-height: 34%; }
     .arena-left-stack > .arena-command-deck__ladder {
       /* It yields here. Everywhere else it is flex:0 0 auto and keeps its
          natural height; on a short screen it is the panel that gives way,
@@ -3170,6 +3174,13 @@
       min-height: 0;
       margin-block: .3rem;
       overflow-y: auto;
+    }
+    /* The heading and the button are not part of what shrinks. Without this the
+       button was the first thing the squeeze ate, and it shipped sliced in half
+       across the bottom edge of the panel. */
+    .arena-left-stack > .arena-command-deck__ladder > .arena-panel__title,
+    .arena-left-stack > .arena-command-deck__ladder > .btn-secondary {
+      flex: 0 0 auto;
     }
   }
   /* Inside the stack the two are laid out by it, not by coordinates of their

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1142",
+        "date": "2026-08-18",
+        "commit": "pending",
+        "title": "Three chat defects from the Owner's screenshot, and the installed app is told to forget its cache",
+        "section": "Chef Battles / Arena / PWA",
+        "summary": "HE OPENED THE ARENA AND SENT A PICTURE. Three defects, all mine. (1) THE PLACEHOLDER CONTRADICTED THE BADGE: LIVE was lit while the panel still read 'Take a seat to join the conversation'. He is a chef - he holds a place in the octagon and needs no seat - so he was given an instruction he could not follow next to a badge saying he was already in the room. Seated readers now see 'Nobody has spoken yet.' (2) THE COMPOSER WAS PUSHED OUT OF ITS OWN PANEL by a min-height under the log. A chat you can read but not write to is not a chat, so the log now shrinks to nothing before the composer gives up a pixel. (3) THE CROWN LADDER'S BUTTON SHIPPED SLICED IN HALF - my short-screen squeeze let the flex layout eat it. Heading and button are now flex:0 0 auto and only the list gives way. THE PERCENTAGE WAS ALWAYS A GUESS, AND IT IS GONE. The stack's top was a fraction tuned at 1280x720; at 1000x625 it left the pair three pixels short. The status card above is sized by its CONTENT, so no fraction is right on two screens at once. arena_page_layout.js now MEASURES where that card ends and publishes --arena-left-stack-top, exactly as it already publishes --arena-header-h and --arena-deck-top-h, and the stylesheet simply starts the stack there. THE REMAINING SHORTFALL IS REPORTED, NOT PAPERED OVER: at 1000x625 - the Owner's tablet in its own units - the card ends at 504 and the column's footing is 598, leaving 94px for two panels that need about 165. The last 71px can only come out of his accepted composition, so the choice went to him rather than being made here. THE INSTALLED APP IS TOLD TO FORGET. He asked for the PWA too, and a deploy alone does not reach it: the service worker keeps serving what it cached until its cache NAME changes. PWA_CACHE_VERSION goes v3 to v4, which makes the worker drop every older cache on activate. Verified first that the server's .env does not override it, or the default would have changed nothing. GHOSTS, LOCAL ONLY: three test accounts seated at cells 10, 12 and 30 of the same ring proved the reach end to end - the neighbour's line arrives with its words, the far one arrives with no body at all, and the far text appears nowhere in the payload. They live in the local database; production has no invented spectators.",
+    },
+    {
         "version": "2.5.1141",
         "date": "2026-08-18",
         "commit": "pending",

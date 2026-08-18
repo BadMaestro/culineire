@@ -84,6 +84,15 @@
   function seatMe(seated) {
     if (form) { form.hidden = !seated; }
     if (live) { live.hidden = !seated; }
+    // The placeholder has to agree with the badge beside it. It shipped saying
+    // "Take a seat to join the conversation" to EVERYONE, so a chef - who holds
+    // a place in the octagon and needs no seat - read an instruction he could
+    // not follow, next to a LIVE badge saying he was already in the room.
+    if (empty && empty.parentNode) {
+      empty.textContent = seated
+        ? 'Nobody has spoken yet.'
+        : 'Take a seat to join the conversation.';
+    }
   }
 
   function poll() {

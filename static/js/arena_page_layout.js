@@ -174,11 +174,44 @@
     }
   }
 
+  /**
+   * Publish --arena-left-stack-top: where the lower-left stack may begin.
+   *
+   * 2026-08-18, with the spectator chat. The stack - crown ladder above,
+   * spectator chat below - is anchored to the floor and must not reach up into
+   * the status card above it. The card's height is decided by its CONTENT, so
+   * no percentage is right on two screens at once: a cap tuned at 1280x720 left
+   * the pair three pixels short at 1000x625 and the composer fell out of its
+   * panel. Percentages were guessing at a number the page can simply measure,
+   * which is what --arena-header-h and --arena-deck-top-h already do here.
+   *
+   * Measured as an offset inside the floor's box, like measureDeckTop, because
+   * that is the box the stack is positioned in.
+   */
+  function measureLeftStack() {
+    var deck = document.querySelector('.arena-command-deck');
+    if (!deck) { return false; }
+    var card = deck.querySelector('.arena-command-deck__phase-card');
+    var floor = deck.querySelector('.arena-command-deck__floor');
+    if (!card || !floor) { return false; }
+    var cardBox = card.getBoundingClientRect();
+    var floorBox = floor.getBoundingClientRect();
+    if (cardBox.height <= 0 || floorBox.height <= 0) { return false; }
+    // A little air under the card, matching the gap the stack keeps inside
+    // itself, so the two panels do not touch.
+    var top = Math.max(0, Math.round(cardBox.bottom - floorBox.top) + 9);
+    var next = top + 'px';
+    if (deck.style.getPropertyValue('--arena-left-stack-top') === next) { return false; }
+    deck.style.setProperty('--arena-left-stack-top', next);
+    return true;
+  }
+
   function remeasure(force) {
     var header = measure();
     var regions = measureDeckTop();
     var band = measureCaptionBand();
-    announce(header || regions || band, !!force);
+    var stack = measureLeftStack();
+    announce(header || regions || band || stack, !!force);
   }
 
   /**
