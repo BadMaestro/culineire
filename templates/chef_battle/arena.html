@@ -217,6 +217,13 @@
     the side UI to the stage frame instead of floating as detached cards.
   {% endcomment %}
   <div class="arena-interface-rail arena-interface-rail--left" role="group" aria-label="Arena status rail">
+  {% comment %}The lower half of the left column is ONE stack, anchored to the
+  floor: the crown ladder takes the height it needs and the spectator chat
+  takes whatever is left. Measured at 1280x720 there are 197px under the status
+  card and the ladder alone wants 168, so a chat with a fixed height drove the
+  ladder into the card. A stack lets the short screen shrink the chat instead of
+  breaking the composition, and the arena still never scrolls (A07).{% endcomment %}
+  <div class="arena-left-stack">
   <aside class="arena-command-deck__ladder" aria-label="Today's crown ladder">
     <header class="arena-panel__title">
       <div>
@@ -247,6 +254,42 @@
     </ol>
     <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">View Full Ladder</a>
   </aside>
+
+  {% comment %}
+    Spectator chat. The Owner's rules, 2026-08-17: one room for spectators and
+    chefs; a spectator hears three cells either side of his own and three rows
+    by the compass, because that is how hearing works and the hall reproduces
+    it; a chef is outside that in both directions, being unable to get up and
+    move closer; and the chat keeps everything from the start of a battle to
+    its end. Whether a line carries its words is decided on the SERVER - out of
+    range the browser is told only that somebody is talking.
+  {% endcomment %}
+  <section class="arena-chat" aria-label="Spectator chat" id="arena-chat"
+           data-feed-url="{% url 'chef_battle:arena_chat_feed' %}"
+           data-send-url="{% url 'chef_battle:arena_chat_send' %}">
+    <header class="arena-panel__title">
+      <div>
+        <p class="arena-panel__kicker">Spectator chat</p>
+        <h2 class="arena-panel__heading">The stands</h2>
+      </div>
+      <span class="arena-chat__live" id="arena-chat-live" hidden>Live</span>
+    </header>
+
+    <ol class="arena-chat__log" id="arena-chat-log" aria-live="polite">
+      <li class="arena-panel__empty" id="arena-chat-empty">Take a seat to join the conversation.</li>
+    </ol>
+
+    <form class="arena-chat__composer" id="arena-chat-form" hidden>
+      {% csrf_token %}
+      <input type="text" id="arena-chat-input" name="body" maxlength="300"
+             autocomplete="off" aria-label="Your message"
+             placeholder="Join the conversation...">
+      <button type="submit" aria-label="Send">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-send"></use></svg>
+      </button>
+    </form>
+  </section>
+  </div>
   </div>
 
   <div class="arena-interface-rail arena-interface-rail--right" role="group" aria-label="Arena broadcast rail">
@@ -461,6 +504,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script defer src="{% static 'js/arena_chat.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   /* Owner 2026-07-24: visible mockup-style countdown + Arena full reload.

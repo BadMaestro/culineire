@@ -4359,6 +4359,103 @@ def live_arena_snapshot(request):
     return JsonResponse(build_arena_snapshot(battle, sequence=seq))
 
 
+ARENA_CHAT_PAGE = 60
+ARENA_CHAT_MAX_CHARS = 300
+
+
+def _arena_chat_speaker(request):
+    """The author behind this request, with the seat he talks from.
+
+    Returns (author, seat). Either may be None: an anonymous visitor has no
+    author, and an author who is neither enrolled nor seated has no seat. The
+    hall is the only place this conversation happens, so a person outside it
+    neither speaks nor hears.
+    """
+    if not request.user.is_authenticated:
+        return None, None
+    author = get_author_for_user(request.user)
+    if author is None:
+        return None, None
+    from .arena_chat import seat_of
+    return author, seat_of(author)
+
+
+def arena_chat_feed(request):
+    """New lines since the id the client already holds.
+
+    Delta rather than a full re-read, the way the Owner's own local chat worked:
+    a quiet hall ships an empty list instead of re-sending the whole
+    conversation every few seconds.
+
+    The reach is applied HERE, per listener, so a line the reader is too far
+    away to hear never reaches his browser at all.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"error": "rate_limited"}, status=429)
+
+    from .arena_chat import audible_lines
+    from .models import ArenaChatMessage
+
+    author, seat = _arena_chat_speaker(request)
+    if seat is None:
+        # Not in the hall: no feed, and say so plainly rather than pretending
+        # the room is silent.
+        return JsonResponse({"seated": False, "messages": []})
+
+    try:
+        since = int(request.GET.get("since") or 0)
+    except (TypeError, ValueError):
+        since = 0
+
+    rows = list(
+        ArenaChatMessage.objects
+        .filter(id__gt=since, is_hidden=False)
+        .select_related("speaker")
+        .order_by("id")[:ARENA_CHAT_PAGE]
+    )
+    return JsonResponse({
+        "seated": True,
+        "messages": audible_lines(seat, rows),
+    })
+
+
+@require_POST
+def arena_chat_send(request):
+    """One line, spoken from the seat its author is holding right now."""
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+
+    from .arena_chat import audible_lines
+    from .models import ArenaChatMessage
+
+    author, seat = _arena_chat_speaker(request)
+    if author is None:
+        return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
+    if seat is None:
+        return JsonResponse({"ok": False, "error": "not_in_the_hall"}, status=403)
+
+    body = (request.POST.get("body") or "").strip()
+    if not body:
+        return JsonResponse({"ok": False, "error": "empty"}, status=400)
+    body = body[:ARENA_CHAT_MAX_CHARS]
+
+    message = ArenaChatMessage.objects.create(
+        battle=get_active_battles()[0] if get_active_battles() else None,
+        speaker=author,
+        display_name=author.name,
+        body=body,
+        ring_index=seat[0],
+        seat_index=seat[1],
+    )
+    # Echo it back through the same reach filter the feed uses, so the sender
+    # sees exactly the row everyone at his own distance sees.
+    return JsonResponse({"ok": True, "messages": audible_lines(seat, [message])})
+
+
 @require_POST
 def arena_react(request):
     """Record one 'heart' reaction on a battle stream side (live arena).

@@ -20939,3 +20939,186 @@ class YouAreHereMarksTheViewersOwnSeatTests(TestCase):
         return RecipeAuthor.objects.get_or_create(
             user=user, defaults={"name": slug, "slug": slug},
         )[0]
+
+
+class TheHallHearsByDistanceTests(TestCase):
+    """The Owner, 2026-08-17, on the spectator chat.
+
+    His framing, and it is not decoration: the limit is NOT a game mechanic and
+    NOT a penalty. It is how hearing works, and the hall reproduces it. Three
+    cells either side, and three rows by the compass when there is more than one
+    ring. A chef stands outside it in both directions - not out of fairness, but
+    because his cell is fixed by the scatter from his slug and he cannot get up
+    and walk closer, which is the thing that makes real hearing bearable.
+    """
+
+    def _rings(self):
+        from chef_battle.arena_chat import _rank_rings, _spectator_rings
+        return sorted(_spectator_rings()), sorted(_rank_rings())
+
+    def test_three_cells_are_heard_and_four_are_not(self):
+        from chef_battle.arena_chat import can_hear
+        spectator, _ = self._rings()
+        ring = spectator[0]
+        for distance in (0, 1, 2, 3):
+            self.assertTrue(can_hear(ring, 10, ring, 10 + distance), distance)
+            self.assertTrue(can_hear(ring, 10, ring, 10 - distance), distance)
+        for distance in (4, 5, 12):
+            self.assertFalse(can_hear(ring, 10, ring, 10 + distance), distance)
+            self.assertFalse(can_hear(ring, 10, ring, 10 - distance), distance)
+
+    def test_a_ring_closes_on_itself(self):
+        """Cell 0 and the last cell are neighbours in a circle, and a rule that
+        measured index distance would call them the length of the hall apart."""
+        from chef_battle.arena_chat import _spectator_rings, can_hear
+        rings = _spectator_rings()
+        ring = sorted(rings)[0]
+        count = rings[ring]["segments"]
+        self.assertTrue(can_hear(ring, 0, ring, count - 1))
+        self.assertFalse(can_hear(ring, 0, ring, count - 5))
+
+    def test_distance_across_rows_is_angular_not_index_arithmetic(self):
+        """The two rows hold different numbers of cells, so cell 10 of one is
+        not above cell 10 of the other. Measured by bearing, the same seat
+        position in the next row is a neighbour."""
+        from chef_battle.arena_chat import _spectator_rings, can_hear
+        rings = _spectator_rings()
+        keys = sorted(rings)
+        if len(keys) < 2:
+            self.skipTest("one spectator row")
+        near, far = keys[0], keys[1]
+        self.assertNotEqual(rings[near]["segments"], rings[far]["segments"])
+        self.assertTrue(can_hear(near, 10, far, 10))
+        self.assertFalse(can_hear(near, 10, far, rings[far]["segments"] // 2))
+
+    def test_a_chef_hears_the_whole_hall_and_the_hall_hears_him(self):
+        from chef_battle.arena_chat import can_hear
+        spectator, rank = self._rings()
+        far_seat = (spectator[-1], 40)
+        self.assertTrue(can_hear(far_seat[0], far_seat[1], rank[0], 0))
+        self.assertTrue(can_hear(rank[0], 0, far_seat[0], far_seat[1]))
+        self.assertTrue(can_hear(rank[0], 0, rank[-1], 3))
+
+    def test_words_are_withheld_rather_than_sent_and_hidden(self):
+        """A listener out of range receives the line with no body at all. Sending
+        the text and hiding it in CSS would leave it one view-source away from
+        somebody the rule says must not read it."""
+        from chef_battle.arena_chat import audible_lines
+        from chef_battle.models import ArenaChatMessage
+        from chef_battle.arena_chat import _spectator_rings
+
+        ring = sorted(_spectator_rings())[0]
+        speaker = self._author("loud-one")
+        message = ArenaChatMessage.objects.create(
+            speaker=speaker, display_name="Loud One", body="pass the salt",
+            ring_index=ring, seat_index=10,
+        )
+
+        near = audible_lines((ring, 12), [message])[0]
+        self.assertTrue(near["heard"])
+        self.assertEqual(near["body"], "pass the salt")
+
+        far = audible_lines((ring, 30), [message])[0]
+        self.assertFalse(far["heard"])
+        self.assertNotIn("body", far)
+        self.assertNotIn("salt", json.dumps(far))
+
+    def test_someone_outside_the_hall_reads_nothing(self):
+        from chef_battle.arena_chat import audible_lines
+        self.assertEqual(audible_lines(None, []), [])
+
+    def _author(self, slug):
+        from django.contrib.auth import get_user_model
+        from recipes.models import RecipeAuthor
+
+        user = get_user_model().objects.create_user(username=slug, password="x")
+        return RecipeAuthor.objects.create(user=user, name=slug, slug=slug)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class ArenaChatEndpointTests(TestCase):
+    """Sending and reading, with the reach applied on the server side."""
+
+    def setUp(self):
+        from chef_battle.arena_seating import claim_seat
+
+        User = get_user_model()
+        self.user = User.objects.create_user("chatter", password="pw")
+        self.author = RecipeAuthor.objects.create(
+            user=self.user, name="Chatter", slug="chatter",
+        )
+        self.seat = claim_seat(self.author)
+        self.feed_url = reverse("chef_battle:arena_chat_feed")
+        self.send_url = reverse("chef_battle:arena_chat_send")
+
+    def test_an_anonymous_visitor_gets_no_feed_and_cannot_speak(self):
+        feed = self.client.get(self.feed_url)
+        self.assertEqual(feed.status_code, 200)
+        self.assertFalse(feed.json()["seated"])
+        self.assertEqual(feed.json()["messages"], [])
+
+        sent = self.client.post(self.send_url, {"body": "hello"})
+        self.assertEqual(sent.status_code, 403)
+
+    def test_a_seated_viewer_speaks_and_reads_himself_back(self):
+        from chef_battle.models import ArenaChatMessage
+
+        self.client.force_login(self.user)
+        sent = self.client.post(self.send_url, {"body": "great dish"})
+        self.assertEqual(sent.status_code, 200)
+        self.assertTrue(sent.json()["ok"])
+
+        stored = ArenaChatMessage.objects.get()
+        self.assertEqual(stored.body, "great dish")
+        self.assertEqual(stored.speaker, self.author)
+        # The line remembers WHERE it was said, not where the speaker is now.
+        self.assertEqual(stored.ring_index, self.seat.ring_index)
+        self.assertEqual(stored.seat_index, self.seat.seat_index)
+
+        feed = self.client.get(self.feed_url).json()
+        self.assertTrue(feed["seated"])
+        self.assertEqual(feed["messages"][0]["body"], "great dish")
+
+    def test_since_returns_only_what_is_new(self):
+        """A quiet hall ships an empty list rather than the whole conversation,
+        which is the whole point of the delta the Owner asked to reuse."""
+        self.client.force_login(self.user)
+        self.client.post(self.send_url, {"body": "first"})
+        newest = self.client.get(self.feed_url).json()["messages"][-1]["id"]
+
+        again = self.client.get(self.feed_url, {"since": newest}).json()
+        self.assertEqual(again["messages"], [])
+
+        self.client.post(self.send_url, {"body": "second"})
+        delta = self.client.get(self.feed_url, {"since": newest}).json()
+        self.assertEqual([m["body"] for m in delta["messages"]], ["second"])
+
+    def test_an_empty_line_is_refused(self):
+        self.client.force_login(self.user)
+        self.assertEqual(
+            self.client.post(self.send_url, {"body": "   "}).status_code, 400,
+        )
+
+    def test_a_long_line_is_cut_rather_than_rejected(self):
+        from chef_battle.models import ArenaChatMessage
+
+        self.client.force_login(self.user)
+        self.client.post(self.send_url, {"body": "x" * 900})
+        self.assertEqual(len(ArenaChatMessage.objects.get().body), 300)
+
+    def test_a_hidden_line_reaches_nobody(self):
+        from chef_battle.models import ArenaChatMessage
+
+        self.client.force_login(self.user)
+        self.client.post(self.send_url, {"body": "moderated away"})
+        ArenaChatMessage.objects.update(is_hidden=True)
+        self.assertEqual(self.client.get(self.feed_url).json()["messages"], [])
+
+    def test_the_arena_is_still_dark_to_everyone_else(self):
+        """The chat may not become a hole in the launch gate."""
+        with override_settings(CHEF_BATTLE_ENABLED=False):
+            self.client.force_login(self.user)
+            self.assertEqual(self.client.get(self.feed_url).status_code, 404)
+            self.assertEqual(
+                self.client.post(self.send_url, {"body": "hi"}).status_code, 404,
+            )

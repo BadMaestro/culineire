@@ -136,3 +136,69 @@ def can_hear(speaker_ring: int, speaker_cell: int,
     # A hair of tolerance: the third cell is inside the reach, and floating
     # point must not be what decides whether the Owner's third neighbour hears.
     return gap <= reach + 1e-9
+
+
+# ---------------------------------------------------------------------------
+# Where a person is standing, and what the hall lets them read
+# ---------------------------------------------------------------------------
+
+# A speaker's seat is stored on the line, but a CHEF's exact cell never matters:
+# he is outside the distance rule in both directions, so any cell in his rank
+# ring answers every question this module asks about him. That is fortunate,
+# because the octagon decides a chef's cell in the RENDERER, by scattering his
+# slug, and the server has never known which one he landed on.
+CHEF_CELL = 0
+
+
+def seat_of(author) -> tuple[int, int] | None:
+    """The (ring, cell) this author speaks and listens from, or None.
+
+    None means the person is not in the hall at all - not enrolled, and holding
+    no seat - and such a person neither speaks nor hears.
+    """
+    from chef_battle.models import ArenaSeat, ChefBattleProfile
+    from chef_battle.selectors import rank_to_ring_index
+
+    profile = ChefBattleProfile.objects.filter(author=author).first()
+    if profile is not None and profile.enrolled_at is not None:
+        ring = rank_to_ring_index(profile.rank)
+        return (ring, CHEF_CELL) if ring else None
+
+    return (
+        ArenaSeat.objects
+        .filter(viewer=author, released_at__isnull=True)
+        .values_list("ring_index", "seat_index")
+        .first()
+    )
+
+
+def audible_lines(listener_seat, messages) -> list[dict]:
+    """The feed as ONE listener may read it.
+
+    Out of range the words are not included at all. The line still appears --
+    the person can see that somebody across the hall is talking -- but it
+    carries ``heard: false`` and no body, and the renderer draws "Talking
+    Something" over the speaker instead. Sending the text and hiding it in CSS
+    would leave it one view-source away from someone who must not read it.
+    """
+    if listener_seat is None:
+        return []
+    listener_ring, listener_cell = listener_seat
+    out = []
+    for message in messages:
+        heard = can_hear(
+            message.ring_index, message.seat_index, listener_ring, listener_cell,
+        )
+        row = {
+            "id": message.id,
+            "name": message.display_name,
+            "slug": message.speaker.slug,
+            "ring": message.ring_index,
+            "cell": message.seat_index,
+            "heard": heard,
+            "at": message.created_at.isoformat(),
+        }
+        if heard:
+            row["body"] = message.body
+        out.append(row)
+    return out

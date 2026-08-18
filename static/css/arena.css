@@ -924,6 +924,7 @@
     "phase-rail phase-rail metrics"
     "phase floor gifts"
     "ladder floor gifts"
+    "chat floor gifts"
     "crowd crowd crowd";
   gap: 1rem;
 }
@@ -935,6 +936,7 @@
 .arena-command-deck__ladder,
 .arena-command-deck__gifts,
 .arena-command-deck__crowd-rail,
+.arena-chat,
 .arena-command-deck__phase-rail {
   border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
   background: color-mix(in srgb, var(--surface) 90%, transparent);
@@ -1093,6 +1095,120 @@
 .arena-command-deck__ladder, .arena-command-deck__gifts { align-self: start; border-radius: 1rem; padding: 1.05rem; }
 .arena-command-deck__ladder { grid-area: ladder; }
 .arena-command-deck__gifts { grid-area: gifts; }
+
+/* ── Spectator chat ───────────────────────────────────────────────────────
+ * The Owner's rules, 2026-08-17. One room for spectators and chefs; a
+ * spectator hears three cells either side and three rows by the compass, a
+ * chef hears and is heard everywhere; the log keeps everything from the start
+ * of a battle to its end. Whether a line arrives WITH its words is decided on
+ * the server, so "Talking Something" here is a line that never carried any
+ * text, not text hidden with CSS.
+ *
+ * Placed by naming .arena-chat in all three lists this file requires - chrome,
+ * coordinates, colour. .arena-interface-rail is display:contents, and a panel
+ * missing from any of them has no box and nowhere to stand (X01, v2.5.822).
+ * The floor's area is unchanged: it spans the left column's rows as it always
+ * did, so A07 - the arena fits the screen whole - is not disturbed. */
+.arena-chat {
+  grid-area: chat;
+  display: flex;
+  min-height: 0;                 /* or the log cannot scroll inside the panel */
+  flex-direction: column;
+  gap: .45rem;
+  padding: .7rem .8rem .75rem;
+  border-radius: 1rem;
+}
+.arena-chat__live {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  color: var(--arena-gold);
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.arena-chat__live::before {
+  content: "";
+  width: .42rem;
+  height: .42rem;
+  border-radius: 50%;
+  background: var(--arena-gold);
+}
+.arena-chat__log {
+  flex: 1 1 auto;
+  min-height: 3.5rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  align-content: start;
+  gap: .38rem;
+}
+.arena-chat__line {
+  display: grid;
+  gap: .05rem;
+  padding-bottom: .32rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--brand) 15%, transparent);
+  font-size: .72rem;
+  line-height: 1.35;
+}
+.arena-chat__who {
+  color: var(--arena-cappuccino);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.arena-chat__said {
+  color: var(--arena-ink);
+  overflow-wrap: anywhere;
+}
+/* Too far away to hear. The speaker is visibly talking and that is all this
+   reader is entitled to know. */
+.arena-chat__said--muffled {
+  color: var(--arena-muted);
+  font-style: italic;
+}
+.arena-chat__composer {
+  flex: 0 0 auto;
+  display: flex;
+  gap: .35rem;
+}
+.arena-chat__composer input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: .38rem .55rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--arena-ink);
+  font: inherit;
+  font-size: .72rem;
+}
+.arena-chat__composer input:focus-visible {
+  border-color: var(--arena-gold);
+  outline: none;
+}
+.arena-chat__composer button {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--arena-gold);
+  cursor: pointer;
+}
+.arena-chat__composer button:hover,
+.arena-chat__composer button:focus-visible {
+  border-color: var(--arena-gold);
+}
+.arena-chat__composer .arena-ico { width: .85rem; margin: 0; }
 .arena-ladder-list li { grid-template-columns: 1.35rem 1fr auto; padding-bottom: .35rem; }
 .arena-ladder-list li a { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .arena-ladder-list li a:hover, .arena-ladder-list li a:focus-visible { text-decoration: underline; }
@@ -1229,6 +1345,12 @@
     height: calc(100svh - var(--arena-header-h, 146px));
     overflow: hidden;
     color: var(--ink);
+    /* The spectator chat's own share of the left column, and the air between it
+       and the crown ladder above it. Both live here so the ladder can rise by
+       exactly the chat's height and the pair still ends where the ladder alone
+       used to - one number, read twice, instead of two that can drift apart. */
+    --arena-chat-h: 26%;
+    --arena-chat-gap: 1.5%;
   }
 
   .arena-command-deck__floor {
@@ -1297,6 +1419,7 @@
   .arena-command-deck__metrics,
   .arena-command-deck__ladder,
   .arena-command-deck__gifts,
+  .arena-chat,
   .arena-command-deck__phase-rail,
   .arena-command-deck__crowd-rail {
     position: absolute;
@@ -1377,6 +1500,7 @@
   .arena-command-deck__header *,
   .arena-command-deck__phase-card *,
   .arena-command-deck__metrics *,
+  .arena-chat *,
   .arena-command-deck__ladder *,
   .arena-command-deck__gifts *,
   .arena-command-deck__crowd-rail * {
@@ -1484,7 +1608,7 @@
  * in normal flow, so all eight ranks stay present. placeRankSpine() clears its
  * measured inline top/left/width at this width, so the stylesheet owns it. */
 @media (max-width: 767px) {
-  .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; grid-template-columns: 1fr; grid-template-areas: "header" "phase" "phase-rail" "metrics" "floor" "crowd" "ladder" "gifts"; gap: .65rem; }
+  .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; grid-template-columns: 1fr; grid-template-areas: "header" "phase" "phase-rail" "metrics" "floor" "crowd" "chat" "ladder" "gifts"; gap: .65rem; }
   .arena-command-deck__header, .arena-command-deck__floor-head, .arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
   .arena-command-deck__phase-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -2964,6 +3088,7 @@
 
   .arena-command-deck__phase-card,
   .arena-command-deck__ladder,
+  .arena-chat,
   .arena-cooking-widget {
     left: 1.2%;
     width: min(15.5rem, 17.5%);
@@ -2977,9 +3102,87 @@
   .arena-command-deck__metrics {
     top: 14%;
   }
-  .arena-command-deck__ladder,
   .arena-command-deck__gifts {
     bottom: 9%;
+  }
+  /* The Owner's mockup reads down the left column: status, crown ladder, then
+     the spectator chat lowest of all. The chat takes the ladder's old footing
+     and the ladder rises by exactly the chat's height plus the air between
+     them, so the pair still ends where the ladder alone used to and nothing
+     else on the floor moves. These coordinates live HERE, with the rest of the
+     3G panel placement, and not in the earlier block - two rules owning one
+     panel's position is what makes this layout a house of cards. */
+  /* THE LOWER LEFT IS ONE STACK, NOT TWO COORDINATES.
+     Measured at 1280x720: 197px remain under the status card and the crown
+     ladder alone wants 168, so a chat with a height of its own drove the ladder
+     up into the card. Percentages could not fix that - the panels above are
+     sized by their content, not by the viewport, so no fraction is right on
+     both a 720px desktop and the Owner's 1932px tablet.
+     The stack is anchored to the floor instead: the ladder takes the height it
+     needs, the chat takes what is left. A tall screen gives the chat a deep
+     log; a short one shrinks it and nothing collides, and the arena still never
+     scrolls (A07). */
+  .arena-left-stack {
+    position: absolute;
+    left: 1.2%;
+    bottom: 9%;
+    width: min(15.5rem, 17.5%);
+    /* The status card above is sized by its CONTENT, so no percentage top is
+       safe for the stack - it would sit inside the card on one screen and leave
+       a hole on another. The stack is anchored to the floor and capped instead,
+       and the cap is the measured room: at 1280x720 the card ends 197px above
+       the stack's footing, which is 34% of the floor. Taller screens give the
+       chat more of the log without ever reaching the card. */
+    max-height: 46%;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    z-index: var(--arena-z-cells);
+  }
+  .arena-left-stack > .arena-command-deck__ladder {
+    flex: 0 0 auto;
+  }
+  .arena-left-stack > .arena-chat {
+    flex: 1 1 auto;
+    min-height: 5.5rem;          /* below this the log is not worth showing */
+  }
+  /* On a short screen the two panels want more than the column has: at
+     1280x720 the cap is 195px and the ladder alone asks 168. The room comes
+     from the only thing here that is a LIST - the ladder's own rows get a
+     scrollbar and stop being as tall as however many crowns were won today.
+     Its heading and its button stay put, and the chat keeps a readable log.
+     On a tall screen - the Owner's tablet, any desktop over 900px - none of
+     this applies and the ladder is its natural height. */
+  @media (max-height: 900px) {
+    .arena-left-stack { max-height: 34%; }
+    .arena-left-stack > .arena-command-deck__ladder {
+      /* It yields here. Everywhere else it is flex:0 0 auto and keeps its
+         natural height; on a short screen it is the panel that gives way,
+         because it is the one whose content is a scrollable list. */
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .arena-left-stack > .arena-command-deck__ladder .arena-ladder-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      margin-block: .3rem;
+      overflow-y: auto;
+    }
+  }
+  /* Inside the stack the two are laid out by it, not by coordinates of their
+     own - one owner for one position. */
+  .arena-left-stack > .arena-command-deck__ladder,
+  .arena-left-stack > .arena-chat {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
   }
 
 /* 3G — hall side walls + lower dock frame (prototype stage edges). */
