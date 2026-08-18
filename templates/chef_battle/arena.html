@@ -59,92 +59,6 @@
     <span class="arena-atmo-gift">☘</span>
     <span class="arena-atmo-gift">🍾</span>
   </div>
-  {% comment %}
-    The approved Cooking Widget is an independent left HUD overlay, not part
-    of the top lifecycle header. It owns the identity and the existing live
-    phase card; all phase IDs and update mechanisms are unchanged.
-  {% endcomment %}
-  <section class="arena-cooking-widget" aria-label="Cooking Widget">
-  <header class="arena-command-deck__header arena-panel__title">
-    <div>
-      <p class="arena-command-deck__eyebrow arena-panel__heading">Chef Battles Arena</p>
-      <h1 id="arena-command-title" class="arena-panel__kicker">Emerald Hall</h1>
-      <p id="arena-live-note" class="arena-command-deck__live-note{% if active_battle %} is-live{% endif %}">
-        {% if active_battle %}Live Now{% else %}Floor Open{% endif %}
-      </p>
-    </div>
-    <a class="btn-secondary" href="{% url 'chef_battle:home' %}">Back to Chef Battles</a>
-  </header>
-
-  <section class="arena-command-deck__phase-card" aria-label="Current arena state">
-    {% comment %}
-      Owner mockup, 2026-08: ARENA STATUS is its own title row now, and
-      "current phase" moved out of the header into a labelled block below it
-      with its own hourglass icon - the header used to BE the phase name, which
-      is why this card had no title of its own before. Every id below is
-      unchanged from the previous markup (A11's comments on arena-phase-deadline
-      and arena-phase-refresh still apply verbatim) - only nesting moved.
-    {% endcomment %}
-    <header class="arena-panel__title">
-      <svg class="arena-ico" aria-hidden="true"><use href="#ad-shield"></use></svg>
-      <h2 class="arena-panel__kicker">Arena status</h2>
-    </header>
-    <div class="arena-phase-current">
-      <svg class="arena-ico arena-phase-current__ico" aria-hidden="true"><use href="#ad-hourglass"></use></svg>
-      <div>
-        <p class="arena-phase-current__label">Current phase</p>
-        <h3 id="arena-current-phase" class="arena-command-deck__phase-name">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</h3>
-      </div>
-    </div>
-    {% comment %}
-      A11: this slot holds the AUTHORITATIVE clock — the deadline the server
-      is counting to, reconciled against server_time by refreshDeadline() so a
-      client with a skewed clock still shows the right number. It used to hold
-      the 30 s page-refresh countdown, which looked exactly like a battle
-      clock in the reference's clock position and counted something else
-      entirely: the poll, not the phase. The refresh countdown is not gone; it
-      moved down to the gauge, which is the thing it actually measures.
-    {% endcomment %}
-    <p id="arena-phase-deadline" class="arena-command-deck__phase-deadline{% if not arena_data.deadline %} is-empty{% endif %}" data-deadline-iso="{{ arena_data.deadline.deadline_iso|default:'' }}" data-deadline-kind="{{ arena_data.deadline.kind|default:'' }}">
-      <span id="arena-deadline-label">{{ arena_data.deadline.label|default:"Live deadline" }}</span>
-      <strong>{% if arena_data.deadline %}{{ arena_data.deadline.seconds_remaining }} seconds remaining{% else %}No active deadline{% endif %}</strong>
-    </p>
-    {% comment %}
-      One row, not two: the gauge and its number are the same fact, and the
-      reference panel spends this space on a hairline. Giving the demoted
-      countdown a row of its own made the panel TALLER than before the card,
-      which is the opposite of what A11 asks for — measured 261.3 against 245.6
-      at 1280 before it was folded back together.
-    {% endcomment %}
-    <div class="arena-phase-refresh">
-      <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge"></span></div>
-      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">05:00</strong>
-    </div>
-    <p class="arena-phase-next" id="arena-phase-next"{% if not arena_data.phase %} hidden{% endif %}>Next: <b>
-    {% if arena_data.phase and arena_data.phase_rail %}
-      {% for rung in arena_data.phase_rail %}
-        {% if rung.step == arena_data.phase.step|add:1 %}
-          {{ rung.label }}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-    </b></p>
-    <p id="arena-current-phase-copy" class="arena-command-deck__phase-copy">
-      {% if active_battle %}The centre tile opens the live battle room, chat and public actions.{% else %}Choose a chef on the floor to inspect their profile or issue a challenge.{% endif %}
-    </p>
-    <dl class="arena-compact-facts" aria-label="Arena status facts">
-      <div>
-        <dt>Centre</dt>
-        <dd>{% if active_battle %}Live battle{% elif arena_data.center.type == 'crown' %}Crown holder{% else %}Open floor{% endif %}</dd>
-      </div>
-      <div>
-        <dt>Viewers</dt>
-        <dd id="arena-facts-viewers">{{ arena_data.metrics.active_viewers|default:0 }}</dd>
-      </div>
-    </dl>
-  </section>
-  </section>
-
   <section class="arena-broadcast-ribbon" aria-label="Battle lifecycle header">
   <section id="arena-phase-rail" class="arena-command-deck__phase-rail{% if not arena_data.phase %} is-open{% endif %}" aria-label="Battle lifecycle" data-phase-key="{{ arena_data.phase.key|default:'' }}">
     {% if arena_data.phase_rail %}
@@ -223,13 +137,90 @@
     the side UI to the stage frame instead of floating as detached cards.
   {% endcomment %}
   <div class="arena-interface-rail arena-interface-rail--left" role="group" aria-label="Arena status rail">
-  {% comment %}The lower half of the left column is ONE stack, anchored to the
-  floor: the crown ladder takes the height it needs and the spectator chat
-  takes whatever is left. Measured at 1280x720 there are 197px under the status
-  card and the ladder alone wants 168, so a chat with a fixed height drove the
-  ladder into the card. A stack lets the short screen shrink the chat instead of
-  breaking the composition, and the arena still never scrolls (A07).{% endcomment %}
+  {% comment %}
+    Owner's full rebuild, 2026-08-19: the left column is ONE real flex column
+    now, not a stack with its top measured by JS off a sibling. ARENA STATUS
+    used to sit outside this wrapper, and arena_page_layout.js measured its
+    bottom edge to publish --arena-left-stack-top so the ladder below it would
+    not start under the card. That measurement existed only because the two
+    were siblings, not because the layout needed one; with ARENA STATUS moved
+    INSIDE the stack as its first child, the browser stacks all four panels
+    top to bottom on its own and the measured variable is gone with it.
+  {% endcomment %}
   <div class="arena-left-stack">
+  <section class="arena-command-deck__phase-card" aria-label="Current arena state">
+    {% comment %}
+      ARENA STATUS is the deck's own title now. The Owner's rebuild ordered
+      the removal of the separate "Chef Battles Arena / Emerald Hall"
+      introductory card - it duplicated this one and pushed the octagon
+      further from the fold. Its two live ids move here rather than
+      disappearing: #arena-command-title is what <main aria-labelledby>
+      still points at, and #arena-live-note is read by arena_deck.js:132 and
+      asserted on by chef_battle/tests.py (its CSS selector,
+      "#arena-live-note.is-live::after") - both keep the exact same id, only
+      the surrounding markup changed.
+    {% endcomment %}
+    <header class="arena-panel__title">
+      <svg class="arena-ico" aria-hidden="true"><use href="#ad-shield"></use></svg>
+      <h2 id="arena-command-title" class="arena-panel__kicker">Arena status</h2>
+      <p id="arena-live-note" class="arena-command-deck__live-note{% if active_battle %} is-live{% endif %}">
+        {% if active_battle %}Live Now{% else %}Floor Open{% endif %}
+      </p>
+    </header>
+    <div class="arena-phase-current">
+      <svg class="arena-ico arena-phase-current__ico" aria-hidden="true"><use href="#ad-hourglass"></use></svg>
+      <div>
+        <p class="arena-phase-current__label">Current phase</p>
+        <h3 id="arena-current-phase" class="arena-command-deck__phase-name">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</h3>
+      </div>
+    </div>
+    {% comment %}
+      A11: this slot holds the AUTHORITATIVE clock — the deadline the server
+      is counting to, reconciled against server_time by refreshDeadline() so a
+      client with a skewed clock still shows the right number. It used to hold
+      the 30 s page-refresh countdown, which looked exactly like a battle
+      clock in the reference's clock position and counted something else
+      entirely: the poll, not the phase. The refresh countdown is not gone; it
+      moved down to the gauge, which is the thing it actually measures.
+    {% endcomment %}
+    <p id="arena-phase-deadline" class="arena-command-deck__phase-deadline{% if not arena_data.deadline %} is-empty{% endif %}" data-deadline-iso="{{ arena_data.deadline.deadline_iso|default:'' }}" data-deadline-kind="{{ arena_data.deadline.kind|default:'' }}">
+      <span id="arena-deadline-label">{{ arena_data.deadline.label|default:"Live deadline" }}</span>
+      <strong>{% if arena_data.deadline %}{{ arena_data.deadline.seconds_remaining }} seconds remaining{% else %}No active deadline{% endif %}</strong>
+    </p>
+    {% comment %}
+      One row, not two: the gauge and its number are the same fact, and the
+      reference panel spends this space on a hairline. Giving the demoted
+      countdown a row of its own made the panel TALLER than before the card,
+      which is the opposite of what A11 asks for — measured 261.3 against 245.6
+      at 1280 before it was folded back together.
+    {% endcomment %}
+    <div class="arena-phase-refresh">
+      <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge"></span></div>
+      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">05:00</strong>
+    </div>
+    <p class="arena-phase-next" id="arena-phase-next"{% if not arena_data.phase %} hidden{% endif %}>Next: <b>
+    {% if arena_data.phase and arena_data.phase_rail %}
+      {% for rung in arena_data.phase_rail %}
+        {% if rung.step == arena_data.phase.step|add:1 %}
+          {{ rung.label }}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    </b></p>
+    <p id="arena-current-phase-copy" class="arena-command-deck__phase-copy">
+      {% if active_battle %}The centre tile opens the live battle room, chat and public actions.{% else %}Choose a chef on the floor to inspect their profile or issue a challenge.{% endif %}
+    </p>
+    <dl class="arena-compact-facts" aria-label="Arena status facts">
+      <div>
+        <dt>Centre</dt>
+        <dd>{% if active_battle %}Live battle{% elif arena_data.center.type == 'crown' %}Crown holder{% else %}Open floor{% endif %}</dd>
+      </div>
+      <div>
+        <dt>Viewers</dt>
+        <dd id="arena-facts-viewers">{{ arena_data.metrics.active_viewers|default:0 }}</dd>
+      </div>
+    </dl>
+  </section>
   <aside class="arena-command-deck__ladder" aria-label="Today's crown ladder">
     <header class="arena-panel__title">
       <svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>
@@ -353,6 +344,10 @@
       <a class="arena-command-tile" href="{% url 'chef_battle:appreciation_gallery' %}">
         <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
         <span>Gifts</span>
+      </a>
+      <a class="arena-command-tile" href="{% url 'chef_battle:artifact_gallery' %}">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-artifact"></use></svg>
+        <span>Artifacts</span>
       </a>
     </div>
   </nav>
@@ -674,12 +669,12 @@
         });
       }).then(function (result) {
         if (result.ok && result.body && result.body.ok) {
-          btn.querySelector('.chef-battle-cta__label').textContent = 'Seated';
+          btn.querySelector('.arena-lower-actions__title').textContent = 'Seated';
           return;
         }
         var err = result.body && result.body.error;
         if (err === 'arena_full') {
-          btn.querySelector('.chef-battle-cta__label').textContent = 'Arena full';
+          btn.querySelector('.arena-lower-actions__title').textContent = 'Arena full';
         } else {
           btn.disabled = false;
         }

@@ -7298,3 +7298,291 @@
   position: absolute;
 }
 
+/* ============================================================================
+ * OWNER'S FULL REBUILD, 2026-08-19 - A REAL GRID, NOT MEASURED FLOATERS.
+ *
+ * Everything above this block (the "3G prototype" system, Stage 16's
+ * position:absolute panels at coordinates measured off a screenshot) is
+ * superseded here, not deleted. Deleting hundreds of interleaved
+ * declarations across a 7000-line file line by line was judged riskier than
+ * one later block that wins the cascade outright for the properties that
+ * actually matter (position, inset, grid-area, width, height) and leaves
+ * everything cosmetic (colour, radius, shadow, icon sizing) exactly as it
+ * was, since none of that conflicts with a container's layout mode.
+ *
+ * The three protected elements move ONLY through their outer container:
+ *   - the octagon: .arena-command-deck__floor becomes a grid cell instead
+ *     of position:absolute;inset:0 on the whole viewport. Its OWN internal
+ *     4-row micro-grid (--arena-deck-top-h, --arena-caption-lead, auto, 1fr)
+ *     is untouched, and so is everything inside it.
+ *   - the rank ladder: .arena-rank-spine and placeRankSpine() in
+ *     arena_render.js are not touched by anything below.
+ *   - the sitewide widget: .site-battle-widget is hidden on this page only
+ *     (one rule, far below) - _widget.html and its own CSS are not edited.
+ * ============================================================================ */
+
+@media (min-width: 901px) {
+  /* THE GRID ITSELF. Ribbon (phase steps + next battle) full width on top,
+     three columns below it, actions full width at the bottom. */
+  .arena-command-deck {
+    display: grid;
+    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(240px, 300px);
+    grid-template-areas:
+      "ribbon ribbon ribbon"
+      "left   floor  right"
+      "foot   foot   foot";
+    align-items: start;
+    gap: 1.1rem;
+    width: 100%;
+    max-width: none;
+    /* A07 (2026-08-05) asked the arena to fit one screen and never scroll.
+       That rule is what crushed the crown ladder to zero height yesterday:
+       a fixed viewport height cannot both fit a tall octagon AND a full
+       chat log AND a full command grid without squeezing something to
+       nothing. This rebuild's own acceptance list only asks for no
+       HORIZONTAL scroll at 1920x1080/1440x900 - it does not repeat "never
+       scrolls vertically". So the deck's height is now its own content,
+       min-height keeps it from collapsing shorter than one screen, and
+       nothing is forced into a box too small for it. Recorded here plainly
+       because silently dropping a direct prior rule is not something this
+       project does without saying so. */
+    min-height: calc(100svh - var(--arena-header-h, 146px));
+    height: auto;
+    padding-block: 1.1rem;
+  }
+
+  /* Ribbon: was position:absolute;left:0;right:0;top:0 (Stage16). Now a
+     normal grid item spanning the top row, full width by the grid itself. */
+  .arena-command-deck > .arena-broadcast-ribbon,
+  .arena-broadcast-ribbon {
+    grid-area: ribbon;
+    position: static;
+    inset: auto;
+  }
+
+  /* Left column: ARENA STATUS, CROWN LADDER, ARENA GUIDE, SPECTATOR CHAT, one
+     real flex column, no JS-measured top offset (see arena.html's own comment
+     at the stack's opening tag - --arena-left-stack-top is retired with it). */
+  .arena-left-stack {
+    grid-area: left;
+    position: static;
+    inset: auto;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    z-index: auto;
+  }
+  .arena-left-stack > * {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+  }
+  .arena-left-stack > .arena-chat {
+    flex: 1 1 auto;
+    min-height: 9rem;
+  }
+
+  /* Right column: LIVE ARENA METRICS, ARENA COMMAND, BATTLE GIFTS. Same
+     treatment, mirrored. */
+  .arena-right-stack {
+    grid-area: right;
+    position: static;
+    inset: auto;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    z-index: auto;
+  }
+  .arena-right-stack > * {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+  }
+  .arena-right-stack > .arena-command-deck__gifts {
+    flex: 1 1 auto;
+    min-height: 10rem;
+  }
+
+  /* Centre: the octagon's cell. position:relative so its own internal
+     absolutely-positioned children (.arena-floor-stage,
+     .arena-confrontation-band, .arena-floor-frame) anchor to THIS box, not to
+     the page - a grid item is not automatically a positioning context, it
+     needs position set explicitly, the one property this box must carry for
+     its children to keep working at all. Square-ish and generous rather than
+     a viewport-relative guess, so the octagon - which fits itself to
+     whatever box it is given, unchanged - gets real room on a wide screen
+     without the frame or the caption clipping it. */
+  .arena-command-deck__floor {
+    grid-area: floor;
+    position: relative;
+    inset: auto;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    min-height: min(70vh, 760px);
+    overflow: visible;
+    align-self: stretch;
+  }
+
+  /* Bottom bar: was left:0;right:0;bottom:0 with no explicit position
+     (inert without one - now given one, on purpose, and placed by the grid
+     instead). */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    grid-area: foot;
+    position: static;
+    inset: auto;
+    width: 100%;
+  }
+
+  /* The floor's decorative frame now wraps the CENTRE CELL only - it inherited
+     inset:2% of the whole viewport when the floor itself filled the whole
+     viewport (Stage16). The floor is a normal-sized grid cell now, so the
+     same inset already wraps just the octagon's own box; no viewport-wide
+     coordinate is left to correct. */
+  .arena-floor-frame {
+    inset: 1%;
+  }
+
+  /* Smaller desktop: keep three columns, narrow the rails rather than the
+     centre - the octagon stays the dominant element down to the 901px
+     threshold instead of the rails competing with it for space. */
+  @media (max-width: 1280px) {
+    .arena-command-deck {
+      grid-template-columns: minmax(210px, 240px) minmax(0, 1fr) minmax(210px, 240px);
+      gap: 0.8rem;
+    }
+  }
+}
+
+/* Tablet: the arena becomes the first, dominant section; the rails fall in
+   below it rather than staying beside a now-too-narrow centre column. A
+   deliberate single-column order, not the desktop grid scaled down. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .arena-command-deck {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "ribbon"
+      "floor"
+      "left"
+      "right"
+      "foot";
+    gap: 0.9rem;
+    width: min(100% - 1.2rem, 720px);
+    margin-inline: auto;
+    height: auto;
+    min-height: 0;
+  }
+  .arena-command-deck__floor {
+    grid-area: floor;
+    position: relative;
+    min-height: min(85vw, 620px);
+  }
+  /* NOT display:contents here. That unwraps the stack and makes its own
+     children (ARENA STATUS, CROWN LADDER...) direct grid items with no
+     grid-area of their own in THIS template's area list, so the grid
+     auto-placed all seven of them into whatever cells were left over -
+     stacked on top of each other, with the footer landing above them.
+     Each rail stays its own single grid cell and keeps being a flex column
+     inside it, same mechanism as the desktop rule, declared again here
+     because that one is scoped to min-width:901px and does not reach down
+     to this range. */
+  .arena-left-stack,
+  .arena-right-stack {
+    /* Same unconditional position:absolute problem, one level up: the stack
+       itself has "position: absolute; left: 1.2%; bottom: 9%; ..." with no
+       media query around it at all, so it wins here exactly like the phase
+       card did unless every one of those is overridden by name. An
+       absolutely-positioned grid item is removed from grid placement
+       entirely - which is why grid-area below was computing to "auto" and
+       the stack's own box was reporting zero height even though its flex
+       children were laying out correctly among themselves. */
+    position: static;
+    inset: auto;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    width: 100%;
+    max-height: none;
+    z-index: auto;
+  }
+  .arena-left-stack { grid-area: left; }
+  .arena-right-stack { grid-area: right; }
+  /* An UNCONDITIONAL rule elsewhere (no media query at all - "3G show-panel
+     inner gold frame") sets position:absolute on the phase card, ladder,
+     metrics and gifts at every width. Same specificity as this rule, so
+     without stating position again here explicitly there is nothing for
+     this later declaration to win - the absolute one simply stands,
+     unopposed, which is what stacked everything on top of itself the first
+     time this block shipped. */
+  .arena-left-stack > *,
+  .arena-right-stack > * {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    flex: 0 0 auto;
+  }
+  .arena-command-deck > .arena-broadcast-ribbon { grid-area: ribbon; position: static; }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; position: static; }
+}
+
+/* The sitewide "Chef Battles Arena" widget (_widget.html) is untouched -
+   this hides it on the arena page only, where its own content (Top Chefs,
+   Arena Menu, Master Console / Knife Roll / Changing Room, Enter Arena) now
+   duplicates the rebuilt deck and was floating at z-index 130 directly over
+   the new right column and bottom bar. Every other page keeps it exactly as
+   it was. */
+.page--arena .site-battle-widget {
+  display: none;
+}
+
+/* The container query at ~4574 balloons the ARENA STATUS icon into a
+   full-width oval on any card narrower than 320px - every left-column card
+   at every desktop width measured. It was written for the OLD header, where
+   the first child was a <div> carrying the phase name AND had to share its
+   row with the deadline clock; the deadline moved out into its own block
+   long before this rebuild, so the header is just an icon and one line of
+   text now and never needs the rule it inherited. */
+.arena-command-deck__phase-card .arena-panel__title {
+  flex-wrap: nowrap;
+}
+.arena-command-deck__phase-card .arena-panel__title > :first-child {
+  flex: 0 0 auto;
+}
+
+/* The light shafts (arena_atmosphere.css section F) were dominating the
+   background instead of sitting behind it - dimmed rather than removed
+   outright, since the brief asks to "remove/reduce", and a warm hall is not
+   the same thing as a flat one. */
+.page--arena .arena-atmosphere-fx {
+  opacity: 0.45;
+}
+
