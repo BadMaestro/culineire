@@ -7586,3 +7586,73 @@
   opacity: 0.45;
 }
 
+/* ============================================================================
+ * FOLLOW-UP, same day: the Owner's own screen still showed three real
+ * defects the desktop widths tested here (1920x1080, 1440x900, 1280, 768,
+ * 375) never hit. Every one traces to an UNCONDITIONAL rule - no @media
+ * around it at all - written for an earlier composition where these
+ * elements sat in a wide horizontal ribbon, not a narrow sidebar column.
+ * Fixed unconditionally here too, rather than inside one more width-gated
+ * block that only moves the gap somewhere else.
+ * ============================================================================ */
+
+/* LIVE ARENA METRICS was overlapping its neighbours: "width: clamp(30rem,
+   32vw, 40rem)" (MOCKUP M12, ~line 4847) sets a 480px FLOOR on the panel
+   regardless of the column it now lives in, and the four metric rows were
+   also laid out as 4 SIDE-BY-SIDE grid columns on top of that - both leftover
+   from when this panel spanned a wide ribbon. It fits its real 300px/240px
+   sidebar column here, and the four rows stack as the simple label/value list
+   they always were meant to be in a sidebar. */
+.arena-command-deck__metrics {
+  width: 100% !important;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.arena-command-deck__metrics .arena-panel__title {
+  width: 100%;
+}
+
+/* THE BOTTOM BAR's three groups (status text, ticker, Enter Arena/Issue a
+   Challenge) were laid out as a 3-column grid whose middle and last tracks
+   do not shrink ("minmax(12rem,1.1fr) minmax(0,1.6fr) auto" - MOCKUP M15),
+   so on a container narrower than the sum of their natural widths the
+   auto-sized actions column does not yield and prints on top of the status
+   text instead of wrapping under it. Flex with wrap replaces the fixed
+   three-track grid: on a wide screen it reads as one row exactly as before,
+   on a narrower one the groups wrap onto their own lines instead of
+   colliding. */
+.arena-command-deck__crowd-rail.arena-lower-broadcast {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  row-gap: 0.5rem;
+}
+.arena-crowd-rail__status,
+.arena-activity-ticker {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.arena-lower-actions {
+  flex: 0 0 auto;
+}
+
+/* THE OCTAGON'S OWN BOX had a large dead zone below it on a tall, narrow
+   screen: min-height was a flat min(70vh,760px) regardless of the column's
+   actual WIDTH, so on a device taller (relative to its width) than a
+   1920x1080 desktop the box claimed far more height than a
+   roughly-square octagon - fitScene() is unchanged and correctly fits it to
+   the SMALLER of the two dimensions, leaving the rest of a too-tall box
+   empty. Driven by width via aspect-ratio instead of an independent
+   viewport-height guess, so the box follows what the octagon actually
+   needs; align-self:start rather than stretch, so it does not additionally
+   grow to match a taller neighbour column. */
+.arena-command-deck__floor {
+  align-self: start !important;
+  aspect-ratio: 1 / 0.82;
+  min-height: 0 !important;
+  max-height: min(78vh, 820px);
+}
+
