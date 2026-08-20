@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1164",
+        "date": "2026-08-20",
+        "commit": "pending",
+        "title": "Arena zoom ceiling widened to 1.5 - 1.1 was too narrow to hold, snapped almost to 1.0 on release instead of clamping",
+        "section": "Chef Battles / Arena",
+        "summary": "1.1 WAS TOO NARROW TO HOLD AS A REAL CEILING: the Owner reported reaching ~1.3 with his fingers and, on release, landing back around 1.01 - not clamped to 1.1 at all. Reads as the engine treating a range that thin as effectively no zoom and resetting toward initial-scale instead of honouring the stated maximum. Widened to maximum-scale=1.5 - the next width tried, per the Owner's own request, wide enough that the ceiling should actually hold as a ceiling rather than collapse toward 1.0. Every other page unaffected, confirmed by curl against a fresh local render. manage.py check clean, test_arena_acceptance (12) green.",
+    },
+    {
         "version": "2.5.1163",
         "date": "2026-08-20",
         "commit": "pending",

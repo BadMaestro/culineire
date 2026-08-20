@@ -11,16 +11,17 @@
    engine-specific, not this page's own weight: the Owner's Android phone
    (Blink, not WebKit) does not reproduce the crash at all under the same
    gesture that reliably crashed his iPhone.
-   Tried first as a ceiling rather than a block - maximum-scale=2.5, then
-   1.2, then the full stop (maximum-scale=1 with user-scalable=no) - before
-   he asked for a sliver of room back: 10% of headroom, not the full lock.
-   user-scalable=no is DROPPED here on purpose, not left in alongside a
-   maximum above 1 - it disables scaling outright regardless of what
-   maximum-scale says, so the two are mutually exclusive the moment any
-   zoom at all is wanted again. Scoped to this page alone through the
-   viewport block base.html now exposes - every other page on the site
-   keeps the unrestricted viewport it always had. #}
-{% block viewport_content %}width=device-width, initial-scale=1, maximum-scale=1.1, viewport-fit=cover{% endblock %}
+   Tried as a ceiling several times - 2.5, then 1.2, then the full stop
+   (maximum-scale=1 with user-scalable=no), then 1.1. 1.1 turned out too
+   narrow to hold as a real ceiling: the Owner reported reaching ~1.3 with
+   his fingers and, on release, landing back around 1.01 - not clamped to
+   1.1 at all, which reads as the engine treating a range that thin as
+   effectively no zoom and resetting toward 1.0 instead of honouring it as
+   a maximum. 1.5 is the next width tried, wide enough that the ceiling
+   should actually hold rather than collapse. Scoped to this page alone
+   through the viewport block base.html now exposes - every other page on
+   the site keeps the unrestricted viewport it always had. #}
+{% block viewport_content %}width=device-width, initial-scale=1, maximum-scale=1.5, viewport-fit=cover{% endblock %}
 
 {% block title %}The Arena | Chef Battles | CulinEire{% endblock %}
 {% block meta_description %}Step into the Chef Battles Arena. See every chef ranked by tier around the ring, and watch the active battle at the centre.{% endblock %}
