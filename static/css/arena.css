@@ -7848,9 +7848,27 @@
      height - it is the stage here, not the whole interface. */
   .arena-command-deck__floor {
     grid-area: floor;
-    aspect-ratio: 1 / 0.78;
+    aspect-ratio: 1 / 0.86;
     min-height: 0;
     max-height: 62vh;
+  }
+  /* THE OCTAGON TAKES THE ROOM IT HAS HERE (Owner, 2026-08-20: too much empty
+     space around it). The renderer sizes it as a share of its region's WIDTH -
+     the accepted desktop composition is 659 of 1268, about 52%, which on a
+     373px phone card left it 182px wide with the rest of the card empty.
+     Height alone could not fix it: width decides the size and the projection
+     supplies the height, so a taller box just added more emptiness.
+     The share is a layout decision, so the stylesheet states it here and the
+     renderer keeps its own constant everywhere else - no desktop pixel moves.
+     The caption above it also stops taking a third of the card. */
+  .arena-floor-stage {
+    --arena-octagon-width-share: 0.95;
+  }
+  .arena-floor-caption {
+    margin-block: 0.1rem 0.15rem;
+  }
+  .arena-floor-caption em {
+    display: none;
   }
 }
 

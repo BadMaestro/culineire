@@ -3126,7 +3126,29 @@
     if (!natural || !(natural.width > 0) || !(natural.height > 0)) { return; }
 
     // THE SIZE. One division, because the scale is outside the projection.
-    var scale = region.width * OCTAGON_VISUAL_WIDTH_SHARE / natural.width;
+    //
+    // THE SHARE IS THE PAGE'S TO STATE, 2026-08-20. The constant above is the
+    // accepted desktop composition (659 of a 1268px region) and stays exactly
+    // that wherever nothing says otherwise - no desktop pixel moves because of
+    // this. But the Owner asked for the octagon to use the room it has on a
+    // phone, where 52% of a 351px region leaves it 182px wide inside a
+    // 373px card, and the share is the ONLY input that decides that: height
+    // changes do nothing, because width decides the size and the projection
+    // supplies the height.
+    //
+    // Which is exactly this file's own rule, quoted at the top of this
+    // function: page layout allocates the region, and the camera fits into
+    // what it is given. How much of that region the octagon should fill is a
+    // layout decision, so the stylesheet may state it - and when it says
+    // nothing, this constant answers, as it always has.
+    var declaredShare = parseFloat(
+      global.getComputedStyle(camera)
+            .getPropertyValue('--arena-octagon-width-share')
+    );
+    var widthShare = (declaredShare > 0 && declaredShare <= 1)
+      ? declaredShare
+      : OCTAGON_VISUAL_WIDTH_SHARE;
+    var scale = region.width * widthShare / natural.width;
     // The ceiling, applied to the same known base rather than to a result.
     if (natural.height * scale > region.height * REGION_MAX_Y) {
       scale = region.height * REGION_MAX_Y / natural.height;
