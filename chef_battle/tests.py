@@ -12847,18 +12847,22 @@ class ArenaRingNumberingTests(TestCase):
 
 
 class PhaseTrackNamesItsStepsOnAPhoneTests(TestCase):
-    """Owner, 2026-08-20, from his own phone: the track showed 1..7 and nothing else.
+    """Owner, 2026-08-20, from his own phone, in two rulings the same day.
 
-    The cause was cascade, not copy. The rule that lays the track out carries
-    two classes and sits in no @media block at all, so its seven equal columns
-    reached a 375px phone and beat the narrow-screen rule that had been asking
-    for four since 2026-08-03. Seven columns of ~45px leave nothing beside the
-    number pill, and the ellipsis in arena_atmosphere.css truncated every phase
-    name to zero width.
+    First: the track showed 1..7 and nothing else. The cause was cascade, not
+    copy - the rule that lays the track out carried two classes and sat in no
+    @media block at all, so its seven equal columns reached a 375px phone and
+    beat the narrow-screen rule asking for four. Fixed by giving the column
+    count one owner, a CSS variable read at every width.
 
-    The count is a variable now, so the narrow screens restate the COUNT and
-    never the rule. This test guards the shape of that fix: one owner, and a
-    phone that is not given seven columns.
+    Second, the same day, looking at the fixed card: the seven-pill panel is
+    decoration, one phase ever active and six sitting grey, and it was
+    costing roughly 300px above the floor - the thing that matters more. His
+    order: shrink it, hand that room to real content. The column-count
+    variable this class used to guard is gone from the phone tiers now -
+    replaced by a flex progress strip, seven dots and one visible label -
+    and this class was rewritten to guard THAT shape rather than describe a
+    mechanism that no longer exists.
     """
 
     def _css(self):
@@ -12868,7 +12872,7 @@ class PhaseTrackNamesItsStepsOnAPhoneTests(TestCase):
             Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
 
-    def test_the_column_count_has_exactly_one_owner(self):
+    def test_the_desktop_column_count_still_has_exactly_one_owner(self):
         css = self._css()
         self.assertIn(
             "grid-template-columns: repeat(var(--arena-phase-cols, 7), minmax(0, 1fr));",
@@ -12876,13 +12880,43 @@ class PhaseTrackNamesItsStepsOnAPhoneTests(TestCase):
         )
         self.assertEqual(
             css.count("grid-template-columns: repeat(var(--arena-phase-cols"), 1,
-            "the phase track's column count must be laid out in one place only",
+            "the phase track's desktop column count must be laid out in one place only",
         )
 
-    def test_a_phone_is_not_given_seven_columns(self):
+    def test_a_phone_is_given_a_strip_not_a_grid_of_pills(self):
+        """The narrow tiers stopped asking for columns of pills at all."""
         css = self._css()
-        self.assertIn("--arena-phase-cols: 2;", css)
-        self.assertIn("--arena-phase-cols: 4;", css)
+        self.assertNotIn("--arena-phase-cols: 2;", css)
+        self.assertNotIn("--arena-phase-cols: 4;", css)
+
+    def test_exactly_one_label_is_visible_the_rest_are_screen_reader_only(self):
+        """Six of seven phase names lose their paint, not their presence.
+
+        arena_deck.js reads the next phase's label straight out of one of
+        these <b> nodes by DOM position - see its own comment near line 505 -
+        so the fix must never be display:none (which is indistinguishable
+        from "not there" to a naive check) and the CSS must hide by clipping,
+        not by removing, exactly six of the seven step labels.
+        """
+        css = self._css()
+        self.assertIn(
+            ".arena-broadcast-ribbon .arena-phase-step:not(.is-active) b {",
+            css,
+        )
+        self.assertIn("clip: rect(0, 0, 0, 0);", css)
+        self.assertNotIn(
+            ".arena-broadcast-ribbon .arena-phase-step:not(.is-active) b { display: none; }",
+            css,
+        )
+
+    def test_the_strip_is_short_not_a_tall_card(self):
+        """The panel's whole reason for shrinking: it must not cost ~300px."""
+        css = self._css()
+        self.assertIn(
+            ".arena-broadcast-ribbon .arena-command-deck__phase-rail {",
+            css,
+        )
+        self.assertIn("min-height: 2.25rem;", css)
 
     def test_the_labels_are_still_in_the_markup(self):
         """The names must be present to be shown; the fix is CSS, not copy."""
