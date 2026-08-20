@@ -8065,7 +8065,10 @@
     justify-content: center;
     flex-wrap: nowrap;
     width: 100%;
-    gap: calc(var(--arena-phase-gap, 0.382rem) * 0.6);
+    /* The gap is not empty space here - it is where the connecting line is
+       drawn, so it is sized to be seen: 0.45rem of hairline between one
+       marker and the next. */
+    gap: 0.45rem;
     padding: 0;
     min-height: 2.25rem;
     background: transparent;
@@ -8073,6 +8076,7 @@
     box-shadow: none;
   }
   .arena-broadcast-ribbon .arena-phase-step {
+    position: relative;
     width: auto;
     flex: 0 0 auto;
     justify-content: flex-start;
@@ -8085,6 +8089,24 @@
     box-shadow: none;
     opacity: 1;
     overflow: visible;
+  }
+  /* THE TRACK IS A LINE, NOT SCATTERED DOTS. Each marker draws the hairline
+     that reaches the next one, so the strip reads left to right as one
+     journey. Behind the battle the line is bronze and solid; ahead of it the
+     line is faint - the same distinction the markers themselves make, said
+     twice so it survives at a glance. */
+  .arena-broadcast-ribbon .arena-phase-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    width: 0.45rem;
+    height: 1px;
+    background: color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-complete:not(:last-child)::after,
+  .arena-broadcast-ribbon .arena-phase-step.is-active:not(:last-child)::after {
+    background: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
   }
   /* The active step is sized by its label - 0 1 auto - so it never eats the
      room the trailing dots need, and can still shrink to an ellipsis if a
@@ -8105,9 +8127,14 @@
     border-width: 1px;
     flex: 0 0 auto;
   }
+  /* The one that is now: a shade larger, and wearing a soft ring so the eye
+     finds it before it reads anything. */
   .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
     width: 0.7rem;
     height: 0.7rem;
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--accent-bronze) 22%, transparent),
+      0 0 0.5rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
   }
   .arena-broadcast-ribbon .arena-phase-step:not(.is-active) b {
     position: absolute;
@@ -8130,7 +8157,13 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     min-width: 0;
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
+    /* Small caps in the deck's own label voice - the same tracking and
+       weight the panel kickers use, one size down because this sits in a
+       36px strip rather than a card header. */
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--arena-gold);
   }
 }

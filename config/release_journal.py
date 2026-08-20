@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1153",
+        "date": "2026-08-20",
+        "commit": "pending",
+        "title": "The progress strip becomes one connected track - hairline between the markers, a ring on the one that is now",
+        "section": "Chef Battles / Arena",
+        "summary": "MAKE IT BEAUTIFUL, and the answer was to stop drawing seven separate things. THE TRACK IS A LINE NOW: each marker draws the hairline that reaches the next one, so the strip reads left to right as one journey rather than a row of scattered dots. The line says the same thing the markers say, twice, so it survives a glance - bronze at 62% behind the battle, 22% ahead of it. The gap grew from 3.7px to 0.45rem for exactly this reason: it stopped being empty space and became the place the line is drawn. THE ONE THAT IS NOW wears a soft double ring - 2px of bronze at 22% and a half-rem glow at 30% - so the eye lands on it before it reads a word. THE LABEL JOINED THE DECK'S OWN VOICE instead of inventing a third one: 0.68rem, weight 800, letter-spacing 0.11em, uppercase, --arena-gold - the same values .arena-panel__kicker uses for every card header on this page, one size down because it lives in a 36px strip and not a card. MEASURED IN THE HARNESS at three widths, not eyeballed: 414px - strip 36px tall, cluster 170px centred, label uncut at 65px, active dot 11.2px with its ring, connectors reading 62%/22% either side of the active step, no overflow, document scroll width equal to the viewport. 700px - 36px, one visible label, connector 7.2px, no overflow. 1440px - untouched: still a seven-column grid, all seven labels, index pill still 16.8px with its number in it, and getComputedStyle reports content:none for the connector, so the desktop does not even draw it. Every colour is a token this sheet already owns; no new palette, no raw hex. EVIDENCE: braces balanced, check clean, 29 tests green. NOT TOUCHED: the octagon, its geometry and camera, the rank ladder, _widget.html.",
+    },
+    {
         "version": "2.5.1152",
         "date": "2026-08-20",
         "commit": "pending",
