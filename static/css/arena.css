@@ -8271,3 +8271,25 @@
     color: var(--arena-gold);
   }
 }
+
+/* THE FLOOR CAPTION REACHES THE FRAME ON A PHONE. Owner, 2026-08-21,
+   marking up "The floor holds the show" wrapping to a second line: widen
+   the container to the frame's own edges.
+
+   AN-R4 (~line 3008) is this caption's one owner and says so in its own
+   comment - "never wider than 26rem, never more than 42% of the floor" -
+   both true and correct for the three-column desktop composition that rule
+   was written for, where the caption sits between two side panels with
+   real competition for the row. Below 767px there are no side panels left
+   to share the row with (the deck is a single column here), so the 42%
+   share is a desktop constraint outliving the desktop layout it was sized
+   for, not a decision about this width. The frame itself sits at
+   inset:2% (~line 1458), so 92% reaches its edge with a hair of the gold
+   border still visible past the text - --arena-caption-free stays as the
+   outer clamp, since a page panel narrowing the row is still real room
+   lost, whatever screen this is on. */
+@media (max-width: 767px) {
+  .arena-floor-caption {
+    width: min(92%, var(--arena-caption-free, 100%));
+  }
+}

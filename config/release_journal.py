@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1166",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "The floor caption reaches the frame on a phone - 42% was a desktop-only share of the row, widened to 92%",
+        "section": "Chef Battles / Arena",
+        "summary": "OWNER MARKED UP A SCREENSHOT: 'The floor holds the show' wraps to a second line on a phone. Traced to AN-R4 (~line 3008), the caption's one declared owner: width: min(26rem, 42%, var(--arena-caption-free, 100%)). 42% is correct for the desktop three-column composition that rule was written for, where the caption shares its row with two side panels - below 767px the deck is a single column and there is no longer anything to share the row with, so 42% is a desktop constraint outliving the layout it was sized for. Added a phone-only override (max-width:767px, same selector, later in the file - the one way a rule wins in this sheet) widening it to min(92%, var(--arena-caption-free, 100%)). 92% because the floor frame itself sits at inset:2%, so 92% reaches its edge with a hair of the gold border still showing past the text, matching the Owner's own words - 'expand the container to the edges of the square.' manage.py check clean, test_arena_acceptance (12) green.",
+    },
+    {
         "version": "2.5.1165",
         "date": "2026-08-20",
         "commit": "pending",
