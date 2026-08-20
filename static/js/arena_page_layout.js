@@ -246,7 +246,25 @@
       new global.ResizeObserver(function () { remeasure(false); })
         .observe(header, { box: 'border-box' });
     }
-    global.addEventListener('resize', function () { remeasure(true); });
+    // COALESCED, not raw - found 2026-08-20 chasing an iPhone crash on pinch-
+    // zoom. On iOS, a pinch gesture fires `resize` on the window repeatedly
+    // WHILE THE GESTURE IS HAPPENING, not once at the end (a documented iOS
+    // quirk, unlike desktop browsers). Each firing ran remeasure(true)
+    // synchronously - force=true, so it always called every subscriber,
+    // including the octagon's fitScene(): a forced layout read, a full
+    // re-position of 300+ SVG nodes, on every one of however many resize
+    // events one continuous two-finger gesture produces. Nothing here
+    // throttled it. One rAF slot now holds at most one pending remeasure, so
+    // a burst of resize events across one frame collapses to the one
+    // recalculation that frame can actually show.
+    var resizeFrame = null;
+    global.addEventListener('resize', function () {
+      if (resizeFrame !== null) { return; }
+      resizeFrame = global.requestAnimationFrame(function () {
+        resizeFrame = null;
+        remeasure(true);
+      });
+    });
     if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
       document.fonts.ready.then(function () { remeasure(false); }).catch(function () {});
     }
