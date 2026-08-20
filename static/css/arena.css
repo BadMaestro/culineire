@@ -2144,32 +2144,19 @@
 }
 /* icons injected from _arena_deck_svg.html */
 .arena-ico { width:1.1rem; height:1.1rem; display:inline-block; vertical-align:middle; }
-/* ── Phase rail (A2) ── */
-.arena-command-deck__phase-rail {
-  display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; justify-content:center;
-}
-.arena-phase-step {
-  display:inline-flex; align-items:center; gap:.4rem;
-  font-size:.72rem; color:var(--ad-mut); font-weight:600;
-  background:var(--ad-s2); border:1px solid var(--ad-line); border-radius:999px;
-  padding:.3rem .7rem; white-space:nowrap; transition:all .2s;
-}
-.arena-phase-step b { color:var(--ad-ink2); font-weight:700; }
-.arena-phase-step.is-active {
-  color:var(--brand-dark); background:linear-gradient(180deg,color-mix(in srgb, var(--ad-gold), var(--surface) 55%),color-mix(in srgb, var(--ad-gold), var(--surface) 20%));
-  border-color:var(--ad-gold); box-shadow:0 2px 8px color-mix(in srgb, var(--accent-bronze) 35%, transparent);
-}
-.arena-phase-step.is-active b { color:var(--brand-dark); }
-/* ── Phase rail polish (phase rail): active phase unmistakable, inactive calm ── */
-.arena-command-deck__phase-rail .arena-phase-step.is-active {
-  transform:translateY(-1px) scale(1.03);
-  box-shadow:0 3px 10px color-mix(in srgb, var(--accent-bronze) 42%, transparent), 0 0 0 1px var(--ad-gold) inset;
-}
-.arena-command-deck__phase-rail .arena-phase-step.is-active::before {
-  content:""; width:.42rem; height:.42rem; border-radius:50%;
-  background:color-mix(in srgb, var(--ad-gold), var(--brand-dark) 30%); box-shadow:0 0 0 2px color-mix(in srgb, var(--surface) 60%, transparent);
-}
-.arena-command-deck__phase-rail .arena-phase-step:not(.is-active) { opacity:.9; }
+/* Phase rail (A2) - this whole block was DEAD, removed 2026-08-20, not
+   commented out. Every declaration here was beaten by a more-specific rule
+   elsewhere in this file, mathematically, not by guess:
+   .arena-command-deck__phase-rail / .arena-phase-step (one class) always lose
+   to .arena-broadcast-ribbon .arena-phase-step (two classes) - the phase
+   rail is ALWAYS inside .arena-broadcast-ribbon in arena.html, so the
+   ribbon-scoped rule at "MOCKUP M10" (~4780) wins on every shared property
+   regardless of source order. The one property that was NOT shadowed by
+   specificity - :not(.is-active){opacity:.9} at equal specificity - was a
+   live bug: it silently dimmed every inactive step under BOTH the M10 pill
+   design and the mobile progress strip built earlier today, because neither
+   of those ever won the specificity fight to overturn it. Deleting it is a
+   correction, not a decoration. */
 /* ── Deadline card clarity (deadline card): value scannable, empty state calm ── */
 .arena-command-deck__phase-deadline {
   display:flex; flex-direction:column; gap:.05rem;
@@ -8118,23 +8105,73 @@
     gap: 0.4rem;
     overflow: hidden;
   }
+  /* THE MARKERS SPEAK THE FIGHT, NOT A COUNT (Owner, 2026-08-20: "instead of
+     dots, emoji or thumbnails showing the current stage by meaning,
+     highlighted with effects"). The circle keeps its border/background as a
+     stage for the glyph; the number is still there as text (aria-hidden,
+     unread by a screen reader - the accessible name is the sibling <b> -
+     kept as a same-DOM fallback for a phase key the map below doesn't
+     cover) but font-size:0 keeps it invisible so only the glyph shows. */
   .arena-broadcast-ribbon .arena-phase-step__index {
-    min-width: 0.5rem;
-    width: 0.5rem;
-    height: 0.5rem;
+    position: relative;
+    min-width: 0.9rem;
+    width: 0.9rem;
+    height: 0.9rem;
     font-size: 0;
     padding: 0;
     border-width: 1px;
+    border-style: solid;
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
-  /* The one that is now: a shade larger, and wearing a soft ring so the eye
-     finds it before it reads anything. */
+  .arena-broadcast-ribbon .arena-phase-step__index::before {
+    font-size: 0.62rem;
+    line-height: 1;
+    filter: grayscale(1) opacity(0.55);
+  }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="challenge"] .arena-phase-step__index::before { content: "\1F91D"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="combat"] .arena-phase-step__index::before { content: "\2694\FE0F"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="biathlon"] .arena-phase-step__index::before { content: "\1F3AF"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="cooking"] .arena-phase-step__index::before { content: "\1F373"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="mod_review"] .arena-phase-step__index::before { content: "\1F50D"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="voting"] .arena-phase-step__index::before { content: "\1F5F3\FE0F"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="crown"] .arena-phase-step__index::before { content: "\1F451"; }
+  /* The one that is now: a shade larger, its glyph at full colour and full
+     size while the rest stay small and greyed, and wearing a soft ring plus
+     a slow glow so the eye finds it before it reads anything. */
   .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
-    width: 0.7rem;
-    height: 0.7rem;
+    width: 1.2rem;
+    height: 1.2rem;
     box-shadow:
       0 0 0 2px color-mix(in srgb, var(--accent-bronze) 22%, transparent),
       0 0 0.5rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+    animation: arena-phase-glow 2.4s ease-in-out infinite;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index::before {
+    font-size: 0.85rem;
+    filter: none;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-complete .arena-phase-step__index::before {
+    filter: grayscale(0.3) opacity(0.8);
+  }
+  @keyframes arena-phase-glow {
+    0%, 100% {
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--accent-bronze) 22%, transparent),
+        0 0 0.5rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--accent-bronze) 38%, transparent),
+        0 0 0.9rem color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
+      animation: none;
+    }
   }
   .arena-broadcast-ribbon .arena-phase-step:not(.is-active) b {
     position: absolute;
