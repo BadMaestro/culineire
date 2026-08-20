@@ -2895,9 +2895,10 @@
   .arena-panel__title {
     margin-bottom: 0.4rem;
   }
-  .arena-command-deck__phase-card {
-    top: 15%;
-  }
+  /* The phase card's own `top: 15%` used to sit here and was already dead
+     before this rebuild - a later rule in the same context set 14%, so this
+     copy could never win. AN13 asks for the losing copy to be deleted rather
+     than left to read as if it did something. */
   .arena-command-deck__metrics {
     top: 15%;
   }
@@ -4841,14 +4842,28 @@
 
 /* ============================================================================
  * MOCKUP M12 — live metrics panel: Active Viewers / Votes / Gifts / Crown streak.
- * Keep metric ids + payload; visual 2×2 gold grid like mockup / prototype.
+ * Keep metric ids + payload.
+ *
+ * REWRITTEN IN PLACE 2026-08-20, not overridden later. It was a four-across
+ * strip with "width: clamp(30rem, 32vw, 40rem)" - a 480px FLOOR - written for
+ * when this panel spanned a wide ribbon. The Owner's rebuild puts it in a
+ * 240-300px sidebar column, where that floor made the panel wider than its
+ * own column and it printed over its neighbours on his phone.
+ *
+ * My first fix was a second, later rule setting the same properties again.
+ * ArenaStylesheetHasNoSupersededDeclarationTests exists precisely to forbid
+ * that (AN13: the earlier copy can never win, so it must be removed rather
+ * than buried) - and it is the same "two owners of one thing" disease this
+ * stylesheet keeps warning about. So the original values are corrected here
+ * instead, and the later override is gone.
  * ============================================================================ */
 
   .arena-command-deck__metrics {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 0;
-    width: clamp(30rem, 32vw, 40rem);
+    width: 100%;
+    max-width: 100%;
     padding: 0.55rem 0.7rem;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
     border-radius: 0.85rem;
@@ -5213,9 +5228,17 @@
  * MOCKUP M15 — lower broadcast: Top Supporter ticker + Join the Crowd CTA.
  * ============================================================================ */
 
+  /* REWRITTEN IN PLACE 2026-08-20 for the same reason as M12 above: this was
+     a three-track grid whose last track ("auto") does not shrink, so on a
+     container narrower than the three groups' natural widths the actions
+     column printed on top of the status text instead of wrapping under it.
+     Flex-wrap reads as one row on a wide screen and stacks the three groups
+     on a narrow one. Corrected here rather than in a later duplicate rule -
+     see the AN13 note on the metrics panel. */
   .arena-command-deck__crowd-rail.arena-lower-broadcast {
-    display: grid;
-    grid-template-columns: minmax(12rem, 1.1fr) minmax(0, 1.6fr) auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     align-items: center;
     gap: 0.75rem 1rem;
     padding: 0.55rem 1.05rem;
@@ -7596,49 +7619,19 @@
  * block that only moves the gap somewhere else.
  * ============================================================================ */
 
-/* LIVE ARENA METRICS was overlapping its neighbours: "width: clamp(30rem,
-   32vw, 40rem)" (MOCKUP M12, ~line 4847) sets a 480px FLOOR on the panel
-   regardless of the column it now lives in, and the four metric rows were
-   also laid out as 4 SIDE-BY-SIDE grid columns on top of that - both leftover
-   from when this panel spanned a wide ribbon. It fits its real 300px/240px
-   sidebar column here, and the four rows stack as the simple label/value list
-   they always were meant to be in a sidebar. */
-.arena-command-deck__metrics {
-  width: 100% !important;
-  max-width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
+/* LIVE ARENA METRICS: the fix lives in the M12 rule itself now (see the note
+   there) rather than as a second rule setting the same properties again. */
 .arena-command-deck__metrics .arena-panel__title {
   width: 100%;
 }
 
-/* THE BOTTOM BAR's three groups (status text, ticker, Enter Arena/Issue a
-   Challenge) were laid out as a 3-column grid whose middle and last tracks
-   do not shrink ("minmax(12rem,1.1fr) minmax(0,1.6fr) auto" - MOCKUP M15),
-   so on a container narrower than the sum of their natural widths the
-   auto-sized actions column does not yield and prints on top of the status
-   text instead of wrapping under it. Flex with wrap replaces the fixed
-   three-track grid: on a wide screen it reads as one row exactly as before,
-   on a narrower one the groups wrap onto their own lines instead of
-   colliding. */
-.arena-command-deck__crowd-rail.arena-lower-broadcast {
-  display: flex !important;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  row-gap: 0.5rem;
-}
+/* THE BOTTOM BAR: the fix lives in the M15 rule itself now (see the note
+   there). These two only size its children, which nothing else sets. */
 .arena-crowd-rail__status,
 .arena-activity-ticker {
   min-width: 0;
   flex: 1 1 auto;
 }
-.arena-lower-actions {
-  flex: 0 0 auto;
-}
-
 /* THE OCTAGON'S OWN BOX had a large dead zone below it on a tall, narrow
    screen: min-height was a flat min(70vh,760px) regardless of the column's
    actual WIDTH, so on a device taller (relative to its width) than a
@@ -7859,5 +7852,122 @@
     min-height: 0;
     max-height: 62vh;
   }
+}
+
+/* ============================================================================
+ * PHONE SAFETY: the page was CRASHING Safari on the Owner's iPhone
+ * ("the page repeatedly caused a problem" - iOS killing the tab), 2026-08-20.
+ *
+ * Not a layout bug. Measured on the rendered page at 375px, all of it alive at
+ * once: 12 elements carrying backdrop-filter, 63 carrying filter (three of
+ * them a 22px blur over a full-height element), 45 running animations, and an
+ * SVG holding 339 cells with 336 clipPaths. Every backdrop-filter forces its
+ * own compositing layer plus a snapshot of everything behind it; iOS gives a
+ * tab a hard memory ceiling and kills it rather than degrading.
+ *
+ * Desktop is untouched - it has the memory for this and the Owner has accepted
+ * how it looks. Below the tablet breakpoint the expensive decoration is turned
+ * off, not restyled: the atmosphere layer is pure ornament (aria-hidden by its
+ * own markup), and a frosted-glass panel and a flat one carry the same
+ * information. The octagon, its geometry and the renderer are untouched by
+ * every rule here.
+ * ============================================================================ */
+@media (max-width: 900px) {
+  /* The whole atmosphere layer: 3 shafts at blur(22px), 8 motes, 4 rising
+     gift glyphs - 15 elements, ~45 of the page's animations, and the three
+     largest blurs on the page. It is decoration and it is the single most
+     expensive thing here. */
+  .page--arena .arena-atmosphere-fx {
+    display: none !important;
+  }
+
+  /* Backdrop blur is the other half of the cost, and on a phone every panel
+     is stacked in flow so all of them are on screen at once. */
+  .page--arena .arena-broadcast-ribbon,
+  .page--arena .arena-command-deck__phase-rail,
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__guide,
+  .page--arena .arena-chat,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__command,
+  .page--arena .arena-command-deck__gifts,
+  .page--arena .arena-live-chef,
+  .page--arena .arena-command-deck__crowd-rail,
+  .page--arena .arena-mobile-scene {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* The glows on the floor's own furniture: drop-shadow filters repeated
+     across dozens of nodes. The elements stay, their soft haloes do not. */
+  .page--arena .arena-atmo-gift,
+  .page--arena .arena-floor-caption,
+  .page--arena .arena-rank-spine__step,
+  .page--arena .arena-live-centre {
+    filter: none !important;
+  }
+}
+
+/* ============================================================================
+ * THREE DEFECTS FROM THE OWNER'S iPhone SCREENSHOTS, 2026-08-20.
+ * ============================================================================ */
+
+/* 1. THE RANK NAMES WERE ALL BUT INVISIBLE - measured rgb(250,246,240) on a
+      near-white card. The page itself carries a near-white text colour
+      (body.page--arena is the dark hall's own theme), and EVERY existing panel
+      sets its own colour explicitly on top of that. The new mobile scene did
+      not, so it inherited white-on-white. Named explicitly here, the way the
+      panels around it already do. */
+.arena-mobile-scene,
+.arena-mobile-scene__title,
+.arena-mobile-ring__summary,
+.arena-mobile-ring__name,
+.arena-mobile-ring__chef-name {
+  color: var(--ink);
+}
+.arena-mobile-scene__hint,
+.arena-mobile-ring__empty {
+  color: var(--muted);
+}
+
+/* 2. ISSUE A CHALLENGE was unreadable for exactly the same reason: a light
+      button carrying the page's inherited near-white text. The dark primary
+      button beside it was fine because its own rule sets a light colour on a
+      dark ground on purpose. */
+.arena-lower-actions__secondary,
+.arena-lower-actions__secondary .arena-lower-actions__title,
+.arena-lower-actions__secondary .arena-lower-actions__subtitle {
+  color: var(--ink) !important;
+}
+
+/* 3. THE RANK LADDER SAT ON TOP OF THE OCTAGON on a phone: placeRankSpine()
+      deliberately stops positioning it below 767px and hands it to the
+      stylesheet, where it falls into normal flow INSIDE the floor - which is
+      now a fixed-aspect grid cell, so it printed over the octagon.
+
+      Below the phone breakpoint it is hidden, and this does NOT remove the
+      ranks from a phone - the guarantee that made it visible here (Stage 3E:
+      all eight ranks stay reachable on a phone) is what the new mobile scene
+      exists to serve, with all eight as 44px targets that also list their
+      chefs. The ladder stays exactly as it is at every larger width, and its
+      own JS placement is untouched. A test asserts the mobile scene still
+      carries all eight, so the requirement keeps a guard rather than losing
+      one. */
+@media (max-width: 640px) {
+  .arena-floor-stage > .arena-rank-spine {
+    display: none;
+  }
+}
+
+/* The hall's authorised name, restored to the status card after the
+   introductory card that used to carry it was removed. Quiet by design - it
+   identifies the room, it is not a heading competing with ARENA STATUS. */
+.arena-command-deck__hall-name {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font: 600 0.68rem/1.2 var(--font-serif, "Playfair Display", serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 

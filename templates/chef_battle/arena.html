@@ -219,6 +219,14 @@
         {% if active_battle %}Live Now{% else %}Floor Open{% endif %}
       </p>
     </header>
+    {% comment %}
+      "Emerald Hall" is the hall's authorised name (Owner, M11, 2026-07-25) and
+      a test asserts it appears on this page. Removing the introductory card
+      took it off the arena entirely - a real regression, caught by that test
+      rather than by me. It comes back here, as the status card's own quiet
+      subtitle rather than as the large card the rebuild was asked to delete.
+    {% endcomment %}
+    <p class="arena-command-deck__hall-name">Emerald Hall</p>
     <div class="arena-phase-current">
       <svg class="arena-ico arena-phase-current__ico" aria-hidden="true"><use href="#ad-hourglass"></use></svg>
       <div>

@@ -8890,12 +8890,32 @@ class ArenaPhasePanelTests(TestCase):
         from pathlib import Path
         return (Path(django_settings.BASE_DIR) / self.TEMPLATE).read_text(encoding="utf-8")
 
-    def test_the_authoritative_clock_is_in_the_phase_header(self):
+    def test_the_authoritative_clock_outranks_the_refresh_countdown(self):
+        """A11's rule, guarded by what it actually means.
+
+        The point was never the <header> element: it was that the clock a
+        viewer sees FIRST is the one the server is counting to, not the
+        page-reload countdown that once occupied the reference's clock slot
+        and measured something else entirely.
+
+        The Owner's 2026-08-19 mockup gives the deadline its own labelled
+        block under CURRENT PHASE instead of a slot inside the title row, so
+        the assertion follows the rule rather than the old markup: inside the
+        status card the authoritative deadline still comes first, and the
+        refresh countdown still comes after it and never in the title row.
+        """
         source = self._template()
-        header = source.split(
+        card = source.split(
             '<section class="arena-command-deck__phase-card"', 1
-        )[1].split("</header>", 1)[0]
-        self.assertIn('id="arena-phase-deadline"', header)
+        )[1].split("</section>", 1)[0]
+        header = card.split("</header>", 1)[0]
+
+        self.assertIn('id="arena-phase-deadline"', card)
+        self.assertLess(
+            card.index('id="arena-phase-deadline"'),
+            card.index('id="arena-refresh-timer"'),
+            "the reload countdown must not precede the authoritative deadline",
+        )
         self.assertNotIn('id="arena-refresh-timer"', header)
 
     def test_the_refresh_countdown_is_kept_and_labelled_for_what_it_counts(self):
@@ -9172,29 +9192,49 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("var(--accent-bronze)", rank_step)
         self.assertNotIn("clip-path: none", rank_step)
 
-    def test_cooking_widget_is_independent_from_the_lifecycle_header(self):
-        """The approved left widget owns identity + phase; the top header owns
-        only the lifecycle rail."""
-        template = self.TEMPLATE.read_text(encoding="utf-8")
-        widget = template.index('class="arena-cooking-widget"')
-        phase_card = template.index(
-            'class="arena-command-deck__phase-card"', widget
-        )
-        lifecycle_header = template.index(
-            'class="arena-broadcast-ribbon"', widget
-        )
-        phase_rail = template.index('id="arena-phase-rail"', lifecycle_header)
-        self.assertLess(widget, phase_card)
-        self.assertLess(phase_card, lifecycle_header)
-        self.assertLess(lifecycle_header, phase_rail)
+    def test_phase_card_is_separate_from_the_lifecycle_header(self):
+        """The side column owns identity + phase; the top ribbon owns only the
+        lifecycle rail.
 
-    def test_desktop_metrics_use_compact_four_column_strip(self):
+        This used to be asserted through the .arena-cooking-widget wrapper,
+        which the Owner's 2026-08-19 rebuild deleted along with the large
+        introductory card it held. The SEPARATION it guarded is unchanged and
+        is what this checks now: the phase card lives inside the left rail,
+        and the ribbon carries the lifecycle rail without swallowing the phase
+        card back into itself.
+        """
+        template = self.TEMPLATE.read_text(encoding="utf-8")
+        left_rail = template.index('class="arena-left-stack"')
+        phase_card = template.index(
+            'class="arena-command-deck__phase-card"', left_rail
+        )
+        lifecycle_header = template.index('class="arena-broadcast-ribbon"')
+        phase_rail = template.index('id="arena-phase-rail"', lifecycle_header)
+
+        # The phase card is a child of the left rail, not of the ribbon.
+        self.assertLess(left_rail, phase_card)
+        self.assertLess(lifecycle_header, phase_rail)
+        ribbon_block = template[lifecycle_header:phase_rail]
+        self.assertNotIn("arena-command-deck__phase-card", ribbon_block)
+
+    def test_metrics_panel_fits_the_column_it_lives_in(self):
+        """M12 drew this panel as a four-across strip 480px wide at minimum,
+        which was right while it spanned a wide ribbon.
+
+        The Owner's 2026-08-19 rebuild moved it into a 240-300px sidebar, and
+        the old floor made it wider than its own column: on his phone it
+        printed over its neighbours. What matters now is the opposite of the
+        original assertion - the panel must not carry a width that its column
+        cannot honour.
+        """
         css = self.CSS_POLISH.read_text(encoding="utf-8")
         metrics = css.split("MOCKUP M12", 1)[1].split(
             ".arena-command-deck__metrics {", 1
         )[1].split("}", 1)[0]
-        self.assertIn("repeat(4, minmax(0, 1fr))", metrics)
-        self.assertIn("width: clamp(30rem, 32vw, 40rem)", metrics)
+        self.assertIn("width: 100%", metrics)
+        self.assertNotIn("clamp(30rem", metrics)
+        # The four metrics stack in a sidebar rather than sitting side by side.
+        self.assertIn("flex-direction: column", metrics)
 
     def test_dark_ribbon_identity_uses_readable_site_tokens(self):
         css = self.CSS_POLISH.read_text(encoding="utf-8")
@@ -9350,6 +9390,33 @@ class ArenaRankColumnTests(TestCase):
         self.assertNotIn("display: none", mobile.split(".arena-rank-spine", 1)[1].split(";", 1)[0] + ";")
         self.assertIn(".arena-rank-spine { position: static", mobile)
         self.assertIn("flex-wrap: wrap", mobile.split(".arena-rank-spine__list", 1)[1])
+
+    def test_a_phone_still_reaches_all_eight_ranks(self):
+        """Stage 3E's real requirement, guarded where it now lives.
+
+        The in-floor ladder IS hidden below 640px as of 2026-08-20 - it fell
+        into normal flow inside the floor and printed over the octagon. What
+        the rule above protects is not that element but the guarantee behind
+        it: a phone must still reach every rank. The Owner's separate mobile
+        scene serves it now, so this asserts the eight rows exist there and
+        that hiding the ladder is scoped to the phone alone, leaving every
+        larger width exactly as the test above describes.
+        """
+        css = self.CSS_DECK.read_text(encoding="utf-8")
+        template = (
+            Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+        ).read_text(encoding="utf-8")
+
+        # The scene loops rank_groups - the same source the octagon's rings
+        # come from - so all eight ranks are present by construction.
+        scene = template.split('class="arena-mobile-scene"', 1)[1]
+        scene = scene.split("</section>", 1)[0]
+        self.assertIn("for rank, chefs, ring in rank_groups", scene)
+        self.assertIn("arena-mobile-ring__summary", scene)
+
+        # And the ladder is hidden only on the phone, not at any larger width.
+        phone = css.split("@media (max-width: 640px)")[-1]
+        self.assertIn(".arena-floor-stage > .arena-rank-spine", phone)
 
     # ---- contrast --------------------------------------------------------
 
