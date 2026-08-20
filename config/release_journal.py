@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1167",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "Arena zoom ceiling down to 1.2 after 1.3 still crashed",
+        "section": "Chef Battles / Arena",
+        "summary": "1.3 STILL CRASHED THE ARENA on the Owner's iPhone, so the ceiling comes down again to maximum-scale=1.2 - the narrowest range tried so far that still leaves real zoom, and the last width above the full stop shipped in 1162. minimum-scale stays at 0.95: it is the one part of the range that behaved, and moving both at once would make the next report unreadable. The ladder of values tried on his device so far: 2.5, 1.2, full stop (maximum-scale=1 + user-scalable=no), 1.1, 1.5, 1.3+0.95, now 1.2+0.95. Nothing in this codebase can observe the release/rest behaviour or reproduce the crash - Android (Blink) does not reproduce it at all - so every value here is his call after testing, and each one is an experiment rather than a confirmed fix. Every other page keeps the unrestricted viewport, confirmed by curl against a fresh local render. manage.py check clean, test_arena_acceptance (12) green.",
+    },
+    {
         "version": "2.5.1166",
         "date": "2026-08-21",
         "commit": "pending",
