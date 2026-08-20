@@ -257,8 +257,39 @@
     // throttled it. One rAF slot now holds at most one pending remeasure, so
     // a burst of resize events across one frame collapses to the one
     // recalculation that frame can actually show.
+    // A SECOND DEFECT IN THE SAME LISTENER, found from the Owner's own
+    // description of the gesture: he zooms, it holds; he zooms FURTHER and
+    // the octagon snaps back to its start size - our own code fighting his
+    // fingers, not a browser quirk. The coalescing above only slowed how
+    // OFTEN this ran; it never stopped it running on the wrong trigger.
+    //
+    // Pinch-zoom on iOS fires `resize`, but it changes the VISUAL viewport
+    // (the scale you see), not the LAYOUT viewport (window.innerWidth/
+    // innerHeight) - a pure pinch moves nothing this file has any business
+    // re-fitting against. remeasure(true) does not know the difference: it
+    // re-measures the header and re-announces to every subscriber, which
+    // sends the octagon's fitScene() to recompute the camera's scale from
+    // the region's current box - and applies THAT scale on top of, and
+    // fighting, the zoom the user is actively holding with two fingers.
+    // Repeated every frame across a sustained gesture, that is not a resize
+    // handler running slowly; it is two systems - the compositor's visual
+    // zoom and this file's programmatic fit - overwriting each other in a
+    // tight loop for as long as the gesture lasts.
+    //
+    // The layout viewport is the one signal that tells them apart: it does
+    // not move for a pure pinch, only for what this file actually needs to
+    // react to (rotation, the address bar collapsing, a real window resize).
+    // A resize event that leaves innerWidth and innerHeight unchanged is
+    // exactly that phantom, and is now dropped before it reaches rAF at all.
+    var lastLayoutW = global.innerWidth;
+    var lastLayoutH = global.innerHeight;
     var resizeFrame = null;
     global.addEventListener('resize', function () {
+      if (global.innerWidth === lastLayoutW && global.innerHeight === lastLayoutH) {
+        return;
+      }
+      lastLayoutW = global.innerWidth;
+      lastLayoutH = global.innerHeight;
       if (resizeFrame !== null) { return; }
       resizeFrame = global.requestAnimationFrame(function () {
         resizeFrame = null;

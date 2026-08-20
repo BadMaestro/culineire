@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1160",
+        "date": "2026-08-20",
+        "commit": "pending",
+        "title": "The octagon was fighting the Owner's own zoom - a phantom resize from iOS pinch was overwriting his scale every frame",
+        "section": "Chef Battles / Arena",
+        "summary": "THE OWNER'S OWN SEQUENCE WAS THE MISSING PIECE: zoom in, it holds; zoom FURTHER and the octagon snaps back to its starting size; zoom a third time and it crashes. That middle step - the page undoing his own zoom - is not a browser quirk, it is this file fighting his fingers. The resize listener fixed in 1158 was coalesced to at most once per frame, but never checked WHAT changed. iOS fires window `resize` throughout a pinch gesture even though pinch-zoom only changes the VISUAL viewport - window.innerWidth/innerHeight, the LAYOUT viewport, do not move for a pure pinch. remeasure(true) does not know the difference: every firing re-announces to the octagon's fitScene(), which recomputes the camera's scale from the region's current box and writes it - overwriting the native zoom the user is actively holding with two fingers, on every frame the gesture produces a phantom resize. That is the snap-back, not a metaphor for it. THE FIX: window.innerWidth/innerHeight are compared against their last known values before a resize event is allowed to schedule anything. A resize that leaves both unchanged - the phantom from a pure pinch - is dropped before it reaches the rAF coalescing at all; a resize that actually changes the layout viewport (rotation, the address bar collapsing, a real window resize) still runs exactly as before. VERIFIED, not assumed - the earlier attempt at this exact test looked like a failure because the CDP viewport-emulation tool that drives this session's harness changes innerWidth without ever firing a native resize event, so a manually dispatched event arriving after the size was already set found nothing changed and correctly did nothing. Once a genuine before/after size difference was staged (change the size, THEN dispatch), the guard let exactly one requestAnimationFrame through and the octagon's --arena-camera-scale updated to match; fifty phantom dispatches at a constant size scheduled zero and left the scale untouched. manage.py check clean, node --check clean, test_arena_acceptance (12) green. Not confirmed by reproducing the crash - no device access - but the first fix in this incident that answers a symptom the Owner described from the gesture itself (the snap-back mid-session), rather than only the crash at the end of it.",
+    },
+    {
         "version": "2.5.1158",
         "date": "2026-08-20",
         "commit": "pending",
