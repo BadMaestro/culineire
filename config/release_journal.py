@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1165",
+        "date": "2026-08-20",
+        "commit": "pending",
+        "title": "Arena viewport tries a range either side of 1.0 - minimum-scale=0.95, maximum-scale=1.3",
+        "section": "Chef Battles / Arena",
+        "summary": "1.5 'BROKE' PER THE OWNER: zoom stopped snapping back toward 1.0 at all on release, sitting near 1.01 regardless of gesture. Neither number tried so far (1.1, 1.5) has produced release behaviour that matches what a viewport meta tag alone can promise - minimum-scale/maximum-scale bound what a gesture CAN reach, they do not define the rest state after release; that elastic settle is the engine's own behaviour, the part this file cannot specify and the part still misbehaving on his device. This attempt adds minimum-scale=0.95 alongside maximum-scale=1.3, his own numbers, to test whether headroom on BOTH sides of 1.0 changes where a released gesture settles - an experiment on his real device, not a confirmed fix, since nothing in this codebase can observe that rest behaviour outside of what he reports after each try. Every other page unaffected, confirmed by curl. manage.py check clean, test_arena_acceptance (12) green.",
+    },
+    {
         "version": "2.5.1164",
         "date": "2026-08-20",
         "commit": "pending",
