@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1162",
+        "date": "2026-08-20",
+        "commit": "pending",
+        "title": "Android does not crash - confirmed WebKit-only, pinch-zoom now off outright on the arena page",
+        "section": "Chef Battles / Arena",
+        "summary": "PINCH-ZOOM OFF, ARENA ONLY, BY DIRECT ORDER after his own test confirmed the diagnosis: the Owner tried the same crash sequence on his Android phone and it does not reproduce at all. Android runs Blink, not WebKit - this closes the question left open in 1161. The leak (WebKit bug 172206; an independently reported IOSurface leak reaching 3.58GB on a completely empty WKWebView in ~20 seconds of pinching, Apple unfixed) is specific to the rendering engine itself, not to anything this page carries. Tried as a ceiling first, twice - maximum-scale=2.5, then 1.2 - before he ordered the full stop this is. viewport_content is now 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover' on the arena page. Both properties are set together on purpose: user-scalable=no alone is a WebKit-only signal some other engines do not fully honour, and maximum-scale=1 alone leaves a couple of iOS versions still able to nudge past initial-scale on a fast double-pinch; paired, they hold on every engine that has been checked against this bug. Every other page on the site is unaffected - confirmed by curl against a fresh local render, homepage still reads byte-identical to before this whole incident: 'width=device-width, initial-scale=1, viewport-fit=cover'. A syntax trap on the way here, worth recording: writing '{% block viewport_content %}' as a literal example INSIDE a Django {# #} template comment produced 'block tag with name viewport_content appears more than once,' a 500 on the page - Django's comment lexer still tokenizes {% %} sequences it finds inside {# #} text as real tags in this version, so the tag name cannot appear even as prose within a comment on the same template that defines the real one. Rephrased instead of quoted. manage.py check clean, test_arena_acceptance (12) green.",
+    },
+    {
         "version": "2.5.1161",
         "date": "2026-08-20",
         "commit": "pending",
