@@ -417,13 +417,20 @@
         seatGroup.appendChild(cell);
         layer.appendChild(seatGroup);
 
-        // The seated viewer's portrait is masked with this clip. It was a
-        // circle when the seat was one; it is the CELL now, so a face fills
-        // its chair the way a chef's fills a rank cell. Losing this clip is
-        // how a viewer once became unable to appear in the stands at all.
-        var clip = el('clipPath', { id: 'arena-clip-' + seat.ring + '-' + seat.cell });
-        clip.appendChild(el('path', { d: d }));
-        defs.appendChild(clip);
+        // The seated viewer's portrait is masked with this clip - but not
+        // BUILT here any more (2026-08-20). It used to be, for all 114 oval
+        // seats, whether or not anyone was sitting in them: 114 clipPaths
+        // that existed purely so a viewer's face had somewhere to go IF one
+        // ever arrived, on an arena that is usually empty. Found chasing an
+        // iPhone crash on zoom - the octagon was carrying 336 clipPaths this
+        // way, most of them for seats nobody occupied, and a heavy pinch
+        // zoom on iOS has to re-rasterize every one of them. The clip is
+        // still byte-identical when it IS needed - ensureOccupantClip below
+        // builds it from this same `d`, the first time this exact seat is
+        // actually occupied, not before. Losing the clip once made a viewer
+        // unable to appear in the stands at all; losing the EAGERNESS does
+        // not touch that - the id and the geometry are the same, only the
+        // moment moved.
       });
     });
     svg.appendChild(layer);
@@ -793,13 +800,10 @@
         }
 
         // A VIP box needs its own clip so a sponsor's logo can be dropped into
-        // it without spilling over the brass edge. Keyed by kind, not by the
-        // seating index, because the ring deliberately carries none.
+        // it without spilling over the brass edge, built lazily by
+        // ensureOccupantClip the first time a sponsor actually takes the
+        // box (2026-08-20 - see the note on the oval-seat clip above).
         if (entry.kind === 'vip') {
-          var vipClip = el('clipPath', { id: 'arena-clip-vip-' + pos });
-          vipClip.appendChild(el('path', { d: d }));
-          defs.appendChild(vipClip);
-
           // Owner 2026-08-03: a gold firefly runs around an ACTIVE box. Same
           // outline, same running dash as a chef's — gold, because the ring is
           // sold rather than earned. It goes in the sparks layer, above both the
@@ -813,12 +817,8 @@
         }
 
         // Portrait clips are keyed by the seating index, so only real seat
-        // rings build them — and the ids stay byte-identical to before.
-        if (ringAttr !== '') {
-          var clip = el('clipPath', { id: 'arena-clip-' + ringAttr + '-' + pos });
-          clip.appendChild(el('path', { d: d }));
-          defs.appendChild(clip);
-        }
+        // rings need them - and ensureOccupantClip builds them lazily now,
+        // the ids staying byte-identical to before (2026-08-20).
       }
     }
 
@@ -1412,6 +1412,33 @@
   var lastCellCentres = {};
   var previousCellCentres = {};
 
+  /**
+   * Build the seat's portrait clip the first time it is actually needed,
+   * not before. Found 2026-08-20 chasing an iPhone crash on pinch-zoom: the
+   * octagon used to pre-build one of these for all 339 cells (114 spectator
+   * seats, ~35 VIP boxes, ~190 rank cells) at initial draw, whether or not
+   * anyone was sitting in them - 336 clipPaths for an arena that is usually
+   * empty, all of it standing weight a heavy zoom has to re-rasterize.
+   *
+   * The id is byte-identical to what the eager version built
+   * (`arena-clip-<ring>-<cell>`, or `arena-clip-vip-<pos>` for a sponsor
+   * box), and the geometry comes from the same source the eager version
+   * read: the seat wedge's own `d`. Idempotent - if the id already exists
+   * (a chef relocates back to a seat that held someone before, or a repaint
+   * finds it already built), nothing is rebuilt.
+   */
+  function ensureOccupantClip(svg, clipId, seat) {
+    if (document.getElementById(clipId)) { return; }
+    if (!seat) { return; }
+    var d = seat.getAttribute('d');
+    if (!d) { return; }
+    var defs = svg.querySelector('defs');
+    if (!defs) { return; }
+    var clip = el('clipPath', { id: clipId });
+    clip.appendChild(el('path', { d: d }));
+    defs.appendChild(clip);
+  }
+
   function cellCentre(seat) {
     var box = seat.getBBox();
     return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
@@ -1423,11 +1450,14 @@
     var seat = svg.querySelector(selector);
     if (!seat) { return; }
 
+    var clipId = 'arena-clip-' + assignment.ring + '-' + assignment.cell;
+    ensureOccupantClip(svg, clipId, seat);
+
     var box = seat.getBBox();
     // Cover the wedge bbox so the face fills the cell (sponsors-style clip).
     var size = Math.max(box.width, box.height) * 1.08;
     var group = el('g', {
-      'clip-path': 'url(#arena-clip-' + assignment.ring + '-' + assignment.cell + ')',
+      'clip-path': 'url(#' + clipId + ')',
       'data-entity-slug': entity.slug || '',
       class: 'arena-occupant'
     });
@@ -1688,10 +1718,13 @@
       // centroid instead sat in the middle of a wedge with air around it and
       // read as a sticker; covering-and-clipping makes it the box's own surface,
       // which is what the Owner is buying when he sells one.
+      var vipClipId = 'arena-clip-vip-' + cell;
+      ensureOccupantClip(svg, vipClipId, box);
+
       var bbox = box.getBBox();
       var size = Math.max(bbox.width, bbox.height) * 1.08;
       var mark = el('g', {
-        'clip-path': 'url(#arena-clip-vip-' + cell + ')',
+        'clip-path': 'url(#' + vipClipId + ')',
         'pointer-events': 'none',
         class: 'arena-vip-sponsor'
       });
