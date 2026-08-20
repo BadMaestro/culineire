@@ -1683,9 +1683,18 @@
     grid-template-columns: 1fr auto;
   }
 
+  /* THE TRACK'S COLUMN COUNT HAS ONE OWNER, and this is it (2026-08-20).
+     This rule carries two classes and no @media, so it beat every
+     single-class narrow-screen rule in the sheet no matter where they sat:
+     seven columns survived onto a 375px phone, each about 45px wide, and
+     after the number's own 17px pill and the padding there was nothing left
+     for the label - the ellipsis in arena_atmosphere.css truncated all seven
+     phase names to zero and the Owner saw a bar of bare numbered circles.
+     The count is now a variable so a narrow screen can restate the COUNT
+     without restating the rule; no desktop pixel moves, the default is 7. */
   .arena-broadcast-ribbon .arena-command-deck__phase-rail {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--arena-phase-cols, 7), minmax(0, 1fr));
     justify-content: stretch;
   }
 
@@ -1825,7 +1834,7 @@
   .arena-command-deck__command { grid-area: command; }
   .arena-command-deck__header, .arena-command-deck__floor-head, .arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
-  .arena-command-deck__phase-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .arena-command-deck__phase-rail { --arena-phase-cols: 4; }
   .arena-phase-step { min-height: 2rem; font-size: .61rem; }
   .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
   .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
@@ -7730,7 +7739,10 @@
   }
   .arena-mobile-ring__chefs {
     display: grid;
-    gap: 0.15rem;
+    /* 0.125rem = 2px flat. 0.15rem measures 2.4px, and a gap on a fraction of
+       a pixel is what made the rank ladder's rungs rasterise unevenly - the
+       Arena bans that number sheet-wide rather than per component. */
+    gap: 0.125rem;
     margin: 0;
     padding: 0.2rem 0.45rem 0.55rem;
     list-style: none;
@@ -7843,6 +7855,21 @@
   .arena-command-deck__command { grid-area: command; }
   .arena-command-deck__gifts { grid-area: gifts; }
   .arena-broadcast-ribbon { grid-area: ribbon; }
+  /* Two columns, four rows, and all seven phases keep their NAMES - the
+     original arena's track says what each step is, and a phone that shows
+     only the numbers is not the same panel. At 375px each cell is about
+     165px, wide enough for the number pill and the longest label. */
+  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    --arena-phase-cols: 2;
+    width: 100%;
+    gap: 0.3rem;
+    border-radius: 0.9rem;
+  }
+  .arena-broadcast-ribbon .arena-phase-step {
+    justify-content: flex-start;
+    padding-inline: 0.5rem;
+  }
+  .arena-broadcast-ribbon .arena-phase-step b { font-size: 0.62rem; }
   .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; }
   /* The floor keeps its own aspect on a phone but stops claiming desktop
      height - it is the stage here, not the whole interface. */

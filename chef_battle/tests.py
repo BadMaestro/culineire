@@ -8627,8 +8627,12 @@ class ArenaSpectatorTests(TestCase):
         self.assertEqual(slugs, {"spec-viewer"})
         self.assertEqual(
             set(specs[0]),
-            {"name", "slug", "avatar_url", "ring", "cell", "row", "is_self"},
+            {"name", "slug", "avatar_url", "ring", "cell", "row", "is_self",
+             "avatar_is_default"},
         )
+        # avatar_is_default rides only on the viewer's OWN row -- the "You are
+        # here" label needs it, and every other row would spend the poll's
+        # payload budget on a fact nobody reads (2026-08-19).
         self.assertTrue(specs[0]["is_self"])
         self.assertIsInstance(specs[0]["ring"], int)
         self.assertIsInstance(specs[0]["cell"], int)
@@ -12840,6 +12844,55 @@ class ArenaRingNumberingTests(TestCase):
         ).read_text(encoding="utf-8")
         self.assertNotIn("gap: 0.15rem;", css)
         self.assertIn("min-height: 1.375rem;", css)
+
+
+class PhaseTrackNamesItsStepsOnAPhoneTests(TestCase):
+    """Owner, 2026-08-20, from his own phone: the track showed 1..7 and nothing else.
+
+    The cause was cascade, not copy. The rule that lays the track out carries
+    two classes and sits in no @media block at all, so its seven equal columns
+    reached a 375px phone and beat the narrow-screen rule that had been asking
+    for four since 2026-08-03. Seven columns of ~45px leave nothing beside the
+    number pill, and the ellipsis in arena_atmosphere.css truncated every phase
+    name to zero width.
+
+    The count is a variable now, so the narrow screens restate the COUNT and
+    never the rule. This test guards the shape of that fix: one owner, and a
+    phone that is not given seven columns.
+    """
+
+    def _css(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
+        ).read_text(encoding="utf-8")
+
+    def test_the_column_count_has_exactly_one_owner(self):
+        css = self._css()
+        self.assertIn(
+            "grid-template-columns: repeat(var(--arena-phase-cols, 7), minmax(0, 1fr));",
+            css,
+        )
+        self.assertEqual(
+            css.count("grid-template-columns: repeat(var(--arena-phase-cols"), 1,
+            "the phase track's column count must be laid out in one place only",
+        )
+
+    def test_a_phone_is_not_given_seven_columns(self):
+        css = self._css()
+        self.assertIn("--arena-phase-cols: 2;", css)
+        self.assertIn("--arena-phase-cols: 4;", css)
+
+    def test_the_labels_are_still_in_the_markup(self):
+        """The names must be present to be shown; the fix is CSS, not copy."""
+        from pathlib import Path
+        from django.conf import settings as django_settings
+        html = (
+            Path(django_settings.BASE_DIR)
+            / "templates" / "chef_battle" / "arena.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("{{ rung.label }}", html)
 
 
 class FloorCaptionGetsARegionTests(TestCase):

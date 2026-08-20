@@ -167,6 +167,18 @@ UNGUARDED_BY_DESIGN = {
     "arena_react": "Calls is_battle_visible directly.",
     "arena_blast": "Calls is_battle_visible directly.",
     "battle_chat_poll": "Calls is_battle_visible directly; previously leaked chat to anonymous.",
+    "arena_chat_feed": (
+        "Calls is_battle_visible directly, the same shape as arena_state and "
+        "battle_chat_poll: a delta poll every few seconds, where the guard's "
+        "suspended-POST branch would stack a banner per poll. Reach is applied "
+        "per listener inside the view, so a line the reader is too far away to "
+        "hear never leaves the server (2026-08-18)."
+    ),
+    "arena_chat_send": (
+        "Calls is_battle_visible directly, then refuses anyone not signed in "
+        "(403 not_authenticated) and anyone without a seat in the hall "
+        "(403 not_in_the_hall) before a single character is stored."
+    ),
     "cooking_moderation": (
         "Moderator-only, checked with is_moderator AND is_battle_visible in the "
         "view (F8, 2026-08-11) - is_moderator alone admits has_bearseeker_"
