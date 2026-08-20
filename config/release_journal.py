@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1155",
+        "date": "2026-08-20",
+        "commit": "pending",
+        "title": "The phase-marker emoji drop their filter and animation cost - same-day iPhone crash budget, re-broken and re-fixed within the hour",
+        "section": "Chef Battles / Arena",
+        "summary": "URGENT FIX, minutes after v2.5.1154 shipped: the Owner reported the exact 'a problem repeatedly occurred' iPhone crash page that arena.css already carries a documented incident about, dated the same day, at line ~7902 - 'the page was CRASHING Safari... 12 elements carrying backdrop-filter, 63 carrying filter, 45 running animations... iOS gives a tab a hard memory ceiling and kills it rather than degrading.' The seven emoji markers just added in 1154 re-added exactly that cost on the same phone audience: a filter (grayscale+opacity) on each of the seven glyphs, plus a brand new continuous keyframe animation on the active marker's box-shadow - a property that forces a repaint every frame, running forever, on a page already at the documented budget line. THE FIX MATCHES THE EXISTING BUDGET, not a new one: dropped the `filter` on all seven glyphs in favour of plain `opacity` - opacity does not force its own compositing layer the way filter does, and reads the same (0.55 for upcoming, 0.8 for complete, 1 for active). Dropped the @keyframes animation entirely; the active marker keeps its double box-shadow ring, just static - painted once, not every frame. Net effect on this panel: seven fewer filter layers, one fewer running animation, same visual read confirmed in the harness (getComputedStyle: filter none on all seven glyphs, animationName none, the ring's box-shadow present and unchanged in colour). NOT YET CONFIRMED: whether this was the actual cause of the reported crash, or a contributing factor among several - the crash was reported on pinch-zoom specifically, which re-rasterizes every compositing layer at higher density and would hit a budget-line page hardest. This is the single most probable cause given what changed in the five minutes before the report, fixed on that reasoning, not confirmed by reproducing the crash - the Owner's phone is the only place that can confirm it is gone.",
+    },
+    {
         "version": "2.5.1154",
         "date": "2026-08-20",
         "commit": "pending",

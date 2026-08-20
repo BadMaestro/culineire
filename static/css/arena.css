@@ -8126,10 +8126,16 @@
     align-items: center;
     justify-content: center;
   }
+  /* PHONE SAFETY, 2026-08-20 (same incident as the block at ~7900: the page
+     was crashing Safari on the Owner's iPhone from too many `filter` and
+     `backdrop-filter` layers alive at once, and this marker set had just
+     added seven more plus a continuous animated box-shadow). No `filter`
+     here - opacity alone reads the same and does not force its own
+     compositing layer per glyph. */
   .arena-broadcast-ribbon .arena-phase-step__index::before {
     font-size: 0.62rem;
     line-height: 1;
-    filter: grayscale(1) opacity(0.55);
+    opacity: 0.55;
   }
   .arena-broadcast-ribbon .arena-phase-step[data-phase-key="challenge"] .arena-phase-step__index::before { content: "\1F91D"; }
   .arena-broadcast-ribbon .arena-phase-step[data-phase-key="combat"] .arena-phase-step__index::before { content: "\2694\FE0F"; }
@@ -8141,37 +8147,23 @@
   /* The one that is now: a shade larger, its glyph at full colour and full
      size while the rest stay small and greyed, and wearing a soft ring plus
      a slow glow so the eye finds it before it reads anything. */
+  /* The ring is STATIC, not animated - a continuous box-shadow animation
+     repaints every frame, and that per-frame repaint is exactly what the
+     phone-safety pass above budgets against. A fixed glow still marks the
+     active step; it just doesn't cost anything after the first paint. */
   .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
     width: 1.2rem;
     height: 1.2rem;
     box-shadow:
-      0 0 0 2px color-mix(in srgb, var(--accent-bronze) 22%, transparent),
-      0 0 0.5rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
-    animation: arena-phase-glow 2.4s ease-in-out infinite;
+      0 0 0 2px color-mix(in srgb, var(--accent-bronze) 30%, transparent),
+      0 0 0.6rem color-mix(in srgb, var(--accent-bronze) 42%, transparent);
   }
   .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index::before {
     font-size: 0.85rem;
-    filter: none;
+    opacity: 1;
   }
   .arena-broadcast-ribbon .arena-phase-step.is-complete .arena-phase-step__index::before {
-    filter: grayscale(0.3) opacity(0.8);
-  }
-  @keyframes arena-phase-glow {
-    0%, 100% {
-      box-shadow:
-        0 0 0 2px color-mix(in srgb, var(--accent-bronze) 22%, transparent),
-        0 0 0.5rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
-    }
-    50% {
-      box-shadow:
-        0 0 0 3px color-mix(in srgb, var(--accent-bronze) 38%, transparent),
-        0 0 0.9rem color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
-      animation: none;
-    }
+    opacity: 0.8;
   }
   .arena-broadcast-ribbon .arena-phase-step:not(.is-active) b {
     position: absolute;
