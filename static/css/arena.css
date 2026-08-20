@@ -7656,3 +7656,208 @@
   max-height: min(78vh, 820px);
 }
 
+/* ============================================================================
+ * THE MOBILE SCENE - Owner's decision, 2026-07-20, re-confirmed 2026-08-19:
+ * a phone gets a DIFFERENT scene, not the desktop one reflowed into one
+ * column. The reason is measured, not aesthetic: at 390px the outer rank ring
+ * renders tiles about 34x8px after the perspective squash, and a tile is what
+ * opens a chef's card. A scene whose only control cannot be hit is a picture,
+ * not an interface.
+ *
+ * Above the phone breakpoint this whole section does not exist. Below it, the
+ * octagon stays as the stage and the ranks become rows a thumb can press.
+ * ============================================================================ */
+
+.arena-mobile-scene {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .arena-mobile-scene {
+    display: block;
+    grid-area: mobilescene;
+    padding: 0.9rem 1rem 1.1rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+  }
+  .arena-mobile-scene__title {
+    margin: 0;
+    color: var(--ink);
+    font: 700 1rem/1.15 var(--font-serif, "Playfair Display", serif);
+  }
+  .arena-mobile-scene__hint {
+    margin: 0.25rem 0 0.75rem;
+    color: var(--arena-muted, var(--muted));
+    font-size: 0.75rem;
+  }
+  .arena-mobile-scene__rings {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .arena-mobile-ring__details {
+    border: 1px solid color-mix(in srgb, var(--brand) 22%, transparent);
+    border-radius: 0.65rem;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    overflow: hidden;
+  }
+  /* 44px is the smallest target a finger reliably hits - the whole reason this
+     scene exists rather than the 8px-tall tiles it replaces. */
+  .arena-mobile-ring__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    padding: 0.45rem 0.7rem;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.8rem;
+    list-style: none;
+  }
+  .arena-mobile-ring__summary::-webkit-details-marker { display: none; }
+  .arena-mobile-ring__no {
+    display: grid;
+    place-items: center;
+    width: 1.55rem;
+    height: 1.55rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent-bronze) 16%, var(--surface));
+    color: var(--accent-bronze-dark);
+    font-size: 0.72rem;
+  }
+  .arena-mobile-ring__name { flex: 1 1 auto; min-width: 0; }
+  .arena-mobile-ring__count {
+    flex: 0 0 auto;
+    color: var(--accent-bronze-dark);
+    font-variant-numeric: tabular-nums;
+  }
+  .arena-mobile-ring__chefs {
+    display: grid;
+    gap: 0.15rem;
+    margin: 0;
+    padding: 0.2rem 0.45rem 0.55rem;
+    list-style: none;
+  }
+  .arena-mobile-ring__chefs a {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 44px;
+    padding: 0.25rem 0.35rem;
+    border-radius: 0.5rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .arena-mobile-ring__chefs img {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .arena-mobile-ring__chef-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.82rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arena-mobile-ring__flag {
+    flex: 0 0 auto;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-bronze) 14%, var(--surface));
+    color: var(--accent-bronze-dark);
+    font-size: 0.6rem;
+    font-style: normal;
+    font-weight: 700;
+  }
+  .arena-mobile-ring__flag--online {
+    background: color-mix(in srgb, var(--hall-green, #4f9d69) 16%, var(--surface));
+    color: color-mix(in srgb, var(--hall-green, #4f9d69) 75%, var(--ink));
+  }
+  .arena-mobile-ring__empty {
+    margin: 0;
+    padding: 0.2rem 0.7rem 0.6rem;
+    color: var(--arena-muted, var(--muted));
+    font-size: 0.75rem;
+  }
+
+  /* THE PHONE'S OWN ORDER, from the Owner's brief, with the mobile scene
+     taking the place his list gives the ranks. The desktop grid does not
+     reach here (min-width:901px) and neither does the tablet one
+     (641-900px), so this is the only rule placing these areas. */
+  .arena-command-deck {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "ribbon"
+      "floor"
+      "phase"
+      "foot"
+      "metrics"
+      "mobilescene"
+      "ladder"
+      "command"
+      "gifts"
+      "guide"
+      "chat";
+    gap: 0.7rem;
+    width: min(100% - 1rem, 640px);
+    margin-inline: auto;
+    height: auto;
+    min-height: 0;
+    padding-block: 0.8rem;
+  }
+  /* Same unconditional-position trap as the tablet range: the panels and the
+     two stack wrappers carry position:absolute from rules with no media query
+     at all, so every one has to be named here or it leaves the flow and piles
+     up. */
+  .arena-left-stack,
+  .arena-right-stack {
+    display: contents;
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__ladder,
+  .arena-command-deck__guide,
+  .arena-chat,
+  .arena-command-deck__metrics,
+  .arena-command-deck__command,
+  .arena-command-deck__gifts,
+  .arena-command-deck__floor,
+  .arena-broadcast-ribbon,
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    position: relative;
+    inset: auto;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+  .arena-command-deck__phase-card { grid-area: phase; }
+  .arena-command-deck__ladder { grid-area: ladder; }
+  .arena-command-deck__guide { grid-area: guide; }
+  .arena-chat { grid-area: chat; }
+  .arena-command-deck__metrics { grid-area: metrics; }
+  .arena-command-deck__command { grid-area: command; }
+  .arena-command-deck__gifts { grid-area: gifts; }
+  .arena-broadcast-ribbon { grid-area: ribbon; }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; }
+  /* The floor keeps its own aspect on a phone but stops claiming desktop
+     height - it is the stage here, not the whole interface. */
+  .arena-command-deck__floor {
+    grid-area: floor;
+    aspect-ratio: 1 / 0.78;
+    min-height: 0;
+    max-height: 62vh;
+  }
+}
+
