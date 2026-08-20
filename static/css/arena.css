@@ -8003,6 +8003,29 @@
     filter: none !important;
     mix-blend-mode: normal !important;
   }
+
+  /* EVERY ONLINE CHEF, DOUBLE-ANIMATED - found chasing the same crash after
+     this whole pass had already shipped. appendOnlineDot() (arena_render.js)
+     gives each online chef's dot FOUR concurrent SMIL <animate> elements -
+     the ping's radius and opacity, the dot's own radius and opacity - AND
+     the dot also carries the unconditional CSS animation
+     arena-online-pulse, running the SAME opacity pulse the dot's own SMIL
+     already runs. The file's own comment calls this out: "SMIL does the
+     hard work; CSS is backup" - meaning both run at once, on every online
+     chef, all the time, gated by nothing narrower than
+     prefers-reduced-motion. None of this was counted by the panel-level
+     "PHONE SAFETY" audit or the lamp pass above, because neither looked at
+     what happens once real chefs are online rather than an empty floor.
+     Hidden outright below tablet - the redundant CSS pulse first, since it
+     duplicates work the SMIL already does; the ping and its two SMIL
+     animations with it, since an online chef still reads as online from
+     the plain green dot alone. */
+  .page--arena #arena-render .arena-online-dot {
+    animation: none !important;
+  }
+  .page--arena #arena-render .arena-online-ping {
+    display: none !important;
+  }
 }
 
 /* ============================================================================

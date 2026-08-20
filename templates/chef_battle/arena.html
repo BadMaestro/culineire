@@ -3,6 +3,24 @@
 
 {% block body_attrs %} class="page--arena"{% endblock %}
 
+{# Owner, 2026-08-20: zoom stays on - the octagon is small on a phone and
+   the first thing anyone does is zoom in to see it - but the ceiling comes
+   down. WKWebView has a documented, Apple-unfixed IOSurface leak specific
+   to the pinch gesture itself (WebKit bug 172206; reported independently on
+   an EMPTY WKWebView reaching 3.58GB of leaked GPU memory in ~20 seconds of
+   pinching - https://developer.apple.com/forums/thread/774005), which
+   matches everything measured on this page: the crash needs no particular
+   arena state, needs repeated zoom cycles, and happens in both Safari and
+   Chrome iOS because both sit on WKWebView. The leak's rate does not appear
+   to depend on how far the gesture reaches, but every zoom cycle a user
+   completes leaks GPU memory that WebKit does not appear to release, so a
+   lower ceiling means fewer cycles are needed to see the octagon's full
+   detail and therefore less total leak accumulated by the time anyone has
+   actually looked at it. 2.5 is roughly half of the ~5.0 default WebKit
+   applies when a page states no maximum at all - a first cut, per his
+   instruction, not a claim that 2.5 is the right number forever. #}
+{% block viewport_content %}width=device-width, initial-scale=1, maximum-scale=2.5, viewport-fit=cover{% endblock %}
+
 {% block title %}The Arena | Chef Battles | CulinEire{% endblock %}
 {% block meta_description %}Step into the Chef Battles Arena. See every chef ranked by tier around the ring, and watch the active battle at the centre.{% endblock %}
 

@@ -3,7 +3,7 @@
 <html lang="en"{% if chef_battle_enabled and user.is_authenticated %} data-battle-poll-url="{% url 'chef_battle:notifications_poll' %}"{% endif %}>
 <head>
     <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport">
+    <meta content="{% block viewport_content %}width=device-width, initial-scale=1, viewport-fit=cover{% endblock %}" name="viewport">
     <title>{% block title %}CulinEire{% endblock %}</title>
 
     <meta content="{% block meta_description %}Honouring Irish Culinary Heritage. CulinEire is a modern Irish culinary platform for recipes, food stories, and classic dishes adapted for the home kitchen.{% endblock %}"
@@ -445,7 +445,7 @@
             </div>
             <div class="footer-legal">
                 <span>&copy; 2026 Bearcave Limited. All rights reserved.</span>
-                <span class="footer-version">v2.5.1160</span>
+                <span class="footer-version">v2.5.1161</span>
             </div>
         </div>
     </div>
