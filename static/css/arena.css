@@ -1839,45 +1839,6 @@
   .arena-command-deck__command { grid-area: command; }
   .arena-command-deck__header, .arena-command-deck__floor-head, .arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
-  /* Same progress-strip compaction as the 640px tier, restated here because
-     this range (641-767px) sits above the ribbon's own 640px rules and would
-     otherwise fall back to the unconditioned 7-pill desktop card - the same
-     trap the ribbon's three-column grid sprang on a phone in v2.5.1150. */
-  .arena-command-deck__phase-rail {
-    display: flex;
-    align-items: center;
-    gap: calc(var(--arena-phase-gap, 0.382rem) * 0.6);
-    min-height: 2.25rem;
-    padding: 0;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-  }
-  .arena-phase-step {
-    flex: 0 0 auto;
-    justify-content: flex-start;
-    gap: 0;
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-  }
-  .arena-phase-step.is-active { flex: 1 1 auto; min-width: 0; gap: 0.4rem; }
-  .arena-phase-step__index {
-    min-width: 0.5rem; width: 0.5rem; height: 0.5rem;
-    font-size: 0; padding: 0; flex: 0 0 auto;
-  }
-  .arena-phase-step.is-active .arena-phase-step__index { width: 0.7rem; height: 0.7rem; }
-  .arena-phase-step:not(.is-active) b {
-    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
-  }
-  .arena-phase-step.is-active b {
-    position: static; width: auto; height: auto; margin: 0;
-    overflow: hidden; clip: auto; white-space: nowrap; text-overflow: ellipsis;
-    min-width: 0; font-size: .68rem; letter-spacing: 0.06em;
-  }
   .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
   .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
   .arena-metric:first-child { border-left: 0; }
@@ -2474,12 +2435,22 @@
   .arena-phase-step { transition:none; }
 }
 
-/* 3G R6 polish — phase cells read as one track inside the ribbon. */
+/* 3G R6 polish — phase cells read as one track inside the ribbon.
 
+   NOW GATED TO THE DESKTOP, and that gate is the fix rather than a
+   preference (2026-08-20). Unconditional and two classes deep, this rule
+   out-ranked every narrow-screen rule written before it in the file and
+   out-ordered every one written after it up to line ~2479, which is how
+   seven full-width steps in a wrapping flex row became seven stacked rows
+   on the Owner's phone. width:100% is a statement about a GRID COLUMN - it
+   only means anything where the track is a seven-column grid, which is the
+   desktop. Below 768px the track is a progress strip and sizes itself. */
+@media (min-width: 768px) {
   .arena-broadcast-ribbon .arena-phase-step {
     width: 100%;
     justify-content: center;
   }
+}
   .arena-broadcast-ribbon .arena-phase-step.is-active {
     scale: 1;
   }
@@ -7908,89 +7879,9 @@
     min-height: 0;
   }
 
-  /* THE PHASE TRACK BECOMES A PROGRESS STRIP HERE (Owner, 2026-08-20:
-     the seven-pill card is decoration - one phase is ever active, six sit
-     grey, and it was costing ~300px above the floor, the thing that matters
-     more). Seven dots read past/now/upcoming at a glance; the one label
-     worth printing - the active phase's own name - sits beside them in a
-     single ~2.25rem (36px) line. The other six names stay in the DOM
-     unchanged (arena_deck.js reads [data-phase-step] by position and
-     next-phase text straight out of one of these <b> nodes - see its own
-     comment at line ~505) and stay reachable to a screen reader; only their
-     paint is removed, the same visually-hidden technique used everywhere
-     else on this page a label needs to survive without being seen. */
-  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    gap: calc(var(--arena-phase-gap) * 0.6);
-    padding: 0;
-    min-height: 2.25rem;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-  }
-  .arena-broadcast-ribbon .arena-phase-step {
-    flex: 0 0 auto;
-    justify-content: flex-start;
-    gap: 0;
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    opacity: 1;
-  }
-  /* The active step alone grows to carry its label; the six others stay
-     exactly their dot's width. */
-  .arena-broadcast-ribbon .arena-phase-step.is-active {
-    flex: 1 1 auto;
-    min-width: 0;
-    gap: 0.4rem;
-  }
-  .arena-broadcast-ribbon .arena-phase-step__index {
-    min-width: 0.5rem;
-    width: 0.5rem;
-    height: 0.5rem;
-    font-size: 0;
-    padding: 0;
-    border-width: 1px;
-    flex: 0 0 auto;
-  }
-  .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
-    width: 0.7rem;
-    height: 0.7rem;
-  }
-  /* Six of seven names are heard, not seen - visually-hidden, not
-     display:none, so the DOM shape arena_deck.js depends on never changes
-     and the label is still there for a screen reader and for the JS
-     next-phase lookup regardless of which step is active. */
-  .arena-broadcast-ribbon .arena-phase-step:not(.is-active) b {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-  .arena-broadcast-ribbon .arena-phase-step.is-active b {
-    position: static;
-    width: auto;
-    height: auto;
-    margin: 0;
-    overflow: visible;
-    clip: auto;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    min-width: 0;
-    overflow-x: hidden;
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
-  }
+  /* The progress strip itself is defined ONCE, in the max-width:767px
+     block above, which covers this range too. Only the ribbon that
+     carries it is shaped here. */
   .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; }
   /* The floor keeps its own aspect on a phone but stops claiming desktop
      height - it is the stage here, not the whole interface. */
@@ -8137,3 +8028,109 @@
   text-transform: uppercase;
 }
 
+/* ============================================================================
+ * THE PHASE TRACK ON EVERY NARROW SCREEN - one progress strip, one owner.
+ *
+ * Owner, 2026-08-20: the seven-pill card is decoration - one phase is ever
+ * active, six sit grey - and it cost roughly 300px above the floor, which
+ * matters more. Seven dots read past/now/upcoming at a glance, and the one
+ * label worth printing, the active phase's own name, sits at its own place in
+ * the row: its position among the dots IS its position in the battle.
+ *
+ * WHY THIS BLOCK IS AT THE END OF THE FILE and not beside the other
+ * narrow-screen rules. Three rules own pieces of this track unconditionally,
+ * two classes deep, scattered from line ~1700 to ~4800: the rail's grid, the
+ * step's width, the index pill's size. Media queries add NO specificity, so a
+ * narrow-screen rule only wins by coming later in the file. Written next to
+ * its siblings at line ~1870 this whole block lost to a rule 600 lines below
+ * it and the strip rendered as seven stacked rows - measured, not guessed.
+ * One block, at the end, is the honest answer for a 8000-line sheet whose own
+ * comments call it a house of cards.
+ *
+ * THE SIX INACTIVE LABELS ARE CLIPPED, NOT REMOVED. arena_deck.js reads the
+ * next phase's label straight out of one of these <b> nodes by DOM position -
+ * see its own comment near line 505 - so display:none would take the JS's
+ * text source and a screen reader's words with it.
+ * ========================================================================= */
+@media (max-width: 767px) {
+  /* The ribbon's desktop track - minmax(14rem,1fr) minmax(0,2.6fr) auto - is
+     also unconditional, and it was parking the strip in a 224px first column
+     with the rest of the card empty. One column here. */
+  .arena-broadcast-ribbon {
+    grid-template-columns: 1fr;
+  }
+  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: calc(var(--arena-phase-gap, 0.382rem) * 0.6);
+    padding: 0;
+    min-height: 2.25rem;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  .arena-broadcast-ribbon .arena-phase-step {
+    width: auto;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    gap: 0;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+    overflow: visible;
+  }
+  /* The active step is sized by its label - 0 1 auto - so it never eats the
+     room the trailing dots need, and can still shrink to an ellipsis if a
+     phase name ever grows. */
+  .arena-broadcast-ribbon .arena-phase-step.is-active {
+    width: auto;
+    flex: 0 1 auto;
+    min-width: 0;
+    gap: 0.4rem;
+    overflow: hidden;
+  }
+  .arena-broadcast-ribbon .arena-phase-step__index {
+    min-width: 0.5rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    font-size: 0;
+    padding: 0;
+    border-width: 1px;
+    flex: 0 0 auto;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
+    width: 0.7rem;
+    height: 0.7rem;
+  }
+  .arena-broadcast-ribbon .arena-phase-step:not(.is-active) b {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active b {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: hidden;
+    clip: auto;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+  }
+}

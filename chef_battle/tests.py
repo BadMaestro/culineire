@@ -12909,6 +12909,23 @@ class PhaseTrackNamesItsStepsOnAPhoneTests(TestCase):
             css,
         )
 
+    def test_the_desktop_width_rule_is_gated_to_the_desktop(self):
+        """The rule that made the strip stack was unconditional, not narrow.
+
+        "3G R6 polish" gives every step width:100% - correct where the track
+        is a seven-column grid, meaningless where it is a strip. Two classes
+        deep and in no @media block, it out-ranked every narrow-screen rule
+        written before it and out-ordered the ones written after it, and seven
+        full-width items in a wrapping flex row became seven stacked rows on
+        the Owner's phone. Gating it is the fix; this guards the gate.
+        """
+        css = self._css()
+        anchor = css.index("NOW GATED TO THE DESKTOP")
+        window = css[anchor:anchor + 900]
+        self.assertIn("@media (min-width: 768px)", window)
+        self.assertIn(".arena-broadcast-ribbon .arena-phase-step", window)
+        self.assertIn("width: 100%", window)
+
     def test_the_strip_is_short_not_a_tall_card(self):
         """The panel's whole reason for shrinking: it must not cost ~300px."""
         css = self._css()
