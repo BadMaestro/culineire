@@ -964,6 +964,11 @@
   text-decoration: underline;
 }
 
+/* One phi series for the phase track: 0.382 / 0.618 / 1 / 1.618 of a rem.
+   The narrow-screen rules read these; the desktop track does not use them
+   and keeps the measures it was accepted with. */
+.arena-command-deck__phase-rail { --arena-phase-gap: 0.382rem; --arena-phase-pad: 0.618rem; }
+.arena-broadcast-ribbon { --arena-phase-gap: 0.382rem; --arena-phase-pad: 0.618rem; }
 .arena-command-deck__phase-rail { grid-area: phase-rail; border-radius: 1rem; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: .45rem; }
 .arena-command-deck__phase-rail.is-open .arena-phase-step { opacity: .82; }
 .arena-phase-step { justify-content: center; min-height: 2.3rem; }
@@ -7854,22 +7859,61 @@
   .arena-command-deck__metrics { grid-area: metrics; }
   .arena-command-deck__command { grid-area: command; }
   .arena-command-deck__gifts { grid-area: gifts; }
-  .arena-broadcast-ribbon { grid-area: ribbon; }
-  /* Two columns, four rows, and all seven phases keep their NAMES - the
-     original arena's track says what each step is, and a phone that shows
-     only the numbers is not the same panel. At 375px each cell is about
-     165px, wide enough for the number pill and the longest label. */
+  /* THE RIBBON IS ONE COLUMN HERE. Its three-column desktop track -
+     minmax(14rem,1fr) minmax(0,2.6fr) auto - is stated with no @media around
+     it, so on a 375px phone the rail was being parked in a 14rem first column
+     and the other two thirds of the card stood empty. */
+  .arena-broadcast-ribbon {
+    grid-area: ribbon;
+    grid-template-columns: 1fr;
+    gap: var(--arena-phase-gap);
+    padding: var(--arena-phase-pad) var(--arena-phase-pad)
+             calc(var(--arena-phase-pad) * 1.618);
+    min-height: 0;
+  }
+
+  /* THE PHASE TRACK ON A PHONE, proportioned rather than merely fitted
+     (Owner, 2026-08-20: even, centred, golden ratio).
+
+     Every measure on this panel comes off one phi scale so nothing is a
+     number somebody liked on the day: 0.382 / 0.618 / 1 / 1.618 of a rem.
+     The gap is 0.382 and the padding 0.618 - the gap is the padding divided
+     by phi, so the space around the track and the space inside it belong to
+     one series and read as deliberate.
+
+     Two equal columns, and CROWN - the odd seventh - spans both rather than
+     sitting alone beside a hole. The block ends flush, which is the whole of
+     "even" here. The pill keeps a 2.75rem (44px) minimum because that is a
+     finger, and accessibility outranks the series when the two disagree. */
   .arena-broadcast-ribbon .arena-command-deck__phase-rail {
     --arena-phase-cols: 2;
     width: 100%;
-    gap: 0.3rem;
-    border-radius: 0.9rem;
+    gap: var(--arena-phase-gap);
+    padding: var(--arena-phase-pad);
+    border-radius: calc(var(--arena-phase-pad) * 1.618);
+    justify-items: stretch;
   }
   .arena-broadcast-ribbon .arena-phase-step {
-    justify-content: flex-start;
-    padding-inline: 0.5rem;
+    justify-content: center;
+    gap: calc(var(--arena-phase-gap) * 1.618);
+    min-height: 2.75rem;
+    padding: var(--arena-phase-gap) var(--arena-phase-pad);
+    border-radius: 999px;
   }
-  .arena-broadcast-ribbon .arena-phase-step b { font-size: 0.62rem; }
+  /* The seventh takes the full width instead of leaving an orphan. */
+  .arena-broadcast-ribbon .arena-phase-step:last-child {
+    grid-column: 1 / -1;
+  }
+  .arena-broadcast-ribbon .arena-phase-step__index {
+    min-width: 1.375rem;
+    height: 1.375rem;
+    font-size: 0.62rem;
+  }
+  .arena-broadcast-ribbon .arena-phase-step b {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-overflow: clip;
+  }
   .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; }
   /* The floor keeps its own aspect on a phone but stops claiming desktop
      height - it is the stage here, not the whole interface. */

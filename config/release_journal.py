@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1150",
+        "date": "2026-08-20",
+        "commit": "pending",
+        "title": "The phase track gets its proportions - one phi series, no orphan, and the ribbon stops being three columns wide on a phone",
+        "section": "Chef Battles / Arena",
+        "summary": "THE OWNER, ON THE NAMES APPEARING: now make it exactly even and beautiful - centring, sizes, golden ratio. TWO THINGS WERE WRONG AND ONLY ONE WAS THE TRACK. The panel sat in the left third of its own card with two thirds of it empty, and that was not the track at all: the RIBBON's three-column desktop layout - minmax(14rem, 1fr) minmax(0, 2.6fr) auto - is stated with no @media around it, the sixth unconditional Stage-16 rule to reach a phone this week. The rail was being parked in a 14rem first column, which at 375px is most of what the screenshot showed. The ribbon is one full-width column on a phone now. THE PROPORTIONS COME OFF ONE PHI SERIES rather than numbers chosen on the day: 0.382 / 0.618 / 1 / 1.618 of a rem, declared once as --arena-phase-gap and --arena-phase-pad. The gap is the padding divided by phi, so the space AROUND the track and the space INSIDE it belong to the same series and read as deliberate instead of coincidental; the pill's inner gap is the outer gap times phi, and the rail's corner radius is the padding times phi. THE ORPHAN IS GONE: seven steps in two columns used to leave CROWN alone beside a hole, so CROWN spans both columns and the block ends flush - that is the whole of 'even' here. Every pill is one height, its contents centred, the number pill 1.375rem and the label 0.68rem with wider tracking so the caps read at that size. ONE PLACE THE SERIES LOSES ON PURPOSE: the pill keeps a 2.75rem (44px) minimum height because that is a finger, and accessibility outranks a proportion when the two disagree. Said here rather than left for someone to find. NOT VERIFIED BY EYE, again and for the same reason: browsing localhost and minting a local staff session are both refused by this session's permission mode, so this is cascade analysis and tests. Visual acceptance is the Owner's. EVIDENCE: braces balanced, test_arena_acceptance + the superseded-declaration guard + ring numbering + the new phase-track guard, 26 green. NOT TOUCHED: the octagon, its geometry and camera, the rank ladder, _widget.html, and no desktop measure - the desktop track keeps the numbers it was accepted with.",
+    },
+    {
         "version": "2.5.1149",
         "date": "2026-08-20",
         "commit": "pending",
