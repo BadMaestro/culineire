@@ -1387,6 +1387,24 @@
   @keyframes arena-command-deck-breathe { 50% { box-shadow: 0 .7rem 2rem color-mix(in srgb, var(--ink-soft) 12%, transparent); } }
 }
 
+/* PHONE SAFETY, found 2026-08-20 via a documented WebKit bug, not a guess:
+   a @keyframes animation on a PARENT, with ANY descendant carrying its own
+   `opacity` rule, repeatedly crashes Safari/WebKit - "a problem repeatedly
+   occurred" - reported worst under pinch-zoom, which forces the whole layer
+   tree to recomposite. .arena-command-deck__floor is that parent: it wraps
+   the entire octagon SVG, whose #arena-render descendants set `opacity`
+   directly in dozens of places (bulb glows, cell states, seat fades). This
+   ran on every load, every phase, crown or no crown - the one thing every
+   earlier attempt at this crash missed, because none of them were about
+   COST at all. Apple's own fix for this exact bug is to drop the animation
+   from the parent; the value lost is a box-shadow breathing at 8s, barely
+   visible against the octagon's own background. */
+@media (max-width: 900px) {
+  .arena-command-deck__floor {
+    animation: none !important;
+  }
+}
+
 /* ----------------------------------------------------------------------------
  * Stage 16 — the HUD frames the arena instead of standing beside it.
  *
