@@ -7951,6 +7951,40 @@
   .page--arena .arena-live-centre {
     filter: none !important;
   }
+
+  /* THE MOAT LAMPS - found 2026-08-20, after this pass had already shipped
+     and the Owner's iPhone was still crashing on zoom. This audit measured
+     the panel chrome and the atmosphere layer and missed the octagon's own
+     SVG: eight lanterns (arena_render.js, ~line 682), each carrying TWO
+     stacked drop-shadow passes and its own SMIL <animate> opacity loop that
+     no CSS media query reaches, plus three strobe rings per lantern - 24
+     more elements - each running a 2.4s CSS animation forever, in
+     mix-blend-mode:screen, each also under a drop-shadow. 32 elements, every
+     one animating without end, none of them named by any selector above.
+     Zoom re-rasterizes every one of those layers at higher density; on a
+     phone already near the filter/backdrop-filter ceiling this pass set out
+     to respect, that is what still tipped it over.
+     Hidden outright below tablet, same law as the atmosphere layer above:
+     ambient light is ornament, and the elements the JS creates are left
+     alone - arena_render.js does not know or need to know the CSS turned
+     them off. */
+  .page--arena #arena-render .arena-lantern,
+  .page--arena #arena-render .arena-lamp-strobe {
+    display: none !important;
+  }
+
+  /* Same combination (filter + mix-blend-mode:screen + infinite animation),
+     same reason, on the two "lit" sparks - the travelling outline on an
+     occupied rank cell and on an occupied VIP box. These are not always on
+     screen (they need a seated chef), so they were not what reproduced the
+     crash on an empty floor, but they carry the identical cost whenever they
+     are and belong in the same budget cut. */
+  .page--arena #arena-render .arena-cell-spark[data-lit="true"],
+  .page--arena #arena-render .arena-vip-spark[data-lit="true"] {
+    animation: none !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+  }
 }
 
 /* ============================================================================
