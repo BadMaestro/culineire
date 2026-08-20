@@ -12,13 +12,15 @@
    (Blink, not WebKit) does not reproduce the crash at all under the same
    gesture that reliably crashed his iPhone.
    Tried first as a ceiling rather than a block - maximum-scale=2.5, then
-   1.2 - before he asked outright for the full stop this is. user-scalable
-   applies WITH maximum-scale=1: on its own user-scalable=no is a
-   WebKit-only signal and some engines still allow zoom past initial-scale;
-   pairing them is what actually holds everywhere. Scoped to this page alone
-   through the viewport block base.html now exposes - every other page on
-   the site keeps the unrestricted viewport it always had. #}
-{% block viewport_content %}width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover{% endblock %}
+   1.2, then the full stop (maximum-scale=1 with user-scalable=no) - before
+   he asked for a sliver of room back: 10% of headroom, not the full lock.
+   user-scalable=no is DROPPED here on purpose, not left in alongside a
+   maximum above 1 - it disables scaling outright regardless of what
+   maximum-scale says, so the two are mutually exclusive the moment any
+   zoom at all is wanted again. Scoped to this page alone through the
+   viewport block base.html now exposes - every other page on the site
+   keeps the unrestricted viewport it always had. #}
+{% block viewport_content %}width=device-width, initial-scale=1, maximum-scale=1.1, viewport-fit=cover{% endblock %}
 
 {% block title %}The Arena | Chef Battles | CulinEire{% endblock %}
 {% block meta_description %}Step into the Chef Battles Arena. See every chef ranked by tier around the ring, and watch the active battle at the centre.{% endblock %}

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1163",
+        "date": "2026-08-20",
+        "commit": "pending",
+        "title": "Arena zoom ceiling opened back up to 1.1 - a sliver of room, not the full lock",
+        "section": "Chef Battles / Arena",
+        "summary": "A SLIVER OF ROOM BACK, OWNER'S REQUEST: 10% zoom headroom instead of the full lock 1162 shipped. user-scalable=no is DROPPED here, not left alongside a maximum above 1 - it disables scaling outright regardless of what maximum-scale says, so the two are mutually exclusive the instant any zoom at all is wanted again. viewport_content on the arena page is now 'width=device-width, initial-scale=1, maximum-scale=1.1, viewport-fit=cover'. Every other page unaffected, confirmed by curl against a fresh local render. manage.py check clean, test_arena_acceptance (12) green.",
+    },
+    {
         "version": "2.5.1162",
         "date": "2026-08-20",
         "commit": "pending",
