@@ -1728,14 +1728,25 @@
 
   /* confrontation band sits under the ribbon */
 
-  /* R2: lower bar closes the frame full-width (visible, safe change). */
+  /* R2: lower bar closes the frame full-width (visible, safe change).
+     border-radius/border-left/border-right/border-bottom here are from the
+     old absolute-overlay dock this card used to be. Every later rule that
+     still matters (position: static/grid-area: foot, the full 1px border
+     restored by the 2026-08-20 rewrite above) has already moved past that
+     layout, but nothing had corrected the radius, so this was the one place
+     still telling the card to be square-topped and three-sided-bordered on
+     a phone - confirmed live: radiusTL/TR 0px, radiusBL/BR 13.6px, while
+     the Owner's target mockup shows this card fully rounded like its
+     siblings (2026-08-21). border-left/right/bottom: 0 is left as dead
+     weight rather than removed here - the live border already reads 1px on
+     all four sides from the later rule, so touching it is not needed to
+     fix the radius and is out of this card's scope. */
   .arena-command-deck__crowd-rail.arena-lower-broadcast {
     left: 0;
     right: 0;
     bottom: 0;
     width: 100%;
     transform: none;
-    border-radius: 0;
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
@@ -3123,8 +3134,17 @@
   border-radius: 0.2rem;
 }
 
-/* 3G — stage frame around the desktop Arena viewport. */
+/* 3G — stage frame around the desktop Arena viewport.
 
+   SCOPED TO THE DESKTOP, 2026-08-21. This block carried no @media and
+   applied at every width, including the phone. On mobile the ribbon and
+   the crowd-rail are two separate floating cards with a real gap between
+   them (confirmed: phase-card ends at y939, crowd-rail starts at y965 at
+   414px) - not one continuous frame - so zeroing the crowd-rail's TOP
+   corners left it the only card on the screen with square top edges
+   against the Owner's target mockup, which shows it fully rounded like
+   every other card. Same class of leak as the 901px guard above this one. */
+@media (min-width: 901px) {
   .arena-command-deck {
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
     border-radius: 0.85rem;
@@ -3140,6 +3160,7 @@
     border-bottom-left-radius: 0.85rem;
     border-bottom-right-radius: 0.85rem;
   }
+}
 
 /* 3G — outer show glow on the framed Arena. */
 
