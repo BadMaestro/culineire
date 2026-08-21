@@ -1,7 +1,7 @@
 /**
  * THE ARENA'S ZOOM LOCK, iOS ONLY.
  *
- * Owner, 2026-08-21: "block zoom for the arena page, on iOS devices."
+ * Owner, 2026-08-21: block zoom for the arena page on iOS devices.
  *
  * WHY THE PAGE HAS TO DO THIS AT ALL. WKWebView leaks GPU memory on the
  * pinch gesture itself - WebKit bug 172206, "Pinch zoom crash: A problem
@@ -9,36 +9,44 @@
  * independently reported IOSurface leak reaching 3.58GB on a completely
  * EMPTY page after ~20 seconds of pinching. Apple has fixed neither. The
  * Owner's iPhone crashed on the arena in both Safari and Chrome iOS; his
- * Android phone (Blink) never reproduced it once under the same gesture.
+ * Android phone (Blink) never reproduced it once under the same gesture,
+ * which is why this is scoped to iOS and every other engine keeps the
+ * pinch-zoom it never had a problem with.
  *
- * WHY THE VIEWPORT TAG IS NOT ENOUGH ON ITS OWN. Safari has ignored
- * `user-scalable=no` since iOS 10, deliberately, on accessibility grounds -
- * a page must never be able to trap a reader at a size they cannot enlarge.
- * A WKWebView-based app (Chrome iOS, every in-app browser) does honour the
- * scale limits by default, which is why the ceiling values the Owner tested
- * produced real, differing behaviour on his device rather than none at all.
- * So the meta tag covers one browser and this file covers the other.
+ * FOUR LAYERS, because iOS closes none of these doors on its own and each
+ * layer leaves a different one open:
  *
- * WHAT IT DOES. preventDefault on WebKit's own `gesturestart`,
- * `gesturechange` and `gestureend` - the non-standard events behind the
- * native pinch, honoured even where the meta tag is ignored. Bound on the
- * DOCUMENT, not the octagon: the leak is charged wherever on the page the
- * gesture happens, so scoping it to the floor would leave the crash
- * reachable a finger-width away on the panel beside it. Double-tap zoom is
- * the other native path in and is closed in CSS (`touch-action:
- * manipulation` on the arena page), not here.
+ *   1. the viewport meta tag - honoured by WKWebView apps (Chrome iOS and
+ *      every in-app browser), IGNORED by Safari, which has refused
+ *      `user-scalable=no` since iOS 10 on accessibility grounds;
+ *   2. `touch-action: pan-y` on the arena body (arena.css) - the CSS-level
+ *      statement that this page pans vertically and does nothing else. This
+ *      replaced `touch-action: manipulation`, which was WRONG for the job:
+ *      manipulation is "auto minus double-tap-zoom" and still permits pinch,
+ *      so the first attempt at this lock closed the double tap and left the
+ *      pinch wide open;
+ *   3. the touch handlers below - any touchmove carrying more than one
+ *      finger, or a WebKit `scale` that is not 1, is cancelled outright;
+ *   4. the `gesturestart`/`gesturechange`/`gestureend` handlers below -
+ *      WebKit's own non-standard gesture events, honoured where the meta tag
+ *      is not.
  *
- * These events do not exist outside WebKit, so this is inert everywhere
- * else - and it is gated behind a server-side iOS check besides, because
- * Android and desktop keep the real pinch-zoom they never had a problem
- * with. See _is_ios_webkit in chef_battle/views.py; the same flag drives
- * the viewport meta, so the two can never disagree.
+ * Every listener is registered with `{ passive: false }`, and that is
+ * load-bearing rather than a detail: touch listeners default to passive in
+ * modern browsers, and preventDefault is silently a no-op inside a passive
+ * listener. A version of this file without those options would look exactly
+ * like this one and do nothing at all.
+ *
+ * Everything is bound on the DOCUMENT rather than the octagon: the leak is
+ * charged wherever on the page the gesture happens, so scoping it to the
+ * floor would leave the crash reachable a finger-width away on the panel
+ * beside it.
  *
  * A page-owned replacement zoom lived here briefly (v2.5.1168-1171): the
  * pinch read as a plain touch gesture and answered with a CSS transform on
- * the camera. It worked, and it is in the history if it is ever wanted, but
- * the Owner's instruction is that the arena does not zoom on iOS, so
- * carrying that machinery would be dead weight rather than a spare.
+ * the camera. It worked and it is in the history if it is ever wanted, but
+ * the instruction is that the arena does not zoom on iOS, so carrying that
+ * machinery would be dead weight rather than a spare.
  */
 (function (global) {
   'use strict';
@@ -46,11 +54,40 @@
   function init() {
     if (!global.ARENA_LOCK_ZOOM) { return; }
 
-    function block(event) { event.preventDefault(); }
+    function block(event) {
+      event.preventDefault();
+    }
+
+    /* A second finger landing is already the start of a pinch; refusing it
+       here is cheaper than unwinding a gesture that has begun. */
+    function blockMultiTouch(event) {
+      if (event.touches && event.touches.length > 1) {
+        event.preventDefault();
+      }
+    }
+
+    /* `scale` is WebKit's own reading of the pinch and is the signal that
+       survives when a finger count alone would not - a gesture continuing
+       after one finger lifts still reports a scale away from 1. */
+    function blockScaledMove(event) {
+      if (
+        (event.touches && event.touches.length > 1) ||
+        (typeof event.scale === 'number' && event.scale !== 1)
+      ) {
+        event.preventDefault();
+      }
+    }
+
+    document.addEventListener('touchstart', blockMultiTouch, { passive: false });
+    document.addEventListener('touchmove', blockScaledMove, { passive: false });
 
     document.addEventListener('gesturestart', block, { passive: false });
     document.addEventListener('gesturechange', block, { passive: false });
     document.addEventListener('gestureend', block, { passive: false });
+
+    /* Double-tap zoom is closed by touch-action in arena.css rather than
+       here: it is a CSS-level statement about the page and a handler that
+       had to guess at tap timing would be a worse version of it. */
   }
 
   if (document.readyState === 'loading') {

@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block body_attrs %} class="page--arena"{% endblock %}
+{# `is-zoom-locked` carries the same server-side iOS decision as the viewport
+   tag and the script, so the CSS half of the lock is scoped to exactly the
+   devices the other two halves are - the Owner asked for iOS, and Android
+   keeps the pinch-zoom it never had a problem with. #}
+{% block body_attrs %} class="page--arena{% if arena_native_zoom_off %} is-zoom-locked{% endif %}"{% endblock %}
 
 {# ZOOM IS LOCKED ON THIS PAGE, ON iOS ONLY. Owner, 2026-08-21.
 

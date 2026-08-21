@@ -12703,12 +12703,20 @@ class NativeZoomIsOnlyTakenAwayFromIOSTests(TestCase):
         self.assertEqual(response.status_code, 200)
         return response.content.decode()
 
-    def test_ios_gets_both_halves_of_the_lock(self):
+    def test_ios_gets_every_layer_of_the_lock(self):
+        """All three server-rendered layers, not just the one that is easiest.
+
+        The tag alone is ignored by Safari, the script alone cannot close
+        double-tap, and the body class alone does nothing without the CSS it
+        keys. A page carrying only some of them looks locked and is not -
+        which is exactly how the first attempt shipped.
+        """
         for label, agent in (("safari", self.IPHONE), ("chrome", self.CHROME_IOS)):
             with self.subTest(browser=label):
                 page = self._page(agent)
                 self.assertIn("user-scalable=no", page)
                 self.assertIn("window.ARENA_LOCK_ZOOM = true", page)
+                self.assertIn("is-zoom-locked", page)
 
     def test_every_other_engine_keeps_the_zoom_it_always_had(self):
         for label, agent in (("android", self.ANDROID), ("desktop", self.DESKTOP)):
@@ -12717,18 +12725,24 @@ class NativeZoomIsOnlyTakenAwayFromIOSTests(TestCase):
                 self.assertNotIn("user-scalable=no", page)
                 self.assertNotIn("maximum-scale", page)
                 self.assertIn("window.ARENA_LOCK_ZOOM = false", page)
+                # Without this the CSS layer would take pinch-zoom from
+                # engines that never had the bug.
+                self.assertNotIn("is-zoom-locked", page)
 
     def test_the_two_halves_cannot_drift_apart(self):
         """Native zoom off and the page's own zoom on are the same decision."""
         for agent in (self.IPHONE, self.CHROME_IOS, self.ANDROID, self.DESKTOP):
             with self.subTest(agent=agent[:40]):
                 page = self._page(agent)
-                native_off = "user-scalable=no" in page
-                own_zoom_on = "window.ARENA_LOCK_ZOOM = true" in page  # noqa: E501
+                layers = {
+                    "viewport tag": "user-scalable=no" in page,
+                    "script flag": "window.ARENA_LOCK_ZOOM = true" in page,
+                    "body class": "is-zoom-locked" in page,
+                }
                 self.assertEqual(
-                    native_off,
-                    own_zoom_on,
-                    "the tag and the script must lock the same devices",
+                    len(set(layers.values())),
+                    1,
+                    "every layer must lock the same devices, got " + repr(layers),
                 )
 
 

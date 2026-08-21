@@ -6632,21 +6632,29 @@
   perspective-origin: 50% 40%;
 }
 
-/* DOUBLE-TAP ZOOM IS THE OTHER WAY IN, and it is closed here (Owner,
-   2026-08-21: block zoom on the arena, on iOS).
+/* THE CSS HALF OF THE ZOOM LOCK (Owner, 2026-08-21: block zoom on the
+   arena, on iOS).
 
-   arena_zoom.js cancels WebKit's pinch through its `gesturestart` events,
-   but a double tap is not a gesture event and would still zoom the page -
-   the same leaking code path, reached by a different finger. `manipulation`
-   is the exact tool: it keeps panning and scrolling, and drops only the
-   double-tap-to-zoom the browser would otherwise wait around for.
+   `pan-y` says what this page actually does with a touch: it scrolls
+   vertically, and nothing else. Pinch-zoom and double-tap-zoom are both
+   outside that, so both are refused by the engine before any handler runs.
 
-   Not restricted to iOS the way the script is: on every other engine this
-   costs a double-tap zoom nobody uses on a page whose one zoomable object
-   has its own controls, and it buys back the ~300ms tap delay some engines
-   still hold for that gesture. */
-body.page--arena {
-  touch-action: manipulation;
+   THIS WAS `manipulation` FIRST AND THAT WAS THE BUG. `manipulation` means
+   "auto minus double-tap-zoom" - it still permits pinch. The first attempt
+   at this lock therefore closed the double tap, left the pinch wide open,
+   and shipped looking complete. `pan-y` is the value that actually excludes
+   the gesture WebKit leaks on.
+
+   SCOPED TO iOS like the other three layers, through the `is-zoom-locked`
+   class the server puts on the body from the same _is_ios_webkit check. An
+   unconditional rule here would have taken pinch-zoom away from Android and
+   the desktop too, which is not what was asked for and is a real loss on
+   engines that never had the bug.
+
+   Any descendant that ever does need to pan horizontally can say so with its
+   own touch-action; this states the page's default, not a prohibition. */
+body.page--arena.is-zoom-locked {
+  touch-action: pan-y;
 }
 
 
