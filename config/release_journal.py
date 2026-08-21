@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1174",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "NEXT BATTLE reads as one sentence again - its gap was three spaces wide, now one",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner, working through his marked-up screenshot one point at a time: bring the NEXT BATTLE sentence back to the colon with a single space between. The gap on .arena-next-board was .6rem - 10px measured, roughly three spaces at this size, which read as a tab stop rather than a sentence. Now 0.2rem, measured back at 3px, so 'Next Battle:' and what follows it read as the one line they are. WHAT IS DELIBERATELY NOT IN THIS RELEASE: he also asked for the line to move left by 10%, and for the floor frame before it. Both were built, measured and pulled back out rather than shipped, because 10% of an element's own width is the wrong size for these two: the board is 392px wide against an 11px margin, so -10% put it at -28px and cut the label to 'T BATTLE:'; the frame is 396px against a 9px margin and went to -31px, taking its left corner ornaments off the screen and leaving a 48px gap on the right with the octagon no longer centred in it. Both were shown to him with the numbers so he can name a real distance - 11px would put either flush with the card edge. Shipping the space fix alone rather than holding it hostage to that answer. manage.py check clean, braces balanced, test_arena_acceptance (12) green.",
+    },
+    {
         "version": "2.5.1173",
         "date": "2026-08-21",
         "commit": "pending",

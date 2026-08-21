@@ -8317,4 +8317,21 @@ body.page--arena.is-zoom-locked {
   .arena-floor-caption {
     width: min(92%, var(--arena-caption-free, 100%));
   }
+
+  /* Owner, 2026-08-21: bring the NEXT BATTLE sentence back to the colon with
+     a single space between.
+
+     The gap was .6rem - about 10px measured, roughly three spaces at this
+     size, which read as a tab stop rather than a sentence. 0.2rem is one
+     space at 0.72rem, so "Next Battle:" and what follows it read as the one
+     line they are.
+
+     He also asked for the line to move left by 10%, which is NOT here: 10%
+     of the board's own width is 39px against an 11px margin, so it cut the
+     label off the screen ("T BATTLE:"). Held back for a number rather than
+     shipped broken - the same arithmetic had already done this to the floor
+     frame minutes earlier. */
+  .arena-next-board {
+    gap: 0.2rem;
+  }
 }
