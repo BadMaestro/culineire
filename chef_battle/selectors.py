@@ -1368,19 +1368,123 @@ _ARENA_PHASE_RAIL = {
 }
 
 # Canonical ordered rungs for Build Plan 3R6 stepper (SSR + poll).
+#
+# EACH RUNG CARRIES ITS OWN DESCRIPTION, Owner 2026-08-21: "seven stages of
+# the battle, reveal the description of each stage." One sentence, written
+# for a spectator who has just walked in and tapped a marker on the phase
+# strip - not for a chef who already knows the rules and not for a developer.
+#
+# Every one is taken from what the code actually does, cross-read against
+# battle_lifecycle.md and the _ARENA_PHASE_RAIL map above, because a rung is
+# not a status: it covers several. Challenge holds `scheduled`, `waiting` AND
+# `menu_locked`, so its sentence has to cover the menus too. Cooking holds
+# `awaiting_submissions`, `revealed` and `cooking`. Review holds
+# `presentation` and `disputed`, which is why it speaks of the dishes being
+# opened rather than of moderation alone. Crown holds `completed`, `walkover`
+# and `void` - the arc is over however it ended.
+#
+# The numbers in them are the code's, not the spec's: two blocks
+# (KEY_COUNT = 2) and three shots, the audience deciding the battle rather
+# than combat deciding it. battle_lifecycle.md carried a wrong phase order
+# for a year and says so itself; where the two differ, this follows the code.
 _ARENA_PHASE_RAIL_STEPS = (
-    {"key": "challenge", "label": "Challenge", "step": 1},
-    {"key": "combat", "label": "Combat", "step": 2},
-    {"key": "biathlon", "label": "Biathlon", "step": 3},
-    {"key": "cooking", "label": "Cooking", "step": 4},
-    {"key": "mod_review", "label": "Review", "step": 5},
-    {"key": "voting", "label": "Voting", "step": 6},
-    {"key": "crown", "label": "Crown", "step": 7},
+    {
+        "key": "challenge",
+        "label": "Challenge",
+        "step": 1,
+        "blurb": (
+            "One chef calls out another and names the theme. Both then "
+            "declare the ingredients they will cook from, and privately "
+            "mark two of them as blocks."
+        ),
+    },
+    {
+        "key": "combat",
+        "label": "Combat",
+        "step": 2,
+        "blurb": (
+            "The chefs strike at each other's ingredient lists in turn. An "
+            "ingredient that is hit is struck off and cannot be cooked with; "
+            "combat is over food, never violence."
+        ),
+    },
+    {
+        "key": "biathlon",
+        "label": "Biathlon",
+        "step": 3,
+        "blurb": (
+            "Whoever won the combat round fires three shots at the other's "
+            "menu. A shot that hits a hidden block bounces off and reveals "
+            "it; anything else it hits is lost."
+        ),
+    },
+    {
+        "key": "cooking",
+        "label": "Cooking",
+        "step": 4,
+        "blurb": (
+            "Real kitchens now. Each chef cooks a dish from whatever survived "
+            "and submits it as a live stream or a series of photographs."
+        ),
+    },
+    {
+        "key": "mod_review",
+        "label": "Review",
+        "step": 5,
+        "blurb": (
+            "Both dishes are opened at once, with the ingredients each chef "
+            "lost along the way shown beside them, so the room can see what "
+            "was cooked around."
+        ),
+    },
+    {
+        "key": "voting",
+        "label": "Voting",
+        "step": 6,
+        "blurb": (
+            "The audience votes for the better dish, one vote each. This is "
+            "what decides the battle - everything before it only shaped what "
+            "the chefs had to work with."
+        ),
+    },
+    {
+        "key": "crown",
+        "label": "Crown",
+        "step": 7,
+        "blurb": (
+            "The winner is announced and takes the centre of the floor. The "
+            "result is written into both chefs' records and the arena is free "
+            "for the next challenge."
+        ),
+    },
 )
 
 
 def get_arena_phase_rail() -> list[dict]:
-    """Ordered 7-step public phase rail for the confrontation-era stepper."""
+    """Ordered 7-step public phase rail for the confrontation-era stepper.
+
+    WITHOUT the blurbs, and that omission is enforced by a budget rather than
+    a preference. This feeds the arena poll, which runs every ten seconds on
+    a phone and is held under 10 KB by
+    ArenaCostsWhatAFrontendCanAffordTests; the seven sentences took it to
+    11.0 KB the moment they were added here, and the test said so. They are
+    also the last thing that needs re-sending: the seven stages of a battle
+    are the same seven stages on every poll for the life of the site.
+
+    The page gets them once, from get_arena_phase_rail_described() below.
+    """
+    return [
+        {k: v for k, v in step.items() if k != "blurb"}
+        for step in _ARENA_PHASE_RAIL_STEPS
+    ]
+
+
+def get_arena_phase_rail_described() -> list[dict]:
+    """The same seven rungs WITH each stage's own sentence.
+
+    For the server-rendered page only. Static content, sent once with the
+    document, never on the poll - see the note in get_arena_phase_rail.
+    """
     return [dict(step) for step in _ARENA_PHASE_RAIL_STEPS]
 
 

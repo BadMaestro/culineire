@@ -527,9 +527,25 @@
         if (label && rung.label && label.textContent !== String(rung.label)) {
           label.textContent = String(rung.label);
         }
+
       });
     }
     if (!needsRebuild) { return; }
+
+    /* THE STAGE DESCRIPTIONS ARE NOT IN THE POLL, so a rebuild must not throw
+       them away. They ride in with the document and stay put - the seven
+       stages of a battle never change, and a payload budget keeps the poll
+       from carrying 11KB of text every ten seconds to say so (see
+       get_arena_phase_rail in selectors.py). Carried across by phase key
+       rather than by position, because a rebuild is exactly the case where
+       positions may have moved. */
+    var carriedBlurbs = {};
+    Array.prototype.forEach.call(existing, function (el) {
+      var key = el.getAttribute('data-phase-key');
+      var blurb = el.getAttribute('data-phase-blurb');
+      if (key && blurb) { carriedBlurbs[key] = blurb; }
+    });
+
     rail.textContent = '';
     phaseRail.forEach(function (rung) {
       if (!rung || !rung.step) { return; }
@@ -537,6 +553,15 @@
       step.className = 'arena-phase-step';
       step.setAttribute('data-phase-step', String(rung.step));
       if (rung.key) { step.setAttribute('data-phase-key', String(rung.key)); }
+      /* The stage's own sentence travels with the marker, so a rail the poll
+         rebuilds explains itself exactly as the server-rendered one does.
+         Left off when the payload carries none rather than invented here:
+         one source for this text, and it is the server's. */
+      var carried = rung.key ? carriedBlurbs[String(rung.key)] : null;
+      if (carried) { step.setAttribute('data-phase-blurb', carried); }
+      step.setAttribute('role', 'button');
+      step.setAttribute('tabindex', '0');
+      step.setAttribute('aria-controls', 'arena-phase-blurb');
       var index = document.createElement('span');
       index.className = 'arena-phase-step__index';
       index.setAttribute('aria-hidden', 'true');

@@ -58,6 +58,7 @@ from .selectors import (
     get_arena_metrics,
     get_arena_phase,
     get_arena_phase_rail,
+    get_arena_phase_rail_described,
     get_arena_deadline,
     get_arena_geometry,
     ARENA_GEOMETRY_VERSION,
@@ -1612,6 +1613,11 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         # page keeps the browser's own pinch-zoom, and whether arena_zoom.js
         # supplies its own instead. Both on would put two zooms on one gesture.
         "arena_native_zoom_off": _is_ios_webkit(request),
+        # The seven rungs WITH their descriptions, for the strip to render
+        # from. Deliberately not arena_data["phase_rail"], which the ten-second
+        # poll carries and which a payload budget keeps lean: the stages never
+        # change, so their text belongs in the document, sent once.
+        "phase_rail_described": get_arena_phase_rail_described(),
     }
 
 

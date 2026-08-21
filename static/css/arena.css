@@ -8341,3 +8341,41 @@ body.page--arena.is-zoom-locked {
     --arena-octagon-centre-y: 0.557;
   }
 }
+
+/* THE STAGE DESCRIPTION THE STRIP OPENS (Owner, 2026-08-21). Unconditional,
+   because a spectator on a desktop has exactly the same question as one on a
+   phone - what does "Biathlon" mean - and the strip answers it the same way
+   on both. It costs nothing until asked: the element ships hidden and the
+   markup carries no text until a marker is tapped.
+
+   Colours and tracking are the deck's own reading voice, not a new one:
+   --ink-soft on the panel surface, the same measure the phase card's copy
+   uses. */
+.arena-phase-blurb {
+  margin: 0.35rem 0 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 26%, transparent);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.arena-phase-blurb[hidden] {
+  display: none;
+}
+
+/* The marker that opened it says so, and keeps saying so while it is open -
+   the strip is small enough that without this it is easy to lose track of
+   which of seven markers the sentence belongs to. */
+.arena-phase-step[aria-expanded="true"] .arena-phase-step__index {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent-bronze) 45%, transparent),
+    0 0 0.5rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+}
+
+/* A marker that explains itself is a control, and reads as one. */
+.arena-phase-step[role="button"] {
+  cursor: pointer;
+}

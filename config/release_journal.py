@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1180",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "Every stage of the battle explains itself - tap a marker and it tells you what that stage is",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner: seven stages of the battle, reveal the description of each stage. The strip has always said WHICH stage is running and never what any of them means - a spectator who has just walked in had no way to find out. Tapping a marker now prints that stage's sentence under the strip; tapping it again closes it, another marker replaces it, Escape dismisses it, and the marker that opened it keeps a ring so it is clear which of seven the sentence belongs to. Keyboard reaches all of it (role=button, tabindex, Enter/Space) and the panel is a live region. THE SEVEN SENTENCES ARE WRITTEN FROM THE CODE, not from the spec. Each rung covers several battle statuses, so the text had to be checked against the _ARENA_PHASE_RAIL map rather than the phase list: Challenge holds scheduled, waiting AND menu_locked, which is why its sentence covers the menus; Review holds presentation and disputed; Crown holds completed, walkover and void. Where battle_lifecycle.md and the code disagree the code won, as the Owner's standing rule says - that file carried the penalty phase in the wrong place for a year and says so itself. A PAYLOAD BUDGET CAUGHT THE FIRST ATTEMPT, and it was right to. Putting the blurbs on the rail took the ten-second poll from under 10 KB to 11.0 KB, and ArenaCostsWhatAFrontendCanAffordTests failed. The seven stages of a battle are the same seven on every poll for the life of the site, so they had no business being re-sent at all: get_arena_phase_rail() now strips them for the poll, get_arena_phase_rail_described() carries them for the page, and arena_deck.js keeps them across a rebuild by phase key rather than expecting the poll to re-supply them. Poll phase_rail measures 0.3 KB. AND THE DJANGO COMMENT TRAP AGAIN, caught only by looking at the rendered page: a multi-line {# #} note printed itself in full onto the live arena, because that form is single-line. The other notes in this template are written the same way and survived only because they sit OUTSIDE the content block, where an extending template renders nothing. Rewritten as {% comment %}. 32 tests green, including the octagon lock and the payload budget.",
+    },
+    {
         "version": "2.5.1179",
         "date": "2026-08-21",
         "commit": "pending",

@@ -100,9 +100,9 @@
   </div>
   <section class="arena-broadcast-ribbon" aria-label="Battle lifecycle header">
   <section id="arena-phase-rail" class="arena-command-deck__phase-rail{% if not arena_data.phase %} is-open{% endif %}" aria-label="Battle lifecycle" data-phase-key="{{ arena_data.phase.key|default:'' }}">
-    {% if arena_data.phase_rail %}
-      {% for rung in arena_data.phase_rail %}
-        <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == rung.step %} is-active{% elif arena_data.phase and arena_data.phase.step > rung.step %} is-complete{% endif %}" data-phase-step="{{ rung.step }}" data-phase-key="{{ rung.key }}"{% if arena_data.phase and arena_data.phase.step == rung.step %} aria-current="step"{% endif %}><span class="arena-phase-step__index" aria-hidden="true">{{ rung.step }}</span> <b>{{ rung.label }}</b></span>
+    {% if phase_rail_described %}
+      {% for rung in phase_rail_described %}
+        <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == rung.step %} is-active{% elif arena_data.phase and arena_data.phase.step > rung.step %} is-complete{% endif %}" data-phase-step="{{ rung.step }}" data-phase-key="{{ rung.key }}" data-phase-blurb="{{ rung.blurb }}" role="button" tabindex="0" aria-controls="arena-phase-blurb"{% if arena_data.phase and arena_data.phase.step == rung.step %} aria-current="step"{% endif %}><span class="arena-phase-step__index" aria-hidden="true">{{ rung.step }}</span> <b>{{ rung.label }}</b></span>
       {% endfor %}
     {% else %}
       <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 1 %} is-active{% endif %}" data-phase-step="1" data-phase-key="challenge">1 <b>Challenge</b></span>
@@ -114,6 +114,27 @@
       <span class="arena-phase-step{% if arena_data.phase and arena_data.phase.step == 7 %} is-active{% endif %}" data-phase-step="7" data-phase-key="crown">7 <b>Crown</b></span>
     {% endif %}
   </section>
+
+  {% comment %}
+    EVERY STAGE EXPLAINS ITSELF (Owner, 2026-08-21: "seven stages of the
+    battle, reveal the description of each stage"). The strip used to say only
+    which stage was running; a spectator who has just walked in had no way to
+    learn what any of them meant. Tapping a marker prints its sentence here -
+    one line, live region so a screen reader announces it, and empty until
+    asked so it costs the phone nothing at rest.
+
+    The text is the SERVER'S, carried on each marker as data-phase-blurb from
+    _ARENA_PHASE_RAIL_STEPS, so the strip and the poll cannot end up
+    describing the stages differently.
+
+    This note is a block comment and not the hash-brace form, because that
+    form is SINGLE-LINE in Django: written multi-line here it printed itself
+    onto the live page. The notes higher up this file are written the same way
+    and survived only because they sit outside the content block, where an
+    extending template renders nothing. Caught by looking at the rendered
+    page, which is the only reason it was caught at all.
+  {% endcomment %}
+  <p id="arena-phase-blurb" class="arena-phase-blurb" aria-live="polite" hidden></p>
 
   {% comment %}
     X01 — the departures board (Owner, 2026-08-05: "как табло в аэропорту,
@@ -711,6 +732,7 @@
    deferred module runs, which is what `defer` guarantees. #}
 <script nonce="{{ request.csp_nonce }}">window.ARENA_LOCK_ZOOM = {{ arena_native_zoom_off|yesno:"true,false" }};</script>
 <script defer src="{% static 'js/arena_zoom.js' %}"></script>
+<script defer src="{% static 'js/arena_phase_blurb.js' %}?v=20260821-octagon-fit"></script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   /* Owner 2026-07-24: visible mockup-style countdown + Arena full reload.
