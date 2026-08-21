@@ -2081,8 +2081,17 @@
   .arena-command-deck__metrics > .arena-panel__title {
     display: none;
   }
-  .arena-metric { display: flex; flex-direction: column; align-items: center; min-width: 0; padding: .1rem .2rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); gap: .2rem; }
-  .arena-metric:first-child { border-left: 0; }
+  /* :first-child never matched here - the real first child of
+     .arena-command-deck__metrics is the (now display:none) "Live arena
+     metrics" <header>, not a .arena-metric, so "border-left:0" on
+     :first-child silently applied to nothing and every column including
+     the leftmost kept its divider, printing a stray line at the card's own
+     edge (the "unnecessary vertical line" the Owner flagged). The adjacent-
+     sibling form only matches a .arena-metric that follows another
+     .arena-metric, which is position-independent of whatever precedes the
+     whole group. */
+  .arena-metric { display: flex; flex-direction: column; align-items: center; min-width: 0; padding: .1rem .2rem; text-align: center; border-top: 0; border-left: 0; gap: .2rem; }
+  .arena-metric + .arena-metric { border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
   /* Round 6: the unconditional base rule (.arena-metric span, line ~1119)
      sets white-space: nowrap - written for the old inline icon+label row,
      never revisited when round 5 stacked the label under the icon. Nowrap
@@ -8760,12 +8769,22 @@ body.page--arena.is-zoom-locked {
      by-product of how long each word happens to be.
 
      Stretched and left-read here instead, which is what a column of labelled
-     numbers wants: one left edge, and the eye runs down it. */
+     numbers wants: one left edge, and the eye runs down it.
+
+     ROUND 6, 2026-08-21: this premise is gone. The card is a real 4-column
+     grid again (round 5), not a wrapped single column - .page--arena's
+     extra class made this rule beat every later attempt at centring the
+     grid version by specificity alone, regardless of source order, which
+     is why the Owner's screenshots kept showing ACTIVE VIEWERS left-aligned
+     no matter what .arena-metric was told elsewhere. Each grid cell now
+     centres its own icon/label/value, same as its three siblings - the
+     ragged-left-edge problem this rule fixed cannot recur in a grid where
+     every column has its own fixed track width. */
   .page--arena .arena-command-deck__metrics {
-    align-items: stretch;
+    align-items: center;
   }
   .page--arena .arena-metric {
-    align-items: flex-start;
-    text-align: left;
+    align-items: center;
+    text-align: center;
   }
 }
