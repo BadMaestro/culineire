@@ -1965,6 +1965,14 @@
   .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-activity-ticker {
     mask-image: none;
     -webkit-mask-image: none;
+    /* Found in the Owner's next screenshot: a stray rectangle framing this
+       row. Root cause: "3G - lower dock CTA weight + ticker bronze rule"
+       sets border-inline: 1px solid on .arena-lower-broadcast .arena-
+       activity-ticker with no @media at all (confirmed unconditional via
+       the same CSSOM walk used earlier today) - a left/right frame meant
+       for the desktop marquee's pill shape, invisible here before only
+       because the row's own content and colour bugs were hiding it too. */
+    border-inline: 0;
   }
   .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-activity-ticker__track {
     animation: none;
