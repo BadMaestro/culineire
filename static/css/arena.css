@@ -8379,3 +8379,91 @@ body.page--arena.is-zoom-locked {
 .arena-phase-step[role="button"] {
   cursor: pointer;
 }
+
+/* ============================================================================
+ * ONE GOLDEN-RATIO RHYTHM FOR THE WHOLE PHONE DECK. Owner, 2026-08-21:
+ * "align all the content exactly by the golden ratio."
+ *
+ * WHAT WAS THERE INSTEAD. Every card on the phone had picked its own inset
+ * and none of them agreed - measured at 414px: the ribbon 9.888px, the floor
+ * 11.2px, the mobile scene 16px, and the lower dock 90.6px. Four cards, four
+ * left edges, and no two pieces of writing on the page starting on the same
+ * line.
+ *
+ * The 90.6px is the worst of them and is a bug rather than a taste: it comes
+ * from `padding-inline: 21.965%` on the lower dock, an unconditional rule
+ * whose number is (100% - 56.07%) / 2, the share the DESKTOP reference gives
+ * that band. On a 413px card it takes 44% of the width, which is why the
+ * Owner's screenshot shows "TOP SUPPORTER" clipped to "PPORTER" and the
+ * watching count fading off the edge. Fourth rule of that exact shape found
+ * this session - a desktop number without a media query, outliving the
+ * composition it was measured for.
+ *
+ * THE SCALE. Powers of phi, so every step is the previous one times 1.618:
+ * 0.382 / 0.618 / 1 / 1.618 / 2.618 rem. It is not a new invention here - the
+ * phase rail has been on this exact series since v2.5.1150
+ * (--arena-phase-gap 0.382rem, --arena-phase-pad 0.618rem, line ~970) - this
+ * names it once and lets the rest of the deck stand on it too, rather than
+ * each card keeping a number of its own.
+ *
+ * 1rem is the card inset because it is the series' own centre: the writing
+ * lands on one line at 16px from the card edge whatever card it is in, with
+ * the tighter steps left for what sits INSIDE a card and the wider ones for
+ * the air between them.
+ * ========================================================================= */
+.page--arena .arena-command-deck {
+  --phi-1: 0.382rem;   /* phi^-2 - inside a control */
+  --phi-2: 0.618rem;   /* phi^-1 - between related lines */
+  --phi-3: 1rem;       /* 1      - the card inset, the common left edge */
+  --phi-4: 1.618rem;   /* phi    - between cards */
+  --phi-5: 2.618rem;   /* phi^2  - a full break */
+}
+
+@media (max-width: 767px) {
+  /* The common left edge. Named one card at a time rather than with a child
+     selector, because the deck's children are not interchangeable - the floor
+     carries the octagon's own region and the ribbon carries a strip that
+     measures itself, and neither should have its inset moved by a rule
+     written for the cards around them. */
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__guide,
+  .page--arena .arena-command-deck__gifts,
+  .page--arena .arena-command-deck__command,
+  .page--arena .arena-chat,
+  .page--arena .arena-mobile-scene,
+  .page--arena .arena-command-deck__crowd-rail {
+    padding-inline: var(--phi-3);
+  }
+
+  /* The dock's desktop share, undone. Its content is bounded by the card it
+     sits in now, which is the phone's own answer to the same question. */
+  .page--arena .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    padding-inline: var(--phi-3);
+  }
+
+  /* The air between cards is one step up from the inset, so the page reads as
+     cards on a rhythm rather than blocks that happen to be near each other. */
+  .page--arena .arena-command-deck {
+    gap: var(--phi-4);
+  }
+
+  /* THE FOUR METRICS STAND ON THE SAME LINE AS EVERYTHING ELSE. Measured
+     before this at 414px, their labels began at 26, 32, 33 and 28 - four
+     numbers in one card, none of them agreeing with each other or with the
+     card they sit in. The cause is that the row is a centring flex line: once
+     it wraps into a column on a phone, each item is centred on its OWN width,
+     so the widest label starts furthest left and the raggedness is a
+     by-product of how long each word happens to be.
+
+     Stretched and left-read here instead, which is what a column of labelled
+     numbers wants: one left edge, and the eye runs down it. */
+  .page--arena .arena-command-deck__metrics {
+    align-items: stretch;
+  }
+  .page--arena .arena-metric {
+    align-items: flex-start;
+    text-align: left;
+  }
+}

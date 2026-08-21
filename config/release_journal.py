@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1181",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "One golden-ratio rhythm for the phone deck - nine cards had four different left edges, and the worst was a desktop percentage clipping the dock",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner: align all the content exactly by the golden ratio. Measured first, and the measurement is the case for the change: at 414px every card had picked its own inset and none agreed - the ribbon 9.888px, the floor 11.2px, the mobile scene 16px, the lower dock 90.6px. Four cards, four left edges, no two pieces of writing starting on the same line. THE 90.6px WAS A BUG, not a taste. It comes from padding-inline: 21.965% on the lower dock - unconditional, and the number is (100% - 56.07%) / 2, the share the DESKTOP reference gives that band. On a 413px card it takes 44% of the width, which is exactly why the Owner's screenshot showed TOP SUPPORTER clipped to PPORTER and the watching count fading off the edge. Fourth rule of that shape found this session: a desktop number with no media query, outliving the composition it was measured for. Usable width in that dock goes 232px -> 381px. THE SCALE is powers of phi - 0.382 / 0.618 / 1 / 1.618 / 2.618rem, each step the previous times 1.618 - named once on the deck as --phi-1..5. Not a new system: the phase rail has been on this exact series since v2.5.1150 (--arena-phase-gap 0.382rem, --arena-phase-pad 0.618rem), so this gives it a name and lets the rest of the deck stand on it instead of every card keeping a number of its own. 1rem is the card inset because it is the series' centre; 1.618rem is the air between cards. RESULT, measured: all NINE cards now put their content at x=17, one distinct value where there were four. The cards are named one at a time rather than with a child selector, because the floor and the ribbon carry regions that measure themselves and must not have their insets moved by a rule written for the cards around them. THE FOUR METRICS GOT THE SAME TREATMENT for the same reason: their labels began at 26, 32, 33 and 28 because the row is a CENTRING flex line, and once it wraps into a column each item centres on its own width - so the raggedness was a by-product of how long each word happens to be. Stretched and left-read now: 26, 27, 27, 27, the 1px being subpixel rounding. Desktop verified untouched at 1440px: the dock keeps its 313.8px (the same 21.965%), the deck gap is unchanged, the metrics sit where they sat. manage.py check clean, braces balanced, 17 tests green including the superseded-declaration guard.",
+    },
+    {
         "version": "2.5.1180",
         "date": "2026-08-21",
         "commit": "pending",
