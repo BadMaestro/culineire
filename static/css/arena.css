@@ -8080,11 +8080,28 @@ body.page--arena.is-zoom-locked {
     cursor: pointer;
     font: inherit;
   }
+  /* Round 2, 2026-08-21: object-fit:cover on a rectangular source image was
+     the actual bug the Owner reported - it filled/cropped the circle,
+     clipping bucket handles, knife-roll straps, toque tops, exactly as he
+     named. The eight assets are now genuinely transparent (rembg-extracted
+     foreground, padded to a consistent ~78% fill on their own square
+     canvas), so the fix is contain, not another crop/position tweak - the
+     shared oval badge (background/border/shadow, identical for all eight,
+     gold variant for Master below) now lives on the emblem itself via
+     padding + a background gradient, since a background paints behind a
+     replaced element's image content without needing a wrapper div. */
   .arena-rank-tile__emblem {
     width: 52px;
     height: 52px;
+    padding: 4px;
     border-radius: 50%;
-    object-fit: cover;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--surface) 97%, transparent),
+      color-mix(in srgb, var(--accent-bronze) 7%, var(--surface))
+    );
+    object-fit: contain;
+    box-sizing: border-box;
     box-shadow: 0 0.15rem 0.4rem color-mix(in srgb, var(--ink) 22%, transparent);
   }
   .arena-rank-tile__no {
