@@ -8047,6 +8047,110 @@ body.page--arena.is-zoom-locked {
     color: var(--arena-muted, var(--muted));
     font-size: 0.75rem;
   }
+  /* ==========================================================================
+   * Kitchen ranks redesign, 2026-08-21 - compact rank ladder replacing the
+   * old full-width <details> rows (.arena-mobile-scene__rings and below,
+   * still present but now unused - the chef-list classes further down this
+   * block, .arena-mobile-ring__chefs and its children, ARE still live: the
+   * new shared panel reuses that exact markup for its chef rows). 4x2 grid
+   * of real <button> tiles, one shared detail panel below, same ivory/
+   * bronze card language and --accent-bronze/--ink/--surface tokens as the
+   * rest of the Arena status card work today - no new raw colour literals.
+   * ========================================================================== */
+  .arena-rank-ladder__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .arena-rank-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.4rem 0.2rem 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    border-radius: 0.7rem;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    color: var(--ink);
+    text-align: center;
+    cursor: pointer;
+    font: inherit;
+  }
+  .arena-rank-tile__emblem {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0.15rem 0.4rem color-mix(in srgb, var(--ink) 22%, transparent);
+  }
+  .arena-rank-tile__no {
+    margin-top: 0.3rem;
+    color: var(--accent-bronze-dark);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+  .arena-rank-tile__name {
+    margin-top: 0.05rem;
+    color: var(--ink);
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .arena-rank-tile__count {
+    margin-top: 0.15rem;
+    color: var(--accent-bronze-dark);
+    font-size: 0.62rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .arena-rank-tile__count--empty {
+    opacity: 0.45;
+  }
+  /* Culinary Master - restrained gold treatment, not a bright glow. */
+  .arena-rank-tile--master {
+    border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
+    box-shadow: 0 0.2rem 0.6rem color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+  }
+  .arena-rank-tile--master .arena-rank-tile__emblem {
+    width: 58px;
+    height: 58px;
+  }
+  .arena-rank-tile--master .arena-rank-tile__name {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-rank-tile--active {
+    border-color: var(--accent-bronze);
+    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+    box-shadow: 0 0.25rem 0.6rem color-mix(in srgb, var(--ink) 18%, transparent);
+  }
+  .arena-rank-tile--active .arena-rank-tile__emblem {
+    transform: translateY(-2px);
+  }
+  .arena-rank-ladder__hint {
+    margin: 0.5rem 0 0;
+    color: var(--arena-muted, var(--muted));
+    font-size: 0.68rem;
+    text-align: center;
+  }
+  .arena-rank-panel {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  }
+  .arena-rank-panel__title {
+    margin: 0 0 0.3rem;
+    padding: 0 0.2rem;
+    color: var(--accent-bronze-dark);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
   .arena-mobile-scene__rings {
     display: grid;
     gap: 0.4rem;

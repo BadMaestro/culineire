@@ -210,38 +210,66 @@
     The octagon itself is untouched by this block - it stays above as the
     stage. This section is hidden outright above the phone breakpoint.
   {% endcomment %}
+  {% comment %}
+    Redesign, 2026-08-21 (Owner's spec: compact rank-ladder, ~250-330px vs
+    the old ~full-screen list of 8 details rows). Same rank_groups source,
+    same (rank, chefs, ring) loop var names test_a_phone_still_reaches_all_
+    eight_ranks already asserts - only the markup shape and the class names
+    inside it changed, so that test's class-name half is updated in the
+    same commit rather than left to fail quietly.
+
+    Emblem assets: static/images/chef_battle/ranks/<rank.value>.webp,
+    cropped from the Owner's own reference sheet (his instruction - no
+    image generation tool exists in this session). Each crop is the icon
+    only, no baked-in rank name or number - both stay real HTML text per
+    his spec item 1's "do not bake the rank name into the image asset".
+  {% endcomment %}
   <section class="arena-mobile-scene" aria-label="Kitchen ranks">
     <h2 class="arena-mobile-scene__title">The kitchen ranks</h2>
-    <p class="arena-mobile-scene__hint">Tap a rank to see the chefs standing in it.</p>
-    <ol class="arena-mobile-scene__rings">
+    <p class="arena-mobile-scene__hint">Climb the ladder. Earn respect.</p>
+    <ul class="arena-rank-ladder__grid" role="list">
       {% for rank, chefs, ring in rank_groups %}
-      <li class="arena-mobile-ring" data-ring="{{ ring }}">
-        <details class="arena-mobile-ring__details">
-          <summary class="arena-mobile-ring__summary">
-            <span class="arena-mobile-ring__no" aria-hidden="true">{{ ring }}</span>
-            <span class="arena-mobile-ring__name">{{ rank.label }}</span>
-            <span class="arena-mobile-ring__count">{{ chefs|length }}</span>
-          </summary>
-          {% if chefs %}
-          <ul class="arena-mobile-ring__chefs">
-            {% for chef in chefs %}
-            <li>
-              <a href="{% url 'chef_battle:chef_profile' slug=chef.slug %}">
-                <img src="{{ chef.avatar_url }}" alt="" width="34" height="34" loading="lazy">
-                <span class="arena-mobile-ring__chef-name">{{ chef.name }}</span>
-                {% if chef.in_battle %}<em class="arena-mobile-ring__flag">In battle</em>
-                {% elif chef.is_online %}<em class="arena-mobile-ring__flag arena-mobile-ring__flag--online">Online</em>{% endif %}
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <p class="arena-mobile-ring__empty">Nobody is standing in this ring.</p>
-          {% endif %}
-        </details>
+      {% with img_path="images/chef_battle/ranks/"|add:rank.value|add:".webp" %}
+      <li>
+        <button type="button"
+                class="arena-rank-tile{% if ring == 1 %} arena-rank-tile--master{% endif %}"
+                data-ring="{{ ring }}"
+                aria-expanded="false"
+                aria-controls="arena-rank-panel"
+                aria-label="{{ rank.label }}, Rank {{ ring }}, {{ chefs|length }} chef{{ chefs|length|pluralize }}">
+          <img class="arena-rank-tile__emblem" src="{% static img_path %}" alt="" width="64" height="64" loading="lazy">
+          <span class="arena-rank-tile__no" aria-hidden="true">#{{ ring }}</span>
+          <span class="arena-rank-tile__name" aria-hidden="true">{{ rank.label }}</span>
+          <span class="arena-rank-tile__count{% if not chefs %} arena-rank-tile__count--empty{% endif %}" aria-hidden="true">{{ chefs|length }}</span>
+        </button>
       </li>
+      {% endwith %}
       {% endfor %}
-    </ol>
+    </ul>
+    <p class="arena-rank-ladder__hint">Tap a rank to view chefs</p>
+    <div class="arena-rank-panel" id="arena-rank-panel" hidden>
+      {% for rank, chefs, ring in rank_groups %}
+      <div class="arena-rank-panel__group" data-ring="{{ ring }}" hidden>
+        <p class="arena-rank-panel__title">{{ rank.label }} &middot; {{ chefs|length }} chef{{ chefs|length|pluralize }}</p>
+        {% if chefs %}
+        <ul class="arena-mobile-ring__chefs">
+          {% for chef in chefs %}
+          <li>
+            <a href="{% url 'chef_battle:chef_profile' slug=chef.slug %}">
+              <img src="{{ chef.avatar_url }}" alt="" width="34" height="34" loading="lazy">
+              <span class="arena-mobile-ring__chef-name">{{ chef.name }}</span>
+              {% if chef.in_battle %}<em class="arena-mobile-ring__flag">In battle</em>
+              {% elif chef.is_online %}<em class="arena-mobile-ring__flag arena-mobile-ring__flag--online">Online</em>{% endif %}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="arena-mobile-ring__empty">Nobody is standing in this ring.</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
   </section>
 
   {% comment %}

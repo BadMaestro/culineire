@@ -9405,6 +9405,12 @@ class ArenaRankColumnTests(TestCase):
         scene serves it now, so this asserts the eight rows exist there and
         that hiding the ladder is scoped to the phone alone, leaving every
         larger width exactly as the test above describes.
+
+        2026-08-21: the mobile scene was redesigned from eight full-width
+        <details> rows into a compact 4x2 tile grid plus one shared detail
+        panel (Owner's spec - the old rows took nearly a full screen).
+        arena-mobile-ring__summary no longer exists; arena-rank-tile is its
+        replacement, one per rank, same rank_groups loop underneath.
         """
         css = self.CSS_DECK.read_text(encoding="utf-8")
         template = (
@@ -9416,7 +9422,7 @@ class ArenaRankColumnTests(TestCase):
         scene = template.split('class="arena-mobile-scene"', 1)[1]
         scene = scene.split("</section>", 1)[0]
         self.assertIn("for rank, chefs, ring in rank_groups", scene)
-        self.assertIn("arena-mobile-ring__summary", scene)
+        self.assertIn("arena-rank-tile", scene)
 
         # And the ladder is hidden only on the phone, not at any larger width.
         phone = css.split("@media (max-width: 640px)")[-1]
