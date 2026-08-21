@@ -1913,12 +1913,83 @@
     flex-direction: column;
     text-align: center;
     gap: 0.35rem;
+    padding-top: 0.9rem;
+  }
+  /* Owner's target mockup: the toque sits inside a circular badge that
+     overlaps the card's own top border, not a plain icon in the flow. The
+     card carries no overflow:hidden (checked - the ArenaTruthfulStateMatrix
+     era .arena-command-deck__crowd-rail rules never set one), so a negative
+     margin-top on the icon itself is enough to push it past the border
+     without a separate absolutely-positioned wrapper. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-crowd-rail__status .arena-ico {
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0.5rem;
+    margin-top: -1.65rem;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    box-shadow: 0 0.3rem 0.6rem color-mix(in srgb, var(--ink) 18%, transparent);
+    box-sizing: content-box;
+  }
+  /* Owner's target mockup (2026-08-21): the hourglass, CURRENT PHASE and
+     OPEN FLOOR share one centred vertical axis on the phone - not an icon
+     beside two stacked left-aligned lines. */
+  .arena-command-deck__phase-card .arena-phase-current {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.3rem;
+  }
+  /* LIVE DEADLINE box, the refresh countdown and its body copy all read
+     centred in the mockup; they were left-aligned block content here. */
+  .arena-command-deck__phase-card #arena-phase-deadline {
+    text-align: center;
+  }
+  .arena-command-deck__phase-card .arena-phase-refresh {
+    justify-content: center;
+    text-align: center;
+  }
+  .arena-command-deck__phase-card .arena-phase-timer {
+    font-size: 1.6rem;
+  }
+  .arena-command-deck__phase-card .arena-phase-gauge {
+    margin-inline: 0.6rem;
+  }
+  .arena-command-deck__phase-card .arena-command-deck__phase-copy {
+    text-align: center;
+    max-width: 26rem;
+    margin-inline: auto;
+  }
+  /* Owner's target mockup: the crown medallion reads as PART of the Enter
+     Arena button, not a third column beside two buttons. Medallion, then
+     .arena-lower-actions__primary, are already adjacent siblings in that
+     DOM order - pulling the primary button left under the medallion's
+     circle (negative margin) and giving the button enough left padding to
+     clear the circle keeps it exactly two visual columns without touching
+     the markup. */
+  .arena-lower-actions__medallion {
+    position: relative;
+    z-index: 1;
+    margin-right: -1.35rem;
+  }
+  .arena-lower-actions__primary {
+    padding-left: 2.3rem;
   }
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
-  .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
-  .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
+  /* Owner's target mockup (2026-08-21): four columns, not three - this card
+     always held four stats (viewers/votes/gifts/streak) and the count here
+     was simply wrong, which also meant the last stat wrapped to a lonely
+     second row. Each column stacks icon above label above value, matching
+     .arena-command-deck__metrics .arena-metric's own desktop-sidebar
+     structure (M12, now scoped to 901px+) rather than inventing a new one -
+     just laid out as a row of 4 instead of a column of 4. */
+  .arena-command-deck__metrics { display: grid; width: 100%; grid-template-columns: repeat(4, 1fr); padding: .65rem .3rem; }
+  .arena-metric { display: flex; flex-direction: column; align-items: center; padding: .1rem .2rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); gap: .2rem; }
   .arena-metric:first-child { border-left: 0; }
-  .arena-metric span { font-size: .54rem; }
+  .arena-metric span { flex-direction: column; align-items: center; gap: .15rem; font-size: .48rem; }
+  .arena-metric .arena-ico { width: .8rem; height: .8rem; }
+  .arena-metric strong { font-size: 1rem; }
   .arena-command-deck__floor { padding: .7rem; border-radius: .9rem; }
   .arena-command-deck__live-stage { grid-template-columns: 1fr; gap: .55rem; text-align: center; }
   .arena-live-chef, .arena-live-chef--opponent { justify-content: center; text-align: center; }
@@ -4997,8 +5068,20 @@
  * than buried) - and it is the same "two owners of one thing" disease this
  * stylesheet keeps warning about. So the original values are corrected here
  * instead, and the later override is gone.
+ *
+ * SCOPED TO THE DESKTOP SIDEBAR, 2026-08-21. This whole block carried no
+ * @media despite its own comment naming a "240-300px sidebar column" -
+ * confirmed unconditional via the live stylesheet's own CSSOM (this file has
+ * already cost two rounds today to grep's brace count lying inside
+ * comments), so it silently forced the phone's four-stat card into a single
+ * vertical column too, fighting the mobile grid rule at max-width:767px
+ * below and always winning by coming later in the file. The
+ * ArenaStylesheetHasNoSupersededDeclarationTests guard above compares
+ * (media context, selector) pairs, so an @media wrapper here is a different
+ * context from the mobile rule below, not a second owner of the same one.
  * ============================================================================ */
 
+@media (min-width: 901px) {
   .arena-command-deck__metrics {
     display: flex;
     flex-direction: column;
@@ -5081,6 +5164,7 @@
     color: var(--accent-bronze);
     text-shadow: 0 0 0.85rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
   }
+}
 
 /* ============================================================================
  * MOCKUP M13 — Today's Crown Ladder panel: ranked rows + gold indices.
