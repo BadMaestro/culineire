@@ -181,6 +181,34 @@
     camera = svg && svg.parentElement;
     if (!camera) { return; }
 
+    /* THE META TAG DOES NOT ACTUALLY DISABLE ZOOM ON iOS, and finding that
+       out is what this block is for. Safari has IGNORED user-scalable,
+       maximum-scale and minimum-scale since iOS 10, deliberately, on
+       accessibility grounds - Apple's position is that a page must never be
+       able to trap a reader at a text size they cannot enlarge.
+       (https://bugzilla.mozilla.org/show_bug.cgi?id=1340064 records the same
+       behaviour change from the other side of the fence.)
+       Every ceiling walked down the Owner's device - 2.5, 1.5, 1.3, 1.2,
+       1.1 - was therefore never applied at all, which is the real reason
+       none of them changed anything.
+
+       `gesturestart` and its siblings are the WebKit-only events behind the
+       native pinch, and preventDefault on them DOES stop it where the meta
+       tag is ignored. That is the whole mechanism this file needs: the
+       leaking gesture never starts, and the same pinch is answered by the
+       touch handlers below with a CSS transform instead.
+
+       Bound on the DOCUMENT rather than the octagon on purpose. The leak is
+       charged per gesture wherever on the page it happens, and a pinch that
+       begins on a panel beside the floor is the same gesture; scoping it to
+       the octagon would leave the crash reachable one finger-width away.
+       Non-standard and inert everywhere else - these events simply never
+       fire outside WebKit. */
+    var blockNativeGesture = function (event) { event.preventDefault(); };
+    document.addEventListener('gesturestart', blockNativeGesture, { passive: false });
+    document.addEventListener('gesturechange', blockNativeGesture, { passive: false });
+    document.addEventListener('gestureend', blockNativeGesture, { passive: false });
+
     camera.addEventListener('touchstart', onTouchStart, { passive: false });
     camera.addEventListener('touchmove', onTouchMove, { passive: false });
     camera.addEventListener('touchend', onTouchEnd, { passive: true });

@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1170",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "Safari ignores the viewport tag entirely since iOS 10 - every zoom ceiling tested was measuring nothing; the gesture events are what actually stop it",
+        "section": "Chef Battles / Arena",
+        "summary": "THE META TAG WAS NEVER DOING ANYTHING ON HIS iPHONE, and that single fact explains most of a day. The Owner reported native zoom still fully working after 1169 shipped the lock. Checked the deployed code first - correct, d2312a02 on the server, both halves present - so the fault was not the deploy but the assumption underneath it: Safari has IGNORED user-scalable, maximum-scale and minimum-scale since iOS 10, deliberately, on accessibility grounds (Apple's position: a page must never be able to trap a reader at a size they cannot enlarge; https://bugzilla.mozilla.org/show_bug.cgi?id=1340064 records the same change from Mozilla's side). So the entire ceiling ladder walked down his device - 2.5, 1.5, 1.3, 1.2, 1.1, with and without a minimum-scale, and the 'full stop' of maximum-scale=1 + user-scalable=no - was never applied AT ALL on his Safari. Every one of those tests was measuring nothing, which is why no value ever changed the crash and why he still had unrestricted zoom after the lock. The earlier reading that 'the leak is charged per gesture, not per distance' happened to be right, but it was inferred from evidence that could not have shown anything else. THE FIX THAT ACTUALLY REACHES SAFARI: arena_zoom.js now calls preventDefault on WebKit's own gesturestart/gesturechange/gestureend - the non-standard events behind the native pinch, which DO honour preventDefault where the meta tag is ignored. Bound on the document rather than the octagon: the leak is charged wherever on the page the gesture happens, and scoping it to the octagon would leave the crash reachable a finger-width away on the panel beside it. Inert on every other engine - these events never fire outside WebKit - and still gated behind the iOS-only flag from 1169, so Android and desktop keep their real pinch-zoom untouched. The viewport meta stays for the engines that do honour it (a WKWebView app such as Chrome iOS can), never relied on. VERIFIED in the harness, not assumed: a dispatched gesturestart comes back cancelled with defaultPrevented true, gesturechange likewise, and the page's own pinch still drives the transform in the same breath (2.5x measured off a 30px-to-75px half-spread). node --check clean, manage.py check clean, 15 tests green.",
+    },
+    {
         "version": "2.5.1169",
         "date": "2026-08-21",
         "commit": "pending",
