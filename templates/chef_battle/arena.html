@@ -3,35 +3,32 @@
 
 {% block body_attrs %} class="page--arena"{% endblock %}
 
-{# Owner, 2026-08-20: pinch-zoom disabled outright on this one page. WKWebView
-   has a documented, Apple-unfixed IOSurface leak specific to the pinch
+{# NATIVE ZOOM OFF, AND THE ARENA BRINGS ITS OWN INSTEAD (static/js/arena_zoom.js).
+
+   WKWebView has a documented, Apple-unfixed IOSurface leak in the pinch
    gesture itself (WebKit bug 172206; reported independently on an EMPTY
    WKWebView reaching 3.58GB of leaked GPU memory in ~20 seconds of pinching
-   - https://developer.apple.com/forums/thread/774005). Confirmed
-   engine-specific, not this page's own weight: the Owner's Android phone
-   (Blink, not WebKit) does not reproduce the crash at all under the same
-   gesture that reliably crashed his iPhone.
-   Tried as a ceiling several times - 2.5, then 1.2, then the full stop
-   (maximum-scale=1 with user-scalable=no), then 1.1 (too narrow, snapped
-   back near 1.01 instead of holding), then 1.5 (the Owner reports this one
-   "breaks" - zoom stops snapping back toward 1.0 at all and sits near
-   1.01 regardless). Neither number has produced release behaviour that
-   matches what the meta tag alone can promise: `maximum-scale`/
-   `minimum-scale` bound what a user CAN reach, they do not define what a
-   gesture settles on after release - that rest state is the engine's own
-   elastic/rubber-band behaviour, which is exactly the part this file
-   cannot specify and the part still misbehaving. 1.3 with
-   minimum-scale=0.95 still crashed the arena on his iPhone, so the ceiling
-   comes down again to 1.2 - the narrowest range tried so far that still
-   leaves real zoom, and the last width above the full stop of 1162. The
-   minimum stays at 0.95: it is the one part of this that behaved, and
-   removing it would change two things at once. Every number here is his
-   call after testing on the device; nothing in this codebase can observe
-   that rest behaviour or reproduce the crash, so each value is a further
-   experiment, not a confirmed fix. Scoped to this page alone through the
-   viewport block base.html now exposes - every other page keeps the
+   - https://developer.apple.com/forums/thread/774005). Engine-specific, not
+   this page's weight: the Owner's Android phone (Blink) never reproduces
+   the crash under the gesture that reliably crashed his iPhone in both
+   Safari and Chrome iOS.
+
+   The ceiling was walked all the way down his device - 2.5, 1.5, 1.3, 1.2,
+   1.1, with and without a minimum-scale - and EVERY value that left any
+   native zoom available still crashed. The only configuration that did not
+   was the full stop. The leak is charged per gesture, not per distance
+   travelled, so no number was ever going to be the answer; that is why this
+   stops being a viewport question here.
+
+   So native zoom is off and arena_zoom.js reads the pinch as an ordinary
+   touch gesture, answering it with a CSS transform on the camera viewport -
+   a compositor operation on one element, not the viewport-scaling path that
+   leaks. The Owner keeps the zoom he asked for (the octagon is small on a
+   phone and looking inside it is the first thing anyone does) without the
+   engine running the code that crashes. Scoped to this page alone through
+   the viewport block base.html exposes - every other page keeps the
    unrestricted viewport it always had. #}
-{% block viewport_content %}width=device-width, initial-scale=1, minimum-scale=0.95, maximum-scale=1.2, viewport-fit=cover{% endblock %}
+{% block viewport_content %}width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover{% endblock %}
 
 {% block title %}The Arena | Chef Battles | CulinEire{% endblock %}
 {% block meta_description %}Step into the Chef Battles Arena. See every chef ranked by tier around the ring, and watch the active battle at the centre.{% endblock %}
@@ -697,6 +694,7 @@
 
 {% block extra_js %}
 <script defer src="{% static 'js/arena_chat.js' %}"></script>
+<script defer src="{% static 'js/arena_zoom.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {
   /* Owner 2026-07-24: visible mockup-style countdown + Arena full reload.

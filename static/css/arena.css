@@ -6624,12 +6624,49 @@
      scale would join the projection instead of following it. */
   transform-style: flat;
   transform-origin: 50% 50%;
+  /* THE USER'S OWN ZOOM RIDES HERE, as two extra steps of the same
+     transform (arena_zoom.js, 2026-08-21). Native pinch-zoom is off on this
+     page because WebKit leaks GPU memory on the gesture itself and crashed
+     the Owner's iPhone at every ceiling tried; the pinch is read as a plain
+     touch gesture instead and answered with these variables.
+
+     The pan step sits BEFORE the scales on purpose: a translate composed
+     ahead of a scale is not multiplied by it, so a finger that travels
+     100px moves the octagon 100px whatever the camera's own scale happens
+     to be. The user zoom sits AFTER the camera's scale so it multiplies the
+     placement rather than replacing it - arena_render.js still owns
+     --arena-camera-scale/x/y and never sees these two. */
   transform:
     translate(-50%, -50%)
     translate(var(--arena-camera-x, 0px), var(--arena-camera-y, 0px))
-    scale(var(--arena-camera-scale, 1));
+    translate(var(--arena-user-pan-x, 0px), var(--arena-user-pan-y, 0px))
+    scale(var(--arena-camera-scale, 1))
+    scale(var(--arena-user-zoom, 1));
   perspective: var(--arena-camera-perspective, 1500px);
   perspective-origin: 50% 40%;
+}
+
+/* Only while a zoom is actually held does the octagon take the touch away
+   from the page. At rest it must not be a hole the page cannot be scrolled
+   through, which is why arena_zoom.js toggles this class rather than the
+   stylesheet claiming the gestures outright. */
+.page--arena .arena-render-container.is-user-zoomed {
+  touch-action: none;
+}
+
+/* A zoomed octagon is larger than the box it was fitted into, and the floor's
+   own edge is the honest boundary for it - without this a 4x magnification
+   spills over the panels above and below.
+
+   !important here answers an existing !important: the resting layout sets
+   `overflow: visible !important` on this element deliberately, because the
+   octagon is a tilted box whose corners must escape their container. That is
+   right at rest and wrong under magnification, and the two never coexist -
+   arena_zoom.js puts this class on only while a zoom is actually held and
+   takes it off on reset, so the deliberate rule keeps the element for the
+   whole of the time anyone is looking at the arena normally. */
+.page--arena .arena-command-deck__floor.is-user-zoomed {
+  overflow: hidden !important;
 }
 
 
