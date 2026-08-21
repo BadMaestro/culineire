@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1178",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "The octagon takes another 5% - 366px now, 15.6% up from where the phone composition started",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner: another 5% on the octagon. Width share 1.045 -> 1.097, measured 349px -> 366px across and 273px -> 286px tall - 5.0%, and 15.6% above where this phone composition started at 317px. Still inside its frame with 15px clear either side, inside its region, 24px of headroom left under REGION_MAX_Y, no horizontal scroll. The guard raised to 1.15 in 1177 covers this; the shape reaches its region's edges at about 1.169. ONE THING WORTH RECORDING ABOUT VERIFYING IT: the CSS reloaded but the octagon did not move, because the phantom-resize guard added in v2.5.1160 did exactly its job - it drops any resize event that leaves innerWidth/innerHeight unchanged, which is every synthetic one dispatched at a fixed viewport. A fix working correctly can look like a fix not working. Changing the viewport by a single pixel (414 -> 415 -> 414) passes the guard honestly and forces the re-fit, and that is the way to re-measure the octagon on this page from now on. Desktop untouched as always: the share is stated only in the phone block and the renderer keeps its constant everywhere else. manage.py check clean, braces balanced, 22 tests green.",
+    },
+    {
         "version": "2.5.1177",
         "date": "2026-08-21",
         "commit": "pending",

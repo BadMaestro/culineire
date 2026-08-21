@@ -7934,10 +7934,11 @@ body.page--arena.is-zoom-locked {
     /* 0.95 -> 1.045, the Owner's "make the octagon 10% bigger", 2026-08-21.
        Above 1 is legitimate here and not a typo: the share sizes the SVG's
        box, and the octagon drawn inside it is about 86% of that box, so it
-       still stands clear of its region - measured 317px -> 349px of octagon
-       inside a 390px region and a 396px frame, with the height ceiling
-       (REGION_MAX_Y) untouched at 273px against 310px. */
-    --arena-octagon-width-share: 1.045;
+       still stands clear of its region. Two steps, both his: 0.95 -> 1.045
+       took the octagon 317px -> 349px, then 1.045 -> 1.097 for another 5%.
+       The shape reaches its region's edges at about 1.169, so this is still
+       inside the guard's 1.15 and inside the region it is drawn in. */
+    --arena-octagon-width-share: 1.097;
   }
   .arena-floor-caption {
     margin-block: 0.1rem 0.15rem;
