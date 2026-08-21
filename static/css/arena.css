@@ -1912,8 +1912,24 @@
   .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-crowd-rail__status {
     flex-direction: column;
     text-align: center;
-    gap: 0.35rem;
+    gap: 0;
     padding-top: 0.9rem;
+  }
+  /* Round 6: title/subtitle are two elements now (template split above),
+     each with its own weight - a tighter gap between them than the
+     icon-to-title gap, matching the mockup's tighter internal rhythm. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-crowd-rail__status-title {
+    display: block;
+    margin-top: 0.35rem;
+    font: 700 0.85rem/1.25 var(--font-serif, "Playfair Display", serif);
+    color: var(--accent-bronze-dark);
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-crowd-rail__status-subtitle {
+    display: block;
+    margin-top: 0.15rem;
+    font: 400 0.78rem/1.35 var(--font-sans, Inter, sans-serif);
+    color: var(--ink);
+    opacity: 0.82;
   }
   /* Owner's target mockup: the toque sits inside a circular badge that
      overlaps the card's own top border, not a plain icon in the flow. The
@@ -1931,6 +1947,41 @@
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
     box-shadow: 0 0.3rem 0.6rem color-mix(in srgb, var(--ink) 18%, transparent);
     box-sizing: content-box;
+  }
+  /* Round 6 root cause of the Owner's clipped "PPORTER" report. This is not
+     a static overflow bug: .page--arena .arena-activity-ticker__track
+     (arena_atmosphere.css, "I. Activity ticker actually scrolls (G4)")
+     carries a 22s infinite translateX(0)->translateX(-50%) marquee inside
+     an overflow:hidden + edge-mask parent, by design, for ticker content
+     long enough to need scrolling. Confirmed live: the track's own
+     transform matrix changed between two getComputedStyle reads a moment
+     apart - it is genuinely animating, and "SUPPORTER: -" was caught by
+     the Owner's screenshot mid-scroll, sliding under the mask. Round 4
+     already cut the track from three items to two short ones
+     (#arena-ticker-phase hidden); two short strings never need to scroll,
+     so the fix is to stop scrolling them, not to pad or reposition a
+     moving target. Selector specificity (3 classes) beats the
+     arena_atmosphere.css rule (2 classes) regardless of load order. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-activity-ticker {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-activity-ticker__track {
+    animation: none;
+    width: 100%;
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 0;
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast #arena-top-supporter {
+    justify-self: end;
+    padding-right: 0.6rem;
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast #arena-ticker-watching {
+    justify-self: start;
+    padding-left: 0.6rem;
   }
   /* Owner's target mockup (2026-08-21): the hourglass, CURRENT PHASE and
      OPEN FLOOR share one centred vertical axis on the phone - not an icon
@@ -1961,20 +2012,36 @@
     max-width: 26rem;
     margin-inline: auto;
   }
-  /* Owner's target mockup: the crown medallion reads as PART of the Enter
-     Arena button, not a third column beside two buttons. Medallion, then
-     .arena-lower-actions__primary, are already adjacent siblings in that
-     DOM order - pulling the primary button left under the medallion's
-     circle (negative margin) and giving the button enough left padding to
-     clear the circle keeps it exactly two visual columns without touching
-     the markup. */
-  .arena-lower-actions__medallion {
-    position: relative;
-    z-index: 1;
-    margin-right: -1.35rem;
-  }
+  /* Round 6: the Owner judged round 5's negative-margin overlap still
+     "visually protrudes outside the black CTA". The medallion is now a
+     genuine child of .arena-lower-actions__primary (template moved it
+     inside each of the three Enter Arena variants, wrapped in a new
+     .arena-lower-actions__text span alongside title/subtitle) - real
+     containment, not an overlap trick. .arena-lower-actions__secondary
+     (Issue a Challenge) has no medallion and keeps its own column layout
+     from the shared base rule untouched. */
   .arena-lower-actions__primary {
-    padding-left: 2.3rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.5rem 1rem 0.5rem 0.5rem;
+  }
+  .arena-lower-actions__primary .arena-lower-actions__medallion {
+    width: 2.1rem;
+    height: 2.1rem;
+    flex: 0 0 auto;
+  }
+  .arena-lower-actions__primary .arena-lower-actions__medallion .arena-ico {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+  .arena-lower-actions__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+    text-align: left;
   }
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
   /* Owner's target mockup (2026-08-21): four columns, not three - this card
@@ -1985,11 +2052,30 @@
      structure (M12, now scoped to 901px+) rather than inventing a new one -
      just laid out as a row of 4 instead of a column of 4. */
   .arena-command-deck__metrics { display: grid; width: 100%; grid-template-columns: repeat(4, 1fr); padding: .65rem .3rem; }
-  .arena-metric { display: flex; flex-direction: column; align-items: center; padding: .1rem .2rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); gap: .2rem; }
+  /* Round 6 item 15: "Live arena metrics" (eye icon + flanking arrows) was
+     only ever hidden for the 901px+ sidebar copy (M12, scoped last round);
+     nothing hid it on mobile, so it rendered unaudited. Checked
+     docs/ARENA_BATTLE_PLAN.md and docs/chef_battle/ for any later Owner
+     ruling that added it on purpose - none found. The Owner's own original
+     target mockup shows the stats card as four plain columns with no such
+     header, matching his §15 "accidental deviation" case - same pattern as
+     #arena-ticker-phase in round 4. */
+  .arena-command-deck__metrics > .arena-panel__title {
+    display: none;
+  }
+  .arena-metric { display: flex; flex-direction: column; align-items: center; min-width: 0; padding: .1rem .2rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); gap: .2rem; }
   .arena-metric:first-child { border-left: 0; }
-  .arena-metric span { flex-direction: column; align-items: center; gap: .15rem; font-size: .48rem; }
-  .arena-metric .arena-ico { width: .8rem; height: .8rem; }
-  .arena-metric strong { font-size: 1rem; }
+  /* Round 6: the unconditional base rule (.arena-metric span, line ~1119)
+     sets white-space: nowrap - written for the old inline icon+label row,
+     never revisited when round 5 stacked the label under the icon. Nowrap
+     text in a 94px-wide grid cell has nowhere to go but sideways into the
+     next column, which is exactly "ACTIVE VIEWERSPUBLIC VOTES" - not a
+     spacing problem, an unwrapped-overflow problem. Two-line labels are
+     what the Owner asked for here (round 6 spec item 10), not a smaller
+     font forcing one line. */
+  .arena-metric span { display: flex; flex-direction: column; align-items: center; min-width: 0; width: 100%; gap: .15rem; font-size: .48rem; white-space: normal; line-height: 1.2; }
+  .arena-metric .arena-ico { width: .8rem; height: .8rem; flex: 0 0 auto; }
+  .arena-metric strong { display: block; width: 100%; text-align: center; font-size: 1rem; }
   .arena-command-deck__floor { padding: .7rem; border-radius: .9rem; }
   .arena-command-deck__live-stage { grid-template-columns: 1fr; gap: .55rem; text-align: center; }
   .arena-live-chef, .arena-live-chef--opponent { justify-content: center; text-align: center; }

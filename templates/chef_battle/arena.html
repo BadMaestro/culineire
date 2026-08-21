@@ -672,7 +672,15 @@
       {% if active_battle %}
         <span>Live kitchen: <b>{{ active_battle.theme }}</b></span>
       {% elif user_enrolled %}
-        <span>Your station is ready. Choose an opponent when the kitchen calls.</span>
+        {% comment %}
+          Owner's target mockup, round 6: title and subtitle are two visual
+          lines with different weight - a title/subtitle can't get two
+          styles from one text node, so this is the one markup split CSS
+          alone can't avoid. Words and their order are unchanged; only the
+          wrapping is new.
+        {% endcomment %}
+        <span class="arena-crowd-rail__status-title">Your station is ready.</span>
+        <span class="arena-crowd-rail__status-subtitle">Choose an opponent when the kitchen calls.</span>
       {% else %}
         <span>The kitchen floor is open for the next challenge.</span>
       {% endif %}
@@ -700,24 +708,48 @@
       no new view logic. Browse rankings is not deleted from the site, only
       from this bar - ARENA COMMAND's Rankings tile already covers it.
     {% endcomment %}
+    {% comment %}
+      Owner's target mockup, round 6: the crown medallion must read as
+      PART of Enter Arena, not a third sibling column - round 5's negative-
+      margin overlap still left it visually protruding. The medallion is
+      now the first child inside each of the three Enter Arena variants
+      below (a genuine DOM move, one copy per branch since each branch is a
+      different element/URL) instead of one shared sibling outside all
+      three; .arena-lower-actions__title/__subtitle are wrapped so the
+      button can lay out medallion + text as two flex children. Click
+      targets, hrefs, data-seat-url and the js-arena-join-crowd hook are
+      unchanged.
+    {% endcomment %}
     <div class="arena-lower-actions">
-      <span class="arena-lower-actions__medallion" aria-hidden="true">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
-      </span>
       {% if user_enrolled %}
         <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
-          <span class="arena-lower-actions__title">Enter Arena</span>
-          <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          <span class="arena-lower-actions__medallion" aria-hidden="true">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
+          </span>
+          <span class="arena-lower-actions__text">
+            <span class="arena-lower-actions__title">Enter Arena</span>
+            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          </span>
         </a>
       {% elif request.user.is_authenticated %}
         <button type="button" class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}">
-          <span class="arena-lower-actions__title">Enter Arena</span>
-          <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          <span class="arena-lower-actions__medallion" aria-hidden="true">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
+          </span>
+          <span class="arena-lower-actions__text">
+            <span class="arena-lower-actions__title">Enter Arena</span>
+            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          </span>
         </button>
       {% else %}
         <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
-          <span class="arena-lower-actions__title">Enter Arena</span>
-          <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          <span class="arena-lower-actions__medallion" aria-hidden="true">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
+          </span>
+          <span class="arena-lower-actions__text">
+            <span class="arena-lower-actions__title">Enter Arena</span>
+            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          </span>
         </a>
       {% endif %}
       {% if request.user.is_authenticated %}
