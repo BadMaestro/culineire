@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1169",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "Only iOS loses its native zoom - every other engine keeps the real one, and one flag holds both halves together",
+        "section": "Chef Battles / Arena",
+        "summary": "THE REPLACEMENT ZOOM IS NOW iOS-ONLY, at the Owner's own request, and it is the right shape: no other engine has the bug. His Android phone never reproduced the crash under the gesture that reliably killed his iPhone in both Safari and Chrome iOS, so 1168 was taking the browser's real pinch-zoom away from people who never had the problem - and a real pinch-zoom is better than any replacement this page can write. chef_battle/views.py gets _is_ios_webkit(request). User-agent sniffing is the wrong tool for almost everything and the right one here: the thing that has to be identified IS the rendering engine, and no feature test can answer 'does this engine leak'. It matches the DEVICE (iPhone/iPad/iPod) rather than the browser name, because every browser on iOS is WKWebView - CriOS and FxiOS are skins over the same engine, which is why his Safari and his Chrome crashed identically. iPadOS 13+ reporting itself as 'Macintosh' is knowingly not matched: the only remaining signal is touch-on-a-Mac-UA, which is a guess, and a wrong guess costs a desktop Safari user their zoom for a bug they never had. ONE FLAG DECIDES BOTH HALVES, deliberately. arena_native_zoom_off drives the viewport meta AND window.ARENA_OWN_ZOOM, and arena_zoom.js now returns immediately when that is false. Split, the two failure modes are both bad: viewport locked with the script sitting out is an arena with NO zoom; the script running while native zoom is live is one gesture driving two zooms. A new test class, NativeZoomIsOnlyTakenAwayFromIOSTests, holds them together - the third test asserts the two booleans are equal for every agent rather than checking each in isolation, so a future edit to one half fails rather than drifts. VERIFIED on a live local render, not only in tests: an iPhone UA gets 'maximum-scale=1, user-scalable=no' plus ARENA_OWN_ZOOM = true; an Android UA gets the untouched 'width=device-width, initial-scale=1, viewport-fit=cover' plus ARENA_OWN_ZOOM = false; the homepage is byte-identical to before this incident under either agent. node --check clean, manage.py check clean, 15 tests green (the 3 new + test_arena_acceptance).",
+    },
+    {
         "version": "2.5.1168",
         "date": "2026-08-21",
         "commit": "pending",

@@ -12655,6 +12655,80 @@ class ArenaRankLadderAnchorTests(TestCase):
         self.assertIn("GAP + ONE_CM", body)
 
 
+class NativeZoomIsOnlyTakenAwayFromIOSTests(TestCase):
+    """The arena replaces the browser's pinch-zoom on iOS ONLY.
+
+    WebKit 172206 leaks GPU memory on the pinch gesture itself and crashed the
+    Owner's iPhone at every zoom ceiling tried - 2.5 down to 1.1 - while his
+    Android phone never reproduced it once. So iOS gets the page's own
+    transform-based zoom instead, and every other engine keeps its real one,
+    which is better than any replacement this page can write.
+
+    Both halves are decided by one flag on purpose. If the viewport kept
+    user-scalable=no while the script sat out, the arena would have no zoom at
+    all; if the script ran while native zoom was live, one gesture would drive
+    two zooms. These tests hold the two halves together.
+    """
+
+    IPHONE = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
+    )
+    CHROME_IOS = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0 Mobile/15E148 Safari/604.1"
+    )
+    ANDROID = (
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36"
+    )
+    DESKTOP = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    )
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        self.owner = get_user_model().objects.create_user(
+            username="zoom-flag-staff", password="x", is_staff=True)
+        self.client.force_login(self.owner)
+
+    def _page(self, user_agent):
+        response = self.client.get(
+            reverse("chef_battle:arena"), HTTP_USER_AGENT=user_agent)
+        self.assertEqual(response.status_code, 200)
+        return response.content.decode()
+
+    def test_ios_loses_native_zoom_and_gains_the_page_s_own(self):
+        for label, agent in (("safari", self.IPHONE), ("chrome", self.CHROME_IOS)):
+            with self.subTest(browser=label):
+                page = self._page(agent)
+                self.assertIn("user-scalable=no", page)
+                self.assertIn("window.ARENA_OWN_ZOOM = true", page)
+
+    def test_every_other_engine_keeps_the_zoom_it_always_had(self):
+        for label, agent in (("android", self.ANDROID), ("desktop", self.DESKTOP)):
+            with self.subTest(engine=label):
+                page = self._page(agent)
+                self.assertNotIn("user-scalable=no", page)
+                self.assertNotIn("maximum-scale", page)
+                self.assertIn("window.ARENA_OWN_ZOOM = false", page)
+
+    def test_the_two_halves_cannot_drift_apart(self):
+        """Native zoom off and the page's own zoom on are the same decision."""
+        for agent in (self.IPHONE, self.CHROME_IOS, self.ANDROID, self.DESKTOP):
+            with self.subTest(agent=agent[:40]):
+                page = self._page(agent)
+                native_off = "user-scalable=no" in page
+                own_zoom_on = "window.ARENA_OWN_ZOOM = true" in page
+                self.assertEqual(
+                    native_off,
+                    own_zoom_on,
+                    "the arena must have exactly one zoom, never none and never two",
+                )
+
+
 class ArenaRingNumberingTests(TestCase):
     """The Owner, 2026-08-07: paint the ladder in the colours of the rings it
     stands for, and number the rings and the ladder.

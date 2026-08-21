@@ -20,15 +20,22 @@
    travelled, so no number was ever going to be the answer; that is why this
    stops being a viewport question here.
 
-   So native zoom is off and arena_zoom.js reads the pinch as an ordinary
-   touch gesture, answering it with a CSS transform on the camera viewport -
-   a compositor operation on one element, not the viewport-scaling path that
-   leaks. The Owner keeps the zoom he asked for (the octagon is small on a
-   phone and looking inside it is the first thing anyone does) without the
-   engine running the code that crashes. Scoped to this page alone through
-   the viewport block base.html exposes - every other page keeps the
-   unrestricted viewport it always had. #}
-{% block viewport_content %}width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover{% endblock %}
+   So on iOS native zoom is off and arena_zoom.js reads the pinch as an
+   ordinary touch gesture, answering it with a CSS transform on the camera
+   viewport - a compositor operation on one element, not the viewport-scaling
+   path that leaks. The Owner keeps the zoom he asked for (the octagon is
+   small on a phone and looking inside it is the first thing anyone does)
+   without the engine running the code that crashes.
+
+   ONLY ON iOS, at the Owner's own request: no other engine has the bug and
+   his Android phone proved it, so everywhere else the browser's real
+   pinch-zoom is left exactly as it was - it is better than any replacement
+   this page can write, and taking it away to work around someone else's bug
+   would be a cost paid by people who never had the problem. The flag decides
+   both halves at once, because both zooms on one gesture would fight.
+   Scoped to this page alone through the viewport block base.html exposes -
+   every other page keeps the unrestricted viewport it always had. #}
+{% block viewport_content %}width=device-width, initial-scale=1{% if arena_native_zoom_off %}, maximum-scale=1, user-scalable=no{% endif %}, viewport-fit=cover{% endblock %}
 
 {% block title %}The Arena | Chef Battles | CulinEire{% endblock %}
 {% block meta_description %}Step into the Chef Battles Arena. See every chef ranked by tier around the ring, and watch the active battle at the centre.{% endblock %}
@@ -694,6 +701,10 @@
 
 {% block extra_js %}
 <script defer src="{% static 'js/arena_chat.js' %}"></script>
+{# The same flag that decided the viewport above decides whether the page
+   supplies its own zoom, so the two can never disagree. Set before the
+   deferred module runs, which is what `defer` guarantees. #}
+<script nonce="{{ request.csp_nonce }}">window.ARENA_OWN_ZOOM = {{ arena_native_zoom_off|yesno:"true,false" }};</script>
 <script defer src="{% static 'js/arena_zoom.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {

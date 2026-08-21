@@ -1520,6 +1520,32 @@ def _demo_upcoming(request, enrolled):
     return rows
 
 
+def _is_ios_webkit(request) -> bool:
+    """Is this an iOS browser, and therefore WKWebView?
+
+    Sniffing the user agent is the wrong tool for almost everything and the
+    right one here: the arena disables the browser's own pinch-zoom to dodge a
+    rendering-engine bug (WebKit 172206, an IOSurface leak charged per pinch
+    gesture that crashed the Owner's iPhone at every zoom ceiling tried), and
+    the thing that has to be identified IS the rendering engine. Feature
+    detection cannot answer "does this engine leak", and the Owner's Android
+    phone never reproduced the crash under the same gesture, so anything that
+    is not iOS keeps its native zoom.
+
+    Every browser on iOS is WKWebView, whatever its name - Chrome (CriOS),
+    Firefox (FxiOS) and the rest are skins over the same engine, which is why
+    both his Safari and his Chrome crashed identically. Matching the device
+    rather than the browser name is deliberate.
+
+    iPadOS 13+ reports itself as "Macintosh" and is not matched here. That is
+    accepted rather than worked around: the remaining signal is touch support
+    on a Mac UA, which is a guess, and the cost of a wrong guess is taking
+    native zoom away from a desktop Safari user who never had the bug.
+    """
+    ua = request.META.get("HTTP_USER_AGENT", "")
+    return any(device in ua for device in ("iPhone", "iPad", "iPod"))
+
+
 def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
     """Assemble everything chef_battle/arena.html needs.
 
@@ -1582,6 +1608,10 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         "upcoming": arena_data["upcoming"],
         "viewer_author": viewer_author,
         "user_enrolled": user_enrolled,
+        # Decides two things together, and they must stay together: whether the
+        # page keeps the browser's own pinch-zoom, and whether arena_zoom.js
+        # supplies its own instead. Both on would put two zooms on one gesture.
+        "arena_native_zoom_off": _is_ios_webkit(request),
     }
 
 

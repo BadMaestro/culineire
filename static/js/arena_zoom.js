@@ -169,6 +169,14 @@
   }
 
   function init() {
+    /* ONLY WHERE THE BROWSER'S OWN ZOOM WAS TAKEN AWAY. The page decides
+       that once, server-side, from the engine it is being served to (see
+       _is_ios_webkit in chef_battle/views.py) and publishes the answer here,
+       so this file and the viewport meta tag can never disagree. Everywhere
+       but iOS the real pinch-zoom is still live and better than anything
+       written here; running both would put two zooms on one gesture. */
+    if (!global.ARENA_OWN_ZOOM) { return; }
+
     var svg = document.getElementById('arena-render');
     camera = svg && svg.parentElement;
     if (!camera) { return; }
