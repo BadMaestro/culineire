@@ -7931,7 +7931,13 @@ body.page--arena.is-zoom-locked {
      renderer keeps its own constant everywhere else - no desktop pixel moves.
      The caption above it also stops taking a third of the card. */
   .arena-floor-stage {
-    --arena-octagon-width-share: 0.95;
+    /* 0.95 -> 1.045, the Owner's "make the octagon 10% bigger", 2026-08-21.
+       Above 1 is legitimate here and not a typo: the share sizes the SVG's
+       box, and the octagon drawn inside it is about 86% of that box, so it
+       still stands clear of its region - measured 317px -> 349px of octagon
+       inside a 390px region and a 396px frame, with the height ceiling
+       (REGION_MAX_Y) untouched at 273px against 310px. */
+    --arena-octagon-width-share: 1.045;
   }
   .arena-floor-caption {
     margin-block: 0.1rem 0.15rem;

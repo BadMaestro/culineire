@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1177",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "The octagon grows 10% on a phone - and two cache-busters frozen since August were why it took three tries to see it",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner: make the octagon 10% bigger. The phone's width share goes 0.95 -> 1.045 and the octagon measures 317px -> 349px across, 248px -> 273px tall: 10.1%, inside the frame with 24px clear either side, no horizontal scroll, and the height ceiling untouched at 273 against 310. A SHARE ABOVE 1 NEEDED THE GUARD RAISED, and the reasoning matters because it looks like a typo: the share sizes the SVG's BOX, not the octagon drawn inside it, and the shape is about 86% of that box - measured, 317px of octagon in a 370px box. So the share passes 1 without the octagon touching its region; it reaches the edges at about 1.169. The guard is now 1.15, stopping just short of that, which keeps the invariant it has always enforced - the drawn octagon never leaves its region - while letting the stylesheet ask for the last of the room. Anything outside the range still falls back to the constant. TWO STALE CACHE-BUSTERS FIXED ON THE WAY, and they are the reason this took three attempts to verify: arena.html and _arena_render_ring.html both pinned ?v=20260815-owner-controls on arena.css and arena_render.js. That string had not moved since 15 August while both files changed many times, so a browser kept serving August's copies. Worse, the dev server runs --noreload and caches templates, so bumping the string did nothing until the server itself was restarted - the first measurement after the bump showed the octagon SHRINKING to 174px, which was the old JS rejecting the new 1.045 share and falling back to the desktop constant. Both strings now read 20260821-octagon-fit. A stale comment went with them: the template still described the zoom lock's CSS layer as touch-action: manipulation, which v2.5.1173 replaced with pan-y for the precise reason that manipulation does not block pinch. DESKTOP UNTOUCHED, verified at 1440px: both custom properties read unset, the constants apply, centre ratio 0.4877 against the constant's 0.4894. node --check clean, braces balanced, check clean, 22 tests green.",
+    },
+    {
         "version": "2.5.1176",
         "date": "2026-08-21",
         "commit": "pending",

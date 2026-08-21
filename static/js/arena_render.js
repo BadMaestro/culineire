@@ -3178,7 +3178,16 @@
       global.getComputedStyle(camera)
             .getPropertyValue('--arena-octagon-width-share')
     );
-    var widthShare = (declaredShare > 0 && declaredShare <= 1)
+    // THE CEILING IS 1.15, NOT 1, and the reason is that the share sizes the
+    // SVG's BOX rather than the octagon drawn inside it. The shape occupies
+    // about 86% of that box - measured on the phone composition, 317px of
+    // octagon in a 370px box - so the share can pass 1 without the octagon
+    // touching the edges of its region. It reaches them at about 1.169;
+    // 1.15 stops just short, which keeps the invariant this guard has always
+    // enforced (the drawn octagon never leaves its region) while letting the
+    // stylesheet ask for the last of the room. Anything outside the range,
+    // including a share left unset, still falls back to the constant.
+    var widthShare = (declaredShare > 0 && declaredShare <= 1.15)
       ? declaredShare
       : OCTAGON_VISUAL_WIDTH_SHARE;
     var scale = region.width * widthShare / natural.width;
