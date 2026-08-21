@@ -1876,6 +1876,23 @@
     border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
     padding-top: 0.6rem;
   }
+  /* "0 WATCHING" was rendering nearly invisible on the Owner's phone - traced
+     with the browser's own CSSOM (grep's brace-counting lied here: comments
+     elsewhere in this file contain stray braces and threw the count off) to
+     an UNCONDITIONAL .arena-activity-ticker rule, part of the 2026-08-20 M15
+     dark-bar rewrite, setting a pale near-surface colour meant to sit on that
+     rewrite's own dark gradient background. That background is itself always
+     beaten by a later, equal-specificity .page--arena rule that repaints the
+     card light parchment (mobile and desktop both) - so the pale text kept
+     applying after its dark backdrop had already lost, on every width. Only
+     #arena-top-supporter had its own override back to --accent-bronze; the
+     WATCHING span had none. Restored here to the same dark, legible colour
+     this exact class already uses elsewhere in the file for a light card
+     (color-mix ink 80%/surface), scoped to where the card is actually light
+     rather than touching the wider M15 rule and its own history. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-activity-ticker {
+    color: color-mix(in srgb, var(--ink) 80%, var(--surface));
+  }
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
   .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
   .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
