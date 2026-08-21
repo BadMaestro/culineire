@@ -1893,6 +1893,27 @@
   .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-activity-ticker {
     color: color-mix(in srgb, var(--ink) 80%, var(--surface));
   }
+  /* The Owner's target mockup shows exactly two items here - SUPPORTER and
+     WATCHING - not three. The ticker's own markup carries a third span,
+     #arena-ticker-phase ("Open floor"), first in DOM order; the row centres
+     its content, so with only enough width for two items on a phone this
+     first span was pushed mostly off the card's left edge. Fixing the
+     colour above made it legible for the first time, which is what turned
+     an invisible clip into a stray "r" bleeding past the card's edge - the
+     tail of "floor". The phase is already shown, prominently, in the status
+     card above; this row does not need to repeat it, and the mockup agrees. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast #arena-ticker-phase {
+    display: none;
+  }
+  /* Owner's target mockup: the toque icon sits centred ABOVE the status
+     sentence, not inline to its left. Both are already siblings in
+     .arena-crowd-rail__status (svg + span) - stacking them is a
+     flex-direction change, no markup needed. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-crowd-rail__status {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.35rem;
+  }
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
   .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
   .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
