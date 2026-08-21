@@ -3,7 +3,7 @@
 
 {% block body_attrs %} class="page--arena"{% endblock %}
 
-{# NATIVE ZOOM OFF, AND THE ARENA BRINGS ITS OWN INSTEAD (static/js/arena_zoom.js).
+{# ZOOM IS LOCKED ON THIS PAGE, ON iOS ONLY. Owner, 2026-08-21.
 
    WKWebView has a documented, Apple-unfixed IOSurface leak in the pinch
    gesture itself (WebKit bug 172206; reported independently on an EMPTY
@@ -11,7 +11,8 @@
    - https://developer.apple.com/forums/thread/774005). Engine-specific, not
    this page's weight: the Owner's Android phone (Blink) never reproduces
    the crash under the gesture that reliably crashed his iPhone in both
-   Safari and Chrome iOS.
+   Safari and Chrome iOS, so everywhere but iOS the real pinch-zoom is left
+   exactly as it always was.
 
    THIS TAG IS NOT ENOUGH ON ITS OWN, and how much it does depends on which
    iOS browser is asking. Safari has ignored `user-scalable=no` since iOS 10,
@@ -22,29 +23,19 @@
    DIFFERENT behaviour per value - 1.1 snapping back near 1.01, 1.5 not
    snapping back at all - which a wholly ignored tag could not produce. The
    values were reaching him. What they never did was stop the crash, because
-   the leak is charged per gesture rather than per distance travelled, and
-   after the lock shipped he still had native zoom in the browser that
-   ignores it.
+   the leak is charged per gesture rather than per distance travelled.
 
-   So the tag is kept for the engines that honour it, and is not what the
-   fix rests on. What stops the native pinch everywhere on iOS is
-   arena_zoom.js calling preventDefault on WebKit's own
-   `gesturestart`/`gesturechange`/`gestureend` events, which are honoured
-   even where the meta tag is not. The same pinch is then
-   answered with a CSS transform on the camera viewport - a compositor
-   operation on one element, not the viewport-scaling path that leaks. The
-   Owner keeps the zoom he asked for (the octagon is small on a phone and
-   looking inside it is the first thing anyone does) without the engine
-   running the code that crashes.
+   So the lock is in three parts, each covering what the others cannot:
+   this tag for the engines that honour it; arena_zoom.js cancelling
+   WebKit's own `gesturestart`/`gesturechange`/`gestureend` for the engine
+   that ignores the tag; and `touch-action: manipulation` in arena.css for
+   double-tap, which is neither a scale limit nor a gesture event.
 
-   ONLY ON iOS, at the Owner's own request: no other engine has the bug and
-   his Android phone proved it, so everywhere else the browser's real
-   pinch-zoom is left exactly as it was - it is better than any replacement
-   this page can write, and taking it away to work around someone else's bug
-   would be a cost paid by people who never had the problem. The flag decides
-   both halves at once, because both zooms on one gesture would fight.
-   Scoped to this page alone through the viewport block base.html exposes -
-   every other page keeps the unrestricted viewport it always had. #}
+   One server-side flag drives the tag and the script together (see
+   _is_ios_webkit in chef_battle/views.py) so the two can never disagree
+   about who is being locked. Scoped to this page alone through the viewport
+   block base.html exposes - every other page keeps the unrestricted
+   viewport it always had. #}
 {% block viewport_content %}width=device-width, initial-scale=1{% if arena_native_zoom_off %}, maximum-scale=1, user-scalable=no{% endif %}, viewport-fit=cover{% endblock %}
 
 {% block title %}The Arena | Chef Battles | CulinEire{% endblock %}
@@ -714,7 +705,7 @@
 {# The same flag that decided the viewport above decides whether the page
    supplies its own zoom, so the two can never disagree. Set before the
    deferred module runs, which is what `defer` guarantees. #}
-<script nonce="{{ request.csp_nonce }}">window.ARENA_OWN_ZOOM = {{ arena_native_zoom_off|yesno:"true,false" }};</script>
+<script nonce="{{ request.csp_nonce }}">window.ARENA_LOCK_ZOOM = {{ arena_native_zoom_off|yesno:"true,false" }};</script>
 <script defer src="{% static 'js/arena_zoom.js' %}"></script>
 <script nonce="{{ request.csp_nonce }}">
 (function () {

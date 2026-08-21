@@ -12660,14 +12660,17 @@ class NativeZoomIsOnlyTakenAwayFromIOSTests(TestCase):
 
     WebKit 172206 leaks GPU memory on the pinch gesture itself and crashed the
     Owner's iPhone at every zoom ceiling tried - 2.5 down to 1.1 - while his
-    Android phone never reproduced it once. So iOS gets the page's own
-    transform-based zoom instead, and every other engine keeps its real one,
-    which is better than any replacement this page can write.
+    Android phone never reproduced it once. So on iOS the arena locks zoom
+    outright, and every other engine keeps the pinch-zoom it never had a
+    problem with.
 
-    Both halves are decided by one flag on purpose. If the viewport kept
-    user-scalable=no while the script sat out, the arena would have no zoom at
-    all; if the script ran while native zoom was live, one gesture would drive
-    two zooms. These tests hold the two halves together.
+    The lock needs two halves because neither reaches both browsers: Safari
+    ignores user-scalable=no (deliberately, since iOS 10, on accessibility
+    grounds) and honours the script's gesture cancelling; a WKWebView app
+    such as Chrome iOS honours the tag. One server-side flag drives both so
+    they cannot disagree about who is being locked, and the last test here
+    asserts that equality directly rather than checking each in isolation -
+    a future edit to one half fails instead of drifting.
     """
 
     IPHONE = (
@@ -12700,12 +12703,12 @@ class NativeZoomIsOnlyTakenAwayFromIOSTests(TestCase):
         self.assertEqual(response.status_code, 200)
         return response.content.decode()
 
-    def test_ios_loses_native_zoom_and_gains_the_page_s_own(self):
+    def test_ios_gets_both_halves_of_the_lock(self):
         for label, agent in (("safari", self.IPHONE), ("chrome", self.CHROME_IOS)):
             with self.subTest(browser=label):
                 page = self._page(agent)
                 self.assertIn("user-scalable=no", page)
-                self.assertIn("window.ARENA_OWN_ZOOM = true", page)
+                self.assertIn("window.ARENA_LOCK_ZOOM = true", page)
 
     def test_every_other_engine_keeps_the_zoom_it_always_had(self):
         for label, agent in (("android", self.ANDROID), ("desktop", self.DESKTOP)):
@@ -12713,7 +12716,7 @@ class NativeZoomIsOnlyTakenAwayFromIOSTests(TestCase):
                 page = self._page(agent)
                 self.assertNotIn("user-scalable=no", page)
                 self.assertNotIn("maximum-scale", page)
-                self.assertIn("window.ARENA_OWN_ZOOM = false", page)
+                self.assertIn("window.ARENA_LOCK_ZOOM = false", page)
 
     def test_the_two_halves_cannot_drift_apart(self):
         """Native zoom off and the page's own zoom on are the same decision."""
@@ -12721,11 +12724,11 @@ class NativeZoomIsOnlyTakenAwayFromIOSTests(TestCase):
             with self.subTest(agent=agent[:40]):
                 page = self._page(agent)
                 native_off = "user-scalable=no" in page
-                own_zoom_on = "window.ARENA_OWN_ZOOM = true" in page
+                own_zoom_on = "window.ARENA_LOCK_ZOOM = true" in page  # noqa: E501
                 self.assertEqual(
                     native_off,
                     own_zoom_on,
-                    "the arena must have exactly one zoom, never none and never two",
+                    "the tag and the script must lock the same devices",
                 )
 
 

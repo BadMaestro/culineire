@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1172",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "Zoom locked on the arena for iOS - tag, gesture events and double-tap all closed, and the replacement zoom removed with them",
+        "section": "Chef Battles / Arena",
+        "summary": "ZOOM IS LOCKED ON THE ARENA, ON iOS ONLY. Owner's instruction, plainly: block zoom for the arena page on iOS devices. The page-owned replacement zoom built in 1168 is therefore gone rather than kept as a spare - it worked and it is in git history, but carrying ~200 lines of pinch, pan and transform machinery nothing can reach would be exactly the dead weight this codebase's own audits keep finding. THE LOCK IS IN THREE PARTS, because no one of them reaches every case. The viewport tag (maximum-scale=1, user-scalable=no) covers WKWebView apps - Chrome iOS and every in-app browser honour scale limits by default. arena_zoom.js, now a pure blocker, cancels WebKit's own gesturestart/gesturechange/gestureend, which Safari honours even though it has ignored user-scalable=no since iOS 10 on accessibility grounds. And `touch-action: manipulation` on body.page--arena closes double-tap zoom, which is neither a scale limit nor a gesture event and would otherwise still reach the same leaking code path with one different finger. WHY LOCKED AT ALL: WKWebView leaks GPU memory on the pinch gesture itself (WebKit 172206; an IOSurface leak reported at 3.58GB on a completely empty page after ~20s of pinching, unfixed by Apple). The Owner's Android phone never reproduced the crash under the same gesture, which is why this is scoped to iOS and every other engine keeps the pinch-zoom it never had a problem with. One server-side flag (_is_ios_webkit) drives the tag and the script together, and the third test in NativeZoomIsOnlyTakenAwayFromIOSTests asserts the two booleans are equal for every user agent rather than checking each alone, so a future edit to one half fails instead of drifting. The JS global was renamed ARENA_OWN_ZOOM -> ARENA_LOCK_ZOOM to say what it now does. DEAD CODE REMOVED WITH IT, not left behind: the --arena-user-zoom / --arena-user-pan-x/y steps came back out of the camera's transform chain and the two .is-user-zoomed rules are gone; grep confirms zero remaining references. VERIFIED on a live local render: an iPhone UA gets the locked viewport plus ARENA_LOCK_ZOOM = true; an Android UA gets the untouched viewport plus false; the homepage is unchanged under either. node --check clean, CSS braces balanced, manage.py check clean, 15 tests green.",
+    },
+    {
         "version": "2.5.1171",
         "date": "2026-08-21",
         "commit": "pending",
