@@ -1,0 +1,6 @@
+# .agent-chat/deploy.lock
+agent: greenbear
+started_utc: 2026-08-21T14:10:00Z
+version: v2.5.1182
+commit: pending
+task: mobile arena crowd-rail card radius fix (Owner mockup alignment)
