@@ -1867,6 +1867,15 @@
   .arena-command-deck__guide { grid-area: guide; }
   .arena-command-deck__command { grid-area: command; }
   .arena-command-deck__header, .arena-command-deck__floor-head, .arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
+  /* Owner's target mockup (2026-08-21): the status line and the SUPPORTER/
+     WATCHING row read as two sections, split by a thin rule - the same
+     divider token .arena-compact-facts already uses between its own rows on
+     the sibling status card. Stacked to a column here with a 12px flex gap
+     and nothing else, this card had no such rule at all. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast .arena-activity-ticker {
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    padding-top: 0.6rem;
+  }
   .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
   .arena-command-deck__metrics { width: 100%; grid-template-columns: repeat(3, 1fr); padding: .65rem; }
   .arena-metric { display: block; padding: .1rem .35rem; text-align: center; border-top: 0; border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
