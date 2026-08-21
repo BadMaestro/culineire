@@ -12746,6 +12746,82 @@ class NativeZoomIsOnlyTakenAwayFromIOSTests(TestCase):
                 )
 
 
+class OctagonSizeAndSeatAreLockedTests(TestCase):
+    """The octagon's size and seat on a phone are the Owner's, and frozen.
+
+    He arrived at them by looking at the rendered result and asking for it a
+    step at a time - the width share went 0.95, then 1.045, then 1.097; the
+    vertical seat went from the renderer's desktop constant to 0.557 so the
+    octagon stopped meeting the caption with 2px of air and floating over
+    48px of nothing. On 2026-08-21 he froze both: no change without his
+    explicit permission.
+
+    A comment saying so is worth little on its own - this file's own history
+    is full of numbers that drifted while a comment beside them stayed
+    confident. These tests are the part that actually holds, because an edit
+    to either value fails the suite instead of reaching his phone as a
+    surprise.
+
+    The guard in arena_render.js is tested with them on purpose: the width
+    share is above 1, which only works while that ceiling stays above it.
+    Lowering the ceiling back to 1 would silently drop the octagon to the
+    desktop constant - a third of its size - without touching the locked
+    number at all.
+    """
+
+    LOCKED_WIDTH_SHARE = "--arena-octagon-width-share: 1.097;"
+    LOCKED_CENTRE_Y = "--arena-octagon-centre-y: 0.557;"
+    GUARD_CEILING = "declaredShare <= 1.15"
+
+    def _css(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
+        ).read_text(encoding="utf-8")
+
+    def _renderer(self):
+        from pathlib import Path
+        from django.conf import settings as django_settings
+
+        return (
+            Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
+        ).read_text(encoding="utf-8")
+
+    def test_the_width_share_is_the_value_the_owner_stopped_at(self):
+        self.assertIn(
+            self.LOCKED_WIDTH_SHARE,
+            self._css(),
+            "the octagon's size on a phone is locked - the Owner froze it on "
+            "2026-08-21 and it may not change without his permission",
+        )
+
+    def test_the_vertical_seat_is_the_value_the_owner_stopped_at(self):
+        self.assertIn(
+            self.LOCKED_CENTRE_Y,
+            self._css(),
+            "the octagon's seat on a phone is locked - the Owner froze it on "
+            "2026-08-21 and it may not change without his permission",
+        )
+
+    def test_the_guard_still_admits_a_share_above_one(self):
+        """The lock is worthless if the guard quietly rejects the value."""
+        self.assertIn(
+            self.GUARD_CEILING,
+            self._renderer(),
+            "the width-share ceiling must stay at 1.15: the locked share is "
+            "1.097, and a ceiling of 1 would silently fall back to the "
+            "desktop constant and shrink the octagon by two thirds",
+        )
+
+    def test_the_desktop_composition_is_not_what_was_frozen(self):
+        """Locking the phone must not have moved the accepted desktop."""
+        renderer = self._renderer()
+        self.assertIn("OCTAGON_VISUAL_WIDTH_SHARE = 659 / 1268", renderer)
+        self.assertIn("OCTAGON_VISUAL_CENTRE_Y = 276 / 564", renderer)
+
+
 class ArenaRingNumberingTests(TestCase):
     """The Owner, 2026-08-07: paint the ladder in the colours of the rings it
     stands for, and number the rings and the ladder.

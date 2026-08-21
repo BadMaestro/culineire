@@ -7937,7 +7937,24 @@ body.page--arena.is-zoom-locked {
        still stands clear of its region. Two steps, both his: 0.95 -> 1.045
        took the octagon 317px -> 349px, then 1.045 -> 1.097 for another 5%.
        The shape reaches its region's edges at about 1.169, so this is still
-       inside the guard's 1.15 and inside the region it is drawn in. */
+       inside the guard's 1.15 and inside the region it is drawn in.
+
+       ============================================================
+       LOCKED BY THE OWNER, 2026-08-21. Do not change this number, or
+       --arena-octagon-centre-y below, without his explicit permission.
+
+       These two decide the octagon's size and its seat on a phone, and he
+       arrived at them by looking at the result and asking for it step by
+       step - 0.95, 1.045, 1.097 for the size; 0.557 for the seat. They are
+       his composition now, not a default anyone may tune.
+
+       Measured at the moment of the freeze, on a 414px viewport: the
+       octagon is 366px across and 286px tall, sitting inside its frame with
+       15px clear either side, 4px of air above it and 7px below.
+       OctagonSizeAndSeatAreLockedTests holds all of it - the two values and
+       the guard they depend on - so an edit here fails the suite rather
+       than reaching him as a surprise on his phone.
+       ============================================================ */
     --arena-octagon-width-share: 1.097;
   }
   .arena-floor-caption {
@@ -8315,7 +8332,11 @@ body.page--arena.is-zoom-locked {
      separate cards further down the page and nothing sits under the octagon
      inside this frame, so the reason for the high seat is not present here.
      0.557 puts its centre midway between the caption's baseline and the
-     frame's lower edge - measured on the rendered page, not guessed. */
+     frame's lower edge - measured on the rendered page, not guessed.
+
+     LOCKED BY THE OWNER, 2026-08-21, together with the width share above -
+     see the note there. Not to be changed without his explicit permission;
+     OctagonSizeAndSeatAreLockedTests fails if it is. */
   .page--arena .arena-render-container {
     --arena-octagon-centre-y: 0.557;
   }

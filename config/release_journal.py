@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1179",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "The octagon's size and seat are frozen on the Owner's order - locked in the stylesheet, held by tests, recorded in memory",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner: freeze the octagon's current position and size, and forbid any change without his permission. Frozen values, in the phone block of arena.css: --arena-octagon-width-share 1.097 and --arena-octagon-centre-y 0.557. Measured at the moment of the freeze on a 414px viewport: 366px across, 286px tall, 15px clear either side inside the frame, 4px of air above and 7px below. He arrived at them by looking at the rendered result and asking a step at a time - the share went 0.95, 1.045, 1.097; the seat came off the renderer's desktop constant to 0.557 - so they are his composition, not a default anyone may tune. THE FREEZE IS IN THREE PLACES, because a comment alone would be worth little: this file's history is full of numbers that drifted while a confident comment sat beside them. (1) A lock note on both values in arena.css. (2) OctagonSizeAndSeatAreLockedTests, four tests that fail on any edit - and the guard was itself verified by temporarily changing 1.097 to 1.05 and watching the suite fail with the intended message, then restoring it. (3) A memory entry, so the ban survives this session. THE FOURTH TEST GUARDS A TRAP RATHER THAN A NUMBER: the locked share is above 1, which only works while arena_render.js keeps its ceiling at declaredShare <= 1.15. Lowering that ceiling back to 1 would silently drop the octagon to the desktop constant - roughly a third of its size - without anyone touching the 'frozen' value at all. A freeze that did not cover the guard would not be a freeze. Desktop untouched and separately asserted: the renderer's constants 659/1268 and 276/564 are still what the desktop composition runs on. 26 tests green (the 4 new + arena acceptance + ring numbering).",
+    },
+    {
         "version": "2.5.1178",
         "date": "2026-08-21",
         "commit": "pending",
