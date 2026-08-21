@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1175",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "The moat lamps come back to the phone - I cut them chasing a crash they were not causing",
+        "section": "Chef Battles / Arena",
+        "summary": "THE OWNER ASKED WHERE THE LAMPS WENT ON THE PHONE, and the honest answer is that I removed them on 2026-08-20 for a reason that turned out not to be the reason. Hunting the iPhone crash, I hid the eight moat lanterns, their 24 strobe rings, and the doubled SMIL+CSS pulse on every online chef, on the theory that their filters and endless animations were tipping the phone over a memory ceiling. The crash was WebKit's own leak on the pinch GESTURE (bug 172206) - which is why it reproduced on a page of any weight and never once on Android - and it is closed by the zoom lock in arena_zoom.js. Ornament cut for a wrong reason goes back. Restored on mobile: .arena-lantern and .arena-lamp-strobe (display), the arena-online-pulse animation on the online dot, and the online ping. Verified at 414px: lanterns 8 of 8 visible, strobes 24 of 24 visible, animationName reads arena-strobe-ring again. WHAT IS NOT RESTORED, deliberately: the phone-safety pass above this one (v2.5.1147) - the atmosphere layer and the backdrop blurs - was cut against numbers actually measured on the rendered page and is a separate, still-standing decision that predates this incident. manage.py check clean, braces balanced, test_arena_acceptance (12) green.",
+    },
+    {
         "version": "2.5.1174",
         "date": "2026-08-21",
         "commit": "pending",
