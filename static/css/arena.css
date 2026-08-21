@@ -8293,4 +8293,23 @@ body.page--arena.is-zoom-locked {
   .arena-next-board {
     gap: 0.2rem;
   }
+
+  /* THE OCTAGON SITS IN THE MIDDLE OF THE SQUARE ON A PHONE. Owner,
+     2026-08-21: centre the octagon exactly inside the square.
+
+     Its box was already centred in the frame to within a pixel (45px above,
+     48px below, measured) - but the 45px above is entirely the caption, so
+     the octagon met the text with 2px of air and floated over 48px of
+     nothing. Centred by the numbers, lopsided to the eye.
+
+     The renderer's own constant is 276/564 and is deliberately high, so the
+     crowd rail and the lower dock read beneath the octagon; that is the
+     desktop composition and it stays untouched. On a phone those panels are
+     separate cards further down the page and nothing sits under the octagon
+     inside this frame, so the reason for the high seat is not present here.
+     0.557 puts its centre midway between the caption's baseline and the
+     frame's lower edge - measured on the rendered page, not guessed. */
+  .page--arena .arena-render-container {
+    --arena-octagon-centre-y: 0.557;
+  }
 }

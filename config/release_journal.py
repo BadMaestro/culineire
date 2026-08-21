@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1176",
+        "date": "2026-08-21",
+        "commit": "pending",
+        "title": "The octagon centres itself in the square on a phone - it was centred by arithmetic and lopsided to the eye",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner: centre the octagon exactly inside the square. Measured first, and the measurement is the interesting part - the octagon's box was ALREADY centred in the frame to within a pixel: 45px above, 48px below, offsetX exactly 0. It still read as wrong, and the numbers say why: the 45px above is entirely occupied by the caption, so the octagon met the text with 2px of air and floated over 48px of nothing. Centred by arithmetic, lopsided to the eye - the eye centres on the empty space, not on the box. THE CAUSE is OCTAGON_VISUAL_CENTRE_Y = 276/564 in arena_render.js, and it is deliberate: the octagon sits high so the crowd rail and the lower dock read beneath it. That is the accepted desktop composition. On a phone those panels are separate cards further down the page and nothing sits under the octagon inside the frame, so the reason for the high seat is simply not present - a desktop decision outliving the layout it was made for, the same shape of fault as the caption's 42% width in 1166. THE FIX follows the arrangement the width share already has in this file: the vertical centre becomes something the stylesheet MAY state (--arena-octagon-centre-y), falling back to the constant when it says nothing. Only the phone block states it, at 0.557 - measured on the rendered page as the ratio that puts the octagon's centre midway between the caption's lower edge and the frame's. VERIFIED: at 414px the air above the octagon went 2px -> 24px and below 48px -> 26px, a 2px difference where it was 46. At 1440px the variable is unset, the constant applies, and the measured ratio is 0.4877 against the constant's 0.4894 - the desktop composition did not move. node --check clean, braces balanced, manage.py check clean, 22 tests green (arena acceptance + ring numbering, the class that guards the octagon's own geometry).",
+    },
+    {
         "version": "2.5.1175",
         "date": "2026-08-21",
         "commit": "pending",

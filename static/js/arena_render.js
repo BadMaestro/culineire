@@ -3193,8 +3193,27 @@
     writePlacement(camera, scale, 0, 0);
     var sized = elementBox(svg);
     if (!sized) { writePlacement(camera, 1, 0, 0); return; }
+    // THE VERTICAL CENTRE IS THE PAGE'S TO STATE TOO, 2026-08-21 - the same
+    // arrangement the width share above already has, and for the same
+    // reason. The constant is the accepted DESKTOP composition, where the
+    // octagon deliberately sits high so the crowd rail and the lower dock
+    // read beneath it. On a phone nothing sits beneath it inside the frame:
+    // the panels are their own cards further down the page, so the high
+    // seat leaves the octagon jammed 2px under the caption with 48px of
+    // dead air below it - measured, and what reads as "not centred" even
+    // though the octagon's box is centred in the frame to within a pixel.
+    // How much of the region the octagon should sit down is a layout
+    // decision, so the stylesheet may make it; when it says nothing, the
+    // constant answers, exactly as before.
+    var declaredCentreY = parseFloat(
+      global.getComputedStyle(camera)
+            .getPropertyValue('--arena-octagon-centre-y')
+    );
+    var centreY = (declaredCentreY > 0 && declaredCentreY <= 1)
+      ? declaredCentreY
+      : OCTAGON_VISUAL_CENTRE_Y;
     var targetX = region.left + region.width * OCTAGON_VISUAL_CENTRE_X;
-    var targetY = region.top + region.height * OCTAGON_VISUAL_CENTRE_Y;
+    var targetY = region.top + region.height * centreY;
     writePlacement(camera, scale, targetX - sized.cx, targetY - sized.cy);
   }
 
