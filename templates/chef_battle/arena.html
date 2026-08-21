@@ -13,19 +13,24 @@
    the crash under the gesture that reliably crashed his iPhone in both
    Safari and Chrome iOS.
 
-   THIS TAG IS NOT WHAT DISABLES ZOOM, and believing it was cost most of a
-   day. Safari has IGNORED user-scalable, maximum-scale and minimum-scale
-   since iOS 10, deliberately, on accessibility grounds - a page must never
-   be able to trap a reader at a size they cannot enlarge. So the ceiling
-   walked all the way down the Owner's device - 2.5, 1.5, 1.3, 1.2, 1.1 -
-   was never applied at all on his Safari, which is why none of the values
-   changed anything and why he still had full native zoom after the "full
-   stop" shipped. The tag is kept only for the engines that do honour it
-   (a WKWebView app such as Chrome iOS can), never relied upon.
+   THIS TAG IS NOT ENOUGH ON ITS OWN, and how much it does depends on which
+   iOS browser is asking. Safari has ignored `user-scalable=no` since iOS 10,
+   deliberately, on accessibility grounds - a page must never be able to trap
+   a reader at a size they cannot enlarge. A WKWebView-based app (Chrome iOS
+   and every in-app browser) honours the scale limits by default instead.
+   That split is visible in the Owner's own testing: he reported genuinely
+   DIFFERENT behaviour per value - 1.1 snapping back near 1.01, 1.5 not
+   snapping back at all - which a wholly ignored tag could not produce. The
+   values were reaching him. What they never did was stop the crash, because
+   the leak is charged per gesture rather than per distance travelled, and
+   after the lock shipped he still had native zoom in the browser that
+   ignores it.
 
-   What actually stops the native pinch is arena_zoom.js calling
-   preventDefault on WebKit's own `gesturestart`/`gesturechange`/`gestureend`
-   events, which works where the meta tag is ignored. The same pinch is then
+   So the tag is kept for the engines that honour it, and is not what the
+   fix rests on. What stops the native pinch everywhere on iOS is
+   arena_zoom.js calling preventDefault on WebKit's own
+   `gesturestart`/`gesturechange`/`gestureend` events, which are honoured
+   even where the meta tag is not. The same pinch is then
    answered with a CSS transform on the camera viewport - a compositor
    operation on one element, not the viewport-scaling path that leaks. The
    Owner keeps the zoom he asked for (the octagon is small on a phone and

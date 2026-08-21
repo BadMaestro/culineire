@@ -181,20 +181,26 @@
     camera = svg && svg.parentElement;
     if (!camera) { return; }
 
-    /* THE META TAG DOES NOT ACTUALLY DISABLE ZOOM ON iOS, and finding that
-       out is what this block is for. Safari has IGNORED user-scalable,
-       maximum-scale and minimum-scale since iOS 10, deliberately, on
-       accessibility grounds - Apple's position is that a page must never be
-       able to trap a reader at a text size they cannot enlarge.
+    /* THE META TAG CANNOT BE RELIED ON TO DISABLE ZOOM ON iOS, and how much
+       it does at all depends on which iOS browser is asking. Safari has
+       ignored `user-scalable=no` since iOS 10, deliberately, on
+       accessibility grounds - a page must never be able to trap a reader at
+       a text size they cannot enlarge.
        (https://bugzilla.mozilla.org/show_bug.cgi?id=1340064 records the same
-       behaviour change from the other side of the fence.)
-       Every ceiling walked down the Owner's device - 2.5, 1.5, 1.3, 1.2,
-       1.1 - was therefore never applied at all, which is the real reason
-       none of them changed anything.
+       change from Mozilla's side.) A WKWebView-based app - Chrome iOS and
+       every in-app browser - honours the scale limits by default instead.
+
+       That split showed up directly in the Owner's testing: the ceiling
+       values produced genuinely different behaviour on his device (1.1
+       snapping back near 1.01, 1.5 not snapping back at all), which a
+       wholly-ignored tag could not produce. The values were reaching him.
+       What they never did was stop the crash - the leak is charged per
+       gesture, not per distance travelled - and in the browser that ignores
+       the tag he still had full native zoom after the lock shipped.
 
        `gesturestart` and its siblings are the WebKit-only events behind the
-       native pinch, and preventDefault on them DOES stop it where the meta
-       tag is ignored. That is the whole mechanism this file needs: the
+       native pinch, and preventDefault on them is honoured even where the
+       meta tag is not. That is the whole mechanism this file needs: the
        leaking gesture never starts, and the same pinch is answered by the
        touch handlers below with a CSS transform instead.
 
