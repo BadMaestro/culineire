@@ -8138,6 +8138,7 @@ body.page--arena.is-zoom-locked {
     font-weight: 800;
     letter-spacing: 0.02em;
     text-transform: uppercase;
+    text-align: center;
   }
   .arena-mobile-scene__rings {
     display: grid;
