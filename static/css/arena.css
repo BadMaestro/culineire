@@ -8585,7 +8585,8 @@ body.page--arena.is-zoom-locked {
   /* The active step is sized by its label - 0 1 auto - so it never eats the
      room the trailing dots need, and can still shrink to an ellipsis if a
      phase name ever grows. */
-  .arena-broadcast-ribbon .arena-phase-step.is-active {
+  .arena-broadcast-ribbon .arena-phase-step.is-active,
+  .arena-broadcast-ribbon .arena-phase-step[aria-expanded="true"] {
     width: auto;
     flex: 0 1 auto;
     min-width: 0;
@@ -8652,7 +8653,7 @@ body.page--arena.is-zoom-locked {
   .arena-broadcast-ribbon .arena-phase-step.is-complete .arena-phase-step__index::before {
     opacity: 0.8;
   }
-  .arena-broadcast-ribbon .arena-phase-step:not(.is-active) b {
+  .arena-broadcast-ribbon .arena-phase-step:not(.is-active):not([aria-expanded="true"]) b {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -8663,7 +8664,8 @@ body.page--arena.is-zoom-locked {
     white-space: nowrap;
     border: 0;
   }
-  .arena-broadcast-ribbon .arena-phase-step.is-active b {
+  .arena-broadcast-ribbon .arena-phase-step.is-active b,
+  .arena-broadcast-ribbon .arena-phase-step[aria-expanded="true"] b {
     position: static;
     width: auto;
     height: auto;
