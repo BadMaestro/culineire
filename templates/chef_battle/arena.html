@@ -218,11 +218,12 @@
     inside it changed, so that test's class-name half is updated in the
     same commit rather than left to fail quietly.
 
-    Emblem assets: static/images/chef_battle/ranks/<rank.value>.webp,
-    cropped from the Owner's own reference sheet (his instruction - no
-    image generation tool exists in this session). Each crop is the icon
-    only, no baked-in rank name or number - both stay real HTML text per
-    his spec item 1's "do not bake the rank name into the image asset".
+    Emblem assets: static/images/chef_battle/ranks/<rank.value>.webp.
+    2026-08-22: Owner supplied 8 individually-cropped clean reference
+    images with the rank number and nameplate already baked into the
+    composition, and explicitly reversed the earlier "no baked-in text"
+    instruction ("Да, запекать в картинку, убрать HTML-текст") - so the
+    separate #N / name spans are gone and the image alone carries them.
   {% endcomment %}
   <section class="arena-mobile-scene" aria-label="Kitchen ranks">
     <h2 class="arena-mobile-scene__title">The kitchen ranks</h2>
@@ -237,9 +238,7 @@
                 aria-expanded="false"
                 aria-controls="arena-rank-panel"
                 aria-label="{{ rank.label }}, Rank {{ ring }}, {{ chefs|length }} chef{{ chefs|length|pluralize }}">
-          <img class="arena-rank-tile__emblem" src="{% static img_path %}" alt="" width="64" height="64" loading="lazy">
-          <span class="arena-rank-tile__no" aria-hidden="true">#{{ ring }}</span>
-          <span class="arena-rank-tile__name" aria-hidden="true">{{ rank.label }}</span>
+          <img class="arena-rank-tile__emblem" src="{% static img_path %}" alt="" width="110" height="180" loading="lazy">
           <span class="arena-rank-tile__count{% if not chefs %} arena-rank-tile__count--empty{% endif %}" aria-hidden="true">{{ chefs|length }}</span>
         </button>
       </li>

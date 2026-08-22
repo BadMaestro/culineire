@@ -8080,43 +8080,18 @@ body.page--arena.is-zoom-locked {
     cursor: pointer;
     font: inherit;
   }
-  /* Round 2, 2026-08-21: object-fit:cover on a rectangular source image was
-     the actual bug the Owner reported - it filled/cropped the circle,
-     clipping bucket handles, knife-roll straps, toque tops, exactly as he
-     named. The eight assets are now genuinely transparent (rembg-extracted
-     foreground, padded to a consistent ~78% fill on their own square
-     canvas), so the fix is contain, not another crop/position tweak - the
-     shared oval badge (background/border/shadow, identical for all eight,
-     gold variant for Master below) now lives on the emblem itself via
-     padding + a background gradient, since a background paints behind a
-     replaced element's image content without needing a wrapper div. */
+  /* 2026-08-22: the Owner's own reference crops carry the rank number and
+     nameplate baked into the image already, so the emblem is a tall
+     portrait cutout (220x360 source) shown whole via contain - no circular
+     mask/badge background any more, since the image supplies its own
+     plate/number art. The separate #N and name spans are gone from the
+     markup (arena.html); this rule set is the emblem box only. */
   .arena-rank-tile__emblem {
-    width: 52px;
-    height: 52px;
-    padding: 4px;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--surface) 97%, transparent),
-      color-mix(in srgb, var(--accent-bronze) 7%, var(--surface))
-    );
+    width: 100%;
+    max-width: 78px;
+    height: auto;
+    aspect-ratio: 11 / 18;
     object-fit: contain;
-    box-sizing: border-box;
-    box-shadow: 0 0.15rem 0.4rem color-mix(in srgb, var(--ink) 22%, transparent);
-  }
-  .arena-rank-tile__no {
-    margin-top: 0.3rem;
-    color: var(--accent-bronze-dark);
-    font-size: 0.62rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-  }
-  .arena-rank-tile__name {
-    margin-top: 0.05rem;
-    color: var(--ink);
-    font-size: 0.68rem;
-    font-weight: 700;
-    line-height: 1.2;
   }
   .arena-rank-tile__count {
     margin-top: 0.15rem;
@@ -8134,11 +8109,7 @@ body.page--arena.is-zoom-locked {
     box-shadow: 0 0.2rem 0.6rem color-mix(in srgb, var(--accent-bronze) 20%, transparent);
   }
   .arena-rank-tile--master .arena-rank-tile__emblem {
-    width: 58px;
-    height: 58px;
-  }
-  .arena-rank-tile--master .arena-rank-tile__name {
-    color: var(--accent-bronze-dark);
+    max-width: 86px;
   }
   .arena-rank-tile--active {
     border-color: var(--accent-bronze);
