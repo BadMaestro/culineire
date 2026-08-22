@@ -8088,7 +8088,7 @@ body.page--arena.is-zoom-locked {
      markup (arena.html); this rule set is the emblem box only. */
   .arena-rank-tile__emblem {
     width: 100%;
-    max-width: 78px;
+    max-width: 76px;
     height: auto;
     aspect-ratio: 11 / 18;
     object-fit: contain;
@@ -8109,7 +8109,7 @@ body.page--arena.is-zoom-locked {
     box-shadow: 0 0.2rem 0.6rem color-mix(in srgb, var(--accent-bronze) 20%, transparent);
   }
   .arena-rank-tile--master .arena-rank-tile__emblem {
-    max-width: 86px;
+    max-width: 84px;
   }
   .arena-rank-tile--active {
     border-color: var(--accent-bronze);
