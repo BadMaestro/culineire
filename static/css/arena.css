@@ -8720,6 +8720,8 @@ body.page--arena.is-zoom-locked {
      frame minutes earlier. */
   .arena-next-board {
     gap: 0.2rem;
+    justify-content: center;
+    text-align: center;
   }
 
   /* THE OCTAGON SITS IN THE MIDDLE OF THE SQUARE ON A PHONE. Owner,
