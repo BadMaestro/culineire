@@ -8601,9 +8601,9 @@ body.page--arena.is-zoom-locked {
      cover) but font-size:0 keeps it invisible so only the glyph shows. */
   .arena-broadcast-ribbon .arena-phase-step__index {
     position: relative;
-    min-width: 0.9rem;
-    width: 0.9rem;
-    height: 0.9rem;
+    min-width: 1.17rem;
+    width: 1.17rem;
+    height: 1.17rem;
     font-size: 0;
     padding: 0;
     border-width: 1px;
@@ -8620,7 +8620,7 @@ body.page--arena.is-zoom-locked {
      here - opacity alone reads the same and does not force its own
      compositing layer per glyph. */
   .arena-broadcast-ribbon .arena-phase-step__index::before {
-    font-size: 0.62rem;
+    font-size: 0.81rem;
     line-height: 1;
     opacity: 0.55;
   }
@@ -8639,14 +8639,14 @@ body.page--arena.is-zoom-locked {
      phone-safety pass above budgets against. A fixed glow still marks the
      active step; it just doesn't cost anything after the first paint. */
   .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
-    width: 1.2rem;
-    height: 1.2rem;
+    width: 1.56rem;
+    height: 1.56rem;
     box-shadow:
       0 0 0 2px color-mix(in srgb, var(--accent-bronze) 30%, transparent),
       0 0 0.6rem color-mix(in srgb, var(--accent-bronze) 42%, transparent);
   }
   .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index::before {
-    font-size: 0.85rem;
+    font-size: 1.1rem;
     opacity: 1;
   }
   .arena-broadcast-ribbon .arena-phase-step.is-complete .arena-phase-step__index::before {
