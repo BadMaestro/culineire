@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 import json
 import logging
+import time
 from pathlib import Path
 
 from django.contrib import messages
@@ -871,6 +872,63 @@ def battle_home(request):
 _ARENA_ONLINE_THRESHOLD = 180  # seconds — chef counts as online if seen within 3 min
 
 
+# ---------------------------------------------------------------------------
+# The enrolled-chef roster, reused for a few seconds between requests.
+#
+# WHY. _build_arena_payload's roster query carries no LIMIT and no pagination -
+# it loads every enrolled chef - and it is run by BOTH the arena page render
+# and the ~20s arena_state poll. Every open phone therefore re-reads the whole
+# table roughly three times a minute, and N phones cost N times that. Nothing
+# hurts at today's roster size; this is the query that stops being free first.
+#
+# WHY IN-PROCESS AND NOT THE CACHE FRAMEWORK. Production's default cache is
+# FileBasedCache (config/settings.py). This site has already been taken down
+# sitewide - a 500 on every page - by cache FILES owned by the wrong user, so
+# adding a new hot write path into that backend buys a query saving at the
+# price of re-opening a known outage mode. A module-level dict costs nothing,
+# cannot be poisoned by another process, and dies with the worker.
+#
+# WHAT IT COSTS. Per-worker, so N workers still do up to N queries per window
+# rather than one - an N-fold cut, not a total one. And last_seen_at freezes
+# for the window, so a chef may appear on or leave the floor up to
+# ARENA_ROSTER_CACHE_SECONDS late. Both are accepted; the window is short and
+# the Owner approved the trade.
+#
+# NOT A CORRECTNESS SHORTCUT. The cached profiles are read-only everywhere
+# downstream (chefs_by_rank builds fresh dicts from them; _demo_vs_centre and
+# _demo_upcoming only slice and read .author) - verified before this was added,
+# because handing the same model instances to two requests is only safe while
+# nobody writes to them.
+_ARENA_ROSTER_CACHE = {"key": None, "at": 0.0, "rows": None}
+
+
+def _cached_enrolled_roster(build, cache_key):
+    """Return the enrolled roster, reusing a recent one when allowed.
+
+    `build` is called only on a miss. A TTL of 0 - which is what the test
+    settings use - disables reuse entirely, so no test is ever handed a roster
+    it did not just write.
+    """
+    ttl = getattr(settings, "ARENA_ROSTER_CACHE_SECONDS", 0)
+    if not ttl:
+        return build()
+
+    now = time.monotonic()
+    entry = _ARENA_ROSTER_CACHE
+    if (
+        entry["rows"] is not None
+        and entry["key"] == cache_key
+        and (now - entry["at"]) < ttl
+    ):
+        return entry["rows"]
+
+    rows = build()
+    # Plain assignment, no lock: the worst a race can do is have two threads
+    # both query and one overwrite the other's identical answer.
+    _ARENA_ROSTER_CACHE.update({"key": cache_key, "at": now, "rows": rows})
+    return rows
+
+
 def _arena_runway():
     """The countdown and pace for a scenario run, or None."""
     from .arena_runway import current
@@ -1292,7 +1350,13 @@ def _build_arena_payload(*, viewer_author=None):
     hidden_bots = _hidden_bot_slugs()
     if hidden_bots:
         enrolled_qs = enrolled_qs.exclude(author__slug__in=hidden_bots)
-    enrolled = list(enrolled_qs.order_by("-rating"))
+    # Reused for a few seconds across requests - see _cached_enrolled_roster.
+    # The bot gate is part of the key because it is the only input that can
+    # change which rows this returns.
+    enrolled = _cached_enrolled_roster(
+        lambda: list(enrolled_qs.order_by("-rating")),
+        cache_key=tuple(sorted(hidden_bots)) if hidden_bots else (),
+    )
 
     enrolled_author_ids = {p.author_id for p in enrolled}
 

@@ -247,6 +247,22 @@ else:
     }
 
 
+# How long the arena may reuse its enrolled-chef roster between requests.
+#
+# The roster query (chef_battle/views.py, _build_arena_payload) has no LIMIT and
+# no pagination: it loads every enrolled chef, and it runs on BOTH the page
+# render and the ~20s arena_state poll, so every open phone re-reads the whole
+# table several times a minute. Harmless at today's roster size, and the first
+# thing that stops being harmless as the roster grows.
+#
+# The window is deliberately short: it is a stampede guard, not a data cache.
+# What it costs is freshness of last_seen_at, i.e. a chef can appear on or
+# vanish from the floor up to this many seconds late.
+#
+# ZERO UNDER TEST, so no test can ever be handed a roster it did not just write.
+ARENA_ROSTER_CACHE_SECONDS = 0 if IS_TESTING else 5
+
+
 # The username is matched without regard to case; see accounts/auth_backends.py.
 # Listing only this backend replaces ModelBackend rather than adding to it — two
 # backends would mean the exact-match one answers first and the case-insensitive
