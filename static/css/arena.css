@@ -1582,16 +1582,32 @@
      containment, not an overlap trick. .arena-lower-actions__secondary
      (Issue a Challenge) has no medallion and keeps its own column layout
      from the shared base rule untouched. */
-  .arena-lower-actions__primary {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex: 1 1 0;
-    gap: 0.4rem;
-    padding: 0.5rem 0.7rem 0.5rem 0.4rem;
-  }
+  /* TWO PILLS, ONE SHAPE. Owner, 2026-08-24: "обе эти пилюли должны быть
+     идеально одинаковые по размеру - по шрифту и размеру шрифта - разным
+     остаётся только цвет пилюль".
+
+     They were not, and none of it was deliberate design - it accumulated.
+     Enter Arena carried a medallion, so it got its own row layout with a
+     tighter padding (0.5/0.7/0.5/0.4 against the shared 0.55/1.1) and a
+     smaller, tighter title (0.72rem/0.01em against the shared
+     0.78rem/0.04em) to buy the medallion its room. Issue a Challenge kept
+     the shared base untouched. Set side by side at equal flex width the two
+     read as different components in different type.
+
+     Everything that is not colour is now shared and stated ONCE, in the
+     block below: same padding, same type, same minimum height, same vertical
+     centring. The medallion keeps its place inside Enter Arena, and the room
+     it needs comes out of that pill's own text column rather than out of the
+     pill's shape. What still differs is exactly what he left different -
+     the ground and the border. */
+  .arena-lower-actions__primary,
   .arena-lower-actions__secondary {
     flex: 1 1 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.7rem;
+    min-height: 2.9rem;
   }
   .arena-lower-actions__primary .arena-lower-actions__medallion {
     width: 1.9rem;
@@ -1602,18 +1618,25 @@
     width: 0.95rem;
     height: 0.95rem;
   }
-  .arena-lower-actions__primary .arena-lower-actions__title {
-    font-size: 0.72rem;
-    letter-spacing: 0.01em;
-    white-space: nowrap;
+  /* The text column is the same object in both pills. Enter Arena wraps its
+     two lines in .arena-lower-actions__text so the medallion can sit beside
+     them; Issue a Challenge has no medallion and puts the same two lines
+     straight into the pill. Both are addressed here so neither can drift. */
+  .arena-lower-actions__text,
+  .arena-lower-actions__secondary {
+    justify-content: center;
+    text-align: left;
   }
   .arena-lower-actions__text {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     gap: 0.1rem;
     min-width: 0;
-    text-align: left;
+  }
+  .arena-lower-actions__secondary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
   }
   /* Owner's target mockup (2026-08-21): four columns, not three - this card
      always held four stats (viewers/votes/gifts/streak) and the count here
@@ -2063,6 +2086,12 @@
  * the first crown of the day is awarded. */
 .page--arena .arena-ladder-list li.arena-panel__empty {
   display:block; background:none; padding:.4rem .1rem;
+  /* Owner, 2026-08-24: centred. The empty state is the whole panel's content
+     when nothing has been won yet, and a lone sentence ranged left under a
+     centred title and above a full-width centred button read as a stray. The
+     populated rows are unaffected - they are a different selector, and their
+     name/crown columns still range left where they belong. */
+  text-align:center;
 }
 /* One full-width action, centred, as the reference has it — using the site's
  * own secondary button rather than a pill invented for this panel. */
@@ -2797,11 +2826,27 @@
 }
 
 /* 3G — mobile-safe panel titles + compact facts. */
+/* ONE PANEL HEADER, ONE RULE. Owner, 2026-08-24: "все блоки должны быть
+   одинаковые по дизайну - если есть горизонтальная полоса в одном - значит и
+   везде она должна быть тоже".
+
+   The rule under the header was real but only on two panels of seven: CROWN
+   LADDER and BATTLE GIFTS each carried their own copy of the same
+   declaration, and ARENA STATUS, LIVE ARENA METRICS, ARENA COMMAND, ARENA
+   GUIDE and SPECTATOR CHAT had none. Two panels underlined, five not, from
+   two copies of one value that nothing kept in step - the exact "two owners
+   of one number" this file warns about elsewhere.
+
+   Declared once here, so every panel header is the same object and a future
+   change to it cannot reach five panels and miss two. The two copies are
+   removed at their own sites rather than left to lose a cascade race. */
 .arena-panel__title {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin: 0 0 0.45rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
 }
 .arena-panel__title > div {
   min-width: 0;
@@ -4826,10 +4871,11 @@
   }
 
 
+/* The rule and its padding moved to .arena-panel__title (2026-08-24) so all
+   seven panels carry it, not this one and BATTLE GIFTS. Only the margin reset
+   is particular to the ladder and stays. */
 .arena-command-deck__ladder > .arena-panel__title {
-    margin: 0;
-    padding-bottom: 0.45rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
+    margin: 0 0 0.45rem;
   }
 
 
@@ -4958,10 +5004,10 @@
     box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
   }
 
+  /* Rule and padding moved to .arena-panel__title (2026-08-24) - see the note
+     there. Only the margin reset is this panel's own. */
   .arena-command-deck__gifts > .arena-panel__title {
-    margin: 0;
-    padding-bottom: 0.45rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
+    margin: 0 0 0.45rem;
   }
 
   .arena-command-deck__gifts .arena-panel__kicker {
@@ -7449,6 +7495,9 @@ body.page--arena.is-zoom-locked {
     margin: 0.25rem 0 0.75rem;
     color: var(--arena-muted, var(--muted));
     font-size: 0.75rem;
+    /* Owner, 2026-08-24: this line sits under a centred title and above a
+       centred grid, and was the one thing on the card still ranged left. */
+    text-align: center;
   }
   /* ==========================================================================
    * Kitchen ranks redesign, 2026-08-21 - compact rank ladder replacing the
@@ -7511,9 +7560,13 @@ body.page--arena.is-zoom-locked {
     background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
     box-shadow: 0 0.2rem 0.6rem color-mix(in srgb, var(--accent-bronze) 20%, transparent);
   }
-  .arena-rank-tile--master .arena-rank-tile__emblem {
-    max-width: 84px;
-  }
+  /* Owner, 2026-08-24: "размер иконки идеально одинаковый по отношению со
+     всеми остальными иконами - все они одинакового размера". Culinary Master
+     used to take max-width 84px against every other rank's 76px, so the one
+     tile that already carries a gold border and a gold ground was ALSO 10%
+     larger - two emphases doing one job, and the row read as uneven. The gold
+     treatment stays and is enough on its own; the emblem is now the same
+     76px box as the other seven. */
   .arena-rank-tile--active {
     border-color: var(--accent-bronze);
     background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
@@ -7521,6 +7574,31 @@ body.page--arena.is-zoom-locked {
   }
   .arena-rank-tile--active .arena-rank-tile__emblem {
     transform: translateY(-2px);
+  }
+  /* A FINGER, NOT A CURSOR. Owner, 2026-08-24: "это мобильный вид - там нет
+     курсора так что эффекты курсора не нужны лишь на эффекты нажатия
+     пальцем". This scene only ever renders below 640px, so a hover state here
+     could never fire for the reader it is drawn for - and on a touch screen a
+     :hover that does fire STICKS after the tap, which is worse than none.
+     What was missing is the other half: nothing acknowledged the press
+     itself, so a tap looked like nothing had happened until the panel below
+     opened. The tile now answers the finger while it is down.
+
+     The default tap highlight is removed only because this replaces it with
+     something deliberate - never to leave a control with no feedback at all. */
+  .arena-rank-tile {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .arena-rank-tile:active {
+    border-color: var(--accent-bronze);
+    background: color-mix(in srgb, var(--accent-bronze) 14%, var(--surface));
+    transform: scale(0.97);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .arena-rank-tile {
+      transition: transform 120ms ease, background-color 120ms ease,
+                  border-color 120ms ease;
+    }
   }
   .arena-rank-ladder__hint {
     margin: 0.5rem 0 0;
@@ -7650,9 +7728,18 @@ body.page--arena.is-zoom-locked {
   .arena-command-deck {
     display: grid;
     grid-template-columns: 1fr;
+    /* THE CHAT SITS UNDER THE ARENA. Owner, 2026-08-24: "этот блок должен
+       идти сразу под ареной а не в самом низу - это же общение игроков
+       которые смотрят арену". It was last of eleven, four screens below the
+       thing being talked about - a spectator would have had to scroll past
+       the ranks, the ladder, the command grid and the gifts to say anything
+       about the fight they are watching. Now it follows the floor, which is
+       the only block it is about. Nothing else moves and the chat's own
+       markup, ids and JS are untouched - this is one line of running order. */
     grid-template-areas:
       "ribbon"
       "floor"
+      "chat"
       "phase"
       "foot"
       "metrics"
@@ -7660,8 +7747,7 @@ body.page--arena.is-zoom-locked {
       "ladder"
       "command"
       "gifts"
-      "guide"
-      "chat";
+      "guide";
     gap: 0.7rem;
     width: min(100% - 1rem, 640px);
     margin-inline: auto;
@@ -8127,6 +8213,19 @@ body.page--arena.is-zoom-locked {
     gap: 0.2rem;
     justify-content: center;
     text-align: center;
+    /* Owner, 2026-08-24: the whole line reads as one centred sentence. It
+       already asked to be centred here and could not be: the list beside the
+       label carries `flex: 1` from the desktop rule, so it swallowed every
+       spare pixel and justify-content had nothing left to distribute - label
+       hard left, sentence starting wherever the label ended. Sized to its
+       own content, the pair centres as one unit. The desktop rule stands:
+       there the list IS the track a pill travels along, and its width is
+       what the distance is measured out of. */
+    flex-wrap: wrap;
+  }
+  .arena-next-board__list {
+    flex: 0 1 auto;
+    justify-content: center;
   }
 
   /* THE OCTAGON SITS IN THE MIDDLE OF THE SQUARE ON A PHONE. Owner,

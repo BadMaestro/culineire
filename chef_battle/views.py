@@ -31,7 +31,13 @@ from monitoring.tracker import get_client_ip
 from recipes.authoring import get_author_for_user
 from recipes.models import Recipe, RecipeAuthor
 
-from .access import arena_console_guard, chef_battle_guard, is_battle_visible, valid_share_token
+from .access import (
+    arena_console_guard,
+    chef_battle_guard,
+    has_arena_console_access,
+    is_battle_visible,
+    valid_share_token,
+)
 from .forms import BattleChallengeForm, BattleEntryForm, BattleRecipeAttachForm
 from .fraud import (
     gate_account_age,
@@ -1682,6 +1688,18 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         # poll carries and which a payload budget keeps lean: the stages never
         # change, so their text belongs in the document, sent once.
         "phase_rail_described": get_arena_phase_rail_described(),
+        # Owner, 2026-08-24: the Master Console tile is shown "only to me and
+        # exclusively to superusers". The VIEW has always been closed correctly
+        # (arena_console_guard -> 404), but the TILE was drawn for everyone who
+        # can see the arena at all - so a (Bear)seeker Admin, staff but not
+        # superuser, was offered a door that 404s, and told the console's URL
+        # on the way. Not a privilege leak; a false offer and a disclosure.
+        #
+        # Reuses has_arena_console_access rather than testing is_superuser
+        # here: DG-01 is one rule (the Owner always, another superuser only
+        # once he authorises that account AND the kill switch is on), and a
+        # second copy of it in a template is how the two would drift.
+        "can_open_master_console": has_arena_console_access(request),
     }
 
 

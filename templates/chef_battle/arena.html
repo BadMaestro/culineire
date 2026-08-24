@@ -471,10 +471,20 @@
       <h2 class="arena-panel__kicker">Arena command</h2>
     </header>
     <div class="arena-command-grid">
+      {% comment %}
+        Owner, 2026-08-24: the Master Console tile is his and other authorised
+        superusers' only. The view behind it has always been closed correctly
+        (arena_console_guard -> 404); this tile was not, so every staff member
+        who can see the arena was offered a door that refuses them and handed
+        the console's URL. `can_open_master_console` is the view's own DG-01
+        answer (has_arena_console_access), not a second copy of the rule.
+      {% endcomment %}
+      {% if can_open_master_console %}
       <a class="arena-command-tile" href="{% url 'chef_battle:master_console' %}">
         <svg class="arena-ico" aria-hidden="true"><use href="#ad-shield"></use></svg>
         <span>Master Console</span>
       </a>
+      {% endif %}
       <a class="arena-command-tile" href="{% url 'chef_battle:challenge_list' %}">
         <svg class="arena-ico" aria-hidden="true"><use href="#ad-swords"></use></svg>
         <span>Challenges</span>

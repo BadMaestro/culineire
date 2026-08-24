@@ -74,9 +74,25 @@ Metric map: Active viewers -> #ad-eye · Public votes -> #ad-vote · Battle gift
      hand-draw a second attempt at blades, this reuses #ad-crown - already a
      proven, well-drawn symbol on this page - inside a plain gold ring, so
      the medallion is unambiguously a seal and not a control. #}
+  {% comment %}
+    Owner, 2026-08-24: the crown inside the medallion is 30% bigger and truly
+    centred in the circle. It was neither. The art inside #ad-crown does not
+    fill its own 24x24 viewBox - the path spans x 3..21 and y 4..22, so it is
+    centred horizontally at 12 but sits at 13 vertically, a unit low. Placed
+    at y=5 by the old <use>, that put the drawn crown's centre at 13.125
+    against the circle's 12: visibly low, which is what he saw.
+
+    Both numbers below are computed from the art's real bounds, not nudged by
+    eye. Scale is 19.5/24 = 0.8125 (15 x 1.3 = 19.5, his 30%); the art's own
+    centre sits at (12, 13) in symbol units, so the offsets that land it on
+    the circle's centre are x = 12 - 12*0.8125 = 2.25 and
+    y = 12 - 13*0.8125 = 1.4375. Drawn crown then spans 4.6875..19.3125 on
+    both axes - centred at 12, with 1.5 units of clear air inside the r=10.5
+    ring, and nothing crossing the symbol's own 0..24 box.
+  {% endcomment %}
   <symbol id="ad-medallion" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.2"/>
-    <use href="#ad-crown" x="4.5" y="5" width="15" height="15"/>
+    <use href="#ad-crown" x="2.25" y="1.4375" width="19.5" height="19.5"/>
   </symbol>
 
   {# Artifacts — a small faceted gem, ARENA COMMAND's 9th tile #}

@@ -21501,3 +21501,80 @@ class ArenaChatEndpointTests(TestCase):
             self.assertEqual(
                 self.client.post(self.send_url, {"body": "hi"}).status_code, 404,
             )
+
+
+class MasterConsoleTileIsOfferedOnlyToWhoMayOpenItTests(TestCase):
+    """The console tile matches the console door.
+
+    Owner, 2026-08-24: the Master Console is shown "only to me and exclusively
+    to superusers". The VIEW was always closed correctly - arena_console_guard
+    raises Http404 for anyone failing DG-01 - but the TILE on the arena page
+    was drawn for every viewer who could see the arena at all. A (Bear)seeker
+    Admin (is_staff, not is_superuser) was therefore offered a door that
+    refuses them, and told the console's URL by the href.
+
+    That is not a privilege escalation and it never was: nobody got in who
+    should not. It is a false offer plus a disclosure, and both are fixed by
+    asking the same DG-01 question the guard asks.
+
+    These tests deliberately assert the TILE and the DOOR together. Checking
+    only the tile would let the two drift apart again in the other direction -
+    a hidden tile in front of an open door is the worse failure of the two.
+    """
+
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse("chef_battle:arena")
+
+    def _make(self, username, *, staff=False, superuser=False, slug=None):
+        User = get_user_model()
+        user = User.objects.create_user(
+            username, password="pw", is_staff=staff, is_superuser=superuser,
+        )
+        RecipeAuthor.objects.create(
+            user=user, name=username, slug=slug or username,
+        )
+        return user
+
+    def test_a_staff_admin_is_not_offered_the_console(self):
+        """is_staff without is_superuser: sees the arena, not the console."""
+        self._make("admin_only", staff=True)
+        self.client.login(username="admin_only", password="pw")
+
+        page = self.client.get(self.url)
+        self.assertEqual(page.status_code, 200, "the arena itself must still open")
+        self.assertNotContains(page, "Master Console")
+        self.assertNotContains(page, reverse("chef_battle:master_console"))
+
+        # And the door agrees with the tile.
+        self.assertEqual(
+            self.client.get(reverse("chef_battle:master_console")).status_code, 404,
+        )
+
+    def test_the_owner_is_offered_the_console(self):
+        """The Owner's own author row already exists (AGENTS.md 18) - this
+        attaches a superuser login to it rather than creating a second one."""
+        User = get_user_model()
+        author = RecipeAuthor.objects.get(slug=settings.OWNER_SLUG)
+        user = User.objects.create_user(
+            "owner_acct", password="pw", is_staff=True, is_superuser=True,
+        )
+        author.user = user
+        author.save(update_fields=["user"])
+        self.client.login(username="owner_acct", password="pw")
+
+        page = self.client.get(self.url)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Master Console")
+
+    def test_an_unauthorised_superuser_is_not_offered_the_console(self):
+        """Superuser alone is not enough - he authorises the account (DG-01)."""
+        self._make("other_super", staff=True, superuser=True)
+        self.client.login(username="other_super", password="pw")
+
+        page = self.client.get(self.url)
+        self.assertEqual(page.status_code, 200)
+        self.assertNotContains(page, "Master Console")
+        self.assertEqual(
+            self.client.get(reverse("chef_battle:master_console")).status_code, 404,
+        )
