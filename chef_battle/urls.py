@@ -20,6 +20,11 @@ urlpatterns = [
     path("arena/chat/react/", views.arena_chat_react, name="arena_chat_react"),
     path("arena/chat/relation/", views.arena_chat_relation, name="arena_chat_relation"),
     path("arena/chat/report/", views.arena_chat_report, name="arena_chat_report"),
+    path("arena/chat/dm/open/", views.arena_chat_open_dm, name="arena_chat_open_dm"),
+    path("arena/chat/dm/list/", views.arena_chat_conversations,
+         name="arena_chat_conversations"),
+    path("arena/chat/dm/policy/", views.arena_chat_dm_policy,
+         name="arena_chat_dm_policy"),
     path("arena/owner/account-action/", views.owner_arena_account_action,
          name="owner_arena_account_action"),
     # Read-only, token-gated preview links (owner request, 2026-07-23). The

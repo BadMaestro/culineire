@@ -55,6 +55,21 @@ class ChefBattleProfile(models.Model):
         on_delete=models.CASCADE,
         related_name="battle_profile",
     )
+    # WHO MAY MESSAGE ME PRIVATELY. The options are the ones this site already
+    # has - the hall, and the clan/alliance a chef already belongs to - rather
+    # than a new tier of user invented for a preference. Enforced on the SERVER
+    # in open_direct_conversation(); hiding the button would only hide it.
+    class DirectMessagePolicy(models.TextChoices):
+        ANYONE = "anyone", "Anyone in the hall"
+        TEAM = "team", "My clan and alliance only"
+        NOBODY = "nobody", "Nobody"
+
+    dm_policy = models.CharField(
+        max_length=8,
+        choices=DirectMessagePolicy.choices,
+        default=DirectMessagePolicy.ANYONE,
+        help_text="Who may start a private conversation with this chef.",
+    )
     rank = models.CharField(max_length=32, choices=Rank.choices, default=Rank.KITCHEN_PORTER)
     level = models.PositiveSmallIntegerField(default=1, db_index=True)
     is_hero = models.BooleanField(default=False, db_index=True)
@@ -649,6 +664,12 @@ class ArenaChatMessage(models.Model):
         "self", null=True, blank=True, on_delete=models.SET_NULL,
         related_name="replies",
     )
+    # NULL is the hall. See ChatConversation for why the public room has no row
+    # of its own rather than one invented for symmetry.
+    conversation = models.ForeignKey(
+        "ChatConversation", null=True, blank=True, on_delete=models.CASCADE,
+        related_name="messages", db_index=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
@@ -729,6 +750,63 @@ class ChatMute(models.Model):
 
     def __str__(self):
         return f"{self.owner} mutes {self.muted}"
+
+
+class ChatConversation(models.Model):
+    """A room. The hall is one; every private thread is another.
+
+    ONE ENGINE, TWO KINDS. The alternative - a separate model, endpoint and
+    renderer for direct messages - is the "second chat application" the Owner's
+    spec rules out, and it is also how the two drift: a fix to the hall's
+    escaping or reach that never reaches the DM copy. So a message belongs to a
+    conversation, the conversation says what KIND of room it is, and only the
+    rules that genuinely differ - who may read, and whether seat reach applies -
+    branch on that.
+
+    The hall keeps `conversation = NULL` rather than being handed a row. Every
+    line ever written is already NULL, and inventing a hall row would mean a
+    data migration that could half-succeed for no gain.
+    """
+
+    class Kind(models.TextChoices):
+        DIRECT = "direct", "Direct"
+
+    kind = models.CharField(
+        max_length=12, choices=Kind.choices, default=Kind.DIRECT, db_index=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.kind} #{self.pk}"
+
+
+class ChatParticipant(models.Model):
+    """Who is in a conversation. Membership IS the read permission.
+
+    Every read and every write checks this table. An id in a URL proves
+    nothing: without a row here the conversation does not exist as far as the
+    caller is concerned, which is what stops one person walking the id space
+    into somebody else's private thread.
+    """
+
+    conversation = models.ForeignKey(
+        ChatConversation, on_delete=models.CASCADE, related_name="participants",
+    )
+    author = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="chat_conversations",
+    )
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["conversation", "author"], name="one_seat_per_conversation",
+            ),
+        ]
+        indexes = [models.Index(fields=["author", "conversation"])]
+
+    def __str__(self):
+        return f"{self.author} in {self.conversation}"
 
 
 class ChatBlock(models.Model):

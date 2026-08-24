@@ -195,6 +195,20 @@ UNGUARDED_BY_DESIGN = {
         "Writes into the existing ContentReport queue; the reporter is the "
         "request's own user and is never disclosed to the person reported."
     ),
+    "arena_chat_open_dm": (
+        "Calls is_battle_visible directly, then may_direct_message() decides: "
+        "blocks in EITHER direction and the recipient's own dm_policy are "
+        "checked server-side before a conversation can exist."
+    ),
+    "arena_chat_conversations": (
+        "Calls is_battle_visible directly. Returns only rooms the request's "
+        "own author participates in - the queryset is filtered by that "
+        "membership, so there is no id to tamper with."
+    ),
+    "arena_chat_dm_policy": (
+        "Calls is_battle_visible directly. Writes the CALLER's own preference; "
+        "the profile is looked up from the request's author, never from input."
+    ),
     "cooking_moderation": (
         "Moderator-only, checked with is_moderator AND is_battle_visible in the "
         "view (F8, 2026-08-11) - is_moderator alone admits has_bearseeker_"

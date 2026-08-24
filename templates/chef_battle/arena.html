@@ -473,6 +473,8 @@
            data-react-url="{% url 'chef_battle:arena_chat_react' %}"
            data-relation-url="{% url 'chef_battle:arena_chat_relation' %}"
            data-report-url="{% url 'chef_battle:arena_chat_report' %}"
+           data-dm-open-url="{% url 'chef_battle:arena_chat_open_dm' %}"
+           data-dm-list-url="{% url 'chef_battle:arena_chat_conversations' %}"
            {# Whose lines are the reader's own - so the menu never offers to
               mute, block or report yourself. Purely presentational: every
               endpoint refuses a self-target on the server regardless. #}
@@ -494,6 +496,18 @@
       <span class="arena-chat__live" id="arena-chat-live" hidden>Live<span
         class="arena-chat__listening" id="arena-chat-listening" hidden></span></span>
     </header>
+
+    {# WHICH ROOM THIS IS, said in words and not only in colour. Hidden in the
+       hall; shown the moment a private conversation is open, so a DM can never
+       be mistaken for the public arena. #}
+    <p class="arena-chat__room" id="arena-chat-room" hidden>
+      <span class="arena-chat__room-lock" aria-hidden="true">&#128274;</span>
+      <span class="arena-chat__room-kind">Private</span>
+      <b class="arena-chat__room-name" id="arena-chat-room-name"></b>
+      <button type="button" class="arena-chat__room-leave" id="arena-chat-room-leave">
+        Back to the hall
+      </button>
+    </p>
 
     <ol class="arena-chat__log" id="arena-chat-log" aria-live="polite">
       <li class="arena-panel__empty" id="arena-chat-empty">Take a seat to join the conversation.</li>

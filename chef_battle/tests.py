@@ -21956,6 +21956,199 @@ class ArenaChatInteractionTests(TestCase):
             self.assertNotIn("reports", line)
 
 
+class ArenaDirectMessageTests(TestCase):
+    """Private rooms, on the same engine, with the walls enforced server-side.
+
+    The features are small; the security properties are the point. Membership
+    is the only door, blocks bite in both directions, and the recipient's own
+    policy is decided on the server rather than by whether a button was drawn.
+    """
+
+    def setUp(self):
+        self.me, self.me_author, _ = _seat_a_viewer("dmme", "DmMe", "dm-me")
+        self.them, self.them_author, _ = _seat_a_viewer("dmthem", "DmThem", "dm-them")
+        self.other, self.other_author, _ = _seat_a_viewer("dmother", "DmOther", "dm-other")
+        self.feed_url = reverse("chef_battle:arena_chat_feed")
+        self.send_url = reverse("chef_battle:arena_chat_send")
+        self.open_url = reverse("chef_battle:arena_chat_open_dm")
+        self.list_url = reverse("chef_battle:arena_chat_conversations")
+        self.policy_url = reverse("chef_battle:arena_chat_dm_policy")
+        self.relation_url = reverse("chef_battle:arena_chat_relation")
+
+    def _open(self, user, slug):
+        self.client.force_login(user)
+        return self.client.post(self.open_url, {"slug": slug})
+
+    def _say_private(self, user, conversation, text):
+        self.client.force_login(user)
+        return self.client.post(
+            self.send_url, {"body": text, "conversation": conversation},
+        )
+
+    # ---- the happy path ------------------------------------------------
+    def test_two_chefs_get_one_room_however_often_they_open_it(self):
+        first = self._open(self.me, "dm-them").json()
+        second = self._open(self.them, "dm-me").json()
+        self.assertTrue(first["ok"])
+        # Same room from either side, and opening twice does not split the
+        # history across two rooms.
+        self.assertEqual(first["conversation"], second["conversation"])
+
+    def test_a_private_line_is_purple_and_never_reaches_the_hall(self):
+        room = self._open(self.me, "dm-them").json()["conversation"]
+        self._say_private(self.me, room, "just between us")
+
+        sent = self.client.get(self.feed_url, {"conversation": room}).json()
+        self.assertEqual(sent["channel"], "private")
+        self.assertEqual(sent["messages"][0]["channel"], "private")
+        self.assertEqual(sent["messages"][0]["body"], "just between us")
+
+        # The public feed must not carry it, for anyone - including a
+        # participant, who would otherwise see it in both rooms.
+        self.client.force_login(self.me)
+        hall = self.client.get(self.feed_url).json()
+        self.assertEqual(hall["channel"], "public")
+        self.assertNotIn(
+            "just between us", [m.get("body") for m in hall["messages"]],
+        )
+
+    def test_reach_does_not_apply_in_a_private_room(self):
+        """Reach reproduces a room. A private thread is not one."""
+        from chef_battle.models import ArenaChatMessage
+
+        room = self._open(self.me, "dm-them").json()["conversation"]
+        # Written from the far side of the hall - out of earshot in public.
+        ArenaChatMessage.objects.create(
+            speaker=self.them_author, display_name="DmThem", body="heard anyway",
+            ring_index=9, seat_index=40, conversation_id=room,
+        )
+        self.client.force_login(self.me)
+        line = self.client.get(self.feed_url, {"conversation": room}).json()["messages"][-1]
+        self.assertTrue(line["heard"])
+        self.assertEqual(line["body"], "heard anyway")
+
+    # ---- the walls -----------------------------------------------------
+    def test_an_outsider_cannot_read_a_room_by_guessing_its_id(self):
+        room = self._open(self.me, "dm-them").json()["conversation"]
+        self._say_private(self.me, room, "private words")
+
+        self.client.force_login(self.other)
+        self.assertEqual(
+            self.client.get(self.feed_url, {"conversation": room}).status_code, 404,
+        )
+
+    def test_an_outsider_cannot_write_into_a_room_either(self):
+        room = self._open(self.me, "dm-them").json()["conversation"]
+        self.client.force_login(self.other)
+        self.assertEqual(
+            self.client.post(
+                self.send_url, {"body": "barging in", "conversation": room},
+            ).status_code,
+            404,
+        )
+
+    def test_a_conversation_that_does_not_exist_answers_the_same_as_one_i_am_not_in(self):
+        """So the id space cannot be walked for existence."""
+        room = self._open(self.me, "dm-them").json()["conversation"]
+        self.client.force_login(self.other)
+        mine = self.client.get(self.feed_url, {"conversation": room}).status_code
+        invented = self.client.get(self.feed_url, {"conversation": 999999}).status_code
+        self.assertEqual(mine, invented)
+
+    def test_a_block_stops_a_private_conversation_in_both_directions(self):
+        self.client.force_login(self.me)
+        self.client.post(self.relation_url, {"action": "block", "slug": "dm-them"})
+
+        # The blocker cannot open one...
+        self.assertEqual(self._open(self.me, "dm-them").status_code, 403)
+        # ...and neither can the blocked person, who was never told.
+        refused = self._open(self.them, "dm-me")
+        self.assertEqual(refused.status_code, 403)
+        self.assertEqual(refused.json()["error"], "blocked")
+
+    def test_nobody_policy_is_enforced_on_the_server(self):
+        ChefBattleProfile.objects.filter(author=self.them_author).update(
+            dm_policy=ChefBattleProfile.DirectMessagePolicy.NOBODY,
+        )
+        refused = self._open(self.me, "dm-them")
+        self.assertEqual(refused.status_code, 403)
+        self.assertEqual(refused.json()["error"], "recipient_accepts_no_messages")
+
+    def test_team_only_policy_admits_a_clan_mate_and_refuses_a_stranger(self):
+        from chef_battle.models import Clan, ClanMembership
+
+        ChefBattleProfile.objects.filter(author=self.them_author).update(
+            dm_policy=ChefBattleProfile.DirectMessagePolicy.TEAM,
+        )
+        self.assertEqual(self._open(self.me, "dm-them").status_code, 403)
+
+        clan = Clan.objects.create(
+            founder=self.them_author, name="Team", slug="team-clan", tag="TEA",
+        )
+        for author in (self.them_author, self.me_author):
+            ClanMembership.objects.create(
+                clan=clan, chef=author, status=ClanMembership.Status.ACTIVE,
+            )
+        self.assertEqual(self._open(self.me, "dm-them").status_code, 200)
+
+    def test_two_chefs_in_no_clan_are_not_thereby_team_mates(self):
+        """An empty tag must match nothing, or team-only would mean everyone."""
+        ChefBattleProfile.objects.filter(author=self.them_author).update(
+            dm_policy=ChefBattleProfile.DirectMessagePolicy.TEAM,
+        )
+        self.assertEqual(self._open(self.me, "dm-them").status_code, 403)
+
+    def test_nobody_can_open_a_room_with_themselves(self):
+        self.assertEqual(self._open(self.me, "dm-me").status_code, 403)
+
+    def test_an_anonymous_visitor_can_open_nothing_and_lists_nothing(self):
+        self.client.logout()
+        self.assertEqual(self._open_anonymous(), 403)
+        self.assertEqual(self.client.get(self.list_url).json()["conversations"], [])
+
+    def _open_anonymous(self):
+        self.client.logout()
+        return self.client.post(self.open_url, {"slug": "dm-them"}).status_code
+
+    def test_the_room_list_shows_only_my_own_rooms(self):
+        mine = self._open(self.me, "dm-them").json()["conversation"]
+        theirs = self._open(self.them, "dm-other").json()["conversation"]
+
+        self.client.force_login(self.me)
+        listed = self.client.get(self.list_url).json()["conversations"]
+        ids = [room["id"] for room in listed]
+        self.assertIn(mine, ids)
+        self.assertNotIn(theirs, ids)
+        # A direct room is named by who is NOT you.
+        self.assertEqual(
+            [room["name"] for room in listed if room["id"] == mine], ["DmThem"],
+        )
+
+    def test_a_policy_is_set_for_the_caller_and_validated(self):
+        self.client.force_login(self.me)
+        self.assertEqual(
+            self.client.post(self.policy_url, {"policy": "sideways"}).status_code, 400,
+        )
+        self.assertTrue(
+            self.client.post(self.policy_url, {"policy": "nobody"}).json()["ok"],
+        )
+        self.assertEqual(
+            ChefBattleProfile.objects.get(author=self.me_author).dm_policy, "nobody",
+        )
+
+    def test_an_admin_writing_privately_is_still_red_not_purple(self):
+        """ADMIN outranks the channel, everywhere."""
+        self.them.is_staff = True
+        self.them.save(update_fields=["is_staff"])
+        room = self._open(self.me, "dm-them").json()["conversation"]
+        self._say_private(self.them, room, "official word")
+
+        self.client.force_login(self.me)
+        line = self.client.get(self.feed_url, {"conversation": room}).json()["messages"][-1]
+        self.assertEqual(line["role"], "admin")
+        self.assertEqual(line["channel"], "private")
+
+
 class MasterConsoleTileIsOfferedOnlyToWhoMayOpenItTests(TestCase):
     """The console tile matches the console door.
 

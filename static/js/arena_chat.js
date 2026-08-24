@@ -54,6 +54,15 @@
    * the DOM so the composer and the log cannot disagree about it. */
   var replyingTo = null;
 
+  /* WHICH ROOM IS OPEN. null is the hall; a number is a private conversation.
+   *
+   * One variable, because there is one component. Switching rooms clears the
+   * log and resets the delta - it does NOT build a second chat - so every
+   * feature written for the hall (identity, colours, reactions, replies, mute)
+   * works in a private room without being written twice. */
+  var room = null;
+  var roomName = '';
+
   function csrf() {
     var field = form && form.querySelector('[name=csrfmiddlewaretoken]');
     return field ? field.value : '';
@@ -259,6 +268,9 @@
       window.location.href = '/chef-battle/profile/' + encodeURIComponent(line.slug) + '/';
     }));
     sheet.appendChild(menuButton('Reply', '', function () { startReply(line); }));
+    sheet.appendChild(menuButton('Message privately', '', function () {
+      openDm(line.slug, line.name);
+    }));
     sheet.appendChild(menuButton(
       line.muted ? 'Unmute' : 'Mute', '',
       function () { relation(line.muted ? 'unmute' : 'mute', line.slug); }
@@ -333,6 +345,59 @@
     });
   }
 
+  /* Why a private room could not be opened, in the reader's words. The server
+   * decides; this only translates. */
+  var DM_REFUSALS = {
+    blocked: 'You cannot message this person.',
+    recipient_accepts_no_messages: 'This chef does not accept private messages.',
+    recipient_accepts_team_only: 'This chef only accepts messages from their clan.',
+    cannot_message_yourself: 'That is you.',
+    not_authenticated: 'Sign in to send private messages.'
+  };
+
+  function openDm(slug, name) {
+    post(root.getAttribute('data-dm-open-url'), { slug: slug }).then(function (data) {
+      if (!data || !data.ok) {
+        notice((data && DM_REFUSALS[data.error]) || 'Could not open that conversation.');
+        return;
+      }
+      enterRoom(data.conversation, name);
+    });
+  }
+
+  /* Switch the ONE component to another room. Not a second chat: the log is
+   * cleared, the delta reset, and the same renderer paints whatever the server
+   * sends next. */
+  function enterRoom(id, name) {
+    room = id;
+    roomName = name || '';
+    replyingTo = null;
+    cancelReply();
+    lastId = 0;
+    log.innerHTML = '';
+    paintRoomChrome();
+    poll();
+  }
+
+  function leaveRoom() {
+    enterRoom(null, '');
+  }
+
+  /* The header and composer say, unmistakably, which room this is - the spec's
+   * own requirement that a DM can never be mistaken for the public hall. */
+  function paintRoomChrome() {
+    var bar = document.getElementById('arena-chat-room');
+    var label = document.getElementById('arena-chat-room-name');
+    root.classList.toggle('is-private', room !== null);
+    if (bar) { bar.hidden = (room === null); }
+    if (label) { label.textContent = roomName; }
+    if (input) {
+      input.placeholder = room === null
+        ? 'Join the conversation...'
+        : 'Message ' + roomName + ' privately...';
+    }
+  }
+
   function startReply(line) {
     replyingTo = line;
     var bar = document.getElementById('arena-chat-replying');
@@ -372,6 +437,9 @@
 
   var cancelBtn = document.getElementById('arena-chat-replying-cancel');
   if (cancelBtn) { cancelBtn.addEventListener('click', cancelReply); }
+
+  var leaveBtn = document.getElementById('arena-chat-room-leave');
+  if (leaveBtn) { leaveBtn.addEventListener('click', leaveRoom); }
 
   document.addEventListener('click', function (event) {
     if (openMenu && !openMenu.contains(event.target)) { closeActions(); }
@@ -424,14 +492,28 @@
   function poll() {
     if (busy) { return; }
     busy = true;
-    fetch(feedUrl + '?since=' + encodeURIComponent(lastId), {
+    var url = feedUrl + '?since=' + encodeURIComponent(lastId)
+      + (room !== null ? '&conversation=' + encodeURIComponent(room) : '');
+    fetch(url, {
       credentials: 'same-origin',
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
-      .then(function (response) { return response.json(); })
+      .then(function (response) {
+        // 404 here means the room is not ours (or no longer exists). Fall back
+        // to the hall rather than polling a closed door forever.
+        if (response.status === 404 && room !== null) {
+          notice('That conversation is no longer available.');
+          leaveRoom();
+          return null;
+        }
+        return response.json();
+      })
       .then(function (data) {
+        if (!data) { return; }
         seatMe(!!data.seated);
-        showListening(data.listening);
+        // The hall's headcount is the hall's. A private room does not have one
+        // and must not inherit the last number the hall reported.
+        showListening(room === null ? data.listening : null);
         absorb(data.messages);
       })
       .catch(function () { /* one dropped tick is not a failure; try the next */ })
@@ -444,6 +526,7 @@
     var body = new FormData();
     body.append('body', text);
     if (replyingTo) { body.append('reply_to', replyingTo.id); }
+    if (room !== null) { body.append('conversation', room); }
     body.append('csrfmiddlewaretoken', csrf());
     input.value = '';
     input.focus();

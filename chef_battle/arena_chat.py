@@ -30,6 +30,8 @@ from __future__ import annotations
 
 import math
 
+from django.db import models
+
 from chef_battle.selectors import get_arena_geometry
 
 # The Owner's numbers. Three cells along the ring, three rings across.
@@ -224,6 +226,116 @@ def team_tags_for(author_ids) -> dict[int, dict]:
     }
 
 
+class DirectMessageRefused(Exception):
+    """Why a private conversation may not be opened. Carries a machine reason."""
+
+    def __init__(self, reason):
+        super().__init__(reason)
+        self.reason = reason
+
+
+def may_direct_message(sender, recipient) -> None:
+    """Raise DirectMessageRefused unless `sender` may write to `recipient`.
+
+    EVERY rule here is a server rule, and this function is the only place they
+    live, so the endpoint that opens a conversation and any later caller cannot
+    disagree about who may talk to whom.
+
+    Order matters. A block is checked before a policy because it is the
+    stronger statement and because its answer must not depend on what the
+    blocked person can infer: both a block and a closed door return the same
+    shape of refusal.
+    """
+    from chef_battle.models import ChatBlock, ChefBattleProfile
+
+    if sender is None or recipient is None:
+        raise DirectMessageRefused("not_authenticated")
+    if sender.pk == recipient.pk:
+        raise DirectMessageRefused("cannot_message_yourself")
+
+    # Either direction. Blocking somebody must also stop them writing to you -
+    # a wall you can be spoken through is not a wall.
+    if ChatBlock.objects.filter(
+        models.Q(owner=recipient, blocked=sender) | models.Q(owner=sender, blocked=recipient)
+    ).exists():
+        raise DirectMessageRefused("blocked")
+
+    profile = ChefBattleProfile.objects.filter(author=recipient).first()
+    policy = getattr(profile, "dm_policy", ChefBattleProfile.DirectMessagePolicy.ANYONE)
+    if policy == ChefBattleProfile.DirectMessagePolicy.NOBODY:
+        raise DirectMessageRefused("recipient_accepts_no_messages")
+    if policy == ChefBattleProfile.DirectMessagePolicy.TEAM:
+        tags = team_tags_for({sender.pk, recipient.pk})
+        mine = tags.get(sender.pk) or {}
+        theirs = tags.get(recipient.pk) or {}
+        # Same clan, or same alliance. An empty tag matches nothing: two chefs
+        # in no clan at all are not thereby team-mates.
+        same_clan = bool(mine.get("clan_tag")) and mine.get("clan_tag") == theirs.get("clan_tag")
+        same_alliance = (
+            bool(mine.get("alliance_tag"))
+            and mine.get("alliance_tag") == theirs.get("alliance_tag")
+        )
+        if not (same_clan or same_alliance):
+            raise DirectMessageRefused("recipient_accepts_team_only")
+
+
+def open_direct_conversation(sender, recipient):
+    """The private room these two share, creating it the first time.
+
+    Idempotent by participation rather than by a stored pair key: the room is
+    whichever DIRECT conversation both already sit in, so opening a thread
+    twice cannot produce two rooms with half the history in each.
+    """
+    from django.db import transaction
+
+    from chef_battle.models import ChatConversation, ChatParticipant
+
+    may_direct_message(sender, recipient)
+
+    existing = (
+        ChatConversation.objects
+        .filter(
+            kind=ChatConversation.Kind.DIRECT,
+            participants__author=sender,
+        )
+        .filter(participants__author=recipient)
+        .first()
+    )
+    if existing is not None:
+        return existing
+
+    with transaction.atomic():
+        conversation = ChatConversation.objects.create(
+            kind=ChatConversation.Kind.DIRECT,
+        )
+        ChatParticipant.objects.create(conversation=conversation, author=sender)
+        ChatParticipant.objects.create(conversation=conversation, author=recipient)
+    return conversation
+
+
+def participates_in(author, conversation_id):
+    """The conversation, if this author is in it. None otherwise.
+
+    THE ONLY DOOR. An id in a request proves nothing on its own, so every read
+    and every write resolves it through here: no row in ChatParticipant and the
+    conversation does not exist as far as the caller is concerned. That is what
+    turns walking the id space into a 404 instead of a leak.
+    """
+    from chef_battle.models import ChatConversation
+
+    if author is None or not conversation_id:
+        return None
+    try:
+        conversation_id = int(conversation_id)
+    except (TypeError, ValueError):
+        return None
+    return (
+        ChatConversation.objects
+        .filter(pk=conversation_id, participants__author=author)
+        .first()
+    )
+
+
 def reaction_summary(message_ids, viewer=None) -> dict[int, dict]:
     """`{message_id: {emoji: {"count": n, "mine": bool}}}` for these lines.
 
@@ -287,6 +399,48 @@ def personal_hidden(viewer) -> tuple[set[int], set[int]]:
         ChatBlock.objects.filter(owner=viewer).values_list("blocked_id", flat=True)
     )
     return muted, blocked
+
+
+def private_lines(messages, viewer=None) -> list[dict]:
+    """A direct conversation's messages, for a participant.
+
+    NO REACH. Reach reproduces a room: how far a voice carries across the
+    stands. A private thread is not a room, so the rule has nothing to
+    reproduce and every line is simply read. The CALLER has already proved
+    participation via participates_in() - this function does not re-authorise,
+    it renders.
+    """
+    muted_ids, blocked_ids = personal_hidden(viewer)
+    reactions = reaction_summary([m.pk for m in messages], viewer)
+    tags_by_author = team_tags_for({m.speaker_id for m in messages})
+    out = []
+    for message in messages:
+        speaker_user = getattr(message.speaker, "user", None)
+        is_admin = bool(
+            speaker_user is not None
+            and (speaker_user.is_superuser or speaker_user.is_staff)
+        )
+        tags = tags_by_author.get(message.speaker_id) or {}
+        row = {
+            "id": message.id,
+            "name": message.display_name,
+            "slug": message.speaker.slug,
+            "clan_tag": tags.get("clan_tag", ""),
+            "alliance_tag": tags.get("alliance_tag", ""),
+            # ADMIN still outranks the channel: an Admin writing privately is
+            # red, not purple. The precedence is the same everywhere.
+            "role": "admin" if is_admin else "",
+            "channel": "private",
+            "heard": True,
+            "at": message.created_at.isoformat(),
+            "reactions": reactions.get(message.pk, {}),
+            "muted": message.speaker_id in muted_ids,
+            "blocked": message.speaker_id in blocked_ids,
+        }
+        if message.speaker_id not in blocked_ids:
+            row["body"] = message.body
+        out.append(row)
+    return out
 
 
 def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> list[dict]:

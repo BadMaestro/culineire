@@ -897,6 +897,48 @@
 .arena-chat__line--private .arena-chat__said { color: var(--chat-private-text); }
 .arena-chat__line--admin   .arena-chat__said { color: var(--chat-admin-text); }
 
+/* THE PRIVATE ROOM SAYS SO IN WORDS, A LOCK AND A COLOUR - three signals, so
+   nobody can mistake a direct message for the public hall by glancing. The
+   accent is restrained on purpose: the spec asks for an unmistakable mode, not
+   a purple interface. */
+.arena-chat__room {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin: 0;
+  padding: .28rem .45rem;
+  border-radius: .5rem;
+  border: 1px solid color-mix(in srgb, var(--chat-private-text) 40%, transparent);
+  background: color-mix(in srgb, var(--chat-private-text) 8%, transparent);
+  color: var(--chat-private-text);
+  font-size: .64rem;
+}
+.arena-chat__room[hidden] { display: none; }
+.arena-chat__room-kind {
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.arena-chat__room-name { color: var(--arena-cappuccino); }
+.arena-chat__room-leave {
+  appearance: none;
+  min-height: 1.6rem;
+  margin-left: auto;
+  padding: 0 .4rem;
+  border: 0;
+  border-radius: .4rem;
+  background: none;
+  color: var(--chat-private-text);
+  font: inherit;
+  font-size: .62rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+/* The whole panel wears a thin private edge while a DM is open. */
+.arena-chat.is-private {
+  border-color: color-mix(in srgb, var(--chat-private-text) 40%, transparent);
+}
+
 /* The quoted line a reply answers. One level, never a tree. */
 .arena-chat__quote {
   display: block;

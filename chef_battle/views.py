@@ -4541,31 +4541,54 @@ def arena_chat_feed(request):
     if getattr(request, "limited", False):
         return JsonResponse({"error": "rate_limited"}, status=429)
 
-    from .arena_chat import audible_lines
+    from .arena_chat import audible_lines, participates_in, private_lines
     from .models import ArenaChatMessage
 
     author, seat = _arena_chat_speaker(request)
-    if seat is None:
-        # Not in the hall: no feed, and say so plainly rather than pretending
-        # the room is silent.
-        return JsonResponse({"seated": False, "messages": []})
 
     try:
         since = int(request.GET.get("since") or 0)
     except (TypeError, ValueError):
         since = 0
 
-    rows = list(
+    base = (
         ArenaChatMessage.objects
         .filter(id__gt=since, is_hidden=False)
         # speaker__user because the role that colours a line (admin vs ordinary)
         # is read off the speaker's user account, and a feed page is up to
         # ARENA_CHAT_PAGE rows - one query, not sixty.
         .select_related("speaker", "speaker__user", "reply_to")
-        .order_by("id")[:ARENA_CHAT_PAGE]
+        .order_by("id")
     )
+
+    # A PRIVATE ROOM IS ASKED FOR BY ID AND GRANTED BY MEMBERSHIP. The id in
+    # the query string proves nothing: participates_in returns None for a
+    # conversation this caller is not in, and the answer is the same 404 an
+    # invented id gets, so the id space cannot be walked for existence either.
+    wanted = request.GET.get("conversation")
+    if wanted:
+        conversation = participates_in(author, wanted)
+        if conversation is None:
+            raise Http404
+        rows = list(base.filter(conversation=conversation)[:ARENA_CHAT_PAGE])
+        return JsonResponse({
+            "seated": True,
+            "channel": "private",
+            "conversation": conversation.pk,
+            "messages": private_lines(rows, viewer=author),
+        })
+
+    if seat is None:
+        # Not in the hall: no feed, and say so plainly rather than pretending
+        # the room is silent.
+        return JsonResponse({"seated": False, "messages": []})
+
+    # conversation__isnull: the hall is the room with no conversation row, so a
+    # private line can never fall into the public feed by omission.
+    rows = list(base.filter(conversation__isnull=True)[:ARENA_CHAT_PAGE])
     return JsonResponse({
         "seated": True,
+        "channel": "public",
         "listening": _arena_hall_headcount(),
         "messages": audible_lines(seat, rows, viewer=author),
     })
@@ -4617,13 +4640,23 @@ def arena_chat_send(request):
     if getattr(request, "limited", False):
         return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
 
-    from .arena_chat import audible_lines
+    from .arena_chat import audible_lines, participates_in, private_lines
     from .models import ArenaChatMessage
 
     author, seat = _arena_chat_speaker(request)
     if author is None:
         return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
-    if seat is None:
+
+    # WHICH ROOM. A private thread is entered by membership, never by an id
+    # alone; the hall additionally asks for a seat, because speaking there
+    # means speaking from somewhere.
+    conversation = None
+    wanted = request.POST.get("conversation")
+    if wanted:
+        conversation = participates_in(author, wanted)
+        if conversation is None:
+            raise Http404
+    elif seat is None:
         return JsonResponse({"ok": False, "error": "not_in_the_hall"}, status=403)
 
     body = (request.POST.get("body") or "").strip()
@@ -4649,16 +4682,130 @@ def arena_chat_send(request):
         speaker=author,
         display_name=author.name,
         body=body,
-        ring_index=seat[0],
-        seat_index=seat[1],
+        # A private line still records where its author was standing, because
+        # the column is not nullable and the fact is true; nothing reads it in
+        # a room where reach does not apply.
+        ring_index=seat[0] if seat else 0,
+        seat_index=seat[1] if seat else 0,
         reply_to=reply_to,
+        conversation=conversation,
     )
+    if conversation is not None:
+        return JsonResponse({
+            "ok": True,
+            "channel": "private",
+            "messages": private_lines([message], viewer=author),
+        })
     # Echo it back through the same reach filter the feed uses, so the sender
     # sees exactly the row everyone at his own distance sees.
     return JsonResponse({
         "ok": True,
+        "channel": "public",
         "messages": audible_lines(seat, [message], viewer=author),
     })
+
+
+@require_POST
+@ratelimit(key="ip", rate="20/m", method="POST", block=False)
+def arena_chat_open_dm(request):
+    """Open (or find) the private room the caller shares with one other chef.
+
+    Every refusal an attacker could learn something from returns the same
+    shape: a 403 with a machine reason. The reasons themselves are deliberately
+    the honest ones - a person who has been blocked and a person whose target
+    accepts nothing both need to be told to stop trying, and neither learns
+    anything about the other's settings beyond that.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+
+    from .arena_chat import DirectMessageRefused, open_direct_conversation
+
+    actor = _chat_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
+
+    target = RecipeAuthor.objects.filter(slug=request.POST.get("slug", "")).first()
+    if target is None:
+        return JsonResponse({"ok": False, "error": "no_such_chef"}, status=404)
+
+    try:
+        conversation = open_direct_conversation(actor, target)
+    except DirectMessageRefused as refusal:
+        return JsonResponse({"ok": False, "error": refusal.reason}, status=403)
+
+    return JsonResponse({
+        "ok": True,
+        "conversation": conversation.pk,
+        "with": {"name": target.name, "slug": target.slug},
+    })
+
+
+@ratelimit(key="ip", rate="60/m", method="GET", block=False)
+def arena_chat_conversations(request):
+    """The caller's own private rooms. Never anybody else's."""
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"error": "rate_limited"}, status=429)
+
+    from .models import ChatConversation
+
+    actor = _chat_actor(request)
+    if actor is None:
+        return JsonResponse({"conversations": []})
+
+    rooms = (
+        ChatConversation.objects
+        .filter(kind=ChatConversation.Kind.DIRECT, participants__author=actor)
+        .prefetch_related("participants__author")
+        .distinct()
+    )
+    out = []
+    for room in rooms:
+        # The OTHER person: a direct room is named by who is not you.
+        other = next(
+            (p.author for p in room.participants.all() if p.author_id != actor.pk),
+            None,
+        )
+        if other is None:
+            continue
+        out.append({
+            "id": room.pk,
+            "name": other.name,
+            "slug": other.slug,
+        })
+    return JsonResponse({"conversations": out})
+
+
+@require_POST
+@ratelimit(key="ip", rate="20/m", method="POST", block=False)
+def arena_chat_dm_policy(request):
+    """Set who may start a private conversation with the caller.
+
+    The caller's OWN setting and nobody else's: the row is found from the
+    request's author, so there is no id here to tamper with.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+
+    actor = _chat_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
+
+    policy = request.POST.get("policy", "")
+    if policy not in ChefBattleProfile.DirectMessagePolicy.values:
+        return JsonResponse({"ok": False, "error": "bad_policy"}, status=400)
+
+    from .services import get_or_create_battle_profile
+
+    profile = get_or_create_battle_profile(actor)
+    ChefBattleProfile.objects.filter(pk=profile.pk).update(dm_policy=policy)
+    return JsonResponse({"ok": True, "policy": policy})
 
 
 def _chat_actor(request):
