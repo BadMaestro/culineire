@@ -641,6 +641,14 @@ class ArenaChatMessage(models.Model):
     ring_index = models.PositiveSmallIntegerField()
     seat_index = models.PositiveSmallIntegerField()
     is_hidden = models.BooleanField(default=False)
+    # ONE level, never a tree. This is a live spectator chat, not a forum: a
+    # reply quotes the line it answers and stops there, so the log stays
+    # readable while a battle is running. SET_NULL rather than CASCADE because
+    # a moderator hiding the parent must not silently delete the answers to it.
+    reply_to = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="replies",
+    )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
@@ -651,6 +659,106 @@ class ArenaChatMessage(models.Model):
 
     def __str__(self):
         return f"r{self.ring_index}c{self.seat_index} {self.display_name}: {self.body[:40]}"
+
+
+class ArenaChatReaction(models.Model):
+    """One tap of one emoji on one line, by one person.
+
+    A row, not a counter: the count is a COUNT, so two taps cannot race into a
+    wrong total and "did I already react" is answerable without a second table.
+    The unique constraint makes the tap idempotent - tapping again removes it,
+    which is the whole toggle.
+
+    Deliberately NOT reusing BattleReaction: that one records a heart for a SIDE
+    of a battle and has no message at all. Same word, different thing.
+    """
+
+    class Emoji(models.TextChoices):
+        FIRE = "fire", "Fire"
+        CLAP = "clap", "Clap"
+        STAR = "star", "Star"
+
+    message = models.ForeignKey(
+        ArenaChatMessage, on_delete=models.CASCADE, related_name="reactions",
+    )
+    author = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="arena_chat_reactions",
+    )
+    emoji = models.CharField(max_length=8, choices=Emoji.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["message", "author", "emoji"],
+                name="one_reaction_per_person_per_emoji",
+            ),
+        ]
+        indexes = [models.Index(fields=["message", "emoji"])]
+
+    def __str__(self):
+        return f"{self.author} {self.emoji} #{self.message_id}"
+
+
+class ChatMute(models.Model):
+    """A PERSONAL preference: whose lines this one reader would rather not see.
+
+    Not moderation. Nobody else's view changes, the muted person is never told,
+    and their lines keep reaching everyone else exactly as before. The global,
+    Owner-applied kind lives in OwnerAccountRestriction and is a different
+    thing with different consequences - the two must not be confused, which is
+    why this one does not share its table or its name.
+    """
+
+    owner = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="chat_mutes",
+    )
+    muted = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="chat_muted_by",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["owner", "muted"], name="one_mute_per_pair"),
+            # Muting yourself is not a preference, it is a bug report.
+            models.CheckConstraint(
+                check=~models.Q(owner=models.F("muted")), name="no_self_mute",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.owner} mutes {self.muted}"
+
+
+class ChatBlock(models.Model):
+    """Stronger than a mute, and enforced on the SERVER.
+
+    A block stops the blocked person reaching the blocker privately at all -
+    that check runs before a direct message is created, never in the browser -
+    and hides their public lines from the blocker's own view. It does NOT
+    remove them from the hall for anybody else: blocking is a personal wall,
+    not a ban, and only the Owner bans.
+    """
+
+    owner = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="chat_blocks",
+    )
+    blocked = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="chat_blocked_by",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["owner", "blocked"], name="one_block_per_pair"),
+            models.CheckConstraint(
+                check=~models.Q(owner=models.F("blocked")), name="no_self_block",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.owner} blocks {self.blocked}"
 
 
 class BattleEvent(models.Model):
@@ -1671,6 +1779,10 @@ class ContentReport(models.Model):
         BATTLE_CHAT = "battle_chat", "Battle Chat Message"
         BATTLE_ENTRY = "battle_entry", "Battle Entry"
         CHEF_PROFILE = "chef_profile", "Chef Profile"
+        # The arena hall's own chat, 2026-08-24. A new KIND rather than a new
+        # model: this table already carries everything a report needs and
+        # everything the moderation queue already knows how to read.
+        ARENA_CHAT = "arena_chat", "Arena Chat Message"
 
     class Status(models.TextChoices):
         PENDING = "pending", "Pending Review"

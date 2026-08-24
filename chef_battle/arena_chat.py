@@ -224,7 +224,72 @@ def team_tags_for(author_ids) -> dict[int, dict]:
     }
 
 
-def audible_lines(listener_seat, messages, tags_by_author=None) -> list[dict]:
+def reaction_summary(message_ids, viewer=None) -> dict[int, dict]:
+    """`{message_id: {emoji: {"count": n, "mine": bool}}}` for these lines.
+
+    Two queries for a whole page, never one per line: this is read on every
+    poll. The counts are COUNTs over rows rather than a stored tally, so a
+    double tap cannot inflate anything and "did I react" needs no second table.
+    """
+    from django.db.models import Count
+
+    from chef_battle.models import ArenaChatReaction
+
+    message_ids = [mid for mid in message_ids if mid]
+    if not message_ids:
+        return {}
+
+    out: dict[int, dict] = {}
+    rows = (
+        ArenaChatReaction.objects
+        .filter(message_id__in=message_ids)
+        .values("message_id", "emoji")
+        .annotate(total=Count("id"))
+    )
+    for row in rows:
+        out.setdefault(row["message_id"], {})[row["emoji"]] = {
+            "count": row["total"], "mine": False,
+        }
+
+    if viewer is not None:
+        mine = ArenaChatReaction.objects.filter(
+            message_id__in=message_ids, author=viewer,
+        ).values_list("message_id", "emoji")
+        for message_id, emoji in mine:
+            entry = out.setdefault(message_id, {}).setdefault(
+                emoji, {"count": 0, "mine": False},
+            )
+            entry["mine"] = True
+    return out
+
+
+def personal_hidden(viewer) -> tuple[set[int], set[int]]:
+    """`(muted_ids, blocked_ids)` for this ONE reader.
+
+    Personal and one-directional: nobody else's feed changes, and neither the
+    muted nor the blocked person is ever told. Applied on the SERVER, because a
+    preference enforced only in a browser is enforced only until somebody opens
+    the network tab.
+
+    The two are kept APART because they earn different treatment. A mute is a
+    preference, so the words still travel and the reader may choose Show. A
+    block is a wall, so the words do not travel at all - there is nothing to
+    reveal and nothing to recover from the response.
+    """
+    from chef_battle.models import ChatBlock, ChatMute
+
+    if viewer is None:
+        return set(), set()
+    muted = set(
+        ChatMute.objects.filter(owner=viewer).values_list("muted_id", flat=True)
+    )
+    blocked = set(
+        ChatBlock.objects.filter(owner=viewer).values_list("blocked_id", flat=True)
+    )
+    return muted, blocked
+
+
+def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> list[dict]:
     """The feed as ONE listener may read it.
 
     Out of range the words are not included at all. The line still appears --
@@ -232,10 +297,16 @@ def audible_lines(listener_seat, messages, tags_by_author=None) -> list[dict]:
     carries ``heard: false`` and no body, and the renderer draws "Talking
     Something" over the speaker instead. Sending the text and hiding it in CSS
     would leave it one view-source away from someone who must not read it.
+
+    ``viewer`` is the reader's own author row, and everything personal to them -
+    their mutes, their blocks, which reactions are theirs - is resolved here
+    rather than in the browser, for the same reason.
     """
     if listener_seat is None:
         return []
     listener_ring, listener_cell = listener_seat
+    muted_ids, blocked_ids = personal_hidden(viewer)
+    reactions = reaction_summary([m.pk for m in messages], viewer)
     if tags_by_author is None:
         tags_by_author = team_tags_for({m.speaker_id for m in messages})
     out = []
@@ -277,8 +348,31 @@ def audible_lines(listener_seat, messages, tags_by_author=None) -> list[dict]:
             "cell": message.seat_index,
             "heard": heard,
             "at": message.created_at.isoformat(),
+            "reactions": reactions.get(message.pk, {}),
+            # Personal, and one-directional: true for this reader only.
+            "muted": message.speaker_id in muted_ids,
+            "blocked": message.speaker_id in blocked_ids,
         }
-        if heard:
+        # The line this one answers, as a short quote. One level: a reply
+        # carries its parent's name and a preview, and the parent's own parent
+        # is not this reader's problem.
+        parent = message.reply_to
+        if parent is not None and not parent.is_hidden:
+            row["reply_to"] = {
+                "id": parent.pk,
+                "name": parent.display_name,
+                # The preview obeys the SAME reach rule as the line itself -
+                # quoting is not a way to read what you could not hear.
+                "preview": (
+                    parent.body[:60]
+                    if can_hear(parent.ring_index, parent.seat_index,
+                                listener_ring, listener_cell)
+                    else ""
+                ),
+            }
+        # A block withholds the words entirely; a mute only folds them away, so
+        # Show has something to reveal. See personal_hidden().
+        if heard and message.speaker_id not in blocked_ids:
             row["body"] = message.body
         out.append(row)
     return out

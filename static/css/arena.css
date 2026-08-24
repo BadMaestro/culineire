@@ -779,6 +779,10 @@
      component serve both without a second implementation. */
   container-type: inline-size;
   container-name: arena-chat;
+  /* The action menu positions against THIS panel, so the panel has to be the
+     containing block. Stated here rather than left to whichever ancestor
+     happens to be positioned - that is how a menu ends up in another card. */
+  position: relative;
 }
 .arena-chat__live {
   flex: 0 0 auto;
@@ -893,6 +897,160 @@
 .arena-chat__line--private .arena-chat__said { color: var(--chat-private-text); }
 .arena-chat__line--admin   .arena-chat__said { color: var(--chat-admin-text); }
 
+/* The quoted line a reply answers. One level, never a tree. */
+.arena-chat__quote {
+  display: block;
+  margin-bottom: .1rem;
+  padding-left: .4rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent-bronze) 40%, transparent);
+  color: var(--arena-muted);
+  font-size: .64rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.arena-chat__quote b { color: var(--arena-cappuccino); font-weight: 700; }
+
+/* Reveal a muted line. A preference, so it offers a way back. */
+.arena-chat__show {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent-bronze);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* The per-line action trigger and the reaction strip. Both are small, so both
+   are given a real tap target rather than the size of their glyph. */
+.arena-chat__more {
+  flex: 0 0 auto;
+  appearance: none;
+  min-width: 1.6rem;
+  min-height: 1.6rem;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--arena-muted);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__more:hover,
+.arena-chat__more:focus-visible { color: var(--accent-bronze); }
+
+.arena-chat__reactions {
+  display: flex;
+  gap: .2rem;
+  margin-top: .18rem;
+}
+.arena-chat__react {
+  appearance: none;
+  min-height: 1.5rem;
+  padding: 0 .35rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  color: var(--arena-ink);
+  font-size: .6rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__react.is-mine {
+  border-color: var(--accent-bronze);
+  background: color-mix(in srgb, var(--accent-bronze) 16%, transparent);
+}
+/* An untouched reaction stays quiet until the line is approached - three loud
+   buttons under every message would out-shout the conversation itself. */
+.arena-chat__react.is-empty { opacity: .45; }
+.arena-chat__line:hover .arena-chat__react.is-empty,
+.arena-chat__react.is-empty:focus-visible { opacity: 1; }
+
+/* Replying-to bar and the notice line, both above/below the composer. */
+.arena-chat__replying {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin: 0;
+  padding: .22rem .4rem;
+  border-left: 2px solid var(--accent-bronze);
+  background: color-mix(in srgb, var(--accent-bronze) 8%, transparent);
+  color: var(--arena-muted);
+  font-size: .64rem;
+}
+.arena-chat__replying[hidden],
+.arena-chat__notice[hidden] { display: none; }
+.arena-chat__replying b { color: var(--arena-cappuccino); }
+.arena-chat__replying-cancel {
+  appearance: none;
+  min-width: 1.4rem;
+  min-height: 1.4rem;
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--arena-muted);
+  font-size: .9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__notice {
+  margin: .25rem 0 0;
+  color: var(--arena-muted);
+  font-size: .64rem;
+}
+
+/* THE ACTION MENU IS ONE ELEMENT. The spec asks for a bottom sheet on a phone
+   and an anchored popover on a desktop and, in the same breath, for them not to
+   be two implementations. So this is one menu with one set of buttons and one
+   behaviour; only where it appears changes, and that is decided below from the
+   panel's own width. */
+.arena-chat__sheet {
+  position: absolute;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  padding: .3rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  border-radius: .7rem;
+  background: var(--surface);
+  box-shadow: 0 .5rem 1.4rem color-mix(in srgb, var(--ink) 24%, transparent);
+}
+.arena-chat__sheet-head {
+  margin: 0 0 .2rem;
+  padding: .2rem .5rem;
+  color: var(--arena-muted);
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.arena-chat__action {
+  appearance: none;
+  min-height: 2.4rem;            /* a finger, not a cursor */
+  padding: 0 .55rem;
+  border: 0;
+  border-radius: .45rem;
+  background: none;
+  color: var(--arena-ink);
+  font: inherit;
+  font-size: .74rem;
+  text-align: left;
+  cursor: pointer;
+}
+.arena-chat__action:hover,
+.arena-chat__action:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 12%, transparent);
+}
+.arena-chat__action--danger { color: var(--chat-admin-text); }
+
 /* ONE COMPONENT, TWO PRESENTATIONS, NO SECOND IMPLEMENTATION.
    These ask the panel how wide IT is, not how wide the window is - the same
    markup and the same script serve a phone column and a desktop rail, and only
@@ -906,6 +1064,16 @@
   }
   /* Tap targets before density: a finger needs the row, a cursor does not. */
   .arena-chat__log { gap: .5rem; }
+  /* NARROW: the menu is a bottom sheet - full width, from the bottom edge,
+     where a thumb already is. Same element, same buttons as the popover. */
+  .arena-chat__sheet {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    border-radius: .9rem .9rem 0 0;
+    padding-bottom: max(.3rem, env(safe-area-inset-bottom));
+  }
 }
 @container arena-chat (min-width: 22.01rem) {
   .arena-chat__line {
@@ -916,6 +1084,18 @@
     column-gap: .4rem;
   }
   .arena-chat__who { max-width: 11rem; }
+  /* The quote, the reactions and the notice belong under BOTH columns rather
+     than squeezed into the name's. */
+  .arena-chat__quote,
+  .arena-chat__reactions { grid-column: 1 / -1; }
+  /* WIDE: the same menu, anchored beside the control that opened it, using the
+     coordinates the script measured. */
+  .arena-chat__sheet {
+    top: var(--sheet-top, 100%);
+    left: min(var(--sheet-left, 0px), calc(100% - 12rem));
+    right: auto;
+    bottom: auto;
+  }
 }
 /* Too far away to hear. The speaker is visibly talking and that is all this
    reader is entitled to know. */

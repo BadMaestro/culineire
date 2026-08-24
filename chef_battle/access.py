@@ -179,6 +179,22 @@ UNGUARDED_BY_DESIGN = {
         "(403 not_authenticated) and anyone without a seat in the hall "
         "(403 not_in_the_hall) before a single character is stored."
     ),
+    "arena_chat_react": (
+        "Calls is_battle_visible directly, same shape as arena_chat_send: "
+        "signed in AND holding a place in the hall before a reaction is "
+        "stored, because reacting is speaking in the room."
+    ),
+    "arena_chat_relation": (
+        "Calls is_battle_visible directly, then requires a signed-in author. "
+        "Mute and block are PERSONAL preferences written only for the caller - "
+        "the row's owner is the request's own author and can never be another "
+        "person, so there is nothing here to authorise per object."
+    ),
+    "arena_chat_report": (
+        "Calls is_battle_visible directly, then requires a signed-in author. "
+        "Writes into the existing ContentReport queue; the reporter is the "
+        "request's own user and is never disclosed to the person reported."
+    ),
     "cooking_moderation": (
         "Moderator-only, checked with is_moderator AND is_battle_visible in the "
         "view (F8, 2026-08-11) - is_moderator alone admits has_bearseeker_"

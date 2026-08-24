@@ -469,7 +469,14 @@
   {% endcomment %}
   <section class="arena-chat" aria-label="Spectator chat" id="arena-chat"
            data-feed-url="{% url 'chef_battle:arena_chat_feed' %}"
-           data-send-url="{% url 'chef_battle:arena_chat_send' %}">
+           data-send-url="{% url 'chef_battle:arena_chat_send' %}"
+           data-react-url="{% url 'chef_battle:arena_chat_react' %}"
+           data-relation-url="{% url 'chef_battle:arena_chat_relation' %}"
+           data-report-url="{% url 'chef_battle:arena_chat_report' %}"
+           {# Whose lines are the reader's own - so the menu never offers to
+              mute, block or report yourself. Purely presentational: every
+              endpoint refuses a self-target on the server regardless. #}
+           data-me="{{ viewer_author.slug|default:'' }}">
     <header class="arena-panel__title">
       <h2 class="arena-panel__kicker">Spectator chat</h2>
       {% comment %}
@@ -492,6 +499,14 @@
       <li class="arena-panel__empty" id="arena-chat-empty">Take a seat to join the conversation.</li>
     </ol>
 
+    {# The line being answered. Server-rendered empty and shown by the script,
+       so the composer never has to be rebuilt to gain or lose it. #}
+    <p class="arena-chat__replying" id="arena-chat-replying" hidden>
+      Replying to <b class="arena-chat__replying-name"></b>
+      <button type="button" class="arena-chat__replying-cancel"
+              id="arena-chat-replying-cancel" aria-label="Cancel reply">&times;</button>
+    </p>
+
     <form class="arena-chat__composer" id="arena-chat-form" hidden>
       {% csrf_token %}
       <input type="text" id="arena-chat-input" name="body" maxlength="300"
@@ -501,6 +516,10 @@
         <svg class="arena-ico" aria-hidden="true"><use href="#ad-send"></use></svg>
       </button>
     </form>
+
+    {# Sending errors, rate-limit notices and report confirmations land here,
+       under the composer where the reader is already looking. #}
+    <p class="arena-chat__notice" id="arena-chat-notice" role="status" hidden></p>
   </section>
   </div>
   </div>

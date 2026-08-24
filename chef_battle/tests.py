@@ -21746,6 +21746,216 @@ class ArenaChatRoleSemanticsTests(TestCase):
         self.assertNotIn("body", line)
 
 
+class ArenaChatInteractionTests(TestCase):
+    """Replies, reactions, personal mute/block and reports.
+
+    The security properties matter more than the features: mute and block are
+    PERSONAL, enforced server-side, and change nobody else's view.
+    """
+
+    def setUp(self):
+        self.me, self.me_author, _ = _seat_a_viewer("me", "Me", "me-chef")
+        self.them, self.them_author, _ = _seat_a_viewer("them", "Them", "them-chef")
+        self.feed_url = reverse("chef_battle:arena_chat_feed")
+        self.send_url = reverse("chef_battle:arena_chat_send")
+        self.react_url = reverse("chef_battle:arena_chat_react")
+        self.relation_url = reverse("chef_battle:arena_chat_relation")
+        self.report_url = reverse("chef_battle:arena_chat_report")
+
+    def _say(self, user, text, reply_to=None):
+        self.client.force_login(user)
+        payload = {"body": text}
+        if reply_to:
+            payload["reply_to"] = reply_to
+        return self.client.post(self.send_url, payload).json()
+
+    def _feed_as(self, user):
+        self.client.force_login(user)
+        return self.client.get(self.feed_url).json()["messages"]
+
+    # ---- replies -------------------------------------------------------
+    def test_a_reply_quotes_the_line_it_answers(self):
+        first = self._say(self.them, "the stock is unreal")["messages"][0]
+        self._say(self.me, "agreed", reply_to=first["id"])
+        answer = self._feed_as(self.me)[-1]
+        self.assertEqual(answer["reply_to"]["id"], first["id"])
+        self.assertEqual(answer["reply_to"]["name"], "Them")
+        self.assertIn("stock", answer["reply_to"]["preview"])
+
+    def test_replying_to_a_line_that_does_not_exist_still_says_the_line(self):
+        """An unusable parent is not a reason to lose what somebody typed."""
+        self._say(self.me, "hello", reply_to=999999)
+        line = self._feed_as(self.me)[-1]
+        self.assertEqual(line["body"], "hello")
+        self.assertNotIn("reply_to", line)
+
+    # ---- reactions -----------------------------------------------------
+    def test_a_reaction_toggles_rather_than_counting_up(self):
+        said = self._say(self.them, "nice")["messages"][0]
+        self.client.force_login(self.me)
+
+        on = self.client.post(
+            self.react_url, {"message_id": said["id"], "emoji": "fire"},
+        ).json()
+        self.assertTrue(on["mine"])
+        self.assertEqual(on["reactions"]["fire"]["count"], 1)
+
+        off = self.client.post(
+            self.react_url, {"message_id": said["id"], "emoji": "fire"},
+        ).json()
+        self.assertFalse(off["mine"])
+        self.assertEqual(off["reactions"].get("fire", {}).get("count", 0), 0)
+
+    def test_an_invented_emoji_is_refused(self):
+        said = self._say(self.them, "nice")["messages"][0]
+        self.client.force_login(self.me)
+        response = self.client.post(
+            self.react_url, {"message_id": said["id"], "emoji": "poop"},
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_an_anonymous_visitor_cannot_react(self):
+        said = self._say(self.them, "nice")["messages"][0]
+        self.client.logout()
+        self.assertEqual(
+            self.client.post(
+                self.react_url, {"message_id": said["id"], "emoji": "fire"},
+            ).status_code,
+            403,
+        )
+
+    # ---- mute ----------------------------------------------------------
+    def test_muting_folds_the_line_for_me_and_nobody_else(self):
+        self._say(self.them, "a muted opinion")
+
+        self.client.force_login(self.me)
+        self.client.post(self.relation_url, {"action": "mute", "slug": "them-chef"})
+
+        mine = self._feed_as(self.me)[-1]
+        self.assertTrue(mine["muted"])
+        # A mute is a preference, so the words still travel and Show can reveal.
+        self.assertEqual(mine["body"], "a muted opinion")
+
+        # THE POINT: the other person's own view is untouched.
+        theirs = self._feed_as(self.them)[-1]
+        self.assertFalse(theirs["muted"])
+
+    def test_a_third_party_still_sees_a_muted_speaker(self):
+        other, _other_author, _ = _seat_a_viewer("other", "Other", "other-chef")
+        self._say(self.them, "still audible")
+        self.client.force_login(self.me)
+        self.client.post(self.relation_url, {"action": "mute", "slug": "them-chef"})
+        self.assertFalse(self._feed_as(other)[-1]["muted"])
+
+    def test_unmuting_puts_it_back(self):
+        self._say(self.them, "hello")
+        self.client.force_login(self.me)
+        self.client.post(self.relation_url, {"action": "mute", "slug": "them-chef"})
+        self.client.post(self.relation_url, {"action": "unmute", "slug": "them-chef"})
+        self.assertFalse(self._feed_as(self.me)[-1]["muted"])
+
+    # ---- block ---------------------------------------------------------
+    def test_a_block_withholds_the_words_themselves(self):
+        """Stronger than a mute: there is nothing in the response to reveal."""
+        self._say(self.them, "words behind a wall")
+        self.client.force_login(self.me)
+        self.client.post(self.relation_url, {"action": "block", "slug": "them-chef"})
+
+        mine = self._feed_as(self.me)[-1]
+        self.assertTrue(mine["blocked"])
+        self.assertNotIn("body", mine)
+
+        # And it removes nobody from the hall for anybody else.
+        self.assertEqual(self._feed_as(self.them)[-1]["body"], "words behind a wall")
+
+    def test_nobody_can_mute_or_block_themselves(self):
+        self.client.force_login(self.me)
+        response = self.client.post(
+            self.relation_url, {"action": "mute", "slug": "me-chef"},
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_an_invented_action_is_refused(self):
+        self.client.force_login(self.me)
+        self.assertEqual(
+            self.client.post(
+                self.relation_url, {"action": "banish", "slug": "them-chef"},
+            ).status_code,
+            400,
+        )
+
+    def test_an_anonymous_visitor_cannot_mute_anyone(self):
+        self.client.logout()
+        self.assertEqual(
+            self.client.post(
+                self.relation_url, {"action": "mute", "slug": "them-chef"},
+            ).status_code,
+            403,
+        )
+
+    # ---- report --------------------------------------------------------
+    def test_a_report_lands_in_the_existing_moderation_queue(self):
+        from chef_battle.models import ContentReport
+
+        said = self._say(self.them, "something awful")["messages"][0]
+        self.client.force_login(self.me)
+        response = self.client.post(
+            self.report_url,
+            {"message_id": said["id"], "reason": "harassment", "note": "rude"},
+        )
+        self.assertTrue(response.json()["ok"])
+
+        report = ContentReport.objects.get()
+        self.assertEqual(report.content_kind, ContentReport.ContentKind.ARENA_CHAT)
+        self.assertEqual(report.object_id, said["id"])
+        self.assertEqual(report.reporter, self.me)
+        self.assertEqual(report.status, ContentReport.Status.PENDING)
+        self.assertIn("harassment", report.reason)
+
+    def test_reporting_the_same_line_twice_does_not_double_the_queue(self):
+        from chef_battle.models import ContentReport
+
+        said = self._say(self.them, "again")["messages"][0]
+        self.client.force_login(self.me)
+        for _ in range(2):
+            self.client.post(
+                self.report_url, {"message_id": said["id"], "reason": "spam"},
+            )
+        self.assertEqual(ContentReport.objects.count(), 1)
+
+    def test_an_invented_reason_is_refused(self):
+        said = self._say(self.them, "x")["messages"][0]
+        self.client.force_login(self.me)
+        self.assertEqual(
+            self.client.post(
+                self.report_url, {"message_id": said["id"], "reason": "because"},
+            ).status_code,
+            400,
+        )
+
+    def test_an_anonymous_visitor_cannot_report(self):
+        said = self._say(self.them, "x")["messages"][0]
+        self.client.logout()
+        self.assertEqual(
+            self.client.post(
+                self.report_url, {"message_id": said["id"], "reason": "spam"},
+            ).status_code,
+            403,
+        )
+
+    def test_the_reporter_is_never_named_in_what_the_chat_returns(self):
+        """Reporter identity is for moderators, not for the room."""
+        said = self._say(self.them, "x")["messages"][0]
+        self.client.force_login(self.me)
+        payload = self.client.post(
+            self.report_url, {"message_id": said["id"], "reason": "spam"},
+        ).json()
+        self.assertNotIn("reporter", payload)
+        for line in self._feed_as(self.them):
+            self.assertNotIn("reporter", line)
+            self.assertNotIn("reports", line)
+
+
 class MasterConsoleTileIsOfferedOnlyToWhoMayOpenItTests(TestCase):
     """The console tile matches the console door.
 

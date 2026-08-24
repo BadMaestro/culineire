@@ -4561,13 +4561,13 @@ def arena_chat_feed(request):
         # speaker__user because the role that colours a line (admin vs ordinary)
         # is read off the speaker's user account, and a feed page is up to
         # ARENA_CHAT_PAGE rows - one query, not sixty.
-        .select_related("speaker", "speaker__user")
+        .select_related("speaker", "speaker__user", "reply_to")
         .order_by("id")[:ARENA_CHAT_PAGE]
     )
     return JsonResponse({
         "seated": True,
         "listening": _arena_hall_headcount(),
-        "messages": audible_lines(seat, rows),
+        "messages": audible_lines(seat, rows, viewer=author),
     })
 
 
@@ -4631,6 +4631,19 @@ def arena_chat_send(request):
         return JsonResponse({"ok": False, "error": "empty"}, status=400)
     body = body[:ARENA_CHAT_MAX_CHARS]
 
+    # The line being answered, if any. Resolved to a real row rather than
+    # trusted: an id that does not exist, is hidden, or was never visible is
+    # simply not a reply, and the line still gets said.
+    reply_to = None
+    raw_reply = request.POST.get("reply_to")
+    if raw_reply:
+        try:
+            reply_to = ArenaChatMessage.objects.filter(
+                pk=int(raw_reply), is_hidden=False,
+            ).first()
+        except (TypeError, ValueError):
+            reply_to = None
+
     message = ArenaChatMessage.objects.create(
         battle=get_active_battles()[0] if get_active_battles() else None,
         speaker=author,
@@ -4638,10 +4651,190 @@ def arena_chat_send(request):
         body=body,
         ring_index=seat[0],
         seat_index=seat[1],
+        reply_to=reply_to,
     )
     # Echo it back through the same reach filter the feed uses, so the sender
     # sees exactly the row everyone at his own distance sees.
-    return JsonResponse({"ok": True, "messages": audible_lines(seat, [message])})
+    return JsonResponse({
+        "ok": True,
+        "messages": audible_lines(seat, [message], viewer=author),
+    })
+
+
+def _chat_actor(request):
+    """The author acting, or None. Every action endpoint below starts here."""
+    if not request.user.is_authenticated:
+        return None
+    return get_author_for_user(request.user)
+
+
+@require_POST
+@ratelimit(key="ip", rate="60/m", method="POST", block=False)
+def arena_chat_react(request):
+    """Toggle one emoji on one line. Tapping the same one again removes it.
+
+    A toggle, not an increment: the row IS the reaction, so a double tap cannot
+    inflate a counter and the honest count is a COUNT.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+
+    from .arena_chat import reaction_summary, seat_of
+    from .models import ArenaChatMessage, ArenaChatReaction
+
+    actor = _chat_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
+    # Reacting is speaking in the hall, so it asks for a place in the hall -
+    # the same gate the composer itself is behind.
+    if seat_of(actor) is None:
+        return JsonResponse({"ok": False, "error": "not_in_the_hall"}, status=403)
+
+    emoji = request.POST.get("emoji", "")
+    if emoji not in ArenaChatReaction.Emoji.values:
+        return JsonResponse({"ok": False, "error": "bad_emoji"}, status=400)
+
+    message = ArenaChatMessage.objects.filter(
+        pk=request.POST.get("message_id") or 0, is_hidden=False,
+    ).first()
+    if message is None:
+        return JsonResponse({"ok": False, "error": "no_such_message"}, status=404)
+
+    existing = ArenaChatReaction.objects.filter(
+        message=message, author=actor, emoji=emoji,
+    ).first()
+    if existing is not None:
+        existing.delete()
+        mine = False
+    else:
+        ArenaChatReaction.objects.create(message=message, author=actor, emoji=emoji)
+        mine = True
+
+    return JsonResponse({
+        "ok": True,
+        "message_id": message.pk,
+        "mine": mine,
+        "reactions": reaction_summary([message.pk], actor).get(message.pk, {}),
+    })
+
+
+@require_POST
+@ratelimit(key="ip", rate="30/m", method="POST", block=False)
+def arena_chat_relation(request):
+    """Mute, unmute, block or unblock another person, for the caller alone.
+
+    PERSONAL, not moderation. Nothing here changes what anybody else sees, and
+    the other person is never told - a mute the target can detect is a social
+    weapon rather than a preference. The Owner's global restrictions are a
+    different mechanism entirely (OwnerAccountRestriction).
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+
+    from .models import ChatBlock, ChatMute
+
+    actor = _chat_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
+
+    target = RecipeAuthor.objects.filter(slug=request.POST.get("slug", "")).first()
+    if target is None:
+        return JsonResponse({"ok": False, "error": "no_such_chef"}, status=404)
+    if target.pk == actor.pk:
+        return JsonResponse({"ok": False, "error": "cannot_target_yourself"}, status=400)
+
+    action = request.POST.get("action", "")
+    models_by_action = {
+        "mute": (ChatMute, "muted", True),
+        "unmute": (ChatMute, "muted", False),
+        "block": (ChatBlock, "blocked", True),
+        "unblock": (ChatBlock, "blocked", False),
+    }
+    if action not in models_by_action:
+        return JsonResponse({"ok": False, "error": "bad_action"}, status=400)
+
+    model, field, adding = models_by_action[action]
+    if adding:
+        model.objects.get_or_create(owner=actor, **{field: target})
+    else:
+        model.objects.filter(owner=actor, **{field: target}).delete()
+
+    return JsonResponse({
+        "ok": True,
+        "slug": target.slug,
+        "muted": ChatMute.objects.filter(owner=actor, muted=target).exists(),
+        "blocked": ChatBlock.objects.filter(owner=actor, blocked=target).exists(),
+    })
+
+
+# The report reasons offered in the chat. They are the DSA categories the
+# Owner's spec lists, kept as a tuple here rather than a new model because
+# ContentReport.reason is already free text and the moderation queue already
+# reads it - a lookup table would add a migration and answer nothing new.
+ARENA_CHAT_REPORT_REASONS = (
+    "spam",
+    "harassment",
+    "hate",
+    "sexual",
+    "violence",
+    "personal_information",
+    "scam",
+    "illegal",
+    "other",
+)
+
+
+@require_POST
+@ratelimit(key="ip", rate="10/m", method="POST", block=False)
+def arena_chat_report(request):
+    """Report one chat line into the moderation queue that already exists.
+
+    Reuses ContentReport - the same table, status flow and moderator note the
+    battle chat and chef profiles already use - with one new kind. The reporter
+    is recorded and NEVER shown to the person reported.
+
+    Rate limited hardest of the three: a report costs a moderator's attention,
+    so flooding the queue is itself an attack.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+
+    from .models import ArenaChatMessage, ContentReport
+
+    actor = _chat_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
+
+    message = ArenaChatMessage.objects.filter(pk=request.POST.get("message_id") or 0).first()
+    if message is None:
+        return JsonResponse({"ok": False, "error": "no_such_message"}, status=404)
+
+    reason = request.POST.get("reason", "")
+    if reason not in ARENA_CHAT_REPORT_REASONS:
+        return JsonResponse({"ok": False, "error": "bad_reason"}, status=400)
+    note = (request.POST.get("note") or "").strip()[:200]
+
+    # One report per person per line: a second one adds nothing to the queue
+    # and doubles the moderator's reading.
+    already = ContentReport.objects.filter(
+        reporter=request.user,
+        content_kind=ContentReport.ContentKind.ARENA_CHAT,
+        object_id=message.pk,
+    ).exists()
+    if not already:
+        ContentReport.objects.create(
+            reporter=request.user,
+            content_kind=ContentReport.ContentKind.ARENA_CHAT,
+            object_id=message.pk,
+            reason=f"{reason}: {note}" if note else reason,
+        )
+    return JsonResponse({"ok": True, "already_reported": already})
 
 
 @require_POST
