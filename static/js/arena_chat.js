@@ -194,42 +194,64 @@
 
     item.appendChild(who);
     item.appendChild(said);
-    item.appendChild(reactionRow(line));
+    var strip = reactionRow(line);
+    if (strip) { item.appendChild(strip); }
     log.appendChild(item);
     if (line.id > lastId) { lastId = line.id; }
   }
 
-  /* The reaction strip under a line. Counts are the server's; a tap is
-   * optimistic only in the sense that the server answers with the new truth
-   * and this redraws from that answer rather than from a guess. */
+  /* The reaction strip under a line - ONLY where there is something to show.
+   *
+   * It used to draw all three buttons under every message, greyed. Greying
+   * does not give the vertical space back: six messages filled the Owner's
+   * phone and he said so. A live chat is mostly lines nobody has reacted to,
+   * so the strip is now the exception rather than the furniture, and reacting
+   * is offered where every other per-line action already lives - the one
+   * action menu. Returns null when the line has no reactions at all. */
   function reactionRow(line) {
+    var counts = line.reactions || {};
+    var shown = REACTIONS.filter(function (r) {
+      return counts[r.key] && counts[r.key].count > 0;
+    });
+    if (!shown.length) { return null; }
+
     var row = document.createElement('span');
     row.className = 'arena-chat__reactions';
     row.setAttribute('data-for', line.id);
-    REACTIONS.forEach(function (r) {
-      var state = (line.reactions && line.reactions[r.key]) || null;
-      var count = state ? state.count : 0;
+    shown.forEach(function (r) {
+      var state = counts[r.key];
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'arena-chat__react'
-        + (state && state.mine ? ' is-mine' : '')
-        + (count ? '' : ' is-empty');
+      btn.className = 'arena-chat__react' + (state.mine ? ' is-mine' : '');
       btn.setAttribute('data-emoji', r.key);
-      btn.setAttribute('aria-pressed', state && state.mine ? 'true' : 'false');
-      btn.setAttribute('aria-label', r.label + (count ? ' (' + count + ')' : ''));
-      btn.textContent = r.glyph + (count ? ' ' + count : '');
+      btn.setAttribute('aria-pressed', state.mine ? 'true' : 'false');
+      btn.setAttribute('aria-label', r.label + ' (' + state.count + ')');
+      btn.textContent = r.glyph + ' ' + state.count;
       btn.addEventListener('click', function () { react(line.id, r.key, row); });
       row.appendChild(btn);
     });
     return row;
   }
 
-  function react(messageId, emoji, row) {
+  /* Redraw one line's strip from the server's own counts. It may need to be
+   * created (first reaction on this line) or removed (the last one taken
+   * back), not only replaced - which is what the strip being conditional
+   * costs, and it is worth the vertical space it gives back. */
+  function react(messageId, emoji) {
     post(reactUrl, { message_id: messageId, emoji: emoji }).then(function (data) {
-      if (!data || !data.ok) { return; }
-      // Redraw this strip from the server's own counts.
+      if (!data || !data.ok) {
+        notice(data && data.error === 'not_in_the_hall'
+          ? 'Take a seat to react.'
+          : 'That did not register.');
+        return;
+      }
+      var item = log.querySelector('[data-id="' + messageId + '"]');
+      if (!item) { return; }
+      var old = item.querySelector('.arena-chat__reactions');
       var fresh = reactionRow({ id: messageId, reactions: data.reactions });
-      if (row.parentNode) { row.parentNode.replaceChild(fresh, row); }
+      if (old && fresh) { item.replaceChild(fresh, old); }
+      else if (old) { item.removeChild(old); }
+      else if (fresh) { item.appendChild(fresh); }
     });
   }
 
@@ -275,6 +297,23 @@
       window.location.href = '/chef-battle/profile/' + encodeURIComponent(line.slug) + '/';
     }));
     sheet.appendChild(menuButton('Reply', '', function () { startReply(line); }));
+    // Reacting lives HERE now rather than as three permanent buttons under
+    // every message. One row of glyphs inside the menu, not a panel.
+    var reactRow = document.createElement('div');
+    reactRow.className = 'arena-chat__sheet-reacts';
+    REACTIONS.forEach(function (r) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'arena-chat__sheet-react';
+      b.setAttribute('aria-label', r.label);
+      b.textContent = r.glyph;
+      b.addEventListener('click', function () {
+        closeActions();
+        react(line.id, r.key);
+      });
+      reactRow.appendChild(b);
+    });
+    sheet.appendChild(reactRow);
     sheet.appendChild(menuButton('Message privately', '', function () {
       openDm(line.slug, line.name);
     }));

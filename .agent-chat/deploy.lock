@@ -1,0 +1,5 @@
+agent: greenbear
+started_utc: 2026-08-24T13:45
+version: v2.5.1256
+commit: pending
+task: chat density - reaction strip only where reactions exist, tighter line rhythm on a phone

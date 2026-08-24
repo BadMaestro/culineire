@@ -1030,11 +1030,28 @@
   border-color: var(--accent-bronze);
   background: color-mix(in srgb, var(--accent-bronze) 16%, transparent);
 }
-/* An untouched reaction stays quiet until the line is approached - three loud
-   buttons under every message would out-shout the conversation itself. */
-.arena-chat__react.is-empty { opacity: .45; }
-.arena-chat__line:hover .arena-chat__react.is-empty,
-.arena-chat__react.is-empty:focus-visible { opacity: 1; }
+/* Reacting, offered inside the one action menu instead of as three permanent
+   buttons under every line. One row of glyphs, not an emoji panel. */
+.arena-chat__sheet-reacts {
+  display: flex;
+  gap: .25rem;
+  padding: .15rem .35rem .3rem;
+}
+.arena-chat__sheet-react {
+  appearance: none;
+  flex: 1 1 auto;
+  min-height: 2.2rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  border-radius: .45rem;
+  background: none;
+  font-size: .95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__sheet-react:hover,
+.arena-chat__sheet-react:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 12%, transparent);
+}
 
 /* Replying-to bar and the notice line, both above/below the composer. */
 .arena-chat__replying {
@@ -1121,12 +1138,25 @@
    is narrower than the phone's full-bleed column, so width-of-window is the
    wrong question in both directions. */
 @container arena-chat (max-width: 22rem) {
+  /* COMPACT MEANS COMPACT. The Owner counted six messages filling his phone
+     and asked how much further this was going to swell. Most of it was the
+     reaction strip, now gone from lines that have no reactions; the rest is
+     here - the name and the words share one line at this width instead of
+     stacking, which is what a live chat wants when the screen is small. */
   .arena-chat__line {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: .35rem;
     font-size: .7rem;
-    gap: .02rem;
+    gap: .02rem .35rem;
+    padding-bottom: .22rem;
   }
-  /* Tap targets before density: a finger needs the row, a cursor does not. */
-  .arena-chat__log { gap: .5rem; }
+  .arena-chat__quote,
+  .arena-chat__reactions { grid-column: 1 / -1; }
+  /* The speaker keeps at most half the row, so a long name cannot squeeze the
+     sentence into a column of single words. */
+  .arena-chat__who { max-width: 48%; }
+  .arena-chat__log { gap: .3rem; }
   /* NARROW: the menu is a bottom sheet - full width, from the bottom edge,
      where a thumb already is. Same element, same buttons as the popover. */
   .arena-chat__sheet {
