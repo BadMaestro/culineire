@@ -8362,13 +8362,26 @@ body.page--arena.is-zoom-locked {
     grid-column: 1;
     justify-self: start;
   }
-  .arena-next-board > .arena-phase-refresh .arena-phase-gauge {
-    width: 1.6rem;
+  /* BIG ENOUGH TO READ. Owner, 2026-08-24: at 0.58rem beside a hairline bar
+     this "would be barely visible even on large phones". The bar is gone (it
+     was the quiet half) and the number carries the row with a clock beside it.
+
+     Sized against the row's own height rather than by eye: the row is 23px,
+     set by the NEXT BATTLE label, so anything up to that is free and anything
+     past it is taken from the arena. 0.78rem type on a 0.95rem icon measures
+     inside that, and the guard below proves the row and the ribbon did not
+     move. */
+  .arena-next-board > .arena-phase-refresh .arena-phase-refresh__ico {
+    width: 0.95rem;
+    height: 0.95rem;
     flex: 0 0 auto;
-    margin: 0;
+    color: var(--accent-bronze-dark);
   }
   .arena-next-board > .arena-phase-refresh .arena-phase-timer {
-    font-size: 0.58rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: var(--accent-bronze-dark);
     font-variant-numeric: tabular-nums;
     line-height: 1;
     white-space: nowrap;

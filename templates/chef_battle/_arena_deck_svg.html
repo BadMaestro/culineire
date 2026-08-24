@@ -95,6 +95,25 @@ Metric map: Active viewers -> #ad-eye · Public votes -> #ad-vote · Battle gift
     <use href="#ad-crown" x="2.25" y="1.4375" width="19.5" height="19.5"/>
   </symbol>
 
+  {% comment %}
+    The reload countdown's own mark. Owner, 2026-08-24: "нужна иконка таймера
+    а не просто полоска рядом" - the thin progress bar beside the number was
+    too quiet to read on a phone.
+
+    A CLOCK FACE, NOT #ad-hourglass, deliberately: the hourglass already means
+    CURRENT PHASE two cards down, and this counts something else entirely -
+    when the page refreshes itself. Two different facts must not share a mark.
+
+    Same line language as every other symbol here: no fill, currentColor
+    stroke, 24x24 box, so it inherits the colour of whatever it sits in.
+  {% endcomment %}
+  <symbol id="ad-clock" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M12 7v5.2l3.4 2" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+
+
   {# Artifacts — a small faceted gem, ARENA COMMAND's 9th tile #}
   <symbol id="ad-artifact" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M6 4h12l3 5-9 11L3 9z M6 4l3 5h6l3-5 M3 9h18 M9 9l3 11 3-11"/></symbol>
 </svg>

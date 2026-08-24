@@ -153,9 +153,17 @@
     authoritative battle deadline stays alone in the status card with no
     second clock beside it to be mistaken for.
 
-    IDs are unchanged on purpose: #arena-refresh-timer and #arena-refresh-gauge
-    are read by the reload script at the foot of this template, and the row is
-    still one row rather than two, for the same height reason A11 recorded.
+    A CLOCK, NOT A BAR. Owner, same day: "нужна иконка таймера а не просто
+    полоска рядом" - the thin progress bar was too quiet to read on a phone.
+    #arena-refresh-gauge goes with it, and that is safe rather than lucky: the
+    reload script at the foot of this template already guards its use with
+    `if (gaugeEl)`, so it simply stops painting a bar that is no longer there.
+    #arena-refresh-timer is unchanged - that is the id the script cannot do
+    without, and the row is still one row, for the height reason above.
+
+    The mark is #ad-clock and deliberately NOT #ad-hourglass: the hourglass
+    already means CURRENT PHASE further down the page, and this counts
+    something else - when the page refreshes itself.
   {% endcomment %}
   {% comment %}
     X01 — the departures board (Owner, 2026-08-05: "как табло в аэропорту,
@@ -195,7 +203,7 @@
       minimum and the line sat 8px off centre, measured.
     {% endcomment %}
     <div class="arena-phase-refresh">
-      <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge"></span></div>
+      <svg class="arena-ico arena-phase-refresh__ico" aria-hidden="true"><use href="#ad-clock"></use></svg>
       <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">05:00</strong>
     </div>
     <span class="arena-next-board__label" aria-hidden="true">Next Battle:</span>

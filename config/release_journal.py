@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1234",
+        "date": "2026-08-24",
+        "commit": "pending",
+        "title": "The reload countdown gets a clock and a readable size - and still costs the arena nothing",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner, on seeing v2.5.1231: the countdown is too small to read even on a large phone, and it needs a timer ICON rather than a bare progress bar beside it. Both were fair. The number was 0.58rem - SMALLER than the 9.6px NEXT BATTLE label next to it - and the hairline gauge carried no meaning at that size. THE BAR IS GONE AND A CLOCK REPLACES IT. New #ad-clock symbol in the deck sprite, drawn in the same language as every other icon there: no fill, currentColor stroke, 24x24 box. Deliberately NOT #ad-hourglass, which already means CURRENT PHASE further down the same page - this counts something entirely different, namely when the page refreshes itself, and two different facts must not share a mark. Dropping #arena-refresh-gauge is safe rather than lucky: the reload script at the foot of the template already guards its use with `if (gaugeEl)`, so it simply stops painting a bar that is no longer there, and #arena-refresh-timer - the id it cannot do without - is untouched. SIZED AGAINST THE ROW, NOT BY EYE. The countdown is now 12.48px at weight 800 in bronze with a 15px clock beside it, against the NEXT BATTLE label's 9.6px: it is the largest thing in its row instead of the smallest. THE GOLDEN RULE HELD, AND IT IS THE POINT OF THIS ENTRY. The ribbon sits directly above the arena, so a taller row is height taken from the arena - which is exactly how the first attempt at this timer cost 48px. Measured after this change: ribbon 79px with the timer and 79px without it, row 23px with it and 23px without it, both costs zero. The arena's own floor cell measures 373x321, unchanged, and the frozen octagon values are absent from the diff with their guard green. The Next Battle line still sits at 0 off its panel's centre. ONE HONEST LIMIT: the preview pane would not paint this page for a screenshot, so every number above is read from the live DOM of a harness rendering this template against these stylesheets, and none of it is a photograph. Appearance stays his to judge (17.14). 58 tests green.",
+    },
+    {
         "version": "2.5.1231",
         "date": "2026-08-24",
         "commit": "pending",
