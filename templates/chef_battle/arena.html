@@ -137,6 +137,27 @@
   <p id="arena-phase-blurb" class="arena-phase-blurb" aria-live="polite" hidden></p>
 
   {% comment %}
+    THE RELOAD COUNTDOWN BELONGS TO THE STAGES. Owner, 2026-08-24: "этот
+    таймер должен быть там где у нас стадии боя, тут у него смысла нет".
+
+    He is right about the meaning, and the history says why it was in the
+    wrong place. This is the PAGE-RELOAD countdown - it measures when the
+    arena refreshes itself, nothing about any battle. A11 already found it
+    once standing in the reference's battle-clock slot inside the status card
+    and demoted it further down that same card, which fixed the confusion
+    without fixing the location: a number ticking inside ARENA STATUS still
+    reads as a fact about the arena's state.
+
+    Under the lifecycle strip it finally sits next to what it is about - the
+    strip and this line are both "where the page is right now", and the
+    authoritative battle deadline stays alone in the status card with no
+    second clock beside it to be mistaken for.
+
+    IDs are unchanged on purpose: #arena-refresh-timer and #arena-refresh-gauge
+    are read by the reload script at the foot of this template, and the row is
+    still one row rather than two, for the same height reason A11 recorded.
+  {% endcomment %}
+  {% comment %}
     X01 — the departures board (Owner, 2026-08-05: "как табло в аэропорту,
     показывающее следующий вылет"). A sub-line directly under the phase steps,
     because that is where a viewer already looks to find out what the hall is
@@ -155,6 +176,28 @@
     and an empty board says so.
   {% endcomment %}
   <div class="arena-next-board" aria-label="Upcoming battles">
+    {% comment %}
+      THE RELOAD COUNTDOWN RIDES THIS ROW - it does not get one of its own.
+      Owner, 2026-08-24, marking the spot on his own screenshot: it goes at
+      the left of the Next Battle line.
+
+      WHY THAT MATTERS MORE THAN WHERE IT LOOKS: the ribbon sits DIRECTLY
+      ABOVE THE ARENA, so anything that makes the ribbon taller pushes the
+      arena down. Given its own row under the lifecycle strip, this timer grew
+      the ribbon from 79px to 127px - 48px of the arena's room, measured, and
+      exactly the kind of change the arena is not to suffer. Riding an
+      existing row costs zero height, and the guard test asserts that.
+
+      The row is a four-column grid - rail, label, list, rail - so the centred
+      Next Battle line stays centred on the PANEL rather than on the space the
+      timer leaves over. Both rails are minmax(0,1fr) and therefore equal by
+      definition; with a bare 1fr the timer's own width became the left rail's
+      minimum and the line sat 8px off centre, measured.
+    {% endcomment %}
+    <div class="arena-phase-refresh">
+      <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge"></span></div>
+      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">05:00</strong>
+    </div>
     <span class="arena-next-board__label" aria-hidden="true">Next Battle:</span>
     <ol id="arena-upcoming" class="arena-next-board__list">
       {% for battle in upcoming %}
@@ -345,17 +388,6 @@
       <span id="arena-deadline-label">{{ arena_data.deadline.label|default:"Live deadline" }}</span>
       <strong>{% if arena_data.deadline %}{{ arena_data.deadline.seconds_remaining }} seconds remaining{% else %}No active deadline{% endif %}</strong>
     </p>
-    {% comment %}
-      One row, not two: the gauge and its number are the same fact, and the
-      reference panel spends this space on a hairline. Giving the demoted
-      countdown a row of its own made the panel TALLER than before the card,
-      which is the opposite of what A11 asks for — measured 261.3 against 245.6
-      at 1280 before it was folded back together.
-    {% endcomment %}
-    <div class="arena-phase-refresh">
-      <div class="arena-phase-gauge" aria-hidden="true"><span id="arena-refresh-gauge"></span></div>
-      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">05:00</strong>
-    </div>
     <p class="arena-phase-next" id="arena-phase-next"{% if not arena_data.phase %} hidden{% endif %}>Next: <b>
     {% if arena_data.phase and arena_data.phase_rail %}
       {% for rung in arena_data.phase_rail %}

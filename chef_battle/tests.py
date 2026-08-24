@@ -8912,15 +8912,31 @@ class ArenaPhasePanelTests(TestCase):
         card = source.split(
             '<section class="arena-command-deck__phase-card"', 1
         )[1].split("</section>", 1)[0]
-        header = card.split("</header>", 1)[0]
 
         self.assertIn('id="arena-phase-deadline"', card)
-        self.assertLess(
-            card.index('id="arena-phase-deadline"'),
-            card.index('id="arena-refresh-timer"'),
-            "the reload countdown must not precede the authoritative deadline",
+
+        # 2026-08-24, the Owner: "этот таймер должен быть там где у нас стадии
+        # боя, тут у него смысла нет". The reload countdown left this card
+        # entirely and now sits under the lifecycle strip, which is what it
+        # actually reports on. That satisfies this test's original point more
+        # completely than ordering the two clocks did - the status card now
+        # holds ONE clock, and it is the authoritative one.
+        self.assertNotIn('id="arena-refresh-timer"', card)
+
+        # It rides the Next Battle row inside the ribbon, and that placement is
+        # load-bearing rather than decorative: the ribbon sits directly above
+        # the arena, so a row of its own for this timer grew the ribbon 79px ->
+        # 127px and pushed the arena down by 48. Riding an existing row costs
+        # nothing. Asserted by position so it cannot quietly become its own
+        # block again.
+        row_start = source.index('class="arena-next-board"')
+        label = source.index('class="arena-next-board__label"', row_start)
+        timer = source.index('id="arena-refresh-timer"')
+        self.assertTrue(
+            row_start < timer < label,
+            "the reload countdown rides the Next Battle row, above the arena, "
+            "and must not take a row of its own - that costs the arena height",
         )
-        self.assertNotIn('id="arena-refresh-timer"', header)
 
     def test_the_refresh_countdown_is_kept_and_labelled_for_what_it_counts(self):
         """Demoted, not deleted: it still drives the reload the Owner watches by."""
