@@ -8550,3 +8550,211 @@ body.page--arena.is-zoom-locked {
     text-align: center;
   }
 }
+
+/* ============================================================================
+ * DESKTOP SPEAKS THE PHONE'S LANGUAGE. Owner, 2026-08-24.
+ *
+ * "Bring the DESKTOP version as close as possible to the MOBILE version's
+ * visual language ... while keeping the DESKTOP layout format."
+ *
+ * EVERY RULE HERE IS INSIDE min-width:901px, and that is the mechanism rather
+ * than a convention. The brief's first constraint is that the phone must not
+ * change, and a rule that cannot be reached below 901px cannot change it
+ * however wrong the rule turns out to be. Nothing here is declared at top
+ * level, and the block sits at the END of the file with its own explicit
+ * @media - GreenBear's v2.5.1222 pass found stretches of this stylesheet
+ * where the INDENTATION implies a media scope the block does not actually
+ * have, so scope is stated here and never inferred from how it is laid out.
+ *
+ * WHAT WAS ALREADY ONE SYSTEM, measured at 1440 and 375 before a line was
+ * written: the panels (16px radius, 1px hairline, identical shadow and
+ * padding), the pill buttons, the ARENA COMMAND tiles, the chat, the empty
+ * states and the guide link all already match. They are left alone. Matching
+ * things do not need improving, and a rule not written cannot regress.
+ *
+ * THE ARENA CHAT IS FROZEN by the Owner pending his own rebuild, and is not
+ * addressed here at all.
+ *
+ * THE OCTAGON IS NOT TOUCHED, and neither is placeRankSpine(): nothing below
+ * changes any box's size or position. Paint only.
+ * ========================================================================== */
+@media (min-width: 901px) {
+
+  /* ---- 1. THE LIFECYCLE STRIP ------------------------------------------
+     Desktop still wore the pre-2026-08-20 component: seven numbered text
+     pills. The Owner replaced that on the phone with emoji medallions -
+     "instead of dots, emoji or thumbnails showing the current stage by
+     meaning" - and desktop never received it, so the two screens told the
+     same story in two alphabets.
+
+     The glyph map is RE-STATED here rather than lifted to a shared scope on
+     purpose: hoisting it would move a rule the phone depends on OUT of the
+     media query that protects the phone, which is the one thing this brief
+     forbids. Two copies of seven glyphs is the price of that guarantee. */
+  .arena-broadcast-ribbon .arena-phase-step__index {
+    position: relative;
+    min-width: 1.55rem;
+    width: 1.55rem;
+    height: 1.55rem;
+    padding: 0;
+    font-size: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+  }
+  .arena-broadcast-ribbon .arena-phase-step__index::before {
+    font-size: 1.05rem;
+    line-height: 1;
+    opacity: 0.55;
+  }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="challenge"] .arena-phase-step__index::before { content: "\1F91D"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="combat"] .arena-phase-step__index::before { content: "\2694\FE0F"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="biathlon"] .arena-phase-step__index::before { content: "\1F3AF"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="cooking"] .arena-phase-step__index::before { content: "\1F373"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="mod_review"] .arena-phase-step__index::before { content: "\1F50D"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="voting"] .arena-phase-step__index::before { content: "\1F5F3\FE0F"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="crown"] .arena-phase-step__index::before { content: "\1F451"; }
+  /* The stage that is running reads at full colour and full size while the
+     rest stay small and greyed - the phone's own emphasis, not a new one.
+     A STATIC ring, never an animated one: the phone learned that on the
+     Owner's iPhone, and desktop has no reason to relearn it. */
+  .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
+    min-width: 1.8rem;
+    width: 1.8rem;
+    height: 1.8rem;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-bronze) 32%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index::before {
+    opacity: 1;
+    font-size: 1.2rem;
+  }
+
+  /* ---- 2. THE TWO LOWER PILLS ------------------------------------------
+     Measured: Enter Arena 273x79 against Issue a Challenge 242x49. The same
+     pair on the phone is 165x60 and 165x60, because the Owner asked for that
+     equality there - "only the colour of the pills stays different" - and the
+     desktop pair had never heard about it.
+
+     Same two causes as on the phone, and neither is visible in the rule that
+     was supposed to equalise them: min-width defaults to auto on a flex item,
+     so flex:1 1 0 cannot equalise a pill carrying a medallion against one
+     that is not; and the padding was never shared between the two. */
+  .arena-lower-broadcast .arena-lower-actions .arena-lower-actions__primary,
+  .arena-lower-broadcast .arena-lower-actions .arena-lower-actions__secondary {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.62rem 1.1rem;
+    min-height: 3.4rem;
+  }
+  /* Equal width was not enough: measured 257x97 against 257x54. Desktop still
+     laid the primary out as a COLUMN, so its medallion stood ABOVE the text
+     instead of beside it, and the pill was 43px taller than its twin. Row, and
+     the medallion at the size the phone gives it - 2.6rem beside two lines of
+     type is what made the column necessary in the first place. */
+  .arena-lower-broadcast .arena-lower-actions__primary .arena-lower-actions__medallion {
+    width: 1.9rem;
+    height: 1.9rem;
+    flex: 0 0 auto;
+  }
+  .arena-lower-broadcast .arena-lower-actions__primary .arena-lower-actions__medallion .arena-ico {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+  .arena-lower-broadcast .arena-lower-actions__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  /* ---- 3. THE METRIC NUMERALS ------------------------------------------
+     27.2px bronze on desktop against 20px ink on the phone. Ink is the
+     phone's choice and the better one: four bronze numerals in a row compete
+     with the gold the panel headers already spend, and the label above each
+     is what should be carrying the colour. */
+  .arena-command-deck__metrics .arena-metric strong {
+    font-size: 1.45rem;
+    color: var(--ink);
+    letter-spacing: 0;
+  }
+  .arena-command-deck__metrics .arena-metric span {
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* ---- 4. THE RANK LADDER ----------------------------------------------
+     THE ONE THE BRIEF NAMES, AND THE ONE WITH A REAL LIMIT.
+
+     The phone draws eight ivory tiles, 79x150, 11.2px radius, a bronze
+     hairline, the Owner's own emblem art inside each. The desktop ladder is
+     eight flat chips 157x22, square corners, a gold glow - a different
+     component, not a smaller version of the same one.
+
+     WHY THE TILES ARE NOT TRANSPLANTED WHOLE. Measured at 1440: the desktop
+     ladder's slot is 159x220 and it sits INSIDE the octagon's own region, put
+     there by placeRankSpine() against the octagon's geometry. The phone's
+     grid is 339x308. Moving it across needs 180px more width and 88px more
+     height, and every one of those pixels comes out of the octagon. A
+     redesign that quietly eats the arena is not a redesign.
+
+     SO THE SURFACE CROSSES AND THE GEOMETRY DOES NOT. Each chip keeps its
+     exact box and takes the tile's material: ivory ground, bronze hairline,
+     soft radius, the count as a tabular numeral. Same family, same palette,
+     same weight of line, at the size this slot actually has. The emblem art
+     needs a bigger slot than the ladder owns, and enlarging that slot is the
+     Owner's call. */
+  .page--arena .arena-rank-spine__step {
+    border-radius: 0.6rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    box-shadow: none;
+    clip-path: none;
+  }
+  /* NO MARGIN BETWEEN THE CHIPS, and the omission is deliberate. A first pass
+     put 0.22rem here for the tiles' rhythm and the ladder went 220px to 245px
+     - measured - which is 25px more of the octagon's own region covered by an
+     overlay that promised to change paint only. The rhythm is not worth it.
+     Nothing in this block changes a box. */
+  /* The ring number is the tile's own numeral: bronze and tabular, quiet
+     enough that the rank NAME is what the eye reads first. */
+  .page--arena .arena-rank-spine__ring {
+    color: var(--accent-bronze-dark);
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+  }
+  .page--arena .arena-rank-spine__name {
+    color: var(--ink);
+    letter-spacing: 0.06em;
+  }
+  /* The count sits as a plain tabular numeral, the way the phone tile sets
+     its count under the emblem - not as a filled bronze bead, which is what
+     made this chip read as a control rather than a card. */
+  .page--arena .arena-rank-spine__step b {
+    background: none;
+    border: 0;
+    /* --ink-soft, not --muted, and the reason is measured rather than
+       aesthetic. Putting an ivory ground under this chip raised the contrast
+       question that a transparent chip never had to answer: --muted lands at
+       4.83:1 on it, which clears WCAG AA but NOT the 7:1 the product contract
+       records for the rank column. --ink-soft measures 8.24:1 on the same
+       ground and still reads quieter than the rank name beside it (14.32:1),
+       which is the hierarchy this chip wants. */
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+  /* Culinary Master keeps the warmer ground and firmer edge the phone gives
+     it - and NOT a larger box. On the phone that tile was brought back to the
+     same size as the other seven for exactly this reason: the gold is already
+     the emphasis, and a second one reads as uneven. */
+  .page--arena .arena-rank-spine__item[data-ring="1"] .arena-rank-spine__step {
+    border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
+  }
+}
