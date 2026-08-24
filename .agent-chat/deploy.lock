@@ -1,5 +1,0 @@
-agent: bolt
-started_utc: 2026-08-24T00:20
-version: v2.5.1225
-commit: pending
-task: desktop arena audit - dead-class removal + chat rate-limit
