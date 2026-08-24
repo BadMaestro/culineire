@@ -1,0 +1,5 @@
+agent: bolt
+started_utc: 2026-08-24T01:05
+version: v2.5.1228
+commit: pending
+task: mobile arena - alignment, one panel header, chat under the arena, console tile gated
