@@ -4564,16 +4564,41 @@ def arena_chat_feed(request):
         .select_related("speaker", "speaker__user")
         .order_by("id")[:ARENA_CHAT_PAGE]
     )
-    from .models import ArenaSeat
     return JsonResponse({
         "seated": True,
-        # The LIVE number in the chat header. It counts who is IN THE HALL -
-        # seats currently held - not who has the page open somewhere, because
-        # this panel's own claim is about the room it belongs to. One COUNT,
-        # no join, on a query that already carries an index on released_at.
-        "listening": ArenaSeat.objects.filter(released_at__isnull=True).count(),
+        "listening": _arena_hall_headcount(),
         "messages": audible_lines(seat, rows),
     })
+
+
+def _arena_hall_headcount() -> int:
+    """How many people are in the hall right now - the chat header's LIVE number.
+
+    BOTH KINDS OF OCCUPANT, because the hall has two. Spectators hold an
+    ArenaSeat; enrolled chefs never do - they stand in their rank ring, which is
+    exactly what seat_of() encodes - so counting seats alone reported LIVE 0 to a
+    chef who was standing in the room reading it. That was the first thing the
+    Owner would have seen.
+
+    Online is the arena's own existing window (_ARENA_ONLINE_THRESHOLD), not a
+    second definition invented here: a seat whose holder has gone quiet is
+    already treated as lapsed everywhere else.
+    """
+    from .models import ArenaSeat
+
+    cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
+    seated = ArenaSeat.objects.filter(released_at__isnull=True).count()
+    chefs = (
+        ChefBattleProfile.objects
+        .filter(
+            enrolled_at__isnull=False,
+            is_suspended=False,
+            last_seen_at__isnull=False,
+            last_seen_at__gte=cutoff,
+        )
+        .count()
+    )
+    return seated + chefs
 
 
 @require_POST

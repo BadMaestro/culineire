@@ -21658,6 +21658,32 @@ class ArenaChatRoleSemanticsTests(TestCase):
         self.feed_url = reverse("chef_battle:arena_chat_feed")
         self.send_url = reverse("chef_battle:arena_chat_send")
 
+    def test_the_live_count_sees_chefs_as_well_as_spectators(self):
+        """A chef standing in his rank ring is in the hall and must be counted.
+
+        Chefs hold no ArenaSeat - they stand in a rank ring - so counting seats
+        alone reported LIVE 0 to somebody who was in the room reading it.
+        """
+        from chef_battle.services import get_or_create_battle_profile
+
+        self.client.force_login(self.user)
+        spectators_only = self.client.get(self.feed_url).json()["listening"]
+
+        User = get_user_model()
+        chef_user = User.objects.create_user("ringchef", password="pw")
+        chef_author = RecipeAuthor.objects.create(
+            user=chef_user, name="RingChef", slug="ring-chef",
+        )
+        profile = get_or_create_battle_profile(chef_author)
+        ChefBattleProfile.objects.filter(pk=profile.pk).update(
+            enrolled_at=timezone.now(), last_seen_at=timezone.now(),
+        )
+
+        self.assertEqual(
+            self.client.get(self.feed_url).json()["listening"],
+            spectators_only + 1,
+        )
+
     def test_an_ordinary_line_is_public_with_no_role(self):
         self.client.force_login(self.user)
         self.client.post(self.send_url, {"body": "hello"})
