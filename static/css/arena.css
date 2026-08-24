@@ -9231,3 +9231,78 @@ body.page--arena.is-zoom-locked {
     color: var(--accent-bronze-dark);
   }
 }
+
+/* ============================================================================
+ * THE DESKTOP CHAT STOPS LOOKING LIKE AN ERROR STATE. Owner, 2026-08-24:
+ * "GreenBear делает мобильную версию, а ты делаешь десктоп версию - этот чат
+ * у тебя просто распидарасило".
+ *
+ * The division of labour is now explicit: the phone is GreenBear's, the
+ * desktop is mine, and this shared component (one chat, not two - his own
+ * architecture, and correct) needed a desktop-only correction rather than a
+ * change to the file both of us paint from. Everything below is inside
+ * min-width:901px for exactly that reason: the phone must not move.
+ *
+ * TWO CAUSES, BOTH FOUND IN THE CODE, NEITHER GUESSED.
+ * ========================================================================== */
+@media (min-width: 901px) {
+
+  /* CAUSE ONE: every admin message coloured its ENTIRE body red, not just the
+     badge. .arena-chat__marker--admin already carries both a colour AND the
+     word "Admin" - the spec's own rule at line 870 ("never colour alone")
+     is satisfied by the badge alone. Colouring the message text again on top
+     of it was a second signal for the same fact, and it is the one that
+     turned the panel red wall-to-wall the moment the only two people talking
+     happened to both be staff - exactly the screenshot the Owner sent.
+
+     The badge is untouched; the message body returns to the same ink every
+     other line already reads in. */
+  /* --chat-public-text is not what a "normal" line actually shows on screen
+     today - measured on a harness before writing this: an unconditional rule
+     at line 1686 (".arena-chat *, ... { color: inherit }", shared with every
+     other panel, present at every width) beats the base .arena-chat__said
+     rule at equal specificity by coming later in the file, so ordinary
+     public lines render in plain ink, and the bronze token never actually
+     paints. Matched here rather than fought: `inherit` gives the admin body
+     the SAME colour a public line already has, which is the actual goal -
+     looking like every other line - not a colour token that would make it
+     look like a THIRD thing nothing else on the panel currently shows. */
+  .arena-chat__line--admin .arena-chat__said {
+    color: inherit;
+  }
+  /* Private stays as designed - that colour is the ENTIRE point of the DM
+     mode ("an unmistakable mode, not a purple interface", per the comment at
+     line 900), and nothing about it looked like an accident. */
+
+  /* CAUSE TWO: the "more actions" button's own comment names its glyph -
+     U+22EF, MIDLINE HORIZONTAL ELLIPSIS - and the Owner's screenshot shows
+     three short dashes instead. The character is real Unicode set by
+     arena_chat.js; whatever renders it is not painting the raised dots the
+     code asked for.
+
+     Rather than chase which font subset is missing which codepoint, the
+     three dots are drawn directly - the same bulletproof technique used for
+     the phase rail's decorative marks elsewhere in this file, immune to font
+     coverage by construction. The button's own textContent (the ⋯ character)
+     is hidden, not removed, and its aria-label ("Actions for <name>") is
+     untouched - a screen reader was never reading the glyph in the first
+     place, so nothing here changes what it announces. */
+  .arena-chat__more {
+    font-size: 0;
+    position: relative;
+  }
+  .arena-chat__more::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.19rem;
+    height: 0.19rem;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow:
+      calc(-1 * 0.34rem) 0 0 currentColor,
+      0.34rem 0 0 currentColor;
+    transform: translate(-50%, -50%);
+  }
+}
