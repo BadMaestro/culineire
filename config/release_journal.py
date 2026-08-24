@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1258",
+        "date": "2026-08-24",
+        "commit": "reverted",
+        "title": "REVERTED - the desktop chat fix broke live rendering; rolled back on the Owner's word, cause not yet found",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner sent a screenshot of the live chat after v2.5.1258 shipped and it was visibly wrong - not the red-text/dash fix that was intended, but a scrambled row: an ADMIN badge, then a small circle, then message text, with the chef's NAME missing from the row entirely, and a bare letter in place of a name on at least one line. That is not what the shipped diff describes doing (a colour change and a box-shadow replacement for one glyph), and the harness measurements taken before shipping did not show anything like it - which means either the harness missed a real interaction, or something about live conditions (real avatar images, a longer name, a JS code path not exercised by the synthetic test line) triggers a failure the synthetic test didn't. Rather than debug this live, it is reverted outright: git revert 0dd08fb1, clean, 3 files, back to the exact v2.5.1256 state with a fresh version number on top. The two real defects v2.5.1258 was trying to fix - admin messages entirely red, and the more-actions button showing three dashes instead of its intended dots - are back, and are still real; they are simply not fixed by this commit any more, pending a correct diagnosis before the next attempt.",
+    },
+    {
         "version": "2.5.1246",
         "date": "2026-08-24",
         "commit": "pending",
