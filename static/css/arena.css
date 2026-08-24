@@ -752,7 +752,19 @@
  * missing from any of them has no box and nowhere to stand (X01, v2.5.822).
  * The floor's area is unchanged: it spans the left column's rows as it always
  * did, so A07 - the arena fits the screen whole - is not disturbed. */
+/* SEMANTIC CHAT TOKENS (Owner's chat spec, 2026-08-24). Colour carries
+   meaning here, so the meaning gets a name and the name is declared once.
+   Precedence is ADMIN > PRIVATE > PUBLIC and it is decided on the SERVER -
+   these are only how each answer looks.
+
+   The gold is the spec's #A87424 expressed against this page's own ink so it
+   stays legible on the cream panel; it is deliberately NOT the bright
+   #FFD700 the spec rules out. */
 .arena-chat {
+  --chat-public-text: #a87424;
+  --chat-private-text: #7652c8;
+  --chat-admin-text: #c43d35;
+
   grid-area: chat;
   display: flex;
   min-height: 0;                 /* or the log cannot scroll inside the panel */
@@ -760,6 +772,13 @@
   gap: .45rem;
   padding: .7rem .8rem .75rem;
   border-radius: 1rem;
+  /* THE COMPONENT MEASURES ITSELF, NOT THE WINDOW. The same chat sits in a
+     narrow phone column and a wide desktop rail, and it is its own width that
+     decides which it should look like - not the viewport, which says nothing
+     about the box this panel was actually given. That is what lets one
+     component serve both without a second implementation. */
+  container-type: inline-size;
+  container-name: arena-chat;
 }
 .arena-chat__live {
   flex: 0 0 auto;
@@ -779,6 +798,12 @@
   border-radius: 50%;
   background: var(--arena-gold);
 }
+.arena-chat__listening {
+  margin-left: .3rem;
+  font-variant-numeric: tabular-nums;
+  opacity: .8;
+}
+.arena-chat__listening[hidden] { display: none; }
 .arena-chat__log {
   flex: 1 1 auto;
   /* NOT a minimum. The composer is the one thing in this panel that must always
@@ -808,10 +833,89 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  align-items: baseline;
+  gap: .22rem;
+  min-width: 0;
 }
+/* The identity reads [IRL][GOD]GreenBear. The brackets are DRAWN, not typed:
+   the element's text is the bare tag, so a screen reader says "IRL" and a copy
+   yields "IRL", while the eye still gets the bracket form the Owner specified. */
+.arena-chat__tag {
+  flex: 0 0 auto;
+  max-width: 5.5em;
+  overflow: hidden;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.arena-chat__tag::before { content: "["; opacity: .55; }
+.arena-chat__tag::after  { content: "]"; opacity: .55; }
+.arena-chat__tag--alliance { color: var(--arena-cappuccino); }
+.arena-chat__tag--clan     { color: var(--arena-gold); }
+/* The name may be squeezed by a long tag pair; the tags may not be squeezed by
+   a long name. A truncated tag is a different team. */
+.arena-chat__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Never colour alone (spec section 7): every coloured state also carries a word. */
+.arena-chat__marker {
+  flex: 0 0 auto;
+  padding: 0 .28rem;
+  border-radius: 999px;
+  font-size: .52rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+.arena-chat__marker--admin {
+  color: var(--chat-admin-text);
+  border: 1px solid color-mix(in srgb, var(--chat-admin-text) 45%, transparent);
+  background: color-mix(in srgb, var(--chat-admin-text) 8%, transparent);
+}
+.arena-chat__marker--private {
+  color: var(--chat-private-text);
+  border: 1px solid color-mix(in srgb, var(--chat-private-text) 45%, transparent);
+  background: color-mix(in srgb, var(--chat-private-text) 8%, transparent);
+}
+/* PUBLIC is the default body colour; ADMIN and PRIVATE override it, in that
+   order of strength, matching the server's own precedence. */
 .arena-chat__said {
-  color: var(--arena-ink);
+  color: var(--chat-public-text);
   overflow-wrap: anywhere;
+}
+.arena-chat__line--private .arena-chat__said { color: var(--chat-private-text); }
+.arena-chat__line--admin   .arena-chat__said { color: var(--chat-admin-text); }
+
+/* ONE COMPONENT, TWO PRESENTATIONS, NO SECOND IMPLEMENTATION.
+   These ask the panel how wide IT is, not how wide the window is - the same
+   markup and the same script serve a phone column and a desktop rail, and only
+   the spacing changes. A viewport query could not answer this: the desktop rail
+   is narrower than the phone's full-bleed column, so width-of-window is the
+   wrong question in both directions. */
+@container arena-chat (max-width: 22rem) {
+  .arena-chat__line {
+    font-size: .7rem;
+    gap: .02rem;
+  }
+  /* Tap targets before density: a finger needs the row, a cursor does not. */
+  .arena-chat__log { gap: .5rem; }
+}
+@container arena-chat (min-width: 22.01rem) {
+  .arena-chat__line {
+    /* Wider box, denser reading: the name and the words share a line instead
+       of stacking, which is the presentation the desktop composition wants. */
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: .4rem;
+  }
+  .arena-chat__who { max-width: 11rem; }
 }
 /* Too far away to hear. The speaker is visibly talking and that is all this
    reader is entitled to know. */

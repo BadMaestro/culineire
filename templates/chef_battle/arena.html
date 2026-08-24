@@ -472,7 +472,11 @@
            data-send-url="{% url 'chef_battle:arena_chat_send' %}">
     <header class="arena-panel__title">
       <h2 class="arena-panel__kicker">Spectator chat</h2>
-      <span class="arena-chat__live" id="arena-chat-live" hidden>Live</span>
+      {# "SPECTATOR CHAT * LIVE 256". The count is its own element, written by
+         arena_chat.js from the feed, so the badge still reads as the single
+         word LIVE when the server sends no number. #}
+      <span class="arena-chat__live" id="arena-chat-live" hidden>Live<span
+        class="arena-chat__listening" id="arena-chat-listening" hidden></span></span>
     </header>
 
     <ol class="arena-chat__log" id="arena-chat-log" aria-live="polite">

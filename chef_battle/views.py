@@ -4558,11 +4558,20 @@ def arena_chat_feed(request):
     rows = list(
         ArenaChatMessage.objects
         .filter(id__gt=since, is_hidden=False)
-        .select_related("speaker")
+        # speaker__user because the role that colours a line (admin vs ordinary)
+        # is read off the speaker's user account, and a feed page is up to
+        # ARENA_CHAT_PAGE rows - one query, not sixty.
+        .select_related("speaker", "speaker__user")
         .order_by("id")[:ARENA_CHAT_PAGE]
     )
+    from .models import ArenaSeat
     return JsonResponse({
         "seated": True,
+        # The LIVE number in the chat header. It counts who is IN THE HALL -
+        # seats currently held - not who has the page open somewhere, because
+        # this panel's own claim is about the room it belongs to. One COUNT,
+        # no join, on a query that already carries an index on released_at.
+        "listening": ArenaSeat.objects.filter(released_at__isnull=True).count(),
         "messages": audible_lines(seat, rows),
     })
 

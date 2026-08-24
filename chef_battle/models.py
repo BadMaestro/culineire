@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
@@ -2129,6 +2130,26 @@ class SeasonReward(models.Model):
         return f"SeasonReward {self.chef} / {self.faction} / {self.season}"
 
 
+# THE TAG IS THE TEAM'S NAME IN A CHAT LINE. Owner, 2026-08-24: chat identity
+# reads `[IRL][GOD]GreenBear` - alliance tag, then clan tag, then the username.
+# Neither model carried anything short enough to print there: `name` is up to
+# eighty characters and `slug` is a URL, not a badge. So the tag is a real
+# field, entered once by whoever creates the team, rather than a prefix sliced
+# off the name at render time - a slice collides ("Fusion" and "Fusion Reborn"
+# both give FUS), cannot be corrected without renaming the team, and would put
+# a display accident into a permanent identity.
+#
+# It is NEVER concatenated into a username or into a message body (the chat
+# spec's own rule): the three values travel separately and the renderer builds
+# the badge. That way a chef who leaves a clan stops wearing its tag with no
+# rewrite of anything already said.
+_TEAM_TAG_VALIDATOR = RegexValidator(
+    r"^[A-Z0-9]{2,5}$",
+    "A tag is 2-5 characters, capitals and digits only - it has to fit a chat "
+    "line on a phone.",
+)
+
+
 # ── Clans & Alliances (Phase 6) ──────────────────────────────────────────────
 # A clan is the real *team* unit (distinct from a Faction, which is a category).
 # See docs/chef_battle/clans_alliances_rules.md (canonical) + clans_design.md.
@@ -2151,6 +2172,13 @@ class Clan(models.Model):
     founder = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="founded_clans")
     name = models.CharField(max_length=80)
     slug = models.SlugField(max_length=80, unique=True)
+    # Blank, not null: every clan predating 2026-08-24 has none, and a chef in a
+    # tagless clan simply wears no clan badge. Unique only among the clans that
+    # HAVE one, so blanks never collide with each other.
+    tag = models.CharField(
+        max_length=5, blank=True, default="", validators=[_TEAM_TAG_VALIDATOR],
+        help_text="Short badge shown in chat, e.g. GOD. 2-5 capitals or digits.",
+    )
     crest_icon = models.CharField(max_length=8, blank=True)  # emoji crest
     categories = models.ManyToManyField(Faction, related_name="clans", blank=True)
     moderation_status = models.CharField(
@@ -2161,6 +2189,25 @@ class Clan(models.Model):
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            # Partial, so the blanks carried by every pre-2026-08-24 clan do not
+            # all collide with each other on the way in.
+            models.UniqueConstraint(
+                fields=["tag"],
+                condition=~models.Q(tag=""),
+                name="unique_clan_tag_when_set",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        # Uppercased HERE rather than trusted from the form: the admin, a
+        # management command and a future API all reach this and only one of
+        # them is a form. The validator demands capitals, so normalising first
+        # is what stops "god" being rejected as invalid instead of accepted as
+        # GOD.
+        if self.tag:
+            self.tag = self.tag.strip().upper()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -2205,11 +2252,28 @@ class Alliance(models.Model):
 
     name = models.CharField(max_length=80)
     slug = models.SlugField(max_length=80, unique=True)
+    # Same rules as Clan.tag above, for the same reason - see the note there.
+    tag = models.CharField(
+        max_length=5, blank=True, default="", validators=[_TEAM_TAG_VALIDATOR],
+        help_text="Short badge shown in chat, e.g. IRL. 2-5 capitals or digits.",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tag"],
+                condition=~models.Q(tag=""),
+                name="unique_alliance_tag_when_set",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.tag:
+            self.tag = self.tag.strip().upper()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

@@ -180,6 +180,7 @@ def clan_create(request):
                 request.POST.get("name", ""),
                 request.POST.get("crest_icon", ""),
                 request.POST.getlist("categories"),
+                tag=request.POST.get("tag", ""),
             )
             messages.success(
                 request,
@@ -200,6 +201,8 @@ def clan_create(request):
             "error": error,
             "submitted_name": request.POST.get("name", ""),
             "submitted_crest": request.POST.get("crest_icon", ""),
+            # Handed back so a rejected form does not make the founder retype it.
+            "submitted_tag": request.POST.get("tag", ""),
             "submitted_categories": [int(i) for i in request.POST.getlist("categories") if i.isdigit()],
         },
     )

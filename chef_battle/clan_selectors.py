@@ -13,6 +13,8 @@ Owner-delegated rules (design doc docs/chef_battle/clans_design.md):
 """
 from __future__ import annotations
 
+import re
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q, Sum
@@ -211,7 +213,8 @@ def _unique_slug(name: str) -> str:
 
 
 @transaction.atomic
-def create_clan(founder, name: str, crest_icon: str, category_ids: list) -> Clan:
+def create_clan(founder, name: str, crest_icon: str, category_ids: list,
+                tag: str = "") -> Clan:
     """Found a clan (moderation: pending) and seat the founder as its first
     active member. Enforces the one-active-clan-per-chef rule and the 1..3
     (never all) category rule."""
@@ -233,10 +236,24 @@ def create_clan(founder, name: str, crest_icon: str, category_ids: list) -> Clan
     if len(categories) >= total_available:
         raise ValidationError("A clan cannot select every available category.")
 
+    # The chat badge. Optional - a clan without one simply wears none - but a
+    # tag that IS given is checked here rather than left to the database, so the
+    # founder is told what is wrong instead of meeting an IntegrityError.
+    tag = (tag or "").strip().upper()
+    if tag:
+        if not re.fullmatch(r"[A-Z0-9]{2,5}", tag):
+            raise ValidationError(
+                "A clan tag is 2-5 characters, letters and digits only - it has "
+                "to fit a chat line on a phone."
+            )
+        if Clan.objects.filter(tag=tag).exists():
+            raise ValidationError(f"The tag {tag} is already taken by another clan.")
+
     clan = Clan.objects.create(
         founder=founder,
         name=name,
         slug=_unique_slug(name),
+        tag=tag,
         crest_icon=(crest_icon or "").strip()[:8],
         moderation_status=Clan.Moderation.PENDING,
         is_active=True,

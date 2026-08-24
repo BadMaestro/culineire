@@ -172,7 +172,59 @@ def seat_of(author) -> tuple[int, int] | None:
     )
 
 
-def audible_lines(listener_seat, messages) -> list[dict]:
+def team_tags_for(author_ids) -> dict[int, dict]:
+    """`{author_id: {"clan_tag": .., "alliance_tag": ..}}` for these authors.
+
+    THE TAGS ARE RESOLVED, NEVER SNAPSHOTTED. A chat line stores who spoke and
+    what they said; what team they belong to is answered from the membership
+    tables at read time. A chef who leaves a clan stops wearing its badge on
+    every line at once, including the ones already on screen, and nobody has to
+    rewrite history to make that true.
+
+    The chain is the existing one, with its own uniqueness already enforced by
+    the membership models: author -> ACTIVE ClanMembership -> Clan -> ACTIVE
+    AllianceMembership -> Alliance. A membership that is pending, or one a chef
+    has left, is not an identity and is not read here.
+
+    One query for clans and one for alliances regardless of how many lines the
+    feed carries - this runs on every poll, so it does not get to be N+1.
+    """
+    from chef_battle.models import AllianceMembership, ClanMembership
+
+    author_ids = {aid for aid in author_ids if aid}
+    if not author_ids:
+        return {}
+
+    clan_rows = (
+        ClanMembership.objects
+        .filter(chef_id__in=author_ids, status=ClanMembership.Status.ACTIVE)
+        .values_list("chef_id", "clan_id", "clan__tag")
+    )
+    by_author = {}
+    clan_ids = set()
+    for chef_id, clan_id, clan_tag in clan_rows:
+        by_author[chef_id] = {"clan_id": clan_id, "clan_tag": clan_tag or ""}
+        clan_ids.add(clan_id)
+
+    alliance_tag_by_clan = {}
+    if clan_ids:
+        alliance_tag_by_clan = {
+            clan_id: (tag or "")
+            for clan_id, tag in AllianceMembership.objects
+            .filter(clan_id__in=clan_ids, left_at__isnull=True)
+            .values_list("clan_id", "alliance__tag")
+        }
+
+    return {
+        chef_id: {
+            "clan_tag": row["clan_tag"],
+            "alliance_tag": alliance_tag_by_clan.get(row["clan_id"], ""),
+        }
+        for chef_id, row in by_author.items()
+    }
+
+
+def audible_lines(listener_seat, messages, tags_by_author=None) -> list[dict]:
     """The feed as ONE listener may read it.
 
     Out of range the words are not included at all. The line still appears --
@@ -184,15 +236,43 @@ def audible_lines(listener_seat, messages) -> list[dict]:
     if listener_seat is None:
         return []
     listener_ring, listener_cell = listener_seat
+    if tags_by_author is None:
+        tags_by_author = team_tags_for({m.speaker_id for m in messages})
     out = []
     for message in messages:
-        heard = can_hear(
+        # THE ROLE IS DECIDED HERE, ON THE SERVER. The client is told what a
+        # line IS; it never gets to say what it is. A browser that posts
+        # {"role": "admin"} changes nothing, because nothing downstream reads a
+        # role from the client - the renderer colours what this field says.
+        speaker_user = getattr(message.speaker, "user", None)
+        is_admin = bool(
+            speaker_user is not None
+            and (speaker_user.is_superuser or speaker_user.is_staff)
+        )
+        # AN ANNOUNCEMENT THE NEIGHBOURS ALONE CAN HEAR IS NOT AN ANNOUNCEMENT.
+        # Reach is the rule for people talking among themselves in the stands;
+        # an Admin speaking to the hall is not doing that. Owner kept reach for
+        # ordinary chat (2026-08-24) and this is the one exception it needs to
+        # stay useful. Direct messages will bypass it too, for the same reason:
+        # they are not spoken across a room at all.
+        heard = is_admin or can_hear(
             message.ring_index, message.seat_index, listener_ring, listener_cell,
         )
+        tags = tags_by_author.get(message.speaker_id) or {}
         row = {
             "id": message.id,
             "name": message.display_name,
             "slug": message.speaker.slug,
+            # Three separate values, never one pre-joined string: the badge is
+            # the renderer's job, and an empty tag must vanish rather than
+            # print as "[]".
+            "clan_tag": tags.get("clan_tag", ""),
+            "alliance_tag": tags.get("alliance_tag", ""),
+            # ADMIN > PRIVATE > PUBLIC. Only the first and last exist yet;
+            # "private" arrives with direct messages and slots in between
+            # without the renderer changing shape.
+            "role": "admin" if is_admin else "",
+            "channel": "public",
             "ring": message.ring_index,
             "cell": message.seat_index,
             "heard": heard,

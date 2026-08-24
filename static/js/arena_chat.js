@@ -47,14 +47,59 @@
     return log.scrollHeight - log.scrollTop - log.clientHeight < 40;
   }
 
+  /* One tag badge, or nothing at all.
+   *
+   * Nothing is the point: an absent tag must vanish, never print as "[]". The
+   * brackets are drawn in CSS (::before/::after) rather than written into the
+   * text, so the badge reads as `[IRL]` to a person and as `IRL` to a screen
+   * reader and to anyone copying the line. */
+  function tagBadge(value, kind) {
+    if (!value) { return null; }
+    var badge = document.createElement('span');
+    badge.className = 'arena-chat__tag arena-chat__tag--' + kind;
+    badge.textContent = value;
+    return badge;
+  }
+
+  /* A role or channel marker - ADMIN, PRIVATE - so meaning never rides on
+   * colour alone. Colour says it faster; this says it at all. */
+  function marker(text, kind) {
+    var el = document.createElement('span');
+    el.className = 'arena-chat__marker arena-chat__marker--' + kind;
+    el.textContent = text;
+    return el;
+  }
+
   function append(line) {
     var item = document.createElement('li');
-    item.className = 'arena-chat__line' + (line.heard ? '' : ' arena-chat__line--distant');
+    // The class carries the SERVER's answer for what this line is. The client
+    // never decides that a line is admin or private; it is told.
+    var cls = 'arena-chat__line';
+    if (!line.heard) { cls += ' arena-chat__line--distant'; }
+    if (line.role === 'admin') {
+      cls += ' arena-chat__line--admin';
+    } else if (line.channel === 'private') {
+      cls += ' arena-chat__line--private';
+    }
+    item.className = cls;
     item.setAttribute('data-id', line.id);
 
     var who = document.createElement('span');
     who.className = 'arena-chat__who';
-    who.textContent = line.name;
+
+    // Alliance, then clan, then the name. The order is the identity.
+    var alliance = tagBadge(line.alliance_tag, 'alliance');
+    if (alliance) { who.appendChild(alliance); }
+    var clan = tagBadge(line.clan_tag, 'clan');
+    if (clan) { who.appendChild(clan); }
+
+    var name = document.createElement('span');
+    name.className = 'arena-chat__name';
+    name.textContent = line.name;
+    who.appendChild(name);
+
+    if (line.role === 'admin') { who.appendChild(marker('Admin', 'admin')); }
+    if (line.channel === 'private') { who.appendChild(marker('Private', 'private')); }
 
     var said = document.createElement('span');
     if (line.heard) {
@@ -95,6 +140,23 @@
     }
   }
 
+  /* The number beside LIVE: how many people are actually in the hall.
+   *
+   * Written into its own element, never into the badge's own text, so "LIVE"
+   * stays a word a screen reader can read on its own and the count can vanish
+   * (server says nothing) without taking the badge with it. */
+  function showListening(count) {
+    var el = document.getElementById('arena-chat-listening');
+    if (!el) { return; }
+    if (typeof count !== 'number' || count < 0) {
+      el.hidden = true;
+      el.textContent = '';
+      return;
+    }
+    el.hidden = false;
+    el.textContent = String(count);
+  }
+
   function poll() {
     if (busy) { return; }
     busy = true;
@@ -105,6 +167,7 @@
       .then(function (response) { return response.json(); })
       .then(function (data) {
         seatMe(!!data.seated);
+        showListening(data.listening);
         absorb(data.messages);
       })
       .catch(function () { /* one dropped tick is not a failure; try the next */ })

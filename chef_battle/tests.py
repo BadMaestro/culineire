@@ -21519,6 +21519,207 @@ class ArenaChatEndpointTests(TestCase):
             )
 
 
+def _seat_a_viewer(user_name, author_name, slug):
+    """Create a viewer and seat them the way arena_take_seat actually does.
+
+    The seat alone is not enough. claim_seat purges "lapsed" seats first, and
+    lapsed means the holder has no ChefBattleProfile inside the online window -
+    so an author seated without a profile loses that seat the moment anybody
+    else claims one, and the feed then honestly reports them as not in the hall.
+    The real endpoint creates the profile and stamps last_seen_at before
+    claiming, which is what this mirrors; a test that skipped it would be
+    testing a state production never produces.
+    """
+    from chef_battle.arena_seating import claim_seat
+    from chef_battle.services import get_or_create_battle_profile
+
+    User = get_user_model()
+    user = User.objects.create_user(user_name, password="pw")
+    author = RecipeAuthor.objects.create(user=user, name=author_name, slug=slug)
+    profile = get_or_create_battle_profile(author)
+    ChefBattleProfile.objects.filter(pk=profile.pk).update(last_seen_at=timezone.now())
+    seat = claim_seat(author)
+    return user, author, seat
+
+
+class ArenaChatIdentityTests(TestCase):
+    """`[Alliance][Clan]Username`, resolved server-side and never stored joined.
+
+    The Owner's chat spec is explicit that the three values stay separate in the
+    data model: the display identity is built by the presentation layer, so a
+    chef who leaves a clan stops wearing its tag on every line at once,
+    including lines already written.
+    """
+
+    def setUp(self):
+        self.user, self.author, _ = _seat_a_viewer(
+            "speaker", "GreenBearTest", "greenbear-test",
+        )
+        self.feed_url = reverse("chef_battle:arena_chat_feed")
+        self.send_url = reverse("chef_battle:arena_chat_send")
+
+    def _line(self):
+        self.client.force_login(self.user)
+        self.client.post(self.send_url, {"body": "that sear was perfect"})
+        return self.client.get(self.feed_url).json()["messages"][0]
+
+    def _join_clan(self, *, clan_tag, alliance_tag=None):
+        from chef_battle.models import (
+            Alliance, AllianceMembership, Clan, ClanMembership,
+        )
+
+        clan = Clan.objects.create(
+            founder=self.author, name="Test Clan", slug="test-clan", tag=clan_tag,
+        )
+        ClanMembership.objects.create(
+            clan=clan, chef=self.author, status=ClanMembership.Status.ACTIVE,
+        )
+        if alliance_tag is not None:
+            alliance = Alliance.objects.create(
+                name="Test Alliance", slug="test-alliance", tag=alliance_tag,
+            )
+            AllianceMembership.objects.create(alliance=alliance, clan=clan)
+        return clan
+
+    def test_both_tags_are_carried_separately_from_the_name(self):
+        self._join_clan(clan_tag="GOD", alliance_tag="IRL")
+        line = self._line()
+        self.assertEqual(line["alliance_tag"], "IRL")
+        self.assertEqual(line["clan_tag"], "GOD")
+        self.assertEqual(line["name"], "GreenBearTest")
+        # The joined form is the RENDERER's, never the stored one.
+        self.assertNotIn("[IRL]", line["name"])
+        self.assertNotIn("[GOD]", line["body"])
+
+    def test_a_clan_with_no_alliance_shows_only_the_clan_tag(self):
+        self._join_clan(clan_tag="GOD")
+        line = self._line()
+        self.assertEqual(line["clan_tag"], "GOD")
+        self.assertEqual(line["alliance_tag"], "")
+
+    def test_a_chef_in_no_team_carries_empty_tags_not_brackets(self):
+        line = self._line()
+        self.assertEqual(line["clan_tag"], "")
+        self.assertEqual(line["alliance_tag"], "")
+
+    def test_a_pending_membership_is_not_an_identity(self):
+        """Requested is not joined. A pending member wears nobody's tag."""
+        from chef_battle.models import Clan, ClanMembership
+
+        clan = Clan.objects.create(
+            founder=self.author, name="Pending Clan", slug="pending-clan", tag="PEN",
+        )
+        ClanMembership.objects.create(
+            clan=clan, chef=self.author, status=ClanMembership.Status.PENDING,
+        )
+        self.assertEqual(self._line()["clan_tag"], "")
+
+    def test_a_tag_is_stored_uppercase_whatever_case_it_arrives_in(self):
+        from chef_battle.models import Clan
+
+        clan = Clan.objects.create(
+            founder=self.author, name="Lower", slug="lower-clan", tag="god",
+        )
+        clan.refresh_from_db()
+        self.assertEqual(clan.tag, "GOD")
+
+    def test_two_clans_cannot_hold_the_same_tag(self):
+        from django.db import IntegrityError, transaction
+        from chef_battle.models import Clan
+
+        Clan.objects.create(
+            founder=self.author, name="First", slug="first-clan", tag="DUP",
+        )
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Clan.objects.create(
+                    founder=self.author, name="Second", slug="second-clan", tag="DUP",
+                )
+
+    def test_untagged_clans_do_not_collide_with_each_other(self):
+        """Every clan predating tags carries "", and blanks must not clash."""
+        from chef_battle.models import Clan
+
+        Clan.objects.create(founder=self.author, name="A", slug="clan-a")
+        Clan.objects.create(founder=self.author, name="B", slug="clan-b")
+        self.assertEqual(Clan.objects.filter(tag="").count(), 2)
+
+
+class ArenaChatRoleSemanticsTests(TestCase):
+    """Colour carries meaning, so the meaning is decided on the SERVER.
+
+    The client is told what a line IS. It never says so: a browser posting
+    {"role": "admin"} changes nothing, because nothing downstream reads a role
+    from the client.
+    """
+
+    def setUp(self):
+        self.user, self.author, _ = _seat_a_viewer("plain", "Plain", "plain-chef")
+        self.feed_url = reverse("chef_battle:arena_chat_feed")
+        self.send_url = reverse("chef_battle:arena_chat_send")
+
+    def test_an_ordinary_line_is_public_with_no_role(self):
+        self.client.force_login(self.user)
+        self.client.post(self.send_url, {"body": "hello"})
+        line = self.client.get(self.feed_url).json()["messages"][0]
+        self.assertEqual(line["role"], "")
+        self.assertEqual(line["channel"], "public")
+
+    def test_a_staff_line_is_marked_admin_by_the_server(self):
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+        self.client.force_login(self.user)
+        self.client.post(self.send_url, {"body": "keep it respectful"})
+        line = self.client.get(self.feed_url).json()["messages"][0]
+        self.assertEqual(line["role"], "admin")
+
+    def test_a_client_cannot_promote_its_own_line_to_admin(self):
+        """The security property behind the colour: role is not an input."""
+        self.client.force_login(self.user)
+        self.client.post(self.send_url, {
+            "body": "pretending", "role": "admin", "channel": "private",
+        })
+        line = self.client.get(self.feed_url).json()["messages"][0]
+        self.assertEqual(line["role"], "")
+        self.assertEqual(line["channel"], "public")
+
+    def test_an_admin_is_heard_across_the_hall(self):
+        """An announcement only the neighbours can hear is not an announcement.
+
+        Ordinary speech keeps the Owner's seat-based reach; this is the one
+        exception it needs in order to stay useful.
+        """
+        from chef_battle.models import ArenaChatMessage
+
+        admin_user, admin_author, _ = _seat_a_viewer("boss", "Boss", "boss-chef")
+        admin_user.is_staff = True
+        admin_user.save(update_fields=["is_staff"])
+        # Said from the far side of the hall, well outside earshot.
+        ArenaChatMessage.objects.create(
+            speaker=admin_author, display_name="Boss",
+            body="please keep the arena respectful",
+            ring_index=9, seat_index=40,
+        )
+        self.client.force_login(self.user)
+        line = self.client.get(self.feed_url).json()["messages"][-1]
+        self.assertTrue(line["heard"])
+        self.assertEqual(line["body"], "please keep the arena respectful")
+
+    def test_a_distant_ordinary_line_still_carries_no_words(self):
+        """The reach itself is untouched by any of the above."""
+        from chef_battle.models import ArenaChatMessage
+
+        _far_user, far_author, _ = _seat_a_viewer("far", "Far", "far-chef")
+        ArenaChatMessage.objects.create(
+            speaker=far_author, display_name="Far", body="a secret",
+            ring_index=9, seat_index=40,
+        )
+        self.client.force_login(self.user)
+        line = self.client.get(self.feed_url).json()["messages"][-1]
+        self.assertFalse(line["heard"])
+        self.assertNotIn("body", line)
+
+
 class MasterConsoleTileIsOfferedOnlyToWhoMayOpenItTests(TestCase):
     """The console tile matches the console door.
 
