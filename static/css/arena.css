@@ -2335,7 +2335,7 @@
     margin: 0;
     color: var(--accent-bronze-dark);
   }
-  .arena-broadcast-ribbon .arena-command-deck__live-note {
+  .arena-command-deck__phase-card .arena-command-deck__live-note {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -2344,7 +2344,7 @@
     letter-spacing: 0.02em;
     color: var(--muted);
   }
-  .arena-broadcast-ribbon .arena-command-deck__live-note::before {
+  .arena-command-deck__phase-card .arena-command-deck__live-note::before {
     content: "";
     width: 0.38rem;
     height: 0.38rem;
@@ -3195,7 +3195,7 @@
     min-height: 3.55rem;
     padding: 0.38rem 1.2rem 0.45rem;
   }
-  .arena-broadcast-ribbon .arena-command-deck__live-note {
+  .arena-command-deck__phase-card .arena-command-deck__live-note {
     font-size: 0.52rem;
   }
 
@@ -3658,11 +3658,11 @@
 
 /* 3G — live marker pulse + panel kicker rail (composition only). */
 
-  .arena-broadcast-ribbon .arena-command-deck__live-note.is-live {
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live {
     border: 1px solid color-mix(in srgb, var(--hall-red) 45%, transparent);
     background: color-mix(in srgb, var(--hall-red) 12%, var(--surface));
   }
-  .arena-broadcast-ribbon .arena-command-deck__live-note.is-live::before {
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live::before {
     background: var(--hall-red);
     box-shadow: 0 0 0.55rem color-mix(in srgb, var(--hall-red) 70%, transparent);
   }
@@ -3670,7 +3670,7 @@
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.55; transform: scale(0.85); }
   }
-  .arena-broadcast-ribbon .arena-command-deck__live-note.is-live::before {
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live::before {
     animation: arena-live-pulse 1.6s ease-in-out infinite;
   }
   .arena-panel__title .arena-ico,
@@ -3683,7 +3683,7 @@
   }
 
 @media (prefers-reduced-motion: reduce) {
-  .arena-broadcast-ribbon .arena-command-deck__live-note.is-live::before {
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live::before {
     animation: none;
   }
 }
@@ -3987,7 +3987,7 @@
         color-mix(in srgb, var(--ink) 28%, transparent)
       );
   }
-  .arena-broadcast-ribbon .arena-command-deck__live-note.is-live {
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live {
     color: var(--accent-bronze);
     font-weight: 800;
     letter-spacing: 0.12em;

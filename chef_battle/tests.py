@@ -13943,6 +13943,26 @@ class ArenaAmbientAtmosphereTests(TestCase):
         )
         self.assertTrue(found, "the header live dot has no reduced-motion block")
 
+        # AND THE SELECTOR CAN ACTUALLY MATCH. Added 2026-08-24 after a desktop
+        # audit found this dot had not rendered since 2026-08-19: it was scoped
+        # to `.arena-cooking-widget`, the card the Owner deleted that day, and
+        # the assertions above kept passing because they match text in a FILE,
+        # which a deleted ancestor does not change. Every class the selector
+        # leans on must still be one the template emits.
+        template = self._html()
+        for line in css.split("\n"):
+            if "#arena-live-note.is-live::after" not in line:
+                continue
+            for ancestor in re.findall(r"\.([a-z0-9_-]+)", line):
+                if ancestor.startswith("page--"):
+                    continue  # body class, not in this template's own markup
+                self.assertIn(
+                    ancestor,
+                    template,
+                    f"the live dot is scoped to .{ancestor}, which no template "
+                    f"renders - the dot is dead however green this test looks.",
+                )
+
     def test_ticker_spans_keep_their_ids_so_arena_deck_js_is_unaffected(self):
         html = self._html()
         for span_id in (

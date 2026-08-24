@@ -822,7 +822,6 @@
   --arena-widget-shadow: 0 16px 36px color-mix(in srgb, var(--ink) 16%, transparent);
 }
 
-.page--arena .arena-cooking-widget,
 .page--arena .arena-command-deck__phase-card,
 .page--arena .arena-command-deck__ladder,
 .page--arena .arena-command-deck__metrics,
@@ -1007,11 +1006,18 @@
   }
 }
 
-/* ── K. "Live Now" dot blinks in the cooking-widget header (G6). The header
-   copy's ::before is already spoken for as a text separator (" · ", arena.css
-   line ~5013), so this uses ::after instead - free on this element and an ID
-   selector, which does not fight that class-selector rule for the cascade. ── */
-.page--arena .arena-cooking-widget #arena-live-note.is-live::after {
+/* ── K. "Live Now" dot blinks in the ARENA STATUS card header (G6). The header
+   copy's ::before is already spoken for as a text separator (" · "), so this
+   uses ::after instead - free on this element and an ID selector, which does
+   not fight that class-selector rule for the cascade.
+
+   RE-POINTED 2026-08-24, desktop audit. This was scoped to
+   `.arena-cooking-widget`, the introductory card the Owner deleted from the
+   template on 2026-08-19, so the dot stopped rendering that day and nothing
+   said so: the test guarding it matches this selector as TEXT IN THIS FILE,
+   which a deleted ancestor does not change. Only the ancestor moved here; every
+   declaration is byte-for-byte what he approved. ── */
+.page--arena .arena-command-deck__phase-card #arena-live-note.is-live::after {
   content: "";
   display: inline-block;
   width: 0.4rem;
@@ -1024,7 +1030,7 @@
   animation: arena-live-pulse 1.6s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .page--arena .arena-cooking-widget #arena-live-note.is-live::after {
+  .page--arena .arena-command-deck__phase-card #arena-live-note.is-live::after {
     animation: none;
   }
 }
