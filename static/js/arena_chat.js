@@ -72,6 +72,36 @@
     return field ? field.value : '';
   }
 
+  /* "now", "2m", "3h", "5d" - the shortest true thing.
+   *
+   * The server sends an ISO instant and this turns it into an age, so the
+   * reader's own clock and timezone decide what it says. Under a minute is
+   * "now" rather than a second-by-second counter: a live chat does not need a
+   * stopwatch, and a number that changes every second is movement in the
+   * corner of the eye for nothing. */
+  function relativeTime(iso) {
+    var then = Date.parse(iso);
+    if (isNaN(then)) { return ''; }
+    var seconds = Math.max(0, Math.round((Date.now() - then) / 1000));
+    if (seconds < 60) { return 'now'; }
+    var minutes = Math.floor(seconds / 60);
+    if (minutes < 60) { return minutes + 'm'; }
+    var hours = Math.floor(minutes / 60);
+    if (hours < 24) { return hours + 'h'; }
+    return Math.floor(hours / 24) + 'd';
+  }
+
+  /* Ages go stale where they stand, so they are refreshed in place rather than
+   * by repainting the log - a repaint would lose the reader's scroll position
+   * and any menu they had open. */
+  function refreshTimes() {
+    var stamps = log.querySelectorAll('.arena-chat__time');
+    for (var i = 0; i < stamps.length; i++) {
+      var fresh = relativeTime(stamps[i].getAttribute('data-at'));
+      if (stamps[i].textContent !== fresh) { stamps[i].textContent = fresh; }
+    }
+  }
+
   function nearBottom() {
     return log.scrollHeight - log.scrollTop - log.clientHeight < 40;
   }
@@ -130,25 +160,45 @@
     name.textContent = line.name;
     who.appendChild(name);
 
+    // ADMIN is the site speaking officially, so it is red. MOD is authority
+    // without officialdom, so it is a badge on an ordinary-coloured line.
     if (line.role === 'admin') { who.appendChild(marker('Admin', 'admin')); }
-    if (line.channel === 'private') { who.appendChild(marker('Private', 'private')); }
+    else if (line.role === 'moderator') { who.appendChild(marker('Mod', 'mod')); }
 
-    // Everything after the name is an action on THIS line, so the trigger
-    // lives on the line and the menu is built on demand - one menu component,
-    // not one menu per message sitting in the DOM waiting to be opened.
-    if (line.slug && line.slug !== mySlug) {
-      var more = document.createElement('button');
-      more.type = 'button';
-      more.className = 'arena-chat__more';
-      more.setAttribute('aria-haspopup', 'menu');
-      more.setAttribute('aria-label', 'Actions for ' + line.name);
-      more.textContent = '⋯';                    // MIDLINE HORIZONTAL ELLIPSIS
-      more.addEventListener('click', function (event) {
-        event.stopPropagation();
-        openActions(line, more);
-      });
-      who.appendChild(more);
+    // TIME AND ACTIONS SIT AT THE FAR RIGHT OF THE HEADER, never in the words.
+    // The ellipsis used to follow the name inline, where the Owner read it as
+    // part of the sentence; it is a vertical ellipsis in its own column now.
+    var meta = document.createElement('span');
+    meta.className = 'arena-chat__meta';
+
+    if (line.at) {
+      var when = document.createElement('time');
+      when.className = 'arena-chat__time';
+      when.setAttribute('datetime', line.at);
+      when.setAttribute('data-at', line.at);
+      when.textContent = relativeTime(line.at);
+      // The exact moment stays available to anyone who wants it, without
+      // spending a pixel on it.
+      when.title = new Date(line.at).toLocaleString();
+      meta.appendChild(when);
     }
+
+    // One menu component, built on demand - not one menu per message sitting
+    // in the DOM waiting to be opened. Own lines get it too: replying to
+    // yourself is pointless, but reacting and moderating are not.
+    var more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'arena-chat__more';
+    more.setAttribute('aria-haspopup', 'menu');
+    more.setAttribute('aria-expanded', 'false');
+    more.setAttribute('aria-label', 'Actions for ' + line.name);
+    more.textContent = '⋮';                 // VERTICAL ELLIPSIS
+    more.addEventListener('click', function (event) {
+      event.stopPropagation();
+      openActions(line, more);
+    });
+    meta.appendChild(more);
+    who.appendChild(meta);
 
     // The line being answered, quoted once and never nested further.
     if (line.reply_to) {
@@ -643,4 +693,7 @@
 
   poll();
   setInterval(poll, POLL_MS);
+  // Once a minute is enough for an age measured in minutes, and it costs
+  // nothing: no request, no repaint, just the text of the stamps already drawn.
+  setInterval(refreshTimes, 60000);
 })();

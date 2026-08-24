@@ -1,0 +1,5 @@
+agent: greenbear
+started_utc: 2026-08-24T14:20
+version: v2.5.1262
+commit: pending
+task: chat polish - feed not table, header row with timestamp and menu trigger, MOD badge, capped height, compact header

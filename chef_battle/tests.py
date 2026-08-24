@@ -21709,6 +21709,53 @@ class ArenaChatRoleSemanticsTests(TestCase):
         self.assertEqual(line["role"], "")
         self.assertEqual(line["channel"], "public")
 
+    def test_a_moderator_gets_a_badge_and_not_the_admin_colour(self):
+        """Red is the site speaking officially. A moderator is not that.
+
+        The Owner's spec is explicit: a moderator message keeps the ordinary
+        colour of its channel and carries a MOD badge instead.
+        """
+        from django.contrib.auth.models import Permission
+
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                codename="moderate_arena_chat",
+                content_type__app_label="chef_battle",
+            )
+        )
+        fresh = get_user_model().objects.get(pk=self.user.pk)
+        self.client.force_login(fresh)
+        self.client.post(self.send_url, {"body": "keeping order"})
+        line = self.client.get(self.feed_url).json()["messages"][-1]
+        self.assertEqual(line["role"], "moderator")
+
+    def test_staff_still_outranks_a_moderator_permission(self):
+        """Somebody holding both is Admin: the stronger identity wins."""
+        from django.contrib.auth.models import Permission
+
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+        self.user.user_permissions.add(
+            Permission.objects.get(
+                codename="moderate_arena_chat",
+                content_type__app_label="chef_battle",
+            )
+        )
+        self.client.force_login(get_user_model().objects.get(pk=self.user.pk))
+        self.client.post(self.send_url, {"body": "both hats"})
+        self.assertEqual(
+            self.client.get(self.feed_url).json()["messages"][-1]["role"], "admin",
+        )
+
+    def test_every_line_carries_the_moment_it_was_said(self):
+        """The header shows an age, so the instant has to arrive to compute it."""
+        self.client.force_login(self.user)
+        self.client.post(self.send_url, {"body": "timed"})
+        line = self.client.get(self.feed_url).json()["messages"][-1]
+        self.assertIn("at", line)
+        # An ISO instant with an offset, so the reader's own clock decides.
+        self.assertRegex(line["at"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
+
     def test_an_admin_is_heard_across_the_hall(self):
         """An announcement only the neighbours can hear is not an announcement.
 

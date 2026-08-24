@@ -815,19 +815,33 @@
      floor under the log pushed it out of the panel on a short screen. The log
      shrinks to nothing before the composer gives up a pixel. */
   min-height: 0;
+  /* THE MESSAGES SCROLL, THE PAGE DOES NOT GROW. Without a ceiling this list
+     is as tall as the conversation, so six messages pushed the whole arena
+     page down a screen - the Owner asked how much further it was going to go.
+     A cap in viewport units keeps the panel a window onto the talk rather than
+     a transcript of it, and the header and composer stay put while only this
+     scrolls. */
+  max-height: min(42vh, 22rem);
   overflow-y: auto;
+  /* The stripe stays out of the words on a phone, where there is no room to
+     spare and the gesture is a finger anyway. */
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
   align-content: start;
-  gap: .38rem;
+  gap: .55rem;
 }
+/* A FEED, NOT A TABLE. Every line used to end in a full-width rule, which the
+   Owner read as an admin log or a database dump - six of them and the panel
+   was a spreadsheet. Rhythm does the separating now: the header is quiet and
+   small, the words sit under it, and the space between messages is what tells
+   them apart. */
 .arena-chat__line {
   display: grid;
   gap: .05rem;
-  padding-bottom: .32rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--brand) 15%, transparent);
   font-size: .72rem;
   line-height: 1.35;
 }
@@ -867,16 +881,36 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* Never colour alone (spec section 7): every coloured state also carries a word. */
+/* The time and the action trigger, pushed to the far right of the header.
+   The trigger used to follow the name inline, where it read as part of the
+   sentence - the Owner said so and he was right. */
+.arena-chat__meta {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: .1rem;
+  margin-left: auto;
+  padding-left: .3rem;
+}
+.arena-chat__time {
+  color: var(--arena-muted);
+  font-size: .56rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Never colour alone (spec section 7): every coloured state also carries a
+   word. Small, outlined and quiet - a role badge, not a debug label. */
 .arena-chat__marker {
   flex: 0 0 auto;
-  padding: 0 .28rem;
-  border-radius: 999px;
-  font-size: .52rem;
+  padding: 0 .26rem;
+  border-radius: .28rem;
+  font-size: .5rem;
   font-weight: 800;
-  letter-spacing: .08em;
+  letter-spacing: .07em;
   text-transform: uppercase;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 .arena-chat__marker--admin {
   color: var(--chat-admin-text);
@@ -887,6 +921,13 @@
   color: var(--chat-private-text);
   border: 1px solid color-mix(in srgb, var(--chat-private-text) 45%, transparent);
   background: color-mix(in srgb, var(--chat-private-text) 8%, transparent);
+}
+/* MOD is authority without officialdom: a badge, and the ordinary colour of
+   whatever room the line was spoken in. Red stays reserved for Admin. */
+.arena-chat__marker--mod {
+  color: var(--accent-bronze-dark);
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+  background: color-mix(in srgb, var(--accent-bronze) 8%, transparent);
 }
 /* PUBLIC is the default body colour; ADMIN and PRIVATE override it, in that
    order of strength, matching the server's own precedence. */
@@ -1138,25 +1179,23 @@
    is narrower than the phone's full-bleed column, so width-of-window is the
    wrong question in both directions. */
 @container arena-chat (max-width: 22rem) {
-  /* COMPACT MEANS COMPACT. The Owner counted six messages filling his phone
-     and asked how much further this was going to swell. Most of it was the
-     reaction strip, now gone from lines that have no reactions; the rest is
-     here - the name and the words share one line at this width instead of
-     stacking, which is what a live chat wants when the screen is small. */
+  /* HEADER ON ONE ROW, WORDS BENEATH IT - the structure the Owner specified:
+
+       [IRL] [GOD] GreenBear   ADMIN        2m  :
+       Hi
+
+     IDENTITY AND TIME NEVER STACK. The header must not fall into [IRL] / [GOD]
+     / name / ADMIN / 2m down five lines, so the name is the only part allowed
+     to give ground: the tags and the meta column hold their size and the name
+     truncates instead. A shortened tag is a different team, and a missing
+     timestamp is a missing fact; a shortened name is still that person. */
   .arena-chat__line {
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: baseline;
-    column-gap: .35rem;
     font-size: .7rem;
-    gap: .02rem .35rem;
-    padding-bottom: .22rem;
+    gap: .04rem;
   }
-  .arena-chat__quote,
-  .arena-chat__reactions { grid-column: 1 / -1; }
-  /* The speaker keeps at most half the row, so a long name cannot squeeze the
-     sentence into a column of single words. */
-  .arena-chat__who { max-width: 48%; }
-  .arena-chat__log { gap: .3rem; }
+  .arena-chat__who { flex-wrap: nowrap; }
+  .arena-chat__name { flex: 0 1 auto; }
+  .arena-chat__log { gap: .55rem; }
   /* NARROW: the menu is a bottom sheet - full width, from the bottom edge,
      where a thumb already is. Same element, same buttons as the popover. */
   .arena-chat__sheet {
@@ -1169,18 +1208,20 @@
   }
 }
 @container arena-chat (min-width: 22.01rem) {
+  /* SAME STRUCTURE, MORE AIR. The wider box does not get a different design -
+     it gets the same header-then-words line, breathing a little. Anything else
+     would make the desktop chat a second component by the back door. */
   .arena-chat__line {
-    /* Wider box, denser reading: the name and the words share a line instead
-       of stacking, which is the presentation the desktop composition wants. */
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: baseline;
-    column-gap: .4rem;
+    gap: .1rem;
+    font-size: .74rem;
   }
-  .arena-chat__who { max-width: 11rem; }
-  /* The quote, the reactions and the notice belong under BOTH columns rather
-     than squeezed into the name's. */
-  .arena-chat__quote,
-  .arena-chat__reactions { grid-column: 1 / -1; }
+  .arena-chat__log { gap: .7rem; }
+  /* A cursor exists here, so the trigger can stay out of the way until the
+     line is approached. It remains focusable, so a keyboard never loses it. */
+  .arena-chat__more { opacity: 0; }
+  .arena-chat__line:hover .arena-chat__more,
+  .arena-chat__more:focus-visible,
+  .arena-chat__more[aria-expanded="true"] { opacity: 1; }
   /* WIDE: the same menu, anchored beside the control that opened it, using the
      coordinates the script measured. */
   .arena-chat__sheet {
@@ -1199,8 +1240,22 @@
 .arena-chat__composer {
   flex: 0 0 auto;
   display: flex;
+  align-items: center;
   gap: .35rem;
+  /* On a phone the composer is the last thing above the home indicator; give
+     it that strip so the send button is never half under it. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+/* The panel's own header, made a single quiet row: SPECTATOR CHAT * LIVE 2.
+   It was a stacked block using height the conversation needed more. */
+.arena-chat > .arena-panel__title {
+  display: flex;
+  align-items: baseline;
+  gap: .4rem;
+  margin-bottom: .35rem;
+}
+.arena-chat > .arena-panel__title .arena-panel__kicker { margin: 0; }
+.arena-chat__live { margin-left: auto; }
 .arena-chat__composer input {
   flex: 1 1 auto;
   min-width: 0;

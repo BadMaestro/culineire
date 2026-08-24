@@ -336,6 +336,31 @@ def participates_in(author, conversation_id):
     )
 
 
+def speaker_role(speaker_user) -> str:
+    """"admin", "moderator" or "" - decided HERE, on the server.
+
+    The client is told what a line IS and never gets to say so: a browser that
+    posts {"role": "admin"} changes nothing, because nothing downstream reads a
+    role from a request.
+
+    RED IS FOR ADMIN ONLY. A moderator gets a MOD badge and the ordinary colour
+    of whatever channel they are speaking in - the Owner's spec is explicit
+    that moderator messages must not go red, because red is the site speaking
+    officially and a moderator hiding a message is not that.
+
+    "Moderator" here means somebody actually holding the chat permission, not
+    somebody holding is_staff. Staff already reads as admin above, and the
+    whole point of phase 4 was that a staff flag is not chat authority.
+    """
+    if speaker_user is None:
+        return ""
+    if speaker_user.is_superuser or speaker_user.is_staff:
+        return "admin"
+    if speaker_user.has_perm("chef_battle.moderate_arena_chat"):
+        return "moderator"
+    return ""
+
+
 def reaction_summary(message_ids, viewer=None) -> dict[int, dict]:
     """`{message_id: {emoji: {"count": n, "mine": bool}}}` for these lines.
 
@@ -416,10 +441,10 @@ def private_lines(messages, viewer=None) -> list[dict]:
     out = []
     for message in messages:
         speaker_user = getattr(message.speaker, "user", None)
-        is_admin = bool(
-            speaker_user is not None
-            and (speaker_user.is_superuser or speaker_user.is_staff)
-        )
+        role = speaker_role(speaker_user)
+        # Red, and the reach exemption, are ADMIN only - a moderator speaks in
+        # the ordinary colour of the room and wears a MOD badge instead.
+        is_admin = role == "admin"
         tags = tags_by_author.get(message.speaker_id) or {}
         row = {
             "id": message.id,
@@ -429,7 +454,7 @@ def private_lines(messages, viewer=None) -> list[dict]:
             "alliance_tag": tags.get("alliance_tag", ""),
             # ADMIN still outranks the channel: an Admin writing privately is
             # red, not purple. The precedence is the same everywhere.
-            "role": "admin" if is_admin else "",
+            "role": role,
             "channel": "private",
             "heard": True,
             "at": message.created_at.isoformat(),
@@ -473,10 +498,10 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
         # {"role": "admin"} changes nothing, because nothing downstream reads a
         # role from the client - the renderer colours what this field says.
         speaker_user = getattr(message.speaker, "user", None)
-        is_admin = bool(
-            speaker_user is not None
-            and (speaker_user.is_superuser or speaker_user.is_staff)
-        )
+        role = speaker_role(speaker_user)
+        # Red, and the reach exemption, are ADMIN only - a moderator speaks in
+        # the ordinary colour of the room and wears a MOD badge instead.
+        is_admin = role == "admin"
         # AN ANNOUNCEMENT THE NEIGHBOURS ALONE CAN HEAR IS NOT AN ANNOUNCEMENT.
         # Reach is the rule for people talking among themselves in the stands;
         # an Admin speaking to the hall is not doing that. Owner kept reach for
@@ -499,7 +524,7 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
             # ADMIN > PRIVATE > PUBLIC. Only the first and last exist yet;
             # "private" arrives with direct messages and slots in between
             # without the renderer changing shape.
-            "role": "admin" if is_admin else "",
+            "role": role,
             "channel": "public",
             "ring": message.ring_index,
             "cell": message.seat_index,
