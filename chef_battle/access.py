@@ -209,6 +209,14 @@ UNGUARDED_BY_DESIGN = {
         "Calls is_battle_visible directly. Writes the CALLER's own preference; "
         "the profile is looked up from the request's author, never from input."
     ),
+    "arena_chat_moderate": (
+        "Calls is_battle_visible directly, then requires an EXPLICIT Django "
+        "permission per branch (moderate_arena_chat / timeout_arena_chat_user). "
+        "is_staff alone grants nothing here, deliberately: the Owner's chat "
+        "spec forbids a staff flag from conferring chat moderation, and "
+        "is_moderator() is exactly that conflation. Re-checked server-side on "
+        "every call, so hidden buttons are never the control."
+    ),
     "cooking_moderation": (
         "Moderator-only, checked with is_moderator AND is_battle_visible in the "
         "view (F8, 2026-08-11) - is_moderator alone admits has_bearseeker_"

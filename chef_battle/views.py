@@ -4551,15 +4551,22 @@ def arena_chat_feed(request):
     except (TypeError, ValueError):
         since = 0
 
+    # A MODERATOR MUST SEE WHAT THEY HID, or nothing could ever be restored.
+    # Gated on the permission itself, not on staff, and the row is marked
+    # `hidden` so the renderer can show it as withdrawn rather than as ordinary
+    # speech. Everybody else's feed is unchanged: is_hidden still means gone.
+    sees_hidden = _may_moderate_chat(request.user, "moderate_arena_chat")
     base = (
         ArenaChatMessage.objects
-        .filter(id__gt=since, is_hidden=False)
+        .filter(id__gt=since)
         # speaker__user because the role that colours a line (admin vs ordinary)
         # is read off the speaker's user account, and a feed page is up to
         # ARENA_CHAT_PAGE rows - one query, not sixty.
         .select_related("speaker", "speaker__user", "reply_to")
         .order_by("id")
     )
+    if not sees_hidden:
+        base = base.filter(is_hidden=False)
 
     # A PRIVATE ROOM IS ASKED FOR BY ID AND GRANTED BY MEMBERSHIP. The id in
     # the query string proves nothing: participates_in returns None for a
@@ -4658,6 +4665,17 @@ def arena_chat_send(request):
             raise Http404
     elif seat is None:
         return JsonResponse({"ok": False, "error": "not_in_the_hall"}, status=403)
+
+    # A TIMEOUT IS ENFORCED WHERE THE LINE IS WRITTEN. Hiding the composer is
+    # presentation; this is the rule. Checked for private rooms too - a
+    # silenced chef is silenced, not merely redirected somewhere quieter.
+    timeout = _chat_timeout_active(author)
+    if timeout is not None:
+        return JsonResponse({
+            "ok": False,
+            "error": "timed_out",
+            "until": timeout.until.isoformat(),
+        }, status=403)
 
     body = (request.POST.get("body") or "").strip()
     if not body:
@@ -4806,6 +4824,118 @@ def arena_chat_dm_policy(request):
     profile = get_or_create_battle_profile(actor)
     ChefBattleProfile.objects.filter(pk=profile.pk).update(dm_policy=policy)
     return JsonResponse({"ok": True, "policy": policy})
+
+
+def _may_moderate_chat(user, permission) -> bool:
+    """Whether this user may perform this chat-moderation permission.
+
+    EXPLICIT, NOT INHERITED FROM is_staff. The Owner's spec forbids a staff
+    flag from silently conferring the power to hide other people's words, and
+    this project's existing is_moderator() is precisely that conflation
+    ("staff or superuser or bearseeker"), so it is deliberately NOT used here.
+
+    A superuser passes because Django's own has_perm already grants a
+    superuser every permission - that is the framework's rule, not a second one
+    invented here. Everyone else needs the permission granted to them, and it
+    is granted by the Owner in the admin: nothing in this codebase assigns it
+    (AGENTS.md section 20).
+    """
+    return bool(
+        user
+        and user.is_authenticated
+        and user.has_perm(f"chef_battle.{permission}")
+    )
+
+
+@require_POST
+@ratelimit(key="ip", rate="60/m", method="POST", block=False)
+def arena_chat_moderate(request):
+    """Hide, restore or time out - for whoever actually holds the permission.
+
+    The UI never being drawn is not the control. Every branch below re-checks
+    authorisation on the server, so a hand-made POST from somebody who can see
+    no buttons is refused by the same rule that hides them.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+
+    from .models import ArenaChatMessage, ArenaChatTimeout, ChatModerationAction
+
+    action = request.POST.get("action", "")
+    reason = (request.POST.get("reason") or "").strip()[:200]
+
+    if action in {"hide", "restore"}:
+        if not _may_moderate_chat(request.user, "moderate_arena_chat"):
+            return JsonResponse({"ok": False, "error": "not_permitted"}, status=403)
+        message = ArenaChatMessage.objects.filter(
+            pk=request.POST.get("message_id") or 0,
+        ).first()
+        if message is None:
+            return JsonResponse({"ok": False, "error": "no_such_message"}, status=404)
+
+        previous = "hidden" if message.is_hidden else "visible"
+        message.is_hidden = (action == "hide")
+        message.save(update_fields=["is_hidden"])
+        # The message is FLAGGED, never deleted, so the action is reversible
+        # and the evidence outlives the reversal.
+        ChatModerationAction.objects.create(
+            moderator=request.user,
+            action=(ChatModerationAction.Action.HIDE if action == "hide"
+                    else ChatModerationAction.Action.RESTORE),
+            target_message=message,
+            target_author=message.speaker,
+            reason=reason,
+            previous_state=previous,
+        )
+        return JsonResponse({"ok": True, "message_id": message.pk,
+                             "hidden": message.is_hidden})
+
+    if action == "timeout":
+        if not _may_moderate_chat(request.user, "timeout_arena_chat_user"):
+            return JsonResponse({"ok": False, "error": "not_permitted"}, status=403)
+        target = RecipeAuthor.objects.filter(slug=request.POST.get("slug", "")).first()
+        if target is None:
+            return JsonResponse({"ok": False, "error": "no_such_chef"}, status=404)
+        try:
+            minutes = int(request.POST.get("minutes") or 0)
+        except (TypeError, ValueError):
+            minutes = 0
+        # A fixed menu, not a free number: an arbitrary duration from a request
+        # is how a ten-minute timeout becomes a decade.
+        if minutes not in (10, 60, 1440):
+            return JsonResponse({"ok": False, "error": "bad_duration"}, status=400)
+
+        until = timezone.now() + timezone.timedelta(minutes=minutes)
+        ArenaChatTimeout.objects.create(
+            author=target, until=until, reason=reason, issued_by=request.user,
+        )
+        ChatModerationAction.objects.create(
+            moderator=request.user,
+            action=ChatModerationAction.Action.TIMEOUT,
+            target_author=target,
+            reason=reason,
+            duration_seconds=minutes * 60,
+        )
+        return JsonResponse({"ok": True, "slug": target.slug,
+                             "until": until.isoformat()})
+
+    return JsonResponse({"ok": False, "error": "bad_action"}, status=400)
+
+
+def _chat_timeout_active(author):
+    """The live timeout on this author, or None."""
+    from .models import ArenaChatTimeout
+
+    if author is None:
+        return None
+    return (
+        ArenaChatTimeout.objects
+        .filter(author=author, until__gt=timezone.now())
+        .order_by("-until")
+        .first()
+    )
 
 
 def _chat_actor(request):

@@ -677,9 +677,92 @@ class ArenaChatMessage(models.Model):
         indexes = [
             models.Index(fields=["battle", "id"], name="arena_chat_since_idx"),
         ]
+        # CHAT MODERATION IS ITS OWN AUTHORITY, NOT A SIDE EFFECT OF is_staff.
+        # The Owner's spec is explicit that a staff flag must not silently
+        # confer the power to hide other people's words, and this project had
+        # no permission framework at all before this - is_moderator() is
+        # "staff or superuser or bearseeker", which is exactly the conflation
+        # being ruled out. These are checked with has_perm() and granted by the
+        # Owner himself in the admin; no code here assigns them to anybody
+        # (AGENTS.md section 20).
+        permissions = [
+            ("moderate_arena_chat", "Can hide and restore arena chat messages"),
+            ("timeout_arena_chat_user", "Can temporarily silence a chef in arena chat"),
+            ("resolve_arena_chat_report", "Can resolve arena chat reports"),
+        ]
 
     def __str__(self):
         return f"r{self.ring_index}c{self.seat_index} {self.display_name}: {self.body[:40]}"
+
+
+class ChatModerationAction(models.Model):
+    """An append-only record of what a moderator did, and to whom.
+
+    NOTHING HERE IS EVER DELETED, and hiding a message does not remove the
+    message either - is_hidden is a flag, so the action is reversible and the
+    evidence survives the reversal. A moderation log that can be edited by the
+    people it describes is not a log.
+    """
+
+    class Action(models.TextChoices):
+        HIDE = "hide", "Hide message"
+        RESTORE = "restore", "Restore message"
+        TIMEOUT = "timeout", "Timeout user"
+
+    moderator = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="arena_chat_moderation_actions",
+    )
+    action = models.CharField(max_length=16, choices=Action.choices, db_index=True)
+    target_message = models.ForeignKey(
+        ArenaChatMessage, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="moderation_actions",
+    )
+    target_author = models.ForeignKey(
+        RecipeAuthor, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="arena_chat_moderation_received",
+    )
+    reason = models.CharField(max_length=200, blank=True)
+    # Seconds, for a timeout. Zero for the actions that are not one.
+    duration_seconds = models.PositiveIntegerField(default=0)
+    # What the message's is_hidden was BEFORE this action, so the log answers
+    # "what changed" and not merely "what was attempted".
+    previous_state = models.CharField(max_length=32, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["target_author", "created_at"])]
+
+    def __str__(self):
+        return f"{self.moderator} {self.action} {self.target_message_id or self.target_author_id}"
+
+
+class ArenaChatTimeout(models.Model):
+    """A chef silenced in arena chat until a moment in time.
+
+    Distinct from OwnerAccountRestriction.muted_until, which is the OWNER's
+    sitewide instrument and reaches beyond this chat. This one is the chat
+    moderator's, it expires by itself, and it is enforced where a line is
+    written rather than where it is drawn.
+    """
+
+    author = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="arena_chat_timeouts",
+    )
+    until = models.DateTimeField(db_index=True)
+    reason = models.CharField(max_length=200, blank=True)
+    issued_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="arena_chat_timeouts_issued",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.author} until {self.until:%Y-%m-%d %H:%M}"
 
 
 class ArenaChatReaction(models.Model):

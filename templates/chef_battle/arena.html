@@ -475,6 +475,13 @@
            data-report-url="{% url 'chef_battle:arena_chat_report' %}"
            data-dm-open-url="{% url 'chef_battle:arena_chat_open_dm' %}"
            data-dm-list-url="{% url 'chef_battle:arena_chat_conversations' %}"
+           data-moderate-url="{% url 'chef_battle:arena_chat_moderate' %}"
+           {# has_perm, not is_staff. These only decide what is DRAWN - the
+              endpoint re-checks the same permission on every call, so a
+              hand-made request from somebody who sees no buttons is refused
+              by the rule that hid them, not by the hiding. #}
+           data-can-moderate="{% if perms.chef_battle.moderate_arena_chat %}1{% else %}0{% endif %}"
+           data-can-timeout="{% if perms.chef_battle.timeout_arena_chat_user %}1{% else %}0{% endif %}"
            {# Whose lines are the reader's own - so the menu never offers to
               mute, block or report yourself. Purely presentational: every
               endpoint refuses a self-target on the server regardless. #}

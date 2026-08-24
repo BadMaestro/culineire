@@ -22149,6 +22149,219 @@ class ArenaDirectMessageTests(TestCase):
         self.assertEqual(line["channel"], "private")
 
 
+class ArenaChatModerationTests(TestCase):
+    """Explicit permissions, reversible actions, an audit trail that survives.
+
+    The headline property: is_staff on its own moderates nothing. This project
+    had no permission framework before - is_moderator() is "staff or superuser
+    or bearseeker" - and the Owner's chat spec forbids exactly that shortcut.
+    """
+
+    def setUp(self):
+        self.me, self.me_author, _ = _seat_a_viewer("modme", "ModMe", "mod-me")
+        self.them, self.them_author, _ = _seat_a_viewer("modthem", "ModThem", "mod-them")
+        self.send_url = reverse("chef_battle:arena_chat_send")
+        self.feed_url = reverse("chef_battle:arena_chat_feed")
+        self.moderate_url = reverse("chef_battle:arena_chat_moderate")
+
+    def _say(self, user, text):
+        self.client.force_login(user)
+        return self.client.post(self.send_url, {"body": text}).json()["messages"][0]
+
+    def _grant(self, user, codename):
+        from django.contrib.auth.models import Permission
+
+        user.user_permissions.add(
+            Permission.objects.get(
+                codename=codename, content_type__app_label="chef_battle",
+            )
+        )
+        # Django caches permissions on the user instance for its lifetime.
+        return get_user_model().objects.get(pk=user.pk)
+
+    # ---- the headline rule ---------------------------------------------
+    def test_staff_alone_cannot_moderate_the_chat(self):
+        said = self._say(self.them, "a line")
+        self.me.is_staff = True
+        self.me.save(update_fields=["is_staff"])
+
+        self.client.force_login(self.me)
+        response = self.client.post(
+            self.moderate_url, {"action": "hide", "message_id": said["id"]},
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error"], "not_permitted")
+
+    def test_an_ordinary_signed_in_chef_cannot_moderate(self):
+        said = self._say(self.them, "a line")
+        self.client.force_login(self.me)
+        self.assertEqual(
+            self.client.post(
+                self.moderate_url, {"action": "hide", "message_id": said["id"]},
+            ).status_code,
+            403,
+        )
+
+    def test_the_explicit_permission_is_what_grants_it(self):
+        said = self._say(self.them, "a line")
+        moderator = self._grant(self.me, "moderate_arena_chat")
+
+        self.client.force_login(moderator)
+        response = self.client.post(
+            self.moderate_url,
+            {"action": "hide", "message_id": said["id"], "reason": "off topic"},
+        )
+        self.assertTrue(response.json()["ok"])
+        self.assertTrue(response.json()["hidden"])
+
+    def test_a_superuser_moderates_because_django_says_so(self):
+        said = self._say(self.them, "a line")
+        boss = get_user_model().objects.create_superuser("boss2", password="pw")
+        RecipeAuthor.objects.create(user=boss, name="Boss2", slug="boss-two")
+
+        self.client.force_login(boss)
+        self.assertTrue(
+            self.client.post(
+                self.moderate_url, {"action": "hide", "message_id": said["id"]},
+            ).json()["ok"]
+        )
+
+    # ---- what moderation actually does ---------------------------------
+    def test_hiding_removes_the_line_from_the_feed_without_deleting_it(self):
+        from chef_battle.models import ArenaChatMessage
+
+        said = self._say(self.them, "hide me")
+        moderator = self._grant(self.me, "moderate_arena_chat")
+        self.client.force_login(moderator)
+        self.client.post(self.moderate_url, {"action": "hide", "message_id": said["id"]})
+
+        # Gone from the room...
+        self.client.force_login(self.them)
+        bodies = [m.get("body") for m in self.client.get(self.feed_url).json()["messages"]]
+        self.assertNotIn("hide me", bodies)
+        # ...and still in the database, because the action must be reversible.
+        self.assertTrue(ArenaChatMessage.objects.filter(pk=said["id"]).exists())
+
+    def test_restoring_puts_it_back(self):
+        said = self._say(self.them, "restore me")
+        moderator = self._grant(self.me, "moderate_arena_chat")
+        self.client.force_login(moderator)
+        self.client.post(self.moderate_url, {"action": "hide", "message_id": said["id"]})
+        self.client.post(self.moderate_url, {"action": "restore", "message_id": said["id"]})
+
+        self.client.force_login(self.them)
+        bodies = [m.get("body") for m in self.client.get(self.feed_url).json()["messages"]]
+        self.assertIn("restore me", bodies)
+
+    def test_every_action_is_written_to_the_audit_trail(self):
+        from chef_battle.models import ChatModerationAction
+
+        said = self._say(self.them, "audit me")
+        moderator = self._grant(self.me, "moderate_arena_chat")
+        self.client.force_login(moderator)
+        self.client.post(
+            self.moderate_url,
+            {"action": "hide", "message_id": said["id"], "reason": "spam"},
+        )
+
+        entry = ChatModerationAction.objects.get()
+        self.assertEqual(entry.action, ChatModerationAction.Action.HIDE)
+        self.assertEqual(entry.moderator, moderator)
+        self.assertEqual(entry.target_message_id, said["id"])
+        self.assertEqual(entry.target_author, self.them_author)
+        self.assertEqual(entry.reason, "spam")
+        # What it was BEFORE, so the log says what changed.
+        self.assertEqual(entry.previous_state, "visible")
+
+    def test_the_audit_trail_survives_the_reversal(self):
+        from chef_battle.models import ChatModerationAction
+
+        said = self._say(self.them, "x")
+        moderator = self._grant(self.me, "moderate_arena_chat")
+        self.client.force_login(moderator)
+        self.client.post(self.moderate_url, {"action": "hide", "message_id": said["id"]})
+        self.client.post(self.moderate_url, {"action": "restore", "message_id": said["id"]})
+        self.assertEqual(ChatModerationAction.objects.count(), 2)
+
+    # ---- timeouts ------------------------------------------------------
+    def test_a_timeout_needs_its_own_permission(self):
+        moderator = self._grant(self.me, "moderate_arena_chat")
+        self.client.force_login(moderator)
+        # Holding the hide permission does not confer the timeout one.
+        self.assertEqual(
+            self.client.post(
+                self.moderate_url,
+                {"action": "timeout", "slug": "mod-them", "minutes": 10},
+            ).status_code,
+            403,
+        )
+
+    def test_a_timed_out_chef_cannot_speak_anywhere(self):
+        moderator = self._grant(self.me, "timeout_arena_chat_user")
+        self.client.force_login(moderator)
+        self.client.post(
+            self.moderate_url,
+            {"action": "timeout", "slug": "mod-them", "minutes": 60, "reason": "cool off"},
+        )
+
+        self.client.force_login(self.them)
+        refused = self.client.post(self.send_url, {"body": "still here"})
+        self.assertEqual(refused.status_code, 403)
+        self.assertEqual(refused.json()["error"], "timed_out")
+
+    def test_an_arbitrary_duration_is_refused(self):
+        """A free number from a request is how ten minutes becomes a decade."""
+        moderator = self._grant(self.me, "timeout_arena_chat_user")
+        self.client.force_login(moderator)
+        self.assertEqual(
+            self.client.post(
+                self.moderate_url,
+                {"action": "timeout", "slug": "mod-them", "minutes": 525600},
+            ).status_code,
+            400,
+        )
+
+    def test_an_expired_timeout_stops_silencing_anyone(self):
+        from chef_battle.models import ArenaChatTimeout
+
+        ArenaChatTimeout.objects.create(
+            author=self.them_author,
+            until=timezone.now() - timezone.timedelta(minutes=1),
+        )
+        self.client.force_login(self.them)
+        self.assertEqual(
+            self.client.post(self.send_url, {"body": "back again"}).status_code, 200,
+        )
+
+    def test_only_a_moderator_is_shown_what_was_hidden(self):
+        """Restoring requires seeing, and seeing is gated on the permission."""
+        said = self._say(self.them, "withdrawn line")
+        moderator = self._grant(self.me, "moderate_arena_chat")
+        self.client.force_login(moderator)
+        self.client.post(self.moderate_url, {"action": "hide", "message_id": said["id"]})
+
+        # The moderator still sees it, marked as hidden.
+        mine = self.client.get(self.feed_url).json()["messages"]
+        withdrawn = [m for m in mine if m["id"] == said["id"]]
+        self.assertEqual(len(withdrawn), 1)
+        self.assertTrue(withdrawn[0]["hidden"])
+
+        # Its own author does not, and neither does anyone else.
+        self.client.force_login(self.them)
+        theirs = self.client.get(self.feed_url).json()["messages"]
+        self.assertEqual([m for m in theirs if m["id"] == said["id"]], [])
+
+    def test_an_anonymous_visitor_moderates_nothing(self):
+        said = self._say(self.them, "x")
+        self.client.logout()
+        self.assertEqual(
+            self.client.post(
+                self.moderate_url, {"action": "hide", "message_id": said["id"]},
+            ).status_code,
+            403,
+        )
+
+
 class MasterConsoleTileIsOfferedOnlyToWhoMayOpenItTests(TestCase):
     """The console tile matches the console door.
 

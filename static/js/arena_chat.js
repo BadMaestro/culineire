@@ -37,6 +37,10 @@
   var relationUrl = root.getAttribute('data-relation-url');
   var reportUrl = root.getAttribute('data-report-url');
   var mySlug = root.getAttribute('data-me') || '';
+  /* Rendered from has_perm on the SERVER. Presentation only - every moderation
+   * endpoint re-checks the permission itself. */
+  var canModerate = root.getAttribute('data-can-moderate') === '1';
+  var canTimeout = root.getAttribute('data-can-timeout') === '1';
 
   var lastId = 0;
   var busy = false;
@@ -106,6 +110,9 @@
     } else if (line.channel === 'private') {
       cls += ' arena-chat__line--private';
     }
+    // Only a moderator is ever sent one of these; it reads as withdrawn rather
+    // than as ordinary speech, so it cannot be mistaken for live conversation.
+    if (line.hidden) { cls += ' arena-chat__line--hidden'; }
     item.className = cls;
     item.setAttribute('data-id', line.id);
 
@@ -288,6 +295,30 @@
     ));
     sheet.appendChild(menuButton('Report', 'danger', function () { openReport(line); }));
 
+    /* MODERATOR ACTIONS, WHEN THE SERVER SAYS SO.
+     *
+     * canModerate is rendered from has_perm on the server, never inferred here
+     * from a staff flag. And it only decides what is DRAWN: every endpoint
+     * re-checks the permission, so a hand-made request from somebody who sees
+     * no buttons is refused by the same rule that hid them. Hidden UI is not
+     * the control. */
+    if (canModerate) {
+      sheet.appendChild(menuButton(
+        line.hidden ? 'Restore message' : 'Hide message', 'danger',
+        function () { moderate({ action: line.hidden ? 'restore' : 'hide',
+                                 message_id: line.id }); }
+      ));
+    }
+    if (canTimeout) {
+      [['10 minutes', 10], ['1 hour', 60], ['24 hours', 1440]].forEach(function (pair) {
+        sheet.appendChild(menuButton('Timeout ' + pair[0], 'danger', function () {
+          if (window.confirm('Silence ' + line.name + ' for ' + pair[0] + '?')) {
+            moderate({ action: 'timeout', slug: line.slug, minutes: pair[1] });
+          }
+        }));
+      });
+    }
+
     root.appendChild(sheet);
     openMenu = sheet;
     // Anchored to the trigger when there is room beside it; the stylesheet
@@ -331,6 +362,21 @@
     });
     root.appendChild(sheet);
     openMenu = sheet;
+  }
+
+  function moderate(fields) {
+    post(root.getAttribute('data-moderate-url'), fields).then(function (data) {
+      if (!data || !data.ok) {
+        notice(data && data.error === 'not_permitted'
+          ? 'You do not have that permission.'
+          : 'That action failed.');
+        return;
+      }
+      lastId = 0;
+      log.innerHTML = '';
+      poll();
+      notice('Done.');
+    });
   }
 
   function relation(action, slug) {

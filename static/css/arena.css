@@ -939,6 +939,27 @@
   border-color: color-mix(in srgb, var(--chat-private-text) 40%, transparent);
 }
 
+/* A hidden line, as its moderator sees it. Nobody else is sent one. Struck and
+   faded so it reads as withdrawn rather than as part of the conversation. */
+.arena-chat__line--hidden {
+  opacity: .55;
+}
+.arena-chat__line--hidden .arena-chat__said {
+  text-decoration: line-through;
+}
+.arena-chat__line--hidden .arena-chat__who::after {
+  content: "hidden";
+  margin-left: .3rem;
+  padding: 0 .28rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--chat-admin-text) 45%, transparent);
+  color: var(--chat-admin-text);
+  font-size: .52rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
 /* The quoted line a reply answers. One level, never a tree. */
 .arena-chat__quote {
   display: block;

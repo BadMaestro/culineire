@@ -436,6 +436,9 @@ def private_lines(messages, viewer=None) -> list[dict]:
             "reactions": reactions.get(message.pk, {}),
             "muted": message.speaker_id in muted_ids,
             "blocked": message.speaker_id in blocked_ids,
+            # Only a moderator is ever handed a hidden line; for everyone else
+            # this is always false, because the row never reaches them at all.
+            "hidden": message.is_hidden,
         }
         if message.speaker_id not in blocked_ids:
             row["body"] = message.body
@@ -506,6 +509,9 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
             # Personal, and one-directional: true for this reader only.
             "muted": message.speaker_id in muted_ids,
             "blocked": message.speaker_id in blocked_ids,
+            # Only a moderator is ever handed a hidden line; for everyone else
+            # this is always false, because the row never reaches them at all.
+            "hidden": message.is_hidden,
         }
         # The line this one answers, as a short quote. One level: a reply
         # carries its parent's name and a preview, and the parent's own parent

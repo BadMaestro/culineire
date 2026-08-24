@@ -25,6 +25,8 @@ urlpatterns = [
          name="arena_chat_conversations"),
     path("arena/chat/dm/policy/", views.arena_chat_dm_policy,
          name="arena_chat_dm_policy"),
+    path("arena/chat/moderate/", views.arena_chat_moderate,
+         name="arena_chat_moderate"),
     path("arena/owner/account-action/", views.owner_arena_account_action,
          name="owner_arena_account_action"),
     # Read-only, token-gated preview links (owner request, 2026-07-23). The
