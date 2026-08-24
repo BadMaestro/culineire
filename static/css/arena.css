@@ -871,8 +871,8 @@
 }
 .arena-chat__tag::before { content: "["; opacity: .55; }
 .arena-chat__tag::after  { content: "]"; opacity: .55; }
-.arena-chat__tag--alliance { color: var(--arena-cappuccino); }
-.arena-chat__tag--clan     { color: var(--arena-gold); }
+.arena-chat .arena-chat__tag--alliance { color: var(--arena-cappuccino); }
+.arena-chat .arena-chat__tag--clan     { color: var(--arena-gold); }
 /* The name may be squeezed by a long tag pair; the tags may not be squeezed by
    a long name. A truncated tag is a different team. */
 .arena-chat__name {
@@ -892,7 +892,7 @@
   margin-left: auto;
   padding-left: .3rem;
 }
-.arena-chat__time {
+.arena-chat .arena-chat__time {
   color: var(--arena-muted);
   font-size: .56rem;
   font-variant-numeric: tabular-nums;
@@ -912,26 +912,41 @@
   text-transform: uppercase;
   line-height: 1.45;
 }
-.arena-chat__marker--admin {
+.arena-chat .arena-chat__marker--admin {
   color: var(--chat-admin-text);
   border: 1px solid color-mix(in srgb, var(--chat-admin-text) 45%, transparent);
   background: color-mix(in srgb, var(--chat-admin-text) 8%, transparent);
 }
-.arena-chat__marker--private {
+.arena-chat .arena-chat__marker--private {
   color: var(--chat-private-text);
   border: 1px solid color-mix(in srgb, var(--chat-private-text) 45%, transparent);
   background: color-mix(in srgb, var(--chat-private-text) 8%, transparent);
 }
 /* MOD is authority without officialdom: a badge, and the ordinary colour of
    whatever room the line was spoken in. Red stays reserved for Admin. */
-.arena-chat__marker--mod {
+.arena-chat .arena-chat__marker--mod {
   color: var(--accent-bronze-dark);
   border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
   background: color-mix(in srgb, var(--accent-bronze) 8%, transparent);
 }
 /* PUBLIC is the default body colour; ADMIN and PRIVATE override it, in that
-   order of strength, matching the server's own precedence. */
-.arena-chat__said {
+   order of strength, matching the server's own precedence.
+
+   EVERY COLOUR IN THIS COMPONENT CARRIES THE `.arena-chat ` PREFIX, and it is
+   not decoration. Further down this file a blanket panel reset says
+
+       .arena-command-deck__phase-card *, ... .arena-chat *, ... { color: inherit }
+
+   which is one class plus a universal - the same specificity as a bare
+   `.arena-chat__said`, and later in the file, so it won. The result was
+   silent and total: public bodies, timestamps, tag badges and role markers
+   all fell back to inherited ink while ADMIN (two classes) kept working, so
+   the one state that proved the system was the only one that survived. The
+   prefix buys a second class and the rules win on their own merit. That is
+   this file's own house style - "match the prefix rather than reach for
+   !important" - and the alternative, editing the shared reset, would change
+   five other panels to fix one. */
+.arena-chat .arena-chat__said {
   color: var(--chat-public-text);
   overflow-wrap: anywhere;
 }
@@ -942,7 +957,7 @@
    nobody can mistake a direct message for the public hall by glancing. The
    accent is restrained on purpose: the spec asks for an unmistakable mode, not
    a purple interface. */
-.arena-chat__room {
+.arena-chat .arena-chat__room {
   display: flex;
   align-items: center;
   gap: .3rem;
@@ -1002,7 +1017,7 @@
 }
 
 /* The quoted line a reply answers. One level, never a tree. */
-.arena-chat__quote {
+.arena-chat .arena-chat__quote {
   display: block;
   margin-bottom: .1rem;
   padding-left: .4rem;
@@ -1017,7 +1032,7 @@
 .arena-chat__quote b { color: var(--arena-cappuccino); font-weight: 700; }
 
 /* Reveal a muted line. A preference, so it offers a way back. */
-.arena-chat__show {
+.arena-chat .arena-chat__show {
   appearance: none;
   border: 0;
   padding: 0;
@@ -1031,7 +1046,7 @@
 
 /* The per-line action trigger and the reaction strip. Both are small, so both
    are given a real tap target rather than the size of their glyph. */
-.arena-chat__more {
+.arena-chat .arena-chat__more {
   flex: 0 0 auto;
   appearance: none;
   min-width: 1.6rem;
@@ -1121,7 +1136,7 @@
   line-height: 1;
   cursor: pointer;
 }
-.arena-chat__notice {
+.arena-chat .arena-chat__notice {
   margin: .25rem 0 0;
   color: var(--arena-muted);
   font-size: .64rem;
@@ -1143,6 +1158,14 @@
   border-radius: .7rem;
   background: var(--surface);
   box-shadow: 0 .5rem 1.4rem color-mix(in srgb, var(--ink) 24%, transparent);
+  /* A MENU MUST NEVER BE TALLER THAN SOMEWHERE TO PUT IT. A moderator's menu
+     carries eleven items; anchored to a trigger near the foot of the log it
+     ran straight out of the panel and across the card beneath - the Owner
+     photographed it lying over ARENA STATUS. It scrolls inside itself now
+     instead of growing through the page. */
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .arena-chat__sheet-head {
   margin: 0 0 .2rem;
@@ -1170,7 +1193,7 @@
 .arena-chat__action:focus-visible {
   background: color-mix(in srgb, var(--accent-bronze) 12%, transparent);
 }
-.arena-chat__action--danger { color: var(--chat-admin-text); }
+.arena-chat .arena-chat__action--danger { color: var(--chat-admin-text); }
 
 /* ONE COMPONENT, TWO PRESENTATIONS, NO SECOND IMPLEMENTATION.
    These ask the panel how wide IT is, not how wide the window is - the same
@@ -1178,7 +1201,7 @@
    the spacing changes. A viewport query could not answer this: the desktop rail
    is narrower than the phone's full-bleed column, so width-of-window is the
    wrong question in both directions. */
-@container arena-chat (max-width: 22rem) {
+@container arena-chat (max-width: 30rem) {
   /* HEADER ON ONE ROW, WORDS BENEATH IT - the structure the Owner specified:
 
        [IRL] [GOD] GreenBear   ADMIN        2m  :
@@ -1196,18 +1219,35 @@
   .arena-chat__who { flex-wrap: nowrap; }
   .arena-chat__name { flex: 0 1 auto; }
   .arena-chat__log { gap: .55rem; }
-  /* NARROW: the menu is a bottom sheet - full width, from the bottom edge,
-     where a thumb already is. Same element, same buttons as the popover. */
+  /* NARROW: a REAL bottom sheet - fixed to the screen, not to the panel.
+     Absolute-inside-the-panel was the bug the Owner photographed: anchored
+     near the foot of the log it hung out of the chat and lay across the card
+     below. Fixed positioning means it cannot escape anything, because it is
+     not inside anything. Same element and same buttons as the popover. */
   .arena-chat__sheet {
+    position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     top: auto !important;
+    z-index: 1000;
+    max-height: 70vh;
     border-radius: .9rem .9rem 0 0;
-    padding-bottom: max(.3rem, env(safe-area-inset-bottom));
+    padding: .4rem .4rem max(.4rem, env(safe-area-inset-bottom));
+    box-shadow: 0 -.5rem 1.6rem color-mix(in srgb, var(--ink) 32%, transparent);
+  }
+  /* The page behind it dims, so the sheet reads as the thing being answered
+     and a tap anywhere outside it is obviously a way out. */
+  .arena-chat__sheet::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 100% 0;
+    height: 100vh;
+    background: color-mix(in srgb, var(--ink) 38%, transparent);
+    z-index: -1;
   }
 }
-@container arena-chat (min-width: 22.01rem) {
+@container arena-chat (min-width: 30.01rem) {
   /* SAME STRUCTURE, MORE AIR. The wider box does not get a different design -
      it gets the same header-then-words line, breathing a little. Anything else
      would make the desktop chat a second component by the back door. */
@@ -1223,17 +1263,20 @@
   .arena-chat__more:focus-visible,
   .arena-chat__more[aria-expanded="true"] { opacity: 1; }
   /* WIDE: the same menu, anchored beside the control that opened it, using the
-     coordinates the script measured. */
+     coordinates the script measured - and kept inside the panel on BOTH axes.
+     Left was already clamped; without the same care vertically a menu opened
+     low in the log still runs out of the card's foot. */
   .arena-chat__sheet {
-    top: var(--sheet-top, 100%);
+    top: min(var(--sheet-top, 100%), calc(100% - 3rem));
     left: min(var(--sheet-left, 0px), calc(100% - 12rem));
     right: auto;
     bottom: auto;
+    max-height: min(60vh, 18rem);
   }
 }
 /* Too far away to hear. The speaker is visibly talking and that is all this
    reader is entitled to know. */
-.arena-chat__said--muffled {
+.arena-chat .arena-chat__said--muffled {
   color: var(--arena-muted);
   font-style: italic;
 }
@@ -1250,12 +1293,23 @@
    It was a stacked block using height the conversation needed more. */
 .arena-chat > .arena-panel__title {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: baseline;
   gap: .4rem;
   margin-bottom: .35rem;
 }
-.arena-chat > .arena-panel__title .arena-panel__kicker { margin: 0; }
-.arena-chat__live { margin-left: auto; }
+/* The kicker is a block heading and the shared panel rule lets it take the
+   whole row, which is what pushed LIVE onto a second line and gave the header
+   twice the height the conversation could spare. */
+.arena-chat > .arena-panel__title .arena-panel__kicker {
+  flex: 0 1 auto;
+  width: auto;
+  margin: 0;
+  text-align: left;
+  white-space: nowrap;
+}
+.arena-chat .arena-chat__live { flex: 0 0 auto; margin-left: auto; }
 .arena-chat__composer input {
   flex: 1 1 auto;
   min-width: 0;
