@@ -1,5 +1,0 @@
-agent: greenbear
-started_utc: 2026-08-24T15:10
-version: v2.5.1264
-commit: pending
-task: chat colours were dead behind a panel reset; action menu escaped the panel
