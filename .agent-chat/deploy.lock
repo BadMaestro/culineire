@@ -1,0 +1,5 @@
+agent: bolt
+started_utc: 2026-08-24T14:00
+version: v2.5.1258
+commit: pending
+task: desktop-scoped chat declutter - admin body text matches every other line, more-actions dots stop depending on a missing font glyph
