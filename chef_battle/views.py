@@ -935,6 +935,24 @@ def _cached_enrolled_roster(build, cache_key):
     return rows
 
 
+def _forget_cached_roster():
+    """Drop the reused roster so the next request re-reads the database.
+
+    MODERATION MUST NOT WAIT OUT A CACHE. Owner deletion ANONYMISES the author
+    row rather than removing it (name -> "Deleted Chef", avatar dropped), so
+    the profile stays in the roster and the cached copy would keep serving the
+    person's real name and picture for the rest of the window - seconds of a
+    deleted account still on the floor, which is a privacy answer, not a
+    freshness one. Mute and block go the same way for the same reason.
+
+    Per-worker, like the cache itself: a worker that did not serve the action
+    keeps its own copy until its own window lapses. That is the accepted limit
+    of an in-process cache and the reason the window is five seconds and not
+    five minutes.
+    """
+    _ARENA_ROSTER_CACHE.update({"key": None, "at": 0.0, "rows": None})
+
+
 def _arena_runway():
     """The countdown and pace for a scenario run, or None."""
     from .arena_runway import current
@@ -1811,6 +1829,7 @@ def owner_arena_account_action(request):
         )
         action_label = "muted" if action == "mute" else "blocked"
         messages.warning(request, f'{target.name} is {action_label} until {until:%Y-%m-%d %H:%M %Z}.')
+        _forget_cached_roster()
         return redirect("chef_battle:arena")
 
     if action != "delete" or request.POST.get("confirm_delete") != "on":
@@ -1847,6 +1866,7 @@ def owner_arena_account_action(request):
         "can_generate_ai_images", "has_arena_console_access",
     ])
     restriction.delete()
+    _forget_cached_roster()
     messages.warning(request, f'Account "{target_label}" was deleted and its required history anonymised.')
     return redirect("chef_battle:arena")
 
