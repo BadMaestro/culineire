@@ -724,6 +724,7 @@
         <p class="arena-rank-spine__label">Kitchen rank progression</p>
         <ol class="arena-rank-spine__list">
           {% for rank, chefs, ring in rank_groups %}
+            {% with spine_emblem="images/chef_battle/ranks/"|add:rank.value|add:".webp" %}
             <li class="arena-rank-spine__item" data-ring="{{ ring }}">
               {% comment %}
                 The count is a bare numeral on screen; the label spells out what
@@ -733,9 +734,25 @@
               <span class="arena-rank-spine__step arena-rank-spine__step--{{ rank.value }}" role="group"
                     data-ring="{{ ring }}"
                     aria-label="Ring {{ ring }}, {{ rank.label }} — {{ chefs|length }} chef{{ chefs|length|pluralize }}">
+                {% comment %}
+                  THE RANK'S OWN EMBLEM, the same file the phone's kitchen-ranks
+                  scene already shows (Owner, 2026-08-24: "расширяй слот под
+                  эмблемы"). Same path, so a viewer who has seen either surface
+                  has the image cached for the other.
+
+                  It is display:none by default and only shown at 901px and up.
+                  That is not tidiness: below 640px this whole ladder is hidden
+                  and the mobile scene carries the ranks instead, and between
+                  641 and 900 the ladder renders in its old chip form which the
+                  brief says not to disturb. Hiding by default means adding this
+                  element changes nothing anywhere except the desktop.
+                {% endcomment %}
+                <img class="arena-rank-spine__emblem" src="{% static spine_emblem %}"
+                     alt="" width="110" height="180" loading="lazy" aria-hidden="true">
                 <i class="arena-rank-spine__ring" aria-hidden="true">{{ ring }}</i><span class="arena-rank-spine__name">{{ rank.label }}</span><b aria-hidden="true">{{ chefs|length }}</b>
               </span>
             </li>
+            {% endwith %}
           {% endfor %}
         </ol>
       </div>

@@ -8758,3 +8758,95 @@ body.page--arena.is-zoom-locked {
     background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
   }
 }
+
+/* ============================================================================
+ * THE RANK LADDER GETS ITS EMBLEMS. Owner, 2026-08-24: "расширяй слот под
+ * эмблемы" - the decision I said was his and would not take.
+ *
+ * DEFAULT IS HIDDEN, AND THAT IS THE SAFETY. The <img> now exists in the
+ * markup at every width, so it is switched OFF here and ON only at 901px.
+ * Below 640px this ladder is display:none entirely and the mobile scene
+ * carries the ranks; between 641 and 900 the ladder keeps the chip form the
+ * brief says not to disturb. Hiding by default means the element's existence
+ * changes nothing anywhere except the desktop.
+ * ========================================================================== */
+.arena-rank-spine__emblem { display: none; }
+
+@media (min-width: 901px) {
+  /* HOW THE SLOT GREW, AND IN WHICH DIRECTION - this is the whole design
+     decision and it is made of measurements, not taste.
+
+     placeRankSpine() sets only top and left; it reads the ladder's own
+     bounding box for width and height and never writes them (the function
+     says so itself: "WIDTH IS NOT SET HERE"). So the slot is sized here, in
+     CSS, and the JS re-places it accordingly. Two consequences decide the
+     shape:
+
+     WIDTH MUST NOT GROW. The ladder stands to the RIGHT of the octagon, and
+     when the room there runs out the JS pulls it back with
+     `x = frame.width - ladderW` - straight over the octagon. At 1440 the room
+     right of the octagon is 63px against a 159px ladder, so it is ALREADY
+     pulled back. Every pixel of extra width is another pixel of octagon
+     covered. So the ladder goes to TWO COLUMNS instead of one, which buys the
+     emblems their size out of the height, where there is room, rather than out
+     of the octagon, where there is not.
+
+     HEIGHT HAS ROOM, WITH A CEILING. The frame is 644 tall and the JS shrinks
+     anything taller (floor 0.85). Four rows of tile stay under that with
+     margin to spare, so nothing is scaled and no type is shrunk - the function
+     is explicit that shrinking type is the Owner's call, not an agent's. */
+  .arena-rank-spine__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.3rem;
+    width: 9.4rem;
+  }
+  .arena-rank-spine__item {
+    display: block;
+    min-width: 0;
+  }
+  /* The chip becomes the phone's tile: a column, emblem first, the name and
+     the count under it - the same reading order the kitchen-ranks scene uses,
+     so a viewer meets one component on both screens. */
+  .page--arena .arena-rank-spine__step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.12rem;
+    width: 100%;
+    padding: 0.32rem 0.2rem 0.4rem;
+    border-radius: 0.7rem;
+    text-align: center;
+  }
+  .arena-rank-spine__emblem {
+    display: block;
+    width: 100%;
+    max-width: 3.6rem;
+    height: auto;
+    aspect-ratio: 11 / 18;
+    object-fit: contain;
+  }
+  /* The art carries the rank NUMBER baked in - that is why the phone dropped
+     its own numeral when these crops arrived (v2.5.1208). The same is true
+     here, so the ring numeral goes rather than printing the number twice. */
+  .page--arena .arena-rank-spine__ring { display: none; }
+  .page--arena .arena-rank-spine__name {
+    display: block;
+    max-width: 100%;
+    font-size: 0.46rem;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    overflow-wrap: anywhere;
+  }
+  .page--arena .arena-rank-spine__step b {
+    display: block;
+    font-size: 0.52rem;
+  }
+  /* The label above the stack comes back: with tiles rather than a list of
+     names, the stack no longer says what it is. */
+  .page--arena .arena-rank-spine__label {
+    display: block;
+    font-size: 0.46rem;
+    color: var(--accent-bronze-dark);
+  }
+}
