@@ -9340,3 +9340,178 @@ body.page--arena.is-zoom-locked {
     color: var(--accent-bronze-dark);
   }
 }
+
+/* ============================================================================
+ * THE RANK LADDER LEAVES THE OCTAGON AND BECOMES A STRIP UNDER IT.
+ * Owner, 2026-08-24: "сделай красивой полосой под ареной - как обьяснение
+ * что за кольца и что значят".
+ *
+ * WHY A NEW GRID ROW IS SAFE FOR THE OCTAGON, measured before writing this
+ * rather than reasoned from the stylesheet - which would have got it wrong.
+ * The rule that decides the floor cell's height is NOT the desktop one at
+ * :7678 (min-height: min(70vh,760px); align-self: stretch). It is an
+ * unconditional rule further down, at :7864:
+ *
+ *     .arena-command-deck__floor {
+ *       align-self: start !important;
+ *       aspect-ratio: 1 / 0.82;
+ *       min-height: 0 !important;
+ *       max-height: min(78vh, 820px);
+ *     }
+ *
+ * It beats the desktop rule twice over - once by !important, once by source
+ * order. So the floor's height is its own WIDTH times 0.82, and align-self:
+ * start means the cell deliberately does not stretch to its grid row. A new
+ * full-width row below therefore cannot compress it: the only thing that
+ * could is a change to the middle COLUMN's width, and a row does not touch
+ * that. Verified by measurement either side of this change, not assumed.
+ * ========================================================================== */
+
+/* Off everywhere by default. The phone is GreenBear's and already carries the
+   ranks in .arena-mobile-scene; the 641-900px band keeps the overlay ladder
+   it has today. Only the desktop turns this on. */
+.arena-rank-strip { display: none; }
+
+@media (min-width: 901px) {
+
+  /* ---- 1. THE ROW ------------------------------------------------------
+     Between the arena and the lower dock, full width, exactly where he drew
+     it. The other four areas are copied verbatim from the block at :7572 so
+     that this is a row INSERTED, not a template rewritten. */
+  .arena-command-deck {
+    grid-template-areas:
+      "ribbon ribbon ribbon"
+      "left   floor  right"
+      "ranks  ranks  ranks"
+      "foot   foot   foot";
+  }
+  .arena-rank-strip {
+    display: block;
+    grid-area: ranks;
+    width: 100%;
+    padding: 0.85rem 1.1rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 0.5rem 1.4rem color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+
+  /* ---- 2. THE OLD OVERLAY GOES QUIET HERE ------------------------------
+     Same mechanism the phone already uses at :8459, at the other end of the
+     range. The overlay's ~50 rules are NOT deleted: they still dress the
+     ladder between 641 and 900px, which this pass does not touch. */
+  .arena-floor-stage > .arena-rank-spine { display: none; }
+
+  /* ---- 3. THE HEADING --------------------------------------------------
+     One line saying what the strip IS, one saying how to read it. The lead
+     is the whole point of the card: without it the numbers are decoration,
+     with it they are a map of the floor. */
+  .arena-rank-strip__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    text-align: center;
+  }
+  .arena-rank-strip__head .arena-panel__kicker { margin: 0; }
+  .arena-rank-strip__lead {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  /* ---- 4. THE STRIP ITSELF ---------------------------------------------
+     Nine items - eight ranks and the spectators - laid as equal columns so
+     the row reads as one ramp rather than nine pills of different widths.
+     The legend's own base rule makes each item a rounded pill in a nowrap
+     flex row; here it becomes a grid of tiles instead, which is what lets
+     the emblem sit above its label. */
+  .arena-rank-strip .arena-legend {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: visible;
+  }
+  .arena-rank-strip .arena-legend__item {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.22rem;
+    min-width: 0;
+    padding: 0.45rem 0.3rem 0.5rem;
+    border-radius: 0.7rem;
+    text-align: center;
+  }
+  .arena-rank-strip .arena-legend__emblem {
+    display: block;
+    width: 100%;
+    max-width: 3.1rem;
+    height: auto;
+    aspect-ratio: 11 / 18;
+    object-fit: contain;
+  }
+  /* The swatch is the load-bearing part of the explanation: it is the ring's
+     OWN colour, the same --arena-rank-N the floor paints that ring with, so
+     the eye can carry a colour from this strip to a ring on the octagon.
+     Bigger than the legend's original 10px dot, because here it is doing
+     that job rather than decorating a pill. */
+  .arena-rank-strip .arena-legend__swatch {
+    width: 100%;
+    height: 0.3rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+  .arena-rank-strip .arena-legend__label {
+    font-size: 0.55rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .arena-rank-strip .arena-legend__count {
+    font-size: 0.62rem;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Spectators are not a ring, so the item that represents them does not
+     pretend to be one: no emblem exists for it and none is invented, and the
+     empty space where the art would be is closed up rather than left as a
+     hole in the row. */
+  .arena-rank-strip .arena-legend__item--spectator {
+    justify-content: flex-end;
+  }
+  /* AND ITS SWATCH IS NOT A RING COLOUR. Measured: --brand and
+     --arena-rank-3 resolve to the SAME rgb(139,115,85), so the legend's own
+     rule (:139, "spectator swatch = var(--brand)") put Spectators and Head
+     Chef in one identical colour. Harmless in a row of pills; a real defect
+     in a strip whose entire job is "this colour IS that ring", where one
+     colour must mean one thing.
+
+     Spectators are not a ring at all - they sit outside the octagon - so the
+     mark says that instead of competing for a place on the ramp: hollow,
+     dashed, no fill to read as a ring's own shade. */
+  .arena-rank-strip .arena-legend__item--spectator .arena-legend__swatch {
+    background: none;
+    border: 1px dashed color-mix(in srgb, var(--muted) 55%, transparent);
+  }
+  /* Culinary Master keeps the warmer ground it has everywhere else on this
+     page - and not a larger tile, for the reason the phone learned in
+     v2.5.1210: the gold is already the emphasis, and a second one reads as
+     an uneven row rather than an important rank. */
+  .arena-rank-strip .arena-legend__item--culinary_master {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
+  }
+}
+
+/* The tablet band keeps the overlay ladder and therefore has no strip, but the
+   grid template must still name the row or the section would be auto-placed
+   into a cell that belongs to something else. Simplest correct answer: the
+   strip stays display:none there, so it is never placed at all. */

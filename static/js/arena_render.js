@@ -3275,11 +3275,28 @@
 
     // Below 767 the arena is untouched by the Owner's own instruction of
     // 2026-08-03, so CSS keeps layout there and nothing is measured.
-    if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
+    //
+    // AT 901 AND ABOVE THE LADDER IS NO LONGER AN OVERLAY AT ALL. Owner,
+    // 2026-08-24: the ranks moved out from over the octagon into a strip
+    // under the arena (.arena-rank-strip, a revived .arena-legend), and the
+    // spine is display:none up there. Measuring a hidden element yields a
+    // zero box, and writing coordinates onto it would place nothing at a
+    // cost - so this returns before any of it.
+    //
+    // The band between them, 768 to 900, still wants the overlay and still
+    // gets measured: that range is deliberately not part of this change.
+    //
+    // transformOrigin IS cleared here and is NOT cleared by the phone guard
+    // above - an omission worth not copying, since the property survives on
+    // the element after every other inline style has been taken off it.
+    if (window.matchMedia &&
+        (window.matchMedia('(max-width: 767px)').matches ||
+         window.matchMedia('(min-width: 901px)').matches)) {
       spine.style.top = '';
       spine.style.left = '';
       spine.style.width = '';
       spine.style.transform = '';
+      spine.style.transformOrigin = '';
       return;
     }
 

@@ -737,20 +737,6 @@
         <p class="arena-panel__kicker">The kitchen floor</p>
         <p class="arena-command-deck__floor-copy">Every occupied tile is a real enrolled chef. Select one for their battle profile.</p>
       </div>
-      <div class="arena-legend" aria-label="Arena tier key">
-        {% for rank, chefs, ring in rank_groups %}
-        <div class="arena-legend__item arena-legend__item--{{ rank.value }}" data-ring="{{ ring }}">
-          <span class="arena-legend__swatch"></span>
-          <span class="arena-legend__label">{{ rank.label }}</span>
-          <span class="arena-legend__count">{{ chefs|length }}</span>
-        </div>
-        {% endfor %}
-        <div class="arena-legend__item arena-legend__item--spectator">
-          <span class="arena-legend__swatch"></span>
-          <span class="arena-legend__label">Spectators</span>
-          <span class="arena-legend__count">{{ spectator_count }}</span>
-        </div>
-      </div>
     </div>
     <div class="arena-floor-stage">
       {% comment %}
@@ -810,6 +796,61 @@
       </div>
       {% include "chef_battle/_arena_render_ring.html" %}
     </div>
+  </section>
+
+  {% comment %}
+    THE RINGS, EXPLAINED - a strip under the arena rather than a ladder over
+    it. Owner, 2026-08-24: "сделай красивой полосой под ареной - как
+    обьяснение что за кольца и что значят".
+
+    THIS IS NOT A NEW COMPONENT. .arena-legend was already written, already
+    looped the same rank_groups with the same `ring` value as the rank
+    ladder, and already mapped every rank to its own --arena-rank-N ring
+    colour - the ring explanation was wired all along. What it was not was
+    VISIBLE: it lived inside .arena-command-deck__floor-head, which
+    arena.css:1582 sets to display:none with no media query at all, so it has
+    rendered into the HTML and painted nothing at every width since. Moving
+    it here is what turns it on.
+
+    WHY NOT RE-HOME THE LADDER ITSELF. .arena-rank-spine is held at
+    visibility:hidden by arena.css:6014 until fitScene() stamps
+    data-arena-state on the deck - an anti-flash gate keyed to the renderer.
+    A re-homed spine would simply never appear, because nothing outside the
+    octagon's own fit routine ever lifts that gate. The legend has no such
+    tie: no JS, no octagon geometry, no gate.
+  {% endcomment %}
+  <section class="arena-rank-strip" aria-labelledby="arena-rank-strip-title">
+    <div class="arena-rank-strip__head">
+      <h2 class="arena-panel__kicker" id="arena-rank-strip-title">The eight rings</h2>
+      <p class="arena-rank-strip__lead">
+        Every ring on the floor is a rank. The outermost is where a chef starts;
+        the centre is where the crown sits.
+      </p>
+    </div>
+    <ol class="arena-legend" aria-label="Arena tier key">
+      {% for rank, chefs, ring in rank_groups %}
+      {% with strip_emblem="images/chef_battle/ranks/"|add:rank.value|add:".webp" %}
+      <li class="arena-legend__item arena-legend__item--{{ rank.value }}" data-ring="{{ ring }}">
+        {% comment %}
+          The emblem art carries the ring NUMBER and the rank NAMEPLATE baked
+          in - that is why the phone dropped its own copies of both in
+          v2.5.1208, and why the label below is the ring's PLACE on the floor
+          rather than the rank's name repeated a second time.
+        {% endcomment %}
+        <img class="arena-legend__emblem" src="{% static strip_emblem %}" alt=""
+             width="110" height="180" loading="lazy" aria-hidden="true">
+        <span class="arena-legend__swatch" aria-hidden="true"></span>
+        <span class="arena-legend__label">{{ rank.label }}</span>
+        <span class="arena-legend__count">{{ chefs|length }}</span>
+      </li>
+      {% endwith %}
+      {% endfor %}
+      <li class="arena-legend__item arena-legend__item--spectator">
+        <span class="arena-legend__swatch" aria-hidden="true"></span>
+        <span class="arena-legend__label">Spectators</span>
+        <span class="arena-legend__count">{{ spectator_count }}</span>
+      </li>
+    </ol>
   </section>
 
   <footer class="arena-command-deck__crowd-rail arena-lower-broadcast" aria-label="Arena actions">
