@@ -1,0 +1,5 @@
+agent: bolt
+started_utc: 2026-08-24T14:20
+version: v2.5.1260
+commit: pending
+task: revert v2.5.1258 - the desktop chat fix broke live rendering, rolling back first, investigating after
