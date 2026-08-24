@@ -1,5 +1,0 @@
-agent: greenbear
-started_utc: 2026-08-24T09:00
-version: v2.5.1230
-commit: pending
-task: security re-audit of mobile arena - bust the roster cache on Owner moderation actions
