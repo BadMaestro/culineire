@@ -134,9 +134,6 @@
 .arena-legend__item--commis_chef .arena-legend__swatch { background: var(--arena-rank-6); }
 .arena-legend__item--prep_cook .arena-legend__swatch { background: var(--arena-rank-7); }
 .arena-legend__item--kitchen_porter .arena-legend__swatch { background: var(--arena-rank-8); }
-/* Spectator blue is one of the five semantic exceptions — see the note near
-   the bottom of this file. No blue token exists at :root to mix from. */
-.arena-legend__item--spectator .arena-legend__swatch { background: var(--brand); }
 
 .arena-legend__count {
   font-weight: 700;
@@ -9432,7 +9429,7 @@ body.page--arena.is-zoom-locked {
      the emblem sit above its label. */
   .arena-rank-strip .arena-legend {
     display: grid;
-    grid-template-columns: repeat(9, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
     gap: 0.45rem;
     margin: 0;
     padding: 0;
@@ -9479,27 +9476,6 @@ body.page--arena.is-zoom-locked {
   .arena-rank-strip .arena-legend__count {
     font-size: 0.62rem;
     font-variant-numeric: tabular-nums;
-  }
-  /* Spectators are not a ring, so the item that represents them does not
-     pretend to be one: no emblem exists for it and none is invented, and the
-     empty space where the art would be is closed up rather than left as a
-     hole in the row. */
-  .arena-rank-strip .arena-legend__item--spectator {
-    justify-content: flex-end;
-  }
-  /* AND ITS SWATCH IS NOT A RING COLOUR. Measured: --brand and
-     --arena-rank-3 resolve to the SAME rgb(139,115,85), so the legend's own
-     rule (:139, "spectator swatch = var(--brand)") put Spectators and Head
-     Chef in one identical colour. Harmless in a row of pills; a real defect
-     in a strip whose entire job is "this colour IS that ring", where one
-     colour must mean one thing.
-
-     Spectators are not a ring at all - they sit outside the octagon - so the
-     mark says that instead of competing for a place on the ramp: hollow,
-     dashed, no fill to read as a ring's own shade. */
-  .arena-rank-strip .arena-legend__item--spectator .arena-legend__swatch {
-    background: none;
-    border: 1px dashed color-mix(in srgb, var(--muted) 55%, transparent);
   }
   /* Culinary Master keeps the warmer ground it has everywhere else on this
      page - and not a larger tile, for the reason the phone learned in

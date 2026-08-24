@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1269",
+        "date": "2026-08-25",
+        "commit": "pending",
+        "title": "Spectators leave the rank strip - the strip explains rings, and spectators are not one",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner sent the strip with the SPECTATORS tile crossed out and asked where it had come from. It was not written by v2.5.1266: the ninth item has been in .arena-legend since 2026-07-01, commit e25c381d, whose own subject line reads \"spectator ring (ring 9)\", and it rode along when v2.5.1266 lifted the legend out of the display:none container it had been hidden in since it was written. Spectators are real on the floor - arena_render.js draws the spectator oval and seats them on rings marked kind:spectator, and the count is the server's spectator_count - but the strip is a key to the RANK rings, its heading says THE EIGHT RINGS and its lead says every ring is a rank, so a ninth tile that is not a rank contradicted the card it sat on. Removed: the <li> from the template, and with it all three of its stylesheet rules, including the :139 base rule and the hollow dashed swatch v2.5.1266 had invented to stop Spectators and Head Chef wearing the same colour - a defect that only existed because the item did. The grid goes repeat(9) to repeat(8), so the eight ranks now divide the full width instead of surrendering a ninth of it. Nothing was added, only deleted, and no rule outside the strip changed. The strip is a grid row BELOW the floor and the floor takes its height from its own width via the unconditional aspect-ratio at :7864, so a column count inside the strip cannot reach the octagon. 38 focused tests green - rank column, ladder anchor, the octagon size and seat lock, the rank label spec, template hygiene. spectator_count is left in the view context untouched: it is the mobile surface's data and this is a desktop pass. NOTED, NOT FIXED HERE: ArenaStylesheetHasNoSupersededDeclarationTests is red on HEAD, before this change - 18 declarations in arena.css are overwritten by a later rule with the identical selector in the identical at-rule context, and one of them is mine from v2.5.1266 (.arena-command-deck grid-template-areas, whose earlier copy at :6180 can never win against :7246). Reported to the Owner rather than folded into a deletion pass he did not ask for.",
+    },
+    {
         "version": "2.5.1266",
         "date": "2026-08-24",
         "commit": "pending",
