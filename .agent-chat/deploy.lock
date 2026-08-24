@@ -1,5 +1,0 @@
-agent: bolt
-started_utc: 2026-08-24T11:10
-version: v2.5.1246
-commit: pending
-task: two printed Django comments off the live page; rank tiles stop printing the name twice
