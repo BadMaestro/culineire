@@ -8934,17 +8934,21 @@ body.page--arena.is-zoom-locked {
      its own numeral when these crops arrived (v2.5.1208). The same is true
      here, so the ring numeral goes rather than printing the number twice. */
   .page--arena .arena-rank-spine__ring { display: none; }
-  .page--arena .arena-rank-spine__name {
-    display: block;
-    max-width: 100%;
-    font-size: 0.46rem;
-    line-height: 1.15;
-    letter-spacing: 0.04em;
-    overflow-wrap: anywhere;
-  }
+  /* THE NAME GOES TOO, and for the same reason as the numeral above it - I
+     got this wrong first time and the Owner photographed it. His crops carry
+     the rank NAMEPLATE as well as the number baked into the art (v2.5.1208
+     is where the phone dropped both its own spans for exactly this). Printing
+     the name again underneath meant every tile said its rank twice, and the
+     second copy was the one that clipped: KITCHEN PORTE, EXECUTIVE CHE.
+
+     The accessible name is untouched - it lives on the step's aria-label,
+     which spells out the ring, the rank and the chef count, so nothing is
+     lost to a screen reader by taking the visible duplicate away. */
+  .page--arena .arena-rank-spine__name { display: none; }
   .page--arena .arena-rank-spine__step b {
     display: block;
     font-size: 0.52rem;
+    line-height: 1;
   }
   /* The label above the stack comes back: with tiles rather than a list of
      names, the stack no longer says what it is. */

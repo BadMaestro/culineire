@@ -472,9 +472,18 @@
            data-send-url="{% url 'chef_battle:arena_chat_send' %}">
     <header class="arena-panel__title">
       <h2 class="arena-panel__kicker">Spectator chat</h2>
-      {# "SPECTATOR CHAT * LIVE 256". The count is its own element, written by
-         arena_chat.js from the feed, so the badge still reads as the single
-         word LIVE when the server sends no number. #}
+      {% comment %}
+        "SPECTATOR CHAT * LIVE 256". The count is its own element, written by
+        arena_chat.js from the feed, so the badge still reads as the single
+        word LIVE when the server sends no number.
+
+        WRITTEN AS {% comment %} AND NOT {# #}, 2026-08-24: the hash form is
+        SINGLE-LINE in Django, so this note printed itself in full onto the
+        live arena - the Owner photographed it inside the chat panel. The
+        other hash notes in this file survive only because they sit OUTSIDE
+        {% block content %}, where an extending template renders nothing.
+        Inside the block there is only one safe form and this is it.
+      {% endcomment %}
       <span class="arena-chat__live" id="arena-chat-live" hidden>Live<span
         class="arena-chat__listening" id="arena-chat-listening" hidden></span></span>
     </header>
@@ -868,9 +877,17 @@
 
 {% block extra_js %}
 <script defer src="{% static 'js/arena_chat.js' %}"></script>
-{# The same flag that decided the viewport above decides whether the page
-   supplies its own zoom, so the two can never disagree. Set before the
-   deferred module runs, which is what `defer` guarantees. #}
+{% comment %}
+  The same flag that decided the viewport above decides whether the page
+  supplies its own zoom, so the two can never disagree. Set before the
+  deferred module runs, which is what `defer` guarantees.
+
+  MY OWN COPY OF THE SAME TRAP, found 2026-08-24 by rendering the page and
+  grepping the OUTPUT rather than reading the source. The hash form is
+  single-line, and this block renders, so these three lines were printing
+  into the document with the scripts. Invisible on screen only because of
+  where they land - still text in the page that has no business being there.
+{% endcomment %}
 <script nonce="{{ request.csp_nonce }}">window.ARENA_LOCK_ZOOM = {{ arena_native_zoom_off|yesno:"true,false" }};</script>
 <script defer src="{% static 'js/arena_zoom.js' %}"></script>
 <script defer src="{% static 'js/arena_phase_blurb.js' %}?v=20260821-octagon-fit"></script>

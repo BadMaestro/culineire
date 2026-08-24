@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1246",
+        "date": "2026-08-24",
+        "commit": "pending",
+        "title": "Two Django comments were printing onto the live arena, and the rank tiles were saying their rank twice",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner sent a photograph of the desktop arena and said it was still bad. He was right on both counts and one of the two faults was mine from this same session. TWO RAW COMMENTS WERE RENDERING AS TEXT. The hash form is SINGLE-LINE in Django, and a multi-line one inside a block that renders prints itself in full. The first is the one he could see: a note about the chat LIVE badge, written into the spectator chat header by v2.5.1242, which printed its whole paragraph inside the panel. The second is MINE, older, and nobody had caught it - the note explaining the zoom flag sits in the extra_js block, which also renders, so three more lines were going into the document with the scripts. It was invisible only because of where it lands. BOTH ARE NOW {% comment %}, and the check that found the second one is the lesson: I rendered the page and grepped the OUTPUT rather than reading the source, which is the only method that can tell a comment that renders from one that does not. A grep of the template would have found both and explained neither. THE RANK TILES WERE PRINTING THE RANK TWICE. My own defect from v2.5.1240: the Owner's emblem crops carry the rank NUMBER and the NAMEPLATE baked into the art - that is exactly why the phone dropped both of its own spans when the crops arrived in v2.5.1208 - and I dropped the ring numeral on desktop for that reason while leaving the name to print underneath. So every tile said its rank twice and the second copy was the one that clipped: KITCHEN PORTE, EXECUTIVE CHE, in his photograph. The visible name is gone; the ACCESSIBLE name is untouched because it never lived there - the step's aria-label spells out the ring, the rank and the chef count, so a screen reader loses nothing. MEASURED AFTER: eight tiles at 71x128, zero with clipped content (was every one of them), the ladder 150x535 rather than 150x576 now that a duplicate line of type is gone, still inside the 644 frame so nothing is scaled. Mobile re-measured at 375px against its pre-pass values: seven components, zero differences, the ladder still display:none there. 54 tests green. Still no screenshot - the preview pane is not displayed in this session, so the tiles are described from the live DOM: all eight, correct emblem file per ring, in ring order 8 down to 1.",
+    },
+    {
         "version": "2.5.1240",
         "date": "2026-08-24",
         "commit": "pending",
