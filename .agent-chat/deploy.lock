@@ -1,5 +1,0 @@
-agent: greenbear
-started_utc: 2026-08-24T12:50
-version: v2.5.1252
-commit: pending
-task: arena chat rework phase 4 - explicit moderator permissions, hide/restore/timeout, append-only audit trail
