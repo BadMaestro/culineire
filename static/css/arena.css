@@ -485,7 +485,7 @@
   gap: 1rem;
 }
 
-.arena-command-deck__header,
+
 .arena-command-deck__phase-card,
 .arena-command-deck__metrics,
 .arena-command-deck__floor,
@@ -500,10 +500,7 @@
   background: color-mix(in srgb, var(--surface) 90%, transparent);
   box-shadow: 0 .55rem 1.6rem color-mix(in srgb, var(--ink) 8%, transparent);
 }
-
-.arena-command-deck__header { grid-area: header; display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.1rem 1.25rem; border-radius: 1.1rem; }
 .arena-command-deck__eyebrow, .arena-panel__kicker { margin: 0; color: var(--arena-gold); font-size: .69rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-.arena-command-deck__header h1 { margin: .12rem 0; font-family: var(--font-serif); font-size: clamp(1.55rem, 3vw, 2.3rem); line-height: 1; color: var(--arena-ink); }
 .arena-command-deck__live-note, .arena-command-deck__floor-copy, .arena-command-deck__phase-copy, .arena-command-deck__gift-copy, .arena-command-deck__guide-copy { margin: .35rem 0 0; color: var(--arena-muted); font-size: .82rem; line-height: 1.5; }
 .arena-command-deck__guide-link {
   display: inline-flex;
@@ -704,8 +701,12 @@
 .arena-command-deck__floor .arena-legend { justify-content: flex-end; flex-wrap: wrap; overflow: visible; margin: 0; max-width: 60%; }
 .arena-command-deck__floor .arena-puzzle-label { order: 2; margin: 0; font-size: .72rem; }
 .arena-floor-stage { position: relative; border-radius: 1.1rem; background: var(--surface-soft); }
-/* OWNER CRITICAL 2026-07-25: disconnected 2.6MB floor-plate PNG */
-.arena-floor-stage::before { content: none !important; display: none !important; background: none !important; }
+/* The ::before kill-rule for the 2.6MB floor-plate PNG (OWNER CRITICAL,
+   2026-07-25) lives ONCE, further down at "kill decorative floor plate (G12)".
+   A shorter duplicate of it used to sit here as well - same selector, same
+   specificity, same !important, three of the same properties - so it was
+   overridden in full by the later one and painted nothing. Removed by the
+   desktop audit, 2026-08-23. */
 .arena-floor-stage #arena-puzzle { position: relative; z-index: var(--arena-z-floor); }
 /* 3G R4 (Owner D1 Option B): centred rank stack over the floor — composition
    from Ember's rank-progression prototype, official tokens only. Desktop
@@ -1203,14 +1204,14 @@
 
   .arena-command-deck__floor-head { display: none; }
 
-  .arena-command-deck__header,
-  .arena-command-deck__phase-card,
-  .arena-command-deck__metrics,
-  .arena-command-deck__ladder,
-  .arena-command-deck__gifts,
-  .arena-chat,
-  .arena-command-deck__phase-rail,
-  .arena-command-deck__crowd-rail {
+
+.arena-command-deck__phase-card,
+.arena-command-deck__metrics,
+.arena-command-deck__ladder,
+.arena-command-deck__gifts,
+.arena-chat,
+.arena-command-deck__phase-rail,
+.arena-command-deck__crowd-rail {
     position: absolute;
     z-index: var(--arena-z-cells);
     margin: 0;
@@ -1236,8 +1237,8 @@
     -webkit-backdrop-filter: blur(10px) saturate(1.08);
   }
 
-  .arena-broadcast-ribbon .arena-command-deck__header,
-  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+
+.arena-broadcast-ribbon .arena-command-deck__phase-rail {
     grid-area: auto;
     grid-column: auto;
     position: relative;
@@ -1254,10 +1255,6 @@
     box-shadow: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-  }
-
-  .arena-broadcast-ribbon .arena-command-deck__header {
-    grid-template-columns: 1fr auto;
   }
 
   /* THE TRACK'S COLUMN COUNT HAS ONE OWNER, and this is it (2026-08-20).
@@ -1306,13 +1303,13 @@
     border-bottom: 0;
   }
 
-  .arena-command-deck__header *,
-  .arena-command-deck__phase-card *,
-  .arena-command-deck__metrics *,
-  .arena-chat *,
-  .arena-command-deck__ladder *,
-  .arena-command-deck__gifts *,
-  .arena-command-deck__crowd-rail * {
+
+.arena-command-deck__phase-card *,
+.arena-command-deck__metrics *,
+.arena-chat *,
+.arena-command-deck__ladder *,
+.arena-command-deck__gifts *,
+.arena-command-deck__crowd-rail * {
     color: inherit;
     border-color: color-mix(in srgb, var(--accent-bronze) 35%, transparent);
   }
@@ -1420,7 +1417,10 @@
   .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; grid-template-columns: 1fr; grid-template-areas: "header" "phase" "phase-rail" "metrics" "command" "floor" "crowd" "chat" "guide" "ladder" "gifts"; gap: .65rem; }
   .arena-command-deck__guide { grid-area: guide; }
   .arena-command-deck__command { grid-area: command; }
-  .arena-command-deck__header, .arena-command-deck__floor-head, .arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
+
+
+.arena-command-deck__floor-head,
+.arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
   /* Owner's target mockup (2026-08-21): the status line and the SUPPORTER/
      WATCHING row read as two sections, split by a thin rule - the same
      divider token .arena-compact-facts already uses between its own rows on
@@ -1615,7 +1615,6 @@
     min-width: 0;
     text-align: left;
   }
-  .arena-command-deck__header .btn-secondary { width: 100%; justify-content: center; }
   /* Owner's target mockup (2026-08-21): four columns, not three - this card
      always held four stats (viewers/votes/gifts/streak) and the count here
      was simply wrong, which also meant the last stat wrapped to a lonely
@@ -1711,7 +1710,7 @@
   color: var(--hall-text);
 }
 
-.page--arena .arena-command-deck__header,
+
 .page--arena .arena-command-deck__phase-card,
 .page--arena .arena-command-deck__metrics,
 .page--arena .arena-command-deck__ladder,
@@ -2336,10 +2335,6 @@
     margin: 0;
     color: var(--accent-bronze-dark);
   }
-  .arena-broadcast-ribbon .arena-command-deck__header h1 {
-    margin: 0.12rem 0 0;
-    line-height: 1.05;
-  }
   .arena-broadcast-ribbon .arena-command-deck__live-note {
     display: inline-flex;
     align-items: center;
@@ -2549,20 +2544,6 @@
 
 /* 3G — ribbon exit chip + panel action pills. */
 
-  .arena-broadcast-ribbon .arena-command-deck__header > .btn-secondary {
-    justify-self: end;
-    align-self: center;
-    min-height: 2rem;
-    padding: 0 0.75rem;
-    border-radius: 999px;
-    border-color: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
-    color: var(--ink-soft);
-    font-size: 0.58rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
-    box-shadow: none;
-  }
   .arena-command-deck__ladder .btn-secondary,
   .arena-command-deck__gifts .btn-primary,
   .arena-command-deck__gifts .btn-secondary {
@@ -3067,9 +3048,6 @@
       ) !important;
     box-shadow: 0 0.75rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent);
   }
-  .arena-broadcast-ribbon .arena-command-deck__header h1 {
-    color: var(--ink);
-  }
 
   /* Confrontation sits under ribbon, above the rings. */
 
@@ -3217,29 +3195,14 @@
     min-height: 3.55rem;
     padding: 0.38rem 1.2rem 0.45rem;
   }
-  .arena-broadcast-ribbon .arena-command-deck__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.65rem;
-    padding: 0.1rem 0;
-  }
-  .arena-broadcast-ribbon .arena-command-deck__header > div {
-    min-width: 0;
-  }
   .arena-broadcast-ribbon .arena-command-deck__live-note {
     font-size: 0.52rem;
   }
-  .arena-broadcast-ribbon .arena-command-deck__header h1 {
-    font-size: clamp(1.1rem, 1.6vw, 1.4rem);
-  }
 
 /* 3G — prototype rail widths (narrower show panels). */
-
-  .arena-command-deck__phase-card,
-  .arena-command-deck__ladder,
-  .arena-chat,
-  .arena-cooking-widget {
+.arena-command-deck__phase-card,
+.arena-command-deck__ladder,
+.arena-chat {
     left: 1.2%;
     width: min(15.5rem, 17.5%);
   }
@@ -3521,11 +3484,12 @@
       radial-gradient(60% 28% at 50% 8%, color-mix(in srgb, var(--ink) 35%, transparent), transparent 70%),
       radial-gradient(80% 40% at 50% 100%, color-mix(in srgb, var(--ink) 28%, transparent), transparent 65%);
   }
-  .page--arena .arena-command-deck__phase-card,
-  .page--arena .arena-command-deck__metrics,
-  .page--arena .arena-cooking-widget,
-  .page--arena .arena-command-deck__ladder,
-  .page--arena .arena-command-deck__gifts {
+
+
+.page--arena .arena-command-deck__phase-card,
+.page--arena .arena-command-deck__metrics,
+.page--arena .arena-command-deck__ladder,
+.page--arena .arena-command-deck__gifts {
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
     box-shadow:
       0 0.45rem 1.2rem color-mix(in srgb, var(--ink) 28%, transparent),
@@ -3644,9 +3608,6 @@
       radial-gradient(ellipse at 50% 18%, color-mix(in srgb, var(--accent-bronze) 22%, transparent), transparent 48%),
       color-mix(in srgb, var(--accent-bronze) 18%, transparent);
   }
-  .arena-broadcast-ribbon .arena-command-deck__header h1 {
-    text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 40%, transparent);
-  }
   .arena-lower-broadcast .ce-nav__link--battle {
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
   }
@@ -3752,9 +3713,6 @@
   .arena-broadcast-ribbon .arena-command-deck__eyebrow {
     font-size: 0.52rem;
     letter-spacing: 0.14em;
-  }
-  .arena-broadcast-ribbon .arena-command-deck__header h1 {
-    margin-top: 0.12rem;
   }
   .arena-confrontation-band .arena-live-chef--challenger,
   .arena-confrontation-band .arena-live-chef--opponent {
@@ -4183,9 +4141,6 @@
  * beside the centre, matching the approved Arena reference.
  * ============================================================================ */
 
-  .arena-broadcast-ribbon .arena-command-deck__header h1 {
-    letter-spacing: 0.02em;
-  }
 
 @media (min-width: 901px) {
   /* SCOPED TO THE DESKTOP ARENA. The first version of this sat at top level and
@@ -4854,9 +4809,7 @@
  * MOCKUP M13 — Today's Crown Ladder panel: ranked rows + gold indices.
  * Keep ladder ids / profile links; visual parity only.
  * ============================================================================ */
-
-  .arena-command-deck__ladder,
-  .arena-cooking-widget {
+.arena-command-deck__ladder {
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
@@ -4872,23 +4825,23 @@
     box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
   }
 
-  .arena-command-deck__ladder > .arena-panel__title,
-  .arena-cooking-widget > .arena-panel__title {
+
+.arena-command-deck__ladder > .arena-panel__title {
     margin: 0;
     padding-bottom: 0.45rem;
     border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
   }
 
-  .arena-command-deck__ladder .arena-panel__kicker,
-  .arena-cooking-widget .arena-panel__kicker {
+
+.arena-command-deck__ladder .arena-panel__kicker {
     margin: 0;
     font-size: 0.52rem;
     letter-spacing: 0.14em;
     color: var(--accent-bronze-dark);
   }
 
-  .arena-command-deck__ladder .arena-panel__heading,
-  .arena-cooking-widget .arena-panel__heading {
+
+.arena-command-deck__ladder .arena-panel__heading {
     margin: 0.12rem 0 0;
     font-size: clamp(1.05rem, 1.45vw, 1.28rem);
     letter-spacing: 0.02em;
@@ -5248,12 +5201,10 @@
 /* GRAPHICS WP (Owner 2026-07-25) - deck chrome WOW toward mockup show-panels:
    bronze rails + parchment depth. Official tokens only. AF owns atmosphere;
    Cursor owns polish. */
-
-  .page--arena .arena-cooking-widget,
-  .page--arena .arena-command-deck__phase-card,
-  .page--arena .arena-command-deck__metrics,
-  .page--arena .arena-command-deck__ladder,
-  .page--arena .arena-command-deck__gifts {
+.page--arena .arena-command-deck__phase-card,
+.page--arena .arena-command-deck__metrics,
+.page--arena .arena-command-deck__ladder,
+.page--arena .arena-command-deck__gifts {
     background: linear-gradient(
       165deg,
       color-mix(in srgb, var(--surface) 92%, var(--accent-bronze) 8%),
@@ -5290,11 +5241,6 @@
 
   .page--arena .arena-broadcast-ribbon .arena-command-deck__eyebrow {
     color: var(--accent-bronze);
-  }
-
-  .page--arena .arena-broadcast-ribbon .arena-command-deck__header h1 {
-    color: var(--surface);
-    text-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 70%, transparent);
   }
 
 /* OWNER ALL-CLEAR P0 — crown name wrap + confrontation card width */
@@ -5414,68 +5360,7 @@
  * card. It is a sibling of the lifecycle header, never a child of it.
  * Crown ladder and Graphics WP own its visual skin; only the unique layout
  * lives below. Phase IDs, timers and update behaviour stay unchanged. */
-.page--arena .arena-cooking-widget {
-  overflow: hidden;
-}
 
-.page--arena .arena-cooking-widget .arena-command-deck__header {
-  position: relative;
-  inset: auto;
-  width: auto;
-  margin: 0;
-  transform: none;
-  display: block;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.page--arena .arena-cooking-widget .arena-command-deck__header > div {
-  min-width: 0;
-}
-
-.page--arena .arena-cooking-widget .arena-command-deck__header > .btn-secondary {
-  display: none;
-}
-
-.page--arena .arena-cooking-widget .arena-command-deck__live-note {
-  display: block;
-  max-width: 100%;
-  margin: 0;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: clamp(0.54rem, 0.62vw, 0.66rem);
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.page--arena .arena-cooking-widget .arena-command-deck__live-note::before {
-  content: " · ";
-}
-
-.page--arena .arena-cooking-widget .arena-command-deck__phase-card {
-  position: relative;
-  inset: auto;
-  left: auto;
-  right: auto;
-  width: 100%;
-  min-width: 0;
-  max-width: none;
-  margin: 0;
-  box-sizing: border-box;
-  flex: 0 0 auto;
-  align-self: stretch;
-  transform: none;
-}
-
-.page--arena .arena-cooking-widget .arena-phase-next {
-  margin: 0.55rem 0 0;
-  padding-top: 0.48rem;
-  border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
-  font-size: 0.6rem;
-}
 
 /* Media layer, stage 1 (Owner 2026-08-03). This block was never rewritten —
  * only its wrapper was taken off in v2.5.729, which left the desktop layout
@@ -5483,81 +5368,28 @@
  * on a phone too. The rules below are the original ones, byte for byte; what
  * is restored is the width they were always meant to be scoped to. */
 @media (min-width: 901px) {
-  .page--arena .arena-cooking-widget {
-    position: absolute;
-    z-index: var(--arena-z-runway);
-    top: 1rem;
-    left: 1.5%;
-    width: clamp(15.5rem, 18vw, 19rem);
-  }
 
-  /* A11: the deadline is NO LONGER hidden here. It was the one authoritative,
+/* A11: the deadline is NO LONGER hidden here. It was the one authoritative,
      server-driven number in the panel, and hiding it on desktop is what left
      the 30 s page-refresh countdown standing alone in the reference's clock
      position, looking like a battle clock. Copy and compact facts stay hidden:
      the reference panel carries neither, and the viewer count they duplicated
      already lives in the pulse strip. */
-  .page--arena .arena-cooking-widget .arena-command-deck__phase-copy,
-  .page--arena .arena-cooking-widget .arena-compact-facts {
-    display: none;
-  }
 
-  /* The clock sits on the phase name's baseline, right-aligned, as in the
+
+/* The clock sits on the phase name's baseline, right-aligned, as in the
      reference: gold, Playfair, no card chrome of its own — the panel is the
      card, and the clock must not read as a second one inside it. */
-  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0;
-    margin-top: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    text-align: right;
-  }
-  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline > span {
-    font-size: 0.5rem;
-    letter-spacing: 0.09em;
-  }
-  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline > strong {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 1.45rem;
-    font-weight: 600;
-    line-height: 1;
-    color: var(--accent-bronze);
-  }
-  /* No deadline is a real state and it must not shout. The arena spends most of
+
+
+/* No deadline is a real state and it must not shout. The arena spends most of
      its life with no battle running, and "No active deadline" set in a clock
      face would read as a fault instead of as calm. */
-  .page--arena .arena-cooking-widget .arena-command-deck__phase-deadline.is-empty > strong {
-    font-family: inherit;
-    font-size: 0.68rem;
-    font-weight: 600;
-    line-height: 1.2;
-    color: var(--muted);
-  }
 
-  /* The refresh countdown, demoted onto the gauge it actually measures — ONE
+
+/* The refresh countdown, demoted onto the gauge it actually measures — ONE
      row, because two would cost more height than the card is trying to save. */
-  .page--arena .arena-cooking-widget .arena-phase-refresh {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    margin: 0;
-  }
-  .page--arena .arena-cooking-widget .arena-phase-refresh .arena-phase-gauge {
-    flex: 1 1 auto;
-    margin: 0;
-  }
-  .page--arena .arena-cooking-widget .arena-phase-refresh > strong {
-    flex: 0 0 auto;
-    color: var(--muted);
-    font-size: 0.58rem;
-    font-weight: 700;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.04em;
-  }
+
 
   .page--arena .arena-broadcast-ribbon {
     left: clamp(18.5rem, 23vw, 26rem);

@@ -4480,6 +4480,7 @@ def _arena_chat_speaker(request):
     return author, seat_of(author)
 
 
+@ratelimit(key="ip", rate="300/m", method="GET", block=False)
 def arena_chat_feed(request):
     """New lines since the id the client already holds.
 
@@ -4489,6 +4490,13 @@ def arena_chat_feed(request):
 
     The reach is applied HERE, per listener, so a line the reader is too far
     away to hear never reaches his browser at all.
+
+    AA5-class gap found in a desktop audit, 2026-08-23: the body below already
+    checked request.limited, but nothing above it ever set that attribute, so
+    the check was silent dead weight since the endpoint shipped - the same
+    "decorator missing, check inert" shape arena_take_seat had. 300/m is
+    twenty times POLL_MS's honest 15/min (arena_chat.js:39), the same
+    headroom ratio arena_ping and arena_state already use for their own cadence.
     """
     if not is_battle_visible(request):
         raise Http404
@@ -4522,8 +4530,16 @@ def arena_chat_feed(request):
 
 
 @require_POST
+@ratelimit(key="ip", rate="30/m", method="POST", block=False)
 def arena_chat_send(request):
-    """One line, spoken from the seat its author is holding right now."""
+    """One line, spoken from the seat its author is holding right now.
+
+    AA5-class gap found in a desktop audit, 2026-08-23: same shape as
+    arena_chat_feed above - request.limited was checked below with nothing
+    ever setting it. 30/m is one line every two seconds, generous for typing
+    speed and the same order of magnitude as this project's other
+    person-driven POST endpoints.
+    """
     if not is_battle_visible(request):
         raise Http404
     if getattr(request, "limited", False):

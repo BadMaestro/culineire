@@ -9240,107 +9240,122 @@ class ArenaRankColumnTests(TestCase):
         # The four metrics stack in a sidebar rather than sitting side by side.
         self.assertIn("flex-direction: column", metrics)
 
-    def test_dark_ribbon_identity_uses_readable_site_tokens(self):
-        css = self.CSS_POLISH.read_text(encoding="utf-8")
-        graphics = css.split("GRAPHICS WP", 1)[1]
-        self.assertIn(
-            ".page--arena .arena-broadcast-ribbon .arena-command-deck__header h1",
-            graphics,
-        )
-        self.assertIn("color: var(--surface)", graphics)
-        self.assertIn("color: var(--accent-bronze)", graphics)
+    def test_arena_identity_uses_readable_site_tokens(self):
+        """The arena's own name is set in design-system tokens, never raw hex.
 
-    def test_cooking_widget_reuses_the_crown_ladder_panel_chrome(self):
+        This used to be asserted through
+        `.arena-broadcast-ribbon .arena-command-deck__header h1`. Both halves of
+        that selector are gone: the Owner's 2026-08-19 rebuild moved identity
+        out of the ribbon into the ARENA STATUS card, and the page carries no
+        <h1> at all any more - the title is #arena-command-title, an <h2>.
+        A desktop audit on 2026-08-23 found the rule it guarded had been dead
+        CSS ever since, so the assertion was passing on text nothing rendered.
+
+        What is unchanged is the GUARANTEE: whatever carries the identity takes
+        its colour from a token. That is what this checks now, against the two
+        elements that actually carry it.
+        """
+        css = self.CSS_POLISH.read_text(encoding="utf-8")
+
+        hall_name = css.split(".arena-command-deck__hall-name {", 1)[1].split(
+            "}", 1
+        )[0]
+        self.assertIn("color: var(--muted)", hall_name)
+        self.assertNotIn("#", hall_name)
+
+        kicker = css.split(
+            ".arena-command-deck__eyebrow, .arena-panel__kicker {", 1
+        )[1].split("}", 1)[0]
+        self.assertIn("color: var(--arena-gold)", kicker)
+        self.assertNotIn("#", kicker)
+
+        # And the elements themselves are still the ones the template renders.
+        template = self.TEMPLATE.read_text(encoding="utf-8")
+        self.assertIn('id="arena-command-title"', template)
+        self.assertIn('class="arena-command-deck__hall-name"', template)
+
+    def test_crown_ladder_panel_keeps_its_own_chrome(self):
+        """The ladder is a card: bronze edge, parchment fill, its own title rule.
+
+        Until 2026-08-23 this test was `..._cooking_widget_reuses_...` and
+        asserted the chrome through `.arena-cooking-widget`, the large
+        introductory card. The Owner's 2026-08-19 rebuild DELETED that card from
+        the template; the class survived only in the stylesheet, so every
+        assertion naming it was checking CSS no browser could ever apply. A
+        desktop audit removed those rules, and this keeps the half of the
+        contract that is still real: the ladder's own chrome.
+        """
         css = self.CSS_POLISH.read_text(encoding="utf-8")
         ladder_contract = css.split("MOCKUP M13", 1)[1].split(
             ".arena-command-deck__ladder .arena-ladder-list", 1
         )[0]
+
+        shell = ladder_contract.split(".arena-command-deck__ladder {", 1)[1].split(
+            "}", 1
+        )[0]
+        self.assertIn("display: flex", shell)
+        self.assertIn("flex-direction: column", shell)
+        self.assertIn("border: 1px solid", shell)
+        self.assertIn("var(--accent-bronze)", shell)
+
         self.assertIn(
-            ".arena-command-deck__ladder,\n  .arena-cooking-widget {",
-            ladder_contract,
-        )
-        self.assertIn(
-            ".arena-command-deck__ladder > .arena-panel__title,\n"
-            "  .arena-cooking-widget > .arena-panel__title {",
+            ".arena-command-deck__ladder > .arena-panel__title {",
             ladder_contract,
         )
 
-        graphics_contract = css.split("GRAPHICS WP (Owner 2026-07-25)", 1)[1]
-        graphics_contract = graphics_contract.split(
-            ".page--arena .arena-broadcast-ribbon {", 1
-        )[0]
-        self.assertIn(
-            ".page--arena .arena-cooking-widget,\n"
-            "  .page--arena .arena-command-deck__phase-card,",
-            graphics_contract,
-        )
+        # The panels that share the deck's night glass still name themselves,
+        # and the deleted widget is not among them any more.
         night_glass_contract = css.split(
             "atmospheric crowd wash + panel night glass", 1
         )[1].split(".arena-panel__kicker,", 1)[0]
         self.assertIn(
-            ".page--arena .arena-cooking-widget,\n"
-            "  .page--arena .arena-command-deck__ladder,",
-            night_glass_contract,
+            ".page--arena .arena-command-deck__ladder,", night_glass_contract
         )
+        self.assertNotIn("arena-cooking-widget", night_glass_contract)
 
-        widget = css.split(
-            "OWNER 2026-07-29 — independent Cooking Widget; reuses Crown ladder chrome",
-            1,
-        )[1]
-        shell = widget.split(
-            ".page--arena .arena-cooking-widget {", 1
-        )[1].split("}", 1)[0]
-        self.assertIn("overflow: hidden", shell)
-        self.assertNotIn("background:", shell)
-        self.assertNotIn("border:", shell)
-        self.assertNotIn("box-shadow:", shell)
-        self.assertIn(
-            ".page--arena .arena-cooking-widget .arena-command-deck__header {",
-            widget,
-        )
-        header = widget.split(
-            ".page--arena .arena-cooking-widget .arena-command-deck__header {",
-            1,
-        )[1].split("}", 1)[0]
-        self.assertIn("display: block", header)
-        self.assertNotIn("grid-template-columns", header)
-        self.assertIn(
-            ".page--arena .arena-cooking-widget .arena-command-deck__header > "
-            ".btn-secondary {\n  display: none;",
-            widget,
-        )
-        desktop = widget.split("@media (min-width: 901px)", 1)[1]
-        self.assertIn("position: absolute", desktop)
-        self.assertIn("left: 1.5%", desktop)
+    def test_no_stylesheet_rule_targets_a_class_the_template_never_renders(self):
+        """Dead selectors are removed, not left to look like live contract.
 
-        phase_card = widget.split(
-            ".page--arena .arena-cooking-widget .arena-command-deck__phase-card {",
-            1,
-        )[1].split("}", 1)[0]
-        for declaration in (
-            "width: 100%",
-            "min-width: 0",
-            "max-width: none",
-            "flex: 0 0 auto",
-            "align-self: stretch",
-            "left: auto",
-            "right: auto",
-            "box-sizing: border-box",
-        ):
-            self.assertIn(declaration, phase_card)
+        Added 2026-08-23 by the desktop audit that removed them. Two classes had
+        outlived the markup that carried them - `.arena-cooking-widget` (the
+        introductory card the Owner deleted on 2026-08-19) and
+        `.arena-command-deck__header` (the header the same rebuild replaced with
+        `.arena-panel__title`). Between them they held roughly forty-six rules
+        that no browser could ever apply, and three tests asserting those rules
+        existed, which is how they survived a cleanup pass before.
 
-    def test_cooking_widget_copy_stays_inside_and_next_phase_hydrates(self):
+        This guards the removal so the rules cannot drift back in.
+        """
         css = self.CSS_POLISH.read_text(encoding="utf-8")
-        widget = css.split(
-            "OWNER 2026-07-29 — independent Cooking Widget; reuses Crown ladder chrome",
-            1,
-        )[1]
-        live_note = widget.split(
-            ".page--arena .arena-cooking-widget .arena-command-deck__live-note {",
-            1,
-        )[1].split("}", 1)[0]
-        self.assertIn("overflow: hidden", live_note)
-        self.assertIn("text-overflow: ellipsis", live_note)
+        template = self.TEMPLATE.read_text(encoding="utf-8")
+
+        for dead in ("arena-cooking-widget", "arena-command-deck__header"):
+            self.assertNotIn(
+                dead,
+                template,
+                f"{dead} is back in the template - if it is genuinely wanted "
+                f"again, this test and its stylesheet rules go back together.",
+            )
+            # Comments may still explain the history; rules may not exist.
+            without_comments = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+            self.assertNotIn(
+                dead,
+                without_comments,
+                f"{dead} has a live rule again while no template renders it.",
+            )
+
+    def test_live_note_and_next_phase_hydrate(self):
+        """The status line and the next-phase line are driven by the deck JS.
+
+        The CSS half of this test asserted ellipsis rules scoped to
+        `.arena-cooking-widget`, the card the Owner deleted on 2026-08-19 - dead
+        text since then, removed by the desktop audit of 2026-08-23. The JS half
+        below was always the real guarantee and is unchanged: #arena-live-note
+        and #arena-phase-next are both still rendered and still hydrated.
+        """
+        template = self.TEMPLATE.read_text(encoding="utf-8")
+        self.assertIn('id="arena-live-note"', template)
+        self.assertIn('id="arena-phase-next"', template)
 
         js = self.JS_DECK.read_text(encoding="utf-8")
         self.assertIn("liveNote.textContent = 'Live Now'", js)
