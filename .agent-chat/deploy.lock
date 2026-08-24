@@ -1,5 +1,0 @@
-agent: greenbear
-started_utc: 2026-08-24T12:10
-version: v2.5.1250
-commit: pending
-task: arena chat rework phase 3 - direct messages on the same engine, membership-gated, block and dm-policy enforced server-side
