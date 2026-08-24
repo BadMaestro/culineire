@@ -1,5 +1,0 @@
-agent: greenbear
-started_utc: 2026-08-24T13:20
-version: v2.5.1254
-commit: pending
-task: HOTFIX - my multi-line {# #} comments printed onto the live arena
