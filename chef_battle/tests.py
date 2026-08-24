@@ -22362,6 +22362,62 @@ class ArenaChatModerationTests(TestCase):
         )
 
 
+class NoTemplateCommentCanPrintItselfOnThePageTests(TestCase):
+    """`{# #}` is SINGLE-LINE in Django. Written across lines, it prints.
+
+    This has now happened three times in this app - twice caught by Bolt on
+    2026-08-24 (v2.5.1246) and once by the Owner, who photographed three of
+    GreenBear's chat comments rendered inside the chat panel on his phone. The
+    trap survives because the first line looks like a comment and the file
+    still parses, so nothing fails until somebody looks at the page.
+
+    Reading is what this test does instead. It is a TEXT check on purpose: the
+    defect is in the source, and rendering every template in every state to
+    find it would test far less while costing far more.
+
+    Comments OUTSIDE `{% block %}` in a template that extends another are
+    exempt, and only there: an extending template renders nothing outside its
+    blocks, which is the only reason arena.html's own file-header notes have
+    always been safe.
+    """
+
+    def test_no_multi_line_hash_comment_lives_inside_a_rendered_block(self):
+        import re
+        from pathlib import Path
+
+        from django.conf import settings
+
+        offenders = []
+        roots = [Path(d) for d in settings.TEMPLATES[0]["DIRS"]]
+        for root in roots:
+            for path in sorted(root.rglob("*.html")):
+                text = path.read_text(encoding="utf-8")
+                extends = bool(re.match(r"\s*\{%\s*extends", text))
+                depth = 0
+                for number, line in enumerate(text.split("\n"), 1):
+                    if re.search(r"\{%\s*block\b", line):
+                        depth += 1
+                    if re.search(r"\{%\s*endblock\b", line):
+                        depth = max(0, depth - 1)
+                    if "{#" not in line:
+                        continue
+                    tail = line.split("{#", 1)[1]
+                    if "#}" in tail:
+                        continue                      # closed on its own line
+                    # An included partial has no blocks of its own and renders
+                    # wholesale, so everything in it counts.
+                    if extends and depth == 0:
+                        continue
+                    offenders.append(f"{path.name}:{number}: {line.strip()[:70]}")
+
+        self.assertEqual(
+            offenders, [],
+            "These {# #} comments span lines inside rendered markup and will "
+            "print themselves onto the live page. Use {% comment %} instead:\n"
+            + "\n".join(offenders),
+        )
+
+
 class MasterConsoleTileIsOfferedOnlyToWhoMayOpenItTests(TestCase):
     """The console tile matches the console door.
 

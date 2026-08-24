@@ -476,15 +476,8 @@
            data-dm-open-url="{% url 'chef_battle:arena_chat_open_dm' %}"
            data-dm-list-url="{% url 'chef_battle:arena_chat_conversations' %}"
            data-moderate-url="{% url 'chef_battle:arena_chat_moderate' %}"
-           {# has_perm, not is_staff. These only decide what is DRAWN - the
-              endpoint re-checks the same permission on every call, so a
-              hand-made request from somebody who sees no buttons is refused
-              by the rule that hid them, not by the hiding. #}
            data-can-moderate="{% if perms.chef_battle.moderate_arena_chat %}1{% else %}0{% endif %}"
            data-can-timeout="{% if perms.chef_battle.timeout_arena_chat_user %}1{% else %}0{% endif %}"
-           {# Whose lines are the reader's own - so the menu never offers to
-              mute, block or report yourself. Purely presentational: every
-              endpoint refuses a self-target on the server regardless. #}
            data-me="{{ viewer_author.slug|default:'' }}">
     <header class="arena-panel__title">
       <h2 class="arena-panel__kicker">Spectator chat</h2>
@@ -504,9 +497,11 @@
         class="arena-chat__listening" id="arena-chat-listening" hidden></span></span>
     </header>
 
-    {# WHICH ROOM THIS IS, said in words and not only in colour. Hidden in the
-       hall; shown the moment a private conversation is open, so a DM can never
-       be mistaken for the public arena. #}
+    {% comment %}
+      WHICH ROOM THIS IS, said in words and not only in colour. Hidden in the
+      hall; shown the moment a private conversation is open, so a DM can never
+      be mistaken for the public arena.
+    {% endcomment %}
     <p class="arena-chat__room" id="arena-chat-room" hidden>
       <span class="arena-chat__room-lock" aria-hidden="true">&#128274;</span>
       <span class="arena-chat__room-kind">Private</span>
@@ -520,8 +515,10 @@
       <li class="arena-panel__empty" id="arena-chat-empty">Take a seat to join the conversation.</li>
     </ol>
 
-    {# The line being answered. Server-rendered empty and shown by the script,
-       so the composer never has to be rebuilt to gain or lose it. #}
+    {% comment %}
+      The line being answered. Server-rendered empty and shown by the script,
+      so the composer never has to be rebuilt to gain or lose it.
+    {% endcomment %}
     <p class="arena-chat__replying" id="arena-chat-replying" hidden>
       Replying to <b class="arena-chat__replying-name"></b>
       <button type="button" class="arena-chat__replying-cancel"
@@ -538,8 +535,10 @@
       </button>
     </form>
 
-    {# Sending errors, rate-limit notices and report confirmations land here,
-       under the composer where the reader is already looking. #}
+    {% comment %}
+      Sending errors, rate-limit notices and report confirmations land here,
+      under the composer where the reader is already looking.
+    {% endcomment %}
     <p class="arena-chat__notice" id="arena-chat-notice" role="status" hidden></p>
   </section>
   </div>
