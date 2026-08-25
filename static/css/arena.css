@@ -796,6 +796,14 @@
      scrolls. */
   max-height: min(42vh, 22rem);
   overflow-y: auto;
+  /* SIDEWAYS IS NEVER A DIRECTION THIS LIST SCROLLS. Setting only overflow-y
+     computes the other axis to auto, so anything overhanging by a pixel -
+     an invisible pseudo-element, a long unbroken word - buys a horizontal
+     scrollbar across the foot of the panel. Words already wrap
+     (overflow-wrap: anywhere on .arena-chat__said), so there is nothing here
+     a reader could ever need to scroll to; stating the axis is what keeps a
+     stray overhang from inventing one. */
+  overflow-x: hidden;
   /* The stripe stays out of the words on a phone, where there is no room to
      spare and the gesture is a finger anyway. */
   scrollbar-width: thin;
@@ -1095,8 +1103,20 @@
 .arena-chat .arena-chat__more::after {
   content: "";
   position: absolute;
-  /* 44px of reachable button around a 14px glyph, costing zero layout. */
-  inset: -.85rem;
+  /* A reachable button around a 14px glyph, costing zero layout.
+
+     IT DOES NOT REACH RIGHTWARD, and that is not a detail. The trigger is
+     pushed flush to the row's trailing edge by margin-left:auto, so any
+     rightward expansion lands OUTSIDE the panel's content box - and an
+     absolutely-positioned pseudo still counts as scrollable overflow, which
+     gave the message log a horizontal scrollbar the Owner photographed
+     (measured: log scrollWidth 404 against clientWidth 390, exactly this
+     13.6px). It used to be hidden by accident: the trigger sat inside
+     .arena-chat__who, which clips with overflow:hidden. The one-line row
+     removed that accident rather than the overflow, so the overflow is
+     removed here instead. Up, down and left still expand, which is where
+     there is room to expand into. */
+  inset: -.85rem 0 -.85rem -.85rem;
 }
 .arena-chat__more:hover,
 .arena-chat__more:focus-visible { color: var(--accent-bronze); }
@@ -1598,6 +1618,17 @@
   .arena-chat__time { order: 0; }
   .arena-chat__more { order: 0; margin-left: auto; }
   .arena-chat .arena-chat__said { order: 0; flex-basis: auto; }
+  /* AND THE TRIGGER'S ENLARGED HIT PAD GOES AWAY HERE. It expands 13.6px up
+     and down, which was right when a message was 41px tall and rows sat
+     .55rem apart. At this density a row is 16px with a .3rem gap, so the
+     pads of NEIGHBOURING rows overlap and the topmost one wins the hit test:
+     elementFromPoint at one trigger's own centre returned the trigger of the
+     message below it, meaning a click could open the wrong message's menu.
+     A pad exists to forgive an imprecise finger; this branch only ever runs
+     where there is a pointer (hover: hover, above), so there is nothing to
+     forgive and the glyph is its own target. Touch keeps the pad from the
+     base rule, where the rows are still tall enough to carry it. */
+  .arena-chat .arena-chat__more::after { content: none; }
   /* THE LOG ABSORBS THE PANEL'S SLACK HEIGHT, so the composer sits at the
      FOOT of the chat rather than floating directly under the last message
      with a dead region beneath it (Owner's visual brief, 2026-08-25,
@@ -8264,6 +8295,58 @@ body.page--arena.is-zoom-locked {
     min-height: min(70vh, 760px);
     overflow: visible;
     align-self: stretch;
+  }
+
+  /* THE OCTAGON TAKES THE ROOM IT HAS ON A DESKTOP TOO. Owner, 2026-08-25:
+     make it as large as it goes, leaving roughly a centimetre to the frame.
+
+     Nothing about the octagon itself changes - this is the SAME hook the
+     phone already uses (arena_render.js reads --arena-octagon-width-share
+     from the camera and sizes the scene as a share of its region's width),
+     and the renderer's own comment says out loud that the share is the
+     page's decision to state. Where the stylesheet said nothing, desktop
+     fell back to the renderer's constant of 659/1268 - about 52% - which is
+     the empty ring the Owner circled: measured at 1920, the painted shape
+     was 574x396 inside a 1091x804 frame.
+
+     THE NUMBER IS DERIVED, NOT GUESSED. 1cm is 37.78 CSS px, so the widest
+     the shape may be is 1091 - 2*37.78 = 1015px. The shape fills 99.3% of
+     the scene box here (the "about 86%" in the phone note is that
+     composition's figure, not this one), and the box is exactly
+     region.width * share, so the share is 1015 / 0.993 / 1113 = 0.918.
+
+     WIDTH IS WHAT BINDS, and it has to be checked rather than assumed: the
+     shape is proportionally wider than the frame (0.690 against 0.737), so
+     filling the height to 1cm instead would leave only 18px at the sides.
+     At 0.918 the height lands at ~700 of the frame's 804, which keeps more
+     than a centimetre above and below - the honest reading of "at most 1cm
+     from the edges" when one axis has to be the limit.
+
+     It stays inside both of the renderer's guards on purpose: 0.918 is
+     under the 1.15 ceiling, and the resulting scene height (~704) is under
+     REGION_MAX_Y's 0.95 of the region (773), so neither guard is touched
+     and neither silently clamps this. The phone's own locked 1.097 is a
+     different declaration in a different query and is not touched either. */
+  .arena-floor-stage {
+    --arena-octagon-width-share: 0.918;
+    /* AND IT SITS DOWN A LITTLE, because growing it uncovered a collision
+       the small octagon never reached. The stage's region deliberately spans
+       the caption's own grid row (rows 3..-1, see the floor's micro-grid) -
+       the composition has always allowed the octagon's transparent corners
+       to overlap it - but at this size the PAINTED top edge arrived at y=309
+       inside the caption text's own column, whose baseline box ends at 314.
+       Five pixels of shape across the words, measured, not guessed.
+
+       The renderer's constant seats the octagon high on purpose so the crowd
+       rail reads beneath it; that reasoning predates the widget band, which
+       now occupies that space instead. 0.4894 -> 0.503 moves the centre down
+       ~11px of the region's 814 and buys the caption clear air, while the
+       lower edge still keeps ~1.24cm to the frame - so the "at most 1cm"
+       side margins are untouched and nothing else in the composition moves.
+       This is the same hook the phone uses, and the renderer states plainly
+       that the seat is the stylesheet's decision to make. The phone's own
+       locked 0.557 is a different declaration under max-width:767px. */
+    --arena-octagon-centre-y: 0.503;
   }
 
   /* Bottom bar: was left:0;right:0;bottom:0 with no explicit position
