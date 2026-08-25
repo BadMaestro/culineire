@@ -10144,3 +10144,90 @@ body.page--arena.is-zoom-locked {
     text-align: center;
   }
 }
+
+/* ============================================================================
+ * THE EMPTY BOARD READS AS ONE CENTRED SENTENCE. Owner, 2026-08-25: "строка с
+ * таймером тоже должна быть по центру".
+ *
+ * ONLY WHEN IT IS EMPTY, and that is his ruling rather than a shortcut. When
+ * there ARE battles the list is not a list, it is a TRACK: arena_deck.js
+ * spends `container.clientWidth` out as distance, so a pill's distance from
+ * the label IS the time until it starts (T21, Owner 2026-08-15). Centring
+ * that row means sizing the list to its content, which takes the available
+ * width to zero and stacks every pill against the label - the mechanic dies
+ * to make the row look tidy. Told this, he chose to centre the empty line
+ * alone.
+ *
+ * :has() picks the empty state out with no JavaScript and no class to keep in
+ * sync - the empty <li> is written by the template AND by refreshUpcoming(),
+ * and a class would have had to be added in both places and removed in two
+ * more. The sheet already uses :has() in eight other files.
+ * ========================================================================== */
+@media (min-width: 901px) {
+  /* AND THE ROW KEEPS THE CLOCK'S PLACE WHILE THE CLOCK IS AWAY. The ribbon
+     sits DIRECTLY above the arena, so anything that changes its height moves
+     the arena - and a clock that appears the moment a battle is scheduled
+     would have done exactly that, live, under whoever was watching. Measured:
+     the row is 30.06px with the chip and 22.89px without, so the floor jumped
+     7.17px every time the board went from empty to occupied.
+
+     The chip keeps its box and loses its ink. `visibility: hidden` also takes
+     it out of the accessibility tree, so a screen reader is not read a clock
+     that is not there, and the `hidden` attribute stays exactly what it was -
+     the state the script writes. No reserved magic number: the space is the
+     element's own. */
+  /* THE EMPTY LINE CENTRES ON THE PANEL, NOT ON WHAT THE CLOCK LEAVES OVER.
+     The four-column shape is the phone's, proven there since v2.5.1231 and
+     for the same reason: the two minmax(0,1fr) rails are equal by definition,
+     so the label+list pair lands on the panel's own centre whether the clock
+     is present, absent or invisible. A flex row with justify-content:center
+     cannot do that - it centres the whole group INCLUDING the clock, which
+     measured 602.1px of space on one side against 533.8 on the other. */
+  .arena-next-board:has(.arena-next-board__empty) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .arena-next-board:has(.arena-next-board__empty) > .arena-phase-refresh {
+    grid-column: 1;
+    justify-self: start;
+  }
+  .arena-next-board:has(.arena-next-board__empty) > .arena-next-board__label {
+    grid-column: 2;
+    justify-self: end;
+  }
+  .arena-next-board:has(.arena-next-board__empty) > .arena-next-board__list {
+    grid-column: 3;
+    justify-self: start;
+    flex: 0 1 auto;
+    justify-content: center;
+  }
+}
+
+/* Everywhere else the clock is simply not there when it is off. The desktop
+   rule above keeps its seat instead, for the ribbon-height reason stated with
+   it; below 901px the rail is a different composition and nothing above the
+   arena depends on this row's height. */
+.arena-phase-refresh[data-clock="off"] { display: none; }
+
+/* THE CLOCK KEEPS ITS SEAT WHILE IT IS AWAY, from the tablet up. Both of
+   these ranges put the ribbon DIRECTLY above the arena, so the row's height
+   is the arena's position, and a clock that appears the moment a battle is
+   scheduled would move the arena live under whoever was reading. Measured
+   without the seat: the desktop floor rose 7.17px and the tablet floor rose
+   the same 7.17px the instant the clock went away.
+
+   `display: block` is what the chip computes to when it is ON, so the seat it
+   keeps is exactly the seat it will take rather than an approximation of one,
+   and `visibility: hidden` takes it out of the accessibility tree so nobody
+   is read a clock that is not there. Below 641px the rail is the phone's own
+   composition, its row height is set by the label rather than by this chip,
+   and the chip simply goes - measured there too: zero difference. */
+@media (min-width: 641px) {
+  .arena-next-board > .arena-phase-refresh[data-clock="off"] {
+    display: block;
+    visibility: hidden;
+  }
+}

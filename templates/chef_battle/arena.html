@@ -163,7 +163,9 @@
 
     The mark is #ad-clock and deliberately NOT #ad-hourglass: the hourglass
     already means CURRENT PHASE further down the page, and this counts
-    something else - when the page refreshes itself.
+    something else - the time until the first battle on the board. It counted
+    the page's own reload until 2026-08-25, when the Owner, told what it had
+    actually been measuring, made it a battle clock.
   {% endcomment %}
   {% comment %}
     X01 — the departures board (Owner, 2026-08-05: "как табло в аэропорту,
@@ -202,9 +204,26 @@
       definition; with a bare 1fr the timer's own width became the left rail's
       minimum and the line sat 8px off centre, measured.
     {% endcomment %}
-    <div class="arena-phase-refresh">
+    {% comment %}
+      THE CLOCK COUNTS DOWN TO THE FIRST BATTLE, and it is not shown at all
+      until there is one. Owner, 2026-08-25: "таймер должен включаться только
+      когда в списке появляется первый бой", and, told that this element had
+      been counting down to the page's own 5-minute reload rather than to a
+      battle, he chose to make it a battle clock.
+
+      SO IT STARTS OFF AND JAVASCRIPT TURNS IT ON. The list beside it is
+      rewritten by arena_deck.js on every poll, so the clock reads the first
+      <li data-start-time> out of the live DOM each second rather than being
+      told about it: a battle that arrives on a poll turns the clock on by
+      itself, with no wiring between the two scripts. Hidden by default also
+      means no flash of a wrong number before the first tick.
+
+      The page still reloads itself every five minutes - that is unchanged and
+      deliberate - it simply no longer has a face.
+    {% endcomment %}
+    <div class="arena-phase-refresh" id="arena-next-clock" data-clock="off">
       <svg class="arena-ico arena-phase-refresh__ico" aria-hidden="true"><use href="#ad-clock"></use></svg>
-      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Page refresh countdown">05:00</strong>
+      <strong class="arena-phase-timer" id="arena-refresh-timer" role="timer" aria-live="polite" aria-label="Time until the next battle">--:--</strong>
     </div>
     <span class="arena-next-board__label" aria-hidden="true">Next Battle:</span>
     <ol id="arena-upcoming" class="arena-next-board__list">
@@ -1171,31 +1190,64 @@
      is the page throwing itself away every half minute underneath whoever is
      reading it. */
   function boot() {
-    var TOTAL = 300;
-    var left = TOTAL;
+    var RELOAD_AFTER = 300;
+    var left = RELOAD_AFTER;
     var timerEl = document.getElementById('arena-refresh-timer');
-    var gaugeEl = document.getElementById('arena-refresh-gauge');
-    if (!timerEl) { return; }
+    var chipEl = document.getElementById('arena-next-clock');
 
+    function two(n) { return (n < 10 ? '0' : '') + n; }
+
+    /* Up to 48 hours can separate a viewer from the soonest battle - that is
+       the preparation window arena_deck.js maps the board's distances out of -
+       so the clock grows an hours field when it needs one and does not carry
+       an empty one when it does not. */
     function fmt(sec) {
-      var m = Math.floor(sec / 60);
+      var h = Math.floor(sec / 3600);
+      var m = Math.floor((sec % 3600) / 60);
       var s = sec % 60;
-      return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+      return (h > 0 ? h + ':' + two(m) : two(m)) + ':' + two(s);
     }
 
-    function paint() {
-      timerEl.textContent = fmt(left);
-      if (gaugeEl) gaugeEl.style.width = Math.max(0, (left / TOTAL) * 100) + '%';
+    /* Read out of the LIVE list rather than out of a variable: the board is
+       rewritten wholesale by arena_deck.js's refreshUpcoming() on every poll,
+       so anything cached here would be a clock for a battle that is no longer
+       first. The soonest battle is the first <li> - that order is the board's
+       own contract, stated where the list is built. */
+    function firstStart() {
+      var row = document.querySelector('#arena-upcoming li[data-start-time]');
+      if (!row) { return null; }
+      var at = Date.parse(row.getAttribute('data-start-time') || '');
+      return isNaN(at) ? null : at;
     }
 
-    paint();
+    function paintBattleClock() {
+      if (!timerEl || !chipEl) { return; }
+      var startsAt = firstStart();
+      /* NOT the `hidden` attribute: base.css:126 carries a site-wide
+         [hidden] { display: none !important }, which cannot be softened into
+         "keep the box, drop the ink" without an !important of its own. A
+         state attribute of the clock's own leaves the stylesheet free to
+         decide what "off" looks like at each width - gone on a phone, an
+         empty seat on the desktop, where the ribbon's height is the arena's
+         position. */
+      if (startsAt === null) { chipEl.setAttribute('data-clock', 'off'); return; }
+      timerEl.textContent = fmt(
+        Math.max(0, Math.round((startsAt - Date.now()) / 1000))
+      );
+      chipEl.setAttribute('data-clock', 'on');
+    }
+
+    paintBattleClock();
+    /* The five-minute reload is a separate job from the clock and keeps its
+       own count, so a page with no battles on the board still refreshes
+       itself - it simply does so without a face. */
     window.setInterval(function () {
       left -= 1;
       if (left <= 0) {
         window.location.reload();
         return;
       }
-      paint();
+      paintBattleClock();
     }, 1000);
   }
 

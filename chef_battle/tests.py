@@ -22732,3 +22732,71 @@ class ArenaWidgetBandTests(TestCase):
         for declaration in ("position: relative", "grid-area: auto",
                             "align-self: stretch"):
             self.assertIn(declaration, block)
+
+
+class ArenaNextBoardClockTests(TestCase):
+    """The departures line, v2.5.1278.
+
+    The clock on this row had been counting down to the page's own five-minute
+    reload since v2.5.1231 while sitting beside the words NEXT BATTLE, where
+    every reader takes it for a countdown to the battle. Told what it actually
+    measured, the Owner made it the thing it looked like: a clock for the first
+    battle on the board, shown only once there is one.
+
+    Three things are pinned. The clock must not start on - a page rendered with
+    an empty board that shows a running number is the defect being fixed, and
+    it must be OFF in the markup rather than only after the first tick. It must
+    not be switched with the `hidden` attribute, because base.css carries a
+    site-wide [hidden] { display: none !important } and the desktop needs the
+    chip's box kept while its ink is gone - the ribbon sits directly above the
+    arena, so this row's height is the arena's position. And the script must
+    read the board rather than be told about it, because arena_deck.js rewrites
+    that list wholesale on every poll."""
+
+    TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+
+    def setUp(self):
+        User = get_user_model()
+        User.objects.create_superuser(
+            username="clock-super", password="pw", email="clock@example.com"
+        )
+        self.client.login(username="clock-super", password="pw")
+
+    def test_the_clock_is_rendered_off_and_not_with_the_hidden_attribute(self):
+        page = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(page.status_code, 200)
+        html = page.content.decode("utf-8")
+        self.assertIn('id="arena-next-clock" data-clock="off"', html)
+        self.assertNotIn('id="arena-next-clock" hidden', html)
+
+    def test_it_no_longer_calls_itself_a_page_refresh_countdown(self):
+        html = self.client.get(reverse("chef_battle:arena")).content.decode("utf-8")
+        self.assertIn('aria-label="Time until the next battle"', html)
+        self.assertNotIn("Page refresh countdown", html)
+
+    def test_the_clock_reads_the_live_board_and_the_reload_still_runs(self):
+        template = self.TEMPLATE.read_text(encoding="utf-8")
+        self.assertIn("#arena-upcoming li[data-start-time]", template)
+        self.assertIn("window.location.reload()", template)
+
+    def test_the_chip_keeps_its_seat_from_the_tablet_up(self):
+        """Measured without it: the floor rose 7.17px the moment the clock went
+        away, at 768 and at 1440 alike. The seat is the element's own box."""
+        css = self.CSS.read_text(encoding="utf-8")
+        block = css[css.index("@media (min-width: 641px) {\n  .arena-next-board > .arena-phase-refresh[data-clock=\"off\"]"):]
+        block = block[:block.index("}")]
+        self.assertIn("display: block", block)
+        self.assertIn("visibility: hidden", block)
+
+    def test_only_the_empty_line_is_centred_because_a_full_board_is_a_track(self):
+        """Centring a populated board means sizing the list to its content,
+        which takes arena_deck.js's available width to zero and stacks every
+        pill against the label - distance stops meaning time (T21)."""
+        css = self.CSS.read_text(encoding="utf-8")
+        self.assertIn(
+            ".arena-next-board:has(.arena-next-board__empty)", css,
+            "the centring must be conditional on the empty state",
+        )
+        centred = css.count(".arena-next-board:has(.arena-next-board__empty)")
+        self.assertGreaterEqual(centred, 4)
