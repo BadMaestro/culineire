@@ -1,5 +1,0 @@
-agent: greenbear
-started_utc: 2026-08-25T16:20
-version: v2.5.1277
-commit: pending
-task: the octagon takes the room it has on desktop (~1cm to the frame, via the existing width-share hook) and the chat log stops scrolling sideways
