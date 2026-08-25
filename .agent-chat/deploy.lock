@@ -1,5 +1,0 @@
-agent: greenbear
-started_utc: 2026-08-25T07:40
-version: v2.5.1270
-commit: pending
-task: desktop Arena rebuild - chat becomes the full right rail (CHAT/PM/USERS/SETTINGS tabs, Pinned Rules), Arena Command + Battle Gifts merge into one footer dock, Live Metrics relocate into the left rail as Arena Pulse
