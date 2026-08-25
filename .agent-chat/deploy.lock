@@ -1,5 +1,0 @@
-agent: greenbear
-started_utc: 2026-08-25T19:05
-version: v2.5.1279
-commit: pending
-task: arena chat 2026 core P1 - emoji picker with custom CulinEire sprite, @mention autocomplete, reactions widened 3->7 with a hover strip, appearance preferences, and the message-renderer seam for future Arena event cards
