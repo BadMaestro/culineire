@@ -1,5 +1,0 @@
-agent: greenbear
-started_utc: 2026-08-25T15:05
-version: v2.5.1276
-commit: pending
-task: desktop chat visual redesign - one-line dense messages, HH:mm clock, ordinary ink instead of amber, compact tabs with gear + live Users count, Pinned Rules as a real panel, reaction summary, gold send button, composer pinned to the panel foot
