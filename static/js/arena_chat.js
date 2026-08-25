@@ -30,7 +30,6 @@
   var empty = document.getElementById('arena-chat-empty');
   var form = document.getElementById('arena-chat-form');
   var input = document.getElementById('arena-chat-input');
-  var live = document.getElementById('arena-chat-live');
   var feedUrl = root.getAttribute('data-feed-url');
   var sendUrl = root.getAttribute('data-send-url');
   var reactUrl = root.getAttribute('data-react-url');
@@ -72,34 +71,29 @@
     return field ? field.value : '';
   }
 
-  /* "now", "2m", "3h", "5d" - the shortest true thing.
+  /* "22:18" - the actual clock, not an age.
    *
-   * The server sends an ISO instant and this turns it into an age, so the
-   * reader's own clock and timezone decide what it says. Under a minute is
-   * "now" rather than a second-by-second counter: a live chat does not need a
-   * stopwatch, and a number that changes every second is movement in the
-   * corner of the eye for nothing. */
-  function relativeTime(iso) {
-    var then = Date.parse(iso);
-    if (isNaN(then)) { return ''; }
-    var seconds = Math.max(0, Math.round((Date.now() - then) / 1000));
-    if (seconds < 60) { return 'now'; }
-    var minutes = Math.floor(seconds / 60);
-    if (minutes < 60) { return minutes + 'm'; }
-    var hours = Math.floor(minutes / 60);
-    if (hours < 24) { return hours + 'h'; }
-    return Math.floor(hours / 24) + 'd';
+   * A live Arena feed reads like a transcript, not a social timeline: "10h"
+   * tells a reader nothing about when in the evening a line was said next to
+   * lines from five minutes ago. HH:mm in the reader's own locale, forced to
+   * 24-hour so it stays a fixed width regardless of locale. Absolute time
+   * never goes stale, so unlike the age it once was, nothing here needs a
+   * refresh interval - the full instant is still one hover away, on the
+   * element's title. */
+  function formatTime(iso) {
+    var then = new Date(iso);
+    if (isNaN(then.getTime())) { return ''; }
+    return then.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 
-  /* Ages go stale where they stand, so they are refreshed in place rather than
-   * by repainting the log - a repaint would lose the reader's scroll position
-   * and any menu they had open. */
-  function refreshTimes() {
-    var stamps = log.querySelectorAll('.arena-chat__time');
-    for (var i = 0; i < stamps.length; i++) {
-      var fresh = relativeTime(stamps[i].getAttribute('data-at'));
-      if (stamps[i].textContent !== fresh) { stamps[i].textContent = fresh; }
-    }
+  /* Every place the log is thrown away and refetched (room switch,
+   * moderation, mute/block) must also clear the reaction summary - it is
+   * computed FROM the log's own DOM, so a stale summary would otherwise
+   * survive until the next batch of messages happened to arrive. */
+  function clearLog() {
+    log.innerHTML = '';
+    var summary = document.getElementById('arena-chat-reaction-summary');
+    if (summary) { summary.hidden = true; summary.innerHTML = ''; }
   }
 
   function nearBottom() {
@@ -129,6 +123,22 @@
     return el;
   }
 
+  /* ONE LINE PER MESSAGE, not a header row followed by a body row.
+   *
+   * The Owner's visual brief, 2026-08-25: a live Arena feed reads as
+   * `22:18 [IRL][GOD]GreenBear ADMIN hello` on one row, wrapping only when
+   * the words genuinely need two. `.arena-chat__row` holds every inline
+   * piece - time, identity, the words themselves, the action trigger - as
+   * flex children of ONE wrapping line; the stylesheet decides how much of
+   * that stays inline. On the wide (desktop) container query `said` flexes
+   * to fill the remaining width, so short messages truly are one line. On
+   * the narrow (mobile) query `said` is forced onto its own line by
+   * `flex-basis: 100%` and the pieces are re-ordered by CSS `order` back
+   * into the original "header, then words" shape - SAME DOM, so this is a
+   * presentation split, not two implementations. The reply quote (its own
+   * block, when present) sits above the row; reactions (their own block,
+   * when present) sit below it - exactly where they already lived, just
+   * outside the new single-line row rather than outside a two-row grid. */
   function append(line) {
     var item = document.createElement('li');
     // The class carries the SERVER's answer for what this line is. The client
@@ -145,6 +155,33 @@
     if (line.hidden) { cls += ' arena-chat__line--hidden'; }
     item.className = cls;
     item.setAttribute('data-id', line.id);
+
+    // The line being answered, quoted once and never nested further.
+    if (line.reply_to) {
+      var quote = document.createElement('span');
+      quote.className = 'arena-chat__quote';
+      var qname = document.createElement('b');
+      qname.textContent = line.reply_to.name;
+      quote.appendChild(qname);
+      if (line.reply_to.preview) {
+        quote.appendChild(document.createTextNode(' ' + line.reply_to.preview));
+      }
+      item.appendChild(quote);
+    }
+
+    var row = document.createElement('span');
+    row.className = 'arena-chat__row';
+
+    if (line.at) {
+      var when = document.createElement('time');
+      when.className = 'arena-chat__time';
+      when.setAttribute('datetime', line.at);
+      when.textContent = formatTime(line.at);
+      // The exact moment stays available to anyone who wants it, without
+      // spending a pixel on it.
+      when.title = new Date(line.at).toLocaleString();
+      row.appendChild(when);
+    }
 
     var who = document.createElement('span');
     who.className = 'arena-chat__who';
@@ -164,54 +201,7 @@
     // without officialdom, so it is a badge on an ordinary-coloured line.
     if (line.role === 'admin') { who.appendChild(marker('Admin', 'admin')); }
     else if (line.role === 'moderator') { who.appendChild(marker('Mod', 'mod')); }
-
-    // TIME AND ACTIONS SIT AT THE FAR RIGHT OF THE HEADER, never in the words.
-    // The ellipsis used to follow the name inline, where the Owner read it as
-    // part of the sentence; it is a vertical ellipsis in its own column now.
-    var meta = document.createElement('span');
-    meta.className = 'arena-chat__meta';
-
-    if (line.at) {
-      var when = document.createElement('time');
-      when.className = 'arena-chat__time';
-      when.setAttribute('datetime', line.at);
-      when.setAttribute('data-at', line.at);
-      when.textContent = relativeTime(line.at);
-      // The exact moment stays available to anyone who wants it, without
-      // spending a pixel on it.
-      when.title = new Date(line.at).toLocaleString();
-      meta.appendChild(when);
-    }
-
-    // One menu component, built on demand - not one menu per message sitting
-    // in the DOM waiting to be opened. Own lines get it too: replying to
-    // yourself is pointless, but reacting and moderating are not.
-    var more = document.createElement('button');
-    more.type = 'button';
-    more.className = 'arena-chat__more';
-    more.setAttribute('aria-haspopup', 'menu');
-    more.setAttribute('aria-expanded', 'false');
-    more.setAttribute('aria-label', 'Actions for ' + line.name);
-    more.textContent = '⋮';                 // VERTICAL ELLIPSIS
-    more.addEventListener('click', function (event) {
-      event.stopPropagation();
-      openActions(line, more);
-    });
-    meta.appendChild(more);
-    who.appendChild(meta);
-
-    // The line being answered, quoted once and never nested further.
-    if (line.reply_to) {
-      var quote = document.createElement('span');
-      quote.className = 'arena-chat__quote';
-      var qname = document.createElement('b');
-      qname.textContent = line.reply_to.name;
-      quote.appendChild(qname);
-      if (line.reply_to.preview) {
-        quote.appendChild(document.createTextNode(' ' + line.reply_to.preview));
-      }
-      item.appendChild(quote);
-    }
+    row.appendChild(who);
 
     var said = document.createElement('span');
     if (line.blocked) {
@@ -241,9 +231,27 @@
       said.className = 'arena-chat__said arena-chat__said--muffled';
       said.textContent = 'Talking Something';
     }
+    row.appendChild(said);
 
-    item.appendChild(who);
-    item.appendChild(said);
+    // One menu component, built on demand - not one menu per message sitting
+    // in the DOM waiting to be opened. Own lines get it too: replying to
+    // yourself is pointless, but reacting and moderating are not. Last in
+    // the row so it settles at the trailing edge (margin-left:auto, wide
+    // query) and stays the hover/focus-revealed control it already was.
+    var more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'arena-chat__more';
+    more.setAttribute('aria-haspopup', 'menu');
+    more.setAttribute('aria-expanded', 'false');
+    more.setAttribute('aria-label', 'Actions for ' + line.name);
+    more.textContent = '⋮';                 // VERTICAL ELLIPSIS
+    more.addEventListener('click', function (event) {
+      event.stopPropagation();
+      openActions(line, more);
+    });
+    row.appendChild(more);
+
+    item.appendChild(row);
     var strip = reactionRow(line);
     if (strip) { item.appendChild(strip); }
     log.appendChild(item);
@@ -274,6 +282,11 @@
       btn.type = 'button';
       btn.className = 'arena-chat__react' + (state.mine ? ' is-mine' : '');
       btn.setAttribute('data-emoji', r.key);
+      // The reaction SUMMARY strip above the composer sums this attribute
+      // across every currently-loaded message rather than keeping a second
+      // running total in JS - the DOM already holds the real counts and
+      // stays the one source of truth for "what's currently loaded".
+      btn.setAttribute('data-count', state.count);
       btn.setAttribute('aria-pressed', state.mine ? 'true' : 'false');
       btn.setAttribute('aria-label', r.label + ' (' + state.count + ')');
       btn.textContent = r.glyph + ' ' + state.count;
@@ -302,6 +315,44 @@
       if (old && fresh) { item.replaceChild(fresh, old); }
       else if (old) { item.removeChild(old); }
       else if (fresh) { item.appendChild(fresh); }
+      renderReactionSummary();
+    });
+  }
+
+  /* THE HALL'S REACTION SUMMARY - real counts, summed from what is actually
+   * loaded, never a second store to keep in sync. Read straight off the
+   * data-count attribute reactionRow() already writes on every visible
+   * reaction button, so a message scrolled out of the loaded window (there
+   * is no such window today, but if paging arrives later) or one whose
+   * strip just changed under react() is picked up on the next recompute
+   * with no extra bookkeeping. Passive - a display, not a second place to
+   * react from: a tap here would have no single message to land on. */
+  function sumReactions() {
+    var totals = {};
+    REACTIONS.forEach(function (r) { totals[r.key] = 0; });
+    var buttons = log.querySelectorAll('.arena-chat__react');
+    for (var i = 0; i < buttons.length; i++) {
+      var key = buttons[i].getAttribute('data-emoji');
+      var count = parseInt(buttons[i].getAttribute('data-count'), 10) || 0;
+      if (key in totals) { totals[key] += count; }
+    }
+    return totals;
+  }
+
+  function renderReactionSummary() {
+    var el = document.getElementById('arena-chat-reaction-summary');
+    if (!el) { return; }
+    var totals = sumReactions();
+    var shown = REACTIONS.filter(function (r) { return totals[r.key] > 0; });
+    el.innerHTML = '';
+    if (!shown.length) { el.hidden = true; return; }
+    el.hidden = false;
+    shown.forEach(function (r) {
+      var chip = document.createElement('span');
+      chip.className = 'arena-chat__reaction-total';
+      chip.setAttribute('aria-label', r.label + ': ' + totals[r.key]);
+      chip.textContent = r.glyph + ' ' + totals[r.key];
+      el.appendChild(chip);
     });
   }
 
@@ -462,7 +513,7 @@
         return;
       }
       lastId = 0;
-      log.innerHTML = '';
+      clearLog();
       poll();
       notice('Done.');
     });
@@ -474,7 +525,7 @@
       // The whole log is repainted from the server on the next tick, because a
       // mute changes every line by that person, not only the one tapped.
       lastId = 0;
-      log.innerHTML = '';
+      clearLog();
       poll();
       notice(data.blocked ? 'Blocked.' : (data.muted ? 'Muted.' : 'Done.'));
     });
@@ -509,7 +560,7 @@
     replyingTo = null;
     cancelReply();
     lastId = 0;
-    log.innerHTML = '';
+    clearLog();
     paintRoomChrome();
     poll();
   }
@@ -591,15 +642,15 @@
     if (empty && empty.parentNode) { empty.remove(); }
     lines.forEach(append);
     if (stick) { log.scrollTop = log.scrollHeight; }
+    renderReactionSummary();
   }
 
   function seatMe(seated) {
     if (form) { form.hidden = !seated; }
-    if (live) { live.hidden = !seated; }
-    // The placeholder has to agree with the badge beside it. It shipped saying
-    // "Take a seat to join the conversation" to EVERYONE, so a chef - who holds
-    // a place in the octagon and needs no seat - read an instruction he could
-    // not follow, next to a LIVE badge saying he was already in the room.
+    // The placeholder agrees with whether the composer is actually usable.
+    // It shipped saying "Take a seat to join the conversation" to EVERYONE,
+    // so a chef - who holds a place in the octagon and needs no seat - read
+    // an instruction he could not follow.
     if (empty && empty.parentNode) {
       empty.textContent = seated
         ? 'Nobody has spoken yet.'
@@ -607,21 +658,17 @@
     }
   }
 
-  /* The number beside LIVE: how many people are actually in the hall.
+  /* The hall's headcount, written into the USERS tab label as "Users (n)".
    *
-   * Written into its own element, never into the badge's own text, so "LIVE"
-   * stays a word a screen reader can read on its own and the count can vanish
-   * (server says nothing) without taking the badge with it. */
-  function showListening(count) {
-    var el = document.getElementById('arena-chat-listening');
+   * Owner's visual brief, 2026-08-25: a separate "LIVE n" badge duplicated
+   * this exact number and competed with the tabs for attention. There is
+   * one count now, living where a reader would look for it - the same
+   * number the arena_chat_users list itself would enumerate, since both
+   * ultimately read _arena_hall_headcount()'s definition of who is present. */
+  function setUsersCount(count) {
+    var el = document.getElementById('arena-chat-tab-users-count');
     if (!el) { return; }
-    if (typeof count !== 'number' || count < 0) {
-      el.hidden = true;
-      el.textContent = '';
-      return;
-    }
-    el.hidden = false;
-    el.textContent = String(count);
+    el.textContent = (typeof count === 'number' && count >= 0) ? '(' + count + ')' : '';
   }
 
   function poll() {
@@ -648,7 +695,7 @@
         seatMe(!!data.seated);
         // The hall's headcount is the hall's. A private room does not have one
         // and must not inherit the last number the hall reported.
-        showListening(room === null ? data.listening : null);
+        setUsersCount(room === null ? data.listening : null);
         absorb(data.messages);
       })
       .catch(function () { /* one dropped tick is not a failure; try the next */ })
@@ -665,6 +712,10 @@
     body.append('csrfmiddlewaretoken', csrf());
     input.value = '';
     input.focus();
+    // Setting .value programmatically fires no 'input' event, so the
+    // disabled state - which listens for that event - is nudged by hand
+    // here and everywhere else the box is filled or emptied in code.
+    if (typeof syncSendButton === 'function') { syncSendButton(); }
     cancelReply();
     fetch(sendUrl, { method: 'POST', credentials: 'same-origin', body: body })
       .then(function (response) { return response.json(); })
@@ -673,6 +724,7 @@
           absorb(data.messages);
         } else {
           input.value = text;
+          if (typeof syncSendButton === 'function') { syncSendButton(); }
           notice(data && data.error === 'rate_limited'
             ? 'Slow down a moment.'
             : 'That did not send.');
@@ -680,6 +732,7 @@
       })
       .catch(function () {
         input.value = text;                          // put it back, lose nothing
+        if (typeof syncSendButton === 'function') { syncSendButton(); }
         notice('That did not send.');
       });
   }
@@ -689,6 +742,16 @@
       event.preventDefault();
       send();
     });
+  }
+
+  // The send button's disabled state, kept live: an empty box has nothing
+  // to send, so the gold control says so rather than accepting a click that
+  // send() would have thrown away anyway.
+  var sendButton = form && form.querySelector('button[type="submit"]');
+  if (input && sendButton) {
+    var syncSendButton = function () { sendButton.disabled = !input.value.trim(); };
+    input.addEventListener('input', syncSendButton);
+    syncSendButton();
   }
 
   /* CHAT / PM / USERS / SETTINGS - Owner's desktop rebuild, 2026-08-25.
@@ -780,6 +843,10 @@
       .then(function (data) {
         var users = (data && data.users) || [];
         list.innerHTML = '';
+        // The tab's own label is authoritative the moment this list has
+        // actually loaded - it may briefly disagree with the poll's
+        // listening count between one 4s tick and the next, never for long.
+        setUsersCount(users.length);
         if (!users.length) {
           if (emptyRow) { list.appendChild(emptyRow); }
           else {
@@ -835,8 +902,12 @@
     });
   }
 
-  /* Pinned Rules - collapsed by default, remembered only for this tab's
-   * session (sessionStorage), nothing server-side for a panel this small. */
+  /* Pinned Rules - EXPANDED by default (Owner's visual brief, 2026-08-25),
+   * unless this tab's own session explicitly remembers the reader closed
+   * it. sessionStorage carries three states, not two: never touched (open),
+   * '1' (reader opened it - already open, a no-op), '0' (reader closed it -
+   * stay closed). A missing key must read as "never decided", not as
+   * "decided closed", or the default could never actually take effect. */
   var rulesToggle = document.getElementById('arena-chat-rules-toggle');
   var rulesBody = document.getElementById('arena-chat-rules-body');
   if (rulesToggle && rulesBody) {
@@ -845,7 +916,10 @@
       rulesToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       rulesBody.hidden = !open;
     }
-    paintRules(window.sessionStorage && window.sessionStorage.getItem(RULES_KEY) === '1');
+    var storedRulesState = window.sessionStorage && window.sessionStorage.getItem(RULES_KEY);
+    paintRules(storedRulesState === null || storedRulesState === undefined
+      ? true
+      : storedRulesState === '1');
     rulesToggle.addEventListener('click', function () {
       var open = rulesToggle.getAttribute('aria-expanded') !== 'true';
       paintRules(open);
@@ -857,7 +931,4 @@
 
   poll();
   setInterval(poll, POLL_MS);
-  // Once a minute is enough for an age measured in minutes, and it costs
-  // nothing: no request, no repaint, just the text of the stamps already drawn.
-  setInterval(refreshTimes, 60000);
 })();

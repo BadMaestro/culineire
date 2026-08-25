@@ -505,6 +505,16 @@
       panel visibility; it does not duplicate enterRoom()'s room-switching -
       CHAT re-enters the hall, PM lists rooms that already call enterRoom()
       for the room it opens.
+
+      Owner's visual brief, 2026-08-25: the standalone "LIVE n" badge
+      duplicated the hall headcount and competed with the tabs for space -
+      the same number now lives in the USERS tab's own label
+      (#arena-chat-tab-users-count, written by setUsersCount() in
+      arena_chat.js from the identical feed value the badge used to read).
+      SETTINGS becomes an icon-only button rather than spending ~80px on the
+      word - the existing #ad-gear icon (new symbol, same sprite, same
+      currentColor convention as every other arena-ico) with an
+      aria-label carrying the word for anyone not reading it visually.
     {% endcomment %}
     <div class="arena-chat__tabs" role="tablist" aria-label="Arena chat sections" id="arena-chat-tabs">
       <button type="button" class="arena-chat__tab" role="tab" id="arena-chat-tab-chat"
@@ -512,27 +522,32 @@
       <button type="button" class="arena-chat__tab" role="tab" id="arena-chat-tab-pm"
               aria-selected="false" aria-controls="arena-chat-panel-pm" tabindex="-1" data-tab="pm">PM</button>
       <button type="button" class="arena-chat__tab" role="tab" id="arena-chat-tab-users"
-              aria-selected="false" aria-controls="arena-chat-panel-users" tabindex="-1" data-tab="users">Users</button>
-      <button type="button" class="arena-chat__tab" role="tab" id="arena-chat-tab-settings"
-              aria-selected="false" aria-controls="arena-chat-panel-settings" tabindex="-1" data-tab="settings">Settings</button>
-      <span class="arena-chat__live" id="arena-chat-live" hidden>Live<span
-        class="arena-chat__listening" id="arena-chat-listening" hidden></span></span>
+              aria-selected="false" aria-controls="arena-chat-panel-users" tabindex="-1" data-tab="users">Users
+        <span class="arena-chat__tab-count" id="arena-chat-tab-users-count"></span></button>
+      <button type="button" class="arena-chat__tab arena-chat__tab--icon" role="tab" id="arena-chat-tab-settings"
+              aria-selected="false" aria-controls="arena-chat-panel-settings" tabindex="-1" data-tab="settings"
+              aria-label="Settings">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-gear"></use></svg>
+      </button>
     </div>
 
     {% comment %}
       Pinned Rules — original copy; nothing like this existed anywhere in the
-      repo before (checked docs/chef_battle/ and this file). Collapsed by
-      default, state kept in sessionStorage only for this tab, nothing
-      server-side to build for a panel this small.
+      repo before it was written for the earlier pass (checked
+      docs/chef_battle/ and this file). EXPANDED by default on desktop
+      (Owner's visual brief, 2026-08-25) unless the reader's own session
+      already remembers closing it - arena_chat.js's sessionStorage read
+      distinguishes "never decided" from "decided closed", so the markup's
+      own starting state below matches what a fresh session will show.
     {% endcomment %}
     <div class="arena-chat__rules">
       <button type="button" class="arena-chat__rules-toggle" id="arena-chat-rules-toggle"
-              aria-expanded="false" aria-controls="arena-chat-rules-body">
+              aria-expanded="true" aria-controls="arena-chat-rules-body">
         <svg class="arena-ico" aria-hidden="true"><use href="#ad-book"></use></svg>
         <span>Pinned Rules</span>
         <em aria-hidden="true">&rsaquo;</em>
       </button>
-      <ul class="arena-chat__rules-body" id="arena-chat-rules-body" hidden>
+      <ul class="arena-chat__rules-body" id="arena-chat-rules-body">
         <li>Be respectful — the hall is shared by spectators and chefs alike.</li>
         <li>No spam or promo codes outside the sponsor channels built for them.</li>
         <li>English, or the hall's own house language.</li>
@@ -564,6 +579,17 @@
     </ol>
 
     {% comment %}
+      Reaction summary — real counts, summed by renderReactionSummary() in
+      arena_chat.js from the reaction totals already carried on every
+      visible message's own strip (data-count). A passive display, not a
+      second react surface: there is no single message a tap here could
+      react to. Hidden whenever nothing in the loaded log has been reacted
+      to at all, same "furniture only when there's something to show" rule
+      the per-message strip already follows.
+    {% endcomment %}
+    <div class="arena-chat__reaction-summary" id="arena-chat-reaction-summary" hidden></div>
+
+    {% comment %}
       The line being answered. Server-rendered empty and shown by the script,
       so the composer never has to be rebuilt to gain or lose it.
     {% endcomment %}
@@ -578,7 +604,7 @@
       <input type="text" id="arena-chat-input" name="body" maxlength="300"
              autocomplete="off" aria-label="Your message"
              placeholder="Join the conversation...">
-      <button type="submit" aria-label="Send">
+      <button type="submit" aria-label="Send" disabled>
         <svg class="arena-ico" aria-hidden="true"><use href="#ad-send"></use></svg>
       </button>
     </form>
