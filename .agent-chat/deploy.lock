@@ -1,5 +1,0 @@
-agent: bolt
-started_utc: 2026-08-25T10:05
-version: v2.5.1275
-commit: pending
-task: the desktop lifecycle pills centre their contents - the pill computed display:block, so three existing justify-content:center declarations had never applied
