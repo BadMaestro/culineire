@@ -9874,3 +9874,31 @@ body.page--arena.is-zoom-locked {
      it prints. */
   .arena-command-dock .arena-gift-illustration { display: none; }
 }
+
+/* ============================================================================
+ * THE LIFECYCLE PILLS CENTRE THEIR CONTENTS. Owner, 2026-08-25: "всё внутри
+ * пилюль должно быть по центру".
+ *
+ * WHY THEY WERE NOT ALREADY, which took a measurement rather than a read.
+ * Three separate rules already ask for it - :524, :3094 and :5470 declare
+ * justify-content: center and a 0.34rem gap on this element - and not one of
+ * them could ever have applied, because the pill's computed display is BLOCK.
+ * No rule sets that: the rail is a grid, the pill is a <span>, and a grid item
+ * is blockified. justify-content and gap mean nothing on a block box, so the
+ * icon and the label were laid out as inline flow and sat where inline flow
+ * puts them - measured at 1440: 7.1px of space on the left of every pill and
+ * between 99.8 and 121.2px on the right.
+ *
+ * So the fix is the one declaration all three of those rules assumed and none
+ * of them wrote. Desktop only, per the split with GreenBear: the phone has its
+ * own composition for this rail below 768px (emoji medallions, the label
+ * hidden unless the step is current) and nothing here can reach it.
+ * ========================================================================== */
+@media (min-width: 901px) {
+  .arena-broadcast-ribbon .arena-phase-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+}
