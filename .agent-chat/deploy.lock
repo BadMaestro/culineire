@@ -1,0 +1,5 @@
+agent: greenbear
+started_utc: 2026-08-25T22:10
+version: v2.5.1280
+commit: pending
+task: P1 items 8 and 9 - pictures and GIFs in arena chat, re-encoded server-side, animation stored as WebP with a poster frame, media obeying the same reach and block rules as the words
