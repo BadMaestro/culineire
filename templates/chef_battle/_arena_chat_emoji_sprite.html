@@ -1,0 +1,48 @@
+{% comment %}
+Arena chat custom emoji sprite - original CulinEire artwork, 2026-08-25.
+
+WHY A SPRITE AND NOT IMAGE FILES. A message stores the semantic token
+(":golden_knife:"), never a path, so the drawing can be redrawn or restyled
+without rewriting a single stored message - and a token that loses its
+drawing degrades to readable text rather than to a broken image.
+
+Same conventions as _arena_deck_svg.html, which this deliberately mirrors:
+24x24 viewBox, currentColor so each glyph takes the ink of the line it sits
+on, referenced as <svg class="arena-chat__emoji"><use href="#ace-..."></use>.
+The "ace-" prefix is arena-chat-emoji, kept distinct from the deck's "ad-"
+so the two sprites can never collide on an id.
+
+ORIGINAL WORK. These are simple geometric marks drawn for this file - no
+traced logos, no third-party icon set, nothing lifted from another brand.
+{% endcomment %}
+<svg class="arena-chat-emoji-sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  {% comment %} Golden knife - the blade and handle of a chef's knife. {% endcomment %}
+  <symbol id="ace-golden_knife" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4 19 13 10c1.6-1.6 1.6-4.2 0-5.8L4 13.2z"/><path d="m14.6 16.8 5.2-5.2"/><path d="m16.2 20 5.2-5.2-3.1-3.1-5.2 5.2z"/></g></symbol>
+
+  {% comment %} Flaming pan - a skillet with a flame rising from it. {% endcomment %}
+  <symbol id="ace-flaming_pan" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M3 13h12v2a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M15 14h6"/><path d="M9 10c-1.6-1.3-1.4-3 0-4.4.5 1.3 1.4 1.6 2.2 2.3.9.8 1 2.1.2 3"/></g></symbol>
+
+  {% comment %} Chef hat - the toque. {% endcomment %}
+  <symbol id="ace-chef_hat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M7 20h10v-3H7z"/><path d="M7 17v-4.4A3.6 3.6 0 0 1 4.6 9.2 3.6 3.6 0 0 1 8.4 5.8 4 4 0 0 1 12 3.6a4 4 0 0 1 3.6 2.2 3.6 3.6 0 0 1 3.8 3.4 3.6 3.6 0 0 1-2.4 3.4V17z"/></g></symbol>
+
+  {% comment %} Arena crown - the hall's own crown mark, drawn flat. {% endcomment %}
+  <symbol id="ace-arena_crown" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 8.5 7.4 11 12 5.2 16.6 11 20 8.5 18.4 17H5.6z"/><path d="M5.6 19.6h12.8"/></g></symbol>
+
+  {% comment %} Burned toast - a slice with a wisp of smoke. {% endcomment %}
+  <symbol id="ace-burned_toast" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6 20V11a2.6 2.6 0 0 1 0-5.2h12A2.6 2.6 0 0 1 18 11v9z"/><path d="M9 14.4h6M9 17.2h4"/><path d="M13 3.6c.9-.6.9-1.4.4-2.1"/></g></symbol>
+
+  {% comment %} Perfect sear - a steak medallion with sear lines. {% endcomment %}
+  <symbol id="ace-perfect_sear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 4.4c4.4 0 7.6 2.6 7.6 6.2S16.4 19 12 19s-7.6-2.6-7.6-6.2S7.6 4.4 12 4.4z"/><path d="m8.6 9.4 3.2 3.2M12.2 8.6l3.2 3.2"/></g></symbol>
+
+  {% comment %} Bear mascot - the CulinEire bear, reduced to a face mark. {% endcomment %}
+  <symbol id="ace-bear_mascot" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><circle cx="6.6" cy="6.6" r="2.4"/><circle cx="17.4" cy="6.6" r="2.4"/><path d="M12 5.6c4 0 7 3 7 6.8s-3 6.6-7 6.6-7-2.8-7-6.6 3-6.8 7-6.8z"/><path d="M10.2 12h3.6"/><path d="M12 13.8v1.4"/></g></symbol>
+
+  {% comment %} Culinary master - the top rank's laurel-and-toque mark. {% endcomment %}
+  <symbol id="ace-culinary_master" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.4a4 4 0 0 1 3.6 5.8H8.4A4 4 0 0 1 12 3.4z"/><path d="M8.4 9.2h7.2v3H8.4z"/><path d="M6 13.6c0 4 2.8 6.4 6 7 3.2-.6 6-3 6-7"/></g></symbol>
+
+  {% comment %} Sauce splash - a drop with a spreading pool. {% endcomment %}
+  <symbol id="ace-sauce_splash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3.4c2.6 3.4 4 5.7 4 7.4a4 4 0 0 1-8 0c0-1.7 1.4-4 4-7.4z"/><path d="M4.6 17.4c2.6 1.6 5 2.4 7.4 2.4s4.8-.8 7.4-2.4"/></g></symbol>
+
+  {% comment %} Battle shield - the arena's defence mark. {% endcomment %}
+  <symbol id="ace-battle_shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3.2 19 6v5.4c0 4.6-2.9 7.8-7 9.4-4.1-1.6-7-4.8-7-9.4V6z"/><path d="m9.2 11.8 2 2 3.6-3.8"/></g></symbol>
+</svg>

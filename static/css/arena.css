@@ -761,6 +761,10 @@
   --chat-public-text: #a87424;
   --chat-private-text: #7652c8;
   --chat-admin-text: #c43d35;
+  /* A mention is a fourth semantic colour, kept clearly apart from the three
+     above: it is neither the site speaking (admin red) nor a private channel
+     (DM purple), it is somebody being called by name. */
+  --chat-mention-text: #4d6fa8;
 
   grid-area: chat;
   display: flex;
@@ -829,7 +833,10 @@
 .arena-chat__line {
   display: grid;
   gap: .04rem;
-  font-size: .7rem;
+  /* The fallback is the narrow default this rule has always carried; the
+     custom property only exists once the reader has chosen a text size, and
+     the density query below re-states its own fallback for the same reason. */
+  font-size: var(--chat-line-size, .7rem);
   line-height: 1.35;
 }
 /* THE ROW: time, identity, the words, the action trigger, as flex children
@@ -1255,6 +1262,249 @@
 }
 .arena-chat .arena-chat__action--danger { color: var(--chat-admin-text); }
 
+/* ============================================================================
+ * THE 2026 LAYER, 2026-08-25: custom emoji, mentions, the emoji picker, the
+ * quick-react strip and the appearance preferences.
+ *
+ * Every one of these reuses something already here rather than inventing a
+ * parallel system - the picker and the mention list ARE .arena-chat__sheet,
+ * so they become a bottom sheet on a phone and a popover on a desktop from
+ * the container query further down without a line of new positioning code.
+ * ========================================================================= */
+
+/* A custom emoji sits ON the text line, so it is sized in em and aligned to
+   the text's own baseline rather than to the box. */
+.arena-chat__emoji {
+  width: 1.15em;
+  height: 1.15em;
+  margin: 0 .05em;
+  vertical-align: -.2em;
+}
+
+.arena-chat .arena-chat__mention {
+  color: var(--chat-mention-text);
+  font-weight: 700;
+}
+/* Being named yourself is worth more than a colour, so it also carries a
+   tint - the one case where a mention should catch the eye mid-scroll. */
+.arena-chat .arena-chat__mention.is-me {
+  padding: 0 .2em;
+  border-radius: .25rem;
+  background: color-mix(in srgb, var(--chat-mention-text) 15%, transparent);
+}
+
+/* The hover strip. It is the pointer's shortcut to a reaction; the action
+   sheet remains the route for everyone else, which is why the whole thing
+   only exists inside @media (hover: hover). */
+.arena-chat__quick-react { display: none; }
+@media (hover: hover) {
+  .arena-chat__quick-react {
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: .05rem;
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity .12s ease;
+  }
+  /* margin-left:auto is now on the strip, so the trigger beside it must stop
+     claiming the same job or the two fight over the row's slack. */
+  .arena-chat__quick-react + .arena-chat__more { margin-left: .1rem; }
+  .arena-chat__line:hover .arena-chat__quick-react,
+  .arena-chat__quick-react:focus-within { opacity: 1; }
+}
+/* SIZED NOT TO SET THE ROW'S HEIGHT, the same discipline .arena-chat__more
+   already lives under. At 1.15rem these buttons were 18.4px in a 16px row
+   and every message grew by two pixels to carry a control that is invisible
+   until hovered - measured, and exactly the kind of quiet cost the density
+   work was for. 0.9rem square with a small glyph fits inside the line. */
+.arena-chat__quick-react-btn {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: .9rem;
+  height: .9rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-size: .58rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__quick-react-btn:hover,
+.arena-chat__quick-react-btn:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+}
+
+/* The burst. Defined ONLY inside prefers-reduced-motion: no-preference, so
+   for a reader who asked their system for less motion the class the script
+   adds names an animation that does not exist - the correct way round, since
+   it needs no JS branch to stay honest. The preference toggle in Settings is
+   the second, independent switch (.is-still). */
+@media (prefers-reduced-motion: no-preference) {
+  .arena-chat:not(.is-still) .is-bursting {
+    animation: arena-chat-burst .6s ease-out;
+  }
+  @keyframes arena-chat-burst {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.55); }
+    100% { transform: scale(1); }
+  }
+}
+
+/* THE EMOJI PICKER, wearing .arena-chat__sheet's clothes. Only the inside is
+   new: a row of category tabs over a scrolling grid. */
+.arena-chat__sheet--emoji { width: min(19rem, 92vw); }
+.arena-chat__emoji-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .1rem;
+  padding: .1rem .15rem .25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+}
+.arena-chat__emoji-tab {
+  appearance: none;
+  padding: .15rem .35rem;
+  border: 0;
+  border-radius: .35rem;
+  background: none;
+  font: inherit;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__emoji-tab { color: var(--arena-muted); }
+.arena-chat .arena-chat__emoji-tab[aria-pressed="true"] {
+  color: var(--arena-ink);
+  background: color-mix(in srgb, var(--accent-bronze) 16%, transparent);
+}
+.arena-chat__emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(1.9rem, 1fr));
+  gap: .1rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: .25rem .15rem;
+}
+.arena-chat__emoji-btn {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  min-height: 1.9rem;
+  padding: 0;
+  border: 0;
+  border-radius: .35rem;
+  background: none;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__emoji-btn:hover,
+.arena-chat__emoji-btn:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 15%, transparent);
+}
+.arena-chat .arena-chat__emoji-btn--custom { color: var(--accent-bronze-dark); }
+.arena-chat__emoji-btn--custom .arena-chat__emoji { width: 1.15rem; height: 1.15rem; }
+
+/* The mention dropdown - the same sheet again, as a listbox. */
+.arena-chat__sheet--mentions { width: min(15rem, 90vw); }
+.arena-chat__mention-option {
+  appearance: none;
+  display: flex;
+  align-items: baseline;
+  gap: .25rem;
+  width: 100%;
+  min-height: 2rem;
+  padding: 0 .5rem;
+  border: 0;
+  border-radius: .4rem;
+  background: none;
+  font: inherit;
+  font-size: .72rem;
+  text-align: left;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__mention-option { color: var(--arena-ink); }
+.arena-chat__mention-option.is-active,
+.arena-chat__mention-option:hover,
+.arena-chat__mention-option:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 14%, transparent);
+}
+
+/* The composer's action area - one button today; see arena.html's own note
+   on why this is a plain row and not a "+" menu yet. */
+.arena-chat__composer-actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .15rem;
+}
+.arena-chat__composer-action {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__composer-action { color: var(--arena-muted); }
+.arena-chat__composer-action:hover,
+.arena-chat__composer-action:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 15%, transparent);
+}
+.arena-chat .arena-chat__composer-action:hover { color: var(--accent-bronze); }
+.arena-chat__composer-action .arena-ico { width: .95rem; margin: 0; }
+
+/* APPEARANCE PREFERENCES. The script only writes classes and one attribute;
+   every actual value is here, which is why a preference can be retuned
+   without touching JavaScript. */
+.arena-chat__appearance { margin-top: .5rem; }
+.arena-chat__pref {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .1rem .6rem;
+  margin: 0 0 .35rem;
+  padding: 0;
+  border: 0;
+}
+.arena-chat__pref legend {
+  padding: 0;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.arena-chat .arena-chat__pref legend { color: var(--arena-muted); }
+.arena-chat__pref label {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .68rem;
+}
+
+/* What the preferences actually do. Density and text size are custom
+   properties so the existing rules keep owning the layout and only the
+   number changes; the two "show" toggles simply take an element out. */
+/* NORMAL DELIBERATELY SETS NOTHING. Each presentation already chose its own
+   size - .7rem narrow, .72rem dense desktop - and "Normal" means "the one
+   this layout picked", not a third number that overrides both. Declaring
+   .72rem here was a real regression for one measurement: it reached the
+   phone through the attribute applyPersonalisation() writes on every load
+   and pushed every mobile row from 31.5px to 32.3px. Small and Large are
+   genuine departures from the default, so those do declare. */
+.arena-chat[data-font-size="small"] { --chat-line-size: .64rem; }
+.arena-chat[data-font-size="large"] { --chat-line-size: .84rem; }
+.arena-chat.is-hiding-tags .arena-chat__tag,
+.arena-chat.is-hiding-tags .arena-chat__marker { display: none; }
+.arena-chat.is-hiding-times .arena-chat__time { display: none; }
+
 /* CHAT / PM / USERS / SETTINGS — Owner's desktop rebuild, 2026-08-25.
    Replaces the old plain "Spectator chat" title. Each button is an ARIA tab;
    arena_chat.js's activateTab() toggles aria-selected and the matching
@@ -1611,8 +1861,13 @@
      chat exactly as it shipped. */
   .arena-chat__line {
     gap: .1rem;
-    font-size: .72rem;
+    font-size: var(--chat-line-size, .72rem);
   }
+  /* COMFORTABLE loosens the rhythm without leaving the one-line shape - the
+     Owner's density work stands, this is the reader's own second setting on
+     top of it. Compact is the default and needs no rule. */
+  .arena-chat.is-comfortable .arena-chat__log { gap: .55rem; }
+  .arena-chat.is-comfortable .arena-chat__line { gap: .16rem; }
   /* Back to source order: time, identity, words, trigger - all inline. */
   .arena-chat__who  { order: 0; }
   .arena-chat__time { order: 0; }

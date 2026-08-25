@@ -781,6 +781,14 @@ class ArenaChatReaction(models.Model):
         FIRE = "fire", "Fire"
         CLAP = "clap", "Clap"
         STAR = "star", "Star"
+        # Added 2026-08-25 for the reaction picker upgrade - additive only,
+        # existing FIRE/CLAP/STAR rows are untouched by this migration. The
+        # arena_chat_react view (views.py) validates against Emoji.values
+        # dynamically, so this enum extension is the entire backend change.
+        SMILE = "smile", "Smile"
+        LAUGH = "laugh", "Laugh"
+        HEART = "heart", "Heart"
+        WOW = "wow", "Wow"
 
     message = models.ForeignKey(
         ArenaChatMessage, on_delete=models.CASCADE, related_name="reactions",

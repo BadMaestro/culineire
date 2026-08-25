@@ -22496,6 +22496,130 @@ class ArenaChatUsersEndpointTests(TestCase):
         self.assertIn("users", response.json())
 
 
+class ArenaChatReactionSetTests(TestCase):
+    """The reaction set widened from three to seven, and the two lists agree.
+
+    The server validates a reaction against ArenaChatReaction.Emoji.values,
+    and the browser offers whatever its own REACTIONS array holds. Those are
+    two lists in two languages, and nothing but a test keeps them the same
+    list: a key added to the JS alone is refused as bad_emoji at the moment a
+    reader taps it, and a key added to the model alone is a reaction nobody
+    can ever send. Both failures are silent until somebody tries.
+    """
+
+    def setUp(self):
+        self.user, self.author, _ = _seat_a_viewer(
+            "reactor", "Reactor", "reactor-chef",
+        )
+        self.send_url = reverse("chef_battle:arena_chat_send")
+        self.react_url = reverse("chef_battle:arena_chat_react")
+        self.feed_url = reverse("chef_battle:arena_chat_feed")
+
+    def _a_message(self):
+        self.client.force_login(self.user)
+        self.client.post(self.send_url, {"body": "worth a reaction"})
+        return self.client.get(self.feed_url).json()["messages"][-1]["id"]
+
+    def test_every_new_reaction_is_accepted_by_the_endpoint(self):
+        """The four added on 2026-08-25, each actually stored."""
+        from chef_battle.models import ArenaChatReaction
+
+        message_id = self._a_message()
+        for emoji in ("smile", "laugh", "heart", "wow"):
+            with self.subTest(emoji=emoji):
+                response = self.client.post(
+                    self.react_url, {"message_id": message_id, "emoji": emoji},
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertTrue(response.json().get("ok"))
+                self.assertTrue(
+                    ArenaChatReaction.objects.filter(
+                        message_id=message_id, author=self.author, emoji=emoji,
+                    ).exists()
+                )
+
+    def test_the_original_three_still_work(self):
+        """Additive means additive - the Owner's first three are untouched."""
+        message_id = self._a_message()
+        for emoji in ("fire", "clap", "star"):
+            with self.subTest(emoji=emoji):
+                self.assertTrue(
+                    self.client.post(
+                        self.react_url, {"message_id": message_id, "emoji": emoji},
+                    ).json().get("ok")
+                )
+
+    def test_an_emoji_outside_the_set_is_still_refused(self):
+        """Widening the set is not opening it."""
+        message_id = self._a_message()
+        response = self.client.post(
+            self.react_url, {"message_id": message_id, "emoji": "rocket"},
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json().get("error"), "bad_emoji")
+
+    def test_the_browser_offers_exactly_what_the_server_accepts(self):
+        """The two lists are the same list, or a reader meets a dead button."""
+        import re
+        from pathlib import Path
+
+        from django.conf import settings
+
+        from chef_battle.models import ArenaChatReaction
+
+        source = (
+            Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
+        ).read_text(encoding="utf-8")
+        block = re.search(r"var REACTIONS = \[(.*?)\];", source, re.S)
+        self.assertIsNotNone(block, "REACTIONS array not found in arena_chat.js")
+        in_js = set(re.findall(r"key:\s*'([a-z_]+)'", block.group(1)))
+        self.assertEqual(
+            in_js,
+            set(ArenaChatReaction.Emoji.values),
+            "arena_chat.js's REACTIONS and ArenaChatReaction.Emoji have drifted",
+        )
+
+
+class ArenaChatCustomEmojiSpriteTests(TestCase):
+    """Every custom emoji token the script knows has a drawing to point at.
+
+    A token whose symbol is missing renders as an empty box rather than as an
+    error, so this is exactly the kind of break that reaches the Owner's
+    screen instead of a test run.
+    """
+
+    def _read(self, *parts):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        return (Path(settings.BASE_DIR).joinpath(*parts)).read_text(encoding="utf-8")
+
+    def test_each_token_in_the_script_has_a_symbol_in_the_sprite(self):
+        import re
+
+        source = self._read("static", "js", "arena_chat.js")
+        block = re.search(r"var CUSTOM_EMOJI = \[(.*?)\];", source, re.S)
+        self.assertIsNotNone(block, "CUSTOM_EMOJI array not found in arena_chat.js")
+        tokens = set(re.findall(r"token:\s*'([a-z_]+)'", block.group(1)))
+        self.assertTrue(tokens, "no custom emoji tokens found")
+
+        sprite = self._read(
+            "templates", "chef_battle", "_arena_chat_emoji_sprite.html",
+        )
+        drawn = set(re.findall(r'<symbol id="ace-([a-z_]+)"', sprite))
+        self.assertEqual(
+            tokens - drawn,
+            set(),
+            "custom emoji tokens with no drawing in the sprite",
+        )
+
+    def test_the_sprite_is_included_on_the_arena_page(self):
+        """A sprite nobody includes draws nothing, everywhere, silently."""
+        arena = self._read("templates", "chef_battle", "arena.html")
+        self.assertIn("chef_battle/_arena_chat_emoji_sprite.html", arena)
+
+
 class NoTemplateCommentCanPrintItselfOnThePageTests(TestCase):
     """`{# #}` is SINGLE-LINE in Django. Written across lines, it prints.
 

@@ -45,12 +45,90 @@
   var busy = false;
   var POLL_MS = 4000;
 
-  /* The three the Owner named. A fixed set, not an emoji picker: a live chat
-   * wants a tap, and a panel of a thousand faces is a different product. */
+  /* THE REACTION SET, and it is not free-form. Every key here must also exist
+   * in ArenaChatReaction.Emoji on the server - arena_chat_react validates
+   * against Emoji.values, so a key added here and nowhere else is refused with
+   * bad_emoji rather than silently stored. Widened from the Owner's original
+   * three to seven on 2026-08-25 (migration 0104), which is additive: rows
+   * already carrying fire/clap/star are untouched.
+   *
+   * Everything that reads this array - reactionRow(), sumReactions(), the
+   * action sheet's glyph row, the hover strip - iterates it rather than
+   * indexing it, so the length is not structural anywhere. */
   var REACTIONS = [
-    { key: 'fire', glyph: '🔥', label: 'Fire' },
-    { key: 'clap', glyph: '👏', label: 'Clap' },
-    { key: 'star', glyph: '⭐',       label: 'Star' }
+    { key: 'fire',  glyph: '🔥', label: 'Fire' },
+    { key: 'clap',  glyph: '👏', label: 'Clap' },
+    { key: 'star',  glyph: '⭐', label: 'Star' },
+    { key: 'smile', glyph: '😀', label: 'Smile' },
+    { key: 'laugh', glyph: '😂', label: 'Laugh' },
+    { key: 'heart', glyph: '❤️', label: 'Heart' },
+    { key: 'wow',   glyph: '😮', label: 'Wow' }
+  ];
+
+  /* CUSTOM CulinEire EMOJI - stored in a message as a SEMANTIC TOKEN, never as
+   * a path. ":golden_knife:" survives the drawing being redrawn, restyled or
+   * moved, and a token whose drawing is missing degrades to readable text
+   * rather than to a broken image. The drawings live in the sprite partial
+   * templates/chef_battle/_arena_chat_emoji_sprite.html under "ace-" ids. */
+  var CUSTOM_EMOJI = [
+    { token: 'golden_knife',   label: 'Golden Knife' },
+    { token: 'flaming_pan',    label: 'Flaming Pan' },
+    { token: 'chef_hat',       label: 'Chef Hat' },
+    { token: 'arena_crown',    label: 'Arena Crown' },
+    { token: 'burned_toast',   label: 'Burned Toast' },
+    { token: 'perfect_sear',   label: 'Perfect Sear' },
+    { token: 'bear_mascot',    label: 'Bear Mascot' },
+    { token: 'culinary_master', label: 'Culinary Master' },
+    { token: 'sauce_splash',   label: 'Sauce Splash' },
+    { token: 'battle_shield',  label: 'Battle Shield' }
+  ];
+
+  /* A lookup, built once, so rendering a body does not scan an array per token. */
+  var CUSTOM_EMOJI_BY_TOKEN = {};
+  CUSTOM_EMOJI.forEach(function (e) { CUSTOM_EMOJI_BY_TOKEN[e.token] = e; });
+
+  /* The hover strip shows FIVE, not all seven. It sits on every row of a
+   * dense log, so its width is the message's width; the full set is one tap
+   * further on, in the action menu, which is where it has always been. */
+  var QUICK_REACTIONS = REACTIONS.slice(0, 5);
+
+  /* THE PICKER'S CONTENTS. Hand-curated rather than pulled from a library:
+   * this project has no bundler (see any static/js file - they are served as
+   * written), so an emoji dataset would have to be vendored as a blob nobody
+   * here can audit. A few hundred of the ones people actually reach for beats
+   * a megabyte of every codepoint, and the Cooking and Battle groups are the
+   * point of a CULINARY arena's picker anyway. */
+  var EMOJI_CATEGORIES = [
+    { key: 'culineire', label: 'CulinÉire', custom: true },
+    { key: 'cooking', label: 'Cooking', glyphs: (
+      '👨‍🍳 👩‍🍳 🔪 🍳 🥘 🍲 🥣 🍜 🍝 🥩 🍗 🍖 🥓 🌶️ 🧂 🧄 🧅 🥕 🥔 🍅 '
+      + '🥦 🥬 🌽 🍄 🥑 🍋 🍎 🍞 🥐 🥖 🧀 🥚 🍰 🧁 🍫 🍯 🔥 ♨️ 🍽️ 🥄'
+    ).split(' ') },
+    { key: 'battle', label: 'Battle', glyphs: (
+      '⚔️ 🛡️ 👑 💥 🎯 🏆 🚩 🥇 🥈 🥉 ⭐ 🌟 💫 ⚡ 🔱 🎖️ 🏅 ⏱️ 📣 🎬'
+    ).split(' ') },
+    { key: 'smileys', label: 'Smileys', glyphs: (
+      '😀 😃 😄 😁 😆 😅 😂 🤣 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😙 '
+      + '😋 😛 😜 🤪 😝 🤑 🤗 🤭 🤫 🤔 🤐 🤨 😐 😑 😶 😏 😒 🙄 😬 😮‍💨 '
+      + '😌 😔 😪 🤤 😴 😷 🤒 🤕 🤢 🤮 🥵 🥶 😵 🤯 🤠 🥳 😎 🤓 🧐 😕 '
+      + '😟 🙁 😮 😯 😲 😳 🥺 😦 😧 😨 😰 😥 😢 😭 😱 😖 😣 😞 😓 😩 '
+      + '😫 🥱 😤 😡 😠 🤬 😈 💀 👻 🤖'
+    ).split(' ') },
+    { key: 'people', label: 'People', glyphs: (
+      '👋 🤚 ✋ 🖖 👌 🤌 🤏 ✌️ 🤞 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ 👍 👎 ✊ '
+      + '👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 💪 🦾 👀 👁️ 👅 👄 🧠 🫀 👶 🧑 👨 '
+      + '👩 🧓 🕺 💃 🧑‍🤝‍🧑 👥 🫂 💅'
+    ).split(' ') },
+    { key: 'objects', label: 'Objects', glyphs: (
+      '📱 💻 ⌨️ 🖥️ 🖨️ 📷 📸 🎥 📺 📻 ⏰ ⌚ 📡 🔋 💡 🔦 🕯️ 🧯 🛒 🎁 '
+      + '🎈 🎉 🎊 🎀 🔑 🔒 🔓 🔨 🪓 ⚙️ 🧰 🧲 🧪 🧫 🌡️ 🧹 🧺 🧻 🧼 🪣 '
+      + '📦 📬 📝 📖 📚 🗓️ 📌 📎 ✂️ 📏'
+    ).split(' ') },
+    { key: 'symbols', label: 'Symbols', glyphs: (
+      '❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 ✅ ❌ '
+      + '❗ ❓ ⚠️ 🚫 ♻️ 🔔 🔕 💬 💭 🗯️ ➕ ➖ ✖️ ➗ 🟢 🔴 🟡 🔵 ⚫ ⚪ '
+      + '🔺 🔻 🔶 🔷 ⏳ ⌛ 🆗 🆕 🔝 💯'
+    ).split(' ') }
   ];
 
   /* The line currently being answered, or null. Held here rather than read off
@@ -65,6 +143,65 @@
    * works in a private room without being written twice. */
   var room = null;
   var roomName = '';
+
+  /* WHO IS IN THE HALL, cached for the mention dropdown.
+   *
+   * Deliberately the SAME data the USERS tab already fetches - one endpoint,
+   * one shape, one refresh path. loadUsers() fills this as a side effect, so
+   * a reader who has never opened the USERS tab still gets one fetch the
+   * first time they type "@" and nothing more after that. */
+  var roster = [];
+  var rosterFetched = false;
+
+  /* PERSONALISATION lives in localStorage and NOT on the server, on purpose.
+   *
+   * dm_policy is a profile field because it is a PERMISSION - the server
+   * enforces it when somebody tries to open a conversation. None of these
+   * are: no endpoint reads them, no other person is affected by them, and
+   * they describe this browser's view of the log. A column the server never
+   * reads is a column that drifts, so these stay where the decision lives. */
+  var PREFS_KEY = 'arena-chat-prefs';
+  var PREF_DEFAULTS = {
+    density: 'compact',
+    fontSize: 'normal',
+    showTags: true,
+    showTimestamps: true,
+    reactionAnimations: true
+  };
+  var prefs = readPrefs();
+
+  function readPrefs() {
+    var out = {};
+    Object.keys(PREF_DEFAULTS).forEach(function (k) { out[k] = PREF_DEFAULTS[k]; });
+    try {
+      var raw = window.localStorage && window.localStorage.getItem(PREFS_KEY);
+      if (raw) {
+        var saved = JSON.parse(raw);
+        Object.keys(PREF_DEFAULTS).forEach(function (k) {
+          if (saved && typeof saved[k] === typeof PREF_DEFAULTS[k]) { out[k] = saved[k]; }
+        });
+      }
+    } catch (e) { /* a corrupt or blocked store is just the defaults */ }
+    return out;
+  }
+
+  function writePrefs() {
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+      }
+    } catch (e) { /* private mode; the session still works, it just forgets */ }
+  }
+
+  /* Applied as classes and one custom property on the root, so the stylesheet
+   * owns every actual value and this only says WHICH. */
+  function applyPersonalisation() {
+    root.classList.toggle('is-comfortable', prefs.density === 'comfortable');
+    root.classList.toggle('is-hiding-tags', !prefs.showTags);
+    root.classList.toggle('is-hiding-times', !prefs.showTimestamps);
+    root.classList.toggle('is-still', !prefs.reactionAnimations);
+    root.setAttribute('data-font-size', prefs.fontSize);
+  }
 
   function csrf() {
     var field = form && form.querySelector('[name=csrfmiddlewaretoken]');
@@ -123,6 +260,140 @@
     return el;
   }
 
+  /* THE MESSAGE BODY, WITH CUSTOM EMOJI AND MENTIONS - AND NOT ONE LINE OF
+   * innerHTML ANYWHERE IN IT.
+   *
+   * This is the one function in the file that turns a stranger's text into
+   * more than a single text node, so it is the one place an XSS could ever
+   * enter. It cannot: every branch below either sets .textContent or calls
+   * createElement/createTextNode, so the body's characters can only ever
+   * BECOME text, never markup. Anyone editing this function keeps that
+   * property or breaks the whole component's safety story.
+   *
+   * What it recognises, in one pass over the text:
+   *   :golden_knife:  ->  the sprite drawing, IF that exact token is one of
+   *                       ours. An unknown :word: stays literal text, so a
+   *                       recipe that mentions a ratio like 1:2: is untouched.
+   *   @Name           ->  a highlight, IF Name is somebody the roster
+   *                       actually returned. An arbitrary @word is left
+   *                       alone - a mention that highlights strangers is a
+   *                       spoofing surface, not a feature. */
+  /* The candidate after an "@" is deliberately GENEROUS - up to 40 characters
+   * that could belong to a display name, spaces included, because a chef may
+   * be called "Green Bear". How much of that run is actually a name is not
+   * the pattern's decision and cannot be: resolveMention() asks the roster,
+   * and only what the roster confirms is consumed. Letting the pattern decide
+   * was the first version's bug - greedy with a space in the class, it
+   * swallowed "@GreenBearDev nice sear" whole, matched nobody, and silently
+   * rendered every mention as plain text. */
+  var BODY_TOKEN = /:([a-z0-9_]{2,32}):|@([\p{L}\p{N}_][\p{L}\p{N}_ '.-]{0,39})/gu;
+
+  function paintBody(target, text) {
+    var body = String(text == null ? '' : text);
+    var at = 0;
+    var match;
+    BODY_TOKEN.lastIndex = 0;
+    while ((match = BODY_TOKEN.exec(body)) !== null) {
+      var node = null;
+      var consumed = match[0].length;
+      if (match[1] !== undefined) {
+        node = customEmojiNode(match[1]);
+      } else if (match[2] !== undefined) {
+        var hit = resolveMention(match[2]);
+        if (hit) {
+          node = mentionNode(hit.user);
+          consumed = 1 + hit.length;    // the "@" plus the name the roster owns
+        }
+      }
+      if (!node) { continue; }          // not ours: leave it as plain text
+      if (match.index > at) {
+        target.appendChild(document.createTextNode(body.slice(at, match.index)));
+      }
+      target.appendChild(node);
+      at = match.index + consumed;
+      // The run may have reached past the name; carry on from where the name
+      // actually ended, not from where the pattern stopped looking.
+      BODY_TOKEN.lastIndex = at;
+    }
+    if (at < body.length) {
+      target.appendChild(document.createTextNode(body.slice(at)));
+    }
+  }
+
+  /* WHICH ROSTER NAME THIS RUN STARTS WITH, if any - longest first, so a hall
+   * holding both "Green" and "Green Bear" resolves "@Green Bear" to the
+   * longer of the two rather than to the first one found.
+   *
+   * The name has to end at a word boundary inside the run, or "@Green" would
+   * light up the first six letters of "@Greenhouse". */
+  function resolveMention(run) {
+    var lower = run.toLowerCase();
+    var best = null;
+    for (var i = 0; i < roster.length; i++) {
+      var name = String(roster[i].name || '');
+      if (!name) { continue; }
+      if (lower.indexOf(name.toLowerCase()) !== 0) { continue; }
+      var next = run.charAt(name.length);
+      if (next && /[\p{L}\p{N}_]/u.test(next)) { continue; }
+      if (!best || name.length > best.length) {
+        best = { user: roster[i], length: name.length };
+      }
+    }
+    return best;
+  }
+
+  function customEmojiNode(token) {
+    var known = CUSTOM_EMOJI_BY_TOKEN[token];
+    if (!known) { return null; }
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'arena-chat__emoji');
+    svg.setAttribute('role', 'img');
+    // The label travels with the drawing, so a screen reader hears the emoji's
+    // name rather than skipping a decorative blank.
+    svg.setAttribute('aria-label', known.label);
+    var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    // Built from OUR OWN token table, never from the message text - the value
+    // here can only be a string this file shipped.
+    use.setAttribute('href', '#ace-' + known.token);
+    svg.appendChild(use);
+    return svg;
+  }
+
+  /* The highlight itself. resolveMention() above has already decided that
+   * this person is real; this only draws them, from the ROSTER's spelling of
+   * the name rather than the typist's, so "@greenbeardev" renders as the
+   * chef actually writes it. */
+  function mentionNode(found) {
+    if (!found) { return null; }
+    var el = document.createElement('span');
+    el.className = 'arena-chat__mention';
+    if (mySlug && found.slug === mySlug) { el.className += ' is-me'; }
+    el.textContent = '@' + found.name;
+    return el;
+  }
+
+  /* HOW A LINE BECOMES DOM, and the seam a later pass extends.
+   *
+   * Every message the server sends today is a person talking, so there is
+   * exactly one renderer registered and `kind` is absent from every row on
+   * the wire. The registry exists anyway because the Owner's brief asks for
+   * rich Arena event cards - a challenge issued, an ingredient attacked, a
+   * battle won - rendered inside this same log later. When that arrives it
+   * registers its own renderer here and touches nothing else: not absorb(),
+   * not poll(), not the scroll behaviour, not this dispatch.
+   *
+   * DELIBERATELY NO `kind` COLUMN YET. Nothing in the codebase produces a
+   * non-message row, so a database field for it would be a column that only
+   * ever holds one value - dead weight that still has to be migrated,
+   * indexed and reasoned about. The seam is free; the column is not, so the
+   * column waits for the feature that needs it. */
+  var MESSAGE_RENDERERS = {};
+
+  function renderMessageLine(line) {
+    var render = MESSAGE_RENDERERS[line.kind || 'message'] || MESSAGE_RENDERERS.message;
+    return render(line);
+  }
+
   /* ONE LINE PER MESSAGE, not a header row followed by a body row.
    *
    * The Owner's visual brief, 2026-08-25: a live Arena feed reads as
@@ -139,7 +410,7 @@
    * block, when present) sits above the row; reactions (their own block,
    * when present) sit below it - exactly where they already lived, just
    * outside the new single-line row rather than outside a two-row grid. */
-  function append(line) {
+  function renderTextMessage(line) {
     var item = document.createElement('li');
     // The class carries the SERVER's answer for what this line is. The client
     // never decides that a line is admin or private; it is told.
@@ -219,12 +490,13 @@
       show.textContent = 'Show';
       show.addEventListener('click', function () {
         said.className = 'arena-chat__said';
-        said.textContent = line.heard ? line.body : 'Talking Something';
+        said.textContent = '';
+        paintBody(said, line.heard ? line.body : 'Talking Something');
       });
       said.appendChild(show);
     } else if (line.heard) {
       said.className = 'arena-chat__said';
-      said.textContent = line.body;
+      paintBody(said, line.body);
     } else {
       // Out of earshot. The person is visibly talking and that is all anyone
       // this far away is entitled to know.
@@ -249,11 +521,43 @@
       event.stopPropagation();
       openActions(line, more);
     });
+
+    // THE QUICK-REACT STRIP, revealed the same way the trigger beside it is:
+    // hidden until the row is hovered or something inside it takes focus. It
+    // is the pointer's shortcut past the action menu, and it exists ONLY
+    // where a pointer does - the stylesheet gates it on @media (hover: hover),
+    // so a touch reader is never shown five tiny targets they cannot hover
+    // to reveal. On touch, reacting stays in the action sheet, where it
+    // already lived and where the targets are finger-sized.
+    var quick = document.createElement('span');
+    quick.className = 'arena-chat__quick-react';
+    QUICK_REACTIONS.forEach(function (r) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'arena-chat__quick-react-btn';
+      b.setAttribute('aria-label', 'React ' + r.label);
+      b.textContent = r.glyph;
+      b.addEventListener('click', function (event) {
+        event.stopPropagation();
+        burst(b);
+        react(line.id, r.key);
+      });
+      quick.appendChild(b);
+    });
+    row.appendChild(quick);
     row.appendChild(more);
 
     item.appendChild(row);
     var strip = reactionRow(line);
     if (strip) { item.appendChild(strip); }
+    return item;
+  }
+
+  MESSAGE_RENDERERS.message = renderTextMessage;
+
+  function append(line) {
+    var item = renderMessageLine(line);
+    if (!item) { return; }
     log.appendChild(item);
     if (line.id > lastId) { lastId = line.id; }
   }
@@ -290,10 +594,29 @@
       btn.setAttribute('aria-pressed', state.mine ? 'true' : 'false');
       btn.setAttribute('aria-label', r.label + ' (' + state.count + ')');
       btn.textContent = r.glyph + ' ' + state.count;
-      btn.addEventListener('click', function () { react(line.id, r.key, row); });
+      btn.addEventListener('click', function () { burst(btn); react(line.id, r.key); });
       row.appendChild(btn);
     });
     return row;
+  }
+
+  /* A short lift-and-fade on the glyph that was tapped, so a reaction lands
+   * with some feedback instead of a silent number change.
+   *
+   * THREE THINGS CAN SWITCH IT OFF, and all three are honoured: the reader's
+   * own "Reaction animations" preference, the OS-level prefers-reduced-motion
+   * (enforced in the stylesheet, which is where it belongs - this function
+   * only adds a class, and the keyframes it names simply do not exist under
+   * that query), and the absence of the element itself. */
+  function burst(el) {
+    if (!el || !prefs.reactionAnimations) { return; }
+    el.classList.remove('is-bursting');
+    // Reading offsetWidth restarts the animation when the same glyph is
+    // tapped twice quickly - without it the class is already there and
+    // nothing replays.
+    void el.offsetWidth;
+    el.classList.add('is-bursting');
+    window.setTimeout(function () { el.classList.remove('is-bursting'); }, 700);
   }
 
   /* Redraw one line's strip from the server's own counts. It may need to be
@@ -469,6 +792,123 @@
     sheet.style.setProperty('--sheet-left', (box.left - mine.left) + 'px');
     var first = sheet.querySelector('.arena-chat__action');
     if (first) { first.focus(); }
+  }
+
+  /* THE EMOJI PICKER, built on the SAME sheet the action menu uses.
+   *
+   * Not a second popover system: it takes .arena-chat__sheet's class family,
+   * so it is an anchored popover on a wide panel and a real bottom sheet on
+   * a narrow one, for free, from the container query already in the
+   * stylesheet. openMenu holds it too, so the existing outside-click and
+   * Escape handlers close it without knowing it exists. */
+  var emojiCategory = EMOJI_CATEGORIES[0].key;
+
+  function openEmojiPicker(trigger) {
+    if (openMenu && openMenu.classList.contains('arena-chat__sheet--emoji')) {
+      closeActions();
+      return;                                     // a second tap closes it
+    }
+    closeActions();
+    var sheet = document.createElement('div');
+    sheet.className = 'arena-chat__sheet arena-chat__sheet--emoji';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-label', 'Choose an emoji');
+
+    var tabs = document.createElement('div');
+    tabs.className = 'arena-chat__emoji-tabs';
+    var grid = document.createElement('div');
+    grid.className = 'arena-chat__emoji-grid';
+
+    function paintGrid() {
+      grid.textContent = '';
+      var cat = null;
+      EMOJI_CATEGORIES.forEach(function (c) { if (c.key === emojiCategory) { cat = c; } });
+      if (!cat) { return; }
+      if (cat.custom) {
+        CUSTOM_EMOJI.forEach(function (e) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'arena-chat__emoji-btn arena-chat__emoji-btn--custom';
+          b.setAttribute('aria-label', e.label);
+          b.title = e.label;
+          var node = customEmojiNode(e.token);
+          if (node) { b.appendChild(node); }
+          b.addEventListener('click', function () {
+            // The TOKEN goes into the message, never the drawing - see
+            // CUSTOM_EMOJI's own note on why.
+            insertAtCursor(':' + e.token + ':');
+          });
+          grid.appendChild(b);
+        });
+        return;
+      }
+      cat.glyphs.forEach(function (glyph) {
+        if (!glyph) { return; }
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'arena-chat__emoji-btn';
+        b.setAttribute('aria-label', glyph);
+        b.textContent = glyph;
+        b.addEventListener('click', function () { insertAtCursor(glyph); });
+        grid.appendChild(b);
+      });
+    }
+
+    EMOJI_CATEGORIES.forEach(function (cat) {
+      var t = document.createElement('button');
+      t.type = 'button';
+      t.className = 'arena-chat__emoji-tab';
+      t.textContent = cat.label;
+      t.setAttribute('aria-pressed', cat.key === emojiCategory ? 'true' : 'false');
+      t.addEventListener('click', function () {
+        emojiCategory = cat.key;
+        Array.prototype.forEach.call(
+          tabs.querySelectorAll('.arena-chat__emoji-tab'),
+          function (other) { other.setAttribute('aria-pressed', 'false'); }
+        );
+        t.setAttribute('aria-pressed', 'true');
+        paintGrid();
+      });
+      tabs.appendChild(t);
+    });
+
+    paintGrid();
+    sheet.appendChild(tabs);
+    sheet.appendChild(grid);
+    root.appendChild(sheet);
+    openMenu = sheet;
+    anchorSheet(sheet, trigger);
+  }
+
+  /* Where a sheet opens, when it was opened by a control rather than a line.
+   * Same custom properties the action menu writes, so the same stylesheet
+   * rules place it - and the same rules ignore them on a narrow panel. */
+  function anchorSheet(sheet, trigger) {
+    if (!trigger) { return; }
+    var box = trigger.getBoundingClientRect();
+    var mine = root.getBoundingClientRect();
+    // Above the trigger, because the composer sits at the panel's foot and
+    // there is nothing below it to open into.
+    sheet.style.setProperty('--sheet-top', Math.max(0, box.top - mine.top - 232) + 'px');
+    sheet.style.setProperty('--sheet-left', Math.max(0, box.left - mine.left - 120) + 'px');
+  }
+
+  /* Insert at the CARET, not at the end. Typing a sentence, moving back to
+   * fix a word and adding an emoji there is ordinary behaviour; appending to
+   * the end regardless would be a small daily annoyance. */
+  function insertAtCursor(text) {
+    if (!input) { return; }
+    var start = typeof input.selectionStart === 'number' ? input.selectionStart : input.value.length;
+    var end = typeof input.selectionEnd === 'number' ? input.selectionEnd : input.value.length;
+    var before = input.value.slice(0, start);
+    var after = input.value.slice(end);
+    input.value = before + text + after;
+    var caret = start + text.length;
+    input.focus();
+    try { input.setSelectionRange(caret, caret); } catch (e) { /* older engines */ }
+    // Programmatic value changes fire no 'input' event, and the send button's
+    // disabled state listens for exactly that.
+    if (typeof syncSendButton === 'function') { syncSendButton(); }
   }
 
   function openReport(line) {
@@ -754,6 +1194,149 @@
     syncSendButton();
   }
 
+  var emojiButton = document.getElementById('arena-chat-emoji');
+  if (emojiButton) {
+    emojiButton.addEventListener('click', function (event) {
+      event.stopPropagation();
+      openEmojiPicker(emojiButton);
+    });
+  }
+
+  /* @MENTION AUTOCOMPLETE.
+   *
+   * The candidates are the roster arena_chat_users already returns for the
+   * USERS tab - one endpoint, fetched once per session, shared by both. A
+   * mention that offered names nobody in the hall recognises would be a
+   * worse feature than none.
+   *
+   * The dropdown reuses the sheet family for the same reason the emoji
+   * picker does, and registers in openMenu so Escape and outside-click
+   * already close it. */
+  var mentionOpen = false;
+  var mentionFrom = -1;
+  var mentionIndex = 0;
+  var mentionMatches = [];
+
+  function ensureRoster() {
+    if (rosterFetched) { return Promise.resolve(roster); }
+    var url = root.getAttribute('data-users-url');
+    if (!url) { return Promise.resolve(roster); }
+    return fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        roster = (data && data.users) || [];
+        rosterFetched = true;
+        return roster;
+      })
+      .catch(function () { return roster; });
+  }
+
+  /* The "@word" the caret is currently sitting inside, or null. Anchored to a
+   * word boundary so an email address never opens the dropdown. */
+  function mentionQueryAtCaret() {
+    if (!input) { return null; }
+    var caret = typeof input.selectionStart === 'number' ? input.selectionStart : input.value.length;
+    var upto = input.value.slice(0, caret);
+    var at = upto.lastIndexOf('@');
+    if (at < 0) { return null; }
+    if (at > 0 && !/\s/.test(upto.charAt(at - 1))) { return null; }
+    var typed = upto.slice(at + 1);
+    if (/\s/.test(typed)) { return null; }        // the mention ended already
+    return { from: at, text: typed };
+  }
+
+  function closeMentions() {
+    if (openMenu && openMenu.classList.contains('arena-chat__sheet--mentions')) {
+      closeActions();
+    }
+    mentionOpen = false;
+    mentionMatches = [];
+    mentionIndex = 0;
+  }
+
+  function paintMentions() {
+    closeActions();
+    if (!mentionMatches.length) { mentionOpen = false; return; }
+    var sheet = document.createElement('div');
+    sheet.className = 'arena-chat__sheet arena-chat__sheet--mentions';
+    sheet.setAttribute('role', 'listbox');
+    sheet.setAttribute('aria-label', 'Mention a chef');
+    mentionMatches.forEach(function (user, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'arena-chat__mention-option' + (i === mentionIndex ? ' is-active' : '');
+      b.setAttribute('role', 'option');
+      b.setAttribute('aria-selected', i === mentionIndex ? 'true' : 'false');
+      var alliance = tagBadge(user.alliance_tag, 'alliance');
+      if (alliance) { b.appendChild(alliance); }
+      var clan = tagBadge(user.clan_tag, 'clan');
+      if (clan) { b.appendChild(clan); }
+      var nm = document.createElement('span');
+      nm.className = 'arena-chat__name';
+      nm.textContent = user.name;
+      b.appendChild(nm);
+      b.addEventListener('click', function () { chooseMention(user); });
+      sheet.appendChild(b);
+    });
+    root.appendChild(sheet);
+    openMenu = sheet;
+    mentionOpen = true;
+    anchorSheet(sheet, input);
+  }
+
+  function chooseMention(user) {
+    if (!input || mentionFrom < 0) { return; }
+    var caret = typeof input.selectionStart === 'number' ? input.selectionStart : input.value.length;
+    var before = input.value.slice(0, mentionFrom);
+    var after = input.value.slice(caret);
+    var insert = '@' + user.name + ' ';
+    input.value = before + insert + after;
+    var pos = before.length + insert.length;
+    input.focus();
+    try { input.setSelectionRange(pos, pos); } catch (e) { /* older engines */ }
+    if (typeof syncSendButton === 'function') { syncSendButton(); }
+    closeMentions();
+  }
+
+  function refreshMentions() {
+    var q = mentionQueryAtCaret();
+    if (!q) { closeMentions(); return; }
+    mentionFrom = q.from;
+    ensureRoster().then(function (list) {
+      // Still the same word after the fetch? A slow network must not reopen
+      // a dropdown for something the reader has already finished typing.
+      var still = mentionQueryAtCaret();
+      if (!still || still.from !== mentionFrom) { return; }
+      var needle = still.text.toLowerCase();
+      mentionMatches = list.filter(function (u) {
+        return String(u.name).toLowerCase().indexOf(needle) === 0;
+      }).slice(0, 6);
+      mentionIndex = 0;
+      paintMentions();
+    });
+  }
+
+  if (input) {
+    input.addEventListener('input', refreshMentions);
+    input.addEventListener('keydown', function (event) {
+      if (!mentionOpen || !mentionMatches.length) { return; }
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        mentionIndex = (mentionIndex + (event.key === 'ArrowDown' ? 1 : -1) + mentionMatches.length)
+                        % mentionMatches.length;
+        paintMentions();
+      } else if (event.key === 'Enter' || event.key === 'Tab') {
+        // Enter completes the mention rather than sending the line - the
+        // dropdown is open, so that is plainly what Enter means right now.
+        event.preventDefault();
+        chooseMention(mentionMatches[mentionIndex]);
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMentions();
+      }
+    });
+  }
+
   /* CHAT / PM / USERS / SETTINGS - Owner's desktop rebuild, 2026-08-25.
    *
    * Four ARIA tabs sharing one root. Only CHAT talks to the delta poll above;
@@ -842,6 +1425,11 @@
       .then(function (r) { return r.json(); })
       .then(function (data) {
         var users = (data && data.users) || [];
+        // ONE ROSTER, TWO READERS. The mention dropdown wants exactly this
+        // list, so opening the USERS tab warms it and vice versa - neither
+        // feature fetches a second time for what the other already has.
+        roster = users;
+        rosterFetched = true;
         list.innerHTML = '';
         // The tab's own label is authoritative the moment this list has
         // actually loaded - it may briefly disagree with the poll's
@@ -896,6 +1484,33 @@
     });
   }
 
+  /* APPEARANCE, which saves ITSELF and posts nothing.
+   *
+   * No Save button on purpose: there is no round trip to wait for and no
+   * failure to report, so a control that changes the log the instant it is
+   * touched is the honest UI. dm_policy above keeps its button because that
+   * one really does travel to the server and really can be refused. */
+  var appearanceForm = document.getElementById('arena-chat-appearance-form');
+  if (appearanceForm) {
+    var paintAppearance = function () {
+      appearanceForm.querySelectorAll('input[type="radio"]').forEach(function (el) {
+        el.checked = String(prefs[el.name]) === el.value;
+      });
+      appearanceForm.querySelectorAll('input[type="checkbox"]').forEach(function (el) {
+        el.checked = !!prefs[el.name];
+      });
+    };
+    appearanceForm.addEventListener('change', function (event) {
+      var el = event.target;
+      if (!el || !el.name || !(el.name in PREF_DEFAULTS)) { return; }
+      prefs[el.name] = (el.type === 'checkbox') ? el.checked : el.value;
+      writePrefs();
+      applyPersonalisation();
+    });
+    paintAppearance();
+  }
+  applyPersonalisation();
+
   for (var t = 0; t < tabs.length; t++) {
     tabs[t].addEventListener('click', function (event) {
       activateTab(event.currentTarget.getAttribute('data-tab'));
@@ -929,6 +1544,17 @@
     });
   }
 
-  poll();
+  /* THE ROSTER IS FETCHED BEFORE THE FIRST PAINT, not lazily on the first
+   * "@" typed, and that ordering is the whole point: a mention only
+   * highlights for somebody resolveMention() can find, so a log painted
+   * while the roster is still empty renders every mention in it as plain
+   * text and never revisits them. Chaining the first poll behind the fetch
+   * costs one request at startup - the same request the USERS tab would
+   * have made anyway, cached for both - and is the difference between
+   * mentions working on arrival and working only after you type one.
+   *
+   * The interval is NOT chained: poll()'s own `busy` guard already stops a
+   * second tick from overlapping the first. */
+  ensureRoster().then(poll, poll);
   setInterval(poll, POLL_MS);
 })();

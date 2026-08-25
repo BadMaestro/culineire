@@ -72,6 +72,7 @@
 
 {% block content %}
 {% include "chef_battle/_arena_deck_svg.html" %}
+{% include "chef_battle/_arena_chat_emoji_sprite.html" %}
 <main class="arena-command-deck" aria-labelledby="arena-command-title">
   {% comment %}
     T28 — six decorative atmosphere elements (light shafts, dust motes, rising
@@ -618,8 +619,23 @@
               id="arena-chat-replying-cancel" aria-label="Cancel reply">&times;</button>
     </p>
 
+    {% comment %}
+      The composer's action area. It holds ONE button today, and that is why
+      it is a plain flex container rather than the "+" menu the Owner's brief
+      sketches: a "+" that opens a sheet containing a single row reads as
+      broken, not as extensible. When photo/GIF/voice arrive they go in here
+      beside the emoji button, and only once this holds three or more does
+      collapsing them behind "+" become the honest move. The wrapper exists
+      now so that day is a markup addition rather than a restructure.
+    {% endcomment %}
     <form class="arena-chat__composer" id="arena-chat-form" hidden>
       {% csrf_token %}
+      <span class="arena-chat__composer-actions">
+        <button type="button" id="arena-chat-emoji" class="arena-chat__composer-action"
+                aria-haspopup="dialog" aria-label="Insert an emoji">
+          <svg class="arena-ico" aria-hidden="true"><use href="#ace-chef_hat"></use></svg>
+        </button>
+      </span>
       <input type="text" id="arena-chat-input" name="body" maxlength="300"
              autocomplete="off" aria-label="Your message"
              placeholder="Join the conversation...">
@@ -673,6 +689,46 @@
         <label><input type="radio" name="dm_policy" value="team"> My clan or alliance only</label>
         <label><input type="radio" name="dm_policy" value="nobody"> Nobody</label>
         <button type="submit" class="btn-secondary">Save</button>
+      </form>
+
+      {% comment %}
+        APPEARANCE — this browser's view of the log, and nothing else's.
+
+        No Save button and no endpoint: unlike dm_policy above, which is a
+        PERMISSION the server enforces when somebody tries to open a
+        conversation, none of these are read by anything but this page. They
+        live in localStorage, applied by applyPersonalisation() in
+        arena_chat.js as classes on the panel, so the stylesheet still owns
+        every actual value. A column the server never reads is a column that
+        drifts.
+
+        There is deliberately NO "show country" control, though the brief
+        lists one: this site stores no country for a chef. The bracketed tags
+        on a line are the alliance and clan, which is what the toggle below
+        actually names.
+      {% endcomment %}
+      <form class="arena-chat__settings arena-chat__appearance" id="arena-chat-appearance-form">
+        <p class="arena-chat__settings-label">Appearance</p>
+        <fieldset class="arena-chat__pref">
+          <legend>Density</legend>
+          <label><input type="radio" name="density" value="compact"> Compact</label>
+          <label><input type="radio" name="density" value="comfortable"> Comfortable</label>
+        </fieldset>
+        <fieldset class="arena-chat__pref">
+          <legend>Text size</legend>
+          <label><input type="radio" name="fontSize" value="small"> Small</label>
+          <label><input type="radio" name="fontSize" value="normal"> Normal</label>
+          <label><input type="radio" name="fontSize" value="large"> Large</label>
+        </fieldset>
+        <fieldset class="arena-chat__pref">
+          <legend>Show</legend>
+          <label><input type="checkbox" name="showTimestamps"> Timestamps</label>
+          <label><input type="checkbox" name="showTags"> Clan, alliance and role badges</label>
+        </fieldset>
+        <fieldset class="arena-chat__pref">
+          <legend>Motion</legend>
+          <label><input type="checkbox" name="reactionAnimations"> Reaction animations</label>
+        </fieldset>
       </form>
     </div>
   </section>
