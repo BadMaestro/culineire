@@ -458,26 +458,6 @@
     <a class="arena-command-deck__guide-link" href="{% url 'chef_battle:rules' %}">How Chef Battles works <span aria-hidden="true">&rarr;</span></a>
   </aside>
 
-  {% comment %}
-    Owner's desktop rebuild, 2026-08-25: this used to be the chat. The chat
-    itself moved into the right rail below, wide enough to be a first-class
-    panel instead of a sliver — see the note beside its new home. This slot,
-    vacated in the left rail, is filled by what used to be the RIGHT rail's
-    top card: the same "Live arena metrics" panel, same ids, only renamed
-    Arena Pulse and repositioned. arena_deck.js's refreshReadModel() writes
-    into #arena-metric-viewers/-votes/-gifts and #arena-crown-streak by id
-    on every poll and needed no changes for the move.
-  {% endcomment %}
-  <section class="arena-command-deck__metrics" aria-label="Arena pulse">
-    <header class="arena-panel__title arena-panel__title--flanked">
-      <svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>
-      <h2 class="arena-panel__kicker">Arena pulse</h2>
-    </header>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong id="arena-metric-viewers">{{ arena_data.metrics.active_viewers }}</strong></div>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-vote"></use></svg>Public votes</span><strong id="arena-metric-votes">{{ arena_data.metrics.public_votes }}</strong></div>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>Battle gifts</span><strong id="arena-metric-gifts">{{ arena_data.metrics.battle_gifts }}</strong></div>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong id="arena-crown-streak">{{ crown_streak|default:0 }}</strong></div>
-  </section>
   </div>
   </div>
 
@@ -803,6 +783,165 @@
   </section>
 
   {% comment %}
+    THE WIDGET BAND. Owner, 2026-08-25, on the desktop rebuild that gave the
+    whole right column to the chat: the three cards that used to live there
+    were meant to come DOWN HERE, into the empty band under the octagon - he
+    circled it on a screenshot - and not into a drawer under Enter Arena.
+
+    WHY THIS BAND EXISTS AT ALL, and why filling it costs the arena nothing.
+    Measured at 1440 before this was written: the floor cell is 584.5 tall and
+    the row it sits in is 888.4, because the LEFT rail is taller than the
+    floor. The floor does not stretch to its row - an unconditional rule sets
+    align-self:start !important with aspect-ratio 1/0.82 - so 303.9px of its
+    own cell were simply empty. This section takes that space by becoming its
+    own grid ROW under the floor, which is why the octagon neither moves nor
+    resizes: a row cannot change the middle COLUMN's width, and the width is
+    the only input to the floor's height.
+
+    THE PANELS ARE THE SAME ELEMENTS, not copies. The command grid, the gifts
+    aside with its #arena-recent-gifts list and the metrics panel with its
+    #arena-metric-* ids travelled here whole. arena_deck.js writes into all of
+    them BY ID on every poll (refreshRecentGifts, refreshReadModel), so the
+    move needed no JavaScript change - and there is still exactly one of each
+    id in the document, which the tests check.
+
+    Collapsible, because he asked for it to stay collapsible: one button per
+    card, the WAI-ARIA accordion shape (the button inside the heading, not
+    instead of it), aria-expanded plus the hidden attribute, no library. They
+    render OPEN - a band asked to be filled that starts empty is not filled.
+  {% endcomment %}
+  <div class="arena-command-dock" role="group" aria-label="Arena widgets">
+    <section class="arena-dock-card arena-dock-card--command" aria-labelledby="arena-dock-panel-command-title">
+      <header class="arena-panel__title">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-star"></use></svg>
+        <h2 class="arena-panel__kicker" id="arena-dock-panel-command-title">
+          <button type="button" class="arena-dock-card__toggle" data-dock-toggle
+                  aria-expanded="true" aria-controls="arena-dock-panel-command">
+            <span>Arena Command</span>
+            <em class="arena-dock-card__chevron" aria-hidden="true">&rsaquo;</em>
+          </button>
+        </h2>
+      </header>
+      <div class="arena-dock-card__panel" id="arena-dock-panel-command">
+      <nav class="arena-command-deck__command" aria-label="Arena command">
+        <div class="arena-command-grid">
+          {% comment %}
+            Owner, 2026-08-24: the Master Console tile is his and other
+            authorised superusers' only. The view behind it has always been
+            closed correctly (arena_console_guard -> 404); this tile was
+            not, so every staff member who can see the arena was offered a
+            door that refuses them and handed the console's URL.
+            `can_open_master_console` is the view's own DG-01 answer
+            (has_arena_console_access), not a second copy of the rule.
+          {% endcomment %}
+          {% if can_open_master_console %}
+          <a class="arena-command-tile" href="{% url 'chef_battle:master_console' %}">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-shield"></use></svg>
+            <span>Master Console</span>
+          </a>
+          {% endif %}
+          <a class="arena-command-tile" href="{% url 'chef_battle:challenge_list' %}">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-swords"></use></svg>
+            <span>Challenges</span>
+          </a>
+          <a class="arena-command-tile" href="{% url 'chef_battle:battle_chest' %}">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-knife"></use></svg>
+            <span>Knife Roll</span>
+          </a>
+          <a class="arena-command-tile" href="{% url 'chef_battle:season_leaderboard' %}">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-emblem"></use></svg>
+            <span>Season</span>
+          </a>
+          <a class="arena-command-tile" href="{% url 'chef_battle:changing_room' %}">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-hanger"></use></svg>
+            <span>Changing Room</span>
+          </a>
+          <a class="arena-command-tile" href="{% url 'chef_battle:rankings' %}">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-podium"></use></svg>
+            <span>Rankings</span>
+          </a>
+          <a class="arena-command-tile" href="{% url 'chef_battle:token_shop' %}">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-chest"></use></svg>
+            <span>Treasury</span>
+          </a>
+          <a class="arena-command-tile" href="{% url 'chef_battle:appreciation_gallery' %}">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+            <span>Gifts</span>
+          </a>
+          <a class="arena-command-tile" href="{% url 'chef_battle:artifact_gallery' %}">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-artifact"></use></svg>
+            <span>Artifacts</span>
+          </a>
+        </div>
+      </nav>
+      </div>
+    </section>
+    <section class="arena-dock-card arena-dock-card--gifts arena-command-deck__gifts" aria-labelledby="arena-dock-panel-gifts-title">
+      <header class="arena-panel__title">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+        <h2 class="arena-panel__kicker" id="arena-dock-panel-gifts-title">
+          <button type="button" class="arena-dock-card__toggle" data-dock-toggle
+                  aria-expanded="true" aria-controls="arena-dock-panel-gifts">
+            <span>Battle gifts</span>
+            <em class="arena-dock-card__chevron" aria-hidden="true">&rsaquo;</em>
+          </button>
+        </h2>
+      </header>
+      <div class="arena-dock-card__panel" id="arena-dock-panel-gifts">
+        {% comment %}
+          The illustration is decorative and unconditional - it stays
+          whether or not there are gifts, matching the mockup. The list
+          beneath it must stay a plain <ul id="arena-recent-gifts"> at all
+          times: arena_deck.js's refreshRecentGifts() writes into this
+          exact element by id on every poll, clearing it and appending
+          either real <li> rows or its own arena-panel__empty row
+          (appendPanelEmpty()). Wrapping the <ul> itself in an {% if %}
+          would remove it from the DOM whenever the server-rendered page
+          starts empty, and the live poll would then find nothing to write
+          into - gifts sent after page load would never appear without a
+          reload.
+        {% endcomment %}
+        <svg class="arena-gift-illustration" aria-hidden="true"><use href="#ad-gift"></use></svg>
+        <ul id="arena-recent-gifts" class="arena-gift-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
+          {% for gift in recent_gifts %}
+            <li>
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+              <span><a href="{% url 'chef_battle:chef_profile' slug=gift.recipient_slug %}">{{ gift.recipient }}</a><b>{{ gift.item }}</b></span>
+              <em>{{ gift.tokens }}T</em>
+            </li>
+          {% empty %}
+            <li class="arena-panel__empty">No battle gifts have been delivered yet.</li>
+          {% endfor %}
+        </ul>
+        <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks.</p>
+        {% if active_battle %}
+        <a class="btn-primary" href="{% url 'chef_battle:battle_detail' active_battle.pk %}#battle-gifts-title">View Gift Shop</a>
+        {% else %}
+        <a class="btn-primary" href="{% url 'chef_battle:appreciation_gallery' %}">View Gift Shop</a>
+        {% endif %}
+      </div>
+    </section>
+    <section class="arena-dock-card arena-dock-card--pulse arena-command-deck__metrics" aria-labelledby="arena-dock-panel-pulse-title">
+      <header class="arena-panel__title">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>
+        <h2 class="arena-panel__kicker" id="arena-dock-panel-pulse-title">
+          <button type="button" class="arena-dock-card__toggle" data-dock-toggle
+                  aria-expanded="true" aria-controls="arena-dock-panel-pulse">
+            <span>Arena pulse</span>
+            <em class="arena-dock-card__chevron" aria-hidden="true">&rsaquo;</em>
+          </button>
+        </h2>
+      </header>
+      <div class="arena-dock-card__panel" id="arena-dock-panel-pulse">
+        <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong id="arena-metric-viewers">{{ arena_data.metrics.active_viewers }}</strong></div>
+        <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-vote"></use></svg>Public votes</span><strong id="arena-metric-votes">{{ arena_data.metrics.public_votes }}</strong></div>
+        <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>Battle gifts</span><strong id="arena-metric-gifts">{{ arena_data.metrics.battle_gifts }}</strong></div>
+        <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong id="arena-crown-streak">{{ crown_streak|default:0 }}</strong></div>
+      </div>
+    </section>
+  </div>
+
+  {% comment %}
     THE RINGS, EXPLAINED - a strip under the arena rather than a ladder over
     it. Owner, 2026-08-24: "сделай красивой полосой под ареной - как
     обьяснение что за кольца и что значят".
@@ -951,116 +1090,6 @@
       {% endif %}
     </div>
 
-    {% comment %}
-      Arena Command dock — Owner's desktop rebuild, 2026-08-25. The right
-      rail's old "Arena Command" nav and "Battle Gifts" card merge here,
-      collapsed by default, anchored beside Enter Arena / Issue a Challenge
-      rather than sitting permanently in the right column (which the chat now
-      occupies). Same toggle mechanics arena_rank_ladder.js already uses for
-      the mobile rank dock (aria-expanded + hidden, no animation library).
-      Every tile href, the #arena-recent-gifts id and its contents are
-      unchanged from the card that used to sit in the right rail, so
-      arena_deck.js's refreshRecentGifts() needed no changes for the move.
-    {% endcomment %}
-    <div class="arena-command-dock">
-      <button type="button" class="arena-command-dock__toggle" id="arena-command-dock-toggle"
-              aria-expanded="false" aria-controls="arena-command-dock-panel">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-star"></use></svg>
-        <span>Arena Command</span>
-        <em class="arena-command-dock__chevron" aria-hidden="true">&rsaquo;</em>
-      </button>
-      <div class="arena-command-dock__panel" id="arena-command-dock-panel" hidden>
-        <nav class="arena-command-deck__command" aria-label="Arena command">
-          <div class="arena-command-grid">
-            {% comment %}
-              Owner, 2026-08-24: the Master Console tile is his and other
-              authorised superusers' only. The view behind it has always been
-              closed correctly (arena_console_guard -> 404); this tile was
-              not, so every staff member who can see the arena was offered a
-              door that refuses them and handed the console's URL.
-              `can_open_master_console` is the view's own DG-01 answer
-              (has_arena_console_access), not a second copy of the rule.
-            {% endcomment %}
-            {% if can_open_master_console %}
-            <a class="arena-command-tile" href="{% url 'chef_battle:master_console' %}">
-              <svg class="arena-ico" aria-hidden="true"><use href="#ad-shield"></use></svg>
-              <span>Master Console</span>
-            </a>
-            {% endif %}
-            <a class="arena-command-tile" href="{% url 'chef_battle:challenge_list' %}">
-              <svg class="arena-ico" aria-hidden="true"><use href="#ad-swords"></use></svg>
-              <span>Challenges</span>
-            </a>
-            <a class="arena-command-tile" href="{% url 'chef_battle:battle_chest' %}">
-              <svg class="arena-ico" aria-hidden="true"><use href="#ad-knife"></use></svg>
-              <span>Knife Roll</span>
-            </a>
-            <a class="arena-command-tile" href="{% url 'chef_battle:season_leaderboard' %}">
-              <svg class="arena-ico" aria-hidden="true"><use href="#ad-emblem"></use></svg>
-              <span>Season</span>
-            </a>
-            <a class="arena-command-tile" href="{% url 'chef_battle:changing_room' %}">
-              <svg class="arena-ico" aria-hidden="true"><use href="#ad-hanger"></use></svg>
-              <span>Changing Room</span>
-            </a>
-            <a class="arena-command-tile" href="{% url 'chef_battle:rankings' %}">
-              <svg class="arena-ico" aria-hidden="true"><use href="#ad-podium"></use></svg>
-              <span>Rankings</span>
-            </a>
-            <a class="arena-command-tile" href="{% url 'chef_battle:token_shop' %}">
-              <svg class="arena-ico" aria-hidden="true"><use href="#ad-chest"></use></svg>
-              <span>Treasury</span>
-            </a>
-            <a class="arena-command-tile" href="{% url 'chef_battle:appreciation_gallery' %}">
-              <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
-              <span>Gifts</span>
-            </a>
-            <a class="arena-command-tile" href="{% url 'chef_battle:artifact_gallery' %}">
-              <svg class="arena-ico" aria-hidden="true"><use href="#ad-artifact"></use></svg>
-              <span>Artifacts</span>
-            </a>
-          </div>
-        </nav>
-
-        <aside class="arena-command-deck__gifts" aria-label="Recent battle gifts">
-          <header class="arena-panel__title">
-            <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
-            <h2 class="arena-panel__kicker">Battle gifts</h2>
-          </header>
-          {% comment %}
-            The illustration is decorative and unconditional - it stays
-            whether or not there are gifts, matching the mockup. The list
-            beneath it must stay a plain <ul id="arena-recent-gifts"> at all
-            times: arena_deck.js's refreshRecentGifts() writes into this
-            exact element by id on every poll, clearing it and appending
-            either real <li> rows or its own arena-panel__empty row
-            (appendPanelEmpty()). Wrapping the <ul> itself in an {% if %}
-            would remove it from the DOM whenever the server-rendered page
-            starts empty, and the live poll would then find nothing to write
-            into - gifts sent after page load would never appear without a
-            reload.
-          {% endcomment %}
-          <svg class="arena-gift-illustration" aria-hidden="true"><use href="#ad-gift"></use></svg>
-          <ul id="arena-recent-gifts" class="arena-gift-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
-            {% for gift in recent_gifts %}
-              <li>
-                <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
-                <span><a href="{% url 'chef_battle:chef_profile' slug=gift.recipient_slug %}">{{ gift.recipient }}</a><b>{{ gift.item }}</b></span>
-                <em>{{ gift.tokens }}T</em>
-              </li>
-            {% empty %}
-              <li class="arena-panel__empty">No battle gifts have been delivered yet.</li>
-            {% endfor %}
-          </ul>
-          <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks.</p>
-          {% if active_battle %}
-          <a class="btn-primary" href="{% url 'chef_battle:battle_detail' active_battle.pk %}#battle-gifts-title">View Gift Shop</a>
-          {% else %}
-          <a class="btn-primary" href="{% url 'chef_battle:appreciation_gallery' %}">View Gift Shop</a>
-          {% endif %}
-        </aside>
-      </div>
-    </div>
   </footer>
 </main>
 {% endblock %}
@@ -1068,22 +1097,27 @@
 {% block extra_js %}
 <script defer src="{% static 'js/arena_chat.js' %}"></script>
 {% comment %}
-  Arena Command dock toggle. Same aria-expanded + hidden mechanics
-  arena_rank_ladder.js already uses for the mobile rank dock - inline here
-  because it is three lines and the dock has no other behaviour of its own,
-  unlike the rank ladder's per-tile switching.
+  The widget band's three toggles. Same aria-expanded + hidden mechanics
+  arena_rank_ladder.js uses for the mobile rank dock, inline because the
+  cards have no other behaviour of their own. It binds by ATTRIBUTE rather
+  than by id, so a fourth card needs markup and nothing else - the previous
+  version knew one id by name and would have ignored the other two.
 {% endcomment %}
 <script nonce="{{ request.csp_nonce }}">
 (function () {
-  var toggle = document.getElementById('arena-command-dock-toggle');
-  var panel = document.getElementById('arena-command-dock-panel');
-  if (!toggle || !panel) { return; }
-  toggle.addEventListener('click', function () {
-    var open = toggle.getAttribute('aria-expanded') === 'true';
-    toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
-    panel.hidden = open;
-  });
-})();
+  var toggles = document.querySelectorAll('[data-dock-toggle]');
+  for (var i = 0; i < toggles.length; i++) {
+    (function (toggle) {
+      var panel = document.getElementById(toggle.getAttribute('aria-controls'));
+      if (!panel) { return; }
+      toggle.addEventListener('click', function () {
+        var open = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+        panel.hidden = open;
+      });
+    }(toggles[i]));
+  }
+}());
 </script>
 {% comment %}
   The same flag that decided the viewport above decides whether the page

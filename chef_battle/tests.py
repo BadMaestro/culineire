@@ -22627,3 +22627,108 @@ class MasterConsoleTileIsOfferedOnlyToWhoMayOpenItTests(TestCase):
         self.assertEqual(
             self.client.get(reverse("chef_battle:master_console")).status_code, 404,
         )
+
+
+class ArenaWidgetBandTests(TestCase):
+    """The Owner's band under the octagon, v2.5.1272.
+
+    v2.5.1270 gave the whole right column to the chat and put the three cards
+    that had lived there into a drawer under Enter Arena. The Owner circled the
+    empty band under the octagon on a screenshot and said that was where they
+    were meant to go. Three facts are pinned here because each of them is a way
+    the move could regress silently rather than visibly:
+
+    the band is a child of the DECK, not of the footer, because that is what
+    lets a stylesheet give it a grid row beside the floor rather than a line
+    under the buttons;
+
+    the three panels arrived WHOLE, ids and all - arena_deck.js writes into
+    #arena-recent-gifts, #arena-metric-* and #arena-crown-streak by id on every
+    poll, so a rename or a duplicate is a live-update failure that renders
+    perfectly on first paint and never updates again;
+
+    and every card's toggle points at a panel that exists, which is the one
+    thing the accordion cannot survive being wrong about.
+    """
+
+    TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+
+    def setUp(self):
+        User = get_user_model()
+        User.objects.create_superuser(
+            username="band-super", password="pw", email="band@example.com"
+        )
+        self.client.login(username="band-super", password="pw")
+
+    def _page(self):
+        response = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(response.status_code, 200)
+        return response.content.decode("utf-8")
+
+    def test_the_band_is_a_child_of_the_deck_and_not_of_the_footer(self):
+        html = self._page()
+        band = html.index('class="arena-command-dock"')
+        footer = html.index('class="arena-command-deck__crowd-rail')
+        floor_end = html.index('class="arena-rank-strip"')
+        self.assertLess(
+            band, footer,
+            "the widget band is inside or after the footer again; it belongs "
+            "between the floor and the rank strip, which is the only place a "
+            "grid row beside the arena can be given to it",
+        )
+        self.assertLess(
+            band, floor_end,
+            "the widget band must sit before the rank strip - the Owner's "
+            "band is directly under the octagon, not under the ring key",
+        )
+
+    def test_every_widget_that_moved_kept_its_id_and_there_is_exactly_one(self):
+        html = self._page()
+        for element_id in (
+            "arena-recent-gifts",
+            "arena-metric-viewers",
+            "arena-metric-votes",
+            "arena-metric-gifts",
+            "arena-crown-streak",
+        ):
+            self.assertEqual(
+                html.count('id="%s"' % element_id), 1,
+                "%s must appear exactly once - arena_deck.js writes into it by "
+                "id on every poll, and a second copy means half the page stops "
+                "updating without ever looking broken" % element_id,
+            )
+
+    def test_all_three_cards_are_present_and_each_toggle_controls_a_real_panel(self):
+        html = self._page()
+        self.assertEqual(html.count('class="arena-dock-card '), 3)
+        controls = re.findall(r'aria-controls="(arena-dock-panel-[a-z]+)"', html)
+        self.assertEqual(
+            sorted(controls),
+            ["arena-dock-panel-command", "arena-dock-panel-gifts",
+             "arena-dock-panel-pulse"],
+        )
+        for panel_id in controls:
+            self.assertIn(
+                'id="%s"' % panel_id, html,
+                "a card's toggle names a panel that is not in the document",
+            )
+
+    def test_the_toggle_script_binds_by_attribute_rather_than_by_one_id(self):
+        """The version this replaced knew a single id by name. A second card
+        added to that markup would have rendered with a dead button."""
+        template = self.TEMPLATE.read_text(encoding="utf-8")
+        self.assertIn("querySelectorAll('[data-dock-toggle]')", template)
+        self.assertNotIn("getElementById('arena-command-dock-toggle')", template)
+
+    def test_the_band_is_put_back_in_flow_because_two_of_its_cards_are_absolute(self):
+        """.arena-command-deck__metrics and __gifts carry position:absolute from
+        top-level rules. Every container that has held them has had to switch
+        them back into flow; this one must too, and at a specificity that does
+        not depend on source order."""
+        css = self.CSS.read_text(encoding="utf-8")
+        block = css[css.index(".arena-command-dock > .arena-dock-card {"):]
+        block = block[:block.index("}")]
+        for declaration in ("position: relative", "grid-area: auto",
+                            "align-self: stretch"):
+            self.assertIn(declaration, block)
