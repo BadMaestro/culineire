@@ -467,6 +467,11 @@ def private_lines(messages, viewer=None) -> list[dict]:
         }
         if message.speaker_id not in blocked_ids:
             row["body"] = message.body
+            # Same rule as the hall: a block withholds the file, not just the
+            # words. There is no reach to apply in a private room.
+            media = _media_row(message)
+            if media:
+                row["media"] = media
         out.append(row)
     return out
 
@@ -559,5 +564,40 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
         # Show has something to reveal. See personal_hidden().
         if heard and message.speaker_id not in blocked_ids:
             row["body"] = message.body
+            # AN ATTACHMENT TRAVELS UNDER EXACTLY THE SAME RULE AS THE WORDS,
+            # and it has to: a URL is the file. Sending the address to somebody
+            # too far away to hear the line, or to somebody who blocked its
+            # author, would hand them the picture and leave the hiding to CSS -
+            # which is the mistake this whole module exists to refuse.
+            media = _media_row(message)
+            if media:
+                row["media"] = media
         out.append(row)
     return out
+
+
+def _media_row(message):
+    """The attachment as the client may read it, or None.
+
+    Deliberately not a method on the model: what a URL means here is decided
+    per READER by the two functions above, and a model property would invite a
+    caller to reach for it without asking whether this reader may have it.
+    """
+    if not message.media_kind or not message.media:
+        return None
+    try:
+        url = message.media.url
+    except ValueError:                       # a row whose file went missing
+        return None
+    row = {
+        "kind": message.media_kind,
+        "url": url,
+        "width": message.media_width,
+        "height": message.media_height,
+    }
+    if message.media_poster:
+        try:
+            row["poster"] = message.media_poster.url
+        except ValueError:
+            pass
+    return row

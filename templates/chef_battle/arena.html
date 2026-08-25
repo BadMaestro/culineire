@@ -620,6 +620,20 @@
     </p>
 
     {% comment %}
+      The attachment waiting to be sent. Shown from the moment a file is
+      picked, so nobody presses Send wondering whether the picture came with
+      it - and removable, because changing your mind is not an error. The
+      preview is a local object URL: nothing has been uploaded at this point
+      and nothing will be until Send.
+    {% endcomment %}
+    <p class="arena-chat__attachment" id="arena-chat-attachment" hidden>
+      <img class="arena-chat__attachment-preview" id="arena-chat-attachment-preview" alt="">
+      <span class="arena-chat__attachment-name" id="arena-chat-attachment-name"></span>
+      <button type="button" class="arena-chat__attachment-remove"
+              id="arena-chat-attachment-remove" aria-label="Remove attachment">&times;</button>
+    </p>
+
+    {% comment %}
       The composer's action area. It holds ONE button today, and that is why
       it is a plain flex container rather than the "+" menu the Owner's brief
       sketches: a "+" that opens a sheet containing a single row reads as
@@ -635,6 +649,21 @@
                 aria-haspopup="dialog" aria-label="Insert an emoji">
           <svg class="arena-ico" aria-hidden="true"><use href="#ace-chef_hat"></use></svg>
         </button>
+        {% comment %}
+          Photo / GIF. The accept list is a HINT to the file picker and nothing
+          more - what may actually be stored is decided by
+          normalise_uploaded_chat_media(), which reads the decoded bytes and
+          ignores both the extension and the browser's content type. The input
+          itself is visually hidden rather than absent, so it stays reachable
+          to a screen reader and to a keyboard.
+        {% endcomment %}
+        <button type="button" id="arena-chat-media" class="arena-chat__composer-action"
+                aria-label="Attach a picture or GIF">
+          <svg class="arena-ico" aria-hidden="true"><use href="#ace-sauce_splash"></use></svg>
+        </button>
+        <input type="file" id="arena-chat-media-input" class="arena-chat__file"
+               accept="image/jpeg,image/png,image/webp,image/gif"
+               tabindex="-1" aria-hidden="true">
       </span>
       <input type="text" id="arena-chat-input" name="body" maxlength="300"
              autocomplete="off" aria-label="Your message"
@@ -728,6 +757,13 @@
         <fieldset class="arena-chat__pref">
           <legend>Motion</legend>
           <label><input type="checkbox" name="reactionAnimations"> Reaction animations</label>
+          {% comment %}
+            Off does not mean "loaded and paused" - it means the animated file
+            is never requested. The reader is sent the poster frame, which is
+            its own still file, and a play control if they change their mind.
+            See mediaNode() in arena_chat.js.
+          {% endcomment %}
+          <label><input type="checkbox" name="animatedMedia"> Play animated attachments</label>
         </fieldset>
       </form>
     </div>

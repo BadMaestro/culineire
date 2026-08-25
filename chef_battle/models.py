@@ -670,6 +670,43 @@ class ArenaChatMessage(models.Model):
         "ChatConversation", null=True, blank=True, on_delete=models.CASCADE,
         related_name="messages", db_index=True,
     )
+
+    # AN ATTACHMENT, ON THE MESSAGE ROW RATHER THAN IN A TABLE OF ITS OWN.
+    #
+    # A separate table is the tidier model and the wrong one here: the hall
+    # polls this table every four seconds, and a join for a column that is
+    # null on most rows costs every one of those polls to serve the few
+    # messages that carry a picture. Five nullable columns cost Postgres
+    # almost nothing per row and cost the poll nothing at all.
+    #
+    # media_kind is what the renderer branches on; it is "" for the ordinary
+    # case, so an old row and a text-only row read the same. FileField and not
+    # ImageField deliberately - ImageField's own validation would re-open the
+    # file to find its dimensions, and by the time anything is stored here
+    # normalise_uploaded_chat_media() has already decoded it, re-encoded every
+    # frame and measured the result.
+    class MediaKind(models.TextChoices):
+        NONE = "", "No attachment"
+        IMAGE = "image", "Picture"
+        ANIMATION = "animation", "Animation"
+
+    media = models.FileField(
+        upload_to="chef_battle/chat/%Y/%m/", blank=True,
+        help_text="Stored re-encoded; never the bytes that were uploaded.",
+    )
+    # An animation's first frame, stored as its own still file so a reader who
+    # has turned animation off is sent no animated bytes at all.
+    media_poster = models.FileField(
+        upload_to="chef_battle/chat/%Y/%m/", blank=True,
+    )
+    media_kind = models.CharField(
+        max_length=9, choices=MediaKind.choices, blank=True, default="",
+    )
+    # The STORED file's size, so the client can reserve the box before the
+    # bytes arrive and the log does not jump under a reader mid-sentence.
+    media_width = models.PositiveSmallIntegerField(null=True, blank=True)
+    media_height = models.PositiveSmallIntegerField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:

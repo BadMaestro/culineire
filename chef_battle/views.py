@@ -4687,8 +4687,35 @@ def arena_chat_send(request):
             "until": timeout.until.isoformat(),
         }, status=403)
 
+    # AN ATTACHMENT IS DECODED AND RE-ENCODED BEFORE ANYTHING IS STORED, and
+    # before the message row exists - so a refused upload leaves no message
+    # behind, and nothing the uploader sent is ever written to disk. Every
+    # ceiling (bytes, frames, total pixels, longest edge) is enforced in
+    # normalise_uploaded_chat_media; none of them is checked in the browser,
+    # where a check is a courtesy rather than a control.
+    upload = request.FILES.get("media")
+    media = poster = None
+    media_kind = ""
+    media_width = media_height = None
+    if upload is not None:
+        from recipes.validators import normalise_uploaded_chat_media
+
+        try:
+            media, poster, media_kind, media_width, media_height = (
+                normalise_uploaded_chat_media(upload, prefix="arena-chat")
+            )
+        except ValidationError as refusal:
+            return JsonResponse(
+                {"ok": False, "error": "bad_media",
+                 "detail": refusal.messages[0] if refusal.messages else "That file was refused."},
+                status=400,
+            )
+
     body = (request.POST.get("body") or "").strip()
-    if not body:
+    # A PICTURE IS A MESSAGE. Requiring words alongside it would be a rule
+    # invented here for the convenience of a NOT NULL column, so an attachment
+    # satisfies the same "say something" test that text does.
+    if not body and media is None:
         return JsonResponse({"ok": False, "error": "empty"}, status=400)
     body = body[:ARENA_CHAT_MAX_CHARS]
 
@@ -4717,7 +4744,19 @@ def arena_chat_send(request):
         seat_index=seat[1] if seat else 0,
         reply_to=reply_to,
         conversation=conversation,
+        media_kind=media_kind,
+        media_width=media_width,
+        media_height=media_height,
     )
+    if media is not None:
+        # Saved AFTER the row exists so the stored path carries the row's own
+        # generated name, and with save=False so one UPDATE writes both files
+        # rather than two writes racing each other.
+        message.media.save(media.name, media, save=False)
+        if poster is not None:
+            message.media_poster.save(poster.name, poster, save=False)
+        message.save(update_fields=["media", "media_poster"])
+
     if conversation is not None:
         return JsonResponse({
             "ok": True,

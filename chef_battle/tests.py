@@ -22580,6 +22580,198 @@ class ArenaChatReactionSetTests(TestCase):
         )
 
 
+class ArenaChatMediaTests(TestCase):
+    """Pictures and GIFs in the hall - what is stored, and what is refused.
+
+    The security half matters more than the feature half: this file is served
+    back to every reader in the hall, so nothing the uploader sent may ever
+    reach disk, and a URL must travel under exactly the same rule as the words
+    it came with.
+
+    WRITTEN TO A TEMPORARY MEDIA_ROOT, and swept up afterwards. Without the
+    override these tests store real files in the developer's own media
+    directory and leave them there - noticed on the first run, when seven
+    stray uploads appeared under media/chef_battle/chat/. A suite that
+    litters is a suite people stop running.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        import tempfile
+
+        cls._media_root = tempfile.mkdtemp(prefix="arena-chat-media-test-")
+        cls._media_override = override_settings(MEDIA_ROOT=cls._media_root)
+        cls._media_override.enable()
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        import shutil
+
+        super().tearDownClass()
+        cls._media_override.disable()
+        shutil.rmtree(cls._media_root, ignore_errors=True)
+
+    def setUp(self):
+        self.user, self.author, _ = _seat_a_viewer("shooter", "Shooter", "shooter-chef")
+        self.send_url = reverse("chef_battle:arena_chat_send")
+        self.feed_url = reverse("chef_battle:arena_chat_feed")
+        self.client.force_login(self.user)
+
+    def _png(self, size=(40, 30)):
+        import io
+
+        from PIL import Image
+
+        buffer = io.BytesIO()
+        Image.new("RGB", size, (20, 90, 160)).save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    def _gif(self, frames=4, size=(40, 30)):
+        import io
+
+        from PIL import Image
+
+        pictures = [
+            Image.new("RGB", size, (i * 50 % 255, 60, 120)) for i in range(frames)
+        ]
+        buffer = io.BytesIO()
+        pictures[0].save(
+            buffer, format="GIF", save_all=True, append_images=pictures[1:],
+            duration=100, loop=0,
+        )
+        return buffer.getvalue()
+
+    def _upload(self, name, payload, content_type, body=""):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        return self.client.post(self.send_url, {
+            "body": body,
+            "media": SimpleUploadedFile(name, payload, content_type),
+        })
+
+    def test_a_picture_is_stored_re_encoded_and_reaches_the_feed(self):
+        from chef_battle.models import ArenaChatMessage
+
+        response = self._upload("shot.png", self._png(), "image/png", body="look")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json().get("ok"))
+
+        message = ArenaChatMessage.objects.latest("id")
+        self.assertEqual(message.media_kind, "image")
+        self.assertTrue(message.media.name)
+        # Never the uploader's own name - the server generates it.
+        self.assertNotIn("shot.png", message.media.name)
+        self.assertEqual((message.media_width, message.media_height), (40, 30))
+
+        line = self.client.get(self.feed_url).json()["messages"][-1]
+        self.assertEqual(line["media"]["kind"], "image")
+        self.assertTrue(line["media"]["url"])
+
+    def test_an_animation_is_stored_animated_with_a_poster(self):
+        import io
+
+        from PIL import Image
+
+        from chef_battle.models import ArenaChatMessage
+
+        self.assertTrue(self._upload("clip.gif", self._gif(), "image/gif").json()["ok"])
+        message = ArenaChatMessage.objects.latest("id")
+        self.assertEqual(message.media_kind, "animation")
+        self.assertTrue(message.media_poster.name, "an animation needs a still to fall back to")
+
+        message.media.open("rb")
+        stored = Image.open(io.BytesIO(message.media.read()))
+        self.assertGreater(getattr(stored, "n_frames", 1), 1, "the animation was flattened")
+
+    def test_a_picture_alone_is_a_message(self):
+        """No words required - refusing that would be a rule invented for a
+        NOT NULL column rather than for a reader."""
+        response = self._upload("solo.png", self._png(), "image/png", body="")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json().get("ok"))
+
+    def test_a_message_with_neither_words_nor_a_picture_is_still_refused(self):
+        response = self.client.post(self.send_url, {"body": "   "})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json().get("error"), "empty")
+
+    def test_a_polyglot_is_refused_however_it_is_labelled(self):
+        """HTML that claims to be a PNG. The bytes decide, not the name."""
+        from chef_battle.models import ArenaChatMessage
+
+        before = ArenaChatMessage.objects.count()
+        response = self._upload(
+            "evil.png", b"<html><script>alert(1)</script></html>", "image/png",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json().get("error"), "bad_media")
+        self.assertEqual(
+            ArenaChatMessage.objects.count(), before,
+            "a refused upload must leave no message behind",
+        )
+
+    def test_exif_does_not_survive_the_re_encode(self):
+        """A camera's GPS must not ride into the hall on a chef's photograph."""
+        import io
+
+        from PIL import Image
+
+        from chef_battle.models import ArenaChatMessage
+
+        buffer = io.BytesIO()
+        source = Image.new("RGB", (60, 40), (200, 30, 30))
+        exif = source.getexif()
+        exif[0x0110] = "SecretCameraModel"
+        source.save(buffer, format="JPEG", exif=exif)
+
+        self.assertTrue(
+            self._upload("photo.jpg", buffer.getvalue(), "image/jpeg").json()["ok"]
+        )
+        message = ArenaChatMessage.objects.latest("id")
+        message.media.open("rb")
+        stored = Image.open(io.BytesIO(message.media.read()))
+        self.assertNotIn(
+            "SecretCameraModel", str(dict(stored.getexif())),
+            "EXIF survived the re-encode",
+        )
+
+    def test_a_reader_too_far_away_is_not_sent_the_picture(self):
+        """A URL IS the file. Sending it and hiding it in CSS is not hiding."""
+        from chef_battle.models import ArenaChatMessage
+
+        self.assertTrue(self._upload("far.png", self._png(), "image/png").json()["ok"])
+        message = ArenaChatMessage.objects.latest("id")
+        # Move it to the far side of the hall, out of everyone's earshot.
+        ArenaChatMessage.objects.filter(pk=message.pk).update(ring_index=9, seat_index=40)
+
+        listener_user, _listener, _ = _seat_a_viewer("listener", "Listener", "listener-chef")
+        self.client.force_login(listener_user)
+        line = [
+            row for row in self.client.get(self.feed_url).json()["messages"]
+            if row["id"] == message.pk
+        ][0]
+        self.assertFalse(line["heard"])
+        self.assertNotIn("body", line)
+        self.assertNotIn("media", line, "the picture's URL outran the reach rule")
+
+    def test_a_blocked_person_sends_no_picture_either(self):
+        from chef_battle.models import ArenaChatMessage, ChatBlock
+
+        self.assertTrue(self._upload("blocked.png", self._png(), "image/png").json()["ok"])
+        message = ArenaChatMessage.objects.latest("id")
+
+        reader_user, reader, _ = _seat_a_viewer("blocker", "Blocker", "blocker-chef")
+        ChatBlock.objects.create(owner=reader, blocked=self.author)
+        self.client.force_login(reader_user)
+        line = [
+            row for row in self.client.get(self.feed_url).json()["messages"]
+            if row["id"] == message.pk
+        ][0]
+        self.assertTrue(line["blocked"])
+        self.assertNotIn("media", line)
+
+
 class ArenaChatCustomEmojiSpriteTests(TestCase):
     """Every custom emoji token the script knows has a drawing to point at.
 

@@ -166,7 +166,10 @@
     fontSize: 'normal',
     showTags: true,
     showTimestamps: true,
-    reactionAnimations: true
+    reactionAnimations: true,
+    // The brief's "Animated GIFs ON / OFF". Off does not mean paused - it
+    // means the animated file is never requested; see mediaNode().
+    animatedMedia: true
   };
   var prefs = readPrefs();
 
@@ -548,9 +551,115 @@
     row.appendChild(more);
 
     item.appendChild(row);
+
+    // An attachment sits on its own line UNDER the words, never inline: it is
+    // the one part of a message with real height, and threading it through the
+    // flex row would fight the density every other rule here defends. A block
+    // has already withheld the URL server-side; this is belt and braces.
+    if (line.media && !line.blocked) {
+      var media = mediaNode(line);
+      if (media) { item.appendChild(media); }
+    }
+
     var strip = reactionRow(line);
     if (strip) { item.appendChild(strip); }
     return item;
+  }
+
+  /* AN ATTACHMENT, WITH THE BOX RESERVED BEFORE THE BYTES ARRIVE.
+   *
+   * The server sends the stored file's real width and height, so the figure is
+   * given an aspect-ratio up front and the log does not jump under somebody
+   * mid-sentence when an image finally decodes. That is the whole reason those
+   * two columns exist.
+   *
+   * ANIMATION IS OPT-OUT, NOT OPT-IN-BY-ACCIDENT. When the reader has turned
+   * animated attachments off, the animated file is never requested at all -
+   * they are sent the poster frame, which is its own still file, and a play
+   * control that swaps in the animation only if they ask for it. Loading the
+   * animation and pausing it in CSS would have downloaded every byte they
+   * asked not to receive. */
+  function mediaNode(line) {
+    var m = line.media;
+    if (!m || !m.url) { return null; }
+
+    var figure = document.createElement('figure');
+    figure.className = 'arena-chat__media arena-chat__media--' + (m.kind || 'image');
+    if (m.width && m.height) {
+      figure.style.setProperty('--media-ratio', m.width + ' / ' + m.height);
+    }
+
+    var img = document.createElement('img');
+    img.className = 'arena-chat__media-img';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    if (m.width) { img.width = m.width; }
+    if (m.height) { img.height = m.height; }
+    img.alt = m.kind === 'animation'
+      ? 'Animation shared by ' + line.name
+      : 'Picture shared by ' + line.name;
+
+    var animated = m.kind === 'animation';
+    var wantsAnimation = prefs.animatedMedia;
+    img.src = (animated && !wantsAnimation && m.poster) ? m.poster : m.url;
+    figure.appendChild(img);
+
+    if (animated) {
+      var badge = document.createElement('span');
+      badge.className = 'arena-chat__media-badge';
+      badge.textContent = 'GIF';
+      figure.appendChild(badge);
+      if (!wantsAnimation && m.poster) {
+        // The still is showing; one tap fetches the animation. The badge stops
+        // being a label and becomes the control that explains itself.
+        figure.classList.add('is-still');
+        var play = document.createElement('button');
+        play.type = 'button';
+        play.className = 'arena-chat__media-play';
+        play.setAttribute('aria-label', 'Play this animation');
+        play.textContent = '▶';
+        play.addEventListener('click', function (event) {
+          event.stopPropagation();
+          img.src = m.url;
+          figure.classList.remove('is-still');
+          play.remove();
+        });
+        figure.appendChild(play);
+      }
+    }
+
+    // Full size opens in the viewer the whole site already has - one lightbox,
+    // not a second one written for this panel. It is a global component from
+    // base.html, so it is only used if it is actually present.
+    var lightbox = document.getElementById('hero-lightbox');
+    if (lightbox) {
+      img.classList.add('is-openable');
+      img.addEventListener('click', function () { openLightbox(m.url, img.alt); });
+    }
+    return figure;
+  }
+
+  /* The site's own lightbox (templates/base.html:487, static/js/main.js:370),
+   * reused rather than reimplemented - a fifth hand-rolled modal in this
+   * codebase would be four too many.
+   *
+   * main.js binds it to HERO images only, and it owns closing it: the close
+   * button, Escape and the backdrop are all wired there and work on whatever
+   * the element is currently showing. So this opens it the way that file
+   * opens it - the same class, the same scroll lock, the same focus move -
+   * and deliberately adds no closing logic of its own to compete with. */
+  function openLightbox(url, alt) {
+    var box = document.getElementById('hero-lightbox');
+    var img = document.getElementById('hero-lightbox-img');
+    var close = document.getElementById('hero-lightbox-close');
+    if (!box || !img) { return; }
+    img.src = url;
+    img.alt = alt || '';
+    box.classList.add('hero-lightbox--open');
+    document.body.style.overflow = 'hidden';
+    if (close) {
+      window.requestAnimationFrame(function () { close.focus(); });
+    }
   }
 
   MESSAGE_RENDERERS.message = renderTextMessage;
@@ -1144,12 +1253,17 @@
 
   function send() {
     var text = input.value.trim();
-    if (!text) { return; }
+    // A picture on its own is a message. The server agrees - it refuses only
+    // when BOTH are missing - so the two checks say the same thing.
+    if (!text && !pendingMedia) { return; }
     var body = new FormData();
     body.append('body', text);
+    if (pendingMedia) { body.append('media', pendingMedia); }
     if (replyingTo) { body.append('reply_to', replyingTo.id); }
     if (room !== null) { body.append('conversation', room); }
     body.append('csrfmiddlewaretoken', csrf());
+    var sentMedia = pendingMedia;
+    clearPendingMedia();
     input.value = '';
     input.focus();
     // Setting .value programmatically fires no 'input' event, so the
@@ -1164,18 +1278,56 @@
           absorb(data.messages);
         } else {
           input.value = text;
+          // The attachment comes back too - it was refused or lost, and
+          // making somebody find the file again is the rudest possible way
+          // to report that.
+          if (sentMedia) { setPendingMedia(sentMedia); }
           if (typeof syncSendButton === 'function') { syncSendButton(); }
-          notice(data && data.error === 'rate_limited'
-            ? 'Slow down a moment.'
-            : 'That did not send.');
+          // The server's own words when it refused the FILE: "too many
+          // frames" and "not an image" are different problems and the reader
+          // can act on the difference.
+          notice(
+            (data && data.error === 'bad_media' && data.detail) ? data.detail
+              : (data && data.error === 'rate_limited') ? 'Slow down a moment.'
+              : 'That did not send.'
+          );
         }
       })
       .catch(function () {
         input.value = text;                          // put it back, lose nothing
+        if (sentMedia) { setPendingMedia(sentMedia); }
         if (typeof syncSendButton === 'function') { syncSendButton(); }
         notice('That did not send.');
       });
   }
+
+  /* THE ATTACHMENT WAITING TO GO. Held here rather than left in the file
+   * input, because the input is cleared on every pick so that choosing the
+   * same file twice in a row still fires a change event. */
+  var pendingMedia = null;
+
+  function setPendingMedia(file) {
+    pendingMedia = file || null;
+    var bar = document.getElementById('arena-chat-attachment');
+    var name = document.getElementById('arena-chat-attachment-name');
+    var preview = document.getElementById('arena-chat-attachment-preview');
+    if (!bar) { return; }
+    bar.hidden = !pendingMedia;
+    if (!pendingMedia) {
+      if (preview && preview.src) { URL.revokeObjectURL(preview.src); preview.removeAttribute('src'); }
+      if (typeof syncSendButton === 'function') { syncSendButton(); }
+      return;
+    }
+    if (name) { name.textContent = pendingMedia.name; }
+    if (preview) {
+      // A local preview, so nothing is uploaded until Send is pressed.
+      if (preview.src) { URL.revokeObjectURL(preview.src); }
+      preview.src = URL.createObjectURL(pendingMedia);
+    }
+    if (typeof syncSendButton === 'function') { syncSendButton(); }
+  }
+
+  function clearPendingMedia() { setPendingMedia(null); }
 
   if (form) {
     form.addEventListener('submit', function (event) {
@@ -1189,10 +1341,39 @@
   // send() would have thrown away anyway.
   var sendButton = form && form.querySelector('button[type="submit"]');
   if (input && sendButton) {
-    var syncSendButton = function () { sendButton.disabled = !input.value.trim(); };
+    var syncSendButton = function () {
+      sendButton.disabled = !input.value.trim() && !pendingMedia;
+    };
     input.addEventListener('input', syncSendButton);
     syncSendButton();
   }
+
+  /* PHOTO / GIF. The composer's action row was built for exactly this - see
+   * arena.html's note there - so this is a second button beside the emoji one
+   * rather than a "+" menu. Nothing is uploaded on picking: the file waits in
+   * pendingMedia and travels with the message when Send is pressed, so
+   * abandoning a half-written line leaves no orphan on disk. */
+  var mediaInput = document.getElementById('arena-chat-media-input');
+  var mediaButton = document.getElementById('arena-chat-media');
+  if (mediaButton && mediaInput) {
+    mediaButton.addEventListener('click', function () { mediaInput.click(); });
+    mediaInput.addEventListener('change', function () {
+      var file = mediaInput.files && mediaInput.files[0];
+      // Cleared straight away so picking the SAME file twice still fires.
+      mediaInput.value = '';
+      if (!file) { return; }
+      // A courtesy check only - the ceiling that counts is enforced in
+      // normalise_uploaded_chat_media, where the browser cannot reach it.
+      if (file.size > 5 * 1024 * 1024) {
+        notice('Attachments must be 5 MB or smaller.');
+        return;
+      }
+      setPendingMedia(file);
+      input.focus();
+    });
+  }
+  var dropAttachment = document.getElementById('arena-chat-attachment-remove');
+  if (dropAttachment) { dropAttachment.addEventListener('click', clearPendingMedia); }
 
   var emojiButton = document.getElementById('arena-chat-emoji');
   if (emojiButton) {

@@ -1461,6 +1461,124 @@
 }
 .arena-chat .arena-chat__composer-action:hover { color: var(--accent-bronze); }
 .arena-chat__composer-action .arena-ico { width: .95rem; margin: 0; }
+/* Hidden from the eye, NOT from assistive technology or the keyboard - the
+   button beside it opens this input, and display:none would take it out of
+   the accessibility tree along with the picker it triggers. */
+.arena-chat__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ATTACHMENTS.
+   A picture is the one part of a message with real height, so it is capped
+   hard: the brief asks for roughly 220-280px on a desktop, and the cap is in
+   ch-independent units so a text-size preference cannot inflate it. The
+   aspect-ratio comes from the STORED file's own dimensions, written as a
+   custom property by mediaNode(), so the box is the right shape before a
+   single byte of the image has arrived and the log never jumps. */
+.arena-chat__media {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: min(100%, 17rem);
+  margin: .25rem 0 0;
+  border-radius: .5rem;
+  overflow: hidden;
+  line-height: 0;
+}
+.arena-chat .arena-chat__media {
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 25%, transparent);
+}
+.arena-chat__media-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--media-ratio, auto);
+  /* A very tall picture must not turn one message into a screenful. */
+  max-height: 15rem;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--accent-bronze) 8%, transparent);
+}
+.arena-chat__media-img.is-openable { cursor: zoom-in; }
+.arena-chat__media-badge {
+  position: absolute;
+  top: .25rem;
+  left: .25rem;
+  padding: 0 .25rem;
+  border-radius: .25rem;
+  background: color-mix(in srgb, var(--ink) 68%, transparent);
+  color: #fff;
+  font-size: .5rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  line-height: 1.5;
+}
+/* The still standing in for an animation the reader asked not to receive. */
+.arena-chat__media-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  border: 0;
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__media-play:hover,
+.arena-chat__media-play:focus-visible {
+  background: color-mix(in srgb, var(--ink) 42%, transparent);
+}
+
+/* The attachment waiting to go, above the composer. */
+.arena-chat__attachment {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin: 0;
+  padding: .2rem .35rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 25%, transparent);
+  border-radius: .5rem;
+  background: color-mix(in srgb, var(--accent-bronze) 7%, transparent);
+  font-size: .64rem;
+}
+.arena-chat__attachment[hidden] { display: none; }
+.arena-chat__attachment-preview {
+  flex: 0 0 auto;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: .3rem;
+  object-fit: cover;
+}
+.arena-chat__attachment-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.arena-chat .arena-chat__attachment-name { color: var(--arena-muted); }
+.arena-chat__attachment-remove {
+  appearance: none;
+  flex: 0 0 auto;
+  min-width: 1.4rem;
+  min-height: 1.4rem;
+  border: 0;
+  background: none;
+  font-size: .9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__attachment-remove { color: var(--arena-muted); }
 
 /* APPEARANCE PREFERENCES. The script only writes classes and one attribute;
    every actual value is here, which is why a preference can be retuned
