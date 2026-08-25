@@ -1,5 +1,0 @@
-agent: bolt
-started_utc: 2026-08-25T11:00
-version: v2.5.1278
-commit: pending
-task: the NEXT BATTLE clock becomes a countdown to the first battle and is off until there is one; the empty line centres on the desktop, and the clock keeps its seat so the arena does not move when a battle arrives
