@@ -209,6 +209,11 @@ UNGUARDED_BY_DESIGN = {
         "Calls is_battle_visible directly. Writes the CALLER's own preference; "
         "the profile is looked up from the request's author, never from input."
     ),
+    "arena_chat_users": (
+        "Calls is_battle_visible directly. Read-only presence list - the same "
+        "two occupant kinds _arena_hall_headcount() already counts for anyone "
+        "who can see the arena; no per-object authorisation to apply."
+    ),
     "arena_chat_moderate": (
         "Calls is_battle_visible directly, then requires an EXPLICIT Django "
         "permission per branch (moderate_arena_chat / timeout_arena_chat_user). "

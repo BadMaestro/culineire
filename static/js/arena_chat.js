@@ -691,6 +691,170 @@
     });
   }
 
+  /* CHAT / PM / USERS / SETTINGS - Owner's desktop rebuild, 2026-08-25.
+   *
+   * Four ARIA tabs sharing one root. Only CHAT talks to the delta poll above;
+   * PM and USERS each fetch their own list ON ACTIVATION from endpoints that
+   * already existed (arena_chat_conversations, and the new arena_chat_users)
+   * but had no caller until now - this is wiring, not new backend behaviour.
+   * Opening a DM from the PM list reuses enterRoom(), the SAME primitive the
+   * per-message "Message privately" action already calls, so a private room
+   * opened either way behaves identically.
+   */
+  var tabs = document.querySelectorAll('.arena-chat__tab');
+  var panels = {
+    chat: document.getElementById('arena-chat-panel-chat'),
+    pm: document.getElementById('arena-chat-panel-pm'),
+    users: document.getElementById('arena-chat-panel-users'),
+    settings: document.getElementById('arena-chat-panel-settings')
+  };
+
+  function activateTab(name) {
+    for (var i = 0; i < tabs.length; i++) {
+      var tab = tabs[i];
+      var active = tab.getAttribute('data-tab') === name;
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      tab.tabIndex = active ? 0 : -1;
+    }
+    Object.keys(panels).forEach(function (key) {
+      if (panels[key]) { panels[key].hidden = key !== name; }
+    });
+    if (name === 'pm') { loadConversations(); }
+    else if (name === 'users') { loadUsers(); }
+  }
+
+  /* Opening a conversation from the PM list has to land the reader back on
+   * the CHAT panel - that panel holds the one log/composer every room
+   * shares - and THEN switch rooms, so nobody sees an empty tab flash by. */
+  function openConversation(id, name) {
+    activateTab('chat');
+    enterRoom(id, name);
+  }
+
+  function loadConversations() {
+    var list = document.getElementById('arena-chat-dm-list');
+    var emptyRow = document.getElementById('arena-chat-dm-empty');
+    var url = root.getAttribute('data-dm-list-url');
+    if (!list || !url) { return; }
+    fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var rooms = (data && data.conversations) || [];
+        list.innerHTML = '';
+        if (!rooms.length) {
+          if (emptyRow) { list.appendChild(emptyRow); }
+          else {
+            var li = document.createElement('li');
+            li.className = 'arena-panel__empty';
+            li.textContent = 'No private conversations yet.';
+            list.appendChild(li);
+          }
+          return;
+        }
+        rooms.forEach(function (room) {
+          var li = document.createElement('li');
+          li.className = 'arena-chat__dm-row';
+          li.tabIndex = 0;
+          li.setAttribute('role', 'button');
+          li.textContent = room.name;
+          li.addEventListener('click', function () { openConversation(room.id, room.name); });
+          li.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              openConversation(room.id, room.name);
+            }
+          });
+          list.appendChild(li);
+        });
+      })
+      .catch(function () { /* one dropped list is not worth a notice */ });
+  }
+
+  function loadUsers() {
+    var list = document.getElementById('arena-chat-users-list');
+    var emptyRow = document.getElementById('arena-chat-users-empty');
+    var url = root.getAttribute('data-users-url');
+    if (!list || !url) { return; }
+    fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var users = (data && data.users) || [];
+        list.innerHTML = '';
+        if (!users.length) {
+          if (emptyRow) { list.appendChild(emptyRow); }
+          else {
+            var li = document.createElement('li');
+            li.className = 'arena-panel__empty';
+            li.textContent = 'Nobody is in the hall right now.';
+            list.appendChild(li);
+          }
+          return;
+        }
+        users.forEach(function (user) {
+          var li = document.createElement('li');
+          li.className = 'arena-chat__user-row';
+          var alliance = tagBadge(user.alliance_tag, 'alliance');
+          if (alliance) { li.appendChild(alliance); }
+          var clan = tagBadge(user.clan_tag, 'clan');
+          if (clan) { li.appendChild(clan); }
+          var name = document.createElement('span');
+          name.className = 'arena-chat__name';
+          name.textContent = user.name;
+          li.appendChild(name);
+          if (user.role === 'admin') { li.appendChild(marker('Admin', 'admin')); }
+          else if (user.role === 'moderator') { li.appendChild(marker('Mod', 'mod')); }
+          list.appendChild(li);
+        });
+      })
+      .catch(function () { /* one dropped list is not worth a notice */ });
+  }
+
+  var settingsForm = document.getElementById('arena-chat-settings-form');
+  if (settingsForm) {
+    // Server-rendered starting value (viewer_dm_policy), read once at load -
+    // the endpoint re-validates whatever the form later posts regardless.
+    var startingPolicy = root.getAttribute('data-dm-policy') || 'anyone';
+    var radios = settingsForm.querySelectorAll('input[name="dm_policy"]');
+    for (var r = 0; r < radios.length; r++) {
+      radios[r].checked = radios[r].value === startingPolicy;
+    }
+    settingsForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var checked = settingsForm.querySelector('input[name="dm_policy"]:checked');
+      if (!checked) { return; }
+      post(root.getAttribute('data-dm-policy-url'), { policy: checked.value })
+        .then(function (data) {
+          notice(data && data.ok ? 'Saved.' : 'That did not save.');
+        });
+    });
+  }
+
+  for (var t = 0; t < tabs.length; t++) {
+    tabs[t].addEventListener('click', function (event) {
+      activateTab(event.currentTarget.getAttribute('data-tab'));
+    });
+  }
+
+  /* Pinned Rules - collapsed by default, remembered only for this tab's
+   * session (sessionStorage), nothing server-side for a panel this small. */
+  var rulesToggle = document.getElementById('arena-chat-rules-toggle');
+  var rulesBody = document.getElementById('arena-chat-rules-body');
+  if (rulesToggle && rulesBody) {
+    var RULES_KEY = 'arena-chat-rules-open';
+    function paintRules(open) {
+      rulesToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      rulesBody.hidden = !open;
+    }
+    paintRules(window.sessionStorage && window.sessionStorage.getItem(RULES_KEY) === '1');
+    rulesToggle.addEventListener('click', function () {
+      var open = rulesToggle.getAttribute('aria-expanded') !== 'true';
+      paintRules(open);
+      if (window.sessionStorage) {
+        window.sessionStorage.setItem(RULES_KEY, open ? '1' : '0');
+      }
+    });
+  }
+
   poll();
   setInterval(poll, POLL_MS);
   // Once a minute is enough for an age measured in minutes, and it costs

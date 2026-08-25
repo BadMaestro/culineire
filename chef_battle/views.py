@@ -1678,8 +1678,18 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         for index, rank in enumerate(_ranks)
     ]
 
+    # The chat's SETTINGS tab needs the viewer's own current choice to render
+    # a checked radio, not to decide anything - the endpoint it posts to
+    # (arena_chat_dm_policy) re-reads and re-validates it independently.
+    viewer_dm_policy = ChefBattleProfile.DirectMessagePolicy.ANYONE
+    if viewer_author is not None:
+        profile = ChefBattleProfile.objects.filter(author=viewer_author).first()
+        if profile is not None:
+            viewer_dm_policy = profile.dm_policy
+
     return {
         "rank_groups": rank_groups,
+        "viewer_dm_policy": viewer_dm_policy,
         "spectator_count": len(spectators),
         "active_battle": active_battle,
         "arena_data": arena_data,
@@ -4824,6 +4834,67 @@ def arena_chat_dm_policy(request):
     profile = get_or_create_battle_profile(actor)
     ChefBattleProfile.objects.filter(pk=profile.pk).update(dm_policy=policy)
     return JsonResponse({"ok": True, "policy": policy})
+
+
+@ratelimit(key="ip", rate="60/m", method="GET", block=False)
+def arena_chat_users(request):
+    """Who is actually present in the hall right now — the chat's USERS tab.
+
+    Presence, not messages: enumerates the same two occupant kinds
+    _arena_hall_headcount() already COUNTS for the LIVE badge (a seated
+    spectator, or an enrolled chef seen within the arena's own online
+    window), so the tab and the header can never disagree about who is
+    here. Names, slugs and team tags only - nothing this page does not
+    already publish elsewhere about a visible spectator or chef.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"error": "rate_limited"}, status=429)
+
+    from .arena_chat import speaker_role, team_tags_for
+    from .models import ArenaSeat
+
+    cutoff = timezone.now() - timezone.timedelta(seconds=_ARENA_ONLINE_THRESHOLD)
+
+    seats = (
+        ArenaSeat.objects
+        .filter(released_at__isnull=True)
+        .select_related("viewer", "viewer__user")
+        .order_by("ring_index", "seat_index")
+    )
+    chefs = (
+        ChefBattleProfile.objects
+        .filter(
+            enrolled_at__isnull=False,
+            is_suspended=False,
+            last_seen_at__isnull=False,
+            last_seen_at__gte=cutoff,
+        )
+        .select_related("author", "author__user")
+        .order_by("-last_seen_at")
+    )
+
+    authors = [seat.viewer for seat in seats if seat.viewer_id]
+    authors += [profile.author for profile in chefs if profile.author_id]
+    tags = team_tags_for(a.pk for a in authors)
+
+    def _row(author, kind):
+        row_tags = tags.get(author.pk) or {}
+        return {
+            "name": author.name,
+            "slug": author.slug,
+            "kind": kind,
+            "role": speaker_role(getattr(author, "user", None)),
+            "clan_tag": row_tags.get("clan_tag", ""),
+            "alliance_tag": row_tags.get("alliance_tag", ""),
+        }
+
+    users = (
+        [_row(seat.viewer, "spectator") for seat in seats if seat.viewer_id]
+        + [_row(profile.author, "chef") for profile in chefs if profile.author_id]
+    )
+    return JsonResponse({"users": users})
 
 
 def _may_moderate_chat(user, permission) -> bool:

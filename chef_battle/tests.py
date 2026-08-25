@@ -22409,6 +22409,93 @@ class ArenaChatModerationTests(TestCase):
         )
 
 
+class ArenaChatUsersEndpointTests(TestCase):
+    """The USERS tab's presence list — read-only, both occupant kinds.
+
+    Same two kinds _arena_hall_headcount() already counts for the LIVE badge
+    (a seated spectator, an enrolled online chef), so the tab and the header
+    can never disagree about who is here.
+    """
+
+    def setUp(self):
+        self.user, self.author, _ = _seat_a_viewer(
+            "usersviewer", "UsersViewer", "users-viewer",
+        )
+        self.users_url = reverse("chef_battle:arena_chat_users")
+
+    def test_a_seated_spectator_appears(self):
+        self.client.force_login(self.user)
+        users = self.client.get(self.users_url).json()["users"]
+        self.assertIn("UsersViewer", [u["name"] for u in users])
+
+    def test_an_enrolled_online_chef_appears_without_a_seat(self):
+        from chef_battle.services import get_or_create_battle_profile
+
+        User = get_user_model()
+        chef_user = User.objects.create_user("ringchef2", password="pw")
+        chef_author = RecipeAuthor.objects.create(
+            user=chef_user, name="RingChefTwo", slug="ring-chef-two",
+        )
+        profile = get_or_create_battle_profile(chef_author)
+        ChefBattleProfile.objects.filter(pk=profile.pk).update(
+            enrolled_at=timezone.now(), last_seen_at=timezone.now(),
+        )
+
+        self.client.force_login(self.user)
+        users = self.client.get(self.users_url).json()["users"]
+        row = next((u for u in users if u["name"] == "RingChefTwo"), None)
+        self.assertIsNotNone(row)
+        self.assertEqual(row["kind"], "chef")
+
+    def test_an_unseated_unenrolled_author_does_not_appear(self):
+        User = get_user_model()
+        User.objects.create_user("lurker", password="pw")
+        RecipeAuthor.objects.create(name="Lurker", slug="lurker-author")
+
+        self.client.force_login(self.user)
+        users = self.client.get(self.users_url).json()["users"]
+        self.assertNotIn("Lurker", [u["name"] for u in users])
+
+    def test_a_stale_chef_seen_outside_the_online_window_does_not_appear(self):
+        from chef_battle.services import get_or_create_battle_profile
+
+        User = get_user_model()
+        chef_user = User.objects.create_user("staleghef", password="pw")
+        chef_author = RecipeAuthor.objects.create(
+            user=chef_user, name="StaleChef", slug="stale-chef",
+        )
+        profile = get_or_create_battle_profile(chef_author)
+        ChefBattleProfile.objects.filter(pk=profile.pk).update(
+            enrolled_at=timezone.now(),
+            last_seen_at=timezone.now() - timezone.timedelta(hours=1),
+        )
+
+        self.client.force_login(self.user)
+        users = self.client.get(self.users_url).json()["users"]
+        self.assertNotIn("StaleChef", [u["name"] for u in users])
+
+    def test_team_tags_match_what_the_chat_log_would_show(self):
+        from chef_battle.models import Clan, ClanMembership
+
+        clan = Clan.objects.create(
+            founder=self.author, name="Users Clan", slug="users-clan", tag="USR",
+        )
+        ClanMembership.objects.create(
+            clan=clan, chef=self.author, status=ClanMembership.Status.ACTIVE,
+        )
+        self.client.force_login(self.user)
+        users = self.client.get(self.users_url).json()["users"]
+        row = next(u for u in users if u["name"] == "UsersViewer")
+        self.assertEqual(row["clan_tag"], "USR")
+
+    def test_an_anonymous_visitor_still_sees_the_presence_list(self):
+        """Presence is public the way the arena page itself is - no auth
+        required, same as the rest of a visible arena's read surface."""
+        response = self.client.get(self.users_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("users", response.json())
+
+
 class NoTemplateCommentCanPrintItselfOnThePageTests(TestCase):
     """`{# #}` is SINGLE-LINE in Django. Written across lines, it prints.
 

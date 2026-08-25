@@ -459,15 +459,52 @@
   </aside>
 
   {% comment %}
-    Spectator chat. The Owner's rules, 2026-08-17: one room for spectators and
-    chefs; a spectator hears three cells either side of his own and three rows
-    by the compass, because that is how hearing works and the hall reproduces
-    it; a chef is outside that in both directions, being unable to get up and
-    move closer; and the chat keeps everything from the start of a battle to
-    its end. Whether a line carries its words is decided on the SERVER - out of
-    range the browser is told only that somebody is talking.
+    Owner's desktop rebuild, 2026-08-25: this used to be the chat. The chat
+    itself moved into the right rail below, wide enough to be a first-class
+    panel instead of a sliver — see the note beside its new home. This slot,
+    vacated in the left rail, is filled by what used to be the RIGHT rail's
+    top card: the same "Live arena metrics" panel, same ids, only renamed
+    Arena Pulse and repositioned. arena_deck.js's refreshReadModel() writes
+    into #arena-metric-viewers/-votes/-gifts and #arena-crown-streak by id
+    on every poll and needed no changes for the move.
   {% endcomment %}
-  <section class="arena-chat" aria-label="Spectator chat" id="arena-chat"
+  <section class="arena-command-deck__metrics" aria-label="Arena pulse">
+    <header class="arena-panel__title arena-panel__title--flanked">
+      <svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>
+      <h2 class="arena-panel__kicker">Arena pulse</h2>
+    </header>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong id="arena-metric-viewers">{{ arena_data.metrics.active_viewers }}</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-vote"></use></svg>Public votes</span><strong id="arena-metric-votes">{{ arena_data.metrics.public_votes }}</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>Battle gifts</span><strong id="arena-metric-gifts">{{ arena_data.metrics.battle_gifts }}</strong></div>
+    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong id="arena-crown-streak">{{ crown_streak|default:0 }}</strong></div>
+  </section>
+  </div>
+  </div>
+
+  <div class="arena-interface-rail arena-interface-rail--right" role="group" aria-label="Arena chat rail">
+  <div class="arena-right-stack">
+  {% comment %}
+    Spectator chat. Moved here from the left rail in the Owner's desktop
+    rebuild, 2026-08-25, and widened into the full right column so it reads
+    as a first-class part of the workspace rather than a narrow log. Every
+    id, data attribute and behaviour below is unchanged from the left-rail
+    version — arena_chat.js binds by id, not by parent, so relocating the
+    node cost nothing there. What is new is the CHAT/PM/USERS/SETTINGS tab
+    bar and the Pinned Rules panel above the log, both wired to endpoints
+    that already existed (arena_chat_conversations, arena_chat_dm_policy)
+    but had no UI until now, plus one new read-only endpoint
+    (arena_chat_users) for presence — see chef_battle/views.py.
+
+    The Owner's rules, 2026-08-17, still govern the CHAT tab: one room for
+    spectators and chefs; a spectator hears three cells either side of his
+    own and three rows by the compass, because that is how hearing works and
+    the hall reproduces it; a chef is outside that in both directions, being
+    unable to get up and move closer; and the chat keeps everything from the
+    start of a battle to its end. Whether a line carries its words is
+    decided on the SERVER - out of range the browser is told only that
+    somebody is talking.
+  {% endcomment %}
+  <section class="arena-chat" aria-label="Arena chat" id="arena-chat"
            data-feed-url="{% url 'chef_battle:arena_chat_feed' %}"
            data-send-url="{% url 'chef_battle:arena_chat_send' %}"
            data-react-url="{% url 'chef_battle:arena_chat_react' %}"
@@ -475,28 +512,59 @@
            data-report-url="{% url 'chef_battle:arena_chat_report' %}"
            data-dm-open-url="{% url 'chef_battle:arena_chat_open_dm' %}"
            data-dm-list-url="{% url 'chef_battle:arena_chat_conversations' %}"
+           data-dm-policy-url="{% url 'chef_battle:arena_chat_dm_policy' %}"
+           data-users-url="{% url 'chef_battle:arena_chat_users' %}"
            data-moderate-url="{% url 'chef_battle:arena_chat_moderate' %}"
            data-can-moderate="{% if perms.chef_battle.moderate_arena_chat %}1{% else %}0{% endif %}"
            data-can-timeout="{% if perms.chef_battle.timeout_arena_chat_user %}1{% else %}0{% endif %}"
+           data-dm-policy="{{ viewer_dm_policy }}"
            data-me="{{ viewer_author.slug|default:'' }}">
-    <header class="arena-panel__title">
-      <h2 class="arena-panel__kicker">Spectator chat</h2>
-      {% comment %}
-        "SPECTATOR CHAT * LIVE 256". The count is its own element, written by
-        arena_chat.js from the feed, so the badge still reads as the single
-        word LIVE when the server sends no number.
-
-        WRITTEN AS {% comment %} AND NOT {# #}, 2026-08-24: the hash form is
-        SINGLE-LINE in Django, so this note printed itself in full onto the
-        live arena - the Owner photographed it inside the chat panel. The
-        other hash notes in this file survive only because they sit OUTSIDE
-        {% block content %}, where an extending template renders nothing.
-        Inside the block there is only one safe form and this is it.
-      {% endcomment %}
+    {% comment %}
+      CHAT / PM / USERS / SETTINGS. One ARIA tablist replacing the old plain
+      title. activateTab() in arena_chat.js paints aria-selected and toggles
+      panel visibility; it does not duplicate enterRoom()'s room-switching -
+      CHAT re-enters the hall, PM lists rooms that already call enterRoom()
+      for the room it opens.
+    {% endcomment %}
+    <div class="arena-chat__tabs" role="tablist" aria-label="Arena chat sections" id="arena-chat-tabs">
+      <button type="button" class="arena-chat__tab" role="tab" id="arena-chat-tab-chat"
+              aria-selected="true" aria-controls="arena-chat-panel-chat" data-tab="chat">Chat</button>
+      <button type="button" class="arena-chat__tab" role="tab" id="arena-chat-tab-pm"
+              aria-selected="false" aria-controls="arena-chat-panel-pm" tabindex="-1" data-tab="pm">PM</button>
+      <button type="button" class="arena-chat__tab" role="tab" id="arena-chat-tab-users"
+              aria-selected="false" aria-controls="arena-chat-panel-users" tabindex="-1" data-tab="users">Users</button>
+      <button type="button" class="arena-chat__tab" role="tab" id="arena-chat-tab-settings"
+              aria-selected="false" aria-controls="arena-chat-panel-settings" tabindex="-1" data-tab="settings">Settings</button>
       <span class="arena-chat__live" id="arena-chat-live" hidden>Live<span
         class="arena-chat__listening" id="arena-chat-listening" hidden></span></span>
-    </header>
+    </div>
 
+    {% comment %}
+      Pinned Rules — original copy; nothing like this existed anywhere in the
+      repo before (checked docs/chef_battle/ and this file). Collapsed by
+      default, state kept in sessionStorage only for this tab, nothing
+      server-side to build for a panel this small.
+    {% endcomment %}
+    <div class="arena-chat__rules">
+      <button type="button" class="arena-chat__rules-toggle" id="arena-chat-rules-toggle"
+              aria-expanded="false" aria-controls="arena-chat-rules-body">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-book"></use></svg>
+        <span>Pinned Rules</span>
+        <em aria-hidden="true">&rsaquo;</em>
+      </button>
+      <ul class="arena-chat__rules-body" id="arena-chat-rules-body" hidden>
+        <li>Be respectful — the hall is shared by spectators and chefs alike.</li>
+        <li>No spam or promo codes outside the sponsor channels built for them.</li>
+        <li>English, or the hall's own house language.</li>
+        <li>Moderators may hide a message or time someone out; abuse it and expect the same.</li>
+        <li>Report a message from its own menu rather than answering it in kind.</li>
+      </ul>
+    </div>
+
+    {% comment %}
+      CHAT panel — the hall log, unchanged from before the move.
+    {% endcomment %}
+    <div class="arena-chat__panel" id="arena-chat-panel-chat" role="tabpanel" aria-labelledby="arena-chat-tab-chat">
     {% comment %}
       WHICH ROOM THIS IS, said in words and not only in colour. Hidden in the
       hall; shown the moment a private conversation is open, so a DM can never
@@ -540,113 +608,49 @@
       under the composer where the reader is already looking.
     {% endcomment %}
     <p class="arena-chat__notice" id="arena-chat-notice" role="status" hidden></p>
-  </section>
-  </div>
-  </div>
-
-  <div class="arena-interface-rail arena-interface-rail--right" role="group" aria-label="Arena broadcast rail">
-  <div class="arena-right-stack">
-  <section class="arena-command-deck__metrics" aria-label="Arena metrics">
-    <header class="arena-panel__title arena-panel__title--flanked">
-      <svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>
-      <h2 class="arena-panel__kicker">Live arena metrics</h2>
-    </header>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>Active viewers</span><strong id="arena-metric-viewers">{{ arena_data.metrics.active_viewers }}</strong></div>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-vote"></use></svg>Public votes</span><strong id="arena-metric-votes">{{ arena_data.metrics.public_votes }}</strong></div>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>Battle gifts</span><strong id="arena-metric-gifts">{{ arena_data.metrics.battle_gifts }}</strong></div>
-    <div class="arena-metric"><span><svg class="arena-ico" aria-hidden="true"><use href="#ad-crown"></use></svg>Crown streak</span><strong id="arena-crown-streak">{{ crown_streak|default:0 }}</strong></div>
-  </section>
-
-  <nav class="arena-command-deck__command" aria-label="Arena command">
-    <header class="arena-panel__title arena-panel__title--flanked">
-      <svg class="arena-ico" aria-hidden="true"><use href="#ad-star"></use></svg>
-      <h2 class="arena-panel__kicker">Arena command</h2>
-    </header>
-    <div class="arena-command-grid">
-      {% comment %}
-        Owner, 2026-08-24: the Master Console tile is his and other authorised
-        superusers' only. The view behind it has always been closed correctly
-        (arena_console_guard -> 404); this tile was not, so every staff member
-        who can see the arena was offered a door that refuses them and handed
-        the console's URL. `can_open_master_console` is the view's own DG-01
-        answer (has_arena_console_access), not a second copy of the rule.
-      {% endcomment %}
-      {% if can_open_master_console %}
-      <a class="arena-command-tile" href="{% url 'chef_battle:master_console' %}">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-shield"></use></svg>
-        <span>Master Console</span>
-      </a>
-      {% endif %}
-      <a class="arena-command-tile" href="{% url 'chef_battle:challenge_list' %}">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-swords"></use></svg>
-        <span>Challenges</span>
-      </a>
-      <a class="arena-command-tile" href="{% url 'chef_battle:battle_chest' %}">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-knife"></use></svg>
-        <span>Knife Roll</span>
-      </a>
-      <a class="arena-command-tile" href="{% url 'chef_battle:season_leaderboard' %}">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-emblem"></use></svg>
-        <span>Season</span>
-      </a>
-      <a class="arena-command-tile" href="{% url 'chef_battle:changing_room' %}">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-hanger"></use></svg>
-        <span>Changing Room</span>
-      </a>
-      <a class="arena-command-tile" href="{% url 'chef_battle:rankings' %}">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-podium"></use></svg>
-        <span>Rankings</span>
-      </a>
-      <a class="arena-command-tile" href="{% url 'chef_battle:token_shop' %}">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-chest"></use></svg>
-        <span>Treasury</span>
-      </a>
-      <a class="arena-command-tile" href="{% url 'chef_battle:appreciation_gallery' %}">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
-        <span>Gifts</span>
-      </a>
-      <a class="arena-command-tile" href="{% url 'chef_battle:artifact_gallery' %}">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-artifact"></use></svg>
-        <span>Artifacts</span>
-      </a>
     </div>
-  </nav>
 
-  <aside class="arena-command-deck__gifts" aria-label="Recent battle gifts">
-    <header class="arena-panel__title">
-      <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
-      <h2 class="arena-panel__kicker">Battle gifts</h2>
-    </header>
     {% comment %}
-      The illustration is decorative and unconditional - it stays whether or
-      not there are gifts, matching the mockup. The list beneath it must stay
-      a plain <ul id="arena-recent-gifts"> at all times: arena_deck.js's
-      refreshRecentGifts() writes into this exact element by id on every poll,
-      clearing it and appending either real <li> rows or its own
-      arena-panel__empty row (appendPanelEmpty()). Wrapping the <ul> itself in
-      an {% if %} would remove it from the DOM whenever the server-rendered
-      page starts empty, and the live poll would then find nothing to write
-      into - gifts sent after page load would never appear without a reload.
+      PM panel — new. Lists the caller's own DIRECT conversations from the
+      arena_chat_conversations endpoint (existed already, unused until now);
+      clicking a room calls the SAME enterRoom() the "Message privately"
+      action menu item already used, so opening a DM from here or from a
+      message's menu is one code path.
     {% endcomment %}
-    <svg class="arena-gift-illustration" aria-hidden="true"><use href="#ad-gift"></use></svg>
-    <ul id="arena-recent-gifts" class="arena-gift-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
-      {% for gift in recent_gifts %}
-        <li>
-          <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
-          <span><a href="{% url 'chef_battle:chef_profile' slug=gift.recipient_slug %}">{{ gift.recipient }}</a><b>{{ gift.item }}</b></span>
-          <em>{{ gift.tokens }}T</em>
-        </li>
-      {% empty %}
-        <li class="arena-panel__empty">No battle gifts have been delivered yet.</li>
-      {% endfor %}
-    </ul>
-    <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks.</p>
-    {% if active_battle %}
-    <a class="btn-primary" href="{% url 'chef_battle:battle_detail' active_battle.pk %}#battle-gifts-title">View Gift Shop</a>
-    {% else %}
-    <a class="btn-primary" href="{% url 'chef_battle:appreciation_gallery' %}">View Gift Shop</a>
-    {% endif %}
-  </aside>
+    <div class="arena-chat__panel" id="arena-chat-panel-pm" role="tabpanel" aria-labelledby="arena-chat-tab-pm" hidden>
+      <ul class="arena-chat__dm-list" id="arena-chat-dm-list">
+        <li class="arena-panel__empty" id="arena-chat-dm-empty">No private conversations yet.</li>
+      </ul>
+    </div>
+
+    {% comment %}
+      USERS panel — new. Presence only (arena_chat_users), not a second
+      action surface: reading, muting, blocking and reporting all stay on the
+      per-message menu in the CHAT tab, so this list is not a duplicate
+      control surface, just who is here right now.
+    {% endcomment %}
+    <div class="arena-chat__panel" id="arena-chat-panel-users" role="tabpanel" aria-labelledby="arena-chat-tab-users" hidden>
+      <ul class="arena-chat__users-list" id="arena-chat-users-list">
+        <li class="arena-panel__empty" id="arena-chat-users-empty">Nobody is in the hall right now.</li>
+      </ul>
+    </div>
+
+    {% comment %}
+      SETTINGS panel — new. The only setting the chat has today: who may open
+      a private conversation. Posts to arena_chat_dm_policy (existed already,
+      unused until now); the server re-validates the value regardless of what
+      this form sends.
+    {% endcomment %}
+    <div class="arena-chat__panel" id="arena-chat-panel-settings" role="tabpanel" aria-labelledby="arena-chat-tab-settings" hidden>
+      <form class="arena-chat__settings" id="arena-chat-settings-form">
+        <p class="arena-chat__settings-label">Who can message you privately</p>
+        <label><input type="radio" name="dm_policy" value="anyone"> Anyone</label>
+        <label><input type="radio" name="dm_policy" value="team"> My clan or alliance only</label>
+        <label><input type="radio" name="dm_policy" value="nobody"> Nobody</label>
+        <button type="submit" class="btn-secondary">Save</button>
+      </form>
+    </div>
+  </section>
   </div>
   </div>
 
@@ -946,12 +950,141 @@
         </a>
       {% endif %}
     </div>
+
+    {% comment %}
+      Arena Command dock — Owner's desktop rebuild, 2026-08-25. The right
+      rail's old "Arena Command" nav and "Battle Gifts" card merge here,
+      collapsed by default, anchored beside Enter Arena / Issue a Challenge
+      rather than sitting permanently in the right column (which the chat now
+      occupies). Same toggle mechanics arena_rank_ladder.js already uses for
+      the mobile rank dock (aria-expanded + hidden, no animation library).
+      Every tile href, the #arena-recent-gifts id and its contents are
+      unchanged from the card that used to sit in the right rail, so
+      arena_deck.js's refreshRecentGifts() needed no changes for the move.
+    {% endcomment %}
+    <div class="arena-command-dock">
+      <button type="button" class="arena-command-dock__toggle" id="arena-command-dock-toggle"
+              aria-expanded="false" aria-controls="arena-command-dock-panel">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-star"></use></svg>
+        <span>Arena Command</span>
+        <em class="arena-command-dock__chevron" aria-hidden="true">&rsaquo;</em>
+      </button>
+      <div class="arena-command-dock__panel" id="arena-command-dock-panel" hidden>
+        <nav class="arena-command-deck__command" aria-label="Arena command">
+          <div class="arena-command-grid">
+            {% comment %}
+              Owner, 2026-08-24: the Master Console tile is his and other
+              authorised superusers' only. The view behind it has always been
+              closed correctly (arena_console_guard -> 404); this tile was
+              not, so every staff member who can see the arena was offered a
+              door that refuses them and handed the console's URL.
+              `can_open_master_console` is the view's own DG-01 answer
+              (has_arena_console_access), not a second copy of the rule.
+            {% endcomment %}
+            {% if can_open_master_console %}
+            <a class="arena-command-tile" href="{% url 'chef_battle:master_console' %}">
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-shield"></use></svg>
+              <span>Master Console</span>
+            </a>
+            {% endif %}
+            <a class="arena-command-tile" href="{% url 'chef_battle:challenge_list' %}">
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-swords"></use></svg>
+              <span>Challenges</span>
+            </a>
+            <a class="arena-command-tile" href="{% url 'chef_battle:battle_chest' %}">
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-knife"></use></svg>
+              <span>Knife Roll</span>
+            </a>
+            <a class="arena-command-tile" href="{% url 'chef_battle:season_leaderboard' %}">
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-emblem"></use></svg>
+              <span>Season</span>
+            </a>
+            <a class="arena-command-tile" href="{% url 'chef_battle:changing_room' %}">
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-hanger"></use></svg>
+              <span>Changing Room</span>
+            </a>
+            <a class="arena-command-tile" href="{% url 'chef_battle:rankings' %}">
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-podium"></use></svg>
+              <span>Rankings</span>
+            </a>
+            <a class="arena-command-tile" href="{% url 'chef_battle:token_shop' %}">
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-chest"></use></svg>
+              <span>Treasury</span>
+            </a>
+            <a class="arena-command-tile" href="{% url 'chef_battle:appreciation_gallery' %}">
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+              <span>Gifts</span>
+            </a>
+            <a class="arena-command-tile" href="{% url 'chef_battle:artifact_gallery' %}">
+              <svg class="arena-ico" aria-hidden="true"><use href="#ad-artifact"></use></svg>
+              <span>Artifacts</span>
+            </a>
+          </div>
+        </nav>
+
+        <aside class="arena-command-deck__gifts" aria-label="Recent battle gifts">
+          <header class="arena-panel__title">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+            <h2 class="arena-panel__kicker">Battle gifts</h2>
+          </header>
+          {% comment %}
+            The illustration is decorative and unconditional - it stays
+            whether or not there are gifts, matching the mockup. The list
+            beneath it must stay a plain <ul id="arena-recent-gifts"> at all
+            times: arena_deck.js's refreshRecentGifts() writes into this
+            exact element by id on every poll, clearing it and appending
+            either real <li> rows or its own arena-panel__empty row
+            (appendPanelEmpty()). Wrapping the <ul> itself in an {% if %}
+            would remove it from the DOM whenever the server-rendered page
+            starts empty, and the live poll would then find nothing to write
+            into - gifts sent after page load would never appear without a
+            reload.
+          {% endcomment %}
+          <svg class="arena-gift-illustration" aria-hidden="true"><use href="#ad-gift"></use></svg>
+          <ul id="arena-recent-gifts" class="arena-gift-list" data-profile-template="{% url 'chef_battle:chef_profile' slug='arena-chef-slug' %}">
+            {% for gift in recent_gifts %}
+              <li>
+                <svg class="arena-ico" aria-hidden="true"><use href="#ad-gift"></use></svg>
+                <span><a href="{% url 'chef_battle:chef_profile' slug=gift.recipient_slug %}">{{ gift.recipient }}</a><b>{{ gift.item }}</b></span>
+                <em>{{ gift.tokens }}T</em>
+              </li>
+            {% empty %}
+              <li class="arena-panel__empty">No battle gifts have been delivered yet.</li>
+            {% endfor %}
+          </ul>
+          <p class="arena-command-deck__gift-copy">Gifts use the existing shop, token and delivery checks.</p>
+          {% if active_battle %}
+          <a class="btn-primary" href="{% url 'chef_battle:battle_detail' active_battle.pk %}#battle-gifts-title">View Gift Shop</a>
+          {% else %}
+          <a class="btn-primary" href="{% url 'chef_battle:appreciation_gallery' %}">View Gift Shop</a>
+          {% endif %}
+        </aside>
+      </div>
+    </div>
   </footer>
 </main>
 {% endblock %}
 
 {% block extra_js %}
 <script defer src="{% static 'js/arena_chat.js' %}"></script>
+{% comment %}
+  Arena Command dock toggle. Same aria-expanded + hidden mechanics
+  arena_rank_ladder.js already uses for the mobile rank dock - inline here
+  because it is three lines and the dock has no other behaviour of its own,
+  unlike the rank ladder's per-tile switching.
+{% endcomment %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var toggle = document.getElementById('arena-command-dock-toggle');
+  var panel = document.getElementById('arena-command-dock-panel');
+  if (!toggle || !panel) { return; }
+  toggle.addEventListener('click', function () {
+    var open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+    panel.hidden = open;
+  });
+})();
+</script>
 {% comment %}
   The same flag that decided the viewport above decides whether the page
   supplies its own zoom, so the two can never disagree. Set before the
