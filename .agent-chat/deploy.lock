@@ -1,0 +1,5 @@
+agent: bolt
+started_utc: 2026-08-26T09:00
+version: v2.5.1283
+commit: pending
+task: P3 slice one - the fight's own moments become cards in the arena chat (challenge issued, voting open, battle result), written from BattleEvent and heard from every seat

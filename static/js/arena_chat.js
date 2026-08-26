@@ -675,6 +675,149 @@
 
   MESSAGE_RENDERERS.message = renderTextMessage;
 
+  /* ===================================================================
+   * P3: THE FIGHT'S OWN MOMENTS, AS CARDS. Owner 2026-08-26.
+   *
+   * A card is a row in the same log with the same id, so it arrives on the
+   * same poll, sits in the same order and scrolls with everything else. What
+   * makes it a card is `kind`, decided on the SERVER from a BattleEvent the
+   * game recorded for its own reasons - the browser is never the thing that
+   * says a challenge was issued.
+   *
+   * EVERY FIELD PRINTED HERE COMES FROM line.card, which the server built out
+   * of the battle. There is no default text for a missing name and no "vs" for
+   * a card whose two chefs are unknown: if the payload has nothing to say, the
+   * card does not render it. That is the brief's rule - a card renders from
+   * real battle state or it does not render.
+   * =================================================================== */
+  /* Literal characters, like every other mark in this file. The first
+     draft wrote them as backslash-u escapes and two of the three came out
+     wrong: that escape takes FOUR hex digits, so a codepoint above U+FFFF
+     written as one five-digit escape is read as the first four digits plus
+     a stray character - it printed a Greek letter and a 3. */
+  var CARD_MARKS = {
+    challenge_issued: '⚔️',
+    voting_open: '🗳️',
+    battle_result: '👑'
+  };
+  var CARD_TITLES = {
+    challenge_issued: 'Challenge issued',
+    voting_open: 'Voting is open',
+    battle_result: 'Result'
+  };
+
+  function cardChef(name, slug) {
+    /* A chef's name links to the chef when the server sent a slug and is plain
+       text when it did not. Building the URL here from a template kept in one
+       place - the gift list's own data-profile-template - rather than guessing
+       a path this file has no business knowing. */
+    var holder = document.createElement(slug ? 'a' : 'b');
+    holder.className = 'arena-chat__card-chef';
+    holder.textContent = name;
+    if (slug) {
+      var list = document.getElementById('arena-recent-gifts');
+      var template = list && list.getAttribute('data-profile-template');
+      holder.href = template
+        ? template.replace('arena-chef-slug', encodeURIComponent(slug))
+        : '#';
+    }
+    return holder;
+  }
+
+  function renderEventCard(line) {
+    var card = line.card || {};
+    var kind = line.kind || '';
+    var item = document.createElement('li');
+    item.className = 'arena-chat__line arena-chat__card arena-chat__card--' + kind;
+    item.setAttribute('data-id', line.id);
+    item.setAttribute('data-kind', kind);
+
+    var head = document.createElement('span');
+    head.className = 'arena-chat__card-head';
+
+    var mark = document.createElement('span');
+    mark.className = 'arena-chat__card-mark';
+    mark.setAttribute('aria-hidden', 'true');
+    mark.textContent = CARD_MARKS[kind] || '';
+    head.appendChild(mark);
+
+    var title = document.createElement('b');
+    title.className = 'arena-chat__card-title';
+    title.textContent = CARD_TITLES[kind] || '';
+    head.appendChild(title);
+
+    if (line.at) {
+      var when = document.createElement('time');
+      when.className = 'arena-chat__time';
+      when.setAttribute('datetime', line.at);
+      when.textContent = formatTime(line.at);
+      when.title = new Date(line.at).toLocaleString();
+      head.appendChild(when);
+    }
+    item.appendChild(head);
+
+    /* THE TWO CHEFS, when the server knows them. A result card names the
+       winner first and says so; the other two cards read left to right in the
+       order the battle itself is written. */
+    if (card.challenger && card.opponent) {
+      var pair = document.createElement('span');
+      pair.className = 'arena-chat__card-pair';
+      if (kind === 'battle_result' && card.winner) {
+        pair.appendChild(cardChef(card.winner, card.winner_slug));
+        var beat = document.createElement('span');
+        beat.className = 'arena-chat__card-vs';
+        beat.textContent = 'beat';
+        pair.appendChild(beat);
+        pair.appendChild(cardChef(
+          card.winner === card.challenger ? card.opponent : card.challenger,
+          ''
+        ));
+      } else {
+        pair.appendChild(cardChef(card.challenger, ''));
+        var vs = document.createElement('span');
+        vs.className = 'arena-chat__card-vs';
+        vs.textContent = 'vs';
+        pair.appendChild(vs);
+        pair.appendChild(cardChef(card.opponent, ''));
+      }
+      item.appendChild(pair);
+    }
+
+    /* The event's own sentence, which is what the game wrote when it happened.
+       textContent and never innerHTML: this string is a chef's name inside a
+       server-formatted message, and a name is user input wherever it came
+       from. */
+    if (card.headline) {
+      var said = document.createElement('span');
+      said.className = 'arena-chat__card-said';
+      said.textContent = card.headline;
+      item.appendChild(said);
+    }
+
+    /* NO LIVE VOTE NUMBERS ON THE VOTING CARD, and the reason is that a chat
+       line is a moment rather than a dashboard: it is written once and never
+       re-rendered, so a tally printed here would be wrong within seconds and
+       would look authoritative while it was. The card invites the reader to
+       the battle page, which carries the counts and keeps them current. (The
+       rules were checked rather than assumed: tz_main 8.5 sets no
+       hidden-until-close rule, and battle_detail.html has always shown live
+       counts during VOTING - so this is a staleness decision, not a secrecy
+       one.) */
+    if (card.battle_url) {
+      var go = document.createElement('a');
+      go.className = 'arena-chat__card-go';
+      go.href = card.battle_url;
+      go.textContent = kind === 'voting_open' ? 'Go and vote' : 'Open the battle';
+      item.appendChild(go);
+    }
+    return item;
+  }
+
+  MESSAGE_RENDERERS.challenge_issued = renderEventCard;
+  MESSAGE_RENDERERS.voting_open = renderEventCard;
+  MESSAGE_RENDERERS.battle_result = renderEventCard;
+
+
   function append(line) {
     var item = renderMessageLine(line);
     if (!item) { return; }

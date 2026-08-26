@@ -1,0 +1,158 @@
+"""Battle events become cards in the arena's own chat log.
+
+P3, Owner 2026-08-26 ("Делай p2 отдай болту p3"). The hall watches a fight and
+talks about it in the same column; the fight's own moments belong in that
+column too, as cards rather than as sentences somebody typed.
+
+NOTHING HERE INVENTS AN EVENT. Every card is written from a ``BattleEvent`` the
+game had already recorded for its own reasons - the challenge that was issued,
+the reveal that opened voting, the result that was scored - so a card cannot
+say something the battle did not do. That is the brief's rule ("no fake data")
+and it is also why this module has no ``message`` argument: the sentence is the
+event's, and this file only decides which events the hall is shown and where
+the card is seated.
+
+WHY THE CARD IS A CHAT ROW. The hall polls one table and pages it by ``id``;
+that id is the client's whole cursor. A second table of events would have
+needed a second cursor, a merge on every poll, and a rule for what happens when
+the two disagree about order. A card is a row in the log that renders
+differently, and the seam for that already existed before this file did -
+``MESSAGE_RENDERERS`` in arena_chat.js dispatches on ``kind``.
+
+A CARD IS HEARD EVERYWHERE. Reach is the rule for people talking among
+themselves in the stands (arena_chat.can_hear); an announcement about the fight
+everybody is watching is not that, and the exemption is applied in
+``audible_lines`` next to the Admin one it already had.
+"""
+
+from __future__ import annotations
+
+import logging
+
+from .models import ArenaChatMessage, ArenaSeat, BattleEvent
+
+logger = logging.getLogger(__name__)
+
+
+# WHICH EVENTS THE HALL IS SHOWN, and the ones deliberately left out.
+#
+# BattleEvent carries sixteen types and most of them are bookkeeping: a rank
+# promotion, an artifact drop, an operator action. Those belong in the record,
+# not in a live room where every card costs a reader the space of three spoken
+# lines. The three here are the ones a spectator came for - a fight was called,
+# the voting opened, somebody won.
+#
+# CHALLENGE_ACCEPTED is NOT a card and the omission is deliberate: the
+# acceptance is what schedules the battle, and the board directly above the
+# chat already announces the scheduled battle by name and by clock. A card
+# saying the same thing seconds later is the same fact twice.
+CARD_FOR_EVENT = {
+    BattleEvent.EventType.CHALLENGE_CREATED: ArenaChatMessage.Kind.CHALLENGE_ISSUED,
+    BattleEvent.EventType.BATTLE_REVEALED: ArenaChatMessage.Kind.VOTING_OPEN,
+    # BATTLE_COMPLETED and not BATTLE_FINISHED, and the difference is the whole
+    # point: FINISHED is emitted for walkovers, forfeits and voids as well, and
+    # several of those rows carry no winner at all. COMPLETED is the one the
+    # scorer writes when a battle was actually fought to a result, with the
+    # winner as actor and the loser as target - which is exactly what the card
+    # needs to name. Draws and walkovers are deliberately left cardless until
+    # they have a card designed for them rather than borrowing this one.
+    BattleEvent.EventType.BATTLE_COMPLETED: ArenaChatMessage.Kind.BATTLE_RESULT,
+}
+
+
+def _seat_of(author):
+    """Where the card is spoken from, when it is spoken by somebody at all.
+
+    A card is heard everywhere, so the seat is not what decides who reads it -
+    it is what lets the octagon effects in the rest of P3 know which cell to
+    light. A chef who is not seated gets ring 0, cell 0, which no ring uses and
+    every consumer already reads as "nowhere in particular".
+    """
+    if author is None:
+        return 0, 0
+    seat = (
+        ArenaSeat.objects
+        .filter(viewer=author, released_at__isnull=True)
+        .order_by("-claimed_at")
+        .values_list("ring_index", "seat_index")
+        .first()
+    )
+    return seat if seat else (0, 0)
+
+
+def post_card_for_event(event: BattleEvent) -> ArenaChatMessage | None:
+    """Write the hall's card for one battle event, or nothing.
+
+    Returns the row so a caller can assert on it; returns None when the event
+    is not one the hall is shown, which is the ordinary case.
+
+    THE CARD IS DECORATION AND THE TRANSITION IS THE TRUTH. This runs inside
+    the same call that records a battle moving from one state to the next, so a
+    failure here must never be allowed to lose that transition - a hall that
+    misses one card is a cosmetic fault, a battle that fails to start is not.
+    The exception is logged with the event id rather than swallowed, so a
+    broken card is findable rather than invisible.
+    """
+    kind = CARD_FOR_EVENT.get(event.event_type)
+    if kind is None:
+        return None
+    # A card with no battle has nothing to point a reader at, and every type
+    # above belongs to one. A challenge that has not yet become a battle is the
+    # one exception and carries its challenge instead.
+    if event.battle_id is None and event.challenge_id is None:
+        return None
+    if not event.is_public:
+        return None
+
+    actor = event.actor
+    ring, cell = _seat_of(actor)
+    try:
+        return ArenaChatMessage.objects.create(
+            battle=event.battle,
+            speaker=actor,
+            display_name=(getattr(actor, "name", "") or "The Arena")[:60],
+            body=event.message[:300],
+            ring_index=ring,
+            seat_index=cell,
+            kind=kind,
+            event=event,
+        )
+    except Exception:
+        logger.exception("arena card failed for BattleEvent %s", event.pk)
+        return None
+
+
+def card_payload(message: ArenaChatMessage) -> dict:
+    """What the renderer is given for one card, and nothing more.
+
+    Read off the EVENT rather than off the chat row wherever the event has it,
+    so a card shows the battle's own facts. The URL is the point of the card -
+    every one of these is an invitation to go and look - and it is built here
+    rather than in the browser because the browser has no URL conf.
+    """
+    event = message.event
+    battle = message.battle
+    payload = {
+        "kind": message.kind,
+        "headline": message.body,
+        "actor": getattr(message.speaker, "name", "") or "",
+        "actor_slug": getattr(message.speaker, "slug", "") or "",
+    }
+    if battle is not None:
+        payload["battle_url"] = battle.get_absolute_url()
+        challenger = getattr(battle, "challenger", None)
+        opponent = getattr(battle, "opponent", None)
+        payload["challenger"] = getattr(challenger, "name", "") or ""
+        payload["opponent"] = getattr(opponent, "name", "") or ""
+        # THE WINNER IS NAMED ONLY WHEN THE BATTLE HAS ONE. A result card that
+        # renders before the score is written would announce a winner the
+        # battle has not got, which is exactly the "no fake data" rule.
+        winner = getattr(battle, "winner", None)
+        if message.kind == ArenaChatMessage.Kind.BATTLE_RESULT and winner is not None:
+            payload["winner"] = winner.name
+            payload["winner_slug"] = winner.slug
+    if event is not None and event.payload_json:
+        # Only ever a read: the renderer decides what it can use, and an event
+        # that carries nothing useful simply gives the card nothing extra.
+        payload["event"] = event.payload_json
+    return payload

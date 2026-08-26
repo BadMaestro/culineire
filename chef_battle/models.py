@@ -685,6 +685,33 @@ class ArenaChatMessage(models.Model):
     # file to find its dimensions, and by the time anything is stored here
     # normalise_uploaded_chat_media() has already decoded it, re-encoded every
     # frame and measured the result.
+    # AN EVENT CARD IS A ROW IN THIS TABLE, NOT A SECOND FEED. P3, Owner
+    # 2026-08-26. The hall polls one table with one id space, and `since` is
+    # that id; a parallel table of battle events would have needed a second
+    # cursor, a merge, and an answer to what happens when the two disagree
+    # about order. A card is a line in the log that renders differently.
+    #
+    # THE CARD DOES NOT CARRY ITS OWN COPY OF THE BATTLE. It points at the
+    # BattleEvent that caused it and reads its facts from there, so a card can
+    # never say something the battle did not do - the brief's rule that every
+    # card renders from real state or does not render. `body` is the same
+    # sentence the event already wrote, kept on the row so the log stays
+    # readable with no join and so a deleted event leaves a line rather than a
+    # blank.
+    class Kind(models.TextChoices):
+        MESSAGE = "", "Spoken line"
+        CHALLENGE_ISSUED = "challenge_issued", "Challenge issued"
+        VOTING_OPEN = "voting_open", "Voting opened"
+        BATTLE_RESULT = "battle_result", "Battle result"
+
+    kind = models.CharField(
+        max_length=24, choices=Kind.choices, blank=True, default="",
+    )
+    event = models.ForeignKey(
+        "BattleEvent", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="arena_chat_cards",
+    )
+
     class MediaKind(models.TextChoices):
         NONE = "", "No attachment"
         IMAGE = "image", "Picture"

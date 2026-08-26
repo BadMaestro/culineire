@@ -10780,3 +10780,89 @@ body.page--arena.is-zoom-locked {
     visibility: hidden;
   }
 }
+
+/* ============================================================================
+ * P3: EVENT CARDS IN THE ARENA CHAT. Owner 2026-08-26, splitting the chat
+ * brief: "Делай p2 отдай болту p3".
+ *
+ * A card is a line in the same log with the same id, so it must read as part
+ * of the conversation and still be unmistakably not a person talking. It gets
+ * a ground and a rule of its own rather than a colour: colour alone is not a
+ * signal this stylesheet is allowed to lean on, and the card also carries a
+ * mark and a title that say what it is in words.
+ *
+ * EVERY COLOUR RULE HERE CARRIES THE `.arena-chat ` PREFIX, and that is not
+ * style. `.arena-chat * { color: inherit }` sits unconditionally further up
+ * this file at one-class specificity; a bare `.arena-chat__card { color: ... }`
+ * ties with it and loses on source order. Two classes beat it without an
+ * !important, which is what GreenBear's handover asked for by name.
+ * ========================================================================== */
+.arena-chat__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.35rem 0;
+  padding: 0.5rem 0.6rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+  border-left-width: 0.18rem;
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--accent-bronze) 7%, var(--surface));
+}
+.arena-chat__card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.arena-chat__card-mark {
+  flex: 0 0 auto;
+  font-size: 0.86rem;
+  line-height: 1;
+}
+.arena-chat .arena-chat__card-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent-bronze-dark);
+}
+.arena-chat__card-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+.arena-chat .arena-chat__card-chef {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.arena-chat .arena-chat__card-vs {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.arena-chat .arena-chat__card-said {
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+.arena-chat .arena-chat__card-go {
+  align-self: flex-start;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent-bronze-dark);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+/* THE THREE KINDS ARE TOLD APART BY THEIR EDGE, not by a wash of colour over
+   the whole card: the log is read at a glance down its left side, which is
+   where the eye already is. */
+.arena-chat .arena-chat__card--challenge_issued { border-left-color: var(--accent-bronze); }
+.arena-chat .arena-chat__card--voting_open { border-left-color: var(--brand); }
+.arena-chat .arena-chat__card--battle_result { border-left-color: var(--arena-gold, var(--accent-bronze-dark)); }

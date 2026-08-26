@@ -495,6 +495,15 @@ def create_battle_event(
         is_public=is_public,
     )
 
+    # THE HALL SEES THE FIGHT'S OWN MOMENTS. P3, Owner 2026-08-26: the arena's
+    # chat carries cards for the events a spectator came for, and this is the
+    # one place every one of those events is already recorded, so the card is
+    # written from the event rather than from a second set of call sites that
+    # could drift out of step with it. arena_cards decides which types earn a
+    # card and never raises into this transition.
+    from .arena_cards import post_card_for_event
+    post_card_for_event(event)
+
     flag_on = getattr(settings, "CHEF_BATTLE_ENABLED", False)
     if publish_to_news and flag_on:
         event_key = f"chef_battle:{event.pk}"
@@ -1268,6 +1277,25 @@ def reveal_entries_if_ready(battle: Battle) -> None:
         locked.entries.filter(is_revealed=False).update(is_revealed=True)
         locked.status = target
         locked.save(update_fields=["status", "updated_at"])
+        # THE MOMENT VOTING OPENS HAD NO EVENT OF ITS OWN, which is why P3
+        # needed one written rather than mapped: BattleEvent has carried a
+        # BATTLE_REVEALED type since the model was drawn and nothing had ever
+        # emitted it - checked by grepping every call site before adding this,
+        # rather than assuming the type meant the transition was recorded.
+        # This is the transition, under the same lock that makes it, so the
+        # event cannot exist for a battle that did not advance. Not published
+        # to the news feed: the hall is being told, not the whole site.
+        if target == Battle.Status.VOTING:
+            create_battle_event(
+                event_type=BattleEvent.EventType.BATTLE_REVEALED,
+                battle=locked,
+                actor=locked.challenger,
+                target=locked.opponent,
+                message=(
+                    f"Voting is open: {locked.challenger.name} against "
+                    f"{locked.opponent.name}."
+                ),
+            )
         # The caller keeps its own instance (and its cached authors); it is
         # told the authoritative status, the same contract T01 settled.
         battle.status = target

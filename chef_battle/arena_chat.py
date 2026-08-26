@@ -32,6 +32,7 @@ import math
 
 from django.db import models
 
+from chef_battle.arena_cards import card_payload
 from chef_battle.selectors import get_arena_geometry
 
 # The Owner's numbers. Three cells along the ring, three rings across.
@@ -464,6 +465,12 @@ def private_lines(messages, viewer=None) -> list[dict]:
             # Only a moderator is ever handed a hidden line; for everyone else
             # this is always false, because the row never reaches them at all.
             "hidden": message.is_hidden,
+            # "" for a spoken line, which is what every row written before P3
+            # carries and what the renderer's own default already expected.
+            # Always "" in a private room - a card is an announcement to the
+            # hall and is never written into a conversation - but the key is
+            # sent so both feeds hand the renderer the same shape.
+            "kind": message.kind,
         }
         if message.speaker_id not in blocked_ids:
             row["body"] = message.body
@@ -513,7 +520,12 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
         # ordinary chat (2026-08-24) and this is the one exception it needs to
         # stay useful. Direct messages will bypass it too, for the same reason:
         # they are not spoken across a room at all.
-        heard = is_admin or can_hear(
+        # A CARD IS HEARD EVERYWHERE, for the same reason an Admin is. Reach is
+        # the rule for people talking among themselves in the stands; the
+        # fight's own moments are not that conversation, and a result card only
+        # three rows of seats could read would be a worse announcement than no
+        # announcement at all.
+        heard = is_admin or bool(message.kind) or can_hear(
             message.ring_index, message.seat_index, listener_ring, listener_cell,
         )
         tags = tags_by_author.get(message.speaker_id) or {}
@@ -542,7 +554,16 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
             # Only a moderator is ever handed a hidden line; for everyone else
             # this is always false, because the row never reaches them at all.
             "hidden": message.is_hidden,
+            # "" for a spoken line, which is what every row written before P3
+            # carries and what the renderer's own dispatch already defaults to.
+            "kind": message.kind,
         }
+        # A CARD'S FACTS COME FROM THE BATTLE, not from the chat row. The row
+        # keeps the sentence so the log reads with no join; everything the card
+        # states about the fight - who, against whom, who won, where to go - is
+        # read off the event and the battle it points at.
+        if message.kind:
+            row["card"] = card_payload(message)
         # The line this one answers, as a short quote. One level: a reply
         # carries its parent's name and a preview, and the parent's own parent
         # is not this reader's problem.

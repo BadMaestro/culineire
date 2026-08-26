@@ -23267,3 +23267,148 @@ class ArenaNextBoardClockTests(TestCase):
         )
         centred = css.count(".arena-next-board:has(.arena-next-board__empty)")
         self.assertGreaterEqual(centred, 4)
+
+
+class ArenaEventCardTests(TestCase):
+    """P3 slice one: the fight's own moments appear in the hall's own log.
+
+    Three properties are pinned, and each is a way this could look right and be
+    wrong. A card must be written from a BattleEvent the game recorded rather
+    than from a second set of call sites, or the log will one day announce
+    something the battle did not do. A card must be HEARD everywhere, because
+    reach is the rule for people talking among themselves and a result only
+    three rows of seats can read is not an announcement. And a card must never
+    cost a battle its transition: it is written inside the same call that
+    records a battle changing state, so a broken card has to leave the state
+    change intact.
+    """
+
+    def setUp(self):
+        from .models import ArenaChatMessage, BattleEvent
+        self.ArenaChatMessage = ArenaChatMessage
+        self.BattleEvent = BattleEvent
+        User = get_user_model()
+        self.a = RecipeAuthor.objects.create(
+            name="Card Challenger", slug="card-challenger",
+            user=User.objects.create_user(username="card-a", password="pw"),
+        )
+        self.b = RecipeAuthor.objects.create(
+            name="Card Opponent", slug="card-opponent",
+            user=User.objects.create_user(username="card-b", password="pw"),
+        )
+
+    def _battle(self, theme, status):
+        from .models import Battle
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme=theme, status=status,
+            start_time=now - timezone.timedelta(hours=1),
+            submission_deadline=now - timezone.timedelta(minutes=30),
+            end_time=now + timezone.timedelta(hours=1),
+        )
+
+    def _event(self, event_type, battle=None, actor=None, message="x"):
+        from .services import create_battle_event
+        return create_battle_event(
+            event_type=event_type, battle=battle, actor=actor or self.a,
+            message=message,
+        )
+
+    def test_a_challenge_event_writes_one_card_and_an_ignored_type_writes_none(self):
+        from .models import Battle
+        battle = self._battle("Cards", Battle.Status.VOTING)
+        self._event(self.BattleEvent.EventType.CHALLENGE_CREATED, battle=battle)
+        cards = self.ArenaChatMessage.objects.filter(
+            kind=self.ArenaChatMessage.Kind.CHALLENGE_ISSUED
+        )
+        self.assertEqual(cards.count(), 1)
+        self.assertEqual(cards.first().event.event_type, "challenge_created")
+
+        # A type the hall is not shown writes nothing at all - the log is not a
+        # second copy of the event table.
+        before = self.ArenaChatMessage.objects.count()
+        self._event(self.BattleEvent.EventType.RANK_PROMOTED, battle=battle)
+        self.assertEqual(self.ArenaChatMessage.objects.count(), before)
+
+    def test_a_card_is_heard_from_every_seat_and_a_spoken_line_is_not(self):
+        from .arena_chat import audible_lines
+        from .models import Battle
+        battle = self._battle("Reach", Battle.Status.VOTING)
+        self._event(self.BattleEvent.EventType.CHALLENGE_CREATED, battle=battle)
+        spoken = self.ArenaChatMessage.objects.create(
+            battle=battle, speaker=self.a, display_name=self.a.name,
+            body="only my neighbours hear this", ring_index=9, seat_index=1,
+        )
+        rows = list(self.ArenaChatMessage.objects.order_by("id"))
+        # A listener far away from seat (9, 1): the spoken line must arrive
+        # without its words, the card must arrive with everything.
+        served = audible_lines((9, 40), rows, viewer=self.b)
+        by_id = {r["id"]: r for r in served}
+        card = [r for r in served if r["kind"]][0]
+        self.assertTrue(card["heard"])
+        self.assertIn("card", card)
+        self.assertEqual(card["card"]["challenger"], "Card Challenger")
+        self.assertFalse(by_id[spoken.pk]["heard"])
+        self.assertNotIn("body", by_id[spoken.pk])
+
+    def test_voting_open_has_an_event_of_its_own_now_that_the_hall_needs_one(self):
+        """BattleEvent has carried BATTLE_REVEALED since the model was drawn and
+        nothing ever emitted it. The transition is real; only the record was
+        missing."""
+        from .models import Battle, BattleEntry
+        # ACTIVE and not MENU_LOCKED: a reveal out of MENU_LOCKED goes to
+        # ACTIVE (combat), and VOTING is only ever reached from ACTIVE with
+        # both dishes in. Read out of the function rather than guessed - the
+        # first draft of this test used MENU_LOCKED and skipped itself, which
+        # is a test that proves nothing.
+        battle = self._battle("Reveal", Battle.Status.ACTIVE)
+        for author in (self.a, self.b):
+            BattleEntry.objects.create(
+                battle=battle, author=author, battle_statement="s",
+                dish_submitted_at=timezone.now(),
+            )
+        from .services import reveal_entries_if_ready
+        reveal_entries_if_ready(battle)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.VOTING)
+        self.assertTrue(
+            self.BattleEvent.objects.filter(
+                battle=battle,
+                event_type=self.BattleEvent.EventType.BATTLE_REVEALED,
+            ).exists()
+        )
+        self.assertEqual(
+            self.ArenaChatMessage.objects.filter(
+                kind=self.ArenaChatMessage.Kind.VOTING_OPEN
+            ).count(),
+            1,
+        )
+
+    def test_a_failing_card_never_takes_the_battle_event_down_with_it(self):
+        from unittest import mock
+        from .models import Battle
+        battle = self._battle("Safety", Battle.Status.VOTING)
+        with mock.patch(
+            "chef_battle.arena_cards.ArenaChatMessage.objects.create",
+            side_effect=RuntimeError("card exploded"),
+        ):
+            with self.assertLogs("chef_battle.arena_cards", level="ERROR"):
+                event = self._event(
+                    self.BattleEvent.EventType.CHALLENGE_CREATED, battle=battle
+                )
+        self.assertIsNotNone(event.pk)
+        self.assertEqual(self.ArenaChatMessage.objects.count(), 0)
+
+    def test_the_renderer_is_registered_for_every_kind_the_server_can_send(self):
+        """A kind with no renderer falls back to the text renderer and prints a
+        card as if somebody had said it."""
+        js = (Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js").read_text(
+            encoding="utf-8"
+        )
+        for kind, _label in self.ArenaChatMessage.Kind.choices:
+            if not kind:
+                continue
+            self.assertIn(
+                "MESSAGE_RENDERERS." + kind + " =", js,
+                "%s has no renderer registered" % kind,
+            )

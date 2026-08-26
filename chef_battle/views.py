@@ -4572,7 +4572,15 @@ def arena_chat_feed(request):
         # speaker__user because the role that colours a line (admin vs ordinary)
         # is read off the speaker's user account, and a feed page is up to
         # ARENA_CHAT_PAGE rows - one query, not sixty.
-        .select_related("speaker", "speaker__user", "reply_to")
+        # battle and event travel with the row because P3's cards read the
+        # battle's own facts (its two chefs, its winner, its URL) - without
+        # these a page of cards is four extra queries each, on an endpoint the
+        # hall hits every four seconds.
+        .select_related(
+            "speaker", "speaker__user", "reply_to",
+            "event", "battle", "battle__challenger", "battle__opponent",
+            "battle__winner",
+        )
         .order_by("id")
     )
     if not sees_hidden:
