@@ -1,5 +1,42 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1308",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "AC-BTN - one button family in the chat",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner sent four screenshots of the composer's filled bronze "
+            "circles and asked for every other button in the chat to look like "
+            "them. He chose the widest of the three scopes Bolt had offered: "
+            "EVERYTHING CLICKABLE. The model - .arena-chat__composer button, a "
+            "bronze/bronze-dark gradient, white ink, scale(.94) on press - is "
+            "untouched; one appended block brings the rest to it. SHAPE "
+            "FOLLOWS THE CONTROL, IDENTITY DOES NOT, and that is not a "
+            "softening of the instruction but what keeps each control able to "
+            "do its job: round icon controls are filled exactly like the "
+            "model; a tab is filled when SELECTED and bronze-outlined when not, "
+            "because a row of identical filled tabs no longer says which one "
+            "you are on; list rows carry bronze ink and fill under the pointer, "
+            "since a wall of solid rows is unreadable and the text is the "
+            "content; and content tiles - emoji, stickers, GIF thumbnails and "
+            "a poll's percentage bar - get the bronze frame and the press only, "
+            "because a gradient over them would cover the very thing being "
+            "clicked. The two destructive rows in the action menu keep their "
+            "warning colour rather than joining the bronze. ONE THING THE "
+            "INVENTORY FOUND: the composer's own action buttons were already "
+            "filled - .arena-chat__composer button is a DESCENDANT selector, so "
+            "it reaches them despite their own background:none - but their icon "
+            "was still --arena-muted, a grey read against bronze. They now carry "
+            "the family's white ink. THE PANEL OUTLINE IS NOT TOUCHED: he "
+            "answered 'пока не меняй' on that half the same day, so the shared "
+            "six-panel border stands. Bolt's inventory in Carpet #3546 was used "
+            "as given rather than re-derived. Two-class prefix throughout for "
+            "the blanket-reset reason, no !important. 75 tests green, including "
+            "the theme contrast guard."
+        ),
+    },
+    {
         "version": "2.5.1305",
         "date": "2026-08-26",
         "commit": "pending",

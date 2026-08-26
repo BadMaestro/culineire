@@ -11336,3 +11336,204 @@ button.arena-chat__poll-option:hover {
 @media (prefers-reduced-motion: reduce) {
   .arena-effect { display: none; }
 }
+
+/* ==========================================================================
+   AC-BTN - ONE BUTTON FAMILY IN THE CHAT. Owner, 2026-08-26, four screenshots:
+   "вот это пример кнопок в нашем чате - такими должны быть все остальные".
+   Scope chosen by him: EVERYTHING CLICKABLE.
+
+   THE MODEL is .arena-chat__composer button (:2272, inside the desktop
+   container query) - a bronze->bronze-dark gradient, white ink, no border,
+   scale(.94) on press. That rule is left exactly as it is; this block brings
+   everything else to it.
+
+   SHAPE FOLLOWS THE CONTROL, IDENTITY DOES NOT. Every control here gets the
+   same bronze, the same press and the same focus ring. What differs is how
+   much of it is filled, and that is not a softening of his instruction - it
+   is what keeps each control able to do its job:
+     - icons and round controls  -> filled, exactly like the model
+     - tabs                      -> filled when SELECTED, bronze outline when
+                                    not, because a row of identical filled
+                                    tabs no longer says which one you are on
+     - list rows                 -> bronze ink, filling on hover and focus; a
+                                    wall of solid rows is unreadable and the
+                                    text is the content
+     - content tiles             -> bronze frame and press only. An emoji, a
+                                    sticker, a GIF thumbnail and a poll's
+                                    percentage bar ARE the button's face; a
+                                    gradient over them covers the very thing
+                                    being clicked.
+
+   THE PANEL OUTLINE IS NOT TOUCHED - he answered "пока не меняй" on that half
+   the same day. It remains the shared six-panel border.
+
+   Two-class prefix throughout, because `.arena-chat * { color: inherit }` is a
+   shared reset that ties with any bare single-class colour rule and wins on
+   source order. Never !important.
+   ========================================================================== */
+
+.arena-chat {
+  --chat-btn-fill: linear-gradient(135deg, var(--accent-bronze), var(--accent-bronze-dark));
+  --chat-btn-ink: #fff;
+  --chat-btn-edge: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  --chat-btn-shadow: 0 .15rem .4rem color-mix(in srgb, var(--accent-bronze-dark) 45%, transparent);
+}
+
+/* ---- 1. FILLED: the round icon controls, the model's own shape ---------- */
+.arena-chat .arena-chat__more,
+.arena-chat .arena-chat__attachment-remove,
+.arena-chat .arena-chat__replying-cancel,
+.arena-chat .arena-chat__room-leave,
+.arena-chat .arena-chat__media-play,
+.arena-chat .arena-chat__quick-react-btn,
+.arena-chat .arena-chat__sheet-react,
+.arena-chat .arena-chat__react {
+  border: 0;
+  background: var(--chat-btn-fill);
+  color: var(--chat-btn-ink);
+  box-shadow: var(--chat-btn-shadow);
+  transition: box-shadow .1s ease, transform .1s ease;
+}
+/* The reaction glyphs are emoji: their own colour is the drawing, and forcing
+   white ink onto them would flatten them to nothing. */
+.arena-chat .arena-chat__quick-react-btn,
+.arena-chat .arena-chat__sheet-react,
+.arena-chat .arena-chat__react { color: inherit; }
+
+/* ---- 2. TABS: filled when selected, outlined when not ------------------- */
+.arena-chat .arena-chat__tab,
+.arena-chat .arena-chat__emoji-tab {
+  border: 1px solid var(--chat-btn-edge);
+  color: var(--accent-bronze-dark);
+  transition: box-shadow .1s ease, transform .1s ease;
+}
+.arena-chat .arena-chat__tab[aria-selected="true"],
+.arena-chat .arena-chat__emoji-tab[aria-selected="true"],
+.arena-chat .arena-chat__emoji-tab.is-on {
+  border-color: transparent;
+  background: var(--chat-btn-fill);
+  color: var(--chat-btn-ink);
+  box-shadow: var(--chat-btn-shadow);
+}
+
+/* ---- 3. PILLS AND WIDE ACTIONS: filled, like the send button ------------ */
+.arena-chat .arena-chat__poll-ask,
+.arena-chat .arena-chat__gif-upload,
+.arena-chat .arena-chat__show,
+.arena-chat .arena-chat__rules-toggle {
+  border: 0;
+  background: var(--chat-btn-fill);
+  color: var(--chat-btn-ink);
+  box-shadow: var(--chat-btn-shadow);
+  transition: box-shadow .1s ease, transform .1s ease;
+}
+
+/* ---- 4. LIST ROWS: bronze ink, filling under the pointer ---------------- */
+.arena-chat .arena-chat__action,
+.arena-chat .arena-chat__dm-row,
+.arena-chat .arena-chat__user-row,
+.arena-chat .arena-chat__mention-option {
+  border: 1px solid transparent;
+  color: var(--accent-bronze-dark);
+  transition: background .1s ease, color .1s ease, transform .1s ease;
+}
+.arena-chat .arena-chat__action:hover,
+.arena-chat .arena-chat__dm-row:hover,
+.arena-chat .arena-chat__user-row:hover,
+.arena-chat .arena-chat__mention-option:hover,
+.arena-chat .arena-chat__mention-option[aria-selected="true"],
+.arena-chat .arena-chat__action:focus-visible,
+.arena-chat .arena-chat__dm-row:focus-visible,
+.arena-chat .arena-chat__user-row:focus-visible,
+.arena-chat .arena-chat__mention-option:focus-visible {
+  background: var(--chat-btn-fill);
+  color: var(--chat-btn-ink);
+}
+/* Leaving the room and reporting are the two destructive rows in that menu;
+   they keep their warning colour rather than joining the bronze. */
+.arena-chat .arena-chat__action--danger { color: var(--danger, #a8321f); }
+.arena-chat .arena-chat__action--danger:hover,
+.arena-chat .arena-chat__action--danger:focus-visible {
+  background: var(--danger, #a8321f);
+  color: #fff;
+}
+
+/* ---- 5. CONTENT TILES: frame and press only ---------------------------- */
+.arena-chat .arena-chat__emoji-btn,
+.arena-chat .arena-chat__gif-tile,
+.arena-chat .arena-chat__poll-option {
+  border: 1px solid var(--chat-btn-edge);
+  transition: border-color .1s ease, transform .1s ease;
+}
+.arena-chat .arena-chat__emoji-btn:hover,
+.arena-chat .arena-chat__gif-tile:hover,
+.arena-chat button.arena-chat__poll-option:hover {
+  border-color: var(--accent-bronze-dark);
+}
+
+/* ---- 6. ONE PRESS AND ONE FOCUS RING FOR ALL OF THEM ------------------- */
+.arena-chat .arena-chat__more:active,
+.arena-chat .arena-chat__attachment-remove:active,
+.arena-chat .arena-chat__replying-cancel:active,
+.arena-chat .arena-chat__room-leave:active,
+.arena-chat .arena-chat__media-play:active,
+.arena-chat .arena-chat__quick-react-btn:active,
+.arena-chat .arena-chat__sheet-react:active,
+.arena-chat .arena-chat__react:active,
+.arena-chat .arena-chat__tab:active,
+.arena-chat .arena-chat__emoji-tab:active,
+.arena-chat .arena-chat__poll-ask:active,
+.arena-chat .arena-chat__gif-upload:active,
+.arena-chat .arena-chat__show:active,
+.arena-chat .arena-chat__rules-toggle:active,
+.arena-chat .arena-chat__action:active,
+.arena-chat .arena-chat__dm-row:active,
+.arena-chat .arena-chat__user-row:active,
+.arena-chat .arena-chat__emoji-btn:active,
+.arena-chat .arena-chat__gif-tile:active,
+.arena-chat button.arena-chat__poll-option:active {
+  transform: scale(.94);
+}
+.arena-chat .arena-chat__more:focus-visible,
+.arena-chat .arena-chat__attachment-remove:focus-visible,
+.arena-chat .arena-chat__replying-cancel:focus-visible,
+.arena-chat .arena-chat__room-leave:focus-visible,
+.arena-chat .arena-chat__media-play:focus-visible,
+.arena-chat .arena-chat__quick-react-btn:focus-visible,
+.arena-chat .arena-chat__sheet-react:focus-visible,
+.arena-chat .arena-chat__react:focus-visible,
+.arena-chat .arena-chat__tab:focus-visible,
+.arena-chat .arena-chat__emoji-tab:focus-visible,
+.arena-chat .arena-chat__poll-ask:focus-visible,
+.arena-chat .arena-chat__gif-upload:focus-visible,
+.arena-chat .arena-chat__show:focus-visible,
+.arena-chat .arena-chat__rules-toggle:focus-visible,
+.arena-chat .arena-chat__emoji-btn:focus-visible,
+.arena-chat .arena-chat__gif-tile:focus-visible,
+.arena-chat button.arena-chat__poll-option:focus-visible {
+  outline: 2px solid var(--accent-bronze-dark);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-chat button { transition: none; }
+  .arena-chat button:active { transform: none; }
+}
+
+/* ---- 7. THE MEDIA VIEWER lives on the BODY, outside .arena-chat --------- */
+.arena-chat__viewer-report {
+  border: 0;
+  background: linear-gradient(135deg, var(--accent-bronze), var(--accent-bronze-dark));
+  color: #fff;
+}
+.arena-chat__viewer-nav:active,
+.arena-chat__viewer-close:active,
+.arena-chat__viewer-report:active { transform: scale(.94); }
+
+/* The composer's own action buttons were ALREADY filled - .arena-chat__composer
+   button is a descendant selector, so it reaches them despite their own
+   `background: none` - but their icon stayed --arena-muted, a grey read against
+   bronze. They are part of the family and now carry the family's ink. */
+.arena-chat .arena-chat__composer-action,
+.arena-chat .arena-chat__composer-action:hover,
+.arena-chat .arena-chat__composer-action:focus-visible { color: var(--chat-btn-ink); }
+.arena-chat .arena-chat__composer-action:active { transform: scale(.94); }
