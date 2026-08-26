@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1311",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "The floor's caption moves above the frame instead of printing across the octagon's crown",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner, with a photograph of the octagon's apex: the three caption lines were printing over the top of the octagon and across the sponsor plate on its crown. 'Вынести эти надписи выше над контейнером в котором сейчас октагон - а сам контейнер с октагоном слегка опустить вниз.' WHY THEY WERE ON TOP OF IT, which the screenshot could not show: the caption is a grid item of the floor at grid-row 3 and the stage is grid-row 3 / -1 in the same column - the two SHARE a cell by design, so the caption has always been drawn over the scene rather than above it. Measured before: caption 299.38x53.06 with its top at 286.28, which is the frame's own top to within a pixel. THE OCTAGON IS NOT TOUCHED - not its width share, not its seat, not the stage it is fitted into. Measured either side: 654.36x450.81 before and after, identical to the pixel; it simply starts 70.39px lower down the column with its container, which is the fall he asked for. The floor keeps its width and its aspect-ratio, so the scene is the same size. The caption is out of the shared cell and positioned against the floor's own box (bottom: 100%), so it follows the frame wherever the column puts it rather than being pinned to the page, and the horizontal nudge arena_page_layout.js publishes is kept in the same translate it always used. After: caption 416x53.06, 7.85px above the frame and 32.92px clear of the ribbon. Desktop only, inside min-width:901px - below that the caption is the phone's own composition (shorter margins at 640, no third line at all). Re-measured at 375: ZERO differences, caption still static, floor margin still 0. At 768 the same, by computed value. TWO METHOD NOTES. The dev server's service worker served the previous stylesheet through an unregister and a hard navigate both, and reported a change that had not happened - so the measurement moved to a static dump with the worker's registration stripped out of the HTML, where the numbers are the file's. And GreenBear shipped v2.5.1308 (one button family in the chat, from the Owner's brief I handed him) while this was in flight; both blocks are appends to the end of arena.css, both kept, brace count clean.",
+    },
+    {
         "version": "2.5.1308",
         "date": "2026-08-26",
         "commit": "pending",

@@ -11537,3 +11537,46 @@ button.arena-chat__poll-option:hover {
 .arena-chat .arena-chat__composer-action:hover,
 .arena-chat .arena-chat__composer-action:focus-visible { color: var(--chat-btn-ink); }
 .arena-chat .arena-chat__composer-action:active { transform: scale(.94); }
+/* ============================================================================
+ * THE FLOOR'S CAPTION MOVES ABOVE THE FRAME, AND THE FRAME COMES DOWN A LITTLE.
+ * Owner, 2026-08-26, with a photograph of the octagon's apex: the three lines
+ * were printing over the top of the octagon and across the sponsor plate on
+ * its crown. "Вынести эти надписи выше над контейнером в котором сейчас
+ * октагон - а сам контейнер с октагоном слегка опустить вниз."
+ *
+ * WHY THEY WERE ON TOP OF IT. The caption is a grid item of the floor at
+ * `grid-row: 3`, and the stage is `grid-row: 3 / -1` in the same column - the
+ * two share a cell by design, so the caption has always been drawn over the
+ * scene rather than above it. Measured before this: caption 299.38x53.06 with
+ * its top at 290.28, which is the frame's own top to within a pixel.
+ *
+ * THE OCTAGON ITSELF IS NOT TOUCHED - not its share, not its seat, not the
+ * stage it is fitted into. The floor keeps its aspect-ratio and its width, so
+ * the scene is the same size; it simply starts lower down the column, and the
+ * caption takes the room that opens above it.
+ *
+ * DESKTOP ONLY. Below 901px the caption is the phone's own composition -
+ * shorter margins at 640, no `em` line at all - and none of this can reach it.
+ * ========================================================================== */
+@media (min-width: 901px) {
+  /* One number for the whole move: the height the caption needs plus the drop
+     he asked for. Measured, the caption is 53px and the gap under it 8px, so
+     4.4rem leaves about nine pixels of deliberate extra fall. */
+  .arena-command-deck__floor { margin-top: var(--arena-caption-band, 4.4rem); }
+
+  /* Out of the shared cell and above the box. `bottom: 100%` is measured from
+     the floor's own padding edge, so the caption follows the frame wherever
+     the column puts it rather than being positioned against the page. The
+     horizontal nudge that arena_page_layout.js publishes is kept in the same
+     translate it always used - the caption still steps aside for a panel it
+     would otherwise run into. */
+  .arena-floor-caption {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 0.5rem);
+    translate: calc(-50% - var(--arena-caption-nudge-x, 0px));
+    width: min(26rem, 90%);
+    margin: 0;
+    text-align: center;
+  }
+}
