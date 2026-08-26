@@ -2190,8 +2190,8 @@
      here is reachable on a touch screen, which is what keeps the mobile
      chat exactly as it shipped. */
   .arena-chat__line {
-    gap: .1rem;
-    font-size: var(--chat-line-size, .72rem);
+    gap: .16rem;
+    font-size: var(--chat-line-size, .8rem);
   }
   /* COMFORTABLE loosens the rhythm without leaving the one-line shape - the
      Owner's density work stands, this is the reader's own second setting on
@@ -2232,17 +2232,103 @@
   .arena-chat__log { gap: .3rem; max-height: none; }
   .arena-chat__row { column-gap: .4rem; }
 
+  /* ==========================================================================
+     VISUAL RESCUE PASS - Owner's 44-part brief, 2026-08-26, with an approved
+     reference mock-up. "The problem is not missing functionality... the
+     chat must no longer look like a narrow chat widget next to the Arena."
+     Desktop only, inside this same gate the density work already uses -
+     nothing here is reachable on a touch screen, so mobile is untouched by
+     construction, not by a second set of overrides. Every rule that sets
+     `color` or relies on unset `border-color` carries the two-class
+     `.arena-chat .arena-chat__foo` prefix, because `.arena-chat *
+     { color: inherit; border-color: ...; }` is a real reset one media query
+     down (:2869) and a narrow-but-hovering window can still reach it.
+     ========================================================================== */
+
+  /* Panel surface: less cramped now the rail is wider. Border/background/
+     shadow stay inherited from the shared nine-panel rule (:486) - only
+     breathing room grows here, so that rule is never touched. */
+  .arena-chat {
+    padding: 1.05rem 1.1rem 1.1rem;
+    border-radius: 1.15rem;
+    gap: .65rem;
+  }
+
+  /* Header/tabs: comfortable click targets, not tiny pill tabs. The active
+     state itself (underline vs fill) is corrected separately, right after
+     the AC-BTN block below - this only grows the row. */
+  .arena-chat__tabs {
+    min-height: 2.7rem;
+    gap: 1.1rem;
+    padding-bottom: .4rem;
+  }
+  .arena-chat__tab {
+    min-height: 2rem;
+    padding: 0 .1rem;
+    font-size: .74rem;
+    letter-spacing: .03em;
+  }
+  .arena-chat__tab--icon { min-width: 2rem; }
+  .arena-chat__tab--icon .arena-ico { width: .95rem; }
+
+  /* Pinned Rules: quieter, per the brief - "secondary information, the
+     conversation remains the visual priority". The toggle's own fill is
+     corrected separately below (AC-BTN made it a bronze pill); this softens
+     the card it sits in. */
+  .arena-chat .arena-chat__rules {
+    border-color: color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+    background: color-mix(in srgb, var(--accent-bronze) 4%, transparent);
+  }
+  .arena-chat__rules-toggle { min-height: 2rem; padding: .4rem .65rem; font-size: .7rem; }
+  .arena-chat__rules-body { padding: 0 .7rem .6rem 2.2rem; font-size: .68rem; line-height: 1.55; }
+
+  /* Event cards: ONE visual language for all nine kinds, per the Owner's
+     ruling on the mock-up's "TIPPED 105 TOKENS" row - a flat full-width
+     pale-gold highlight, not a bordered box floating in the log. The base
+     rule (:10867) and its eight per-kind border-left-color declarations are
+     left exactly as they are for the narrow/mobile presentation; this
+     two-class override beats them on specificity alone regardless of
+     source order, so nothing there needs to move or be deleted. Poll's
+     internal bar/option/vote markup is untouched - only this outer shell. */
+  .arena-chat .arena-chat__card {
+    width: 100%;
+    margin: .35rem 0;
+    padding: .55rem .15rem;
+    border: 0;
+    border-radius: .3rem;
+    background: color-mix(in srgb, var(--arena-gold, var(--accent-bronze)) 12%, transparent);
+  }
+  .arena-chat .arena-chat__card-mark { font-size: .95rem; }
+  /* card-title/chef/vs/said/go/shot/count: NOT here. Their selectors tie in
+     specificity with the later, unconditional base rules at :10987-11051,
+     so a copy placed inside this container query loses to source order
+     regardless of the query - verified by rendering, not assumed. The
+     working desktop override for all six lives after the base card block,
+     at :11066, where it can actually win. */
+
+  /* Per-message reaction chips: proportional to the larger message text. */
+  .arena-chat .arena-chat__react { font-size: .66rem; min-height: 1.25rem; padding: 0 .4rem; }
+
+
   /* Reaction summary strip - real totals summed from the loaded log (see
      sumReactions() in arena_chat.js), shown above the composer only when at
      least one reaction exists anywhere in view. Passive chips, not buttons:
      nothing here is a control, so there is no hover/press state to design.
      Desktop only, per this task's scope - see the narrow query's base
      suppression above. */
-  .arena-chat__reaction-summary {
+  /* CROWD REACTION BAR - the brief's "bridge chat to Arena crowd" strip.
+     A top divider and a real height, so it reads as a horizontal control
+     surface rather than six tiny buttons stacked with nothing to say they
+     belong together. */
+  .arena-chat .arena-chat__reaction-summary {
     display: flex;
     flex: 0 0 auto;
+    align-items: center;
     flex-wrap: wrap;
-    gap: .3rem;
+    gap: .5rem;
+    min-height: 2.85rem;
+    padding-top: .4rem;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 20%, transparent);
   }
   .arena-chat__reaction-summary[hidden] { display: none; }
   .arena-chat__reaction-total {
@@ -2258,6 +2344,7 @@
     font-variant-numeric: tabular-nums;
   }
   .arena-chat .arena-chat__reaction-total { color: var(--arena-ink); }
+  .arena-chat .arena-chat__reaction-total { font-size: .7rem; min-height: 1.4rem; padding: 0 .55rem; }
 
   /* Composer, enlarged - Owner's visual brief, 2026-08-25. */
   .arena-chat__composer input {
@@ -2269,7 +2356,7 @@
      on the narrow presentation - a filled bronze->bronze-dark gradient, the
      site's own existing gold tokens (base.css --accent-bronze/-dark), not
      an invented palette. */
-  .arena-chat__composer button {
+  .arena-chat__composer button:not(.arena-chat__composer-action) {
     width: 2.3rem;
     height: 2.3rem;
     border: 0;
@@ -2278,21 +2365,32 @@
     box-shadow: 0 .15rem .4rem color-mix(in srgb, var(--accent-bronze-dark) 45%, transparent);
     transition: box-shadow .1s ease, transform .1s ease;
   }
-  .arena-chat__composer button:hover {
+  .arena-chat__composer button:not(.arena-chat__composer-action):hover {
     border-color: transparent;
     box-shadow: 0 .2rem .55rem color-mix(in srgb, var(--accent-bronze-dark) 55%, transparent);
   }
-  .arena-chat__composer button:active { transform: scale(.94); }
-  .arena-chat__composer button:focus-visible {
+  .arena-chat__composer button:not(.arena-chat__composer-action):active { transform: scale(.94); }
+  .arena-chat__composer button:not(.arena-chat__composer-action):focus-visible {
     border-color: transparent;
     outline: 2px solid var(--accent-bronze-dark);
     outline-offset: 2px;
   }
-  .arena-chat__composer button:disabled {
+  .arena-chat__composer button:not(.arena-chat__composer-action):disabled {
     background: color-mix(in srgb, var(--accent-bronze) 35%, var(--surface));
     box-shadow: none;
   }
   .arena-chat__composer .arena-ico { width: .95rem; margin: 0; }
+  /* Composer ACTION icons (emoji/attachment/poll/gif): neutral and
+     secondary, not the Send button's own visual weight - Owner, same day
+     as AC-BTN, newer brief: "REMOVE the current visual language of tiny
+     dark-brown circular buttons. Replace with sophisticated neutral
+     action controls... Gold should be an accent." Grown to a comfortable
+     hit area alongside it. */
+  .arena-chat__composer .arena-chat__composer-action {
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  }
  }
 }
 /* Too far away to hear. The speaker is visibly talking and that is all this
@@ -10957,6 +11055,19 @@ body.page--arena.is-zoom-locked {
   font-variant-numeric: tabular-nums;
   color: var(--accent-bronze-dark);
 }
+
+/* Desktop text bump for the six card sub-elements whose specificity ties
+   with the block above - see the note at the container-query site
+   (:2301) for why this can't live there. */
+@media (min-width: 901px) {
+  .arena-chat .arena-chat__card-title { font-size: .66rem; }
+  .arena-chat .arena-chat__card-chef,
+  .arena-chat .arena-chat__card-shot b { font-size: .8rem; }
+  .arena-chat .arena-chat__card-vs { font-size: .64rem; }
+  .arena-chat .arena-chat__card-said { font-size: .76rem; }
+  .arena-chat .arena-chat__card-go { font-size: .66rem; }
+  .arena-chat .arena-chat__card-count { font-size: .6rem; }
+}
 .arena-chat .arena-chat__card--ingredient_attack { border-left-color: var(--arena-rank-1, var(--accent-bronze-dark)); }
 .arena-chat .arena-chat__card--defence { border-left-color: var(--arena-rank-6, var(--accent-bronze)); }
 
@@ -11400,7 +11511,11 @@ button.arena-chat__poll-option:hover {
 .arena-chat .arena-chat__sheet-react,
 .arena-chat .arena-chat__react { color: inherit; }
 
-/* ---- 2. TABS: filled when selected, outlined when not ------------------- */
+/* ---- 2. TABS: filled when selected, outlined when not - AC-BTN's
+   original, global ruling. A DESKTOP-ONLY correction to
+   .arena-chat__tab (not .arena-chat__emoji-tab) lives later in this
+   file behind @media (min-width: 901px) - see the note there for why
+   mobile keeps this exact fill and desktop does not. --------------------- */
 .arena-chat .arena-chat__tab,
 .arena-chat .arena-chat__emoji-tab {
   border: 1px solid var(--chat-btn-edge);
@@ -11427,6 +11542,9 @@ button.arena-chat__poll-option:hover {
   box-shadow: var(--chat-btn-shadow);
   transition: box-shadow .1s ease, transform .1s ease;
 }
+/* A DESKTOP-ONLY correction to .arena-chat__rules-toggle also lives
+   later in this file, behind the same @media gate - see the note
+   there. */
 
 /* ---- 4. LIST ROWS: bronze ink, filling under the pointer ---------------- */
 .arena-chat .arena-chat__action,
@@ -11529,15 +11647,87 @@ button.arena-chat__poll-option:hover {
 .arena-chat__viewer-close:active,
 .arena-chat__viewer-report:active { transform: scale(.94); }
 
+
 /* The composer's own action buttons were ALREADY filled - .arena-chat__composer
    button is a descendant selector, so it reaches them despite their own
    `background: none` - but their icon stayed --arena-muted, a grey read against
-   bronze. They are part of the family and now carry the family's ink. */
+   bronze. They are part of the family and now carry the family's ink. A
+   DESKTOP-ONLY correction lives later in this file, behind the same
+   @media gate as the tabs/rules-toggle corrections above - see the note
+   there. */
 .arena-chat .arena-chat__composer-action,
 .arena-chat .arena-chat__composer-action:hover,
 .arena-chat .arena-chat__composer-action:focus-visible { color: var(--chat-btn-ink); }
 .arena-chat .arena-chat__composer-action:active { transform: scale(.94); }
-/* ============================================================================
+
+/* ==========================================================================
+   VISUAL RESCUE PASS - three DESKTOP-ONLY amendments to AC-BTN, above.
+   Owner, SAME DAY as AC-BTN, in a separate and more specific 44-part
+   visual brief with an approved mock-up: pinned rules "must become
+   quieter... do NOT use a large dark brown title bar"; active tab
+   "gold/bronze underline... do NOT fill the entire active tab with dark
+   brown"; composer action buttons "REMOVE the current visual language of
+   tiny dark-brown circular buttons... Gold should be an accent."
+
+   GATED ON @media (min-width: 901px), DELIBERATELY NOT the container
+   query the rest of this pass uses. AC-BTN's own ruling was explicit and
+   global - "such should be all buttons", mobile included - and this
+   task's brief is equally explicit the other way: "DO NOT MODIFY MOBILE
+   CHAT FILES... We will intentionally port the approved desktop visual
+   system to mobile in a separate task after desktop approval." A first
+   attempt edited AC-BTN's declarations in place; rendering at 1200px
+   caught the underline showing on the narrow/mobile-shaped branch too,
+   because the edit was unconditional in code even though it was meant to
+   be desktop-only in intent. This block is what fixes that - AC-BTN
+   above is restored to its original, global text, and only this gated
+   copy differs from it, so a phone renders AC-BTN's own filled tabs and
+   pills exactly as it did before today.
+   ========================================================================== */
+@media (min-width: 901px) {
+  /* Tabs: underline, not fill - color values are unchanged from base
+     (:1873/:1876 - --arena-muted idle, --arena-ink selected), only the
+     shape changes. */
+  .arena-chat .arena-chat__tab {
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--arena-muted);
+    border-radius: 0;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .arena-chat .arena-chat__tab[aria-selected="true"] {
+    border-bottom-color: var(--accent-bronze-dark);
+    background: none;
+    color: var(--arena-ink);
+    box-shadow: none;
+  }
+
+  /* Pinned Rules toggle: quiet again, plain ink on the rules card's own
+     light tint - not a bronze fill. */
+  .arena-chat .arena-chat__rules-toggle {
+    background: none;
+    box-shadow: none;
+    color: var(--arena-ink);
+  }
+  .arena-chat .arena-chat__rules-toggle .arena-ico { color: var(--accent-bronze); }
+
+  /* Composer action icons: neutral and secondary, not the Send button's
+     own visual weight. Send is a bare <button> (arena.html:693, no
+     .arena-chat__composer-action class) and is untouched by this or any
+     other rule in this block. */
+  .arena-chat .arena-chat__composer-action {
+    background: none;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+    color: var(--accent-bronze-dark);
+    box-shadow: none;
+  }
+  .arena-chat .arena-chat__composer-action:hover,
+  .arena-chat .arena-chat__composer-action:focus-visible {
+    background: color-mix(in srgb, var(--accent-bronze) 14%, transparent);
+    border-color: var(--accent-bronze);
+    color: var(--accent-bronze-dark);
+  }
+}/* ============================================================================
  * THE FLOOR'S CAPTION SITS ABOVE THE FRAME, ON EVERY SCREEN.
  * Owner, 2026-08-26, first with a photograph of the octagon's apex on the
  * desktop - "вынести эти надписи выше над контейнером в котором сейчас

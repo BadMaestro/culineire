@@ -1,5 +1,68 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1317",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "Desktop visual rescue pass - the chat stops reading as a widget bolted onto the Arena",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "A 44-part brief with an approved mock-up, same day as AC-BTN: "
+            "'the problem is not missing functionality... the chat must no "
+            "longer look like a narrow chat widget next to the Arena.' "
+            "Desktop-only, CSS/HTML restyle, no feature or backend change. "
+            "PANEL SURFACE grew (padding, radius, gap) now the rail has "
+            "room to use. TABS became an underline, not a filled pill - "
+            "AC-BTN's own ruling from earlier the same day was explicit and "
+            "global ('such should be all buttons'), and this brief is "
+            "explicit the other way for exactly three controls it names by "
+            "their current look: 'do NOT fill the entire active tab with "
+            "dark brown', Pinned Rules 'do NOT use a large dark brown "
+            "title bar', composer icons 'REMOVE the tiny dark-brown "
+            "circular buttons... gold should be an accent.' EVENT CARDS - "
+            "all nine kinds - became one flat full-width pale-gold row, "
+            "replacing the bordered boxed-card look, per the Owner's "
+            "explicit ruling on the mock-up's TIPPED-row treatment; the "
+            "eight per-kind border colours are untouched at their own "
+            "declarations so the is-hiding-* filters keep the class names "
+            "they select on. MESSAGE TEXT, reaction chips and the room-wide "
+            "reaction-summary strip (now with a real top divider and "
+            "height) grew to match. THE OCTAGON-PRIORITY RULING FROM "
+            "2026-08-25 STANDS: put to the Owner directly today, he "
+            "confirmed the Octagon's width never moves without his "
+            "explicit order, so the chat still narrows to exactly 240px "
+            "between 901 and 1280px viewport width - only what is inside "
+            "that panel gets the new language. MOBILE IS UNTOUCHED, and "
+            "that took two real corrections found only by rendering, not "
+            "by reading the diff. First: six card sub-element font-size "
+            "overrides were silently losing to a later, unconditional base "
+            "rule of identical selector specificity - a container query "
+            "adds no specificity, so source order alone decided, and mine "
+            "lost; moved to a plain min-width:901px block placed after the "
+            "base declarations, where it actually wins. Second, and worse: "
+            "the tab/rules-toggle/composer-action correction was first "
+            "written by editing AC-BTN's declarations in place, which made "
+            "it desktop-only in INTENT but global in CODE - a phone showed "
+            "the new underline too, caught at 1200px and confirmed absent "
+            "at 800px and 375px only after AC-BTN's original text was "
+            "restored and the correction re-applied behind its own "
+            "min-width:901px gate. AN13's own guard (no property set twice "
+            "for one selector) was run before and after every change with "
+            "a full diff against the pre-session duplicate list, not just "
+            "a pass/fail read - it stayed byte-identical to that list "
+            "throughout, proving nothing here added a new one even where "
+            "the test's own blind spot (it does not compare across "
+            "differently-nested contexts) meant it could not have caught "
+            "the two bugs above by itself. 127 of 128 targeted tests green; "
+            "the one failure is the AN13 guard's own pre-existing, "
+            "unrelated finding, confirmed identical on main before this "
+            "session touched anything. Verified in a live browser at "
+            "1920, 1670, 1440, and both sides of the 901-1280 threshold, "
+            "plus 800 and 375 for the mobile guarantee, per the Owner's "
+            "own explicit exception for this task to his usual "
+            "no-screenshots rule."
+        ),
+    },
+    {
         "version": "2.5.1314",
         "date": "2026-08-26",
         "commit": "pending",
