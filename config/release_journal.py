@@ -1,5 +1,41 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1299",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "The chat panel ends where the arena ends - the empty box beside the widgets is gone",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, from his own tablet, with the boundary drawn on the "
+            "screenshot and the remainder crossed out: 'okno chata dolzhno "
+            "zakanchivatsya tam gde zakanchivaetsya okno areny'. What he "
+            "photographed was a painted chat panel running roughly 300-500px "
+            "below its own composer - an empty white box standing beside the "
+            "widget dock with nothing in it. THE CAUSE WAS A DELIBERATE LINE "
+            "IN THE GRID, not a stray rule, which is why it needed his eye to "
+            "find: when the widget band was given a row of its own under the "
+            "floor, `right` was placed in BOTH rows and the chat, being "
+            "align-self:stretch, simply became taller. The stylesheet even "
+            "said so out loud. That comment has been corrected rather than "
+            "left to contradict the code. The chat now sits in the floor row "
+            "only and the dock row's third cell is `.`, deliberately empty. "
+            "THE FREED CELL WAS NOT HANDED TO THE DOCK, and that is a "
+            "decision rather than an omission: the LEFT column has always "
+            "ended at the Arena Guide and left plain background beneath it, "
+            "and he has never once objected to that - what he objected to was "
+            "a PANEL with nothing in it. Widening the dock into the gap would "
+            "have been a layout change he did not ask for. Measured after: at "
+            "1920 the chat's bottom lands on the arena's to the pixel, gap 0, "
+            "where it used to overhang to the dock's own foot; at 1280 it "
+            "ends 13px below its composer instead of 300+. Nothing below "
+            "901px is touched - that range is a single stacked column and the "
+            "change lives inside the desktop media query. The octagon is "
+            "untouched by construction: a grid ROW cannot change the middle "
+            "COLUMN's width, and that width is the only input to the floor's "
+            "height. 49 layout, octagon, page and poll tests re-run green."
+        ),
+    },
+    {
         "version": "2.5.1298",
         "date": "2026-08-26",
         "commit": "pending",

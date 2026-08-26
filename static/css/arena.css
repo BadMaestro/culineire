@@ -10539,7 +10539,7 @@ body.page--arena.is-zoom-locked {
     grid-template-areas:
       "ribbon ribbon ribbon"
       "left   floor  right"
-      "left   dock   right"
+      "left   dock   ."
       "ranks  ranks  ranks"
       "foot   foot   foot";
   }
@@ -10668,8 +10668,22 @@ body.page--arena.is-zoom-locked {
  * The band therefore takes a ROW of its own under the floor rather than a
  * place inside the floor cell. A row cannot change the middle COLUMN's width,
  * and that width is the only input to the floor's height, so the octagon can
- * neither move nor resize. `left` and `right` span both rows: the chat is
- * already align-self:stretch and simply becomes taller.
+ * neither move nor resize.
+ *
+ * OWNER, 2026-08-26 - THE CHAT NO LONGER SPANS THAT SECOND ROW. It used to:
+ * `right` sat in both rows and, being align-self:stretch, simply became
+ * taller. What that produced on his tablet was a painted chat panel running
+ * some 500px below its own composer, an empty white box beside the widgets -
+ * he photographed it, drew the boundary and crossed the remainder out:
+ * "окно чата должно заканчиваться там где заканчивается окно арены".
+ *
+ * So `right` is now in the floor row only and the dock row's third cell is
+ * `.` - deliberately empty rather than handed to the dock. The LEFT column
+ * has always ended at the Arena Guide and left plain background beneath it,
+ * and he has never objected to that; what he objected to was a PANEL with
+ * nothing in it. Widening the dock into the freed cell would have been a
+ * layout change he did not ask for, so the space is simply background now,
+ * exactly as it already is on the left.
  * ========================================================================== */
 @media (min-width: 901px) {
   .arena-command-dock {
