@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1330",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "A failed security check no longer erases the recipe you just typed",
+        "section": "Recipe authoring",
+        "summary": (
+            "The Owner (as CrestedTen): typed a full recipe by hand, pressed "
+            "Approve and Publish, landed back on a blank creation form, "
+            "recipe nowhere. RecipeCreateView.post() checked the Turnstile "
+            "token BEFORE handing off to the form machinery, and on failure "
+            "it fired a messages.error() and did a plain redirect() back to "
+            "recipes:recipe_create - a fresh GET, which throws away every "
+            "field the author just typed and every image they picked, with "
+            "nothing in django.log because nothing raised: prod's log was "
+            "checked directly and confirmed zero ERROR lines that evening, "
+            "ruling out a crash and pointing straight at this silent path. "
+            "Fix stays inside the same branch: on a failed Turnstile check, "
+            "post() now builds the bound form from the same POST data and "
+            "calls self.form_invalid(form) with a non-field error attached, "
+            "instead of redirecting - the existing "
+            "authoring/recipe_form.html template already renders "
+            "form.non_field_errors, so the author sees a clear reason and "
+            "keeps every typed field on the page (file inputs still can't "
+            "survive a resubmit - that is an HTML forms limit, not this "
+            "bug). RecipeUpdateView was checked and does not share this "
+            "Turnstile gate, so it needed no change. 55/55 targeted tests "
+            "green (AuthenticationPageTests, RecipeModerationTrackingTests)."
+        ),
+    },
+    {
         "version": "2.5.1327",
         "date": "2026-08-26",
         "commit": "pending",

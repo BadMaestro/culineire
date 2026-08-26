@@ -1701,8 +1701,10 @@ class RecipeCreateView(AuthorRequiredMixin, CreateView):
     def post(self, request, *args, **kwargs):
         token = request.POST.get("cf-turnstile-response", "")
         if not verify_turnstile(token, request.META.get("REMOTE_ADDR", "")):
-            messages.error(request, "Security check failed. Please try again.")
-            return redirect("recipes:recipe_create")
+            self.object = None
+            form = self.get_form()
+            form.add_error(None, "Security check failed. Please retry the checkbox below and submit again — your entries were kept.")
+            return self.form_invalid(form)
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
