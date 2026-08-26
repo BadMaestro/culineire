@@ -169,7 +169,10 @@
     reactionAnimations: true,
     // The brief's "Animated GIFs ON / OFF". Off does not mean paused - it
     // means the animated file is never requested; see mediaNode().
-    animatedMedia: true
+    animatedMedia: true,
+    // One of four curated palettes. "ivory" is the absence of a theme, so it
+    // is the Arena's own colours and cannot drift from them.
+    theme: 'ivory'
   };
   var prefs = readPrefs();
 
@@ -204,6 +207,14 @@
     root.classList.toggle('is-hiding-times', !prefs.showTimestamps);
     root.classList.toggle('is-still', !prefs.reactionAnimations);
     root.setAttribute('data-font-size', prefs.fontSize);
+    // Ivory declares nothing in the stylesheet, so it is expressed by the
+    // attribute being absent rather than by a fourth palette that repeats the
+    // Arena's own colours and could fall out of step with them.
+    if (prefs.theme && prefs.theme !== 'ivory') {
+      root.setAttribute('data-theme', prefs.theme);
+    } else {
+      root.removeAttribute('data-theme');
+    }
   }
 
   function csrf() {
@@ -827,7 +838,7 @@
     sheet.appendChild(head);
 
     sheet.appendChild(menuButton('View profile', '', function () {
-      window.location.href = '/chef-battle/profile/' + encodeURIComponent(line.slug) + '/';
+      openChefCard(line.slug, trigger);
     }));
     sheet.appendChild(menuButton('Reply', '', function () { startReply(line); }));
     // Reacting lives HERE now rather than as three permanent buttons under
@@ -901,6 +912,91 @@
     sheet.style.setProperty('--sheet-left', (box.left - mine.left) + 'px');
     var first = sheet.querySelector('.arena-chat__action');
     if (first) { first.focus(); }
+  }
+
+  /* THE CHEF CARD - who this is, before deciding whether to answer them.
+   *
+   * The brief asks for a hover card on a desktop and a bottom sheet on a
+   * phone. That is the split .arena-chat__sheet already makes from the
+   * panel's own width, so this is that sheet again rather than a third
+   * presentation, and it opens on a CLICK on both: a card that appears on
+   * hover in a dense log is a card that appears constantly.
+   *
+   * "View profile" now opens this instead of navigating away. Leaving the
+   * arena to read three numbers - and losing your place in a live
+   * conversation to do it - was the wrong trade; the full page is still one
+   * click further on, from the card's own link. */
+  function openChefCard(slug, trigger) {
+    if (!slug) { return; }
+    var url = root.getAttribute('data-profile-url-template');
+    if (!url) { return; }
+    fetch(url.replace('__slug__', encodeURIComponent(slug)), { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) { notice('That chef could not be found.'); return; }
+        closeActions();
+        var sheet = document.createElement('div');
+        sheet.className = 'arena-chat__sheet arena-chat__sheet--chef';
+        sheet.setAttribute('role', 'dialog');
+        sheet.setAttribute('aria-label', 'Chef ' + data.name);
+
+        var head = document.createElement('p');
+        head.className = 'arena-chat__chef-name';
+        var alliance = tagBadge(data.alliance_tag, 'alliance');
+        if (alliance) { head.appendChild(alliance); }
+        var clan = tagBadge(data.clan_tag, 'clan');
+        if (clan) { head.appendChild(clan); }
+        var nm = document.createElement('span');
+        nm.textContent = data.name;
+        head.appendChild(nm);
+        if (data.role === 'admin') { head.appendChild(marker('Admin', 'admin')); }
+        else if (data.role === 'moderator') { head.appendChild(marker('Mod', 'mod')); }
+        sheet.appendChild(head);
+
+        if (!data.enrolled) {
+          // A spectator has no record, and zeroes would read as one.
+          var none = document.createElement('p');
+          none.className = 'arena-chat__chef-none';
+          none.textContent = 'Watching from the stands - not enrolled as a chef.';
+          sheet.appendChild(none);
+        } else {
+          var rank = document.createElement('p');
+          rank.className = 'arena-chat__chef-rank';
+          rank.textContent = data.rank;
+          if (data.wears_crown) {
+            var crown = document.createElement('span');
+            crown.className = 'arena-chat__chef-crown';
+            crown.title = 'Wearing the crown right now';
+            crown.textContent = '👑';
+            rank.appendChild(crown);
+          }
+          sheet.appendChild(rank);
+
+          var stats = document.createElement('dl');
+          stats.className = 'arena-chat__chef-stats';
+          [['Wins', data.wins], ['Losses', data.losses],
+           ['Streak', data.streak], ['Crowns', data.crowns]].forEach(function (pair) {
+            var dt = document.createElement('dt');
+            dt.textContent = pair[0];
+            var dd = document.createElement('dd');
+            dd.textContent = String(pair[1]);
+            stats.appendChild(dt);
+            stats.appendChild(dd);
+          });
+          sheet.appendChild(stats);
+
+          var link = document.createElement('a');
+          link.className = 'arena-chat__chef-link';
+          link.href = data.profile_url;
+          link.textContent = 'View full profile';
+          sheet.appendChild(link);
+        }
+
+        root.appendChild(sheet);
+        openMenu = sheet;
+        anchorSheet(sheet, trigger);
+      })
+      .catch(function () { notice('That chef could not be found.'); });
   }
 
   /* THE EMOJI PICKER, built on the SAME sheet the action menu uses.

@@ -514,6 +514,12 @@
            data-dm-list-url="{% url 'chef_battle:arena_chat_conversations' %}"
            data-dm-policy-url="{% url 'chef_battle:arena_chat_dm_policy' %}"
            data-users-url="{% url 'chef_battle:arena_chat_users' %}"
+           {% comment %}
+             A template rather than a built URL: the script needs the shape
+             once and fills in whichever chef was tapped. Reversed here so the
+             path stays Django's to decide, not a string the JS assembles.
+           {% endcomment %}
+           data-profile-url-template="{% url 'chef_battle:arena_chat_profile' slug='__slug__' %}"
            data-moderate-url="{% url 'chef_battle:arena_chat_moderate' %}"
            data-can-moderate="{% if perms.chef_battle.moderate_arena_chat %}1{% else %}0{% endif %}"
            data-can-timeout="{% if perms.chef_battle.timeout_arena_chat_user %}1{% else %}0{% endif %}"
@@ -738,6 +744,20 @@
       {% endcomment %}
       <form class="arena-chat__settings arena-chat__appearance" id="arena-chat-appearance-form">
         <p class="arena-chat__settings-label">Appearance</p>
+        {% comment %}
+          Four finished palettes, not a colour picker - the brief is explicit
+          that arbitrary colours must not be allowed to destroy the Arena's
+          identity. Classic Ivory declares nothing at all in the stylesheet,
+          so it IS the Arena's own colours rather than a fourth copy of them.
+          Scoped to this panel: the floor and the octagon keep one identity.
+        {% endcomment %}
+        <fieldset class="arena-chat__pref">
+          <legend>Theme</legend>
+          <label><input type="radio" name="theme" value="ivory"> Classic Ivory</label>
+          <label><input type="radio" name="theme" value="dark"> Dark Kitchen</label>
+          <label><input type="radio" name="theme" value="copper"> Copper</label>
+          <label><input type="radio" name="theme" value="midnight"> Midnight</label>
+        </fieldset>
         <fieldset class="arena-chat__pref">
           <legend>Density</legend>
           <label><input type="radio" name="density" value="compact"> Compact</label>

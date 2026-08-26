@@ -22772,6 +22772,157 @@ class ArenaChatMediaTests(TestCase):
         self.assertNotIn("media", line)
 
 
+class ArenaChatProfileCardTests(TestCase):
+    """The card the chat opens on a name - and what it must never carry.
+
+    A hover card is the easiest place in a product to leak something by
+    reflex, so the test that matters here is the one about absence.
+    """
+
+    def setUp(self):
+        self.user, self.author, _ = _seat_a_viewer("carder", "Carder", "carder-chef")
+        self.client.force_login(self.user)
+
+    def _url(self, slug):
+        return reverse("chef_battle:arena_chat_profile", kwargs={"slug": slug})
+
+    def _enrol(self, author, **stats):
+        from chef_battle.services import get_or_create_battle_profile
+
+        profile = get_or_create_battle_profile(author)
+        fields = {"enrolled_at": timezone.now()}
+        fields.update(stats)
+        ChefBattleProfile.objects.filter(pk=profile.pk).update(**fields)
+        return profile
+
+    def test_an_enrolled_chef_returns_their_public_record(self):
+        chef_user = get_user_model().objects.create_user("cardchef", password="pw")
+        chef = RecipeAuthor.objects.create(
+            user=chef_user, name="CardChef", slug="card-chef",
+        )
+        self._enrol(chef, wins=38, losses=9, win_streak=7, crown_count=3)
+
+        data = self.client.get(self._url("card-chef")).json()
+        self.assertTrue(data["enrolled"])
+        self.assertEqual(
+            (data["wins"], data["losses"], data["streak"], data["crowns"]),
+            (38, 9, 7, 3),
+        )
+        self.assertTrue(data["profile_url"])
+
+    def test_the_card_carries_nothing_from_the_account_behind_the_chef(self):
+        """The leak test. Rank and record are public; an account is not."""
+        chef_user = get_user_model().objects.create_user(
+            "secretlogin", password="pw", email="private@example.com",
+        )
+        chef = RecipeAuthor.objects.create(
+            user=chef_user, name="Quiet", slug="quiet-chef",
+        )
+        self._enrol(chef)
+
+        raw = self.client.get(self._url("quiet-chef")).content.decode()
+        self.assertNotIn("private@example.com", raw)
+        self.assertNotIn("secretlogin", raw)
+        for leaked in ("email", "username", "password", "is_staff",
+                       "is_suspended", "last_seen", "token"):
+            self.assertNotIn(leaked, raw.lower(), f"{leaked} reached the chef card")
+
+    def test_a_spectator_gets_no_record_rather_than_a_row_of_zeroes(self):
+        """Zeroes would read as a record. An absence is the honest answer."""
+        _u, watcher, _s = _seat_a_viewer("watcher", "Watcher", "watcher-chef")
+        data = self.client.get(self._url("watcher-chef")).json()
+        self.assertFalse(data["enrolled"])
+        self.assertNotIn("wins", data)
+
+    def test_an_unknown_chef_is_a_404(self):
+        self.assertEqual(self.client.get(self._url("nobody-at-all")).status_code, 404)
+
+
+class ArenaChatThemeTests(TestCase):
+    """Four curated palettes, and Classic Ivory is the absence of one."""
+
+    def _css(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        return (
+            Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+        ).read_text(encoding="utf-8")
+
+    def test_every_offered_theme_has_a_palette_behind_it(self):
+        """A radio with no stylesheet behind it is a control that does
+        nothing - the exact dead button the brief forbids."""
+        import re
+        from pathlib import Path
+
+        from django.conf import settings
+
+        template = (
+            Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+        ).read_text(encoding="utf-8")
+        offered = set(re.findall(r'name="theme" value="([a-z]+)"', template))
+        self.assertTrue(offered, "no themes offered in the settings panel")
+
+        css = self._css()
+        for theme in offered - {"ivory"}:
+            with self.subTest(theme=theme):
+                self.assertIn(
+                    f'.arena-chat[data-theme="{theme}"]', css,
+                    f"the {theme} theme has no palette in arena.css",
+                )
+
+    def test_ivory_declares_nothing_so_it_cannot_drift(self):
+        self.assertNotIn('.arena-chat[data-theme="ivory"]', self._css())
+
+    def test_every_theme_redefines_the_arena_tokens_not_only_the_global_ones(self):
+        """The invisible-text trap, caught once and pinned here.
+
+        .arena-command-deck declares `--arena-ink: var(--ink)`, and a custom
+        property is SUBSTITUTED WHERE IT IS DECLARED - so --arena-ink resolves
+        against the deck's own --ink and inherits into the chat already
+        resolved. A theme that redefines only --ink therefore repaints the
+        panel dark and leaves the words near-black on it: measured at contrast
+        1.15, which is invisible. Every dark theme must set the --arena-*
+        tokens the chat's rules actually read.
+        """
+        import re
+
+        css = self._css()
+        required = ["--arena-ink", "--arena-muted", "--arena-gold", "--arena-paper"]
+        for theme in ("dark", "copper", "midnight"):
+            block = re.search(
+                r'\.arena-chat\[data-theme="' + theme + r'"\]\s*\{(.*?)\}', css, re.S,
+            )
+            self.assertIsNotNone(block, f"no palette block for the {theme} theme")
+            for token in required:
+                with self.subTest(theme=theme, token=token):
+                    self.assertIn(
+                        token, block.group(1),
+                        f"{theme} does not set {token}, so the chat's own rules "
+                        f"keep the light-theme value and the text goes invisible",
+                    )
+
+    def test_a_theme_only_repaints_the_chat_panel(self):
+        """The floor and the octagon keep the Arena's one identity - a dark
+        chat must not hand anybody a dark arena they never asked for.
+
+        Reads the WHOLE selector, not the attribute on its own: an earlier
+        version of this test matched from "[data-theme=" onward, which cut
+        off the ".arena-chat" in front of it and failed correct CSS.
+        """
+        import re
+
+        for selector in re.findall(r"([^{};]*\[data-theme=[^\]]+\][^{};]*)\{", self._css()):
+            for part in selector.split(","):
+                if "[data-theme=" not in part:
+                    continue
+                self.assertIn(
+                    ".arena-chat", part,
+                    f"a theme selector reaches outside the chat: {part.strip()}",
+                )
+
+
 class ArenaChatCustomEmojiSpriteTests(TestCase):
     """Every custom emoji token the script knows has a drawing to point at.
 

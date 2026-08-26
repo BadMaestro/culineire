@@ -1409,6 +1409,57 @@
 .arena-chat .arena-chat__emoji-btn--custom { color: var(--accent-bronze-dark); }
 .arena-chat__emoji-btn--custom .arena-chat__emoji { width: 1.15rem; height: 1.15rem; }
 
+/* THE CHEF CARD - the same sheet again, as a dialog. */
+.arena-chat__sheet--chef { width: min(14rem, 88vw); padding: .5rem .6rem .6rem; }
+.arena-chat__chef-name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .25rem;
+  margin: 0 0 .15rem;
+  font-size: .78rem;
+  font-weight: 800;
+}
+.arena-chat .arena-chat__chef-name { color: var(--arena-ink); }
+.arena-chat__chef-rank {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin: 0 0 .45rem;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.arena-chat .arena-chat__chef-rank { color: var(--accent-bronze); }
+.arena-chat__chef-none {
+  margin: 0;
+  font-size: .66rem;
+}
+.arena-chat .arena-chat__chef-none { color: var(--arena-muted); }
+/* A two-column ledger: label, then the number, four times down. */
+.arena-chat__chef-stats {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .1rem .6rem;
+  margin: 0 0 .5rem;
+  font-size: .68rem;
+}
+.arena-chat__chef-stats dt { margin: 0; }
+.arena-chat .arena-chat__chef-stats dt { color: var(--arena-muted); }
+.arena-chat__chef-stats dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.arena-chat__chef-link {
+  display: inline-block;
+  font-size: .66rem;
+  font-weight: 700;
+}
+.arena-chat .arena-chat__chef-link { color: var(--accent-bronze); }
+
 /* The mention dropdown - the same sheet again, as a listbox. */
 .arena-chat__sheet--mentions { width: min(15rem, 90vw); }
 .arena-chat__mention-option {
@@ -1605,6 +1656,114 @@
   align-items: center;
   gap: .25rem;
   font-size: .68rem;
+}
+
+/* ============================================================================
+ * CHAT THEMES - four, curated, and NOT a colour picker.
+ *
+ * The Owner's brief is explicit that a reader must not be handed arbitrary
+ * colours that destroy the Arena's identity, so these are four finished
+ * palettes rather than controls.
+ *
+ * HOW THEY WORK, AND WHY NOTHING ELSE IN THIS FILE CHANGES FOR THEM. Every
+ * rule in this component already resolves its colours through tokens -
+ * --surface for the panel, --ink for the words, --accent-bronze for the gold.
+ * A theme redefines those tokens ON .arena-chat and stops there. Custom
+ * properties inherit, so the shared panel rule, the tabs, the composer, the
+ * sheets and every future addition follow without being told, and not one
+ * existing selector is edited or duplicated to support this.
+ *
+ * SCOPED TO THE PANEL, deliberately. The brief lists what a theme must be
+ * checked against - composer, message text, badges, bottom sheets - all of
+ * which are the chat. The floor, the octagon and the rails keep the Arena's
+ * one identity, so a reader who wants a dark chat does not get a dark arena
+ * they never asked for.
+ *
+ * Classic Ivory is the absence of a theme rather than a fifth palette: it
+ * declares nothing, so it IS the Arena's own colours, and it cannot drift
+ * from them.
+ * ========================================================================= */
+/* THE --arena-* TOKENS ARE REDEFINED, NOT JUST THE GLOBAL ONES, and finding
+   out why cost a contrast measurement rather than a look.
+   .arena-command-deck declares `--arena-ink: var(--ink)`, and a custom
+   property is SUBSTITUTED WHERE IT IS DECLARED - so --arena-ink resolves to
+   near-black on the deck and inherits into the chat already resolved.
+   Redefining --ink down here never reaches it. Measured before the fix: body
+   text against a dark panel came out at contrast 1.15, which is invisible,
+   while the timestamp read 3.41 only because --arena-muted happens to be a
+   mid grey. Both lists are set now, and the test below asserts it stays so. */
+.arena-chat[data-theme="dark"] {
+  --surface: #221d18;
+  --surface-soft: #2b2621;
+  --ink: #ede4d8;
+  --ink-soft: #d6cabb;
+  --muted: #b3a89a;
+  --brand: #6b5a45;
+  --brand-dark: #d8c8b0;
+  --accent-bronze: #d4a259;
+  --accent-bronze-dark: #b8873f;
+  --arena-ink: #ede4d8;
+  --arena-forest: #d6cabb;
+  --arena-muted: #b3a89a;
+  --arena-gold: #d4a259;
+  --arena-cappuccino: #e2d4be;
+  --arena-paper: #221d18;
+  --arena-cream: #2b2621;
+  /* The semantic three, lifted for a dark ground - the same meanings, at a
+     contrast that survives the background change. */
+  --chat-private-text: #b49bf0;
+  --chat-admin-text: #f0766c;
+  --chat-mention-text: #86aae4;
+}
+.arena-chat[data-theme="copper"] {
+  --surface: #2a1f18;
+  --surface-soft: #362920;
+  --ink: #f4e5d4;
+  --ink-soft: #e0cdb6;
+  --muted: #bda88f;
+  --brand: #7d5a3c;
+  --brand-dark: #e8d3b8;
+  --accent-bronze: #e08a4a;
+  --accent-bronze-dark: #bf6a2e;
+  --arena-ink: #f4e5d4;
+  --arena-forest: #e0cdb6;
+  --arena-muted: #bda88f;
+  --arena-gold: #e08a4a;
+  --arena-cappuccino: #edd9bf;
+  --arena-paper: #2a1f18;
+  --arena-cream: #362920;
+  --chat-private-text: #c3a4f2;
+  --chat-admin-text: #f5847a;
+  --chat-mention-text: #8fb6e8;
+}
+.arena-chat[data-theme="midnight"] {
+  --surface: #16181d;
+  --surface-soft: #1e2128;
+  --ink: #e6e8ee;
+  --ink-soft: #ccd0da;
+  --muted: #a2a7b7;
+  --brand: #454b5c;
+  --brand-dark: #d3d7e2;
+  --accent-bronze: #d9b45f;
+  --accent-bronze-dark: #b8933f;
+  --arena-ink: #e6e8ee;
+  --arena-forest: #ccd0da;
+  --arena-muted: #a2a7b7;
+  --arena-gold: #d9b45f;
+  --arena-cappuccino: #dde1ea;
+  --arena-paper: #16181d;
+  --arena-cream: #1e2128;
+  --chat-private-text: #b0a3f5;
+  --chat-admin-text: #f37b76;
+  --chat-mention-text: #7fb0f0;
+}
+/* A themed panel needs its own ground rather than the translucent one the
+   shared rule gives it, or the arena's parchment shows through a dark chat. */
+.arena-chat[data-theme="dark"],
+.arena-chat[data-theme="copper"],
+.arena-chat[data-theme="midnight"] {
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
 }
 
 /* What the preferences actually do. Density and text size are custom

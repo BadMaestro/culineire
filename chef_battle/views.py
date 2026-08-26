@@ -4936,6 +4936,54 @@ def arena_chat_users(request):
     return JsonResponse({"users": users})
 
 
+@ratelimit(key="ip", rate="60/m", method="GET", block=False)
+def arena_chat_profile(request, slug):
+    """One chef's public card, for the preview the chat opens on a name.
+
+    PUBLIC FACTS ONLY, and the list is deliberately short: the same rank,
+    record and crown count the rankings page already publishes about everybody.
+    Nothing from the account behind the chef - no email, no username, no
+    token balance, no moderation state, no last-seen - because a hover card is
+    the easiest place in the product to leak something by reflex.
+
+    A chef who has never enrolled has no card rather than an empty one: the
+    stats would all be zero and would read as a record rather than as an
+    absence.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"error": "rate_limited"}, status=429)
+
+    from .arena_chat import speaker_role, team_tags_for
+
+    author = RecipeAuthor.objects.filter(slug=slug).select_related("user").first()
+    if author is None:
+        raise Http404
+    profile = ChefBattleProfile.objects.filter(author=author).first()
+    if profile is None or profile.enrolled_at is None:
+        return JsonResponse({"enrolled": False, "name": author.name, "slug": author.slug})
+
+    tags = (team_tags_for([author.pk]) or {}).get(author.pk) or {}
+    return JsonResponse({
+        "enrolled": True,
+        "name": author.name,
+        "slug": author.slug,
+        "profile_url": reverse("chef_battle:chef_profile", kwargs={"slug": author.slug}),
+        "rank": profile.get_rank_display(),
+        "role": speaker_role(getattr(author, "user", None)),
+        "clan_tag": tags.get("clan_tag", ""),
+        "alliance_tag": tags.get("alliance_tag", ""),
+        "wins": profile.wins,
+        "losses": profile.losses,
+        "streak": profile.win_streak,
+        "crowns": profile.crown_count,
+        # Whether the crown is on their head RIGHT NOW, which is a different
+        # fact from how many they have won.
+        "wears_crown": bool(profile.crown_until and profile.crown_until > timezone.now()),
+    })
+
+
 def _may_moderate_chat(user, permission) -> bool:
     """Whether this user may perform this chat-moderation permission.
 

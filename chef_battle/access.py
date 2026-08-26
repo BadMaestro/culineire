@@ -209,6 +209,11 @@ UNGUARDED_BY_DESIGN = {
         "Calls is_battle_visible directly. Writes the CALLER's own preference; "
         "the profile is looked up from the request's author, never from input."
     ),
+    "arena_chat_profile": (
+        "Calls is_battle_visible directly. Returns only the public facts the "
+        "rankings page already publishes about a chef - rank, record, crowns - "
+        "and nothing from the account behind them."
+    ),
     "arena_chat_users": (
         "Calls is_battle_visible directly. Read-only presence list - the same "
         "two occupant kinds _arena_hall_headcount() already counts for anyone "
