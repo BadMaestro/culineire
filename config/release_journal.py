@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1336",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The GIF picker was the one sheet v2.5.1333 left measured against the viewport",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "v2.5.1333 bounded the chat's popups by the panel instead of the "
+            "viewport, because a box that lives inside a 240px rail cannot be "
+            "sized in vw - and it bounded three of the four. "
+            ".arena-chat__sheet--gifs sits about ten thousand lines further "
+            "down the file and kept `width: min(17rem, 92vw)`, which is 272px "
+            "in the 240px rail the Owner's own <=1280px ruling fixes, so it "
+            "would have hung 32px out of the panel and been cut off by the "
+            "deck's overflow: hidden - exactly the fault that release "
+            "claimed to have closed. FOUND BY READING THE LIVE STYLESHEET "
+            "BACK after the deploy rather than by trusting the edit, which is "
+            "the only reason it did not ship as a false claim. The test now "
+            "closes the family rather than listing it: every "
+            ".arena-chat__sheet--* width declaration is checked for vw, so a "
+            "variant added later fails here instead of on somebody's laptop. "
+            "21 sheet and media tests green."
+        ),
+    },
+    {
         "version": "2.5.1333",
         "date": "2026-08-27",
         "commit": "pending",

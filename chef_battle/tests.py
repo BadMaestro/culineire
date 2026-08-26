@@ -24790,7 +24790,14 @@ class ArenaChatSheetIsAPhoneShapeOnlyOnAPhoneTests(TestCase):
         css = self.CSS.read_text(encoding="utf-8")
         for selector, width in ((".arena-chat__sheet--emoji", "min(19rem, 100%)"),
                                 (".arena-chat__sheet--chef", "min(14rem, 100%)"),
-                                (".arena-chat__sheet--mentions", "min(15rem, 100%)")):
+                                (".arena-chat__sheet--mentions", "min(15rem, 100%)"),
+                                (".arena-chat__sheet--gifs", "min(17rem, 100%)")):
             self.assertIn("%s { width: %s;" % (selector, width), css)
+        # and none of them may drift back: the family is closed, so a new
+        # variant sized in vw fails here rather than on somebody's 1280 laptop.
+        import re as _re
+        for match in _re.finditer(r"\.arena-chat__sheet--\w+ \{ width: ([^;]+);", css):
+            self.assertNotIn("vw", match.group(1),
+                             "a sheet variant is sized against the viewport again")
         self.assertIn("min-width: min(13rem, 100%)", css,
                       "the poll composer's minimum can still overflow the rail")

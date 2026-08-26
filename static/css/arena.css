@@ -11334,7 +11334,10 @@ body.page--arena.is-zoom-locked {
    ========================================================================== */
 /* P2 item 11 - the strip of GIFs this reader has sent before. Posters only,
    because a grid of twelve playing animations is a download and a headache. */
-.arena-chat__sheet--gifs { width: min(17rem, 92vw); }
+/* Bounded by the panel, like its three siblings - it lives a long way
+   down this file and was the one v2.5.1333 missed, found by reading the
+   LIVE stylesheet back rather than by trusting the edit. */
+.arena-chat__sheet--gifs { width: min(17rem, 100%); }
 .arena-chat__gif-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
