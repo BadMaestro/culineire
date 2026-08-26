@@ -5332,6 +5332,71 @@
   border: 1px solid rgba(247 242 234 / 0.25);
 }
 
+/* ── Group 2.1a: Recipe hero action hierarchy ──
+   The author line sat glued to a single cramped nowrap row of seven
+   identical pills (Pinch, three site-nav links, and three staff-only
+   recipe controls all reading the same weight). Three moves, same
+   content, same links, nothing removed or added:
+   1. Let the row wrap again on desktop instead of forcing one line
+      (the old nowrap+max-content pairing is what squeezed everything).
+   2. Give the author line room to breathe above the row.
+   3. One clear primary (Pinch / Issue a Challenge, solid bronze fill,
+      the same solid-fill language the Arena chat's AC-BTN pass
+      established for this site's one primary-action look) instead of
+      seven equal outlined pills; the plain site-nav links (Explore
+      Recipes / Read Articles / Sponsors) go quiet since they duplicate
+      the header's own nav; the staff-only recipe controls get a
+      divider and sit visually apart as their own small cluster. */
+.hero--recipe-detail .hero-author {
+  margin-block: 0.9rem 0.7rem;
+}
+
+@media (min-width: 901px) {
+  .hero--recipe-detail .hero__actions {
+    flex-wrap: wrap;
+    width: auto;
+    row-gap: 0.55rem;
+  }
+}
+
+.hero--recipe-detail .hero__actions .btn-primary {
+  background: var(--accent-bronze);
+  border-color: var(--accent-bronze);
+  color: #fff;
+}
+.hero--recipe-detail .hero__actions .btn-primary:hover,
+.hero--recipe-detail .hero__actions .btn-primary:focus-visible {
+  background: var(--accent-bronze-dark);
+  border-color: var(--accent-bronze-dark);
+  color: #fff;
+}
+
+.hero--recipe-detail .hero__actions > .btn-secondary {
+  background: transparent;
+  border-color: transparent;
+  color: rgba(247 242 234 / 0.75);
+}
+.hero--recipe-detail .hero__actions > .btn-secondary:hover,
+.hero--recipe-detail .hero__actions > .btn-secondary:focus-visible {
+  background: rgb(247 242 234 / 0.12);
+  border-color: transparent;
+  color: #fff;
+}
+
+.hero--recipe-detail .hero__actions-staff {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding-inline-start: 0.75rem;
+  margin-inline-start: 0.1rem;
+  border-inline-start: 1px solid rgb(247 242 234 / 0.22);
+}
+.hero--recipe-detail .hero__actions-staff .btn-secondary {
+  min-height: 38px;
+  padding-block: 0.32rem;
+  font-size: 0.8rem;
+}
+
 /* ── Group 2.2: Pinch detail hero ── */
 .hero--pinch-detail {
   min-height: clamp(220px, 30vw, 340px);

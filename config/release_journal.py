@@ -1,5 +1,51 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1339",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The recipe hero's action row stops reading as seven identical pills",
+        "section": "Recipes",
+        "summary": (
+            "The Owner, on a screenshot: the header of a freshly-created "
+            "recipe (CrestedTen's Jardiniere) looked bad - a single cramped "
+            "nowrap row cramming Pinch, three duplicate site-nav links "
+            "(Explore Recipes/Read Articles/Sponsors) and three staff-only "
+            "recipe controls (Edit/Delete/Generate Pinch) into seven "
+            "equal-weight outlined pills glued to the author line above "
+            "them. Content and links untouched, only hierarchy: Pinch (the "
+            "one real primary action here) gets a solid --accent-bronze "
+            "fill, the same solid-fill language AC-BTN established for "
+            "this site's primary-action look this week; the three nav "
+            "links go quiet (transparent, low-emphasis) since they only "
+            "duplicate the site header's own nav; the three staff-only "
+            "controls get a left divider and sit as their own small "
+            "cluster, wrapped in a new .hero__actions-staff span in "
+            "includes/hero_actions.html purely for that grouping hook. "
+            "hero_recipe (the only context var that ever renders that "
+            "span's contents) is passed by exactly one template, "
+            "recipes/recipe_detail.html, so nothing else that reuses this "
+            "shared include (home hero, author-profile hero, pinch-detail "
+            "hero, messaging/moderation/legal/signup heroes) is affected - "
+            "confirmed by grepping every include site first. The old "
+            "'flex-wrap:nowrap; width:max-content' pairing that forced one "
+            "line is what did the cramming; the row wraps again on desktop "
+            "now, same as every other hero on the site. VERIFICATION GAP, "
+            "NAMED RATHER THAN PAPERED OVER: the local dev database has "
+            "zero recipes, so this could not be checked pixel-for-pixel "
+            "against a live recipe hero before shipping - a from-scratch "
+            "static reconstruction of the markup against a hand-extracted "
+            "slice of base.css was attempted and abandoned, since flattening "
+            "out the real file's @media conditions produced a reconstruction "
+            "that couldn't be trusted either. Verified instead by targeted "
+            "tests and by code review: PublicImagePerformanceHintTests (11, "
+            "covers the exact hero__actions markup this shares) green, "
+            "confirmed the hero_recipe scoping by grep, confirmed the "
+            "pre-existing (unrelated) TemplateCommentHygieneTests failure "
+            "in chef_battle/arena.html predates this change via git stash. "
+            "Owner asked to check the live page himself after deploy."
+        ),
+    },
+    {
         "version": "2.5.1336",
         "date": "2026-08-27",
         "commit": "pending",
