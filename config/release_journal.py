@@ -1,5 +1,46 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1327",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "A chat popup is kept inside the panel by its own width, not by a number that guessed at it",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Found while measuring the containment work of v2.5.1324, and "
+            "present identically on the unchanged page - a pre-existing "
+            "defect, not a regression from that pass, and fixed here "
+            "rather than left for somebody to ask about later. The "
+            "stylesheet keeps an anchored sheet inside the chat with "
+            "`left: min(var(--sheet-left, 0px), calc(100% - 12rem))`. "
+            "12rem is a guess at how wide a sheet is, and the three "
+            "sheets are three different widths: the emoji picker declares "
+            "19rem, the chef card 14rem, and the message action menu is "
+            "content-sized at about 17rem. No single number in the "
+            "stylesheet can be right for all of them, and the action menu "
+            "was the one that paid. MEASURED in Chromium on the widths "
+            "where the rail crosses the 30.01rem container threshold and "
+            "the sheet becomes an anchored popover rather than a "
+            "full-width bottom sheet: at 2560x1440 the menu ended 78.6px "
+            "past the panel's right edge and the deck's own overflow: "
+            "hidden cut it off; at 3440x1440 the same 78.6px. After the "
+            "change: 1.3px and 1.8px INSIDE. At 1920 the rail is still "
+            "under the threshold, the sheet is still the full-width "
+            "variant, and nothing moves at all - the emoji picker and the "
+            "poll composer land on exactly the same coordinates before "
+            "and after at both 1920 and 2560, because the clamp only "
+            "bites when a sheet would actually overflow. THE FIX IS IN "
+            "THE SCRIPT because the script is the only place that knows "
+            "the number: by the time it runs the sheet is in the "
+            "document, so offsetWidth is its real width and "
+            "root.clientWidth is the padding box its `left` is measured "
+            "from - the same box `100%` means in that clamp. The "
+            "stylesheet's own clamp stays as the fallback for the moment "
+            "before the script runs. One helper, both anchoring sites "
+            "routed through it, and a test that fails if a third one is "
+            "ever added without it."
+        ),
+    },
+    {
         "version": "2.5.1324",
         "date": "2026-08-26",
         "commit": "pending",

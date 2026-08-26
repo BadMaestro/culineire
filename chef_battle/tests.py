@@ -24665,3 +24665,49 @@ class ArenaChatIsAFixedHeightPanelTests(TestCase):
         self.assertIn(
             "log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' })", script)
         self.assertIn("'(prefers-reduced-motion: reduce)'", script)
+class ArenaChatSheetStaysInsideThePanelTests(TestCase):
+    """A popup is kept inside the chat by its OWN width, v2.5.1327.
+
+    Found while measuring v2.5.1324 and present identically on the unchanged
+    page, so it is a pre-existing defect rather than a regression from that
+    pass.
+
+    The stylesheet clamps the anchored sheet with `left: min(var(--sheet-left,
+    0px), calc(100% - 12rem))`. 12rem is a guess at how wide a sheet is, and
+    the three sheets are three different widths: the emoji picker declares
+    19rem, the chef card 14rem, and the message action menu is content-sized
+    at about 17rem. So no single number in the stylesheet can be right for all
+    of them, and the action menu was the one that paid.
+
+    MEASURED in Chromium on the wide monitors where the rail crosses the
+    30.01rem container threshold and the sheet becomes an anchored popover
+    rather than a full-width bottom sheet: at 2560x1440 the menu ended 78.6px
+    past the panel's right edge and the deck's own `overflow: hidden` cut it
+    off; at 3440x1440, the same 78.6px. After: 1.3px and 1.8px INSIDE. At
+    1920 the panel is still under the threshold, the sheet is still the
+    full-width variant, and nothing moves.
+
+    The fix is in the script because the script is the only place that knows
+    the number: by the time it runs the sheet is in the document, so
+    offsetWidth is its real width and root.clientWidth is the padding box its
+    `left` is measured from - the same box `100%` means in that clamp. The
+    stylesheet's clamp stays as the fallback for the moment before this runs.
+    """
+
+    SCRIPT = Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
+
+    def test_the_clamp_asks_the_sheet_how_wide_it_is(self):
+        script = self.SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("function keepSheetInside(sheet, wantedLeft) {", script)
+        self.assertIn("var room = root.clientWidth - sheet.offsetWidth;", script)
+
+    def test_both_places_that_anchor_a_sheet_go_through_it(self):
+        """There are exactly two, and a third added without this call would
+        reintroduce the same bug in a new popup."""
+        script = self.SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(script.count("keepSheetInside(sheet, box.left"), 2)
+        self.assertEqual(
+            script.count("sheet.style.setProperty('--sheet-left'"), 0,
+            "a sheet's left is set without the clamp; every one of them must "
+            "go through keepSheetInside or it can run out of the panel",
+        )

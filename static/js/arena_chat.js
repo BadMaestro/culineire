@@ -1700,7 +1700,8 @@
     var box = trigger.getBoundingClientRect();
     var mine = root.getBoundingClientRect();
     sheet.style.setProperty('--sheet-top', (box.bottom - mine.top + 4) + 'px');
-    sheet.style.setProperty('--sheet-left', (box.left - mine.left) + 'px');
+    sheet.style.setProperty(
+      '--sheet-left', keepSheetInside(sheet, box.left - mine.left) + 'px');
     var first = sheet.querySelector('.arena-chat__action');
     if (first) { first.focus(); }
   }
@@ -2043,6 +2044,28 @@
   }
 
 
+  /* KEEP A SHEET INSIDE THE PANEL, USING THE SHEET'S OWN WIDTH.
+   *
+   * The stylesheet clamps this too - `left: min(var(--sheet-left, 0px),
+   * calc(100% - 12rem))` - but 12rem is a guess at how wide a sheet is, and
+   * the action menu is 17.6rem. MEASURED at 1920 on 2026-08-26: the menu
+   * opened at x=1716 and ended at 1997.6 in a panel that ends at 1909, so
+   * 88.6px of it lay outside and the deck's own `overflow: hidden` cut it
+   * off. The three sheets are three different widths (the emoji picker sets
+   * 19rem, the chef card 14rem, the action menu is content-sized), so no
+   * single number in the stylesheet can be right for all of them.
+   *
+   * The script can simply ask. By the time this runs the sheet is in the
+   * document, so offsetWidth is its real width, and root.clientWidth is the
+   * padding box the sheet's `left` is measured from - the same box `100%`
+   * means in that CSS clamp. The stylesheet's own clamp stays as the
+   * fallback for the moment before this runs.
+   */
+  function keepSheetInside(sheet, wantedLeft) {
+    var room = root.clientWidth - sheet.offsetWidth;
+    return Math.max(0, Math.min(wantedLeft, room));
+  }
+
   function anchorSheet(sheet, trigger) {
     if (!trigger) { return; }
     var box = trigger.getBoundingClientRect();
@@ -2050,7 +2073,9 @@
     // Above the trigger, because the composer sits at the panel's foot and
     // there is nothing below it to open into.
     sheet.style.setProperty('--sheet-top', Math.max(0, box.top - mine.top - 232) + 'px');
-    sheet.style.setProperty('--sheet-left', Math.max(0, box.left - mine.left - 120) + 'px');
+    sheet.style.setProperty(
+      '--sheet-left',
+      keepSheetInside(sheet, box.left - mine.left - 120) + 'px');
   }
 
   /* Insert at the CARET, not at the end. Typing a sentence, moving back to
