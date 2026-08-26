@@ -24481,3 +24481,187 @@ class ArenaChatMediaViewerTests(TestCase):
         script = self._read("static", "js", "arena_chat.js")
         self.assertIn("function collectMedia", script)
         self.assertIn("fig.offsetParent !== null", script)
+class ArenaChatIsAFixedHeightPanelTests(TestCase):
+    """The desktop chat stops growing the arena, v2.5.1324.
+
+    The Owner: the chat got taller with every message and took the whole page
+    with it. MEASURED in Chromium at 1920x1080 before the change - the panel
+    went from 752.6px at nought messages to 110586.3px at five thousand, and
+    the page from 2098 to 111932.
+
+    The fault was not in the chat's own internals, which were already a correct
+    flex column with a scrolling log. It was one level up. The deck declares
+    columns and areas and never `grid-template-rows`, so every row is `auto`;
+    an auto track is sized by its items' max-content; and the chat sat in the
+    right column IN FLOW, so the whole conversation was that max-content.
+    `min-height: 0` does not remove a contribution and neither does `overflow`
+    - only taking the box out of flow does.
+
+    After: at 1440, 800 and 390 the outer numbers are identical from nought to
+    five thousand messages. At 1920 the chat tracks the FLOOR exactly - chat
+    height minus floor height is 70.4px at every count - and the floor moves
+    only because of the octagon's own fit loop, which moves identically on the
+    unchanged page.
+
+    Four facts are pinned here, each of them a way this regresses silently: the
+    chat is out of flow; the rail is what it is positioned against; the log
+    keeps being the only scroller; and neither box gets `overflow: hidden`,
+    because every popup the chat opens is appended INTO #arena-chat and hidden
+    overflow would clip all five of them.
+    """
+
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+    TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+    SCRIPT = Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
+
+    DESKTOP = "@media (min-width: 901px)"
+    TABLET = "@media (min-width: 641px) and (max-width: 900px)"
+
+    @classmethod
+    def _blocks(cls):
+        """(at-rule context, selector, body) for every rule in arena.css.
+
+        Written rather than grepped because this stylesheet's INDENTATION IS
+        NOT ITS SCOPE: rules indented as though they sat inside a media query
+        are routinely top-level, and a test that reads the file by eye pins the
+        wrong thing. Braces are counted; comments and strings are skipped.
+        """
+        text = cls.CSS.read_text(encoding="utf-8")
+        out, stack, buf = [], [], []
+        i, n = 0, len(text)
+        in_comment, in_string = False, None
+        while i < n:
+            ch = text[i]
+            if in_comment:
+                if ch == "/" and text[i - 1] == "*":
+                    in_comment = False
+            elif in_string:
+                buf.append(ch)
+                if ch == in_string and text[i - 1] != "\\":
+                    in_string = None
+            elif ch == "/" and i + 1 < n and text[i + 1] == "*":
+                in_comment = True
+            elif ch == '"' or ch == "'":
+                in_string = ch
+                buf.append(ch)
+            elif ch == "{":
+                stack.append((" ".join("".join(buf).split()), i + 1))
+                buf = []
+            elif ch == "}":
+                if stack:
+                    head, start = stack.pop()
+                    if not head.startswith("@"):
+                        context = " >> ".join(h for h, _ in stack)
+                        out.append((context, head, text[start:i]))
+                buf = []
+            elif ch == ";":
+                buf = []
+            else:
+                buf.append(ch)
+            i += 1
+        return out
+
+    def _rule(self, context, selector):
+        found = [b for c, s, b in self._blocks() if c == context and s == selector]
+        self.assertEqual(
+            len(found), 1,
+            "expected exactly one `%s` in context `%s`, found %d"
+            % (selector, context or "top level", len(found)),
+        )
+        return found[0]
+
+    def test_the_chat_is_out_of_flow_so_the_arena_row_cannot_be_sized_by_it(self):
+        body = self._rule(self.DESKTOP, ".arena-right-stack > .arena-chat")
+        self.assertIn("position: absolute", body)
+        self.assertIn("inset: 0", body)
+        self.assertNotIn(
+            "min-height: 22rem", body,
+            "the 22rem floor was for a panel that could grow; on a panel that "
+            "fills a fixed column it can only push the chat back out of it",
+        )
+
+    def test_the_rail_is_the_box_the_chat_is_positioned_against(self):
+        body = self._rule(self.DESKTOP, ".arena-right-stack")
+        self.assertIn("position: relative", body)
+        self.assertNotIn("position: static", body)
+        self.assertIn("height: 100%", body)
+
+    def test_no_ancestor_of_the_popups_hides_its_overflow(self):
+        """arena_chat.js appends the action menu, the emoji picker, the poll
+        composer, the report sheet and the chef card into #arena-chat itself.
+        `overflow: hidden` on the panel or on the rail - the obvious move when
+        containing something - clips every one of them."""
+        for selector in (".arena-right-stack", ".arena-right-stack > .arena-chat"):
+            self.assertNotIn("overflow: hidden", self._rule(self.DESKTOP, selector))
+        self.assertIn("root.appendChild(sheet)", self.SCRIPT.read_text(encoding="utf-8"))
+
+    def test_the_log_is_the_only_thing_that_scrolls(self):
+        body = self._rule("", ".arena-chat__log")
+        for declaration in ("flex: 1 1 auto", "min-height: 0", "overflow-y: auto",
+                            "overflow-x: hidden", "overscroll-behavior: contain",
+                            "scrollbar-width: thin"):
+            self.assertIn(declaration, body)
+
+    def test_the_strips_around_the_log_cannot_give_up_their_height(self):
+        """Everything left at the flex default of `0 1 auto` shrinks when the
+        panel is tight. In a panel that cannot grow, the reply line, the room
+        banner and the notice would have shrunk before the log did."""
+        for selector in (".arena-chat .arena-chat__room", ".arena-chat__replying",
+                         ".arena-chat .arena-chat__notice", ".arena-chat__tabs",
+                         ".arena-chat__rules", ".arena-chat__composer",
+                         ".arena-chat__attachment"):
+            self.assertIn("flex: 0 0 auto", self._rule("", selector),
+                          "%s may shrink and squeeze the composer" % selector)
+
+    def test_the_other_three_tabs_are_inside_the_bound_as_well(self):
+        """Bounding the panel and leaving these alone trades a growing page for
+        unreachable controls. SETTINGS is the one that needs a scroller of its
+        own: two forms and six fieldsets, taller than the chat at 1440x900."""
+        self.assertIn(
+            "max-height: none",
+            self._rule(self.DESKTOP, ".arena-chat__dm-list, .arena-chat__users-list"),
+        )
+        panel = self._rule(self.DESKTOP, ".arena-chat__panel--settings")
+        self.assertIn("overflow-y: auto", panel)
+        self.assertIn("min-height: 0", panel)
+        self.assertIn('class="arena-chat__panel arena-chat__panel--settings"',
+                      self.TEMPLATE.read_text(encoding="utf-8"))
+
+    def test_the_tablet_band_gets_its_ceiling_back(self):
+        """The rule that lifts the log's cap is gated on the PANEL's width plus
+        a pointer, not on the window's - so a desktop browser narrowed to
+        ~800px reached it while the deck was a single stacked column with
+        nothing bounding the chat. Measured before this: 3247px of page at
+        nought messages, 113576 at five thousand."""
+        self.assertIn("max-height: min(42vh, 22rem)",
+                      self._rule(self.TABLET, ".arena-chat__log"))
+
+    def test_the_jump_pill_is_a_desktop_control_and_starts_hidden(self):
+        html = self.TEMPLATE.read_text(encoding="utf-8")
+        self.assertIn('class="arena-chat__jump" id="arena-chat-jump" hidden', html)
+        self.assertIn("display: none", self._rule("", ".arena-chat__jump"))
+        self.assertIn("display: inline-flex", self._rule(self.DESKTOP, ".arena-chat__jump"))
+
+    def test_the_pill_needs_both_a_new_line_and_a_reader_who_is_not_at_the_foot(self):
+        """Either condition alone gives a button with nothing to do: one that
+        offers to take somebody where they already are, or one that is up
+        permanently on any busy evening."""
+        script = self.SCRIPT.read_text(encoding="utf-8")
+        absorb = script[script.index("function absorb(lines) {"):]
+        absorb = absorb[:absorb.index("\n  }")]
+        self.assertIn("var stick = nearBottom();", absorb)
+        self.assertIn("hideJump();", absorb)
+        self.assertIn("showJump();", absorb)
+        clear = script[script.index("function clearLog() {"):]
+        self.assertIn("hideJump();", clear[:clear.index("\n  }")])
+
+    def test_reading_back_through_the_evening_is_never_yanked_away(self):
+        """The behaviour the brief asks for was already written and already
+        correct - it was dead only because the log did not scroll. Nothing in
+        this pass rewrites it, and this pins that."""
+        script = self.SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            "return log.scrollHeight - log.scrollTop - log.clientHeight < 40;", script)
+        self.assertIn(
+            "log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' })", script)
+        self.assertIn("'(prefers-reduced-motion: reduce)'", script)

@@ -819,6 +819,49 @@
   align-content: start;
   gap: .55rem;
 }
+
+/* JUMP TO THE LATEST - shown only while somebody is reading back through the
+   conversation and a new line has arrived below them. Owner, 2026-08-26.
+
+   IN FLOW, NOT FLOATING OVER THE LOG, and that is the whole design decision
+   here. An overlaid pill needs a positioning context whose bottom edge is the
+   LOG's bottom edge, and the log's own parent ends below the composer, the
+   reply line, the attachment strip and the reaction bar - every one of which
+   appears and disappears on its own. Pinning to that box means measuring it
+   in script on every show. A row costs one reflow of about 30px at the moment
+   the pill appears, cannot be clipped by anything, cannot be destroyed by
+   clearLog()'s innerHTML wipe, and never covers the message being read.
+
+   Colour, radius and press come from the chat's own button family further
+   down (:11683 and the two lists after it) - this rule only places it. */
+.arena-chat__jump {
+  /* OFF EVERYWHERE BY DEFAULT, ON ONLY ON THE DESKTOP (see the 901px block).
+     The phone's chat is GreenBear's and this task's brief says not to change
+     it; the phone's log does scroll and would carry this perfectly well, so
+     the day the Owner asks for it there it is one declaration, not a
+     rebuild. The script raises and lowers the [hidden] attribute at every
+     width regardless - a control the stylesheet is not showing costs nothing
+     and keeps the two halves from drifting apart. */
+  display: none;
+  flex: 0 0 auto;
+  align-self: center;
+  align-items: center;
+  gap: .3rem;
+  min-height: 1.6rem;
+  margin: .2rem 0 0;
+  padding: 0 .6rem;
+  border-radius: 999px;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+}
+.arena-chat__jump[hidden] { display: none; }
+.arena-chat__jump::before {
+  content: "↓";
+  font-weight: 400;
+}
+
 /* A FEED, NOT A TABLE. Every line used to end in a full-width rule, which the
    Owner read as an admin log or a database dump - six of them and the panel
    was a spreadsheet. Rhythm does the separating now: the header is quiet and
@@ -993,6 +1036,11 @@
    accent is restrained on purpose: the spec asks for an unmistakable mode, not
    a purple interface. */
 .arena-chat .arena-chat__room {
+  /* Fixed furniture: the panel's height is now bounded (see the right rail's
+     own block at :8961), so anything left at the flex default of `0 1 auto`
+     is a section that quietly gives up pixels when the room is tight. Only
+     the log may do that. */
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: .3rem;
@@ -1178,6 +1226,7 @@
 
 /* Replying-to bar and the notice line, both above/below the composer. */
 .arena-chat__replying {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: .3rem;
@@ -1204,6 +1253,7 @@
   cursor: pointer;
 }
 .arena-chat .arena-chat__notice {
+  flex: 0 0 auto;
   margin: .25rem 0 0;
   color: var(--arena-muted);
   font-size: .64rem;
@@ -2223,12 +2273,27 @@
      right when it was written: the chat was then a short card in the LEFT
      rail, in normal flow, where an uncapped list grew the whole page - six
      messages pushed the arena down a screen and the Owner asked how much
-     further it would go. That is no longer the shape. The panel is now a
-     full-height grid-row child with a bounded height of its own, so
-     `flex: 1 1 auto` + `min-height: 0` (both already on the log) do the
-     containing, and the cap only prevents the log from using room the panel
-     has already reserved. Mobile keeps the cap: there the chat IS still a
-     normal-flow card, and the original reasoning still holds exactly. */
+     further it would go.
+
+     CORRECTED 2026-08-26 (v2.5.1324). This comment used to say the cap was
+     safe to lift because "the panel is now a full-height grid-row child with
+     a bounded height of its own". It had no bounded height: the deck's rows
+     were all `auto` and the deck itself `height: auto`, so the panel's own
+     content WAS the bound, and the arena went back to growing with every
+     message - the exact fault the cap had been written against, one level up
+     and therefore invisible from here. The bound is real now and it is not
+     in this rule: .arena-right-stack takes the chat out of flow (:8961), so
+     the row is sized by the floor and the chat fills whatever that row is.
+     With that in place `flex: 1 1 auto` + `min-height: 0` (both already on
+     the log) do the containing and this line is finally what it always
+     claimed to be.
+
+     THE GATE IS THE PANEL'S WIDTH PLUS A POINTER, NOT THE WINDOW'S WIDTH,
+     which is why a second declaration is needed further down: a hovering
+     window between 641 and 900px reaches this rule while laying the deck out
+     as one stacked column, where nothing bounds the chat at all. That branch
+     puts the cap back by name - see the tablet block. Touch keeps the cap
+     from the base rule; the phone is untouched by construction. */
   .arena-chat__log { gap: .3rem; max-height: none; }
   .arena-chat__row { column-gap: .4rem; }
 
@@ -8957,10 +9022,42 @@ body.page--arena.is-zoom-locked {
      Arena Pulse (see arena.html's comments at each). align-self: stretch
      makes this column fill the row's own height (set by its tallest
      sibling, the floor), and the flex column below spreads that height to
-     the single .arena-chat child so the panel is tall, not just wide. */
+     the single .arena-chat child so the panel is tall, not just wide.
+
+     THE COLUMN TAKES ITS HEIGHT FROM THE ROW AND NEVER GIVES THE ROW ONE.
+     Owner, 2026-08-26: the chat grew taller with every message and took the
+     whole arena down the page with it. This is where that happened, and it
+     is worth naming precisely because the panel's own internals were already
+     correct.
+
+     The deck's rows are all `auto` (this block and :10714 declare columns and
+     areas, never `grid-template-rows`), and an auto track is sized by its
+     items' max-content. The chat sat in this column IN FLOW, so its full
+     conversation height was that max-content: log -> .arena-chat ->
+     .arena-right-stack -> the row -> `height: auto` on the deck -> the page.
+     Neither `min-height: 0` nor `overflow` on an item removes that
+     contribution; only taking the box out of flow does.
+
+     So the single .arena-chat child is absolutely positioned against this
+     column (below), and this column keeps `height: 100%` / `align-self:
+     stretch` against the row. The row's height is then decided by the FLOOR,
+     whose own unconditional rule at :9302 is `aspect-ratio: 1/0.82` on its
+     own WIDTH with `align-self: start !important` - a number that has nothing
+     to do with how much anybody has typed. That is the "derive the height
+     from the arena's geometry" the brief asks for, expressed as containment
+     rather than as a pixel ceiling.
+
+     WHY THERE IS NO `overflow: hidden` HERE. Every popup the chat opens - the
+     message action menu, the emoji picker, the poll composer, the report
+     sheet, the chef card - is appended INTO #arena-chat (arena_chat.js:26,
+     `root.appendChild(sheet)`), and hidden overflow on this column or on the
+     panel would clip all five. They are already clamped inside the panel by
+     .arena-chat__sheet's own rules (:2169). The containing is done by the
+     flex chain and the log's own overflow-y, which is where it belongs. */
   .arena-right-stack {
     grid-area: right;
-    position: static;
+    /* relative, not static: it is the containing block for the chat below. */
+    position: relative;
     inset: auto;
     top: auto;
     left: auto;
@@ -8968,6 +9065,7 @@ body.page--arena.is-zoom-locked {
     bottom: auto;
     width: 100%;
     height: 100%;
+    min-height: 0;
     align-self: stretch;
     display: flex;
     flex-direction: column;
@@ -8985,9 +9083,55 @@ body.page--arena.is-zoom-locked {
     flex: 0 0 auto;
   }
   .arena-right-stack > .arena-chat {
-    flex: 1 1 auto;
-    min-height: 22rem;
+    /* OUT OF FLOW ON PURPOSE - see the block comment above. It fills the
+       column exactly and reports nothing back to the grid, so the arena row
+       is the same height at 0 messages and at 5000. */
+    position: absolute;
+    inset: 0;
+    /* auto beats the `width: 100%` the `> *` rule above sets: with inset:0
+       the box is already the column's width, and 100% of a padding box the
+       column does not have would be the same number by luck rather than by
+       statement. */
+    width: auto;
+    height: auto;
+    /* 22rem was a floor for a panel that could grow. This one cannot, so a
+       floor could only push it back out of the column it is meant to fit. */
+    min-height: 0;
   }
+
+  /* ALL FOUR TABS ARE INSIDE THE BOUND NOW, NOT JUST THE CHAT LOG. Bounding
+     the panel without saying what the other three do would have traded a
+     growing page for unreachable controls, which is a worse bug and a
+     silent one - so each of them is given the same treatment the log has.
+
+     PM and USERS already scroll (:1973 carries flex:1/min-height:0/
+     overflow-y:auto); what they also carry is `max-height: min(42vh, 22rem)`,
+     written when the panel could grow underneath them. Inside a bounded panel
+     that cap is either irrelevant or actively wrong - on a short window 42vh
+     is larger than the room the panel has, and the list would run past the
+     composer. Flex already knows the right number, so the cap goes and flex
+     decides. */
+  .arena-chat__dm-list,
+  .arena-chat__users-list {
+    max-height: none;
+  }
+
+  /* SETTINGS had no scroller at all: two forms and six fieldsets, roughly
+     twenty-five rows, which simply grew the chat before this pass and would
+     simply spill out of it after. The PANEL scrolls rather than each form,
+     because the two forms are one continuous list of preferences to a reader
+     and a scrollbar per form would say they were not. */
+  .arena-chat__panel--settings {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    overscroll-behavior: contain;
+  }
+
+  /* THE JUMP PILL IS A DESKTOP CONTROL. See its own rule near the log for
+     why it is off everywhere else. */
+  .arena-chat__jump { display: inline-flex; }
 
   /* Centre: the octagon's cell. position:relative so its own internal
      absolutely-positioned children (.arena-floor-stage,
@@ -9187,6 +9331,24 @@ body.page--arena.is-zoom-locked {
   }
   .arena-command-deck > .arena-broadcast-ribbon { grid-area: ribbon; position: static; }
   .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; position: static; }
+
+  /* THE LOG KEEPS ITS CEILING HERE, and this rule exists because the rule
+     that lifts it is gated on the wrong axis for this band. That gate
+     (:2177) is `@container arena-chat (min-width: 21.51rem)` plus
+     `@media (hover: hover)` - the PANEL's width and a pointer - and in this
+     band the deck is a single stacked column, so the chat panel is nearly
+     full-width and clears 21.51rem easily. A desktop browser narrowed to
+     ~800px therefore lifted the cap while laying the page out as a stack,
+     where the chat is a normal-flow card with nothing above it to bound its
+     height. The result was the same page growth the desktop had, reachable
+     on the Owner's own monitor by dragging a window narrower.
+
+     Restored to the base value from :788 rather than a new number, so the
+     stacked layout behaves exactly as it did before the density pass. Equal
+     specificity to :2232; this block is later in the file, which is what
+     decides it. The phone (<=640px) never matched the lifting rule's
+     `hover: hover` and is not touched by this one either. */
+  .arena-chat__log { max-height: min(42vh, 22rem); }
 }
 
 /* The sitewide "Chef Battles Arena" widget (_widget.html) is untouched -
@@ -11568,6 +11730,7 @@ button.arena-chat__poll-option:hover {
 .arena-chat .arena-chat__poll-ask,
 .arena-chat .arena-chat__gif-upload,
 .arena-chat .arena-chat__show,
+.arena-chat .arena-chat__jump,
 .arena-chat .arena-chat__rules-toggle {
   border: 0;
   background: var(--chat-btn-fill);
@@ -11636,6 +11799,7 @@ button.arena-chat__poll-option:hover {
 .arena-chat .arena-chat__poll-ask:active,
 .arena-chat .arena-chat__gif-upload:active,
 .arena-chat .arena-chat__show:active,
+.arena-chat .arena-chat__jump:active,
 .arena-chat .arena-chat__rules-toggle:active,
 .arena-chat .arena-chat__action:active,
 .arena-chat .arena-chat__dm-row:active,
@@ -11658,6 +11822,7 @@ button.arena-chat__poll-option:hover {
 .arena-chat .arena-chat__poll-ask:focus-visible,
 .arena-chat .arena-chat__gif-upload:focus-visible,
 .arena-chat .arena-chat__show:focus-visible,
+.arena-chat .arena-chat__jump:focus-visible,
 .arena-chat .arena-chat__rules-toggle:focus-visible,
 .arena-chat .arena-chat__emoji-btn:focus-visible,
 .arena-chat .arena-chat__gif-tile:focus-visible,

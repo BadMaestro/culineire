@@ -27,6 +27,7 @@
   if (!root) { return; }
 
   var log = document.getElementById('arena-chat-log');
+  var jump = document.getElementById('arena-chat-jump');
   var empty = document.getElementById('arena-chat-empty');
   var form = document.getElementById('arena-chat-form');
   var input = document.getElementById('arena-chat-input');
@@ -334,12 +335,54 @@
    * survive until the next batch of messages happened to arrive. */
   function clearLog() {
     log.innerHTML = '';
+    hideJump();
     var summary = document.getElementById('arena-chat-reaction-summary');
     if (summary) { summary.hidden = true; summary.innerHTML = ''; }
   }
 
   function nearBottom() {
     return log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+  }
+
+  /* JUMP TO THE LATEST - the pill under the log.
+   *
+   * IT NEEDS BOTH CONDITIONS, never one. Shown only when a new line has
+   * arrived AND the reader is not already at the foot: a pill offering to
+   * take somebody where they already are is furniture, and a pill that
+   * appears merely because the log is scrollable would be up permanently on
+   * any busy evening.
+   *
+   * Nothing here forces the view. absorb() below still decides on its own
+   * whether to stick to the bottom, exactly as it did before this existed;
+   * this only gives a reader who is deliberately reading back a way to
+   * return when THEY choose. */
+  function showJump() {
+    if (jump) { jump.hidden = false; }
+  }
+  function hideJump() {
+    if (jump) { jump.hidden = true; }
+  }
+  function toBottom(smooth) {
+    if (smooth && log.scrollTo) {
+      log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
+    } else {
+      log.scrollTop = log.scrollHeight;
+    }
+    hideJump();
+  }
+  if (jump) {
+    jump.addEventListener('click', function () {
+      // A reader who has asked for reduced motion gets the same destination
+      // without the travel, rather than a shorter animation.
+      var reduce = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      toBottom(!reduce);
+      log.focus && log.focus();
+    });
+    // Reaching the foot by hand answers the pill just as well as pressing it.
+    log.addEventListener('scroll', function () {
+      if (nearBottom()) { hideJump(); }
+    }, { passive: true });
   }
 
   /* One tag badge, or nothing at all.
@@ -2198,7 +2241,14 @@
     var stick = nearBottom();
     if (empty && empty.parentNode) { empty.remove(); }
     lines.forEach(append);
-    if (stick) { log.scrollTop = log.scrollHeight; }
+    if (stick) {
+      log.scrollTop = log.scrollHeight;
+      hideJump();
+    } else {
+      // Somebody is reading back through the evening. Their place is kept and
+      // they are told there is something new below it.
+      showJump();
+    }
     renderReactionSummary();
   }
 

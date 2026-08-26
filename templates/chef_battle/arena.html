@@ -609,6 +609,22 @@
     </ol>
 
     {% comment %}
+      JUMP TO THE LATEST. Shown by arena_chat.js only while the reader has
+      scrolled back through the conversation AND a new line has landed below
+      them - the two conditions together, because either one alone is a
+      button with nothing to do.
+
+      It sits in the flow between the log and the strips under it rather than
+      floating over the log; the reasoning is in arena.css beside
+      .arena-chat__jump. Server-rendered hidden so the composer never has to
+      be rebuilt to gain or lose it, the same way the reply line and the
+      attachment strip above already work.
+    {% endcomment %}
+    <button type="button" class="arena-chat__jump" id="arena-chat-jump" hidden>
+      New messages
+    </button>
+
+    {% comment %}
       Reaction summary — real counts, summed by renderReactionSummary() in
       arena_chat.js from the reaction totals already carried on every
       visible message's own strip (data-count). A passive display, not a
@@ -733,7 +749,12 @@
       unused until now); the server re-validates the value regardless of what
       this form sends.
     {% endcomment %}
-    <div class="arena-chat__panel" id="arena-chat-panel-settings" role="tabpanel" aria-labelledby="arena-chat-tab-settings" hidden>
+    {% comment %}
+      The --settings modifier is a LAYOUT hook, not a second skin: this panel
+      is the one that carries more rows than the chat's own height, so it is
+      the one that scrolls. See arena.css's .arena-chat__panel--settings.
+    {% endcomment %}
+    <div class="arena-chat__panel arena-chat__panel--settings" id="arena-chat-panel-settings" role="tabpanel" aria-labelledby="arena-chat-tab-settings" hidden>
       <form class="arena-chat__settings" id="arena-chat-settings-form">
         <p class="arena-chat__settings-label">Who can message you privately</p>
         <label><input type="radio" name="dm_policy" value="anyone"> Anyone</label>
