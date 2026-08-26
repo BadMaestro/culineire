@@ -23608,3 +23608,278 @@ class ArenaEventCardTests(TestCase):
                 "MESSAGE_RENDERERS." + kind + " =", js,
                 "%s has no renderer registered" % kind,
             )
+
+
+# The limiter is real in production and is deliberately tight - 10 polls a
+# minute per IP. It is switched off HERE because every request in this class
+# arrives from 127.0.0.1, so twenty-one tests look like one very busy person
+# and the 429 masks what is actually being tested. The rate limit itself is not
+# what these tests are for.
+@override_settings(RATELIMIT_ENABLE=False)
+class ArenaChatPollTests(TestCase):
+    """A question the stands asked, and the one thing it must never become.
+
+    P2 item 16. The separation from the battle's own vote is the whole point of
+    the feature, so it is asserted structurally here - not by reading a label.
+    """
+
+    def setUp(self):
+        self.user, self.author, _ = _seat_a_viewer(
+            "pollster", "PollsterTest", "pollster-test",
+        )
+        self.other_user, self.other_author, _ = _seat_a_viewer(
+            "pollvoter", "VoterTest", "voter-test",
+        )
+        self.create_url = reverse("chef_battle:arena_chat_poll_create")
+        self.vote_url = reverse("chef_battle:arena_chat_poll_vote")
+        self.feed_url = reverse("chef_battle:arena_chat_feed")
+
+    def _ask(self, question="Best sear?", options=("Cast iron", "Grill"), user=None):
+        self.client.force_login(user or self.user)
+        return self.client.post(self.create_url, {
+            "question": question, "options": list(options),
+        })
+
+    # ---- creation ----------------------------------------------------
+
+    def test_a_poll_is_a_chat_row_carrying_its_own_kind(self):
+        from chef_battle.models import ArenaChatMessage, ArenaChatPoll
+
+        response = self._ask()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
+
+        message = ArenaChatMessage.objects.get(kind=ArenaChatMessage.Kind.POLL)
+        # The question is the BODY as well, so a client that has never heard of
+        # polls still renders it as a spoken line rather than an empty bubble.
+        self.assertEqual(message.body, "Best sear?")
+        poll = ArenaChatPoll.objects.get(message=message)
+        self.assertEqual(
+            [o.label for o in poll.options.all()], ["Cast iron", "Grill"],
+        )
+
+    def test_the_options_keep_the_order_they_were_typed_in(self):
+        from chef_battle.models import ArenaChatPoll
+
+        self._ask(options=("Zebra", "Apple", "Mango"))
+        poll = ArenaChatPoll.objects.get()
+        self.assertEqual(
+            [o.label for o in poll.options.all()], ["Zebra", "Apple", "Mango"],
+        )
+
+    def test_blank_answers_are_dropped_rather_than_refused(self):
+        from chef_battle.models import ArenaChatPoll
+
+        # A composer with five boxes and two filled in is somebody offering two
+        # answers, not an error.
+        response = self._ask(options=("Cast iron", "", "  ", "Grill", ""))
+        self.assertTrue(response.json()["ok"])
+        self.assertEqual(
+            [o.label for o in ArenaChatPoll.objects.get().options.all()],
+            ["Cast iron", "Grill"],
+        )
+
+    def test_one_answer_is_refused(self):
+        response = self._ask(options=("Only this",))
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "too_few_options")
+
+    def test_two_identical_answers_are_refused(self):
+        response = self._ask(options=("Grill", "  grill  "))
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "duplicate_options")
+
+    def test_a_blank_question_is_refused(self):
+        response = self._ask(question="   ")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "empty_question")
+
+    def test_more_than_five_answers_are_truncated_not_refused(self):
+        from chef_battle.models import ArenaChatPoll
+
+        self._ask(options=("a", "b", "c", "d", "e", "f", "g"))
+        self.assertEqual(ArenaChatPoll.objects.get().options.count(), 5)
+
+    def test_only_one_poll_may_stand_open_per_person(self):
+        self.assertTrue(self._ask().json()["ok"])
+        second = self._ask(question="And another?")
+        self.assertEqual(second.status_code, 409)
+        self.assertEqual(second.json()["error"], "poll_already_open")
+
+    def test_a_closed_poll_frees_the_person_to_ask_again(self):
+        from chef_battle.models import ArenaChatPoll
+
+        self._ask()
+        ArenaChatPoll.objects.update(
+            closes_at=timezone.now() - timezone.timedelta(minutes=1),
+        )
+        self.assertTrue(self._ask(question="Second one").json()["ok"])
+
+    def test_someone_with_no_seat_cannot_ask(self):
+        User = get_user_model()
+        stranger = User.objects.create_user("nostranger", password="pw")
+        RecipeAuthor.objects.create(
+            user=stranger, name="NoSeat", slug="no-seat-poll",
+        )
+        response = self._ask(user=stranger)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error"], "not_in_the_hall")
+
+    # ---- voting ------------------------------------------------------
+
+    def _option_ids(self):
+        from chef_battle.models import ArenaChatPoll
+
+        return [o.pk for o in ArenaChatPoll.objects.get().options.all()]
+
+    def test_a_vote_is_counted_and_the_card_comes_back_with_it(self):
+        self._ask()
+        first = self._option_ids()[0]
+        self.client.force_login(self.other_user)
+        data = self.client.post(self.vote_url, {"option": first}).json()
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["card"]["total"], 1)
+        self.assertEqual(data["card"]["mine"], first)
+
+    def test_changing_an_answer_moves_the_vote_and_does_not_add_one(self):
+        from chef_battle.models import ArenaChatPollVote
+
+        self._ask()
+        first, second = self._option_ids()
+        self.client.force_login(self.other_user)
+        self.client.post(self.vote_url, {"option": first})
+        data = self.client.post(self.vote_url, {"option": second}).json()
+        # One person, one answer - the constraint is the database's, not the
+        # view's good manners.
+        self.assertEqual(ArenaChatPollVote.objects.count(), 1)
+        self.assertEqual(data["card"]["total"], 1)
+        self.assertEqual(data["card"]["mine"], second)
+
+    def test_a_closed_poll_refuses_a_late_vote(self):
+        from chef_battle.models import ArenaChatPoll
+
+        self._ask()
+        option = self._option_ids()[0]
+        ArenaChatPoll.objects.update(
+            closes_at=timezone.now() - timezone.timedelta(seconds=1),
+        )
+        self.client.force_login(self.other_user)
+        response = self.client.post(self.vote_url, {"option": option})
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["error"], "poll_closed")
+
+    def test_an_invented_option_id_is_a_404_not_a_crash(self):
+        self._ask()
+        self.client.force_login(self.other_user)
+        response = self.client.post(self.vote_url, {"option": 99999})
+        self.assertEqual(response.status_code, 404)
+
+    def test_someone_with_no_seat_cannot_vote(self):
+        User = get_user_model()
+        stranger = User.objects.create_user("novoter", password="pw")
+        RecipeAuthor.objects.create(
+            user=stranger, name="NoSeatVoter", slug="no-seat-voter",
+        )
+        self._ask()
+        option = self._option_ids()[0]
+        self.client.force_login(stranger)
+        response = self.client.post(self.vote_url, {"option": option})
+        self.assertEqual(response.status_code, 403)
+
+    # ---- the feed ----------------------------------------------------
+
+    def test_the_feed_carries_the_poll_card_with_its_tally(self):
+        self._ask()
+        self.client.force_login(self.user)
+        lines = self.client.get(self.feed_url).json()["messages"]
+        card = [line for line in lines if line["kind"] == "poll"][0]["card"]
+        self.assertEqual(card["question"], "Best sear?")
+        self.assertTrue(card["open"])
+        self.assertEqual(card["total"], 0)
+        self.assertEqual(len(card["options"]), 2)
+        # Nobody has voted, so no bar is drawn for anybody.
+        self.assertTrue(all(o["votes"] == 0 for o in card["options"]))
+        self.assertIsNone(card["mine"])
+
+    def test_open_polls_are_re_read_when_the_client_names_them(self):
+        """The delta feed sends each row once; a tally has to be re-readable.
+
+        Without this a poll would be frozen at the numbers it had when it
+        arrived, for everybody except the person who voted.
+        """
+        self._ask()
+        self.client.force_login(self.other_user)
+        first = self._option_ids()[0]
+        self.client.post(self.vote_url, {"option": first})
+
+        message_id = [
+            line for line in self.client.get(self.feed_url).json()["messages"]
+            if line["kind"] == "poll"
+        ][0]["id"]
+
+        # A later tick: no new rows, but the named poll is re-read.
+        data = self.client.get(
+            self.feed_url, {"since": message_id, "polls": message_id},
+        ).json()
+        self.assertEqual(data["messages"], [])
+        self.assertEqual(data["polls"][str(message_id)]["total"], 1)
+
+    def test_a_reader_is_told_their_own_answer_and_never_anybody_elses(self):
+        self._ask()
+        first = self._option_ids()[0]
+        self.client.force_login(self.other_user)
+        self.client.post(self.vote_url, {"option": first})
+
+        # The voter sees their own answer marked.
+        lines = self.client.get(self.feed_url).json()["messages"]
+        card = [line for line in lines if line["kind"] == "poll"][0]["card"]
+        self.assertEqual(card["mine"], first)
+
+        # The asker sees the total but not who cast it - a poll is not a show
+        # of hands, and no voter identity is serialised at all.
+        self.client.force_login(self.user)
+        lines = self.client.get(self.feed_url).json()["messages"]
+        card = [line for line in lines if line["kind"] == "poll"][0]["card"]
+        self.assertEqual(card["total"], 1)
+        self.assertIsNone(card["mine"])
+        self.assertNotIn("voter-test", json.dumps(card))
+        self.assertNotIn("VoterTest", json.dumps(card))
+
+    def test_garbage_in_the_polls_parameter_is_ignored_not_fatal(self):
+        self._ask()
+        self.client.force_login(self.user)
+        response = self.client.get(self.feed_url, {"polls": "abc,,;--,9e9"})
+        self.assertEqual(response.status_code, 200)
+
+    # ---- the line that matters most ----------------------------------
+
+    def test_a_chat_poll_casts_no_battle_vote(self):
+        """The separation is structural, not a caption.
+
+        This is the Owner's explicit rule for item 16: a poll in the stands
+        must never be mistaken for - or become - the battle's own vote.
+        """
+        from chef_battle.models import BattleVote
+
+        before = BattleVote.objects.count()
+        self._ask()
+        option = self._option_ids()[0]
+        self.client.force_login(self.other_user)
+        self.client.post(self.vote_url, {"option": option})
+        self.assertEqual(BattleVote.objects.count(), before)
+
+    def test_the_card_carries_the_disclaimer_in_the_renderer(self):
+        """The words are in the script, unconditional and not behind a setting.
+
+        A grep rather than a browser, because what is asserted is that the line
+        cannot be turned off - there is no branch that omits it.
+        """
+        from pathlib import Path
+
+        from django.conf import settings
+
+        source = (
+            Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn("Not the battle vote", source)
+        self.assertIn("It does not affect the battle result.", source)

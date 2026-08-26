@@ -29,6 +29,8 @@ from __future__ import annotations
 
 import logging
 
+from django.utils import timezone
+
 from .models import ArenaChatMessage, ArenaSeat, BattleEvent
 
 logger = logging.getLogger(__name__)
@@ -127,7 +129,78 @@ def post_card_for_event(event: BattleEvent) -> ArenaChatMessage | None:
         return None
 
 
-def card_payload(message: ArenaChatMessage) -> dict:
+def poll_summary(message_ids, viewer=None) -> dict:
+    """Every poll on one page of the log, with its tallies, in a fixed number
+    of queries.
+
+    Built in bulk for the same reason reaction_summary is: a page is up to
+    ARENA_CHAT_PAGE rows, and a per-card query would turn one poll-heavy page
+    into sixty round trips on an endpoint the hall hits every four seconds.
+    Three queries regardless of how many polls are on the page - the polls with
+    their options, the counts, and this reader's own answers.
+
+    THE TALLY IS A COUNT OF ROWS, never a stored counter, so two people voting
+    in the same second cannot race into a wrong total - the same decision
+    ArenaChatReaction made and for the same reason.
+    """
+    from django.db.models import Count
+
+    from .models import ArenaChatPoll, ArenaChatPollVote
+
+    ids = list(message_ids)
+    if not ids:
+        return {}
+
+    polls = (
+        ArenaChatPoll.objects
+        .filter(message_id__in=ids)
+        .prefetch_related("options")
+    )
+    polls = list(polls)
+    if not polls:
+        return {}
+
+    poll_ids = [p.pk for p in polls]
+    counts = {
+        row["option"]: row["n"]
+        for row in ArenaChatPollVote.objects
+        .filter(poll_id__in=poll_ids)
+        .values("option")
+        .annotate(n=Count("id"))
+    }
+    # WHAT THIS READER ANSWERED, and only this reader - a poll shows the room's
+    # totals to everyone but never shows who voted for what. An anonymous vote
+    # in a room where people can see each other's names is the difference
+    # between a poll and a show of hands.
+    mine = {}
+    if viewer is not None:
+        mine = dict(
+            ArenaChatPollVote.objects
+            .filter(poll_id__in=poll_ids, voter=viewer)
+            .values_list("poll_id", "option_id")
+        )
+
+    now = timezone.now()
+    out = {}
+    for poll in polls:
+        options = list(poll.options.all())
+        total = sum(counts.get(o.pk, 0) for o in options)
+        out[poll.message_id] = {
+            "poll": poll.pk,
+            "question": poll.question,
+            "open": now < poll.closes_at,
+            "closes_at": poll.closes_at.isoformat(),
+            "total": total,
+            "mine": mine.get(poll.pk),
+            "options": [
+                {"id": o.pk, "label": o.label, "votes": counts.get(o.pk, 0)}
+                for o in options
+            ],
+        }
+    return out
+
+
+def card_payload(message: ArenaChatMessage, poll=None) -> dict:
     """What the renderer is given for one card, and nothing more.
 
     Read off the EVENT rather than off the chat row wherever the event has it,
@@ -158,6 +231,17 @@ def card_payload(message: ArenaChatMessage) -> dict:
         if message.kind == ArenaChatMessage.Kind.BATTLE_RESULT and winner is not None:
             payload["winner"] = winner.name
             payload["winner_slug"] = winner.slug
+    # A POLL IS THE ONE CARD NOT WRITTEN FROM A BattleEvent, because nothing
+    # in the game produced it - somebody in the stands asked the room a
+    # question. The tally is handed in already built (poll_summary above), so
+    # this branch does no queries of its own.
+    #
+    # IT IS NOT THE BATTLE'S VOTE. Nothing here reads or writes BattleVote, and
+    # the renderer prints that in words on the card as well.
+    if message.kind == ArenaChatMessage.Kind.POLL:
+        if poll:
+            payload.update(poll)
+        return payload
     # AN ARRIVAL HAS NO BATTLE AND NO EVENT. What it has is the chef, and the
     # rank they walked in wearing - which is the only thing about a chef the
     # hall can see from the stands anyway.

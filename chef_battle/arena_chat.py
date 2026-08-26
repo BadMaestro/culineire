@@ -32,7 +32,7 @@ import math
 
 from django.db import models
 
-from chef_battle.arena_cards import card_payload
+from chef_battle.arena_cards import card_payload, poll_summary
 from chef_battle.selectors import get_arena_geometry
 
 # The Owner's numbers. Three cells along the ring, three rings across.
@@ -501,6 +501,9 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
     listener_ring, listener_cell = listener_seat
     muted_ids, blocked_ids = personal_hidden(viewer)
     reactions = reaction_summary([m.pk for m in messages], viewer)
+    # Only the card rows can carry a poll, so the bulk lookup is asked for
+    # nothing else - a hall of ordinary speech does no poll queries at all.
+    polls = poll_summary([m.pk for m in messages if m.kind], viewer)
     if tags_by_author is None:
         tags_by_author = team_tags_for({m.speaker_id for m in messages})
     out = []
@@ -563,7 +566,7 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
         # states about the fight - who, against whom, who won, where to go - is
         # read off the event and the battle it points at.
         if message.kind:
-            row["card"] = card_payload(message)
+            row["card"] = card_payload(message, polls.get(message.pk))
         # The line this one answers, as a short quote. One level: a reply
         # carries its parent's name and a preview, and the parent's own parent
         # is not this reader's problem.

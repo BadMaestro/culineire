@@ -4611,12 +4611,38 @@ def arena_chat_feed(request):
     # conversation__isnull: the hall is the room with no conversation row, so a
     # private line can never fall into the public feed by omission.
     rows = list(base.filter(conversation__isnull=True)[:ARENA_CHAT_PAGE])
-    return JsonResponse({
+    payload = {
         "seated": True,
         "channel": "public",
         "listening": _arena_hall_headcount(),
         "messages": audible_lines(seat, rows, viewer=author),
-    })
+    }
+
+    # OPEN POLLS ARE RE-READ, and they are the only rows that ever are. The
+    # feed is a delta - id__gt=since - so every row is sent exactly once, which
+    # is right for a sentence and wrong for a tally that changes after it was
+    # said. A poll nobody watches fill in is not a poll.
+    #
+    # The CLIENT names which ones, because only the client knows what is still
+    # on its screen; the server refuses to guess and refuses to re-read the
+    # whole log. Closed polls are never asked for again - their numbers are
+    # final - so this costs nothing once the questions have run out, and the
+    # parameter is absent entirely in a hall that has never had a poll in it.
+    wanted_polls = (request.GET.get("polls") or "").split(",")[:ARENA_CHAT_PAGE]
+    poll_ids = []
+    for raw in wanted_polls:
+        try:
+            poll_ids.append(int(raw))
+        except (TypeError, ValueError):
+            continue
+    if poll_ids:
+        from .arena_cards import poll_summary
+
+        # Audibility is not re-checked here and does not need to be: a card is
+        # heard everywhere (arena_cards), and the ids came from rows this
+        # reader was already served.
+        payload["polls"] = poll_summary(poll_ids, author)
+    return JsonResponse(payload)
 
 
 def _arena_hall_headcount() -> int:
@@ -5160,6 +5186,165 @@ def arena_chat_react(request):
         "message_id": message.pk,
         "mine": mine,
         "reactions": reaction_summary([message.pk], actor).get(message.pk, {}),
+    })
+
+
+# A poll runs for five minutes and the number is not configurable, on
+# purpose. The Owner's razor: a duration picker is three more controls on a
+# composer that is already full, to answer a question nobody in a live hall has
+# asked. Five minutes is long enough to catch a room between two courses and
+# short enough that the log is not carrying stale questions.
+ARENA_POLL_MINUTES = 5
+ARENA_POLL_MIN_OPTIONS = 2
+ARENA_POLL_MAX_OPTIONS = 5
+ARENA_POLL_QUESTION_CHARS = 140
+ARENA_POLL_OPTION_CHARS = 60
+
+
+@require_POST
+@ratelimit(key="ip", rate="10/m", method="POST", block=False)
+def arena_chat_poll_create(request):
+    """Somebody in the stands asks the room a question. P2 item 16.
+
+    NOT THE BATTLE'S VOTE, and the separation is structural: this writes an
+    ArenaChatPoll and nothing else, no scorer reads that table, and there is no
+    code path from a tally here to a battle result. See ArenaChatPoll's
+    docstring; the card says it in words to the reader as well.
+
+    ONE OPEN POLL PER PERSON, which is the real limit - a rate limit counts
+    requests per minute and would still let one person leave nine questions
+    standing in a log everybody else has to scroll past. A poll costs the room
+    far more space than a line does, so the ceiling is on what is STANDING,
+    not on how fast it was asked.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+
+    from .arena_chat import audible_lines, seat_of
+    from .models import ArenaChatMessage, ArenaChatPoll, ArenaChatPollOption
+
+    author = _chat_actor(request)
+    if author is None:
+        return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
+    seat = seat_of(author)
+    # Asking the room something is speaking in it, so it asks for the same
+    # place in the hall the composer does.
+    if seat is None:
+        return JsonResponse({"ok": False, "error": "not_in_the_hall"}, status=403)
+
+    # A SILENCED CHEF IS SILENCED, in every form speaking takes. Without this
+    # a timeout would stop the sentences and leave the questions.
+    timeout = _chat_timeout_active(author)
+    if timeout is not None:
+        return JsonResponse({
+            "ok": False, "error": "timed_out", "until": timeout.until.isoformat(),
+        }, status=403)
+
+    question = (request.POST.get("question") or "").strip()[:ARENA_POLL_QUESTION_CHARS]
+    if not question:
+        return JsonResponse({"ok": False, "error": "empty_question"}, status=400)
+
+    # Blank entries are dropped rather than refused: a composer with five boxes
+    # and three filled in is somebody offering three answers, not an error.
+    labels = [
+        (label or "").strip()[:ARENA_POLL_OPTION_CHARS]
+        for label in request.POST.getlist("options")
+    ]
+    labels = [label for label in labels if label][:ARENA_POLL_MAX_OPTIONS]
+    if len(labels) < ARENA_POLL_MIN_OPTIONS:
+        return JsonResponse({"ok": False, "error": "too_few_options"}, status=400)
+    # Two identical answers make a tally meaningless and are always a mistake.
+    if len({label.casefold() for label in labels}) != len(labels):
+        return JsonResponse({"ok": False, "error": "duplicate_options"}, status=400)
+
+    now = timezone.now()
+    standing = ArenaChatPoll.objects.filter(
+        message__speaker=author, closes_at__gt=now,
+    ).exists()
+    if standing:
+        return JsonResponse({"ok": False, "error": "poll_already_open"}, status=409)
+
+    with transaction.atomic():
+        message = ArenaChatMessage.objects.create(
+            battle=get_active_battles()[0] if get_active_battles() else None,
+            speaker=author,
+            display_name=author.name,
+            # THE QUESTION IS THE BODY as well as the poll's own field, so a
+            # client that has never heard of polls still renders the question
+            # as a spoken line instead of an empty bubble.
+            body=question,
+            ring_index=seat[0],
+            seat_index=seat[1],
+            kind=ArenaChatMessage.Kind.POLL,
+        )
+        poll = ArenaChatPoll.objects.create(
+            message=message,
+            question=question,
+            closes_at=now + timezone.timedelta(minutes=ARENA_POLL_MINUTES),
+        )
+        ArenaChatPollOption.objects.bulk_create([
+            ArenaChatPollOption(poll=poll, label=label, position=index)
+            for index, label in enumerate(labels)
+        ])
+
+    lines = audible_lines(seat, [message], viewer=author)
+    return JsonResponse({"ok": True, "messages": lines})
+
+
+@require_POST
+@ratelimit(key="ip", rate="30/m", method="POST", block=False)
+def arena_chat_poll_vote(request):
+    """One answer, changeable while the poll is open.
+
+    CHANGING AN ANSWER IS AN UPDATE, not a second row - the unique constraint
+    on (poll, voter) is what makes "one answer per person" true in the database
+    rather than true only as long as this view is the only writer.
+
+    A CLOSED POLL REFUSES, and it is checked here against the clock rather than
+    trusted from the browser: the countdown on the card is presentation, and a
+    late request would otherwise land a vote after the room had read the
+    result.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
+
+    from .arena_cards import poll_summary
+    from .arena_chat import seat_of
+    from .models import ArenaChatPollOption, ArenaChatPollVote
+
+    actor = _chat_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
+    if seat_of(actor) is None:
+        return JsonResponse({"ok": False, "error": "not_in_the_hall"}, status=403)
+
+    # The option is the whole request: it names its own poll, so a caller
+    # cannot pair an option with a poll it does not belong to.
+    option = (
+        ArenaChatPollOption.objects
+        .filter(pk=request.POST.get("option") or 0)
+        .select_related("poll", "poll__message")
+        .first()
+    )
+    if option is None:
+        return JsonResponse({"ok": False, "error": "no_such_option"}, status=404)
+    poll = option.poll
+    if poll.message.is_hidden:
+        return JsonResponse({"ok": False, "error": "no_such_option"}, status=404)
+    if not poll.is_open:
+        return JsonResponse({"ok": False, "error": "poll_closed"}, status=409)
+
+    ArenaChatPollVote.objects.update_or_create(
+        poll=poll, voter=actor, defaults={"option": option},
+    )
+    return JsonResponse({
+        "ok": True,
+        "message_id": poll.message_id,
+        "card": poll_summary([poll.message_id], actor).get(poll.message_id, {}),
     })
 
 

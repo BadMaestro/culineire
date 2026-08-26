@@ -1462,6 +1462,59 @@
 
 /* The mention dropdown - the same sheet again, as a listbox. */
 .arena-chat__sheet--mentions { width: min(15rem, 90vw); }
+
+/* The composer, inside the sheet family - so it is an anchored popover on a
+   wide rail and a bottom sheet on a phone with no rule of its own. */
+.arena-chat__sheet--poll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  /* NO PADDING HERE. .arena-chat__sheet is one class and so is this, so a
+     padding declared here would beat the narrow branch's
+     max(.4rem, env(safe-area-inset-bottom)) purely on source order and put the
+     Ask button under a phone's home indicator. Gap does the spacing instead. */
+  min-width: 13rem;
+}
+.arena-chat__poll-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.arena-chat .arena-chat__poll-field {
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  border-radius: 0.35rem;
+  background: var(--surface);
+  font-size: 0.7rem;
+  color: var(--ink);
+}
+.arena-chat .arena-chat__poll-field:focus-visible {
+  outline: 2px solid var(--accent-bronze);
+  outline-offset: 1px;
+}
+.arena-chat .arena-chat__poll-warn {
+  margin: 0.1rem 0 0;
+  font-size: 0.58rem;
+  line-height: 1.3;
+  color: var(--muted);
+}
+.arena-chat .arena-chat__poll-ask {
+  align-self: stretch;
+  margin-top: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: var(--arena-gold, var(--accent-bronze));
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-on-gold, #1a1408);
+  cursor: pointer;
+}
+.arena-chat .arena-chat__poll-ask[disabled] { opacity: 0.55; cursor: default; }
+
 .arena-chat__mention-option {
   appearance: none;
   display: flex;
@@ -10899,3 +10952,119 @@ body.page--arena.is-zoom-locked {
    two roles one phase later. */
 .arena-chat .arena-chat__card--artifact_attack { border-left-color: var(--arena-rank-1, var(--accent-bronze-dark)); }
 .arena-chat .arena-chat__card--artifact_defence { border-left-color: var(--arena-rank-6, var(--accent-bronze)); }
+/* ==========================================================================
+   CHAT POLLS - P2 item 16.
+   Two-class prefix throughout, for the same reason the card block above uses
+   one: `.arena-chat * { color: inherit }` is a shared six-panel reset that
+   ties with any bare single-class colour rule here and wins on source order.
+   Never !important - match the prefix instead.
+   ========================================================================== */
+.arena-chat .arena-chat__card--poll { border-left-color: var(--muted); }
+/* THE POLL CARD IS THE ONLY CARD THAT NAMES ITS AUTHOR IN THE HEAD, and that
+   is what makes these two rules necessary. The game's cards carry no name
+   there, so their head has only a title that may shrink; a chef's name may
+   not, and at the 240px rail the head's min-content pushed the card 21px
+   wider than the log - measured, and it put a horizontal overflow into a
+   column that had none. min-width:0 lets the card shrink at all (it is a flex
+   item and defaults to min-content); wrap lets the head relayout rather than
+   be clipped. Scoped to --poll: the other cards do not have the problem and
+   must not have their heads rewrapped to fix one that does. */
+.arena-chat .arena-chat__card--poll { min-width: 0; }
+.arena-chat .arena-chat__card--poll .arena-chat__card-head { flex-wrap: wrap; }
+
+.arena-chat .arena-chat__poll-question {
+  /* A question is a stranger's typing and may contain one very long word. */
+  overflow-wrap: anywhere;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.arena-chat__poll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.1rem;
+}
+/* The row is the positioning context for its own bar. */
+.arena-chat__poll-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.24rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+  border-radius: 0.35rem;
+  background: transparent;
+  text-align: left;
+  overflow: hidden;
+}
+button.arena-chat__poll-option { cursor: pointer; }
+button.arena-chat__poll-option:hover {
+  border-color: color-mix(in srgb, var(--accent-bronze) 60%, transparent);
+}
+/* THE ANSWER THIS READER GAVE, marked on the row rather than by a tick in the
+   label - the label is the asker's words and nothing should be appended to
+   them. */
+.arena-chat .arena-chat__poll-option[data-mine="1"] {
+  border-color: var(--accent-bronze);
+}
+/* The bar sits BEHIND the text as a sibling, not as a background on the row:
+   a label never has to stay readable against a moving fill. */
+.arena-chat__poll-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+  transition: width 0.25s ease;
+  pointer-events: none;
+}
+.arena-chat .arena-chat__poll-label {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.arena-chat .arena-chat__poll-count {
+  position: relative;
+  flex: 0 0 auto;
+  font-size: 0.58rem;
+  font-weight: 800;
+  /* Tabular, so the numbers do not jump sideways as a tally changes under a
+     reader who is watching it. */
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.arena-chat__poll-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin-top: 0.1rem;
+}
+.arena-chat .arena-chat__poll-total,
+.arena-chat .arena-chat__poll-state {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* THE DISCLAIMER IS NOT DECORATION and is not allowed to fade into the
+   footer: it is the one line that keeps a chat poll from being mistaken for
+   the battle's own vote. Same size as its neighbours, stronger colour. */
+.arena-chat .arena-chat__poll-not {
+  margin-left: auto;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-bronze-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-chat__poll-fill { transition: none; }
+}

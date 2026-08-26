@@ -712,6 +712,9 @@ class ArenaChatMessage(models.Model):
         # attack that a defence turned away.
         ARTIFACT_ATTACK = "artifact_attack", "Artifact attack landed"
         ARTIFACT_DEFENCE = "artifact_defence", "Artifact defence held"
+        # P2 item 16. A question the STANDS asked, never the battle's own
+        # vote - see ArenaChatPoll for why that separation is structural.
+        POLL = "poll", "Poll"
 
     kind = models.CharField(
         max_length=24, choices=Kind.choices, blank=True, default="",
@@ -893,6 +896,97 @@ class ArenaChatReaction(models.Model):
 
     def __str__(self):
         return f"{self.author} {self.emoji} #{self.message_id}"
+
+
+class ArenaChatPoll(models.Model):
+    """A question somebody in the stands asked the room. P2 item 16.
+
+    THIS IS NOT THE BATTLE'S VOTE AND MUST NEVER BE MISTAKEN FOR IT. The
+    Owner's brief is explicit, and the separation is structural rather than a
+    label on a card: nothing here touches BattleVote, no scorer reads this
+    table, and a tally in it cannot reach a result because no code path leads
+    from here to one. The renderer says so in words as well, but the words are
+    the second line of defence, not the first.
+
+    A POLL IS A CHAT ROW, the same way P3's cards are - one log, one cursor,
+    one poll loop (see arena_cards for the reasoning that already settled
+    this). The row carries kind=POLL and the question as its body, so a client
+    that has never heard of polls still shows the question as a spoken line
+    rather than an empty bubble.
+
+    CLOSING IS A TIME, NOT A FLAG somebody has to remember to set. `closes_at`
+    is written once when the poll is made and `is_open` is derived from the
+    clock, so a poll cannot be left open forever because a job did not run.
+    """
+
+    # The row that renders it. CASCADE because a poll without its message has
+    # nowhere to appear - it is not a record anybody keeps for its own sake.
+    message = models.OneToOneField(
+        ArenaChatMessage, on_delete=models.CASCADE, related_name="poll",
+    )
+    question = models.CharField(max_length=140)
+    created_at = models.DateTimeField(auto_now_add=True)
+    closes_at = models.DateTimeField()
+
+    class Meta:
+        indexes = [models.Index(fields=["closes_at"])]
+
+    def __str__(self):
+        return self.question
+
+    @property
+    def is_open(self):
+        return timezone.now() < self.closes_at
+
+
+class ArenaChatPollOption(models.Model):
+    """One of the answers offered. Two to five of them, decided at creation."""
+
+    poll = models.ForeignKey(
+        ArenaChatPoll, on_delete=models.CASCADE, related_name="options",
+    )
+    label = models.CharField(max_length=60)
+    # Explicit, because the order the asker typed them in is part of the
+    # question and "whatever the database returns" is not an order.
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["position", "id"]
+
+    def __str__(self):
+        return self.label
+
+
+class ArenaChatPollVote(models.Model):
+    """One person's answer, and they may change it while the poll is open.
+
+    The poll is stored alongside the option rather than reached through it, so
+    "one answer per person per poll" can be a database constraint instead of a
+    rule the view has to remember. Changing an answer is an UPDATE of this row,
+    which is why the constraint is on (poll, voter) and not on the option.
+    """
+
+    poll = models.ForeignKey(
+        ArenaChatPoll, on_delete=models.CASCADE, related_name="votes",
+    )
+    option = models.ForeignKey(
+        ArenaChatPollOption, on_delete=models.CASCADE, related_name="votes",
+    )
+    voter = models.ForeignKey(
+        RecipeAuthor, on_delete=models.CASCADE, related_name="arena_chat_poll_votes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["poll", "voter"], name="one_poll_answer_per_person",
+            ),
+        ]
+        indexes = [models.Index(fields=["option"])]
+
+    def __str__(self):
+        return f"{self.voter} -> {self.option_id}"
 
 
 class ChatMute(models.Model):

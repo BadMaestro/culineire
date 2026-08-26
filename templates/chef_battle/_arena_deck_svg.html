@@ -31,6 +31,17 @@ Metric map: Active viewers -> #ad-eye · Public votes -> #ad-vote · Battle gift
   {# Send — the spectator chat's submit button #}
   <symbol id="ad-send" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12 2-12 2z"/></symbol>
 
+  {% comment %}
+    Chat poll - a question asked in the room: a speech bubble with a short
+    tally inside it. DELIBERATELY NOT ad-vote and deliberately not bars alone.
+    ad-vote is already three ballot bars, and a chat poll must never be read as
+    the battle's own vote; an icon shared with it - or merely drawn like it -
+    would suggest exactly the equivalence the card spends a line denying. The
+    bubble is what carries the difference: this is somebody talking, not the
+    Arena counting.
+  {% endcomment %}
+  <symbol id="ad-poll" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M4 5.5h16v11H9.5L5 20.5v-4H4z"/><path d="M8.5 13.5v-2.8M12 13.5V8.6M15.5 13.5v-4"/></g></symbol>
+
   {# Gold VS medallion #}
   <symbol id="ad-vs" viewBox="0 0 120 72"><path d="M60 4l50 14v10c0 20-22 34-50 40C32 62 10 48 10 28V18L60 4z" fill="#141a17" stroke="url(#ad-gold)" stroke-width="2"/><text x="60" y="46" text-anchor="middle" font-family="Playfair Display, serif" font-weight="900" font-size="34" fill="url(#ad-gold)">VS</text></symbol>
 

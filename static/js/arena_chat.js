@@ -703,7 +703,8 @@
     defence: '🛡️',
     chef_entered: '👨‍🍳',
     artifact_attack: '🔥',
-    artifact_defence: '🛡️'
+    artifact_defence: '🛡️',
+    poll: '📊'
   };
   var CARD_TITLES = {
     challenge_issued: 'Challenge issued',
@@ -713,7 +714,8 @@
     defence: 'Blocked',
     chef_entered: 'Entered the Arena',
     artifact_attack: 'Attack lands',
-    artifact_defence: 'Defence holds'
+    artifact_defence: 'Defence holds',
+    poll: 'Question for the room'
   };
 
   function cardChef(name, slug) {
@@ -944,6 +946,195 @@
     }
     return item;
   }
+
+  /* ------------------------------------------------------------------
+     POLLS. P2 item 16.
+
+     A POLL IS NOT THE BATTLE'S VOTE and the card says so in words, every
+     time, in a line that cannot be turned off. The separation is real on the
+     server - nothing in the poll tables reaches a battle result - and this
+     sentence is what makes it visible to the person reading it, which is what
+     the Owner's brief actually asked for.
+
+     THE ONLY ROW IN THE LOG THAT IS RE-RENDERED. Everything else here is
+     written once; a tally is not a moment, it is a number that changes while
+     you look at it. repaintPoll() replaces the card's body in place, keeping
+     the same <li> so the reader's scroll position and any open menu survive.
+     ------------------------------------------------------------------ */
+
+  /* Which polls are on screen and still open. The feed is asked to re-read
+     exactly these and nothing else - a closed poll's numbers are final, so it
+     drops out of the list the moment it closes and is never asked for again. */
+  function openPollIds() {
+    var out = [];
+    if (!log) { return out; }
+    var cards = log.querySelectorAll('.arena-chat__card--poll[data-poll-open="1"]');
+    Array.prototype.forEach.call(cards, function (item) {
+      var id = item.getAttribute('data-id');
+      if (id) { out.push(id); }
+    });
+    return out;
+  }
+
+  function pollBody(card) {
+    var wrap = document.createElement('span');
+    wrap.className = 'arena-chat__poll';
+
+    var total = card.total || 0;
+    var open = !!card.open;
+
+    (card.options || []).forEach(function (option) {
+      var votes = option.votes || 0;
+      /* The share is of the votes cast, and an empty poll is drawn empty
+         rather than as equal bars - dividing by zero would have painted a
+         result nobody voted for. */
+      var share = total ? Math.round((votes / total) * 100) : 0;
+
+      /* A button while the poll is open, a plain row once it has closed: a
+         control that cannot do anything should not look like one. */
+      var row = document.createElement(open ? 'button' : 'span');
+      row.className = 'arena-chat__poll-option';
+      if (open) {
+        row.type = 'button';
+        row.setAttribute('data-option', option.id);
+      }
+      if (card.mine === option.id) {
+        row.setAttribute('data-mine', '1');
+      }
+
+      /* The bar is a sibling behind the text, not a background on it, so the
+         label never has to be readable against a moving fill. */
+      var fill = document.createElement('span');
+      fill.className = 'arena-chat__poll-fill';
+      fill.style.width = share + '%';
+      row.appendChild(fill);
+
+      var label = document.createElement('span');
+      label.className = 'arena-chat__poll-label';
+      label.textContent = option.label;
+      row.appendChild(label);
+
+      var count = document.createElement('span');
+      count.className = 'arena-chat__poll-count';
+      /* Percent AND the raw count: a percentage alone hides that "67%" was
+         two people out of three. */
+      count.textContent = share + '% (' + votes + ')';
+      row.appendChild(count);
+
+      wrap.appendChild(row);
+    });
+
+    var foot = document.createElement('span');
+    foot.className = 'arena-chat__poll-foot';
+
+    var tally = document.createElement('span');
+    tally.className = 'arena-chat__poll-total';
+    tally.textContent = total === 1 ? '1 vote' : total + ' votes';
+    foot.appendChild(tally);
+
+    var state = document.createElement('span');
+    state.className = 'arena-chat__poll-state';
+    state.textContent = open ? 'Open' : 'Closed';
+    foot.appendChild(state);
+
+    /* THE DISCLAIMER, and it is not optional. */
+    var not = document.createElement('span');
+    not.className = 'arena-chat__poll-not';
+    not.textContent = 'Not the battle vote';
+    foot.appendChild(not);
+
+    wrap.appendChild(foot);
+    return wrap;
+  }
+
+  function renderPollCard(line) {
+    var card = line.card || {};
+    var item = document.createElement('li');
+    item.className = 'arena-chat__line arena-chat__card arena-chat__card--poll';
+    item.setAttribute('data-id', line.id);
+    item.setAttribute('data-kind', 'poll');
+
+    var head = document.createElement('span');
+    head.className = 'arena-chat__card-head';
+
+    var mark = document.createElement('span');
+    mark.className = 'arena-chat__card-mark';
+    mark.setAttribute('aria-hidden', 'true');
+    mark.textContent = CARD_MARKS.poll;
+    head.appendChild(mark);
+
+    var title = document.createElement('b');
+    title.className = 'arena-chat__card-title';
+    title.textContent = CARD_TITLES.poll;
+    head.appendChild(title);
+
+    /* WHO ASKED. A card written by the game names no author; this one must,
+       because a question is somebody's and the room is entitled to know
+       whose before answering it. */
+    if (card.actor) {
+      head.appendChild(cardChef(card.actor, card.actor_slug));
+    }
+
+    if (line.at) {
+      var when = document.createElement('time');
+      when.className = 'arena-chat__time';
+      when.setAttribute('datetime', line.at);
+      when.textContent = formatTime(line.at);
+      when.title = new Date(line.at).toLocaleString();
+      head.appendChild(when);
+    }
+    item.appendChild(head);
+
+    var question = document.createElement('span');
+    question.className = 'arena-chat__poll-question';
+    /* textContent, never innerHTML - this is a stranger's typing. */
+    question.textContent = card.question || line.body || '';
+    item.appendChild(question);
+
+    item.appendChild(pollBody(card));
+    item.setAttribute('data-poll-open', card.open ? '1' : '0');
+    return item;
+  }
+
+  MESSAGE_RENDERERS.poll = renderPollCard;
+
+  /* Replace a poll's numbers without rebuilding its row. */
+  function repaintPoll(messageId, card) {
+    if (!log || !card || !card.options) { return; }
+    var item = log.querySelector(
+      '.arena-chat__card--poll[data-id="' + String(messageId).replace(/[^0-9]/g, '') + '"]'
+    );
+    if (!item) { return; }
+    var old = item.querySelector('.arena-chat__poll');
+    if (!old) { return; }
+    item.replaceChild(pollBody(card), old);
+    item.setAttribute('data-poll-open', card.open ? '1' : '0');
+  }
+
+  /* Voting. Delegated, because poll cards arrive from the feed long after
+     this file has finished running. */
+  if (log) {
+    log.addEventListener('click', function (event) {
+      var button = event.target.closest && event.target.closest('.arena-chat__poll-option');
+      if (!button || button.tagName !== 'BUTTON') { return; }
+      var url = root && root.getAttribute('data-poll-vote-url');
+      if (!url) { return; }
+      post(url, { option: button.getAttribute('data-option') })
+        .then(function (data) {
+          if (!data || !data.ok) {
+            /* A poll that closed while the reader was deciding is the ordinary
+               case, not an error worth a red banner - repaint and let the card
+               say "Closed" itself. */
+            notice(data && data.error === 'poll_closed'
+              ? 'That poll has closed.'
+              : 'That vote did not go through.');
+            return;
+          }
+          repaintPoll(data.message_id, data.card);
+        });
+    });
+  }
+
 
   MESSAGE_RENDERERS.challenge_issued = renderEventCard;
   MESSAGE_RENDERERS.voting_open = renderEventCard;
@@ -1368,6 +1559,146 @@
   /* Where a sheet opens, when it was opened by a control rather than a line.
    * Same custom properties the action menu writes, so the same stylesheet
    * rules place it - and the same rules ignore them on a narrow panel. */
+  /* THE POLL COMPOSER, on the same sheet family as everything else that
+   * opens in this panel - so it is an anchored popover on a wide rail and a
+   * bottom sheet on a phone without a single rule written for either.
+   *
+   * FOUR BOXES, NOT FIVE, and the fifth appears only when the fourth is used.
+   * A poll of two answers is the common one; showing five empty boxes to
+   * everybody makes the common case look like work. The server drops blanks
+   * anyway, so what is on screen is a courtesy rather than a constraint.
+   *
+   * NO DURATION CONTROL. Five minutes, fixed, decided on the server - see
+   * ARENA_POLL_MINUTES for why a picker was refused. */
+  var POLL_MIN_OPTIONS = 2;
+  var POLL_MAX_OPTIONS = 5;
+
+  var POLL_REFUSALS = {
+    poll_already_open: 'You already have a poll running. Wait for it to close.',
+    too_few_options: 'A poll needs at least two answers.',
+    duplicate_options: 'Two of those answers are the same.',
+    empty_question: 'Ask something first.',
+    not_in_the_hall: 'Take a seat in the hall first.',
+    timed_out: 'You are timed out.',
+    rate_limited: 'Slow down a moment.'
+  };
+
+  function openPollComposer(trigger) {
+    if (openMenu && openMenu.classList.contains('arena-chat__sheet--poll')) {
+      closeActions();
+      return;                                     // a second tap closes it
+    }
+    closeActions();
+
+    var sheet = document.createElement('div');
+    sheet.className = 'arena-chat__sheet arena-chat__sheet--poll';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-label', 'Ask the room a question');
+
+    var head = document.createElement('p');
+    head.className = 'arena-chat__sheet-head';
+    head.textContent = 'Ask the room';
+    sheet.appendChild(head);
+
+    var question = document.createElement('input');
+    question.type = 'text';
+    question.className = 'arena-chat__poll-field';
+    question.maxLength = 140;
+    question.placeholder = 'Your question';
+    question.setAttribute('aria-label', 'Your question');
+    sheet.appendChild(question);
+
+    var options = document.createElement('div');
+    options.className = 'arena-chat__poll-fields';
+    sheet.appendChild(options);
+
+    function addOption() {
+      if (options.children.length >= POLL_MAX_OPTIONS) { return; }
+      var box = document.createElement('input');
+      box.type = 'text';
+      box.className = 'arena-chat__poll-field';
+      box.maxLength = 60;
+      var n = options.children.length + 1;
+      box.placeholder = 'Answer ' + n;
+      box.setAttribute('aria-label', 'Answer ' + n);
+      /* Typing in the last box grows the list by one, up to the ceiling. No
+         "add answer" button to find: the form asks for the next answer by
+         being ready for it. */
+      box.addEventListener('input', function () {
+        if (box === options.lastChild && box.value.trim()) { addOption(); }
+      });
+      options.appendChild(box);
+    }
+    addOption();
+    addOption();
+
+    /* The disclaimer is in the COMPOSER too, not only on the finished card -
+       the person asking should know what they are making before they make
+       it, and this is where that decision is taken. */
+    var not = document.createElement('p');
+    not.className = 'arena-chat__poll-warn';
+    not.textContent = 'A question for the stands. It does not affect the battle result.';
+    sheet.appendChild(not);
+
+    var ask = document.createElement('button');
+    ask.type = 'button';
+    ask.className = 'arena-chat__poll-ask';
+    ask.textContent = 'Ask (5 min)';
+    ask.addEventListener('click', function () {
+      var text = question.value.trim();
+      if (!text) { notice(POLL_REFUSALS.empty_question); question.focus(); return; }
+      var labels = [];
+      Array.prototype.forEach.call(options.children, function (box) {
+        var v = box.value.trim();
+        if (v) { labels.push(v); }
+      });
+      if (labels.length < POLL_MIN_OPTIONS) {
+        notice(POLL_REFUSALS.too_few_options);
+        return;
+      }
+      /* FormData rather than post()'s object, because the options are a
+         repeated field and an object cannot hold the same key twice - the
+         server reads them with getlist(). */
+      var body = new FormData();
+      body.append('question', text);
+      labels.forEach(function (label) { body.append('options', label); });
+      body.append('csrfmiddlewaretoken', csrf());
+      ask.disabled = true;
+      fetch(root.getAttribute('data-poll-create-url'), {
+        method: 'POST', credentials: 'same-origin', body: body
+      })
+        .then(function (r) { return r.json(); })
+        .catch(function () { return null; })
+        .then(function (data) {
+          ask.disabled = false;
+          if (!data || !data.ok) {
+            notice((data && POLL_REFUSALS[data.error]) || 'That poll was not posted.');
+            return;
+          }
+          closeActions();
+          /* The card is absorbed straight away rather than waited for: the
+             asker seeing their own question appear at once is the same
+             courtesy send() already gives a spoken line. */
+          absorb(data.messages);
+        });
+    });
+    sheet.appendChild(ask);
+
+    root.appendChild(sheet);
+    anchorSheet(sheet, trigger);
+    openMenu = sheet;
+    question.focus();
+  }
+
+  var pollBtn = document.getElementById('arena-chat-poll');
+  if (pollBtn) {
+    pollBtn.addEventListener('click', function (event) {
+      event.stopPropagation();
+      openPollComposer(pollBtn);
+    });
+  }
+
+
   function anchorSheet(sheet, trigger) {
     if (!trigger) { return; }
     var box = trigger.getBoundingClientRect();
@@ -1601,6 +1932,18 @@
     busy = true;
     var url = feedUrl + '?since=' + encodeURIComponent(lastId)
       + (room !== null ? '&conversation=' + encodeURIComponent(room) : '');
+    /* OPEN POLLS RIDE THE TICK THAT ALREADY RUNS. The feed is a delta and
+       sends each row once, which is right for a sentence and wrong for a
+       tally; naming the still-open polls on the query string re-reads exactly
+       those and nothing else. A hall with no poll in it sends no parameter and
+       the server does no extra work at all. Never in a private room - a card
+       is never written into one. */
+    if (room === null) {
+      var watching = openPollIds();
+      if (watching.length) {
+        url += '&polls=' + encodeURIComponent(watching.join(','));
+      }
+    }
     fetch(url, {
       credentials: 'same-origin',
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -1622,6 +1965,13 @@
         // and must not inherit the last number the hall reported.
         setUsersCount(room === null ? data.listening : null);
         absorb(data.messages);
+        /* After absorb, so a poll that arrived on this very tick is already in
+           the log by the time its numbers are applied. */
+        if (data.polls) {
+          Object.keys(data.polls).forEach(function (id) {
+            repaintPoll(id, data.polls[id]);
+          });
+        }
       })
       .catch(function () { /* one dropped tick is not a failure; try the next */ })
       .then(function () { busy = false; });

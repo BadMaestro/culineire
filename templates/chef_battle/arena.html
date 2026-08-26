@@ -514,6 +514,8 @@
            data-dm-list-url="{% url 'chef_battle:arena_chat_conversations' %}"
            data-dm-policy-url="{% url 'chef_battle:arena_chat_dm_policy' %}"
            data-users-url="{% url 'chef_battle:arena_chat_users' %}"
+           data-poll-create-url="{% url 'chef_battle:arena_chat_poll_create' %}"
+           data-poll-vote-url="{% url 'chef_battle:arena_chat_poll_vote' %}"
            {% comment %}
              A template rather than a built URL: the script needs the shape
              once and fills in whichever chef was tapped. Reversed here so the
@@ -670,6 +672,18 @@
         <input type="file" id="arena-chat-media-input" class="arena-chat__file"
                accept="image/jpeg,image/png,image/webp,image/gif"
                tabindex="-1" aria-hidden="true">
+        {% comment %}
+          Ask the room. THREE ACTIONS NOW, which is the count at which the
+          note left here in P1 said a "+" sheet becomes reasonable - and it is
+          still not taken, deliberately. Collapsing three working buttons
+          behind a fourth adds a tap to every one of them to save a strip of
+          space the composer has; the case for "+" is a fourth action, not
+          this one.
+        {% endcomment %}
+        <button type="button" id="arena-chat-poll" class="arena-chat__composer-action"
+                aria-haspopup="dialog" aria-label="Ask the room a question">
+          <svg class="arena-ico" aria-hidden="true"><use href="#ad-poll"></use></svg>
+        </button>
       </span>
       <input type="text" id="arena-chat-input" name="body" maxlength="300"
              autocomplete="off" aria-label="Your message"
