@@ -87,6 +87,69 @@
   var CUSTOM_EMOJI_BY_TOKEN = {};
   CUSTOM_EMOJI.forEach(function (e) { CUSTOM_EMOJI_BY_TOKEN[e.token] = e; });
 
+  /* STICKERS - P2 item 13. Original artwork in _arena_chat_sticker_sprite.html.
+   *
+   * A STICKER IS THE WHOLE MESSAGE, which is the only thing that separates it
+   * from a custom emoji here: same token syntax, same picker, same insert -
+   * and then renderTextMessage draws it large when the body is nothing but
+   * this token. Sent alongside words it stays inline and small, because a
+   * 160px drawing wedged into a sentence is not a sticker, it is a mistake.
+   *
+   * NO NEW BACKEND. A sticker is an ordinary chat line whose body happens to
+   * be ':plated:'; nothing is stored that was not already storable, there is
+   * no column, no migration, and an older client that has never heard of
+   * stickers shows the token as text rather than an empty box.
+   *
+   * THE WORDS ARE KITCHEN WORDS - what is actually called across a pass. The
+   * brief's own rule was to replace anything that reads as another brand's
+   * catchphrase, so none of these is borrowed. */
+  var STICKERS = [
+    { token: 'service',    label: 'Service!' },
+    { token: 'behind',     label: 'Behind!' },
+    { token: 'yes_chef',   label: 'Yes chef' },
+    { token: 'fired',      label: 'Fired' },
+    { token: 'in_the_bin', label: 'In the bin' },
+    { token: 'seared',     label: 'Seared' },
+    { token: 'still_raw',  label: 'Still raw' },
+    { token: 'plated',     label: 'Plated' }
+  ];
+  var STICKER_BY_TOKEN = {};
+  STICKERS.forEach(function (e) { STICKER_BY_TOKEN[e.token] = e; });
+
+  /* The drawing, from OUR OWN table and never from the message text - the
+   * href here can only be a string this file shipped. Same rule as
+   * customEmojiNode, and for the same reason. */
+  function stickerNode(token) {
+    var known = STICKER_BY_TOKEN[token];
+    if (!known) { return null; }
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'arena-chat__sticker');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', known.label);
+    svg.setAttribute('viewBox', '0 0 120 120');
+    var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', '#acs-' + known.token);
+    svg.appendChild(use);
+    return svg;
+  }
+
+  /* The same drawing at emoji size, for a sticker token sent among words. */
+  function inlineStickerNode(token) {
+    var art = stickerNode(token);
+    if (art) { art.setAttribute('class', 'arena-chat__sticker arena-chat__sticker--inline'); }
+    return art;
+  }
+
+  /* Is this body one sticker and nothing else? Returns the token or null.
+   * Trimmed, because a trailing space is a typing artefact and not an
+   * instruction to render the sticker small. */
+  var STICKER_ONLY = /^:([a-z0-9_]{2,32}):$/;
+  function loneSticker(text) {
+    var hit = STICKER_ONLY.exec((text || '').trim());
+    if (!hit) { return null; }
+    return STICKER_BY_TOKEN[hit[1]] ? hit[1] : null;
+  }
+
   /* The hover strip shows FIVE, not all seven. It sits on every row of a
    * dense log, so its width is the message's width; the full set is one tap
    * further on, in the action menu, which is where it has always been. */
@@ -99,6 +162,7 @@
    * a megabyte of every codepoint, and the Cooking and Battle groups are the
    * point of a CULINARY arena's picker anyway. */
   var EMOJI_CATEGORIES = [
+    { key: 'stickers', label: 'Stickers', stickers: true },
     { key: 'culineire', label: 'CulinÉire', custom: true },
     { key: 'cooking', label: 'Cooking', glyphs: (
       '👨‍🍳 👩‍🍳 🔪 🍳 🥘 🍲 🥣 🍜 🍝 🥩 🍗 🍖 🥓 🌶️ 🧂 🧄 🧅 🥕 🥔 🍅 '
@@ -172,7 +236,26 @@
     animatedMedia: true,
     // One of four curated palettes. "ivory" is the absence of a theme, so it
     // is the Arena's own colours and cannot drift from them.
-    theme: 'ivory'
+    theme: 'ivory',
+    // P2 item 18 - WHAT THE LOG CARRIES BESIDES SPEECH. P3 gave the hall nine
+    // kinds of card and no way to turn any of them down; a biathlon alone
+    // writes five in a row (three shots, two blocks), which can push a
+    // conversation off a 240px rail before anybody has read it.
+    //
+    // FOUR GROUPS, BECAUSE FOUR IS WHAT ACTUALLY EXISTS. The brief also names
+    // gift and tip events, and there is deliberately no toggle for them: gifts
+    // and tips write no chat row at all - they live in the Battle gifts card
+    // and as marks on the floor - so a switch for them would control nothing
+    // and claim to control something. Checked against every producer in
+    // arena_cards.py rather than assumed.
+    //
+    // Spoken lines are NOT filterable. Silencing a person is mute and block,
+    // which already exist and are a different thing entirely from tidying the
+    // room's announcements.
+    showFightMoments: true,
+    showBattleNews: true,
+    showArrivals: true,
+    showPolls: true
   };
   var prefs = readPrefs();
 
@@ -207,6 +290,14 @@
     root.classList.toggle('is-hiding-times', !prefs.showTimestamps);
     root.classList.toggle('is-still', !prefs.reactionAnimations);
     root.setAttribute('data-font-size', prefs.fontSize);
+    // A FILTER IS PRESENTATION, so it is a class on the root and the
+    // stylesheet decides what disappears. Nothing is dropped on arrival: the
+    // rows still exist in the log, so turning a group back on shows the
+    // history that ran while it was off rather than a gap.
+    root.classList.toggle('is-hiding-fight', !prefs.showFightMoments);
+    root.classList.toggle('is-hiding-news', !prefs.showBattleNews);
+    root.classList.toggle('is-hiding-arrivals', !prefs.showArrivals);
+    root.classList.toggle('is-hiding-polls', !prefs.showPolls);
     // Ivory declares nothing in the stylesheet, so it is expressed by the
     // attribute being absent rather than by a fourth palette that repeats the
     // Arena's own colours and could fall out of step with them.
@@ -304,6 +395,24 @@
 
   function paintBody(target, text) {
     var body = String(text == null ? '' : text);
+
+    /* A STICKER IS THE WHOLE MESSAGE, so it is drawn here rather than in the
+       renderer: both places that paint a body - a heard line, and a muted one
+       the reader chose to show - get it, while a reply PREVIEW does not,
+       because that quotes the parent through its own path and a 160px drawing
+       inside a one-line quote would be absurd.
+       Only when the body is nothing else. Sent alongside words the token
+       stays an inline mark, which is what the loop below already does. */
+    var lone = loneSticker(body);
+    if (lone) {
+      var art = stickerNode(lone);
+      if (art) {
+        target.classList.add('arena-chat__said--sticker');
+        target.appendChild(art);
+        return;
+      }
+    }
+
     var at = 0;
     var match;
     BODY_TOKEN.lastIndex = 0;
@@ -311,7 +420,11 @@
       var node = null;
       var consumed = match[0].length;
       if (match[1] !== undefined) {
-        node = customEmojiNode(match[1]);
+        // A sticker token standing among words is drawn INLINE and small.
+        // The lone-sticker case was handled above and has already returned;
+        // reaching here means there are other words, and a 160px drawing
+        // wedged into a sentence is not a sticker, it is a mistake.
+        node = customEmojiNode(match[1]) || inlineStickerNode(match[1]);
       } else if (match[2] !== undefined) {
         var hit = resolveMention(match[2]);
         if (hit) {
@@ -967,7 +1080,10 @@
      drops out of the list the moment it closes and is never asked for again. */
   function openPollIds() {
     var out = [];
-    if (!log) { return out; }
+    /* A reader who has turned polls off is not shown the tallies, so the
+       server is not asked to compute them either - the filter saves the
+       request rather than only hiding its result. */
+    if (!log || !prefs.showPolls) { return out; }
     var cards = log.querySelectorAll('.arena-chat__card--poll[data-poll-open="1"]');
     Array.prototype.forEach.call(cards, function (item) {
       var id = item.getAttribute('data-id');
@@ -1497,9 +1613,33 @@
 
     function paintGrid() {
       grid.textContent = '';
+      /* Stickers need a wider column than emoji do: the drawing carries a
+         caption, and at the emoji grid's 1.9rem the words collide into an
+         unreadable smear. The class is set here because only this function
+         knows which category is on screen. */
+      grid.classList.toggle('arena-chat__emoji-grid--stickers', emojiCategory === 'stickers');
       var cat = null;
       EMOJI_CATEGORIES.forEach(function (c) { if (c.key === emojiCategory) { cat = c; } });
       if (!cat) { return; }
+      if (cat.stickers) {
+        STICKERS.forEach(function (item) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'arena-chat__emoji-btn arena-chat__emoji-btn--sticker';
+          b.setAttribute('aria-label', item.label);
+          b.title = item.label;
+          var node = stickerNode(item.token);
+          if (node) { b.appendChild(node); }
+          b.addEventListener('click', function () {
+            // Inserted, not sent. Every other tile in this picker inserts, and
+            // one tile that fires a message instead would be the same control
+            // doing two different things.
+            insertAtCursor(':' + item.token + ':');
+          });
+          grid.appendChild(b);
+        });
+        return;
+      }
       if (cat.custom) {
         CUSTOM_EMOJI.forEach(function (e) {
           var b = document.createElement('button');

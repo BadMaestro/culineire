@@ -1,0 +1,119 @@
+{% comment %}
+CulinEire chat stickers - P2 item 13. Original artwork, drawn for this project.
+
+WHY A SECOND SPRITE AND NOT MORE ENTRIES IN THE EMOJI ONE. A custom emoji is a
+24x24 mark that sits inside a sentence; a sticker is the whole message and is
+drawn at 120-180px. The same file would have meant one viewBox serving two
+jobs, and detail drawn for 160px looks like noise at 16px. Separate prefix too
+(acs- against the emoji sprite's ace-) so a token can never resolve to the
+wrong sprite.
+
+THE WORDS ARE KITCHEN WORDS. The brief offered a starting list and said to
+replace anything that reads as another brand's catchphrase, so every caption
+here is real pass-and-service vernacular - what is actually shouted across a
+kitchen - rather than an internet slogan borrowed from somewhere else.
+
+Colour: currentColor for the line art, with --sticker-accent for the one warm
+fill. Custom properties inherit through <use> into the shadow tree, so a theme
+can move the accent without this file knowing about themes.
+{% endcomment %}
+<svg class="arena-chat-sticker-sprite" width="0" height="0" aria-hidden="true" focusable="false">
+
+  {% comment %} SERVICE - the pass bell, struck. {% endcomment %}
+  <symbol id="acs-service" viewBox="0 0 120 120">
+    <g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M22 74c0-21 17-38 38-38s38 17 38 38z" fill="var(--sticker-accent, #d6a64b)" fill-opacity=".28"/>
+      <path d="M14 74h92"/>
+      <path d="M60 36V26"/>
+      <circle cx="60" cy="21" r="5" fill="currentColor"/>
+      <path d="M96 44l9-7M104 58l11-3M24 44l-9-7M16 58l-11-3"/>
+    </g>
+    <text x="60" y="103" text-anchor="middle" font-family="Playfair Display, Georgia, serif"
+          font-weight="900" font-size="21" letter-spacing="1.5" fill="currentColor">SERVICE</text>
+  </symbol>
+
+  {% comment %} BEHIND - the call you make crossing a hot line. {% endcomment %}
+  <symbol id="acs-behind" viewBox="0 0 120 120">
+    <g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <circle cx="46" cy="30" r="11"/>
+      <path d="M30 74c0-13 7-22 16-22s16 9 16 22"/>
+      <path d="M70 40l22 20-22 20" fill="var(--sticker-accent, #d6a64b)" fill-opacity=".28"/>
+      <path d="M62 60h30"/>
+    </g>
+    <text x="60" y="103" text-anchor="middle" font-family="Playfair Display, Georgia, serif"
+          font-weight="900" font-size="21" letter-spacing="1.5" fill="currentColor">BEHIND</text>
+  </symbol>
+
+  {% comment %} YES CHEF - the toque, and the only correct answer. {% endcomment %}
+  <symbol id="acs-yes_chef" viewBox="0 0 120 120">
+    <g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M38 66V50c-8 1-14-5-14-13 0-9 8-15 16-13 2-11 9-17 20-17s18 6 20 17c8-2 16 4 16 13 0 8-6 14-14 13v16z"
+            fill="var(--sticker-accent, #d6a64b)" fill-opacity=".28"/>
+      <path d="M38 66h44v10H38z"/>
+    </g>
+    <text x="60" y="103" text-anchor="middle" font-family="Playfair Display, Georgia, serif"
+          font-weight="900" font-size="19" letter-spacing="1.2" fill="currentColor">YES CHEF</text>
+  </symbol>
+
+  {% comment %} FIRED - the order is on, the pan is lit. {% endcomment %}
+  <symbol id="acs-fired" viewBox="0 0 120 120">
+    <g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M60 14c14 17 21 27 21 36a21 21 0 0 1-42 0c0-9 7-19 21-36z"
+            fill="var(--sticker-accent, #d6a64b)" fill-opacity=".38"/>
+      <path d="M60 40c6 8 9 13 9 17a9 9 0 0 1-18 0c0-4 3-9 9-17z"/>
+      <path d="M20 78h80l-8 12H28z"/>
+    </g>
+    <text x="60" y="107" text-anchor="middle" font-family="Playfair Display, Georgia, serif"
+          font-weight="900" font-size="21" letter-spacing="1.5" fill="currentColor">FIRED</text>
+  </symbol>
+
+  {% comment %} IN THE BIN - what a failed plate gets, and no argument. {% endcomment %}
+  <symbol id="acs-in_the_bin" viewBox="0 0 120 120">
+    <g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M32 36h56l-6 44a8 8 0 0 1-8 7H46a8 8 0 0 1-8-7z"
+            fill="var(--sticker-accent, #d6a64b)" fill-opacity=".22"/>
+      <path d="M26 36h68M48 36V26h24v10"/>
+      <path d="M52 50v26M68 50v26"/>
+    </g>
+    <text x="60" y="108" text-anchor="middle" font-family="Playfair Display, Georgia, serif"
+          font-weight="900" font-size="17" letter-spacing="1" fill="currentColor">IN THE BIN</text>
+  </symbol>
+
+  {% comment %} SEARED - the crust, drawn as the marks it leaves. {% endcomment %}
+  <symbol id="acs-seared" viewBox="0 0 120 120">
+    <g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M60 22c22 0 38 13 38 31S82 84 60 84 22 71 22 53s16-31 38-31z"
+            fill="var(--sticker-accent, #d6a64b)" fill-opacity=".30"/>
+      <path d="M40 44l16 16M54 38l16 16M68 34l14 14"/>
+    </g>
+    <text x="60" y="107" text-anchor="middle" font-family="Playfair Display, Georgia, serif"
+          font-weight="900" font-size="21" letter-spacing="1.5" fill="currentColor">SEARED</text>
+  </symbol>
+
+  {% comment %} STILL RAW - sent back, and the thermometer says why. {% endcomment %}
+  <symbol id="acs-still_raw" viewBox="0 0 120 120">
+    <g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M54 22a8 8 0 0 1 16 0v40a15 15 0 1 1-16 0z"
+            fill="var(--sticker-accent, #d6a64b)" fill-opacity=".22"/>
+      <path d="M62 40v34"/>
+      <circle cx="62" cy="76" r="7" fill="currentColor"/>
+      <path d="M78 32h14M78 46h10M78 60h14"/>
+    </g>
+    <text x="60" y="107" text-anchor="middle" font-family="Playfair Display, Georgia, serif"
+          font-weight="900" font-size="18" letter-spacing="1" fill="currentColor">STILL RAW</text>
+  </symbol>
+
+  {% comment %} PLATED - the cloche lifted, the dish away. {% endcomment %}
+  <symbol id="acs-plated" viewBox="0 0 120 120">
+    <g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M26 66a34 34 0 0 1 68 0z" fill="var(--sticker-accent, #d6a64b)" fill-opacity=".30"/>
+      <path d="M16 66h88"/>
+      <path d="M22 76h76l-7 10H29z"/>
+      <circle cx="60" cy="27" r="5" fill="currentColor"/>
+      <path d="M60 32v4"/>
+    </g>
+    <text x="60" y="108" text-anchor="middle" font-family="Playfair Display, Georgia, serif"
+          font-weight="900" font-size="20" letter-spacing="1.4" fill="currentColor">PLATED</text>
+  </symbol>
+
+</svg>

@@ -73,6 +73,7 @@
 {% block content %}
 {% include "chef_battle/_arena_deck_svg.html" %}
 {% include "chef_battle/_arena_chat_emoji_sprite.html" %}
+{% include "chef_battle/_arena_chat_sticker_sprite.html" %}
 <main class="arena-command-deck" aria-labelledby="arena-command-title">
   {% comment %}
     T28 — six decorative atmosphere elements (light shafts, dust motes, rising
@@ -787,6 +788,29 @@
           <legend>Show</legend>
           <label><input type="checkbox" name="showTimestamps"> Timestamps</label>
           <label><input type="checkbox" name="showTags"> Clan, alliance and role badges</label>
+        </fieldset>
+        {% comment %}
+          P2 item 18. The hall carries nine kinds of card as well as speech,
+          and a biathlon writes five of them in a row - three shots and two
+          blocks - which can push a conversation off a narrow rail before
+          anybody has read it. These four switches are the reader's own.
+
+          THERE IS NO GIFT OR TIP SWITCH ON PURPOSE. The brief names those
+          too, but gifts and tips write no chat row - they live in the Battle
+          gifts card and as marks on the floor - so the control would govern
+          nothing while looking as though it governed something. Checked
+          against every producer in arena_cards.py.
+
+          Spoken lines are not here either: silencing a PERSON is mute and
+          block, which exist already and are a different thing from tidying
+          the room's announcements.
+        {% endcomment %}
+        <fieldset class="arena-chat__pref">
+          <legend>Arena events in the log</legend>
+          <label><input type="checkbox" name="showBattleNews"> Challenges, voting and results</label>
+          <label><input type="checkbox" name="showFightMoments"> Blow-by-blow of the fight</label>
+          <label><input type="checkbox" name="showArrivals"> Chefs entering the Arena</label>
+          <label><input type="checkbox" name="showPolls"> Questions asked by the stands</label>
         </fieldset>
         <fieldset class="arena-chat__pref">
           <legend>Motion</legend>

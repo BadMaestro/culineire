@@ -10973,6 +10973,73 @@ body.page--arena.is-zoom-locked {
    ties with any bare single-class colour rule here and wins on source order.
    Never !important - match the prefix instead.
    ========================================================================== */
+/* ==========================================================================
+   P2 ITEM 13 - CulinEire stickers.
+   A sticker is the whole message, so it is sized against the panel rather
+   than against the text: clamp keeps it inside the 240px rail at its lower
+   bound and reaches the brief's 180px on a wide one, without a media query
+   for either.
+   ========================================================================== */
+.arena-chat .arena-chat__said--sticker {
+  display: block;
+  /* The row keeps its own line-height for the name above it; the drawing
+     brings its own box and needs no leading. */
+  line-height: 0;
+  padding-top: 0.15rem;
+}
+.arena-chat__sticker {
+  width: clamp(120px, 46%, 180px);
+  height: auto;
+  /* The line art is currentColor, so the sticker inherits the reader's
+     theme - a dark kitchen gets a light sticker without a second drawing. */
+  color: var(--arena-ink, var(--ink));
+  --sticker-accent: var(--accent-bronze, #d6a64b);
+}
+/* Among words: emoji-sized, on the text baseline. A sticker token beside a
+   sentence is a mark, not a picture. */
+.arena-chat__sticker--inline {
+  width: 1.5em;
+  height: 1.5em;
+  vertical-align: -0.35em;
+}
+
+/* In the picker the drawing is a tile. Wider columns than the emoji grid
+   because a sticker carries a caption, and at 1.9rem the words are a smear. */
+.arena-chat__emoji-grid--stickers {
+  grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr));
+  gap: 0.3rem;
+}
+.arena-chat__emoji-btn--sticker {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  padding: 0.15rem;
+}
+.arena-chat__emoji-btn--sticker .arena-chat__sticker {
+  width: 100%;
+  --sticker-accent: var(--accent-bronze, #d6a64b);
+}
+
+/* ==========================================================================
+   P2 ITEM 18 - THE READER DECIDES WHAT THE LOG CARRIES BESIDES SPEECH.
+   display:none rather than removal, so the rows stay in the log and turning a
+   group back on shows the history that ran while it was off instead of a gap.
+   Grouped by what a reader would call them, not by the enum: the blow-by-blow
+   is four kinds because a fight is fought in two rounds, and nobody who wants
+   the shots turned down means "only the biathlon ones".
+   ========================================================================== */
+.arena-chat.is-hiding-fight .arena-chat__card--ingredient_attack,
+.arena-chat.is-hiding-fight .arena-chat__card--defence,
+.arena-chat.is-hiding-fight .arena-chat__card--artifact_attack,
+.arena-chat.is-hiding-fight .arena-chat__card--artifact_defence,
+.arena-chat.is-hiding-news .arena-chat__card--challenge_issued,
+.arena-chat.is-hiding-news .arena-chat__card--voting_open,
+.arena-chat.is-hiding-news .arena-chat__card--battle_result,
+.arena-chat.is-hiding-arrivals .arena-chat__card--chef_entered,
+.arena-chat.is-hiding-polls .arena-chat__card--poll {
+  display: none;
+}
+
 .arena-chat .arena-chat__card--poll { border-left-color: var(--muted); }
 /* THE POLL CARD IS THE ONLY CARD THAT NAMES ITS AUTHOR IN THE HEAD, and that
    is what makes these two rules necessary. The game's cards carry no name

@@ -1,5 +1,58 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1302",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "P2 items 18 and 13 - the reader turns the Arena's noise down, and the kitchen gets its own stickers",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "TWO ITEMS IN ONE RELEASE because neither is worth its own "
+            "ceremony. ITEM 18, THE FILTERS. P3 gave the hall nine kinds of "
+            "card and no way to turn any of them down; a biathlon alone writes "
+            "five in a row - three shots and two blocks - which can push a "
+            "conversation off a 240px rail before anybody has read it. Four "
+            "switches now, grouped the way a reader would name them rather "
+            "than the way the enum is written: challenges/voting/results, the "
+            "blow-by-blow of the fight, chefs arriving, and questions from the "
+            "stands. THERE IS DELIBERATELY NO GIFT OR TIP SWITCH although the "
+            "brief names both - gifts and tips write no chat row at all, they "
+            "live in the Battle gifts card and as marks on the floor, so the "
+            "control would have governed nothing while looking as though it "
+            "governed something. Checked against every producer in "
+            "arena_cards.py rather than assumed. Spoken lines are not "
+            "filterable either: silencing a PERSON is mute and block, which "
+            "exist and are a different thing from tidying announcements. The "
+            "filter is display:none, not a drop on arrival, so turning a group "
+            "back on shows the history that ran while it was off instead of a "
+            "hole; and a reader who has hidden polls stops asking the server "
+            "for their tallies, so the switch saves the request rather than "
+            "only hiding its result. The guard that matters is a test proving "
+            "every Kind falls into a group - it was written loose first, "
+            "scanning the whole stylesheet, where a new kind would have passed "
+            "on the strength of its border colour; it is anchored on the "
+            "hiding block now, and was verified by deleting a kind and "
+            "watching it fail. ITEM 13, THE STICKERS. Eight original drawings "
+            "at a 120px viewBox, in their own sprite with its own acs- prefix "
+            "so a token can never resolve into the emoji sprite and draw a "
+            "24px mark at 160px. NO BACKEND AT ALL: a sticker is an ordinary "
+            "chat line whose body happens to be ':plated:', so there is no "
+            "column, no migration, and an older client shows the token as text "
+            "rather than an empty box. Alone it is drawn large; sent among "
+            "words it stays an inline mark, because a 160px drawing wedged "
+            "into a sentence is not a sticker. That second half was briefly "
+            "false - the tokens were hyphenated and BODY_TOKEN accepts "
+            "underscores only, so a sticker beside words silently stayed "
+            "literal text; underscored now, with a test that keeps them that "
+            "way. THE CAPTIONS ARE THE KITCHEN'S OWN WORDS - service, behind, "
+            "yes chef, fired, in the bin, seared, still raw, plated - because "
+            "the brief's own rule was to replace anything reading as another "
+            "brand's catchphrase, and a test asserts the borrowed ones stay "
+            "out. The picker needed its own column width: at the emoji grid's "
+            "1.9rem the captions collided into an unreadable smear, which is "
+            "the sort of thing only looking at it finds. 109 tests green."
+        ),
+    },
+    {
         "version": "2.5.1299",
         "date": "2026-08-26",
         "commit": "pending",

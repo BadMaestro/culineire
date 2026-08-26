@@ -24083,3 +24083,203 @@ class ArenaCrowdEffectTests(TestCase):
             encoding="utf-8"
         )
         self.assertNotIn("SURGE_THRESHOLD", js)
+
+
+class ArenaChatEventFilterTests(TestCase):
+    """P2 item 18. The reader decides what the log carries besides speech.
+
+    The filter itself is presentation and lives in localStorage, so there is
+    no server contract to test. What IS worth a test is the thing that will
+    break silently: a NEW card kind added later and forgotten here, which
+    would then be unfilterable and invisible in the settings panel. That is
+    exactly the shape of defect that reaches the Owner's screen instead of a
+    test run.
+    """
+
+    def _read(self, *parts):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        return (Path(settings.BASE_DIR).joinpath(*parts)).read_text(encoding="utf-8")
+
+    def test_every_card_kind_falls_into_exactly_one_filter_group(self):
+        import re
+
+        from chef_battle.models import ArenaChatMessage
+
+        css = self._read("static", "css", "arena.css")
+        # ONLY the hiding block, not the whole stylesheet. Every kind also has
+        # a border-left-color rule, so scanning the file would let a new kind
+        # pass this test on the strength of its colour while being
+        # unfilterable - a test that cannot fail is worse than none.
+        # Anchored on is-hiding-fight, which is where THIS block starts.
+        # `is-hiding-` alone matches the older tags/timestamps rules further up
+        # the file, and a non-greedy run from there ends at their own
+        # display:none having seen no card kinds at all.
+        block = re.search(
+            r"(\.arena-chat\.is-hiding-fight.*?display:\s*none)", css, re.S,
+        )
+        self.assertIsNotNone(block, "the is-hiding block was not found in arena.css")
+        filtered = set(re.findall(r"\.arena-chat__card--([a-z_]+)", block.group(1)))
+
+        kinds = {
+            value for value in ArenaChatMessage.Kind.values if value
+        }
+        missing = kinds - filtered
+        self.assertEqual(
+            missing, set(),
+            "these card kinds cannot be filtered and are not in any group in "
+            "arena.css: %s. A new kind must join a group (or be given one) or "
+            "the reader has no way to turn it down." % sorted(missing),
+        )
+
+    def test_each_group_has_a_control_and_each_control_a_pref(self):
+        import re
+
+        script = self._read("static", "js", "arena_chat.js")
+        markup = self._read("templates", "chef_battle", "arena.html")
+
+        groups = ["showFightMoments", "showBattleNews", "showArrivals", "showPolls"]
+        block = re.search(r"var PREF_DEFAULTS = \{(.*?)\n  \};", script, re.S)
+        self.assertIsNotNone(block, "PREF_DEFAULTS not found")
+        for name in groups:
+            self.assertIn(
+                name, block.group(1),
+                "%s is not a stored preference, so it cannot persist" % name,
+            )
+            # The generic form handler only writes keys that are BOTH a
+            # PREF_DEFAULTS entry and an input name, so a control without its
+            # pref (or the reverse) is a switch that silently does nothing.
+            self.assertIn(
+                'name="%s"' % name, markup,
+                "%s has no control in the settings panel" % name,
+            )
+
+    def test_the_filter_hides_by_class_and_never_drops_the_row(self):
+        """Turning a group back on must show what ran while it was off.
+
+        display:none keeps the history; removing rows on arrival would leave a
+        permanent hole the reader could not undo.
+        """
+        css = self._read("static", "css", "arena.css")
+        script = self._read("static", "js", "arena_chat.js")
+        self.assertIn(".arena-chat.is-hiding-fight", css)
+        self.assertIn("is-hiding-news", script)
+        # No renderer may refuse to build a row based on a preference.
+        self.assertNotIn("if (!prefs.showBattleNews) { return null", script)
+
+    def test_there_is_no_control_for_gifts_or_tips_because_they_write_no_row(self):
+        """The brief names gift and tip events; the chat has none of them.
+
+        A switch that governs nothing while looking as though it governs
+        something is the fake-UI rule, so the absence is asserted rather than
+        left to drift back in.
+        """
+        from chef_battle.models import ArenaChatMessage
+
+        kinds = " ".join(ArenaChatMessage.Kind.values)
+        self.assertNotIn("gift", kinds)
+        self.assertNotIn("tip", kinds)
+
+        markup = self._read("templates", "chef_battle", "arena.html")
+        self.assertNotIn('name="showGifts"', markup)
+        self.assertNotIn('name="showTips"', markup)
+
+    def test_spoken_lines_are_not_filterable(self):
+        """Silencing a person is mute and block, which already exist."""
+        markup = self._read("templates", "chef_battle", "arena.html")
+        self.assertNotIn('name="showMessages"', markup)
+        css = self._read("static", "css", "arena.css")
+        self.assertNotIn(".arena-chat__card--message", css)
+
+
+class ArenaChatStickerTests(TestCase):
+    """P2 item 13. Original CulinEire stickers.
+
+    A sticker is an ordinary chat line whose body is one token, so there is no
+    backend contract to test - and that is the point of the design. What is
+    tested is what breaks silently: a token with no drawing renders as an empty
+    box, and a sprite that stops being included takes all eight with it.
+    """
+
+    def _read(self, *parts):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        return (Path(settings.BASE_DIR).joinpath(*parts)).read_text(encoding="utf-8")
+
+    def _tokens(self):
+        import re
+
+        source = self._read("static", "js", "arena_chat.js")
+        block = re.search(r"var STICKERS = \[(.*?)\];", source, re.S)
+        self.assertIsNotNone(block, "STICKERS array not found in arena_chat.js")
+        tokens = re.findall(r"token:\s*'([a-z0-9_]+)'", block.group(1))
+        self.assertTrue(tokens, "no sticker tokens found")
+        return tokens
+
+    def test_every_sticker_token_has_a_drawing_in_the_sprite(self):
+        sprite = self._read(
+            "templates", "chef_battle", "_arena_chat_sticker_sprite.html",
+        )
+        for token in self._tokens():
+            self.assertIn(
+                'id="acs-%s"' % token, sprite,
+                "sticker :%s: has no symbol - it would render as an empty box"
+                % token,
+            )
+
+    def test_the_sticker_sprite_is_included_on_the_arena_page(self):
+        markup = self._read("templates", "chef_battle", "arena.html")
+        self.assertIn("_arena_chat_sticker_sprite.html", markup)
+
+    def test_sticker_tokens_match_the_body_token_pattern(self):
+        """A hyphen would make a sticker unrenderable among words.
+
+        BODY_TOKEN accepts [a-z0-9_] only. A token with a hyphen still works
+        alone - loneSticker has its own regex - but would silently stay literal
+        text beside a sentence, which is exactly the half-working state this
+        catches. It bit this feature once already.
+        """
+        import re
+
+        for token in self._tokens():
+            self.assertRegex(
+                token, r"^[a-z0-9_]{2,32}$",
+                "sticker token %r cannot be matched by BODY_TOKEN" % token,
+            )
+
+    def test_stickers_do_not_collide_with_the_custom_emoji_tokens(self):
+        """Two tables, one token syntax: a shared name would be ambiguous."""
+        import re
+
+        source = self._read("static", "js", "arena_chat.js")
+        emoji_block = re.search(r"var CUSTOM_EMOJI = \[(.*?)\];", source, re.S)
+        self.assertIsNotNone(emoji_block)
+        emoji = set(re.findall(r"token:\s*'([a-z0-9_]+)'", emoji_block.group(1)))
+        clash = emoji & set(self._tokens())
+        self.assertEqual(clash, set(), "token(s) in both tables: %s" % sorted(clash))
+
+    def test_the_two_sprites_use_different_id_prefixes(self):
+        """ace- for emoji, acs- for stickers, so a token cannot resolve into
+        the wrong sprite and silently draw a 24px mark at 160px."""
+        stickers = self._read(
+            "templates", "chef_battle", "_arena_chat_sticker_sprite.html",
+        )
+        emoji = self._read(
+            "templates", "chef_battle", "_arena_chat_emoji_sprite.html",
+        )
+        self.assertNotIn('id="ace-', stickers)
+        self.assertNotIn('id="acs-', emoji)
+
+    def test_the_captions_are_the_kitchen_s_own_words(self):
+        """The brief asked for anything reading as another brand's catchphrase
+        to be replaced. Asserted as an absence so it cannot drift back."""
+        sprite = self._read(
+            "templates", "chef_battle", "_arena_chat_sticker_sprite.html",
+        ).upper()
+        for borrowed in ("IDIOT SANDWICH", "RAW!", "WHERE IS THE LAMB SAUCE",
+                         "DONKEY", "BAM!", "LET'S GO"):
+            self.assertNotIn(borrowed, sprite)
