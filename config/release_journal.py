@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1298",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "Item 29 was half done - a tip is a gift too",
+        "section": "Chef Battles / Arena",
+        "summary": "The Owner asked whether the whole P3 plan was finished. Checking item by item rather than answering from memory found that item 29 - 'Gift and tip Arena effects' - was half built: the effect read ViewerBattleGift, an ARTIFACT sent into a battle, and never AppreciationGift, which is the tip - a coffee, a beer, a whiskey toast, flowers, a cocktail, champagne - sent to a chef with tokens and no battle attached. Two models for two kinds of generosity, and the arena was answering one of them while looking finished. Both are read now, whichever landed later wins, and each is remembered under a key namespaced by its model so two rows sharing a primary key cannot silence each other. A tip carries the mark the site ALREADY uses for it (APPRECIATION_GIFT_EMOJI, the same map the gift shop prints from) rather than a second vocabulary invented in the arena; an artifact has no such mark and keeps the parcel. Flagged tips are excluded - a gift under compliance review is not something to celebrate over the octagon. One new test sends a beer toast and asserts the mark, the name, the tokens and that it is announced once. 34 tests green across the effect, the cards and the chat endpoints.",
+    },
+    {
         "version": "2.5.1295",
         "date": "2026-08-26",
         "commit": "pending",

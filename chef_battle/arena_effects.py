@@ -104,35 +104,69 @@ def _reaction_surge():
 
 
 def _gift_effect():
-    """The most recent battle gift, once, if one has just landed.
+    """The most recent gift OR TIP, once, if one has just landed.
 
     A gift is one person's act and is answered anyway - that is the difference
     between a reaction and a gift, and it is the Owner's own economy: tokens
     were spent. The cooldown above still applies, so a shower of gifts is one
     effect every fifteen seconds rather than a strobe.
+
+    TWO MODELS, BECAUSE THE SITE HAS TWO KINDS OF GENEROSITY and item 29 names
+    both. ViewerBattleGift is an ARTIFACT sent into a battle; AppreciationGift
+    is a coffee, a beer, flowers - a tip to a chef, with an emoji of its own
+    and no battle attached. The first version of this read only the first
+    model, so half of item 29 was quietly missing while the arena looked
+    finished. Whichever landed later wins, and each is remembered under a key
+    namespaced by model so two rows that share a primary key cannot silence
+    each other.
     """
-    from .models import ViewerBattleGift
+    from .models import APPRECIATION_GIFT_EMOJI, AppreciationGift, ViewerBattleGift
 
     since = timezone.now() - timedelta(seconds=GIFT_WINDOW_SECONDS)
-    gift = (
+    battle_gift = (
         ViewerBattleGift.objects
         .filter(sent_at__gte=since)
         .select_related("artifact", "recipient")
         .order_by("-sent_at")
         .first()
     )
-    if gift is None:
+    tip = (
+        AppreciationGift.objects
+        .filter(sent_at__gte=since, is_flagged=False)
+        .select_related("recipient")
+        .order_by("-sent_at")
+        .first()
+    )
+    if battle_gift is None and tip is None:
         return None
-    key = _GIFT_KEY % gift.pk
+    newest_is_tip = (
+        battle_gift is None
+        or (tip is not None and tip.sent_at > battle_gift.sent_at)
+    )
+    if newest_is_tip:
+        key = _GIFT_KEY % ("tip:%d" % tip.pk)
+        if cache.get(key) is not None:
+            return None
+        cache.set(key, 1, GIFT_WINDOW_SECONDS)
+        return {
+            "kind": "gift",
+            # The mark the site already uses for that tip, rather than a second
+            # vocabulary invented here.
+            "emoji": APPRECIATION_GIFT_EMOJI.get(tip.gift_type, ""),
+            "artifact": tip.get_gift_type_display(),
+            "recipient": tip.recipient.name,
+            "tokens": tip.tokens_spent,
+        }
+    key = _GIFT_KEY % ("battle:%d" % battle_gift.pk)
     if cache.get(key) is not None:
         return None
     cache.set(key, 1, GIFT_WINDOW_SECONDS)
     return {
         "kind": "gift",
-        "artifact": gift.artifact.name,
-        "rarity": gift.artifact.get_rarity_display(),
-        "recipient": gift.recipient.name,
-        "tokens": gift.tokens_spent,
+        "artifact": battle_gift.artifact.name,
+        "rarity": battle_gift.artifact.get_rarity_display(),
+        "recipient": battle_gift.recipient.name,
+        "tokens": battle_gift.tokens_spent,
     }
 
 

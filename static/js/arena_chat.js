@@ -1979,7 +1979,10 @@
       mark.textContent = effect.emoji || '';
       label.textContent = effect.count + ' at once';
     } else {
-      mark.textContent = '🎁';
+      // A TIP CARRIES ITS OWN MARK - the site already has one per kind,
+      // a coffee, a beer, flowers - and an artifact sent into a battle
+      // has none, so the parcel stands in for it.
+      mark.textContent = effect.emoji || '🎁';
       label.textContent = effect.artifact +
         (effect.recipient ? ' → ' + effect.recipient : '');
     }

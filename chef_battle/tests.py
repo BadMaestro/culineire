@@ -24040,6 +24040,30 @@ class ArenaCrowdEffectTests(TestCase):
         cache.delete("arena:effect:last")
         self.assertIsNone(current_effect())
 
+    def test_a_tip_is_a_gift_too_and_carries_its_own_mark(self):
+        """Item 29 names gifts AND tips, and the site has two models for them:
+        an artifact sent into a battle, and a coffee or a beer sent to a chef.
+        The first version of the effect read only the first, so half the item
+        was quietly missing while the arena looked finished."""
+        from django.core.cache import cache
+        from .arena_effects import current_effect
+        from .models import AppreciationGift, AppreciationGiftType
+        AppreciationGift.objects.create(
+            recipient=self.speaker,
+            gift_type=AppreciationGiftType.VIRTUAL_BEER_TOAST,
+            tokens_spent=5,
+        )
+        effect = current_effect()
+        self.assertIsNotNone(effect)
+        self.assertEqual(effect["kind"], "gift")
+        self.assertEqual(effect["artifact"], "Virtual Beer Toast")
+        self.assertEqual(effect["emoji"], "🍺")
+        self.assertEqual(effect["tokens"], 5)
+        # And it is announced once, like every other moment.
+        cache.delete("arena:effect:live")
+        cache.delete("arena:effect:last")
+        self.assertIsNone(current_effect())
+
     def test_the_feed_carries_the_effect_and_only_to_the_hall(self):
         """A private room is two people and has no crowd; the effect belongs to
         the hall's own feed and the renderer only plays it there."""
