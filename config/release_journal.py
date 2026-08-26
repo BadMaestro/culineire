@@ -1,5 +1,31 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1340",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The recipe page's Pinch link stops claiming to be a way back",
+        "section": "Recipes",
+        "summary": (
+            "The Owner, straight after checking the previous release live: "
+            "landed on a recipe with no login and no prior visit to Pinch "
+            "at all, and the page offered 'Back to Pinch' - there was "
+            "nowhere to go back FROM. recipe_ab_url in RecipeDetailView "
+            "(recipes/views.py) only ever means one thing: this recipe has "
+            "an approved Pinch card, here is its link - it carries no "
+            "notion of where the visitor came from and never did. The "
+            "label was simply wrong from the day it was written, for "
+            "every visitor, not a session-state bug. Fixed at the label "
+            "only, in templates/recipes/recipe_detail.html: 'Back to "
+            "Pinch' -> 'View Pinch'. The 'Back to Recipes' link beside it "
+            "is unrelated and correct as-is (it truly does return to the "
+            "recipe list). pinch/detail.html has its own, separate 'Back "
+            "to Pinch' string on the Pinch item's OWN detail page, "
+            "genuinely a return-to-feed link there - not touched, and its "
+            "two guard tests (PinchBacklinkRegressionTests) keep passing "
+            "since that template was never in scope."
+        ),
+    },
+    {
         "version": "2.5.1339",
         "date": "2026-08-27",
         "commit": "pending",
