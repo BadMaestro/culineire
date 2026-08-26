@@ -81,6 +81,13 @@ question, personal data); proximity chat, 3 cells, with a "Talking
 Something" label for anyone out of range (no arena chat exists at all today,
 only the in-battle one).
 
+> **Note added 2026-08-26, not a rewrite of the ruling above.** The last
+> parenthesis was true on 2026-08-17 and is not any more: the arena chat was
+> built on 2026-08-24 and proximity reach with the "Talking Something" label
+> is part of it. The ruling's own words are left standing because they record
+> what the Owner decided against what was there at the time. See §5b.
+
+
 ## Owner ruling, 2026-08-17 — ALL CLAN WORK IS SEASON 2
 
 He deferred T23 (clan and team battles) to Season 2, restating his own
@@ -998,6 +1005,46 @@ forbidden changes and evidence for every row below.
 | T19 | Battle lifecycle | **Acceptance opens the 48-hour preparation window, and the challenge names its task.** Owner's ruling of 2026-08-15, §2d. `accept_challenge()` starts a battle immediately when no start time was proposed; it must instead schedule the start 48 hours out and keep the pair in NEXT BATTLE for that window. The challenge states which task it carries — contesting an existing recipe of the challenged chef, or a new recipe — with the challenger's message. | Bolt | — | **DONE v2.5.1042** — `PREPARATION_WINDOW` in `chef_battle/services.py`; `task_kind` + `contested_recipe` with migration 0097; the challenged chef sees the task before he accepts. Two defects found by the card and fixed with it: `_begin_combat` wrote ACTIVE straight from SCHEDULED/WAITING (illegal under T12 — a ready pair could not start, invisible until acceptance stopped skipping SCHEDULED), and T18's `owner_arena_account_action` carried no `chef_battle_guard`. 1053/1053 green. |
 | T20 | Battle lifecycle | **Both Ready pulls the start in to 30 minutes, not 15.** `READY_HEAD_START` in `chef_battle/services.py`, plus the two documents that print the old number (`docs/chef_battle/battle_rules.md`, `docs/chef_battle/ARENA_TRUTHFUL_STATE_MATRIX.md`) and the SA-A6 row above. | unassigned | T19 | **PENDING** |
 | T21 | Arena | **A pair's place in the NEXT BATTLE strip is its remaining time.** Furthest from the starting position at 48 hours, moving visibly closer as the clock runs down; on the second Ready it takes the nearest place in the queue. Today the pills are ordered soonest-first and carry no distance. §2d names the strip: the band directly above THE KITCHEN FLOOR caption, not the octagon centre. | Bolt | T19, T20 | **DONE v2.5.1048** — the gap ahead of each pill is written into `--arena-next-offset` and transitioned; the distance is spent out of the room the pills leave over, measured at paint time, so nothing overflows. At a 790px track: 47.5h → 590px from the label, 12h → 152px, 12min → 2px. A full board of six falls back to the old two-row queue rather than hiding a departure. Appearance on production is the Owner's to judge (17.14). |
+
+## 5b. The Arena chat — built 2026-08-24, then the "Arena Chat 2026" brief
+
+**This work had no board rows until 2026-08-26 and should have had them from
+the start.** Ten releases shipped against two Owner briefs while §5's table
+said nothing about any of it, and §1's ruling above still read "no arena chat
+exists at all today". Recorded here plainly rather than backfilled quietly:
+the board is what a cold start reads, and for two days it was wrong about the
+largest surface on the page.
+
+**The foundation, 2026-08-24, v2.5.1242 → v2.5.1264.** One
+`<section class="arena-chat">`, one `static/js/arena_chat.js`, one backend.
+Identity `[Alliance][Clan]Username` resolved at read time and never stored
+joined; roles decided server-side; **seat-based audibility STAYS** (Owner,
+2026-08-24) with Admin and DMs exempt; direct messages; reactions, replies,
+personal mute and block; reports reusing `ContentReport`; moderation behind
+explicit Django permissions where `is_staff` grants nothing. No Channels and
+no WebSocket — realtime is a 4s poll, and installing realtime infrastructure
+is not a decision an agent makes.
+
+**The "Arena Chat 2026" brief, 30 parts.** The Owner split it into three
+phases and assigned P2 to GreenBear and P3 to Bolt on 2026-08-26.
+
+**The seam that made the split work:** `MESSAGE_RENDERERS` in
+`arena_chat.js`. `append()` delegates to `renderMessageLine()`, which looks up
+`line.kind || 'message'`. P3's event cards registered on it without touching
+dispatch, `absorb()`, `poll()` or the scroll behaviour. Extend it; do not
+rewrite it.
+
+**`paintBody()` is the one XSS-sensitive function in the client.** It turns a
+stranger's text into more than one node — custom emoji, mentions, stickers —
+and builds DOM nodes ONLY, on every branch. Keep it that way.
+
+| ID | Surface | Task | Owner | Depends on | Status |
+|---|---|---|---|---|---|
+| AC0 | Arena chat | The chat itself: identity, reach, DMs, reactions, replies, mute/block, reports, moderation permissions | GreenBear | — | **DONE v2.5.1242 → v2.5.1264** — ~85 tests in `chef_battle/tests.py` |
+| AC-P1 | Arena chat | Brief P1 — composer, full emoji picker, 10 custom CulinEire emoji, `@mention` autocomplete, reactions 3 → 7, appearance preferences, the `MESSAGE_RENDERERS` seam; then pictures and GIFs as **uploads**, not a provider (the Owner's choice) | GreenBear | AC0 | **DONE v2.5.1279, v2.5.1280** — migrations 0104, 0105; `normalise_uploaded_chat_media()` stores animation as animated WebP with a poster frame, and media obeys the same reach and block rules as the words |
+| AC-P2 | Arena chat | Brief P2 — chef card, four curated themes, chat polls, Arena-event filters, CulinEire stickers, the chat's own media viewer, the recent-GIF strip | GreenBear | AC-P1 | **DONE v2.5.1281, v2.5.1290, v2.5.1302, v2.5.1305** — migration 0110. Two rules this work established: a chat poll is **never** the battle's vote (separate tables, no code path to a result, a permanent line on the card, and a test asserting `BattleVote`'s count does not move), and reusing a stored GIF resolves **only** against rows the same author wrote |
+| AC-P3 | Arena chat | Brief P3 — the fight's own moments as cards in the log, and the Arena answering the hall | Bolt | AC-P1 | **DONE v2.5.1283, v2.5.1286, v2.5.1289, v2.5.1292, v2.5.1295, v2.5.1298** — `chef_battle/arena_cards.py`, `ArenaChatMessage.Kind`, migrations 0106–0109 |
+| AC-AUDIO | Arena chat | Brief items 14 (soundboard), 15 (voice clips) and 19 (sound controls) | — | AC-P2 | **DEFERRED by the Owner, 2026-08-26 — "звук пока пропусти".** Not cancelled and not started. Both blockers are real and neither is a matter of effort: **no audio assets** may be originated or licensed here and the brief forbids taking them from elsewhere, and **there is no ffmpeg on the server**, so audio cannot be re-encoded — storing the uploader's own bytes would break the standard every image on this site is held to. Item 19 only means anything once one of the other two exists. **Nothing here is to be faked into a dead control.** |
 
 ## 5a. Architecture Normalisation — CLOSED
 
