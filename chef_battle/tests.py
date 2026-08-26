@@ -8941,8 +8941,14 @@ class ArenaPhasePanelTests(TestCase):
     def test_the_refresh_countdown_is_kept_and_labelled_for_what_it_counts(self):
         """Demoted, not deleted: it still drives the reload the Owner watches by."""
         source = self._template()
+        # The element and its chip survive; what it COUNTS changed on the
+        # Owner's ruling of 2026-08-25 - it had been counting the page's own
+        # reload while sitting beside the words NEXT BATTLE, and it is now the
+        # time until the first battle on the board. The label follows the
+        # meaning, so this asserts the new one and refuses the old.
         self.assertIn('id="arena-refresh-timer"', source)
-        self.assertIn('aria-label="Page refresh countdown"', source)
+        self.assertIn('aria-label="Time until the next battle"', source)
+        self.assertNotIn('aria-label="Page refresh countdown"', source)
         self.assertIn('class="arena-phase-refresh"', source)
 
     def test_the_full_reload_is_five_minutes_and_the_polls_are_not(self):
@@ -8955,10 +8961,16 @@ class ArenaPhasePanelTests(TestCase):
         """
         source = self._template()
         boot = source.split("function boot()", 1)[1].split("function csrfToken", 1)[0]
-        self.assertIn("var TOTAL = 300;", boot)
-        self.assertNotIn("var TOTAL = 30;", boot)
+        # WRITTEN AGAINST THE REQUIREMENT, NOT THE VARIABLE NAME. This asserted
+        # `var TOTAL = 300` and went red in v2.5.1278, when the clock became a
+        # countdown to the first battle and the reload kept its own counter
+        # under a name that says which of the two it is - and I shipped twice
+        # more without noticing, because I never ran this class. The rule the
+        # Owner set is the number: five minutes for the reload, and the polls
+        # left alone. That is what is pinned now.
+        self.assertRegex(boot, r"var RELOAD_AFTER = 300;")
+        self.assertNotIn("= 30;", boot)
         self.assertIn("window.location.reload()", boot)
-        self.assertIn('aria-label="Page refresh countdown">05:00</strong>', source)
 
         from pathlib import Path
         from django.conf import settings as dj_settings

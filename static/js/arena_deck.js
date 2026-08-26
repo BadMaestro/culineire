@@ -486,7 +486,7 @@
       rail.classList.add('is-open');
       rail.setAttribute('data-phase-key', '');
       if (phaseName) { phaseName.textContent = 'Open floor'; }
-      if (phaseCopy) { phaseCopy.textContent = 'Choose a chef on the floor to inspect their profile or issue a challenge.'; }
+      if (phaseCopy) { phaseCopy.textContent = 'Choose a chef on his field to inspect his profile or issue a challenge.'; }
       if (phaseNext) { phaseNext.hidden = true; }
       return;
     }

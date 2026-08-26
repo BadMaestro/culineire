@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1320",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "The octagon is a board of fields, not a floor - and two of my own tests had been red for three releases",
+        "section": "Chef Battles / Arena",
+        "summary": "THE OWNER'S VOCABULARY, given in three lines and worth writing down because the page had been mixing all three: a FIELD is what a place on the octagon is called in ordinary speech; a CELL is what the code calls the same thing and it stays that way; and the KITCHEN FLOOR is the kitchen as a place of WORK. His correction was that chefs do not sit on a floor - 'октагон подобен шахматной доске - и у него нет пола - у него есть поля' - and the page had a chef standing on the floor like a piece of furniture. TWO STRINGS, and only two, because the rest were already right under his own rule: 'Choose a chef on the floor' becomes 'Choose a chef on his field', and 'Every ring on the floor is a rank' becomes 'Every ring of fields is a rank'. The first lives TWICE - in the template and in arena_deck.js, which repaints that line on every poll - so a change in one place alone would have been undone within seconds by the other. Everything that names the kitchen as a workplace is untouched and deliberately so: THE KITCHEN FLOOR over the octagon, Floor Open, Open floor, 'The kitchen floor is open for the next challenge' and the three Step onto the kitchen floor buttons. `cell` and `seat_index` stay in the code and in the chat payload. The word `field` appeared nowhere in visible copy before this, so it arrives with nothing to collide with. AND THE PART I HAVE TO OWN: running the panel's own test class before shipping found ArenaPhasePanelTests RED, and red since v2.5.1278 - my own release, three deploys ago. It asserted `var TOTAL = 300` and the literal label 'Page refresh countdown', both of which I changed when the clock became a countdown to the first battle, and I never ran this class in that pass or in the two after it. Both tests are rewritten against the REQUIREMENT rather than the spelling: the reload is still five minutes and the polls are still not slowed, and the chip still exists but now carries the label that says what it counts. No assertion was weakened to pass - the second one gained a check, that the old label is gone. 56 tests green across the panel, the ranks, the cards, the effects, the widget band and the octagon lock.",
+    },
+    {
         "version": "2.5.1317",
         "date": "2026-08-26",
         "commit": "pending",
