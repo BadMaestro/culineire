@@ -1,5 +1,0 @@
-agent: bolt
-started_utc: 2026-08-26T10:00
-version: v2.5.1286
-commit: pending
-task: P3 slice two - the biathlon gets its own two event types and two cards (attack, defence), and a chef taking a seat is announced to the hall
