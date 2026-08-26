@@ -701,7 +701,9 @@
     battle_result: '👑',
     ingredient_attack: '🎯',
     defence: '🛡️',
-    chef_entered: '👨‍🍳'
+    chef_entered: '👨‍🍳',
+    artifact_attack: '🔥',
+    artifact_defence: '🛡️'
   };
   var CARD_TITLES = {
     challenge_issued: 'Challenge issued',
@@ -709,7 +711,9 @@
     battle_result: 'Result',
     ingredient_attack: 'Struck off',
     defence: 'Blocked',
-    chef_entered: 'Entered the Arena'
+    chef_entered: 'Entered the Arena',
+    artifact_attack: 'Attack lands',
+    artifact_defence: 'Defence holds'
   };
 
   function cardChef(name, slug) {
@@ -778,6 +782,17 @@
           card.winner === card.challenger ? card.opponent : card.challenger,
           ''
         ));
+      } else if (kind === 'ingredient_attack' || kind === 'defence') {
+        /* A SHOT IS NOT THE BATTLE'S PAIRING. Only the winner of the first
+           round shoots, and he shoots at ONE named chef's menu, so the line
+           that matters is shooter to defender - "challenger vs opponent"
+           would be true and would say nothing about what just happened. */
+        pair.appendChild(cardChef(card.actor, card.actor_slug));
+        var at = document.createElement('span');
+        at.className = 'arena-chat__card-vs';
+        at.textContent = kind === 'defence' ? 'blocked by' : 'hit';
+        pair.appendChild(at);
+        pair.appendChild(cardChef((card.event || {}).defender || '', ''));
       } else {
         pair.appendChild(cardChef(card.challenger, ''));
         var vs = document.createElement('span');
@@ -810,6 +825,72 @@
       return item;
     }
 
+    /* ROUND ONE: THE ARTIFACT DUEL. Its card is built from the round rather
+       than from an event, because combat rounds write no events - BattleRound
+       already carries the attacker, the defender, both powers and the outcome,
+       and the two actions beside it carry the artifacts. It reads as a line
+       about weapons, which is what the round is, with the ingredient that fell
+       as the consequence rather than the headline. */
+    if (kind === 'artifact_attack' || kind === 'artifact_defence') {
+      var duel = document.createElement('span');
+      duel.className = 'arena-chat__card-pair';
+      duel.appendChild(cardChef(card.attacker, card.attacker_slug));
+      var verb = document.createElement('span');
+      verb.className = 'arena-chat__card-vs';
+      verb.textContent = card.outcome + ' on';
+      duel.appendChild(verb);
+      duel.appendChild(cardChef(card.defender, ''));
+      item.appendChild(duel);
+
+      /* The weapons, each named only if it was actually played - a chef may
+         fight on Move points alone and the card says nothing rather than
+         inventing a bare hand. */
+      [['attack_artifact', 'attacked with'], ['defence_artifact', 'defended with']]
+        .forEach(function (pair) {
+          var art = card[pair[0]];
+          if (!art) { return; }
+          var row = document.createElement('span');
+          row.className = 'arena-chat__card-shot';
+          var role = document.createElement('span');
+          role.className = 'arena-chat__card-vs';
+          role.textContent = pair[1];
+          row.appendChild(role);
+          var named = document.createElement('b');
+          named.textContent = art.name;
+          row.appendChild(named);
+          if (art.rarity) {
+            var rarity = document.createElement('span');
+            rarity.className = 'arena-chat__card-count';
+            rarity.textContent = art.rarity;
+            row.appendChild(rarity);
+          }
+          item.appendChild(row);
+        });
+
+      var tally = document.createElement('span');
+      tally.className = 'arena-chat__card-shot';
+      var power = document.createElement('span');
+      power.className = 'arena-chat__card-count';
+      power.textContent = 'round ' + card.round + ' · ' +
+        card.attack_power + ' vs ' + card.defence_power;
+      tally.appendChild(power);
+      if (card.struck) {
+        var fell = document.createElement('b');
+        fell.textContent = card.struck + ' struck off';
+        tally.appendChild(fell);
+      }
+      item.appendChild(tally);
+
+      if (card.battle_url) {
+        var watch = document.createElement('a');
+        watch.className = 'arena-chat__card-go';
+        watch.href = card.battle_url;
+        watch.textContent = 'Watch the fight';
+        item.appendChild(watch);
+      }
+      return item;
+    }
+
     var ev = card.event || {};
     if (ev.ingredient) {
       var shot = document.createElement('span');
@@ -817,12 +898,6 @@
       var what = document.createElement('b');
       what.textContent = ev.ingredient;
       shot.appendChild(what);
-      if (ev.defender) {
-        var whose = document.createElement('span');
-        whose.className = 'arena-chat__card-vs';
-        whose.textContent = 'on ' + ev.defender + "'s menu";
-        shot.appendChild(whose);
-      }
       if (ev.shot_number && ev.shots_total) {
         var count = document.createElement('span');
         count.className = 'arena-chat__card-count';
@@ -832,11 +907,19 @@
       item.appendChild(shot);
     }
 
+    /* THE SENTENCE IS SKIPPED WHERE THE CARD ALREADY SAYS IT. A shot card
+       carries the title, the two chefs and the ingredient; the event's English
+       ("Aoife's shot hit 'Wild garlic'.") then repeats all three in prose, and
+       measured, that is a third of the card's height spent saying nothing new.
+       The other kinds keep it - their sentence carries the theme and the
+       margin, which nothing else on the card states. */
+    var repeats = (kind === 'ingredient_attack' || kind === 'defence');
+
     /* The event's own sentence, which is what the game wrote when it happened.
        textContent and never innerHTML: this string is a chef's name inside a
        server-formatted message, and a name is user input wherever it came
        from. */
-    if (card.headline) {
+    if (card.headline && !repeats) {
       var said = document.createElement('span');
       said.className = 'arena-chat__card-said';
       said.textContent = card.headline;
@@ -868,6 +951,8 @@
   MESSAGE_RENDERERS.ingredient_attack = renderEventCard;
   MESSAGE_RENDERERS.defence = renderEventCard;
   MESSAGE_RENDERERS.chef_entered = renderEventCard;
+  MESSAGE_RENDERERS.artifact_attack = renderEventCard;
+  MESSAGE_RENDERERS.artifact_defence = renderEventCard;
 
 
   function append(line) {

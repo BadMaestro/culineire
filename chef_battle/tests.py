@@ -23438,6 +23438,46 @@ class ArenaEventCardTests(TestCase):
         self.assertEqual(payload["event"]["defender"], "Card Opponent")
         self.assertEqual(payload["event"]["shots_total"], IngredientShot.MAX_SHOTS)
 
+    def test_three_shots_count_up_and_a_bounce_spends_one_of_them(self):
+        """The Owner's rule: three shots, two hidden blocks, and a bounce COSTS
+        the shot rather than being replayed. The card prints that count, so the
+        count has to be the game's own - not the number of ingredients struck
+        off, which is what a naive counter would have given."""
+        from .models import Battle, BattleIngredient, IngredientShot
+        from .services import _post_biathlon_event
+        from .arena_cards import card_payload
+        battle = self._battle("Counting", Battle.Status.INGREDIENT_PENALTY)
+        battle.winner, battle.loser = self.a, self.b
+        battle.save(update_fields=["winner", "loser"])
+
+        plan = [("Sea salt", False), ("Dulse", True), ("Cream", False)]
+        seen = []
+        for position, (name, is_key) in enumerate(plan, start=1):
+            target = BattleIngredient.objects.create(
+                battle=battle, chef=self.b, name=name, position=position,
+                is_key=is_key,
+            )
+            shot = IngredientShot.objects.create(
+                battle=battle, shooter=self.a, target_ingredient=target,
+                bounced=is_key,
+            )
+            _post_biathlon_event(battle, shot, name, is_key)
+            card = self.ArenaChatMessage.objects.order_by("-id").first()
+            seen.append(card_payload(card)["event"])
+
+        self.assertEqual([e["shot_number"] for e in seen], [1, 2, 3])
+        self.assertEqual([e["ingredient"] for e in seen],
+                         ["Sea salt", "Dulse", "Cream"])
+        # The middle one bounced and still spent a shot: the third is 3 of 3,
+        # not 2 of 3.
+        self.assertEqual(seen[2]["shot_number"], IngredientShot.MAX_SHOTS)
+        kinds = list(self.ArenaChatMessage.objects.exclude(kind="")
+                     .order_by("id").values_list("kind", flat=True))
+        self.assertEqual(kinds, ["ingredient_attack", "defence", "ingredient_attack"])
+        # Every card names the chef whose menu was being shot at, because that
+        # is what the card's own pair line prints.
+        self.assertTrue(all(e["defender"] == self.b.name for e in seen))
+
     def test_a_chef_taking_a_seat_is_announced_once_and_a_spectator_never_is(self):
         from .arena_seating import claim_seat
         from .models import ChefBattleProfile
@@ -23458,6 +23498,102 @@ class ArenaEventCardTests(TestCase):
         # And a spectator filling a seat is not news.
         claim_seat(self.b)
         self.assertEqual(arrivals.count(), 1)
+
+    def test_round_one_is_the_artifact_duel_and_gets_its_own_two_cards(self):
+        """Items 22 and 23 are round ONE - the artifact duel - and not round
+        two's three shots at a menu. The Owner had to say so twice. A landed
+        attack is one card, a block is the other, and a clash is neither."""
+        from .models import (Battle, BattleRound, BattleCombatAction,
+                             BattleIngredient, Artifact, ChefArtifact)
+        from .arena_cards import post_round_card, card_payload
+        battle = self._battle("Duel", Battle.Status.ACTIVE)
+        weapon = Artifact.objects.create(
+            name="Cast Iron Pan", rarity=Artifact.Rarity.RARE,
+            effect_type="attack", effect_value=6,
+        )
+        shield = Artifact.objects.create(
+            name="Titanium Wok Shield", rarity=Artifact.Rarity.EPIC,
+            effect_type="defense", effect_value=7,
+        )
+        mine = ChefArtifact.objects.create(chef=self.a, artifact=weapon)
+        theirs = ChefArtifact.objects.create(chef=self.b, artifact=shield)
+        target = BattleIngredient.objects.create(
+            battle=battle, chef=self.b, name="Saffron", position=1,
+            is_eliminated=True,
+        )
+        BattleCombatAction.objects.create(
+            battle=battle, chef=self.a, round_number=1, action_type="attack",
+            moves_invested=3, artifact_used=mine, target_ingredient=target,
+        )
+        BattleCombatAction.objects.create(
+            battle=battle, chef=self.b, round_number=1, action_type="defend",
+            moves_invested=2, artifact_used=theirs,
+        )
+        landed = BattleRound.objects.create(
+            battle=battle, round_number=1, attacker=self.a, defender=self.b,
+            attack_power=9, defence_power=4,
+            outcome=BattleRound.Outcome.FULL_HIT,
+            challenger_hits=1, opponent_hits=0,
+            log_message="Card Challenger lands a full hit on Card Opponent. (9 vs 4)",
+        )
+        post_round_card(landed, None, None)
+        card = self.ArenaChatMessage.objects.get(
+            kind=self.ArenaChatMessage.Kind.ARTIFACT_ATTACK)
+        payload = card_payload(card)
+        self.assertEqual(payload["attacker"], "Card Challenger")
+        self.assertEqual(payload["defender"], "Card Opponent")
+        self.assertEqual(payload["outcome"], "a full hit")
+        self.assertEqual(payload["attack_artifact"]["name"], "Cast Iron Pan")
+        self.assertEqual(payload["defence_artifact"]["name"], "Titanium Wok Shield")
+        self.assertEqual(payload["struck"], "Saffron")
+        self.assertEqual([payload["attack_power"], payload["defence_power"]], [9, 4])
+
+        blocked = BattleRound.objects.create(
+            battle=battle, round_number=2, attacker=self.a, defender=self.b,
+            attack_power=4, defence_power=9,
+            outcome=BattleRound.Outcome.BLOCKED,
+            challenger_hits=1, opponent_hits=1, log_message="blocked",
+        )
+        post_round_card(blocked, None, None)
+        self.assertEqual(
+            self.ArenaChatMessage.objects.filter(
+                kind=self.ArenaChatMessage.Kind.ARTIFACT_DEFENCE).count(), 1)
+
+        # A clash changes nothing about the fight and is not announced.
+        clash = BattleRound.objects.create(
+            battle=battle, round_number=3, attacker=self.a, defender=self.b,
+            attack_power=5, defence_power=5,
+            outcome=BattleRound.Outcome.DRAW,
+            challenger_hits=1, opponent_hits=1, log_message="clash",
+        )
+        before = self.ArenaChatMessage.objects.count()
+        self.assertIsNone(post_round_card(clash, None, None))
+        self.assertEqual(self.ArenaChatMessage.objects.count(), before)
+
+    def test_an_ingredient_that_survived_is_never_named_as_struck_off(self):
+        """A targeted ingredient on a round the attacker LOST is still on the
+        menu. Naming it would report a casualty that walked away."""
+        from .models import (Battle, BattleRound, BattleCombatAction,
+                             BattleIngredient)
+        from .arena_cards import post_round_card, card_payload
+        battle = self._battle("Survivor", Battle.Status.ACTIVE)
+        survivor = BattleIngredient.objects.create(
+            battle=battle, chef=self.b, name="Samphire", position=1,
+        )
+        BattleCombatAction.objects.create(
+            battle=battle, chef=self.a, round_number=1, action_type="attack",
+            moves_invested=1, target_ingredient=survivor,
+        )
+        blocked = BattleRound.objects.create(
+            battle=battle, round_number=1, attacker=self.a, defender=self.b,
+            attack_power=2, defence_power=8,
+            outcome=BattleRound.Outcome.BLOCKED,
+            challenger_hits=0, opponent_hits=1, log_message="blocked",
+        )
+        post_round_card(blocked, None, None)
+        card = self.ArenaChatMessage.objects.get(
+            kind=self.ArenaChatMessage.Kind.ARTIFACT_DEFENCE)
+        self.assertNotIn("struck", card_payload(card))
 
     def test_the_renderer_is_registered_for_every_kind_the_server_can_send(self):
         """A kind with no renderer falls back to the text renderer and prints a

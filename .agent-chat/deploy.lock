@@ -1,0 +1,5 @@
+agent: bolt
+started_utc: 2026-08-26T11:00
+version: v2.5.1289
+commit: pending
+task: P3 items 22-23 done properly - round ONE is the artifact duel and gets its own two cards; the round-two shot cards are corrected to say shooter to defender and stop repeating themselves

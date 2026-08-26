@@ -706,12 +706,28 @@ class ArenaChatMessage(models.Model):
         INGREDIENT_ATTACK = "ingredient_attack", "Ingredient struck off"
         DEFENCE = "defence", "Shot blocked"
         CHEF_ENTERED = "chef_entered", "Chef entered the Arena"
+        # ROUND ONE IS FOUGHT WITH ARTIFACTS, round two with three shots at a
+        # menu, and the two are not the same event however alike the words for
+        # them read. These two are round ONE: an attack that landed and an
+        # attack that a defence turned away.
+        ARTIFACT_ATTACK = "artifact_attack", "Artifact attack landed"
+        ARTIFACT_DEFENCE = "artifact_defence", "Artifact defence held"
 
     kind = models.CharField(
         max_length=24, choices=Kind.choices, blank=True, default="",
     )
     event = models.ForeignKey(
         "BattleEvent", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="arena_chat_cards",
+    )
+    # A ROUND-ONE CARD POINTS AT THE ROUND, NOT AT AN EVENT, because combat
+    # rounds do not write BattleEvent rows and do not need to start: BattleRound
+    # already records the attacker, the defender, both powers, the outcome and
+    # the log line, and the two BattleCombatAction rows beside it carry the
+    # artifacts and the targeted ingredient. The card reads those. Nothing new
+    # is written into the battle to make the hall able to talk about it.
+    combat_round = models.ForeignKey(
+        "BattleRound", null=True, blank=True, on_delete=models.SET_NULL,
         related_name="arena_chat_cards",
     )
 

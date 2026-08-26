@@ -2324,6 +2324,14 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
             log_message=log_msg,
         )
 
+        # P3 items 22 and 23, Owner 2026-08-26: the hall is shown round ONE -
+        # the artifact duel - as it happens. Nothing is written into the battle
+        # for it: the card points at the round that was just recorded and reads
+        # it and the two actions beside it. arena_cards never raises into this
+        # transaction.
+        from .arena_cards import post_round_card
+        post_round_card(round_obj, challenger_action, opponent_action)
+
         # End combat phase when any chef reaches hits_to_win.  The combat
         # winner immediately drives the recipe biathlon; do not leave a real
         # battle in the legacy awaiting_submissions state with no winner.

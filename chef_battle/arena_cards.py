@@ -135,6 +135,8 @@ def card_payload(message: ArenaChatMessage) -> dict:
     every one of these is an invitation to go and look - and it is built here
     rather than in the browser because the browser has no URL conf.
     """
+    if message.combat_round_id is not None:
+        return round_card_payload(message)
     event = message.event
     battle = message.battle
     payload = {
@@ -228,3 +230,138 @@ def post_arrival_card(author) -> "ArenaChatMessage | None":
     except Exception:
         logger.exception("arrival card failed for author %s", getattr(author, "pk", None))
         return None
+
+
+# Round one's four outcomes as the hall reads them. BattleRound.Outcome is the
+# game's own vocabulary and this is only its plain-English half; the decision of
+# WHICH card a round earns is below, and it is made from the outcome rather than
+# from who happened to be attacking.
+ROUND_OUTCOME_LABEL = {
+    "full_hit": "a full hit",
+    "partial_hit": "a partial hit",
+    "blocked": "blocked",
+    "draw": "a clash",
+}
+
+
+def post_round_card(combat_round, challenger_action, opponent_action):
+    """The hall's card for one round of combat. P3 items 22 and 23.
+
+    ROUND ONE IS THE ARTIFACT DUEL. Each chef commits Move points and may
+    activate an artifact whose power is added to theirs; the higher total takes
+    the round, and the attacker's targeted ingredient falls with it. That is a
+    different fight from round two's three shots at a menu, and the Owner had to
+    say so twice before it was written down here.
+
+    ONE CARD PER ROUND, NOT TWO. A round has one outcome that both chefs are
+    inside, so a card each would print the same moment from two angles and cost
+    the log twice the space. Which of the Owner's two items it satisfies is
+    decided by the outcome: an attack that landed is item 22, an attack a
+    defence turned away is item 23.
+
+    NOTHING IS WRITTEN INTO THE BATTLE FOR THIS. No event, no new field on the
+    round - the card points at the BattleRound and reads it and the two actions
+    beside it. A failure here is logged and swallowed, because it runs inside
+    the transaction that resolves the round and a chat row must never be able to
+    cost a chef his combat.
+    """
+    if combat_round is None:
+        return None
+    outcome = (combat_round.outcome or "").lower()
+    if outcome == "draw":
+        # A CLASH IS NOT A CARD. Nothing was struck off, nobody's defence was
+        # proved, and the hall would be told a thing happened when the state of
+        # the fight is exactly what it was.
+        return None
+    kind = (
+        ArenaChatMessage.Kind.ARTIFACT_DEFENCE if outcome == "blocked"
+        else ArenaChatMessage.Kind.ARTIFACT_ATTACK
+    )
+    attacker = combat_round.attacker
+    ring, cell = _seat_of(attacker)
+    try:
+        return ArenaChatMessage.objects.create(
+            battle=combat_round.battle,
+            speaker=attacker,
+            display_name=(getattr(attacker, "name", "") or "A chef")[:60],
+            body=combat_round.log_message[:300],
+            ring_index=ring,
+            seat_index=cell,
+            kind=kind,
+            combat_round=combat_round,
+        )
+    except Exception:
+        logger.exception("round card failed for BattleRound %s",
+                         getattr(combat_round, "pk", None))
+        return None
+
+
+def _artifact_of(action):
+    """The artifact a chef actually activated this round, named for the card.
+
+    A chef may fight with Move points alone, so this is often nothing - and the
+    card says nothing rather than inventing a bare hand. `artifact_used` is a
+    ChefArtifact (the copy this chef owns); the name and rarity live on the
+    Artifact it points at.
+    """
+    owned = getattr(action, "artifact_used", None)
+    artifact = getattr(owned, "artifact", None)
+    if artifact is None:
+        return None
+    return {
+        "name": artifact.name,
+        "rarity": artifact.get_rarity_display(),
+        "effect": artifact.effect_type or "",
+        "value": artifact.effect_value or 0,
+    }
+
+
+def round_card_payload(message: ArenaChatMessage) -> dict:
+    """What a round-one card is given, read off the round at serve time.
+
+    The two actions are found by (battle, round_number, chef) rather than stored
+    on the card, so the card cannot hold a stale copy of what a chef played.
+    """
+    from .models import BattleCombatAction
+
+    combat_round = message.combat_round
+    payload = {
+        "kind": message.kind,
+        "headline": message.body,
+        "round": combat_round.round_number,
+        "attacker": getattr(combat_round.attacker, "name", "") or "",
+        "attacker_slug": getattr(combat_round.attacker, "slug", "") or "",
+        "defender": getattr(combat_round.defender, "name", "") or "",
+        "outcome": ROUND_OUTCOME_LABEL.get(
+            (combat_round.outcome or "").lower(), combat_round.outcome
+        ),
+        "attack_power": combat_round.attack_power,
+        "defence_power": combat_round.defence_power,
+        "hits": [combat_round.challenger_hits, combat_round.opponent_hits],
+    }
+    battle = combat_round.battle
+    if battle is not None:
+        payload["battle_url"] = battle.get_absolute_url()
+    actions = {
+        a.chef_id: a for a in BattleCombatAction.objects.filter(
+            battle_id=combat_round.battle_id,
+            round_number=combat_round.round_number,
+        ).select_related("artifact_used__artifact", "target_ingredient")
+    }
+    attack_action = actions.get(combat_round.attacker_id)
+    defend_action = actions.get(combat_round.defender_id)
+    if attack_action is not None:
+        artifact = _artifact_of(attack_action)
+        if artifact:
+            payload["attack_artifact"] = artifact
+        # THE INGREDIENT IS NAMED ONLY WHEN IT ACTUALLY FELL. A targeted
+        # ingredient on a round the attacker lost is still on the menu, and a
+        # card that named it would be reporting a casualty that walked away.
+        target = getattr(attack_action, "target_ingredient", None)
+        if target is not None and target.is_eliminated:
+            payload["struck"] = target.name
+    if defend_action is not None:
+        artifact = _artifact_of(defend_action)
+        if artifact:
+            payload["defence_artifact"] = artifact
+    return payload

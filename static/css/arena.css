@@ -10892,3 +10892,10 @@ body.page--arena.is-zoom-locked {
 }
 .arena-chat .arena-chat__card--ingredient_attack { border-left-color: var(--arena-rank-1, var(--accent-bronze-dark)); }
 .arena-chat .arena-chat__card--defence { border-left-color: var(--arena-rank-6, var(--accent-bronze)); }
+
+/* Round one's two cards. The edge colours say which half of the duel won it -
+   the attacker's side for a landed hit, the defender's for a held block - and
+   they are the same two tokens the biathlon's cards use, because it is the same
+   two roles one phase later. */
+.arena-chat .arena-chat__card--artifact_attack { border-left-color: var(--arena-rank-1, var(--accent-bronze-dark)); }
+.arena-chat .arena-chat__card--artifact_defence { border-left-color: var(--arena-rank-6, var(--accent-bronze)); }
