@@ -1,5 +1,0 @@
-agent: bolt
-started_utc: 2026-08-26T16:30
-version: v2.5.1314
-commit: pending
-task: the same caption fix on the phone and the tablet - the floor's caption sits above the frame on every screen, and the floor comes down by the caption's own height
