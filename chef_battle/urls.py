@@ -26,6 +26,8 @@ urlpatterns = [
     path("arena/chat/dm/policy/", views.arena_chat_dm_policy,
          name="arena_chat_dm_policy"),
     path("arena/chat/users/", views.arena_chat_users, name="arena_chat_users"),
+    path("arena/chat/recent-media/", views.arena_chat_recent_media,
+         name="arena_chat_recent_media"),
     path("arena/chat/poll/", views.arena_chat_poll_create,
          name="arena_chat_poll_create"),
     path("arena/chat/poll/vote/", views.arena_chat_poll_vote,

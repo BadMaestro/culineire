@@ -4740,6 +4740,7 @@ def arena_chat_send(request):
     media = poster = None
     media_kind = ""
     media_width = media_height = None
+    reused = None
     if upload is not None:
         from recipes.validators import normalise_uploaded_chat_media
 
@@ -4754,11 +4755,41 @@ def arena_chat_send(request):
                 status=400,
             )
 
+    # SENDING A GIF AGAIN WITHOUT UPLOADING IT AGAIN. P2 item 11.
+    #
+    # The Owner chose GIFs-as-uploads over an external provider, so there is no
+    # catalogue to search - the only honest "GIF picker" is the reader's own
+    # recent ones. Reusing means pointing a new row at a file this project
+    # already stored, which is safe precisely because of where that file came
+    # from: it was produced by normalise_uploaded_chat_media, so nothing the
+    # uploader supplied survives in it.
+    #
+    # ONLY YOUR OWN. The source row must have been written by this same author.
+    # Without that rule a reader could rebroadcast a picture they were only
+    # ever shown - or one from a room they have since been blocked from - by
+    # quoting its id back at this endpoint.
+    #
+    # The two rows share one stored path on purpose: FileField deletes nothing
+    # when a row goes, so neither copy can pull the file out from under the
+    # other, and re-encoding a file we encoded ourselves would only lose
+    # quality to prove a point.
+    reuse = (request.POST.get("reuse_media") or "").strip()
+    if reuse and media is None:
+        source = (
+            ArenaChatMessage.objects
+            .filter(pk=reuse if reuse.isdigit() else 0, speaker=author, is_hidden=False)
+            .exclude(media="")
+            .first()
+        )
+        if source is None:
+            return JsonResponse({"ok": False, "error": "no_such_media"}, status=404)
+        reused = source
+
     body = (request.POST.get("body") or "").strip()
     # A PICTURE IS A MESSAGE. Requiring words alongside it would be a rule
     # invented here for the convenience of a NOT NULL column, so an attachment
     # satisfies the same "say something" test that text does.
-    if not body and media is None:
+    if not body and media is None and reused is None:
         return JsonResponse({"ok": False, "error": "empty"}, status=400)
     body = body[:ARENA_CHAT_MAX_CHARS]
 
@@ -4787,11 +4818,17 @@ def arena_chat_send(request):
         seat_index=seat[1] if seat else 0,
         reply_to=reply_to,
         conversation=conversation,
-        media_kind=media_kind,
-        media_width=media_width,
-        media_height=media_height,
+        media_kind=reused.media_kind if reused is not None else media_kind,
+        media_width=reused.media_width if reused is not None else media_width,
+        media_height=reused.media_height if reused is not None else media_height,
     )
-    if media is not None:
+    if reused is not None:
+        # The NAME, not the file: both rows point at one stored object. No
+        # bytes are read, written or re-encoded, which is the whole saving.
+        message.media = reused.media.name
+        message.media_poster = reused.media_poster.name
+        message.save(update_fields=["media", "media_poster"])
+    elif media is not None:
         # Saved AFTER the row exists so the stored path carries the row's own
         # generated name, and with save=False so one UPDATE writes both files
         # rather than two writes racing each other.
@@ -4813,6 +4850,66 @@ def arena_chat_send(request):
         "channel": "public",
         "messages": audible_lines(seat, [message], viewer=author),
     })
+
+
+ARENA_RECENT_MEDIA = 12
+
+
+@ratelimit(key="ip", rate="60/m", method="GET", block=False)
+def arena_chat_recent_media(request):
+    """The animations this reader has sent before. P2 item 11.
+
+    NOT A CATALOGUE, AND THERE IS NO SEARCH. The Owner chose GIFs as uploads
+    rather than an external provider, so there is nothing to search - no
+    library exists to query. What does exist is the reader's own history, and
+    reaching for the same reaction twice is the thing a picker actually saves
+    you from. Anything more would be inventing a service this project does not
+    have.
+
+    ANIMATIONS ONLY. A "recent pictures" strip would put every photo somebody
+    posted back in front of them at the moment they are choosing what to send,
+    which is a different and much less welcome feature.
+
+    Deduplicated by stored path, because sending the same GIF three times
+    should offer it once.
+    """
+    if not is_battle_visible(request):
+        raise Http404
+    if getattr(request, "limited", False):
+        return JsonResponse({"error": "rate_limited"}, status=429)
+
+    from .models import ArenaChatMessage
+
+    author = _chat_actor(request)
+    if author is None:
+        return JsonResponse({"items": []})
+
+    rows = (
+        ArenaChatMessage.objects
+        .filter(
+            speaker=author,
+            media_kind=ArenaChatMessage.MediaKind.ANIMATION,
+            is_hidden=False,
+        )
+        .exclude(media="")
+        .order_by("-id")[:ARENA_RECENT_MEDIA * 3]
+    )
+    items = []
+    seen = set()
+    for row in rows:
+        if row.media.name in seen:
+            continue
+        seen.add(row.media.name)
+        items.append({
+            "id": row.pk,
+            "url": row.media.url,
+            "poster": row.media_poster.url if row.media_poster else "",
+            "width": row.media_width,
+            "height": row.media_height,
+        })
+        if len(items) >= ARENA_RECENT_MEDIA:
+            break
+    return JsonResponse({"items": items})
 
 
 @require_POST

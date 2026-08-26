@@ -10973,6 +10973,139 @@ body.page--arena.is-zoom-locked {
    ties with any bare single-class colour rule here and wins on source order.
    Never !important - match the prefix instead.
    ========================================================================== */
+/* P2 item 11 - the strip of GIFs this reader has sent before. Posters only,
+   because a grid of twelve playing animations is a download and a headache. */
+.arena-chat__sheet--gifs { width: min(17rem, 92vw); }
+.arena-chat__gif-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem;
+  max-height: 11rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.15rem;
+}
+.arena-chat__gif-tile {
+  display: block;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+  border-radius: 0.3rem;
+  background: transparent;
+  overflow: hidden;
+  cursor: pointer;
+}
+.arena-chat__gif-tile:hover { border-color: var(--accent-bronze); }
+.arena-chat__gif-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.arena-chat .arena-chat__gif-upload {
+  width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+  border-radius: 0.35rem;
+  background: transparent;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-bronze-dark);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   P2 ITEM 12 - THE CHAT'S OWN MEDIA VIEWER.
+   Fixed to the viewport and parented on the body, because the chat is a
+   240px rail with its own overflow and an overlay inside it would be clipped
+   by the log. #hero-lightbox keeps its own rules and its own job.
+   ========================================================================== */
+.arena-chat__viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.75rem, 4vw, 2.5rem);
+  background: color-mix(in srgb, #0b0906 88%, transparent);
+}
+.arena-chat__viewer.is-open { display: flex; }
+.arena-chat__viewer-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+}
+.arena-chat__viewer-img {
+  max-width: 100%;
+  /* Room reserved for the caption bar so a tall picture never sits under it. */
+  max-height: calc(100vh - 7rem);
+  object-fit: contain;
+  border-radius: 0.4rem;
+}
+.arena-chat__viewer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.7rem clamp(0.75rem, 4vw, 2.5rem) max(0.7rem, env(safe-area-inset-bottom));
+  background: color-mix(in srgb, #0b0906 82%, transparent);
+  color: #f4ece0;
+}
+.arena-chat__viewer-who { font-size: 0.85rem; font-weight: 700; }
+.arena-chat__viewer-when,
+.arena-chat__viewer-count {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, #f4ece0 68%, transparent);
+}
+.arena-chat__viewer-count { margin-left: auto; }
+.arena-chat__viewer-report {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid color-mix(in srgb, #f4ece0 40%, transparent);
+  border-radius: 0.3rem;
+  background: transparent;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #f4ece0;
+  cursor: pointer;
+}
+.arena-chat__viewer-report:hover { border-color: #f4ece0; }
+.arena-chat__viewer-nav,
+.arena-chat__viewer-close {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, #f4ece0 14%, transparent);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #f4ece0;
+  cursor: pointer;
+}
+.arena-chat__viewer-nav:hover,
+.arena-chat__viewer-close:hover { background: color-mix(in srgb, #f4ece0 26%, transparent); }
+/* Disabled rather than hidden, so the frame does not jump sideways as the
+   reader walks to either end of the conversation. */
+.arena-chat__viewer-nav[disabled] { opacity: 0.25; cursor: default; }
+.arena-chat__viewer-nav--prev { left: 0.5rem; top: 50%; transform: translateY(-50%); }
+.arena-chat__viewer-nav--next { right: 0.5rem; top: 50%; transform: translateY(-50%); }
+.arena-chat__viewer-close { right: 0.5rem; top: 0.5rem; font-size: 1.8rem; }
+.arena-chat__viewer-nav:focus-visible,
+.arena-chat__viewer-close:focus-visible,
+.arena-chat__viewer-report:focus-visible {
+  outline: 2px solid var(--arena-gold, #d6a64b);
+  outline-offset: 2px;
+}
+
 /* ==========================================================================
    P2 ITEM 13 - CulinEire stickers.
    A sticker is the whole message, so it is sized against the panel rather

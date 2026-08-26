@@ -752,39 +752,200 @@
       }
     }
 
-    // Full size opens in the viewer the whole site already has - one lightbox,
-    // not a second one written for this panel. It is a global component from
-    // base.html, so it is only used if it is actually present.
-    var lightbox = document.getElementById('hero-lightbox');
-    if (lightbox) {
-      img.classList.add('is-openable');
-      img.addEventListener('click', function () { openLightbox(m.url, img.alt); });
-    }
+    /* WHAT THE VIEWER WILL NEED, parked on the element rather than in a
+       parallel array: the walk is built by reading the log, so it can never
+       list a picture the reader cannot see. `src` is read at open time, not
+       here, because the reader may have pressed play in between. */
+    figure._media = {
+      id: line.id,
+      name: line.name,
+      at: line.at,
+      url: m.url,
+      kind: m.kind || 'image',
+      alt: img.alt,
+      get src() { return img.getAttribute('src') || m.url; }
+    };
+
+    img.classList.add('is-openable');
+    img.addEventListener('click', function () { openViewer(figure._media); });
     return figure;
   }
 
-  /* The site's own lightbox (templates/base.html:487, static/js/main.js:370),
-   * reused rather than reimplemented - a fifth hand-rolled modal in this
-   * codebase would be four too many.
+  /* ===================================================================
+   * P2 ITEM 12 - THE CHAT'S OWN MEDIA VIEWER.
    *
-   * main.js binds it to HERO images only, and it owns closing it: the close
-   * button, Escape and the backdrop are all wired there and work on whatever
-   * the element is currently showing. So this opens it the way that file
-   * opens it - the same class, the same scroll lock, the same focus move -
-   * and deliberately adds no closing logic of its own to compete with. */
-  function openLightbox(url, alt) {
-    var box = document.getElementById('hero-lightbox');
-    var img = document.getElementById('hero-lightbox-img');
-    var close = document.getElementById('hero-lightbox-close');
-    if (!box || !img) { return; }
-    img.src = url;
-    img.alt = alt || '';
-    box.classList.add('hero-lightbox--open');
-    document.body.style.overflow = 'hidden';
-    if (close) {
-      window.requestAnimationFrame(function () { close.focus(); });
-    }
+   * Pictures used to open #hero-lightbox, the site's single-image viewer, and
+   * that was the right call while a picture was all there was to show. The
+   * brief asks for four things that viewer has no place for: who sent it,
+   * when, a way to report it, and a way to walk the conversation's pictures
+   * without closing and reopening. Those are chat facts, so this is a chat
+   * viewer. #hero-lightbox is untouched and still serves the hero images it
+   * was written for.
+   *
+   * ON THE BODY, NOT IN THE PANEL. The chat is a 240px rail with its own
+   * stacking context and overflow; a full-screen overlay parented inside it
+   * would be clipped by the log. It is created once, on first use, and reused.
+   *
+   * REPORTING GOES THROUGH THE EXISTING SHEET, not a second reason list: the
+   * viewer closes and openReport() takes over. One report UI, one set of
+   * reasons, one place to change them.
+   * =================================================================== */
+  var viewer = null;
+  var viewerItems = [];
+  var viewerAt = 0;
+
+  /* Every picture currently in the log, in the order it was said. Read from
+     the DOM rather than kept as a parallel list, so it cannot drift out of
+     step with what the reader can actually see - a blocked or filtered row
+     has no figure, and therefore is not in the walk either. */
+  function collectMedia() {
+    var out = [];
+    if (!log) { return out; }
+    log.querySelectorAll('.arena-chat__media').forEach(function (fig) {
+      if (fig._media && fig.offsetParent !== null) { out.push(fig._media); }
+    });
+    return out;
   }
+
+  function buildViewer() {
+    var box = document.createElement('div');
+    box.className = 'arena-chat__viewer';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.setAttribute('aria-label', 'Shared picture');
+
+    var frame = document.createElement('div');
+    frame.className = 'arena-chat__viewer-frame';
+
+    var img = document.createElement('img');
+    img.className = 'arena-chat__viewer-img';
+    frame.appendChild(img);
+    box.appendChild(frame);
+
+    var bar = document.createElement('div');
+    bar.className = 'arena-chat__viewer-bar';
+
+    var who = document.createElement('b');
+    who.className = 'arena-chat__viewer-who';
+    bar.appendChild(who);
+
+    var when = document.createElement('time');
+    when.className = 'arena-chat__viewer-when';
+    bar.appendChild(when);
+
+    var count = document.createElement('span');
+    count.className = 'arena-chat__viewer-count';
+    bar.appendChild(count);
+
+    var report = document.createElement('button');
+    report.type = 'button';
+    report.className = 'arena-chat__viewer-report';
+    report.textContent = 'Report';
+    bar.appendChild(report);
+    box.appendChild(bar);
+
+    function navButton(cls, label, step) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'arena-chat__viewer-nav ' + cls;
+      b.setAttribute('aria-label', label);
+      b.textContent = step < 0 ? '‹' : '›';
+      b.addEventListener('click', function (event) {
+        event.stopPropagation();
+        step_to(viewerAt + step);
+      });
+      return b;
+    }
+    var prev = navButton('arena-chat__viewer-nav--prev', 'Previous picture', -1);
+    var next = navButton('arena-chat__viewer-nav--next', 'Next picture', 1);
+    box.appendChild(prev);
+    box.appendChild(next);
+
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'arena-chat__viewer-close';
+    close.setAttribute('aria-label', 'Close');
+    close.textContent = '×';
+    close.addEventListener('click', closeViewer);
+    box.appendChild(close);
+
+    /* A click on the backdrop closes; a click on the picture itself does not,
+       so the reader can point at what they are looking at. */
+    box.addEventListener('click', function (event) {
+      if (event.target === box || event.target === frame) { closeViewer(); }
+    });
+
+    report.addEventListener('click', function (event) {
+      // STOPPED HERE OR THE SHEET NEVER SURVIVES ITS OWN OPENING: the panel
+      // closes any open menu on a document click, and this click would reach
+      // that handler immediately after openReport() put the sheet up.
+      event.stopPropagation();
+      var item = viewerItems[viewerAt];
+      closeViewer();
+      // The panel's own report sheet, so the reasons live in one place.
+      if (item) { openReport({ id: item.id, name: item.name }); }
+    });
+
+    box._parts = { img: img, who: who, when: when, count: count, prev: prev, next: next, close: close };
+    document.body.appendChild(box);
+    return box;
+  }
+
+  function step_to(index) {
+    if (!viewer || !viewerItems.length) { return; }
+    /* Clamped, not wrapped: running off the end of a conversation and landing
+       back at its beginning is disorienting in a log that is ordered by time. */
+    viewerAt = Math.max(0, Math.min(viewerItems.length - 1, index));
+    var item = viewerItems[viewerAt];
+    var p = viewer._parts;
+    p.img.src = item.src;
+    p.img.alt = item.alt || '';
+    p.who.textContent = item.name || '';
+    p.when.textContent = item.at ? formatTime(item.at) : '';
+    if (item.at) { p.when.setAttribute('datetime', item.at); }
+    p.count.textContent = viewerItems.length > 1
+      ? (viewerAt + 1) + ' / ' + viewerItems.length
+      : '';
+    // A control that cannot go anywhere is disabled rather than hidden, so the
+    // frame does not jump sideways as the reader walks to either end.
+    p.prev.disabled = viewerAt === 0;
+    p.next.disabled = viewerAt === viewerItems.length - 1;
+  }
+
+  function onViewerKey(event) {
+    if (event.key === 'Escape') { closeViewer(); return; }
+    if (event.key === 'ArrowLeft') { step_to(viewerAt - 1); }
+    if (event.key === 'ArrowRight') { step_to(viewerAt + 1); }
+  }
+
+  function closeViewer() {
+    if (!viewer) { return; }
+    viewer.classList.remove('is-open');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', onViewerKey);
+    // Emptied so a large animation is not left decoding behind a closed
+    // overlay for the rest of the session.
+    viewer._parts.img.removeAttribute('src');
+  }
+
+  function openViewer(media) {
+    viewer = viewer || buildViewer();
+    viewerItems = collectMedia();
+    viewerAt = 0;
+    for (var i = 0; i < viewerItems.length; i++) {
+      if (viewerItems[i].id === media.id && viewerItems[i].url === media.url) {
+        viewerAt = i;
+        break;
+      }
+    }
+    if (!viewerItems.length) { viewerItems = [media]; viewerAt = 0; }
+    step_to(viewerAt);
+    viewer.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onViewerKey);
+    window.requestAnimationFrame(function () { viewer._parts.close.focus(); });
+  }
+
 
   MESSAGE_RENDERERS.message = renderTextMessage;
 
@@ -2189,10 +2350,13 @@
     var text = input.value.trim();
     // A picture on its own is a message. The server agrees - it refuses only
     // when BOTH are missing - so the two checks say the same thing.
-    if (!text && !pendingMedia) { return; }
+    if (!text && !pendingMedia && !pendingReuse) { return; }
     var body = new FormData();
     body.append('body', text);
     if (pendingMedia) { body.append('media', pendingMedia); }
+    // An id, not a file: the server copies the stored path off a row this
+    // same author wrote, and no bytes cross the wire at all.
+    if (pendingReuse) { body.append('reuse_media', pendingReuse.id); }
     if (replyingTo) { body.append('reply_to', replyingTo.id); }
     if (room !== null) { body.append('conversation', room); }
     body.append('csrfmiddlewaretoken', csrf());
@@ -2239,8 +2403,42 @@
    * input, because the input is cleared on every pick so that choosing the
    * same file twice in a row still fires a change event. */
   var pendingMedia = null;
+  /* P2 item 11. A GIF the reader has sent before, chosen instead of uploaded.
+     It is NOT a File - there is nothing local to upload - so it travels as an
+     id the server resolves against this same author's own history. Kept in
+     its own variable rather than faked into pendingMedia, because the two
+     take different paths on send and blurring them would mean one of them
+     pretending to be something it is not. */
+  var pendingReuse = null;
+
+  /* A previously-sent GIF, shown in the same attachment bar as an upload so
+     the reader sees one "this is going with your message" affordance rather
+     than two. Mutually exclusive with an upload: picking either clears the
+     other, because a message carries one attachment. */
+  function setPendingReuse(item) {
+    pendingMedia = null;
+    pendingReuse = item || null;
+    var bar = document.getElementById('arena-chat-attachment');
+    var name = document.getElementById('arena-chat-attachment-name');
+    var preview = document.getElementById('arena-chat-attachment-preview');
+    if (!bar) { return; }
+    bar.hidden = !pendingReuse;
+    if (preview && preview.src && preview.src.indexOf('blob:') === 0) {
+      URL.revokeObjectURL(preview.src);
+    }
+    if (!pendingReuse) {
+      if (preview) { preview.removeAttribute('src'); }
+    } else {
+      if (name) { name.textContent = 'GIF you sent before'; }
+      // The stored still where there is one, so choosing from the strip does
+      // not pull the animation down a second time just to preview it.
+      if (preview) { preview.src = pendingReuse.poster || pendingReuse.url; }
+    }
+    if (typeof syncSendButton === 'function') { syncSendButton(); }
+  }
 
   function setPendingMedia(file) {
+    pendingReuse = null;
     pendingMedia = file || null;
     var bar = document.getElementById('arena-chat-attachment');
     var name = document.getElementById('arena-chat-attachment-name');
@@ -2261,7 +2459,7 @@
     if (typeof syncSendButton === 'function') { syncSendButton(); }
   }
 
-  function clearPendingMedia() { setPendingMedia(null); }
+  function clearPendingMedia() { setPendingMedia(null); setPendingReuse(null); }
 
   if (form) {
     form.addEventListener('submit', function (event) {
@@ -2276,7 +2474,7 @@
   var sendButton = form && form.querySelector('button[type="submit"]');
   if (input && sendButton) {
     var syncSendButton = function () {
-      sendButton.disabled = !input.value.trim() && !pendingMedia;
+      sendButton.disabled = !input.value.trim() && !pendingMedia && !pendingReuse;
     };
     input.addEventListener('input', syncSendButton);
     syncSendButton();
@@ -2289,8 +2487,95 @@
    * abandoning a half-written line leaves no orphan on disk. */
   var mediaInput = document.getElementById('arena-chat-media-input');
   var mediaButton = document.getElementById('arena-chat-media');
+  /* THE RECENT-GIF STRIP. P2 item 11.
+   *
+   * The Owner chose GIFs as uploads over an external provider, so there is no
+   * catalogue and there is nothing to search. The honest picker is the
+   * reader's own history: reaching for the same reaction twice is the thing a
+   * picker actually saves you from.
+   *
+   * IT OPENS ONLY WHEN IT HAS SOMETHING IN IT. A reader who has never sent a
+   * GIF gets the file dialog straight away, exactly as before - a sheet whose
+   * only content is an "Upload" row that duplicates the button just pressed
+   * is an extra tap charged for nothing. So the button's behaviour follows
+   * what actually exists rather than being uniform for its own sake. */
+  var recentMedia = null;
+
+  function loadRecentMedia() {
+    var url = root.getAttribute('data-recent-media-url');
+    if (!url) { return Promise.resolve([]); }
+    return fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { return (d && d.items) || []; })
+      .catch(function () { return []; });
+  }
+
+  function openGifPicker(trigger, items) {
+    closeActions();
+    var sheet = document.createElement('div');
+    sheet.className = 'arena-chat__sheet arena-chat__sheet--gifs';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-label', 'A GIF you sent before');
+
+    var head = document.createElement('p');
+    head.className = 'arena-chat__sheet-head';
+    head.textContent = 'Sent before';
+    sheet.appendChild(head);
+
+    var grid = document.createElement('div');
+    grid.className = 'arena-chat__gif-grid';
+    items.forEach(function (item) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'arena-chat__gif-tile';
+      b.setAttribute('aria-label', 'Send this GIF again');
+      var img = document.createElement('img');
+      // The poster, not the animation: a grid of twelve playing GIFs is a
+      // download and a headache at once.
+      img.src = item.poster || item.url;
+      img.loading = 'lazy';
+      img.alt = '';
+      b.appendChild(img);
+      b.addEventListener('click', function () {
+        setPendingReuse(item);
+        closeActions();
+        if (input) { input.focus(); }
+      });
+      grid.appendChild(b);
+    });
+    sheet.appendChild(grid);
+
+    var upload = document.createElement('button');
+    upload.type = 'button';
+    upload.className = 'arena-chat__gif-upload';
+    upload.textContent = 'Upload a picture or GIF';
+    upload.addEventListener('click', function () {
+      closeActions();
+      mediaInput.click();
+    });
+    sheet.appendChild(upload);
+
+    root.appendChild(sheet);
+    anchorSheet(sheet, trigger);
+    openMenu = sheet;
+  }
+
   if (mediaButton && mediaInput) {
-    mediaButton.addEventListener('click', function () { mediaInput.click(); });
+    mediaButton.addEventListener('click', function (event) {
+      event.stopPropagation();
+      if (openMenu && openMenu.classList.contains('arena-chat__sheet--gifs')) {
+        closeActions();
+        return;
+      }
+      // Fetched once per session and then remembered; sending a new GIF adds
+      // to it locally rather than costing a second round trip.
+      var proceed = function (items) {
+        recentMedia = items;
+        if (!items.length) { mediaInput.click(); return; }
+        openGifPicker(mediaButton, items);
+      };
+      if (recentMedia) { proceed(recentMedia); } else { loadRecentMedia().then(proceed); }
+    });
     mediaInput.addEventListener('change', function () {
       var file = mediaInput.files && mediaInput.files[0];
       // Cleared straight away so picking the SAME file twice still fires.

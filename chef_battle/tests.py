@@ -24283,3 +24283,189 @@ class ArenaChatStickerTests(TestCase):
         for borrowed in ("IDIOT SANDWICH", "RAW!", "WHERE IS THE LAMB SAUCE",
                          "DONKEY", "BAM!", "LET'S GO"):
             self.assertNotIn(borrowed, sprite)
+
+
+class ArenaChatRecentMediaTests(TestCase):
+    """P2 item 11 - sending a GIF again without uploading it again.
+
+    The rule that carries the security here is 'only your own': without it a
+    reader could rebroadcast a picture they were merely shown, or one from a
+    room they have since been blocked from, by quoting its id back.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        import tempfile
+
+        # Media tests must never write into the developer's own media/ tree.
+        cls._media_root = tempfile.mkdtemp(prefix="arena-recent-media-")
+        cls._override = override_settings(MEDIA_ROOT=cls._media_root)
+        cls._override.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        import shutil
+
+        cls._override.disable()
+        shutil.rmtree(cls._media_root, ignore_errors=True)
+        super().tearDownClass()
+
+    def setUp(self):
+        self.user, self.author, _ = _seat_a_viewer(
+            "gifsender", "GifSender", "gif-sender",
+        )
+        self.other_user, self.other_author, _ = _seat_a_viewer(
+            "gifthief", "GifThief", "gif-thief",
+        )
+        self.recent_url = reverse("chef_battle:arena_chat_recent_media")
+        self.send_url = reverse("chef_battle:arena_chat_send")
+
+    def _an_animation(self, author=None, name="one.webp"):
+        from django.core.files.base import ContentFile
+
+        from chef_battle.models import ArenaChatMessage
+
+        message = ArenaChatMessage.objects.create(
+            speaker=author or self.author,
+            display_name=(author or self.author).name,
+            body="",
+            ring_index=100, seat_index=0,
+            media_kind=ArenaChatMessage.MediaKind.ANIMATION,
+            media_width=200, media_height=100,
+        )
+        message.media.save(name, ContentFile(b"not-really-webp"), save=False)
+        message.media_poster.save("p-" + name, ContentFile(b"still"), save=False)
+        message.save(update_fields=["media", "media_poster"])
+        return message
+
+    def test_the_list_is_the_callers_own_animations(self):
+        mine = self._an_animation()
+        self._an_animation(author=self.other_author, name="theirs.webp")
+
+        self.client.force_login(self.user)
+        items = self.client.get(self.recent_url).json()["items"]
+        self.assertEqual([i["id"] for i in items], [mine.pk])
+
+    def test_the_same_file_sent_twice_is_offered_once(self):
+        first = self._an_animation()
+        # A reuse writes a second row pointing at the SAME stored path.
+        second = self._an_animation()
+        second.media = first.media.name
+        second.save(update_fields=["media"])
+
+        self.client.force_login(self.user)
+        items = self.client.get(self.recent_url).json()["items"]
+        self.assertEqual(len(items), 1)
+
+    def test_still_pictures_are_not_offered(self):
+        from django.core.files.base import ContentFile
+
+        from chef_battle.models import ArenaChatMessage
+
+        photo = ArenaChatMessage.objects.create(
+            speaker=self.author, display_name=self.author.name, body="",
+            ring_index=100, seat_index=0,
+            media_kind=ArenaChatMessage.MediaKind.IMAGE,
+        )
+        photo.media.save("photo.webp", ContentFile(b"x"), save=False)
+        photo.save(update_fields=["media"])
+
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(self.recent_url).json()["items"], [])
+
+    # ---- reuse on send ------------------------------------------------
+
+    def test_reusing_your_own_gif_writes_a_row_pointing_at_the_same_file(self):
+        from chef_battle.models import ArenaChatMessage
+
+        source = self._an_animation()
+        self.client.force_login(self.user)
+        response = self.client.post(self.send_url, {"reuse_media": source.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
+
+        fresh = ArenaChatMessage.objects.exclude(pk=source.pk).latest("id")
+        self.assertEqual(fresh.media.name, source.media.name)
+        self.assertEqual(fresh.media_poster.name, source.media_poster.name)
+        self.assertEqual(fresh.media_kind, source.media_kind)
+        # The dimensions travel too, or the row would render without a ratio
+        # and the log would jump as the picture loaded.
+        self.assertEqual(fresh.media_width, source.media_width)
+        self.assertEqual(fresh.media_height, source.media_height)
+
+    def test_a_reused_gif_is_a_message_on_its_own_without_words(self):
+        source = self._an_animation()
+        self.client.force_login(self.user)
+        response = self.client.post(self.send_url, {"reuse_media": source.pk})
+        self.assertTrue(response.json()["ok"])
+
+    def test_you_cannot_reuse_somebody_elses_media(self):
+        """The whole security rule of item 11, asserted directly."""
+        theirs = self._an_animation(author=self.other_author, name="theirs.webp")
+        self.client.force_login(self.user)
+        response = self.client.post(self.send_url, {"reuse_media": theirs.pk})
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["error"], "no_such_media")
+
+    def test_an_invented_id_is_refused_rather_than_ignored(self):
+        self.client.force_login(self.user)
+        response = self.client.post(self.send_url, {"reuse_media": 999999})
+        self.assertEqual(response.status_code, 404)
+
+    def test_rubbish_in_the_field_is_refused_not_a_crash(self):
+        self.client.force_login(self.user)
+        response = self.client.post(self.send_url, {"reuse_media": "; drop"})
+        self.assertEqual(response.status_code, 404)
+
+    def test_a_hidden_message_cannot_be_reused(self):
+        source = self._an_animation()
+        source.is_hidden = True
+        source.save(update_fields=["is_hidden"])
+        self.client.force_login(self.user)
+        response = self.client.post(self.send_url, {"reuse_media": source.pk})
+        self.assertEqual(response.status_code, 404)
+
+
+class ArenaChatMediaViewerTests(TestCase):
+    """P2 item 12. The viewer is client-side, so what is tested is that the
+    parts it depends on are actually wired - and that the site's own hero
+    lightbox was left alone rather than bent into a second job."""
+
+    def _read(self, *parts):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        return (Path(settings.BASE_DIR).joinpath(*parts)).read_text(encoding="utf-8")
+
+    def test_the_viewer_shows_who_when_and_offers_a_report(self):
+        script = self._read("static", "js", "arena_chat.js")
+        for part in ("arena-chat__viewer-who", "arena-chat__viewer-when",
+                     "arena-chat__viewer-report", "arena-chat__viewer-nav"):
+            self.assertIn(part, script, "%s is missing from the viewer" % part)
+
+    def test_reporting_from_the_viewer_reuses_the_panel_s_report_sheet(self):
+        """One report UI. A second reason list would drift from the first."""
+        script = self._read("static", "js", "arena_chat.js")
+        self.assertIn("openReport({ id: item.id", script)
+
+    def test_the_site_lightbox_is_no_longer_driven_by_the_chat(self):
+        script = self._read("static", "js", "arena_chat.js")
+        # The COUPLING, not the word: the file still explains in a comment why
+        # it stopped using that lightbox, and deleting that history to satisfy
+        # a substring search would be the test wagging the code.
+        self.assertNotIn("getElementById('hero-lightbox')", script)
+        self.assertNotIn("hero-lightbox--open", script)
+        # ...and it still exists for the hero images it was written for.
+        self.assertIn("hero-lightbox", self._read("templates", "base.html"))
+
+    def test_the_viewer_walks_only_pictures_the_reader_can_see(self):
+        """A blocked or filtered row has no figure, so it is not in the walk.
+
+        Asserted through the mechanism: the list is read from the DOM, not
+        kept as a parallel array that could drift out of step.
+        """
+        script = self._read("static", "js", "arena_chat.js")
+        self.assertIn("function collectMedia", script)
+        self.assertIn("fig.offsetParent !== null", script)

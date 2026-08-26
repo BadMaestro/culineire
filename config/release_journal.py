@@ -1,5 +1,66 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1305",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "P2 items 12 and 11 - the chat gets its own picture viewer, and a GIF can be sent again without being uploaded again",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "P2 IS NOW FINISHED EXCEPT FOR THE THREE AUDIO ITEMS, which stay "
+            "blocked and are listed at the end of this entry. ITEM 12, THE "
+            "VIEWER. Pictures opened #hero-lightbox, the site's single-image "
+            "viewer, and that was right while a picture was all there was to "
+            "show. The brief asks for four things it has no place for - who "
+            "sent it, when, a way to report it, and a way to walk the "
+            "conversation's pictures without closing and reopening - and those "
+            "are chat facts, so the chat now has its own. #hero-lightbox is "
+            "untouched and still serves the hero images it was written for; "
+            "a test asserts the chat no longer reaches for it while allowing "
+            "the comment that explains why to remain. It is parented on the "
+            "body, because the chat is a 240px rail with its own overflow and "
+            "an overlay inside it would be clipped by the log. Arrow keys and "
+            "Escape work; the ends are CLAMPED rather than wrapped, since "
+            "running off the end of a conversation and landing back at its "
+            "start is disorienting in a log ordered by time. The walk is read "
+            "from the DOM rather than kept as a parallel list, so a picture "
+            "the reader cannot see - blocked, or hidden by the new filters - "
+            "is not in it either. REPORTING GOES THROUGH THE EXISTING SHEET: "
+            "the viewer closes and openReport takes over, so there is one "
+            "reason list rather than two that can drift apart. That handoff "
+            "failed the first time and only clicking it found out - the "
+            "click reached the document handler that closes menus and shut "
+            "the sheet in the same tick it opened. ITEM 11, THE GIF STRIP. "
+            "The Owner chose GIFs as uploads over an external provider, so "
+            "there is no catalogue and nothing to search; the honest picker "
+            "is the reader's own history, since reaching for the same "
+            "reaction twice is what a picker actually saves you from. "
+            "Choosing one sends an ID, not a file: the server copies the "
+            "stored path off a row THIS SAME AUTHOR wrote, and no bytes cross "
+            "the wire at all. That ownership rule is the security of the "
+            "feature and has its own test - without it a reader could "
+            "rebroadcast a picture they were merely shown, or one from a room "
+            "they have since been blocked from, by quoting its id back. Two "
+            "rows sharing one stored path is safe because FileField deletes "
+            "nothing when a row goes, and re-encoding a file this project "
+            "encoded itself would only lose quality to prove a point. The "
+            "strip opens ONLY when it has something in it: a reader who has "
+            "never sent a GIF still gets the file dialog immediately, because "
+            "a sheet whose only content is an Upload row duplicating the "
+            "button just pressed is a tap charged for nothing. Animations "
+            "only, deduplicated by stored path, posters rather than the "
+            "animations themselves in the grid. 134 tests green. "
+            "STILL BLOCKED AND NOT FAKED, needing the Owner's decision: item "
+            "14 the soundboard, which needs audio assets that cannot be "
+            "originated or licensed here and which the brief forbids taking "
+            "from elsewhere; item 15 voice clips, where the blocker is not "
+            "recording but the absence of ffmpeg, so audio cannot be "
+            "re-encoded server-side and storing the uploader's own bytes "
+            "would break the standard every image here is held to; and item "
+            "19, sound controls, which only means anything once one of those "
+            "two exists."
+        ),
+    },
+    {
         "version": "2.5.1302",
         "date": "2026-08-26",
         "commit": "pending",
