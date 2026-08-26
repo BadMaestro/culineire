@@ -14,7 +14,7 @@ heroes share the exact same classes as the main page. Do not fork per page.
     </button>
     <div class="hero__actions-list">
         {% if can_view_pinch_public_area %}
-        <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
+        <a class="btn-primary" href="{% if hero_recipe and recipe_ab_url %}{{ recipe_ab_url }}{% else %}{% url 'pinch:feed' %}{% endif %}">Pinch</a>
         {% endif %}
         <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
         <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>

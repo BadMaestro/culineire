@@ -69,14 +69,9 @@
 <section class="recipe-detail-shell">
     <div class="recipe-detail-shell__container">
         <article class="detail-page">
-            {% if user.is_authenticated or recipe_ab_url %}
+            {% if user.is_authenticated %}
             <div class="detail-page__back-row">
-                {% if user.is_authenticated %}
                 <a class="detail-page__back-link" href="{% url 'recipes:recipe_list' %}">Back to Recipes</a>
-                {% else %}<span></span>{% endif %}
-                {% if recipe_ab_url %}
-                <a class="detail-page__back-link" href="{{ recipe_ab_url }}">View Pinch</a>
-                {% endif %}
             </div>
             {% endif %}
 

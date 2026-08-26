@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1343",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The hero's Pinch button goes to this recipe's own Pinch, not the generic feed",
+        "section": "Recipes",
+        "summary": (
+            "The Owner, immediately after v2.5.1340 relabelled the "
+            "redundant link 'View Pinch': that whole second link "
+            "shouldn't exist at all - if the hero already has a Pinch "
+            "button, it should go straight to THIS recipe's Pinch. Two "
+            "changes, same content elsewhere untouched. "
+            "includes/hero_actions.html: the hero's Pinch button now reads "
+            "recipe_ab_url (already in the parent context, the recipe "
+            "detail view's own computed field for 'this recipe's approved "
+            "Pinch card, if one exists') when on a recipe page with one, "
+            "and only falls back to the generic pinch:feed link when "
+            "there either is no hero_recipe (every other page reusing "
+            "this shared include - home, author profile, messaging, "
+            "moderation, etc., all unaffected) or this particular recipe "
+            "has no Pinch yet. recipes/recipe_detail.html: the now-fully-"
+            "redundant second link removed outright, not just relabelled "
+            "- the back-row div now only ever holds 'Back to Recipes' for "
+            "signed-in users, matching what it always was before "
+            "recipe_ab_url was bolted onto it. VERIFIED: 16 focused tests "
+            "green (PublicImagePerformanceHintTests, "
+            "RecipeDetailAccessibilityMarkupTests, "
+            "RecipeDetailStructuredDataTests)."
+        ),
+    },
+    {
         "version": "2.5.1340",
         "date": "2026-08-27",
         "commit": "pending",
