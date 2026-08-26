@@ -8857,7 +8857,40 @@ body.page--arena.is-zoom-locked {
      toward the old ~65%-of-viewport problem this rebuild fixes. */
   .arena-command-deck {
     display: grid;
-    grid-template-columns: minmax(260px, 280px) minmax(0, 1fr) clamp(400px, 25vw, 480px);
+    /* THE CENTRE COLUMN IS CAPPED TO THE OCTAGON'S OWN SIZE, not handed
+       every leftover pixel of width. Owner, 2026-08-26, on a screenshot:
+       the octagon's own margin was already close to his 1cm target
+       (measured ~1.2cm) but the region here is landscape - short and
+       wide - so the octagon is bound by HEIGHT while the grid still gave
+       the column every spare pixel of WIDTH, which is the "lishniy
+       vozdukh" (excess air) he was pointing at. --arena-floor-target-width
+       is published by arena_render.js's placeOctagon(), AFTER it has
+       actually placed the octagon, as that octagon's real rendered width
+       plus 1cm on each side; the var()'s fallback is the OLD `1fr`
+       behaviour, so the first paint (before that script has run) is not
+       broken.
+
+       "отрезай весь лишний воздух, давай место другим контейнерам и
+       виджетам" - and asked directly where: EQUALLY between the two
+       side columns, even though that grows the chat rail well past its
+       own 380-430px target from earlier the same day - his explicit
+       choice, not an oversight. Both side tracks are `1fr` here for
+       exactly that reason: equal weight makes CSS Grid split whatever the
+       centre track does not take EVENLY between them on its own, with no
+       measured bonus value to keep in step by hand. Their own floors
+       (260px / 400px) are what is left of their earlier rulings; the
+       ceilings (280px flat, clamp .. 480px) are gone on purpose, because a
+       ceiling is exactly what would stop the freed room from reaching
+       them.
+
+       LEFT UNTOUCHED: the `@media (max-width: 1280px)` override below
+       this block, which fixes 240/1fr/240 for 901-1280px and does not
+       read this variable at all - the Owner reaffirmed that ruling in the
+       same conversation as this one, before deciding this. */
+    grid-template-columns:
+      minmax(260px, 1fr)
+      minmax(0, var(--arena-floor-target-width, 1fr))
+      minmax(400px, 1fr);
     grid-template-areas:
       "ribbon ribbon ribbon"
       "left   floor  right"

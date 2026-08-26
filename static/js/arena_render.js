@@ -3224,6 +3224,49 @@
     var targetX = region.left + region.width * OCTAGON_VISUAL_CENTRE_X;
     var targetY = region.top + region.height * centreY;
     writePlacement(camera, scale, targetX - sized.cx, targetY - sized.cy);
+
+    publishFloorTargetWidth(sized.width);
+  }
+
+  /**
+   * Publish --arena-floor-target-width: the centre grid column's own
+   * ceiling, so the column can be exactly as wide as the octagon it holds
+   * and no wider - Owner, 2026-08-26, on a screenshot: the octagon's own
+   * margin was already close to his 1cm target (measured, ~1.2cm at 1920)
+   * but the CENTRE COLUMN itself was far wider than the octagon needed,
+   * because the region binds on HEIGHT here (it is landscape - short and
+   * wide) while the grid had handed it every leftover pixel of WIDTH
+   * regardless. "отрезай весь лишний воздух, давай место другим
+   * контейнерам и виджетам" - cut the excess air, give the room to other
+   * containers and widgets.
+   *
+   * NOT A MEASURE-LAYOUT-MEASURE LOOP, even though it looks like one: the
+   * octagon's rendered SIZE is bound by the region's HEIGHT (see the
+   * height cap above, `region.height * REGION_MAX_Y`), and narrowing the
+   * CENTRE COLUMN's WIDTH does not change the deck's row heights - rows
+   * and columns are independent. So publishing a width here cannot feed
+   * back into a different octagon size next frame; the existing
+   * ResizeObserver on the region (see watch(), below) still re-fits and
+   * republishes on a real resize, exactly as it always did, and settles
+   * in the one pass it already took.
+   *
+   * SCOPED TO THE DESKTOP GRID BY THE STYLESHEET, not by this file - the
+   * property is written unconditionally; only the `min-width: 901px`
+   * branch's `grid-template-columns` reads it at all, and the Owner's own
+   * 2026-08-25 ruling for 901-1280px keeps that range's columns fixed at
+   * 240/1fr/240 without consulting this variable, so the "octagon stays
+   * small, the rails stay narrow" decision for that range is untouched.
+   */
+  function publishFloorTargetWidth(octagonWidth) {
+    var deck = document.querySelector('.arena-command-deck');
+    if (!deck) { return; }
+    // 1cm at 96dpi, the same constant the phone composition's own note
+    // derives it from - a margin the Owner can see and expects to be able
+    // to measure, not a guess.
+    var CM = 37.78;
+    var next = Math.round(octagonWidth + CM * 2) + 'px';
+    if (deck.style.getPropertyValue('--arena-floor-target-width') === next) { return; }
+    deck.style.setProperty('--arena-floor-target-width', next);
   }
 
   function paintRankLadder(svg) {

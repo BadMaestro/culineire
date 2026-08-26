@@ -1,5 +1,65 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1323",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "The floor column shrinks to the octagon's own size, and the freed room goes to the rails beside it",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner, on a fresh screenshot of the just-shipped chat "
+            "rescue pass: why is there so much empty air left and right of "
+            "the octagon, and why does it squeeze everything else. "
+            "MEASURED FIRST, not assumed: the margin around the octagon's "
+            "own drawn shape (with its spectator rings) was already close "
+            "to his 1cm target - about 1.2cm. The real waste was one level "
+            "up: the centre grid column was 1113px at 1920px viewport "
+            "while the octagon inside it only needed about 850, because "
+            "that region is landscape (short, wide) and the octagon is "
+            "bound by its HEIGHT - width was simply handed over regardless "
+            "of whether the octagon could use it. Put the arithmetic to "
+            "him rather than guessing, three times, because each answer "
+            "changed what the next question needed to be: narrow the "
+            "centre to the octagon's real size (not grow the octagon "
+            "itself - the Owner's Aug 25 ruling that the Octagon's own "
+            "width never moves without his explicit order stands, and was "
+            "reconfirmed today before touching anything); split the freed "
+            "room evenly between the two side rails, even into the widget "
+            "dock's own territory, not just one of them; and do it truly "
+            "evenly, even though that grows the chat rail well past its "
+            "own 380-430px target from earlier the same day - his explicit "
+            "choice, named as such, not an oversight to fix later. "
+            "arena_render.js's placeOctagon() now publishes "
+            "--arena-floor-target-width, the octagon's own rendered width "
+            "plus 1cm on each side, straight onto the grid container, "
+            "AFTER it has actually placed the octagon - not a prediction. "
+            "arena.css's desktop grid (901px+, OUTSIDE the untouched "
+            "901-1280px branch) reads that as the centre column's ceiling "
+            "and gives the two side columns equal `1fr` weight, so CSS "
+            "Grid itself splits whatever the centre does not take, with no "
+            "measured bonus value to keep in step by hand. CONVERGES "
+            "RATHER THAN LOOPS: the deck's own `.arena-command-deck__floor "
+            "{ aspect-ratio: 1/0.82 }` (pre-existing, unrelated to this "
+            "change) means the column's width really does feed back into "
+            "the octagon's own height and therefore its next size - not "
+            "independent, as first assumed - but the map contracts rather "
+            "than diverges, and two clean page loads landed within 6px of "
+            "each other (852 vs 846). One tooling trap cost the most time "
+            "in this pass and had nothing to do with the change itself: "
+            "the dev script tag's `?v=` cache-buster is a fixed string, "
+            "and the usual unregister-service-worker-and-clear-caches "
+            "routine does not touch the browser's ordinary HTTP cache for "
+            "that exact URL, so five different verification methods kept "
+            "reading a version of the script that predated the edit before "
+            "the string itself was bumped and a clean load proved the "
+            "real, converged result. 56 geometry, widget, page-spec, "
+            "template-hygiene, chat and card tests green. Verified live: "
+            "at 1920px the centre column moved from 1113px to 852px and "
+            "both side rails grew from 280/480px to 510px each; the "
+            "901-1280px branch still resolves to exactly 240/1fr/240, "
+            "untouched, because that ruling was never in question."
+        ),
+    },
+    {
         "version": "2.5.1320",
         "date": "2026-08-26",
         "commit": "pending",
