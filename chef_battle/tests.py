@@ -23883,3 +23883,147 @@ class ArenaChatPollTests(TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("Not the battle vote", source)
         self.assertIn("It does not affect the battle result.", source)
+
+
+class ArenaCrowdEffectTests(TestCase):
+    """P3 items 27-29: the arena answers the HALL, never one person.
+
+    Three rules from the Owner's brief, and each of them is a way this could
+    have been built wrong and looked right on a quiet site: an effect must never
+    fire from one person's reaction, it must never fire continuously however
+    loud the room is, and it must be counted on the SERVER - thirty people are
+    thirty browsers, and a threshold in JavaScript is thirty different answers
+    to the same question.
+    """
+
+    def setUp(self):
+        from django.core.cache import cache
+        from .models import ArenaChatMessage
+        cache.clear()
+        self.ArenaChatMessage = ArenaChatMessage
+        User = get_user_model()
+        self.speaker = RecipeAuthor.objects.create(
+            name="Surge Speaker", slug="surge-speaker",
+            user=User.objects.create_user(username="surge-speaker", password="pw"),
+        )
+        self.line = ArenaChatMessage.objects.create(
+            speaker=self.speaker, display_name=self.speaker.name,
+            body="something worth reacting to", ring_index=9, seat_index=1,
+        )
+
+    def _react(self, n, emoji="fire"):
+        """n different people react with the same emoji, just now.
+
+        No user accounts: creating thirty of them costs a password hash each
+        and took twenty-five seconds, which pushed the earliest reactions out
+        of the ten-second window and failed the test for a reason that had
+        nothing to do with the code. A reaction needs an author, not a login,
+        and created_at is stamped explicitly so the WINDOW is what is under
+        test rather than the speed of the fixture."""
+        from django.utils import timezone
+        from .models import ArenaChatReaction
+        made = []
+        base = RecipeAuthor.objects.filter(slug__startswith="surge-fan-").count()
+        for i in range(base, base + n):
+            author = RecipeAuthor.objects.create(
+                name="Fan %d" % i, slug="surge-fan-%s-%d" % (emoji, i),
+            )
+            made.append(ArenaChatReaction.objects.create(
+                message=self.line, author=author, emoji=emoji,
+            ))
+        ArenaChatReaction.objects.filter(
+            pk__in=[r.pk for r in made]
+        ).update(created_at=timezone.now())
+
+    def test_one_reaction_is_an_opinion_and_the_arena_does_not_answer_it(self):
+        from .arena_effects import current_effect, SURGE_THRESHOLD
+        self._react(1)
+        self.assertIsNone(current_effect())
+        # Nor does anything short of the bar the Owner set.
+        self._react(SURGE_THRESHOLD - 2)
+        self.assertIsNone(current_effect())
+
+    def test_a_wave_fires_once_and_then_the_arena_goes_quiet(self):
+        from .arena_effects import current_effect, SURGE_THRESHOLD
+        self._react(SURGE_THRESHOLD)
+        effect = current_effect()
+        self.assertIsNotNone(effect)
+        self.assertEqual(effect["kind"], "surge")
+        self.assertEqual(effect["emoji"], "fire")
+        self.assertGreaterEqual(effect["count"], SURGE_THRESHOLD)
+        # The next polls are other people in the same room and are handed the
+        # SAME moment, by id, for as long as the server holds it open - see the
+        # broadcast test below. What must never happen is a SECOND effect, and
+        # once the publication window closes the cooldown is what refuses it.
+        from django.core.cache import cache
+        self.assertEqual(current_effect()["id"], effect["id"])
+        cache.delete("arena:effect:live")
+        self.assertIsNone(current_effect())
+        self.assertIsNone(current_effect())
+
+    def test_one_wave_is_shown_to_the_WHOLE_hall_and_not_to_whoever_polled_first(self):
+        """Forty browsers poll on forty clocks. An effect the first caller took
+        away would be an arena-wide moment shown to one person at random, which
+        is the opposite of what these three items are for."""
+        from .arena_effects import current_effect, SURGE_THRESHOLD
+        self._react(SURGE_THRESHOLD)
+        first = current_effect()
+        self.assertIsNotNone(first)
+        self.assertIn("id", first)
+        # The next four polls are four other people in the same room.
+        for _ in range(4):
+            again = current_effect()
+            self.assertIsNotNone(again)
+            self.assertEqual(again["id"], first["id"])
+        # And the browser plays an id once, so the same moment arriving five
+        # times is drawn once.
+        js = (Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("effect.id === lastEffectId", js)
+
+    def test_reactions_older_than_the_window_are_not_a_wave(self):
+        """Thirty reactions spread over an evening are a popular line, not a
+        moment. The window is what tells them apart."""
+        from django.utils import timezone
+        from datetime import timedelta
+        from .arena_effects import current_effect, SURGE_THRESHOLD, SURGE_WINDOW_SECONDS
+        from .models import ArenaChatReaction
+        self._react(SURGE_THRESHOLD)
+        stale = timezone.now() - timedelta(seconds=SURGE_WINDOW_SECONDS + 5)
+        ArenaChatReaction.objects.update(created_at=stale)
+        self.assertIsNone(current_effect())
+
+    def test_the_cooldown_is_arena_wide_and_a_gift_cannot_slip_under_it(self):
+        from django.core.cache import cache
+        from .arena_effects import current_effect, SURGE_THRESHOLD
+        self._react(SURGE_THRESHOLD)
+        self.assertIsNotNone(current_effect())
+        # A gift arriving one second later does not get its own effect: the
+        # cooldown is one per arena, not one per kind, which is what stops a
+        # loud room from strobing.
+        # Clear what is on OFFER to the hall, so what is being tested is the
+        # cooldown rather than the six-second publication window.
+        cache.delete("arena:effect:live")
+        cache.delete("arena:effect:surge:fire")
+        self.assertIsNone(current_effect())
+
+    def test_the_feed_carries_the_effect_and_only_to_the_hall(self):
+        """A private room is two people and has no crowd; the effect belongs to
+        the hall's own feed and the renderer only plays it there."""
+        js = (Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("room === null && data.effect", js)
+        self.assertIn("function playArenaEffect", js)
+        # The mark is drawn over the floor stage and never inside the octagon.
+        self.assertIn("document.querySelector('.arena-floor-stage')", js)
+        self.assertNotIn("playArenaEffect(data.effect); }\n    // octagon", js)
+
+    def test_the_effect_never_counts_reactions_in_the_browser(self):
+        """A client-side threshold would be one answer per browser. The count
+        is the server's, and the browser is only ever told the number."""
+        js = (Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("SURGE_THRESHOLD", js)

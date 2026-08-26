@@ -1,5 +1,5 @@
-agent: GreenBear
-started_utc: 2026-08-26T09:40:00Z
-version: 2.5.1290
-commit: da81bc64
-task: P2 item 16 - chat polls in the arena chat
+agent: bolt
+started_utc: 2026-08-26T12:30
+version: v2.5.1292
+commit: pending
+task: P3 items 27-29 - the arena answers the hall; a wave of reactions or a gift puts one brief mark over the floor, counted on the server, rate-limited arena-wide, and published to every viewer rather than consumed by the first

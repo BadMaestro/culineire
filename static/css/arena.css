@@ -11068,3 +11068,57 @@ button.arena-chat__poll-option:hover {
 @media (prefers-reduced-motion: reduce) {
   .arena-chat__poll-fill { transition: none; }
 }
+/* ============================================================================
+ * P3 items 27-29: THE ARENA ANSWERS THE HALL. Owner 2026-08-26.
+ *
+ * A wave of the same reaction, or a gift landing, puts ONE mark over the floor
+ * for about a second and a half. It is a sibling of the octagon and never a
+ * part of it: absolutely positioned inside the stage, pointer-events off, no
+ * geometry of its own that anything else reads, and it deletes itself when the
+ * animation ends. The octagon's size, seat and internals are untouched by every
+ * line of this block - the effect cannot move what it is drawn over.
+ *
+ * ONE ELEMENT AND ONE ANIMATION, because the brief asked for brief and premium
+ * rather than for a particle storm, and because this runs on a phone that is
+ * already drawing 1759 SVG nodes.
+ * ========================================================================== */
+.arena-effect {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: var(--arena-z-floor, 5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: arena-effect-rise 1.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+.arena-effect__mark {
+  font-size: clamp(2.2rem, 6vw, 3.4rem);
+  line-height: 1;
+  filter: drop-shadow(0 0.2rem 0.6rem color-mix(in srgb, var(--ink) 45%, transparent));
+}
+.arena-effect__label {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 72%, transparent);
+  color: var(--surface);
+  font: 800 0.62rem/1.2 var(--font-serif, serif);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+@keyframes arena-effect-rise {
+  0%   { opacity: 0; transform: translate(-50%, -35%) scale(0.7); }
+  18%  { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+  30%  { transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -72%) scale(1); }
+}
+/* The player already refuses to draw anything under reduced motion; this is
+   the second half of the same promise, for a mark that is somehow on the page
+   when the setting changes mid-session. */
+@media (prefers-reduced-motion: reduce) {
+  .arena-effect { display: none; }
+}

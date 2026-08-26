@@ -4611,6 +4611,11 @@ def arena_chat_feed(request):
     # conversation__isnull: the hall is the room with no conversation row, so a
     # private line can never fall into the public feed by omission.
     rows = list(base.filter(conversation__isnull=True)[:ARENA_CHAT_PAGE])
+    # P3 items 27-29: whether the hall is doing something TOGETHER rides back on
+    # the request it is already making, rather than on a poller of its own. At
+    # most one effect, arena-wide, and never more often than the cooldown in
+    # arena_effects allows however loud the room is.
+    from .arena_effects import current_effect
     payload = {
         "seated": True,
         "channel": "public",
@@ -4642,6 +4647,10 @@ def arena_chat_feed(request):
         # heard everywhere (arena_cards), and the ids came from rows this
         # reader was already served.
         payload["polls"] = poll_summary(poll_ids, author)
+
+    effect = current_effect()
+    if effect is not None:
+        payload["effect"] = effect
     return JsonResponse(payload)
 
 

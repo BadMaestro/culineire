@@ -1927,6 +1927,68 @@
     el.textContent = (typeof count === 'number' && count >= 0) ? '(' + count + ')' : '';
   }
 
+  /* ===================================================================
+   * P3 items 27, 28 and 29: WHAT THE HALL DOES TOGETHER, OVER THE FLOOR.
+   *
+   * THE SERVER DECIDES THAT SOMETHING HAPPENED and this only draws it. The
+   * browser never counts reactions: thirty people in a room are thirty
+   * browsers, and a client-side threshold would be thirty different answers to
+   * the same question. The feed sends at most one effect, already rate-limited
+   * arena-wide, or it sends nothing.
+   *
+   * THE OCTAGON IS NOT TOUCHED. The mark is a sibling layer inside the floor
+   * stage - the same place arena_render.js already puts its runway - with
+   * pointer-events off, no geometry read, no SVG entered and nothing left
+   * behind: the node removes itself when its animation ends. If the stage is
+   * not on the page nothing is drawn and nothing errors.
+   *
+   * BRIEF AND LIGHTWEIGHT, per the brief: one element, one CSS animation,
+   * about a second and a half. Not a particle storm. A reader who has asked
+   * for reduced motion is shown nothing at all rather than a stripped-down
+   * version - an ambient flourish is exactly what that setting is about.
+   * =================================================================== */
+  var lastEffectId = null;
+  function playArenaEffect(effect) {
+    if (!effect || !effect.kind) { return; }
+    // THE SAME MOMENT ARRIVES ON EVERY POLL FOR AS LONG AS THE SERVER HOLDS IT
+    // OPEN - that is how forty browsers all see one wave rather than the first
+    // one to ask taking it. An id is played once.
+    if (effect.id && effect.id === lastEffectId) { return; }
+    lastEffectId = effect.id || null;
+    var stage = document.querySelector('.arena-floor-stage');
+    if (!stage) { return; }
+    if (window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+    // One at a time: a second effect arriving while the first is still on
+    // screen replaces it rather than stacking over it.
+    var previous = stage.querySelector('.arena-effect');
+    if (previous) { previous.remove(); }
+
+    var layer = document.createElement('div');
+    layer.className = 'arena-effect arena-effect--' + effect.kind;
+    layer.setAttribute('aria-hidden', 'true');
+
+    var mark = document.createElement('span');
+    mark.className = 'arena-effect__mark';
+    var label = document.createElement('span');
+    label.className = 'arena-effect__label';
+
+    if (effect.kind === 'surge') {
+      mark.textContent = effect.emoji || '';
+      label.textContent = effect.count + ' at once';
+    } else {
+      mark.textContent = '🎁';
+      label.textContent = effect.artifact +
+        (effect.recipient ? ' → ' + effect.recipient : '');
+    }
+    layer.appendChild(mark);
+    layer.appendChild(label);
+    layer.addEventListener('animationend', function () { layer.remove(); });
+    stage.appendChild(layer);
+  }
+
   function poll() {
     if (busy) { return; }
     busy = true;
@@ -1972,6 +2034,9 @@
             repaintPoll(id, data.polls[id]);
           });
         }
+        // The hall's own moments. Only the hall has them - a private room is
+        // two people and has no crowd to speak of.
+        if (room === null && data.effect) { playArenaEffect(data.effect); }
       })
       .catch(function () { /* one dropped tick is not a failure; try the next */ })
       .then(function () { busy = false; });
