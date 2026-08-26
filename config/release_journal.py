@@ -1,5 +1,60 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1290",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "P2 item 16 - the stands can ask the room a question, and it is never the battle's vote",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Chat polls. Somebody in the stands asks a question, the room "
+            "answers, and the answers fill in while you watch. THE ONE THING "
+            "IT MUST NEVER BE IS THE BATTLE'S OWN VOTE, and that separation is "
+            "structural rather than a caption: nothing in the three new tables "
+            "touches BattleVote, no scorer reads them, and there is no code "
+            "path from a tally here to a result - a test asserts BattleVote's "
+            "count is unchanged across asking and voting. The card then says "
+            "so in words too ('Not the battle vote', in the footer, with no "
+            "setting that turns it off), and so does the composer before the "
+            "question is even asked. A POLL IS A CHAT ROW, the same decision "
+            "P3's cards already made: one log, one cursor, one poll loop, "
+            "rendered on the MESSAGE_RENDERERS seam. The question is also the "
+            "row's body, so a client that has never heard of polls still shows "
+            "it as a spoken line rather than an empty bubble. THE FEED NOW "
+            "RE-READS OPEN POLLS AND ONLY THOSE - it is a delta and sends each "
+            "row once, which is right for a sentence and wrong for a tally "
+            "that changes after it was said; the client names the still-open "
+            "ones on the query string, closed polls drop out and are never "
+            "asked for again, and a hall with no poll in it sends no parameter "
+            "at all. Verified in a browser rather than argued: a second "
+            "person's vote reached another reader's card on the ordinary "
+            "four-second tick with no reload. One open poll per person is the "
+            "real ceiling - a rate limit counts requests and would still let "
+            "one person leave nine questions standing in a log everybody else "
+            "must scroll past. Totals are public, identities are not: no voter "
+            "identity is serialised at all, and a reader is told their own "
+            "answer and nobody else's. Closing is a time, not a flag somebody "
+            "has to remember to set, so a poll cannot be left open because a "
+            "job did not run; five minutes, fixed, because a duration picker "
+            "is three more controls to answer a question nobody in a live hall "
+            "has asked. The new ad-poll icon is deliberately NOT ad-vote, "
+            "which is already three ballot bars - sharing that mark, or even "
+            "drawing like it, would suggest exactly the equivalence the card "
+            "spends a line denying; this one is a speech bubble, because it is "
+            "somebody talking rather than the Arena counting. ONE REAL BUG WAS "
+            "FOUND IN THE BROWSER AND FIXED, not guessed at: this is the only "
+            "card that names its author in the head, and at the 240px rail the "
+            "head's min-content pushed the card 21px past the log, putting a "
+            "horizontal scroll into a column that had none - min-width:0 and a "
+            "wrapping head, scoped to the poll card so the game's cards are "
+            "untouched. 21 new tests; 133 existing arena, chat, card, octagon "
+            "and template-hygiene tests re-run green, including after the "
+            "rebase onto v2.5.1289, where both features touch the same Kind "
+            "enum and the same renderer table. Migration 0110. Hostile markup "
+            "in a question or an answer renders as inert text - the renderer "
+            "builds DOM nodes only and never innerHTML."
+        ),
+    },
+    {
         "version": "2.5.1289",
         "date": "2026-08-26",
         "commit": "pending",
