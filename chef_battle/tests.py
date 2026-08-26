@@ -24711,3 +24711,86 @@ class ArenaChatSheetStaysInsideThePanelTests(TestCase):
             "a sheet's left is set without the clamp; every one of them must "
             "go through keepSheetInside or it can run out of the panel",
         )
+class ArenaChatSheetIsAPhoneShapeOnlyOnAPhoneTests(TestCase):
+    """The dimmed bottom sheet stops reaching the desktop, v2.5.1333.
+
+    The Owner, on a screenshot: what is this grey mask over the chat, and what
+    does it do. Nothing, on a desktop. It is the dimming layer that belongs
+    behind a phone's bottom sheet, and the sheet was being chosen by the CHAT
+    PANEL'S OWN WIDTH alone - under 30rem of container you got the phone
+    shape. At 1920 his rail is about 460px, so its content box is ~26.4rem,
+    under the threshold, and a mouse got the phone's sheet and its dim.
+
+    Measured at 1760, 1600 and 1500 on the code either side of v2.5.1324 and
+    identical there, so it was neither new nor introduced by that pass - the
+    rail had simply never been under 30rem before this week.
+
+    TWO THINGS THE OLD COMMENT GOT WRONG, both recorded because they are why
+    nobody caught it. It said the sheet was "fixed to the screen, not to the
+    panel... it cannot escape anything, because it is not inside anything". It
+    is inside something: .arena-chat carries `container-type: inline-size`,
+    which brings layout containment, and a contained box IS the containing
+    block for its `position: fixed` descendants - measured, the sheet's
+    offsetParent is .arena-chat and its left edge was 1188.6 against the
+    panel's 1187.6. And it said a tap on the dim was a way out; a click there
+    lands on the sheet itself, because a pseudo-element's hit target is the
+    element that owns it, so the outside-click handler reads it as a click
+    INSIDE the menu. Verified: clicking the dim left the picker open.
+
+    Width cannot separate a phone from a narrow desktop rail and this file
+    already says so. A POINTER can, which is what the density work beside it
+    already uses. After: at 1600 with a mouse the sheet is `absolute` with no
+    dim; at 1280, where the Owner's own ruling fixes the rail at 240px, the
+    picker went from 304px hanging out of the panel to 238px inside it; and a
+    390px touch screen is identical in every number.
+    """
+
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+
+    TOUCH_GATE = ("@container arena-chat (max-width: 30rem) "
+                  ">> @media (hover: none)")
+
+    def _context_of(self, selector, needle):
+        """The at-rule context of the rule for `selector` that contains
+        `needle`. Uses the brace-walking parser next door rather than a second
+        copy of it - this stylesheet's indentation is not its scope."""
+        for context, sel, body in ArenaChatIsAFixedHeightPanelTests._blocks():
+            if sel == selector and needle in body:
+                return context
+        return None
+
+    def test_the_bottom_sheet_exists_only_where_there_is_no_pointer(self):
+        self.assertEqual(
+            self._context_of(".arena-chat__sheet", "position: fixed"),
+            self.TOUCH_GATE,
+            "the phone's bottom sheet is reachable with a mouse again; it "
+            "must sit behind both the container width AND @media (hover: none)",
+        )
+
+    def test_the_dimming_layer_sits_behind_the_same_gate(self):
+        self.assertEqual(
+            self._context_of(".arena-chat__sheet::before", "content:"),
+            self.TOUCH_GATE,
+            "the grey mask the Owner photographed is loose again",
+        )
+
+    def test_the_popover_is_the_default_rather_than_a_wide_container_case(self):
+        """A container ceiling on the popover is exactly what left a narrow
+        desktop rail with nowhere to put one, so the whole 30.01rem branch is
+        gone and its declarations are the base rule's."""
+        base = self._context_of(".arena-chat__sheet", "top: min(var(--sheet-top")
+        self.assertEqual(base, "", "the popover's coordinates left the base rule")
+        contexts = {c for c, _, _ in ArenaChatIsAFixedHeightPanelTests._blocks()}
+        self.assertNotIn("@container arena-chat (min-width: 30.01rem)", contexts)
+
+    def test_no_sheet_is_measured_against_the_viewport(self):
+        """A box that lives inside a 240px rail cannot be sized in vw. At the
+        Owner's <=1280px ruling the chat is 240px and 19rem is 304, so the
+        picker hung 100px out and the deck's overflow: hidden cut it off."""
+        css = self.CSS.read_text(encoding="utf-8")
+        for selector, width in ((".arena-chat__sheet--emoji", "min(19rem, 100%)"),
+                                (".arena-chat__sheet--chef", "min(14rem, 100%)"),
+                                (".arena-chat__sheet--mentions", "min(15rem, 100%)")):
+            self.assertIn("%s { width: %s;" % (selector, width), css)
+        self.assertIn("min-width: min(13rem, 100%)", css,
+                      "the poll composer's minimum can still overflow the rail")

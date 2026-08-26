@@ -1262,10 +1262,38 @@
 /* THE ACTION MENU IS ONE ELEMENT. The spec asks for a bottom sheet on a phone
    and an anchored popover on a desktop and, in the same breath, for them not to
    be two implementations. So this is one menu with one set of buttons and one
-   behaviour; only where it appears changes, and that is decided below from the
-   panel's own width. */
+   behaviour; only where it appears changes.
+
+   THE POPOVER IS THE DEFAULT AND THE BOTTOM SHEET IS THE EXCEPTION, as of
+   v2.5.1333. It used to be decided by the PANEL'S OWN WIDTH alone - under
+   30rem of container you got the phone treatment - and the Owner found what
+   that costs: at 1920 his chat rail is about 460px, so its content box is
+   ~26.4rem, under the threshold, and a desktop got the phone's sheet
+   complete with the dimming layer that belongs behind it. Measured before
+   the fix at 1760/1600/1500 and identical on the code either side of
+   v2.5.1324, so it was neither new nor mine - it had simply never been seen,
+   because until this week the rail was wide enough to clear 30rem.
+
+   Width cannot separate the two cases and the file already says so a few
+   rules down: a 430px phone's panel and a narrow desktop rail land in the
+   same range. A POINTER separates them, which is what the density work
+   beside this already uses. So the bottom sheet is now gated on
+   `@media (hover: none)` and everything else - every width, every rail -
+   gets the popover from here. */
 .arena-chat__sheet {
   position: absolute;
+  /* Where the popover goes: beside the control that opened it, using the
+     coordinates the script measured, and kept inside the panel on BOTH axes.
+     Moved up here from the old `@container (min-width: 30.01rem)` branch,
+     which is gone - a container ceiling on the popover is exactly what left
+     a narrow desktop rail with nowhere to put one. The left value is a
+     fallback: keepSheetInside() in arena_chat.js clamps by the sheet's REAL
+     width the moment it is in the document (v2.5.1327), which no single
+     number here can do for three sheets of three different widths. */
+  top: min(var(--sheet-top, 100%), calc(100% - 3rem));
+  left: min(var(--sheet-left, 0px), calc(100% - 12rem));
+  right: auto;
+  bottom: auto;
   z-index: 40;
   display: flex;
   flex-direction: column;
@@ -1279,8 +1307,9 @@
      carries eleven items; anchored to a trigger near the foot of the log it
      ran straight out of the panel and across the card beneath - the Owner
      photographed it lying over ARENA STATUS. It scrolls inside itself now
-     instead of growing through the page. */
-  max-height: 60vh;
+     instead of growing through the page. The phone's own branch raises this
+     to 70vh, where the sheet has the foot of the screen to itself. */
+  max-height: min(60vh, 18rem);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -1404,7 +1433,13 @@
 
 /* THE EMOJI PICKER, wearing .arena-chat__sheet's clothes. Only the inside is
    new: a row of category tabs over a scrolling grid. */
-.arena-chat__sheet--emoji { width: min(19rem, 92vw); }
+/* 100%, NOT 92vw. The viewport is the wrong yardstick for a box that lives
+   inside a 240px rail: at the Owner's own <=1280px ruling the chat is 240px
+   wide and 19rem is 304, so the picker hung 100px out of the panel and the
+   deck's `overflow: hidden` cut it off. On a phone the two agree - 92vw of a
+   390px screen is 359 and the panel's own box is 355 - so nothing there
+   moves. */
+.arena-chat__sheet--emoji { width: min(19rem, 100%); }
 .arena-chat__emoji-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -1460,7 +1495,7 @@
 .arena-chat__emoji-btn--custom .arena-chat__emoji { width: 1.15rem; height: 1.15rem; }
 
 /* THE CHEF CARD - the same sheet again, as a dialog. */
-.arena-chat__sheet--chef { width: min(14rem, 88vw); padding: .5rem .6rem .6rem; }
+.arena-chat__sheet--chef { width: min(14rem, 100%); padding: .5rem .6rem .6rem; }
 .arena-chat__chef-name {
   display: flex;
   align-items: baseline;
@@ -1511,7 +1546,7 @@
 .arena-chat .arena-chat__chef-link { color: var(--accent-bronze); }
 
 /* The mention dropdown - the same sheet again, as a listbox. */
-.arena-chat__sheet--mentions { width: min(15rem, 90vw); }
+.arena-chat__sheet--mentions { width: min(15rem, 100%); }
 
 /* The composer, inside the sheet family - so it is an anchored popover on a
    wide rail and a bottom sheet on a phone with no rule of its own. */
@@ -1523,7 +1558,9 @@
      padding declared here would beat the narrow branch's
      max(.4rem, env(safe-area-inset-bottom)) purely on source order and put the
      Ask button under a phone's home indicator. Gap does the spacing instead. */
-  min-width: 13rem;
+  /* A minimum beats a maximum in CSS, so a flat 13rem would have overflowed
+     the 240px rail no matter what bounded it. Capped by the panel instead. */
+  min-width: min(13rem, 100%);
 }
 .arena-chat__poll-fields {
   display: flex;
@@ -2174,25 +2211,50 @@
  *     and independent of how wide the panel happens to be.
  * ========================================================================= */
 @container arena-chat (max-width: 30rem) {
-  /* NARROW: a REAL bottom sheet - fixed to the screen, not to the panel.
+ @media (hover: none) {
+  /* NARROW AND NO POINTER: a bottom sheet, which is the phone's shape.
      Absolute-inside-the-panel was the bug the Owner photographed: anchored
      near the foot of the log it hung out of the chat and lay across the card
-     below. Fixed positioning means it cannot escape anything, because it is
-     not inside anything. Same element and same buttons as the popover. */
+     below. Same element and same buttons as the popover.
+
+     THE `hover: none` GATE IS v2.5.1333 AND IT IS THE WHOLE FIX. Width alone
+     put this on the desktop as soon as the chat rail dropped under 30rem of
+     container - which it now is on the Owner's 1920 screen at about 460px -
+     and it brought the dimming layer below with it.
+
+     AND THE COMMENT THAT USED TO STAND HERE WAS WRONG, which is worth
+     recording because it is what made the fault invisible. It said "fixed to
+     the screen, not to the panel... it cannot escape anything, because it is
+     not inside anything". It is inside something: .arena-chat carries
+     `container-type: inline-size`, which brings layout containment with it,
+     and a contained box IS the containing block for its `position: fixed`
+     descendants. Measured: the sheet's offsetParent is .arena-chat and its
+     left edge was 1188.6 against the panel's 1187.6. So the sheet is pinned
+     to the panel and the dim never covered the page at all. On a phone that
+     makes no visible difference, because there the panel is the width of the
+     screen - which is why this stood for so long. */
   .arena-chat__sheet {
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
-    top: auto !important;
+    /* No !important: the base rule above sets `top` and this branch is later
+       in the file at the same specificity, so it wins on order. The
+       !important was there to beat the old wide-container branch, which no
+       longer exists. */
+    top: auto;
     z-index: 1000;
     max-height: 70vh;
     border-radius: .9rem .9rem 0 0;
     padding: .4rem .4rem max(.4rem, env(safe-area-inset-bottom));
     box-shadow: 0 -.5rem 1.6rem color-mix(in srgb, var(--ink) 32%, transparent);
   }
-  /* The page behind it dims, so the sheet reads as the thing being answered
-     and a tap anywhere outside it is obviously a way out. */
+  /* The page behind it dims, so the sheet reads as the thing being answered.
+     It does NOT double as a way out: a click here lands on the sheet itself,
+     because a pseudo-element's hit target is the element that owns it, and
+     the outside-click handler correctly reads that as a click inside the
+     menu. Verified 2026-08-27 - clicking the dim left the picker open. Only
+     a touch device sees this at all now. */
   .arena-chat__sheet::before {
     content: "";
     position: fixed;
@@ -2201,6 +2263,7 @@
     background: color-mix(in srgb, var(--ink) 38%, transparent);
     z-index: -1;
   }
+ }
 }
 /* A cursor exists here, so the trigger can stay out of the way until the line
    is approached. It remains focusable, so a keyboard never loses it, and it
@@ -2211,19 +2274,9 @@
   .arena-chat__more:focus-visible,
   .arena-chat__more[aria-expanded="true"] { opacity: 1; }
 }
-@container arena-chat (min-width: 30.01rem) {
-  /* WIDE: the same menu, anchored beside the control that opened it, using the
-     coordinates the script measured - and kept inside the panel on BOTH axes.
-     Left was already clamped; without the same care vertically a menu opened
-     low in the log still runs out of the card's foot. */
-  .arena-chat__sheet {
-    top: min(var(--sheet-top, 100%), calc(100% - 3rem));
-    left: min(var(--sheet-left, 0px), calc(100% - 12rem));
-    right: auto;
-    bottom: auto;
-    max-height: min(60vh, 18rem);
-  }
-}
+/* The `@container arena-chat (min-width: 30.01rem)` block that stood here is
+   gone in v2.5.1333: everything it declared is now the base rule's, because
+   the popover is the default rather than the wide case. See the note there. */
 @container arena-chat (min-width: 21.51rem) {
  @media (hover: hover) {
   /* DENSE, ONE LINE PER MESSAGE - Owner's visual brief, 2026-08-25: "TIME

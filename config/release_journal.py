@@ -1,5 +1,63 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1333",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The phone's dimmed bottom sheet stops appearing on the desktop - the grey mask over the chat goes",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner, on a screenshot: what is this grey mask that covers "
+            "the chat the moment I press the emoji button, and what does it "
+            "do. Nothing, on a desktop. It is the dimming layer that belongs "
+            "BEHIND A PHONE'S BOTTOM SHEET, and the sheet was being chosen "
+            "by the chat panel's own width alone - under 30rem of container "
+            "you got the phone shape. At 1920 his rail is about 460px, so "
+            "its content box is ~26.4rem, under the threshold, and a mouse "
+            "got the phone's sheet complete with its dim. Measured at 1760, "
+            "1600 and 1500 and identical on the code either side of "
+            "v2.5.1324, so it was neither new nor introduced by that pass - "
+            "the rail had simply never been under 30rem before this week. "
+            "TWO THINGS THE OLD COMMENT GOT WRONG, recorded because they are "
+            "why nobody caught it. It said the sheet was 'fixed to the "
+            "screen, not to the panel... it cannot escape anything, because "
+            "it is not inside anything'. It is inside something: .arena-chat "
+            "carries container-type: inline-size, which brings layout "
+            "containment, and a contained box IS the containing block for "
+            "its position: fixed descendants - measured, the sheet's "
+            "offsetParent is .arena-chat and its left edge was 1188.6 "
+            "against the panel's 1187.6, so the dim never covered the page "
+            "at all, only the chat. And it said a tap on the dim was a way "
+            "out; a click there lands on the sheet itself, because a "
+            "pseudo-element's hit target is the element that owns it, so the "
+            "outside-click handler correctly reads it as a click INSIDE the "
+            "menu - verified, clicking the dim left the picker open. On a "
+            "phone neither mistake is visible, because there the panel IS "
+            "the width of the screen, which is how both stood this long. "
+            "THE FIX: width cannot separate a phone from a narrow desktop "
+            "rail, and this file already says so a few rules down - a 430px "
+            "phone's panel and a narrow desktop rail land in the same range. "
+            "A POINTER separates them, which is what the density work beside "
+            "it already uses. So the anchored popover becomes the DEFAULT, "
+            "the bottom sheet becomes the exception behind "
+            "@media (hover: none), and the old "
+            "@container (min-width: 30.01rem) branch is deleted outright - a "
+            "container ceiling on the popover was exactly what left a narrow "
+            "desktop rail with nowhere to put one. MEASURED AFTER, four "
+            "configurations: at 1600 with a mouse the sheet goes from fixed "
+            "with a dim to absolute with none; at 1280, where his own ruling "
+            "fixes the rail at 240px, the picker went from 304px hanging out "
+            "of the panel to 238px inside it, because the sheet widths stop "
+            "being measured in vw - a box inside a 240px rail cannot be "
+            "sized against the viewport - and are bounded by the panel "
+            "instead; at 1920 nothing moves, it was already a popover; and a "
+            "390px touch screen is identical in every number, sheet still "
+            "fixed, dim still there, which is where it was always meant to "
+            "be. 69 chat, sticker, poll, profile-card, height, clamp and "
+            "image-weight tests green; the inherited superseded-declaration "
+            "failure is unchanged at 28 items, none added here."
+        ),
+    },
+    {
         "version": "2.5.1330",
         "date": "2026-08-27",
         "commit": "pending",
