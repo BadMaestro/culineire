@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1314",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "The caption sits above the frame on the phone and the tablet too",
+        "section": "Chef Battles / Arena",
+        "summary": "Owner, on seeing the desktop fix: 'давай сразу же внесём эти правки и в мобильную версию сайта'. It was never a desktop-only fault - the caption is a grid item of the floor at grid-row 3 and the stage is grid-row 3 / -1 in the same column, so the two share a cell on every screen. Measured at 375 before this: the caption's box overlapped the stage's and its last line finished three pixels inside the octagon's own top edge. THE RULE THAT LOOKED RIGHT AND MEASURED WRONG, twice, and both corrections are the interesting part. First, `bottom: 100%` put the caption NINE PIXELS INSIDE the floor on the phone while being exact on the desktop - because an absolutely positioned child of a GRID container that carries grid placement is positioned against its GRID AREA rather than the container's padding box, and this caption has carried grid-area 3/1 since it was written. On the desktop that area begins where the scene begins; on the phone it begins lower, inside the floor's own 11.2px of padding. The lift is now the element's OWN height - a translate of -100%, exact by definition on any screen - plus a gap that is stated per screen rather than averaged into one number that would be wrong twice: 0.5rem where the area starts at the scene, 1.2rem where it starts inside the padding. Second, the band of room reserved above the floor cannot be one number either, because the caption is two lines below 641px and three above it: 31.63, 48.86 and 53.06 measured. With the phone's band the tablet's caption ran 7.67px INTO the ribbon at 768 - caught by measuring 768 rather than assuming it sat between two widths that both worked. THE OCTAGON IS UNCHANGED ON EVERY SCREEN, and at the tablet that was checked twice because a first reading disagreed: stage 756x613.91, camera scale 0.58802 and octagon 392.9x270.68 before and after, identical - the earlier disagreement was the known stale-fit artifact of a pane that does not composite, where the renderer keeps the previous width's fit until a fresh load. Desktop re-measured against exactly what v2.5.1311 shipped: zero differences. Phone: caption 8.42px above the frame, 32.24px clear of the ribbon, floor down 40px and the same size, octagon the same size. Tablet: 25.59px above the frame, 9.92px clear of the ribbon, floor down 57.59px. No horizontal overflow at any of the three.",
+    },
+    {
         "version": "2.5.1311",
         "date": "2026-08-26",
         "commit": "pending",
