@@ -57,6 +57,13 @@ _LIVE_KEY = "arena:effect:live"
 # The key a surge is remembered under, so one wave of thirty is announced once
 # rather than on every poll for as long as it stays inside its own window.
 _SURGE_KEY = "arena:effect:surge:%s"
+# The gift a card has already been drawn for. Without it the SAME gift is
+# announced twice: it stays inside its twenty-second window while the fifteen
+# second cooldown expires underneath it, so the next poll finds it again and
+# fires a second effect for one act. Found by reading the two windows against
+# each other rather than by seeing it happen - on a quiet arena it would have
+# looked like a bug in someone's eyes.
+_GIFT_KEY = "arena:effect:gift:%s"
 
 
 def _on_cooldown() -> bool:
@@ -116,6 +123,10 @@ def _gift_effect():
     )
     if gift is None:
         return None
+    key = _GIFT_KEY % gift.pk
+    if cache.get(key) is not None:
+        return None
+    cache.set(key, 1, GIFT_WINDOW_SECONDS)
     return {
         "kind": "gift",
         "artifact": gift.artifact.name,

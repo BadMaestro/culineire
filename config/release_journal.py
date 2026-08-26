@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1295",
+        "date": "2026-08-26",
+        "commit": "pending",
+        "title": "Two tails from P3, both of them mine and one of them promised",
+        "section": "Chef Battles / Arena",
+        "summary": "THE FIRST WAS A PROMISE I HAD NOT KEPT. v2.5.1283 added an event at the moment voting opens, inside the transaction and under the row lock that MAKE that transition, and I said in the same breath that the card writers around it refuse to raise into a transition while this one did not - and then shipped it twice more without closing it. An exception there would have rolled the transition back and left a battle whose dishes are in sitting outside voting. It is wrapped now, logged with the battle id, and the transition stands whatever the announcement does. THE SECOND WAS FOUND BY READING TWO NUMBERS AGAINST EACH OTHER rather than by seeing it happen. A gift stays eligible for twenty seconds and the arena-wide cooldown is fifteen, so the same gift is still findable when the cooldown that hid it expires - one act, two effects, and on a quiet arena it would have read as a glitch in somebody's eyes rather than as a bug. Gifts are now remembered by id for the length of their own window, the way reaction waves already were. A test creates one gift, takes the effect, expires both the publication and the cooldown by hand, and asserts the second poll finds nothing. 18 effect and card tests green plus the four reveal suites that run through the wrapped event.",
+    },
+    {
         "version": "2.5.1292",
         "date": "2026-08-26",
         "commit": "pending",

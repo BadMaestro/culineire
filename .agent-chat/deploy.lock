@@ -1,0 +1,5 @@
+agent: bolt
+started_utc: 2026-08-26T13:15
+version: v2.5.1295
+commit: pending
+task: two tails from P3 - the reveal event can no longer roll a transition back, and one gift can no longer be announced twice

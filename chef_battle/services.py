@@ -1286,16 +1286,29 @@ def reveal_entries_if_ready(battle: Battle) -> None:
         # event cannot exist for a battle that did not advance. Not published
         # to the news feed: the hall is being told, not the whole site.
         if target == Battle.Status.VOTING:
-            create_battle_event(
-                event_type=BattleEvent.EventType.BATTLE_REVEALED,
-                battle=locked,
-                actor=locked.challenger,
-                target=locked.opponent,
-                message=(
-                    f"Voting is open: {locked.challenger.name} against "
-                    f"{locked.opponent.name}."
-                ),
-            )
+            # WRAPPED, and I said I would and had not: this runs inside the
+            # transaction that MAKES the transition, so an exception here would
+            # roll the transition back and leave a battle whose dishes are in
+            # sitting outside voting. The cards it feeds already refuse to
+            # raise into a transition; the event that feeds them has to as
+            # well. A hall that misses one announcement is cosmetic; a battle
+            # that fails to open its vote is not.
+            try:
+                create_battle_event(
+                    event_type=BattleEvent.EventType.BATTLE_REVEALED,
+                    battle=locked,
+                    actor=locked.challenger,
+                    target=locked.opponent,
+                    message=(
+                        f"Voting is open: {locked.challenger.name} against "
+                        f"{locked.opponent.name}."
+                    ),
+                )
+            except Exception:
+                logger.exception(
+                    "reveal event failed for battle %s; the transition stands",
+                    locked.pk,
+                )
         # The caller keeps its own instance (and its cached authors); it is
         # told the authoritative status, the same contract T01 settled.
         battle.status = target

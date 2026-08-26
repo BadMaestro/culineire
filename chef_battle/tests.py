@@ -24008,6 +24008,38 @@ class ArenaCrowdEffectTests(TestCase):
         cache.delete("arena:effect:surge:fire")
         self.assertIsNone(current_effect())
 
+    def test_one_gift_is_announced_once_even_though_two_windows_overlap(self):
+        """The gift window is twenty seconds and the cooldown is fifteen, so a
+        gift stays findable after the cooldown that hid it expires. Without a
+        memory of what has already been drawn, one act would fire two effects."""
+        from django.core.cache import cache
+        from django.utils import timezone
+        from .arena_effects import current_effect
+        from .models import Artifact, Battle, ViewerBattleGift
+        now = timezone.now()
+        rival = RecipeAuthor.objects.create(name="Gift Rival", slug="gift-rival")
+        battle = Battle.objects.create(
+            challenger=self.speaker, opponent=rival, theme="Gifts",
+            status=Battle.Status.VOTING,
+            start_time=now - timezone.timedelta(hours=1),
+            submission_deadline=now - timezone.timedelta(minutes=30),
+            end_time=now + timezone.timedelta(hours=1),
+        )
+        artifact = Artifact.objects.create(
+            name="Michelin Shield of Honor", rarity=Artifact.Rarity.LEGENDARY,
+        )
+        ViewerBattleGift.objects.create(
+            battle=battle, recipient=self.speaker, artifact=artifact,
+            tokens_spent=40,
+        )
+        first = current_effect()
+        self.assertIsNotNone(first)
+        self.assertEqual(first["kind"], "gift")
+        # The cooldown and the publication both expire; the gift itself has not.
+        cache.delete("arena:effect:live")
+        cache.delete("arena:effect:last")
+        self.assertIsNone(current_effect())
+
     def test_the_feed_carries_the_effect_and_only_to_the_hall(self):
         """A private room is two people and has no crowd; the effect belongs to
         the hall's own feed and the renderer only plays it there."""
