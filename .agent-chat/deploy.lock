@@ -1,0 +1,5 @@
+agent: Bolt
+started_utc: 2026-08-26T22:15:00Z
+version: 2.5.1327
+commit: pending
+task: the message action menu stops running out of the chat panel on the right - a clamp that assumed the menu was 12rem wide while it is 17.6rem
