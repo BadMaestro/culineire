@@ -57,6 +57,11 @@ CARD_FOR_EVENT = {
     # needs to name. Draws and walkovers are deliberately left cardless until
     # they have a card designed for them rather than borrowing this one.
     BattleEvent.EventType.BATTLE_COMPLETED: ArenaChatMessage.Kind.BATTLE_RESULT,
+    # The biathlon, both halves. These two types did not exist before P3: every
+    # shot was recorded as BATTLE_STARTED, which is why the hall could not have
+    # drawn them however the renderer was written.
+    BattleEvent.EventType.INGREDIENT_HIT: ArenaChatMessage.Kind.INGREDIENT_ATTACK,
+    BattleEvent.EventType.INGREDIENT_BLOCKED: ArenaChatMessage.Kind.DEFENCE,
 }
 
 
@@ -151,8 +156,75 @@ def card_payload(message: ArenaChatMessage) -> dict:
         if message.kind == ArenaChatMessage.Kind.BATTLE_RESULT and winner is not None:
             payload["winner"] = winner.name
             payload["winner_slug"] = winner.slug
+    # AN ARRIVAL HAS NO BATTLE AND NO EVENT. What it has is the chef, and the
+    # rank they walked in wearing - which is the only thing about a chef the
+    # hall can see from the stands anyway.
+    if message.kind == ArenaChatMessage.Kind.CHEF_ENTERED:
+        from .models import ChefBattleProfile
+        profile = (
+            ChefBattleProfile.objects
+            .filter(author=message.speaker)
+            .only("rank")
+            .first()
+        )
+        if profile is not None:
+            payload["rank"] = profile.get_rank_display()
+        return payload
     if event is not None and event.payload_json:
         # Only ever a read: the renderer decides what it can use, and an event
         # that carries nothing useful simply gives the card nothing extra.
+        #
+        # READ AT SERVE TIME, NOT AT WRITE TIME, and the biathlon depends on
+        # it: post_card_for_event runs inside create_battle_event, which is
+        # BEFORE the shot's payload is attached to the event. The card row is
+        # written first and the facts are read fresh on every poll, so the card
+        # always shows what the event finally said rather than what it said
+        # halfway through being written.
         payload["event"] = event.payload_json
     return payload
+
+
+def post_arrival_card(author) -> "ArenaChatMessage | None":
+    """The hall is told when a CHEF takes a seat in it. P3 item 26.
+
+    A SPECTATOR ARRIVING IS NOT NEWS and does not get a card: the stands fill
+    and empty all evening, and a card for every one of them would bury the
+    conversation the cards exist to sit beside. A chef arriving is - the people
+    in the seats came to watch chefs.
+
+    THERE IS NO EVENT BEHIND THIS ONE, and that is not a hole in the rule. The
+    other cards read a BattleEvent because the moments they describe are the
+    battle's; this moment is the hall's own, and the fact it states - that this
+    chef holds this seat - is a row in ArenaSeat that was written a moment ago
+    by the caller. Nothing is invented either way.
+
+    NO DEDUP HERE, because the caller already has one: claim_seat returns an
+    existing seat without reaching the create, so this runs on a genuinely new
+    seat and only on one. A chef who reloads the arena announces nobody.
+    """
+    from .models import ChefBattleProfile
+
+    if author is None:
+        return None
+    profile = (
+        ChefBattleProfile.objects
+        .filter(author=author, enrolled_at__isnull=False)
+        .first()
+    )
+    if profile is None:
+        return None
+
+    ring, cell = _seat_of(author)
+    try:
+        return ArenaChatMessage.objects.create(
+            battle=None,
+            speaker=author,
+            display_name=(getattr(author, "name", "") or "A chef")[:60],
+            body=f"{author.name} has entered the Arena.",
+            ring_index=ring,
+            seat_index=cell,
+            kind=ArenaChatMessage.Kind.CHEF_ENTERED,
+        )
+    except Exception:
+        logger.exception("arrival card failed for author %s", getattr(author, "pk", None))
+        return None

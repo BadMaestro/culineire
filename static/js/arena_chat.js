@@ -698,12 +698,18 @@
   var CARD_MARKS = {
     challenge_issued: '⚔️',
     voting_open: '🗳️',
-    battle_result: '👑'
+    battle_result: '👑',
+    ingredient_attack: '🎯',
+    defence: '🛡️',
+    chef_entered: '👨‍🍳'
   };
   var CARD_TITLES = {
     challenge_issued: 'Challenge issued',
     voting_open: 'Voting is open',
-    battle_result: 'Result'
+    battle_result: 'Result',
+    ingredient_attack: 'Struck off',
+    defence: 'Blocked',
+    chef_entered: 'Entered the Arena'
   };
 
   function cardChef(name, slug) {
@@ -783,6 +789,49 @@
       item.appendChild(pair);
     }
 
+    /* THE BIATHLON'S OWN LINE: which ingredient, off whose menu, and which of
+       the three shots this was. Printed from the event's payload rather than
+       parsed out of the sentence - the sentence is English and the card is
+       not, so a card that read it would break the day the wording changes. */
+    /* An arrival names the chef and the rank they walked in wearing. It has
+       no battle and therefore no pair, no sentence beyond its own and nowhere
+       to send the reader but the chef. */
+    if (kind === 'chef_entered') {
+      var arrival = document.createElement('span');
+      arrival.className = 'arena-chat__card-pair';
+      arrival.appendChild(cardChef(card.actor, card.actor_slug));
+      if (card.rank) {
+        var rank = document.createElement('span');
+        rank.className = 'arena-chat__card-vs';
+        rank.textContent = card.rank;
+        arrival.appendChild(rank);
+      }
+      item.appendChild(arrival);
+      return item;
+    }
+
+    var ev = card.event || {};
+    if (ev.ingredient) {
+      var shot = document.createElement('span');
+      shot.className = 'arena-chat__card-shot';
+      var what = document.createElement('b');
+      what.textContent = ev.ingredient;
+      shot.appendChild(what);
+      if (ev.defender) {
+        var whose = document.createElement('span');
+        whose.className = 'arena-chat__card-vs';
+        whose.textContent = 'on ' + ev.defender + "'s menu";
+        shot.appendChild(whose);
+      }
+      if (ev.shot_number && ev.shots_total) {
+        var count = document.createElement('span');
+        count.className = 'arena-chat__card-count';
+        count.textContent = 'shot ' + ev.shot_number + ' of ' + ev.shots_total;
+        shot.appendChild(count);
+      }
+      item.appendChild(shot);
+    }
+
     /* The event's own sentence, which is what the game wrote when it happened.
        textContent and never innerHTML: this string is a chef's name inside a
        server-formatted message, and a name is user input wherever it came
@@ -816,6 +865,9 @@
   MESSAGE_RENDERERS.challenge_issued = renderEventCard;
   MESSAGE_RENDERERS.voting_open = renderEventCard;
   MESSAGE_RENDERERS.battle_result = renderEventCard;
+  MESSAGE_RENDERERS.ingredient_attack = renderEventCard;
+  MESSAGE_RENDERERS.defence = renderEventCard;
+  MESSAGE_RENDERERS.chef_entered = renderEventCard;
 
 
   function append(line) {

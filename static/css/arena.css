@@ -10866,3 +10866,29 @@ body.page--arena.is-zoom-locked {
 .arena-chat .arena-chat__card--challenge_issued { border-left-color: var(--accent-bronze); }
 .arena-chat .arena-chat__card--voting_open { border-left-color: var(--brand); }
 .arena-chat .arena-chat__card--battle_result { border-left-color: var(--arena-gold, var(--accent-bronze-dark)); }
+
+/* The biathlon's two cards, and the line they carry that the other three do
+   not: which ingredient, off whose menu, and which of the three shots this
+   was. Same two-class prefix as the block above, for the same blanket-reset
+   reason. */
+.arena-chat__card-shot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+.arena-chat .arena-chat__card-shot b {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.arena-chat .arena-chat__card-count {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-bronze-dark);
+}
+.arena-chat .arena-chat__card--ingredient_attack { border-left-color: var(--arena-rank-1, var(--accent-bronze-dark)); }
+.arena-chat .arena-chat__card--defence { border-left-color: var(--arena-rank-6, var(--accent-bronze)); }

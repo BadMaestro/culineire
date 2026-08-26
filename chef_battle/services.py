@@ -2552,11 +2552,43 @@ def fire_ingredient_shot(*, battle: Battle, shooter, target_ingredient_id: int) 
 
 
 def _post_biathlon_event(battle: Battle, shot: IngredientShot, ingredient_name: str, bounced: bool) -> None:
+    """Record one shot, as the thing it is.
+
+    P3, 2026-08-26: every shot fired since the biathlon shipped was recorded as
+    BATTLE_STARTED, because this function had no type of its own to use. The
+    event stream said a battle had started three times per biathlon. It now
+    carries INGREDIENT_HIT or INGREDIENT_BLOCKED, and the hall draws the two as
+    an attack card and a defence card.
+
+    THE ACTOR IS THE SHOOTER AND battle.winner IS THE SHOOTER HERE - checked
+    rather than assumed, because the name reads like the battle's final winner
+    and is not: during INGREDIENT_PENALTY it holds the Stage 1 round winner,
+    who is the only chef allowed to fire (fire_ingredient_shot refuses anybody
+    else by that same field).
+
+    The payload carries what a card needs and the sentence does not spell out:
+    which ingredient, whose menu it was on, and which of the three shots this
+    was - so the card can say "shot 2 of 3" without parsing English.
+    """
+    loser = battle.loser
+    shots_fired = battle.ingredient_shots.filter(shooter=battle.winner).count()
     if bounced:
         message = f"{battle.winner.name}'s shot at '{ingredient_name}' bounced off a block."
+        event_type = BattleEvent.EventType.INGREDIENT_BLOCKED
     else:
         message = f"{battle.winner.name}'s shot hit '{ingredient_name}'."
-    create_battle_event(battle=battle, event_type=BattleEvent.EventType.BATTLE_STARTED, message=message, actor=battle.winner, is_public=True)
+        event_type = BattleEvent.EventType.INGREDIENT_HIT
+    event = create_battle_event(
+        battle=battle, event_type=event_type, message=message,
+        actor=battle.winner, target=loser, is_public=True,
+    )
+    event.payload_json = {
+        "ingredient": ingredient_name,
+        "defender": getattr(loser, "name", "") or "",
+        "shot_number": shots_fired,
+        "shots_total": IngredientShot.MAX_SHOTS,
+    }
+    event.save(update_fields=["payload_json"])
 
 
 def get_biathlon_state(battle: Battle) -> dict:

@@ -703,6 +703,9 @@ class ArenaChatMessage(models.Model):
         CHALLENGE_ISSUED = "challenge_issued", "Challenge issued"
         VOTING_OPEN = "voting_open", "Voting opened"
         BATTLE_RESULT = "battle_result", "Battle result"
+        INGREDIENT_ATTACK = "ingredient_attack", "Ingredient struck off"
+        DEFENCE = "defence", "Shot blocked"
+        CHEF_ENTERED = "chef_entered", "Chef entered the Arena"
 
     kind = models.CharField(
         max_length=24, choices=Kind.choices, blank=True, default="",
@@ -1007,6 +1010,21 @@ class BattleEvent(models.Model):
         VOTE_CAST = "vote_cast", "Vote Cast"
         BATTLE_FINISHED = "battle_finished", "Battle Finished"
         BATTLE_COMPLETED = "battle_completed", "Battle Completed"
+        # THE BIATHLON GETS ITS OWN TWO TYPES, and the reason is a defect
+        # rather than a feature: every shot fired since the biathlon shipped
+        # was recorded as BATTLE_STARTED, because _post_biathlon_event had no
+        # type of its own to use. A shot is not a battle starting, and an event
+        # stream that says it is cannot be filtered, counted or read. Checked
+        # before changing it: nothing anywhere filters BattleEvent by
+        # BATTLE_STARTED, so no consumer loses a row it was relying on.
+        #
+        # HIT and BLOCKED, not one type with a flag: they are the two halves of
+        # the biathlon the Owner's rules describe - the winner's three shots
+        # against the loser's two blocks - and P3 draws them as an attack card
+        # and a defence card, which is a decision the type should carry rather
+        # than a payload key the renderer has to dig for.
+        INGREDIENT_HIT = "ingredient_hit", "Ingredient Struck Off"
+        INGREDIENT_BLOCKED = "ingredient_blocked", "Ingredient Shot Blocked"
         CHEF_DEFEATED = "chef_defeated", "Chef Defeated"
         CROWN_AWARDED = "crown_awarded", "Crown Awarded"
         RANK_PROMOTED = "rank_promoted", "Rank Promoted"

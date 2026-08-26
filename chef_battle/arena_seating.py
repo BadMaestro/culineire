@@ -177,9 +177,19 @@ def claim_seat(viewer) -> ArenaSeat:
             raise ArenaFull("The arena stands are full.")
         try:
             with transaction.atomic():
-                return ArenaSeat.objects.create(
+                seat = ArenaSeat.objects.create(
                     viewer=viewer, ring_index=free[0], seat_index=free[1],
                 )
+            # P3 item 26, Owner 2026-08-26: the hall is told when a CHEF walks
+            # in. THIS line is the arrival and the idempotent shortcut above is
+            # why it needs no dedup of its own - a viewer who already holds a
+            # seat never reaches here, so reloading the page announces nobody,
+            # and a chef only earns a second card after their seat has actually
+            # lapsed and they have come back. Outside the transaction, because
+            # a chat row must never be able to roll a seat claim back.
+            from .arena_cards import post_arrival_card
+            post_arrival_card(viewer)
+            return seat
         except IntegrityError:
             # Either somebody took that seat between the read and the write, or
             # this viewer was seated concurrently by their own second request.

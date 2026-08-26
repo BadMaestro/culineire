@@ -23399,6 +23399,66 @@ class ArenaEventCardTests(TestCase):
         self.assertIsNotNone(event.pk)
         self.assertEqual(self.ArenaChatMessage.objects.count(), 0)
 
+    def test_the_biathlon_writes_an_attack_card_and_a_defence_card(self):
+        """Every shot fired since the biathlon shipped was recorded as
+        BATTLE_STARTED - a battle starting, three times per biathlon. The two
+        halves now carry their own types, which is what lets the hall draw
+        them at all."""
+        from .models import Battle, BattleIngredient, IngredientShot
+        from .services import _post_biathlon_event
+        battle = self._battle("Biathlon", Battle.Status.INGREDIENT_PENALTY)
+        battle.winner = self.a
+        battle.loser = self.b
+        battle.save(update_fields=["winner", "loser"])
+
+        struck = BattleIngredient.objects.create(
+            battle=battle, chef=self.b, name="Wild garlic", position=1,
+        )
+        blocked = BattleIngredient.objects.create(
+            battle=battle, chef=self.b, name="Dulse", position=2, is_key=True,
+        )
+        for target, bounced in ((struck, False), (blocked, True)):
+            shot = IngredientShot.objects.create(
+                battle=battle, shooter=self.a, target_ingredient=target,
+                bounced=bounced,
+            )
+            _post_biathlon_event(battle, shot, target.name, bounced)
+
+        hit = self.ArenaChatMessage.objects.get(
+            kind=self.ArenaChatMessage.Kind.INGREDIENT_ATTACK)
+        block = self.ArenaChatMessage.objects.get(
+            kind=self.ArenaChatMessage.Kind.DEFENCE)
+        self.assertEqual(hit.event.event_type, "ingredient_hit")
+        self.assertEqual(block.event.event_type, "ingredient_blocked")
+        # The payload is attached to the event AFTER the card row is written,
+        # so this also proves the card reads its facts at serve time.
+        from .arena_cards import card_payload
+        payload = card_payload(hit)
+        self.assertEqual(payload["event"]["ingredient"], "Wild garlic")
+        self.assertEqual(payload["event"]["defender"], "Card Opponent")
+        self.assertEqual(payload["event"]["shots_total"], IngredientShot.MAX_SHOTS)
+
+    def test_a_chef_taking_a_seat_is_announced_once_and_a_spectator_never_is(self):
+        from .arena_seating import claim_seat
+        from .models import ChefBattleProfile
+        ChefBattleProfile.objects.create(author=self.a, enrolled_at=timezone.now())
+        ChefBattleProfile.objects.create(author=self.b)   # never enrolled
+
+        claim_seat(self.a)
+        arrivals = self.ArenaChatMessage.objects.filter(
+            kind=self.ArenaChatMessage.Kind.CHEF_ENTERED)
+        self.assertEqual(arrivals.count(), 1)
+        self.assertEqual(arrivals.first().speaker, self.a)
+
+        # Reloading the arena claims the same seat back, so it announces
+        # nobody: the idempotent shortcut in claim_seat never reaches the write.
+        claim_seat(self.a)
+        self.assertEqual(arrivals.count(), 1)
+
+        # And a spectator filling a seat is not news.
+        claim_seat(self.b)
+        self.assertEqual(arrivals.count(), 1)
+
     def test_the_renderer_is_registered_for_every_kind_the_server_can_send(self):
         """A kind with no renderer falls back to the text renderer and prints a
         card as if somebody had said it."""
