@@ -1,0 +1,5 @@
+agent: Bolt
+started_utc: 2026-08-26T21:40:00Z
+version: 2.5.1324
+commit: pending
+task: the arena chat becomes a fixed-height panel - messages scroll inside it and never grow the arena row
