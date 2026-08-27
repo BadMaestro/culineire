@@ -1,5 +1,0 @@
-agent: Bolt
-started_utc: 2026-08-27T06:20:00Z
-version: 2.5.1348
-commit: pending
-task: the chat stops being the lowest layer on the deck; the phone bottom sheet stops reaching tablets; retired sticker tokens stop printing as text
