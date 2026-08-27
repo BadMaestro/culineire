@@ -1,5 +1,43 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1382",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "An unbought sticker is shown in full colour - 0.55 was a grey picture, not a dimmed one",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner, on a phone: the grey thing is back. He was right and it "
+            "is the third reading of the same line I have got wrong. "
+            "The specification corrected itself on 2026-08-28 - Bolt struck his "
+            "own wording in AC-STK_TZ_RU.md A8 and replaced it with the Owner's: "
+            "an unbought sticker is shown in FULL COLOUR, distinguished only by "
+            "something that does not paint over the picture, light opacity "
+            "without desaturation, full colour on hover. v2.5.1379 removed the "
+            "grayscale and the bronze badge but left opacity at 0.55, and 0.55 "
+            "on a pale panel is not a dimmed picture - it is a grey one. It is "
+            "0.92 now, which is deliberately almost nothing: these are his "
+            "paintings and the strongest thing a rule about NOT OWNING one is "
+            "allowed to do is stand slightly back from it. "
+            "Four tests pin it where the drift kept happening - no grayscale, "
+            "saturate or sepia; no ::before or ::after painting over the "
+            "artwork; opacity at least 0.85; and hover restoring it entirely. "
+            "Three readings of one sentence is a rule nobody was checking, so "
+            "it is checked now. "
+            "MEASURED BEFORE TOUCHING ANYTHING, because the same screenshot has "
+            "two possible causes and only one of them is CSS: the served "
+            "arena.css was parsed rule by rule and carries no grayscale and no "
+            "dimming other than this one rule; the service worker is "
+            "network-first for pages and content-hashed for assets, so nothing "
+            "is stale by design; the server is on the right commit with the "
+            "corrected template on disk; and three new tests drive the REAL "
+            "arena view and assert the Owner's own page carries all thirteen "
+            "tokens with no escaped quotes. The arena is one template and one "
+            "view at every width. So the markup is right, and a tile that is "
+            "still faded on a device is a session on that device rather than "
+            "the page."
+        ),
+    },
+    {
         "version": "2.5.1379",
         "date": "2026-08-28",
         "commit": "pending",

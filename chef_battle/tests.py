@@ -26766,3 +26766,56 @@ class TheArenaPageItselfCarriesTheOwnedListTests(TestCase):
         start = html.index(">", html.index(marker)) + 1
         payload = html[start:html.index("</script>", start)]
         self.assertNotIn("&quot;", payload)
+
+
+class AnUnboughtStickerIsShownInFullColourTests(TestCase):
+    """The corrected specification, pinned so it cannot drift back.
+
+    AC-STK_TZ_RU.md A8, corrected 2026-08-28: an unbought sticker is shown in
+    FULL COLOUR, distinguished only by something that does not paint over the
+    picture - light opacity, no desaturation, full colour on hover.
+
+    The first implementation used grayscale(1) plus a bronze badge over the
+    Owner's own paintings, and he saw it at a glance; the second used opacity
+    0.55, which on a pale panel is a grey picture rather than a dimmed one, and
+    he saw that too, on a phone. This test is what stops a third reading.
+    """
+
+    CSS = Path(__file__).resolve().parent.parent / "static" / "css" / "arena.css"
+
+    def _locked_block(self):
+        css = self.CSS.read_text(encoding="utf-8")
+        start = css.index(".arena-chat .arena-chat__emoji-btn--locked {")
+        return css[start:]
+
+    def test_nothing_desaturates_the_artwork(self):
+        block = self._locked_block()
+        for banned in ("grayscale", "saturate", "sepia"):
+            self.assertNotIn(
+                banned, block,
+                f"the locked tile uses {banned}() - the specification says full colour",
+            )
+
+    def test_nothing_is_painted_over_the_picture(self):
+        block = self._locked_block()
+        for banned in ("::after", "::before"):
+            self.assertNotIn(
+                banned, block,
+                "the locked tile draws a pseudo-element over the Owner's own "
+                "artwork; the specification forbids painting on top of it",
+            )
+
+    def test_the_opacity_is_light_rather_than_dimming(self):
+        import re
+
+        block = self._locked_block()
+        values = [float(v) for v in re.findall(r"opacity:\s*([0-9.]+)", block)]
+        self.assertTrue(values, "the locked tile sets no opacity at all")
+        self.assertGreaterEqual(
+            min(values), 0.85,
+            f"opacity {min(values)} reads as a grey picture on a pale panel, "
+            f"not as a sticker that has not been bought yet",
+        )
+
+    def test_hover_restores_it_completely(self):
+        self.assertIn("opacity: 1;", self._locked_block())

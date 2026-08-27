@@ -12507,15 +12507,20 @@ button.arena-chat__poll-option:hover {
 
 /* AC-STK - A STICKER YOU HAVE NOT BOUGHT.
 
-   REWRITTEN v2.5.1379. The first version desaturated the picture and painted a
-   bronze square in the corner; the Owner saw it on his own screen and said so
-   plainly. He was right twice over - it looked like a broken image rather than
-   a price tag, and it was on HIS picker at all only because of the escaping
-   bug this release fixes.
+   FULL COLOUR. The specification says so in as many words after its own
+   correction of 2026-08-28: "показывается в полном цвете... лёгкая
+   непрозрачность без обесцвечивания, полный цвет на наведении."
 
-   What is left is the least this can be and still say anything: the tile is a
-   little quieter than its neighbours and nothing is drawn on top of the
-   artwork. The pictures are his, and covering them was never mine to decide.
+   v2.5.1379 read "dimmed" as 0.55, which on a pale panel is not a dimmed
+   picture, it is a grey one - and the Owner said so the moment he saw it on a
+   phone. 0.92 is the whole difference between "not bought yet" and "broken
+   image", and it is deliberately almost nothing: these are his paintings, and
+   the strongest thing this rule is allowed to do is stand slightly back from
+   them.
+
+   NOTHING IS DRAWN ON TOP. No grayscale, no badge, no overlay - the first
+   version had a bronze square in the corner of his own artwork and that was
+   never a decision that was mine to take.
 
    This is presentation, not the rule. Ownership is enforced in
    arena_chat_send; defeating this CSS reaches a 403, not a free sticker.
@@ -12527,7 +12532,7 @@ button.arena-chat__poll-option:hover {
   cursor: pointer;
 }
 .arena-chat .arena-chat__emoji-btn--locked .arena-chat__sticker {
-  opacity: 0.55;
+  opacity: 0.92;
 }
 .arena-chat .arena-chat__emoji-btn--locked:hover .arena-chat__sticker,
 .arena-chat .arena-chat__emoji-btn--locked:focus-visible .arena-chat__sticker {
