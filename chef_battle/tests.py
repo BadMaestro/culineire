@@ -26687,3 +26687,82 @@ class TheStickersAreASectionOfTheArtifactShopTests(TestCase):
             / "templates" / "chef_battle" / "sticker_shop.html"
         )
         self.assertFalse(page.exists(), "the separate sticker page is still there")
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True, OWNER_SLUG="greenbear")
+class TheArenaPageItselfCarriesTheOwnedListTests(TestCase):
+    """THROUGH THE REAL VIEW, not through render_to_string.
+
+    The seam tests added in v2.5.1379 render the include on its own with a
+    context handed to them by the test. That proves the template is right and
+    proves nothing about whether the VIEW puts the value in the context under
+    the name the template reads - which is the other half of the same seam, and
+    the half that has no test at all until this one.
+
+    Same page for every width: the arena is one template and one view, so if
+    this passes, a locked picker on a phone is a session or a cache and not the
+    markup.
+    """
+
+    def setUp(self):
+        from chef_battle.arena_seating import claim_seat
+
+        self.user = get_user_model().objects.create_user(
+            username="pageowner", password="pw", is_staff=True, is_superuser=True,
+        )
+        self.owner, created = RecipeAuthor.objects.get_or_create(
+            slug="greenbear", defaults={"user": self.user, "name": "GreenBear"},
+        )
+        if not created:
+            self.owner.user = self.user
+            self.owner.save(update_fields=["user"])
+        TokenWallet.objects.get_or_create(chef=self.owner)
+        claim_seat(self.owner)
+
+    def _owned_from_page(self, html):
+        marker = 'id="arena-chat-sticker-owned"'
+        self.assertIn(marker, html, "the owned block is not on the page at all")
+        start = html.index(">", html.index(marker)) + 1
+        return json.loads(html[start:html.index("</script>", start)])
+
+    def test_the_owner_page_lists_all_thirteen(self):
+        from .models import StickerItem
+
+        self.client.force_login(self.user)
+        page = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(page.status_code, 200)
+        listed = self._owned_from_page(page.content.decode())
+        self.assertEqual(
+            sorted(listed),
+            sorted(StickerItem.objects.values_list("token", flat=True)),
+            "the Owner's own arena page did not carry his stickers - this is "
+            "exactly what he photographed",
+        )
+
+    def test_an_ordinary_chef_gets_only_what_he_bought(self):
+        from chef_battle.arena_seating import claim_seat
+
+        from .models import StickerItem
+        from .services import buy_sticker
+
+        user, author = _make_chef("pagebuyer", balance=50)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        claim_seat(author)
+        buy_sticker(chef=author, sticker=StickerItem.objects.get(token="salty"))
+
+        self.client.force_login(user)
+        page = self.client.get(reverse("chef_battle:arena"))
+        self.assertEqual(self._owned_from_page(page.content.decode()), ["salty"])
+
+    def test_the_page_never_ships_escaped_quotes_in_that_block(self):
+        """The v2.5.1373 fault, pinned where it actually happened. `&quot;`
+        inside the block means JSON.parse throws in the browser and the client
+        fails closed - every sticker locked, silently, for everybody."""
+        self.client.force_login(self.user)
+        html = self.client.get(reverse("chef_battle:arena")).content.decode()
+        marker = 'id="arena-chat-sticker-owned"'
+        start = html.index(">", html.index(marker)) + 1
+        payload = html[start:html.index("</script>", start)]
+        self.assertNotIn("&quot;", payload)
