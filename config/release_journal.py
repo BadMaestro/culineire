@@ -1,5 +1,55 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1351",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The chat's input is nailed to the floor of the panel, and every sheet opens upward from it",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner, 2026-08-27, on a tablet screenshot: the input must be "
+            "stuck to the bottom edge of the chat container and never move, "
+            "and every popup must open from the bottom upward. IT WAS NOT "
+            "STUCK, and the reason was two rules away from the composer. The "
+            "rule that lifts the log's ceiling is gated on the container's "
+            "width AND `hover: hover` - right for density, which is a pointer "
+            "question, wrong for a ceiling, which is not. A touch tablet "
+            "therefore kept max-height: min(42vh, 22rem) = 352px, the log "
+            "could not absorb the flex column's slack, and the leftover "
+            "landed after the last item - under the input. Measured on "
+            "production at 2000px: 352px of log and 162px of dead panel below "
+            "the composer with touch, against 491px of log and nothing below "
+            "it with a mouse on the very same width. Both halves are fixed. "
+            "The ceiling comes off from 901px up, where the panel has a "
+            "bounded height of its own (v2.5.1324) and the ceiling protects "
+            "nothing; below 901px it stays exactly as it was, because there "
+            "the chat is a normal-flow card and that ceiling is the only "
+            "thing between six messages and a page a screen taller. And the "
+            "composer gets `margin-top: auto`, which sends every leftover "
+            "pixel ABOVE it - so the input is on the floor whatever else in "
+            "the column decides to do, which is the promise he actually "
+            "asked for rather than the one `flex: 0 0 auto` makes. "
+            "UPWARD IS NOW MEASURED, NOT GUESSED. The message action menu "
+            "opened DOWNWARD from its trigger, into the page; the emoji and "
+            "poll sheets opened upward by subtracting a hard-coded 232, a "
+            "guess at a height the poll composer never had. One helper, "
+            "openUpwards(), reads the sheet's real offsetHeight once it is in "
+            "the document and places its foot just above the control that "
+            "opened it. When there is not enough room above - a trigger on "
+            "the first visible line has only the tabs and the pinned rules "
+            "over it, about 200px against a menu that can be 288 - it CAPS "
+            "THE HEIGHT rather than turning round, so the foot never covers "
+            "the row that opened it, and the menu scrolls inside itself as "
+            "its own overflow-y already provided for. Verified: first line "
+            "and last line, on a 1600px desktop with a mouse and a 2000px "
+            "tablet with touch, all four open upward and all four stay inside "
+            "the panel; dead space below the composer is 0 at every width, "
+            "including the phone, which is otherwise untouched. 78 chat, "
+            "sheet, sticker, poll, height, layer, template-hygiene and "
+            "image-weight tests green; the inherited superseded-declaration "
+            "failure is unchanged at 28 items, none added here."
+        ),
+    },
+    {
         "version": "2.5.1348",
         "date": "2026-08-27",
         "commit": "pending",

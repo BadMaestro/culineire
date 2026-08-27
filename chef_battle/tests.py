@@ -24940,3 +24940,87 @@ class ArenaChatIsNotASealedLayerTests(TestCase):
                           "%s points at %s, which is not in the pack" % (old, new))
             self.assertNotIn(old, current,
                              "%s is an alias for old rows, not a sticker to send" % old)
+class ArenaChatComposerIsNailedToTheFootTests(TestCase):
+    """The input sits on the chat's floor and every sheet opens upward, v2.5.1351.
+
+    The Owner, 2026-08-27: the input must be stuck to the bottom edge of the
+    chat container and never move, and everything that opens must open from
+    the bottom upward.
+
+    IT WAS NOT STUCK, and the reason was two rules away from the composer.
+    The rule that lifts the log's ceiling is gated on the container's width
+    AND `hover: hover` - right for density, which is a pointer question, wrong
+    for a ceiling, which is not. So a touch tablet kept
+    `max-height: min(42vh, 22rem)` = 352px, the log could not absorb the flex
+    column's slack, and the leftover landed after the last item: measured at
+    2000px, 352px of log and 162px of dead panel under the input with touch,
+    against 491px of log and nothing under it with a mouse on the very same
+    width.
+
+    Both halves are pinned here. The ceiling comes off from 901px up, where
+    the panel has a bounded height of its own and the ceiling protects
+    nothing; and the composer gets `margin-top: auto`, which puts every
+    leftover pixel ABOVE it, so the input is on the floor whatever else in
+    the column decides to do.
+
+    UPWARD IS MEASURED, NOT GUESSED. The message menu used to open downward
+    from its trigger, and the emoji and poll sheets opened upward by
+    subtracting a hard-coded 232 - a guess at a height that the poll composer
+    never had. openUpwards() reads the sheet's real offsetHeight, and when
+    there is not enough room above a trigger it CAPS THE HEIGHT rather than
+    turning round, so the foot stays above the row that opened it.
+    """
+
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+    SCRIPT = Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
+
+    def _rule(self, context, selector):
+        found = [b for c, s, b in ArenaChatIsAFixedHeightPanelTests._blocks()
+                 if c == context and s == selector]
+        self.assertEqual(len(found), 1,
+                         "expected one `%s` in `%s`, found %d"
+                         % (selector, context or "top level", len(found)))
+        return found[0]
+
+    def test_the_composer_cannot_be_anywhere_but_the_floor(self):
+        """`flex: 0 0 auto` promises the composer will not grow. It does not
+        promise it is last against the floor - the column's slack lands after
+        the final item, which is under the input."""
+        body = self._rule("", ".arena-chat__composer")
+        self.assertIn("margin-top: auto", body)
+        self.assertIn("flex: 0 0 auto", body)
+
+    def test_the_logs_ceiling_comes_off_where_the_panel_is_bounded(self):
+        """A ceiling is a layout question, not a pointer question. From 901px
+        the panel has a bounded height of its own, so the log can have the
+        room and there is no slack left to sit under the composer."""
+        self.assertIn("max-height: none",
+                      self._rule("@media (min-width: 901px)", ".arena-chat__log"))
+
+    def test_the_phone_keeps_its_ceiling(self):
+        """Below 901px the chat is a normal-flow card and the ceiling is the
+        only thing between six messages and a page a screen taller."""
+        self.assertIn("max-height: min(42vh, 22rem)",
+                      self._rule("@media (min-width: 641px) and (max-width: 900px)",
+                                 ".arena-chat__log"))
+        self.assertIn("max-height: min(42vh, 22rem)",
+                      self._rule("", ".arena-chat__log"))
+
+    def test_every_sheet_opens_upward_from_its_trigger(self):
+        script = self.SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("function openUpwards(sheet, trigger) {", script)
+        self.assertEqual(script.count("openUpwards(sheet, trigger)"), 3,
+                         "one definition and both anchoring sites")
+        self.assertNotIn("box.bottom - mine.top + 4", script,
+                         "the message menu opens downward again")
+        self.assertNotIn("box.top - mine.top - 232", script,
+                         "a sheet's height is guessed again instead of measured")
+
+    def test_a_sheet_with_no_room_above_shrinks_rather_than_turning_round(self):
+        """A trigger on the first visible line has only the tabs and the
+        pinned rules above it - about 200px against a menu that can be 288.
+        Clamping the top to 0 put the sheet's foot BELOW the trigger and
+        covered the row that opened it."""
+        script = self.SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("sheet.style.maxHeight = room + 'px'", script)
+        self.assertIn("var FLOOR = 128;", script)

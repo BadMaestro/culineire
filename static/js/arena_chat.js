@@ -1757,7 +1757,7 @@
     // ignores these on a narrow container, where the sheet spans the panel.
     var box = trigger.getBoundingClientRect();
     var mine = root.getBoundingClientRect();
-    sheet.style.setProperty('--sheet-top', (box.bottom - mine.top + 4) + 'px');
+    sheet.style.setProperty('--sheet-top', openUpwards(sheet, trigger) + 'px');
     sheet.style.setProperty(
       '--sheet-left', keepSheetInside(sheet, box.left - mine.left) + 'px');
     var first = sheet.querySelector('.arena-chat__action');
@@ -2127,13 +2127,56 @@
     return Math.max(0, Math.min(wantedLeft, room));
   }
 
+  /* EVERY SHEET OPENS UPWARD, FROM THE CONTROL THAT OPENED IT. Owner,
+   * 2026-08-27: all popups open from the bottom up.
+   *
+   * The composer lives on the chat's floor (see .arena-chat__composer in
+   * arena.css) and so does every trigger worth opening a sheet from, so
+   * downward is into the page and upward is into the conversation. The
+   * message menu used to open DOWNWARD - `trigger.bottom + 4` - and the emoji
+   * and poll sheets opened upward by subtracting a hard-coded 232, which is a
+   * guess at how tall a sheet is; the poll composer is not 232 tall and never
+   * was.
+   *
+   * Nothing is guessed here. By the time this runs the sheet is in the
+   * document, so offsetHeight is its real height, and the top it returns is
+   * measured from the panel's padding box - the same box the stylesheet's
+   * `top` resolves against. Clamped at 0: a sheet taller than the room above
+   * its trigger starts at the panel's own top and scrolls inside itself,
+   * which its max-height already provides for. */
+  function openUpwards(sheet, trigger) {
+    var box = trigger.getBoundingClientRect();
+    var mine = root.getBoundingClientRect();
+    var above = box.top - mine.top - root.clientTop;
+    var room = above - 6;
+
+    /* NOT ENOUGH ROOM ABOVE? SHRINK, DO NOT TURN ROUND. A trigger on the
+     * first visible line has only the tabs and the pinned rules above it -
+     * about 200px against a menu that can be 288 - and the first version of
+     * this simply clamped the top to 0, which put the sheet's foot BELOW the
+     * trigger and covered the row that opened it. Capping the height instead
+     * keeps the foot where it belongs and lets the menu scroll inside itself,
+     * which its own overflow-y already provides for.
+     *
+     * The floor of 8rem is there so the answer is never a slit: below that
+     * there is nothing useful to show and the sheet is better off starting at
+     * the panel's top and overlapping. */
+    var FLOOR = 128;
+    if (room < sheet.offsetHeight && room >= FLOOR) {
+      sheet.style.maxHeight = room + 'px';
+      return Math.max(0, above - room - 6);
+    }
+    return Math.max(0, above - sheet.offsetHeight - 6);
+  }
+
   function anchorSheet(sheet, trigger) {
     if (!trigger) { return; }
     var box = trigger.getBoundingClientRect();
     var mine = root.getBoundingClientRect();
     // Above the trigger, because the composer sits at the panel's foot and
-    // there is nothing below it to open into.
-    sheet.style.setProperty('--sheet-top', Math.max(0, box.top - mine.top - 232) + 'px');
+    // there is nothing below it to open into. The height is measured rather
+    // than assumed - see openUpwards().
+    sheet.style.setProperty('--sheet-top', openUpwards(sheet, trigger) + 'px');
     sheet.style.setProperty(
       '--sheet-left',
       keepSheetInside(sheet, box.left - mine.left - 120) + 'px');

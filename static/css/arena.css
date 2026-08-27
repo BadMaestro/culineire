@@ -2129,6 +2129,18 @@
    button kept its small outlined circle no matter what the query asked for. */
 .arena-chat__composer {
   flex: 0 0 auto;
+  /* NAILED TO THE FOOT OF THE PANEL. Owner, 2026-08-27: the input must sit on
+     the chat's bottom edge and never move.
+
+     `flex: 0 0 auto` alone does not promise that - it promises the composer
+     will not GROW, not that it will be last against the floor. Whatever slack
+     the column has left over lands after the final item, which is under the
+     composer. Measured on a touch tablet at 2000px before this: 162px of dead
+     panel below the input, because the log's own ceiling stopped it absorbing
+     the slack (see the ceiling's note below). `margin-top: auto` moves every
+     leftover pixel ABOVE the composer instead, so the input is on the floor
+     whatever anything else in the column decides to do. */
+  margin-top: auto;
   display: flex;
   align-items: center;
   gap: .35rem;
@@ -9227,6 +9239,24 @@ body.page--arena.is-zoom-locked {
   /* THE JUMP PILL IS A DESKTOP CONTROL. See its own rule near the log for
      why it is off everywhere else. */
   .arena-chat__jump { display: inline-flex; }
+
+  /* THE LOG'S CEILING COMES OFF WHEREVER THE PANEL IS BOUNDED, and that is a
+     question about LAYOUT, not about pointers.
+
+     The rule that lifts it at :2232 is gated on the container's width AND
+     `hover: hover`, which was right for what it was written for - density is
+     a pointer question. The ceiling is not. A touch tablet kept
+     `max-height: min(42vh, 22rem)` = 352px, so the log could not absorb the
+     column's slack and 162px of dead panel appeared under the composer:
+     measured at 2000px, 352px of log with touch against 491px with a mouse
+     on the very same width.
+
+     From 901px up the panel has a bounded height of its own (v2.5.1324), so
+     the ceiling has nothing left to protect and the log can have the room.
+     Below 901px it stays exactly as it was - there the chat is a normal-flow
+     card and the ceiling is the only thing standing between six messages and
+     a page a screen taller. */
+  .arena-chat__log { max-height: none; }
 
   /* Centre: the octagon's cell. position:relative so its own internal
      absolutely-positioned children (.arena-floor-stage,
