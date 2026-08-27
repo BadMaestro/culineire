@@ -9923,18 +9923,40 @@ body.page--arena.is-zoom-locked {
        thing being talked about - a spectator would have had to scroll past
        the ranks, the ladder, the command grid and the gifts to say anything
        about the fight they are watching. Now it follows the floor, which is
-       the only block it is about. Nothing else moves and the chat's own
-       markup, ids and JS are untouched - this is one line of running order. */
+       the only block it is about.
+
+       THE PHONE PLACES BY NAME, so this list is the running order and the
+       document order counts for nothing here - which is why the desktop
+       swaps of v2.5.1354 and v2.5.1366 did not reach it and had to be made
+       again, by hand, in the list. Owner, 2026-08-27, in one message:
+
+       - "обязательно в телефоне тоже сделать так же" - the camera goes above
+         the chat, as it now does in the rail. This is the same Owner
+         relaxing his own 2026-08-24 line above: the chat still follows the
+         arena, with the house camera between them, and he asked for that
+         explicitly after being shown the conflict.
+       - "ранги в телефоне все еще снизу а стадии сверху - тоже нужно все
+         поменять" - ladder and ribbon trade places, so the phone reads
+         the way the desktop has read since v2.5.1354: ranks above the
+         arena, phases below it.
+
+       NOTE WHICH ELEMENT IS THE PHONE'S RANKS. `.arena-rank-strip`, the
+       eight-ring band that carries `grid-area: ranks` on the desktop, is
+       `display: none` here - measured on the live page - and the compact
+       ladder of the 2026-08-21 kitchen-ranks redesign is what a phone
+       actually shows. So `ladder` is the row that moves, not `ranks`; there
+       is no `ranks` area in this list and adding one would place a hidden
+       box. */
     grid-template-areas:
-      "ribbon"
+      "ladder"
       "floor"
-      "chat"
       "stream"
+      "chat"
       "phase"
       "foot"
       "metrics"
       "mobilescene"
-      "ladder"
+      "ribbon"
       "command"
       "gifts"
       "guide";

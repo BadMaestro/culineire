@@ -25477,8 +25477,34 @@ class ArenaHouseStreamTests(TestCase):
         css = self.CSS.read_text(encoding="utf-8")
         # read_text normalises newlines, so the separator here is a bare
         # newline even though the file on disk is CRLF.
-        self.assertIn('"chat"' + chr(10) + '      "stream"', css)
+        self.assertIn('"stream"' + chr(10) + '      "chat"', css)
         self.assertIn(".arena-house-stream { grid-area: stream; }", css)
+
+    def test_the_phone_reads_the_way_the_desktop_does(self):
+        """Owner, 2026-08-27: "ранги в телефоне все еще снизу а стадии сверху".
+
+        The desktop swapped in v2.5.1354 - ranks above the arena, phases
+        below - and the phone did not follow, because below 641px the deck
+        places by NAME and the desktop change was made in a different list.
+
+        WHICH ELEMENT IS THE PHONE'S RANKS matters here and is easy to get
+        wrong: `.arena-rank-strip` carries `grid-area: ranks` and is the
+        desktop's top band, but it is display:none on a phone - measured on
+        the live page - so the row that moves is the compact `ladder`, and
+        naming a `ranks` area here would place a hidden box above the
+        arena."""
+        css = self.CSS.read_text(encoding="utf-8")
+        block = css[css.index('"stream"' + chr(10) + '      "chat"'):]
+        head = css[:css.index('"stream"' + chr(10) + '      "chat"')]
+        areas = head[head.rindex("grid-template-areas:"):] + block[:block.index(";")]
+        order = [ln.strip().strip('"') for ln in areas.splitlines()[1:] if ln.strip()]
+        self.assertLess(order.index("ladder"), order.index("floor"),
+                        "the ranks have to sit above the arena")
+        self.assertGreater(order.index("ribbon"), order.index("floor"),
+                           "the phases have to sit below the arena")
+        self.assertNotIn("ranks", order,
+                         "`ranks` is display:none on a phone - naming it "
+                         "here places an empty row above the arena")
 
     def test_the_stage_holds_its_shape_in_both_states(self):
         """The off-air card is the same box as the picture, so the column does

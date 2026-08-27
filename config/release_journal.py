@@ -1,5 +1,44 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1369",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The phone reads the way the desktop does",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-27, two corrections in one line: the camera goes "
+            "above the chat on the phone too, and the ranks are still at the "
+            "bottom there while the phases are at the top - swap them. BOTH "
+            "ARE THE SAME OMISSION. Below 641px the deck places by NAME, so "
+            "document order counts for nothing and neither the rank/phase "
+            "swap of v2.5.1354 nor the camera/chat swap of v2.5.1366 could "
+            "reach it; both had to be made again, by hand, in a different "
+            "list. That is the lesson worth keeping: a desktop running-order "
+            "change is never automatically a phone one. THE FIRST QUESTION "
+            "WAS WHICH ELEMENT IS THE PHONE'S RANKS, and guessing would have "
+            "shipped an empty row. `.arena-rank-strip` carries "
+            "`grid-area: ranks` and is the desktop's top band - but measured "
+            "on the live page it is display:none below 641px, and what a "
+            "phone actually shows is the compact ladder of the 2026-08-21 "
+            "kitchen-ranks redesign, sitting ninth of twelve at y2252. So "
+            "`ladder` is the row that moved to the top; naming a `ranks` area "
+            "would have placed a hidden box above the arena. The phase rail "
+            "went the other way, from first to ninth, and the phone now reads "
+            "ranks, arena, camera, chat, status - the desktop's order. THE "
+            "CHAT'S OWN RULE WAS RELAXED BY ITS AUTHOR. On 2026-08-24 the "
+            "Owner moved the chat out of the tail of the phone and demanded "
+            "it sit immediately under the arena, because it is the "
+            "spectators talking about the fight they are watching; the camera "
+            "now sits between them. That conflict was put to him rather than "
+            "resolved quietly, and \"обязательно в телефоне тоже сделать так же\" is the "
+            "answer. Both comments in the stylesheet now carry the whole "
+            "sequence, so the next reader does not undo one with the other. "
+            "One list of twelve rows, no markup and no JavaScript touched. "
+            "29 tests green, and the new one asserts the absence as well as "
+            "the order: no `ranks` area in the phone list."
+        ),
+    },
+    {
         "version": "2.5.1366",
         "date": "2026-08-27",
         "commit": "pending",
