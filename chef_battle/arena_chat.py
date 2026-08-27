@@ -29,6 +29,7 @@ Two consequences shape this module:
 from __future__ import annotations
 
 import math
+import re
 
 from django.db import models
 
@@ -625,3 +626,86 @@ def _media_row(message):
         except ValueError:
             pass
     return row
+
+
+# ---------------------------------------------------------------------------
+# AC-STK Part A: a sticker you have not bought is not a sticker you can send
+# ---------------------------------------------------------------------------
+
+#: THE ENFORCEMENT SET IS EIGHTEEN TOKENS, NOT THIRTEEN.
+#:
+#: static/js/arena_chat.js carries LEGACY_STICKERS, added in v2.5.1348 so lines
+#: sent before the pack was re-cut would keep drawing instead of turning back
+#: into text. The picker has never offered these five, but arena_chat_send
+#: accepts any body at all, so a hand-typed `:fired:` draws the SEARED painting
+#: for everyone in earshot. Enforce ownership on the alias exactly as on the
+#: token it resolves to, or the pack has five free doors.
+#:
+#: LegacyStickerAliasesAgreeTests pins this dict against the JavaScript one; a
+#: sixth alias added on one side and not the other fails there rather than in
+#: somebody's chat.
+LEGACY_STICKER_ALIASES = {
+    "service": "order_up",
+    "plated": "absolute_cinema",
+    "fired": "seared",
+    "still_raw": "eighty_sixed",
+    "behind": "let_him_cook",
+}
+
+#: BODY_TOKEN's own pattern, from static/js/arena_chat.js. The two must agree:
+#: a token this misses is a sticker that is sold and never checked, and a token
+#: this matches but the renderer does not is a refusal for a line that would
+#: have drawn as plain text anyway.
+_STICKER_TOKEN_RE = re.compile(r":([a-z0-9_]{2,32}):")
+
+
+def unowned_sticker_tokens(author, body: str) -> list[str]:
+    """Which stickers in this line the speaker has not bought.
+
+    Empty list means the line may be said. The caller refuses on anything else.
+
+    THE ORDER OF THE THREE STEPS IS THE SECURITY OF THE FEATURE, because custom
+    emoji share the syntax exactly: `:golden_knife:` and `:let_him_cook:` are
+    the same shape, and ten custom emoji must keep working for a reader who owns
+    nothing at all. So the candidates are intersected with the StickerItem
+    CATALOGUE before ownership is looked at - anything without a catalogue row
+    can never reach the ownership query, which makes "it is not a sticker" and
+    "it is a sticker you do not own" structurally different answers rather than
+    two branches somebody has to keep in step.
+
+    COSTS NOTHING FOR ORDINARY SPEECH. A line with no `:token:` in it returns
+    here without touching the database; a line whose tokens are all emoji costs
+    one catalogue query and no ownership query.
+    """
+    if not body or ":" not in body:
+        return []
+
+    candidates = {
+        LEGACY_STICKER_ALIASES.get(raw, raw)
+        for raw in _STICKER_TOKEN_RE.findall(body)
+    }
+    if not candidates:
+        return []
+
+    from .models import ChefSticker, StickerItem
+
+    # Step two: only tokens this project actually sells. `is_active` is NOT
+    # filtered here - withdrawing a sticker from sale must not silently unlock
+    # it for everyone, which is what excluding it from this set would do.
+    real = set(
+        StickerItem.objects
+        .filter(token__in=candidates)
+        .values_list("token", flat=True)
+    )
+    if not real:
+        return []
+
+    if author is None:
+        return sorted(real)
+
+    owned = set(
+        ChefSticker.objects
+        .filter(chef=author, sticker__token__in=real)
+        .values_list("sticker__token", flat=True)
+    )
+    return sorted(real - owned)

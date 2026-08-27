@@ -638,6 +638,185 @@ def token_shop(request):
     })
 
 
+# ---------------------------------------------------------------------------
+# AC-STK Part A: the Stickers section of the artifact shop
+# ---------------------------------------------------------------------------
+#
+# All three views below carry @chef_battle_guard OUTERMOST, for the reason
+# spelled out at token_checkout_create a little further down this file: during
+# a dark launch a URL that answers 405 or a login redirect has announced its own
+# existence, while every other gated arena surface answers 404.
+
+
+#: Where the picker's 160px tiles live. The 360px files beside them are what a
+#: MESSAGE draws; a grid of thirteen at message size costs 630 KB for a page
+#: nobody reads twice.
+STICKER_TILE_DIR = "images/chef_battle/arena/stickers/tile/"
+
+
+def _sticker_tile(item):
+    """A sticker plus the URL of its picker tile.
+
+    THE URL IS RESOLVED THROUGH THE STORAGE, never assembled from the token in
+    a template or a script. Static files are served by
+    ManifestStaticFilesStorage, so every name carries a content hash
+    (`yes_chef.a1b2c3d4.webp`) and only the storage knows it. A path built by
+    concatenation would 404 on production and work perfectly in development,
+    which is the worst shape a bug can have - and it is the same trap
+    _arena_chat_stickers.html has a paragraph about.
+
+    A token with no file on disk yields None rather than raising: the manifest
+    lookup is strict, and one missing picture must not take the whole shop down
+    with a 500.
+    """
+    from django.contrib.staticfiles.storage import staticfiles_storage
+
+    try:
+        url = staticfiles_storage.url(f"{STICKER_TILE_DIR}{item.token}.webp")
+    except Exception:
+        url = None
+    return {"item": item, "tile_url": url}
+
+
+@chef_battle_guard
+def sticker_shop(request):
+    """The Stickers section: what is for sale, what you already own.
+
+    The Owner's flat-price rule is stated HERE, before payment, rather than
+    discovered afterwards: a buyer who owns four of the thirteen still pays the
+    full 100 for the pack and receives the missing nine.
+    """
+    from .models import ChefSticker, StickerItem, StickerPack
+
+    packs = list(
+        StickerPack.objects.filter(is_active=True)
+        .prefetch_related("stickers")
+    )
+    loose = list(StickerItem.objects.filter(is_active=True, pack__isnull=True))
+
+    viewer_author = get_author_for_user(request.user)
+    wallet = None
+    owned_ids = set()
+    if viewer_author:
+        wallet, _ = TokenWallet.objects.get_or_create(chef=viewer_author)
+        owned_ids = set(
+            ChefSticker.objects.filter(chef=viewer_author).values_list("sticker_id", flat=True)
+        )
+
+    rows = []
+    for pack in packs:
+        items = [s for s in pack.stickers.all() if s.is_active]
+        owned_here = [s for s in items if s.pk in owned_ids]
+        rows.append({
+            "pack": pack,
+            # NOT "items": a Django template resolves `row.items` as a
+            # DICTIONARY LOOKUP first and dict.items() second, so the key would
+            # work today and turn into a bound method the moment anything
+            # renamed it. One word avoids the whole question.
+            "stickers": [_sticker_tile(s) for s in items],
+            "owned_count": len(owned_here),
+            "missing_count": len(items) - len(owned_here),
+            "complete": bool(items) and len(owned_here) == len(items),
+        })
+
+    return render(request, "chef_battle/sticker_shop.html", {
+        "pack_rows": rows,
+        "loose_stickers": [_sticker_tile(s) for s in loose],
+        "owned_ids": owned_ids,
+        "wallet": wallet,
+        "has_profile": viewer_author is not None,
+    })
+
+
+def _sticker_purchase_gates(author):
+    """The fraud gates that run BEFORE any money query, and their message.
+
+    Returns an error string, or "" when the purchase may proceed. Same three
+    gates the Treasury runs for a token spend, minus the ones that only mean
+    something for a real-money checkout.
+    """
+    result = run_fraud_gates([
+        (gate_suspended_account, (author,), {}),
+        (gate_fraud_flagged, (author,), {}),
+        (gate_age_verified, (author,), {}),
+    ])
+    if result.passed:
+        return ""
+    # GateResult names its gate in `.gate`, the same field token_checkout_create
+    # reads a few hundred lines below. It has no `.name`.
+    first_fail = next(g for g in result.gates if not g.passed)
+    return {
+        "suspended_account": "Your account is suspended.",
+        "fraud_flagged": "Your account has been flagged. Please contact support.",
+        "age_verified": "You must confirm that you are 18 or older before buying stickers.",
+    }.get(first_fail.gate, "That purchase was refused.")
+
+
+@chef_battle_guard
+@require_POST
+@login_required
+def sticker_buy(request):
+    from .models import StickerItem
+    from .services import buy_sticker
+
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "You need a chef profile to buy stickers.")
+        return redirect("chef_battle:sticker_shop")
+
+    refusal = _sticker_purchase_gates(author)
+    if refusal:
+        messages.error(request, refusal)
+        return redirect("chef_battle:sticker_shop")
+
+    sticker = get_object_or_404(StickerItem, pk=request.POST.get("sticker"), is_active=True)
+    try:
+        bought = buy_sticker(chef=author, sticker=sticker)
+    except Exception as exc:
+        # debit_tokens raises "Insufficient tokens: need XT, have YT." and that
+        # sentence is the most useful thing anybody can be told here, so it is
+        # surfaced rather than replaced with a generic apology.
+        messages.error(request, str(exc))
+        return redirect("chef_battle:sticker_shop")
+
+    if bought is None:
+        messages.info(request, f"You already own {sticker.label} - nothing was charged.")
+    else:
+        messages.success(request, f"{sticker.label} is yours. Send it as :{sticker.token}:")
+    return redirect("chef_battle:sticker_shop")
+
+
+@chef_battle_guard
+@require_POST
+@login_required
+def sticker_pack_buy(request):
+    from .models import StickerPack
+    from .services import buy_sticker_pack
+
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "You need a chef profile to buy stickers.")
+        return redirect("chef_battle:sticker_shop")
+
+    refusal = _sticker_purchase_gates(author)
+    if refusal:
+        messages.error(request, refusal)
+        return redirect("chef_battle:sticker_shop")
+
+    pack = get_object_or_404(StickerPack, pk=request.POST.get("pack"), is_active=True)
+    try:
+        rows = buy_sticker_pack(chef=author, pack=pack)
+    except Exception as exc:
+        messages.error(request, str(exc))
+        return redirect("chef_battle:sticker_shop")
+
+    messages.success(
+        request,
+        f"{pack.name}: {len(rows)} sticker{'' if len(rows) == 1 else 's'} added to your picker.",
+    )
+    return redirect("chef_battle:sticker_shop")
+
+
 WITHDRAWAL_CONSENT_TEXT = (
     "I understand that CulinEire Arena Tokens are a digital item delivered immediately upon purchase. "
     "By proceeding, I expressly request immediate delivery and acknowledge that I lose my right of "
@@ -1635,6 +1814,31 @@ def _is_ios_webkit(request) -> bool:
     return any(device in ua for device in ("iPhone", "iPad", "iPod"))
 
 
+def _owned_sticker_tokens_json(viewer_author) -> str:
+    """The reader's own sticker tokens, as a JSON array literal.
+
+    Rendered into a <script type="application/json"> block rather than passed
+    through {% static %} or built in the browser: it is DATA about this reader,
+    not a path to a file, and the two must not be confused - the sticker
+    template's own static-call count is asserted in the tests.
+
+    json.dumps is what escapes it. The tokens are constrained to [a-z0-9_] at
+    the model, so there is nothing dangerous in them today; relying on that
+    rather than on the encoder would be relying on a validator staying strict
+    forever.
+    """
+    if viewer_author is None:
+        return "[]"
+    from .models import ChefSticker
+
+    tokens = list(
+        ChefSticker.objects
+        .filter(chef=viewer_author)
+        .values_list("sticker__token", flat=True)
+    )
+    return json.dumps(sorted(tokens))
+
+
 def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
     """Assemble everything chef_battle/arena.html needs.
 
@@ -1696,6 +1900,14 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         "spectator_count": len(spectators),
         "active_battle": active_battle,
         "arena_data": arena_data,
+        # AC-STK: which stickers this reader has bought, for the picker.
+        #
+        # DEGRADES TO "[]" RATHER THAN ASSUMING AN AUTHOR, because this builder
+        # is shared with the token-gated preview routes where viewer_author is
+        # None. Empty locks every tile, which is the correct answer for a
+        # reader who cannot own anything - and the same failure mode the client
+        # falls back to when the block is missing altogether.
+        "owned_sticker_tokens_json": _owned_sticker_tokens_json(viewer_author),
         # arena.html reads these three at the top level for the first
         # server-rendered paint (crown streak, crown ladder, recent gifts),
         # before the JS poll repaints from arena_state. They also live inside
@@ -4703,7 +4915,9 @@ def arena_chat_send(request):
     if getattr(request, "limited", False):
         return JsonResponse({"ok": False, "error": "rate_limited"}, status=429)
 
-    from .arena_chat import audible_lines, participates_in, private_lines
+    from .arena_chat import (
+        audible_lines, participates_in, private_lines, unowned_sticker_tokens,
+    )
     from .models import ArenaChatMessage
 
     author, seat = _arena_chat_speaker(request)
@@ -4795,6 +5009,27 @@ def arena_chat_send(request):
     if not body and media is None and reused is None:
         return JsonResponse({"ok": False, "error": "empty"}, status=400)
     body = body[:ARENA_CHAT_MAX_CHARS]
+
+    # A STICKER YOU HAVE NOT BOUGHT IS NOT A STICKER YOU CAN SEND. AC-STK,
+    # Owner 2026-08-27: the thirteen stickers become goods, so without this
+    # check the purchase means nothing.
+    #
+    # HERE, and not two lines either way. AFTER the truncation above, so the
+    # check reads the exact string that will be stored rather than the one that
+    # arrived. BEFORE the create() below, so a refused line leaves no row - the
+    # same discipline the media path already keeps a few lines up. And above
+    # the hall/DM branch, so it covers private rooms: a sticker sent to one
+    # person is still a sticker.
+    #
+    # ON SEND, NEVER ON READ. Every message already in the database renders
+    # exactly as it did yesterday, for everyone, because nothing here touches
+    # the rendering path.
+    unowned = unowned_sticker_tokens(author, body)
+    if unowned:
+        return JsonResponse(
+            {"ok": False, "error": "sticker_not_owned", "tokens": unowned},
+            status=403,
+        )
 
     # The line being answered, if any. Resolved to a real row rather than
     # trusted: an id that does not exist, is hidden, or was never visible is

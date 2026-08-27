@@ -62,3 +62,20 @@ weight guard measures, because that is the set a reader actually waits on.
   "absolute_cinema":   "{% static 'images/chef_battle/arena/stickers/tile/absolute_cinema.webp' %}",
   "noooo":             "{% static 'images/chef_battle/arena/stickers/tile/noooo.webp' %}"
 }</script>
+{% comment %}
+WHICH OF THEM THIS READER HAS BOUGHT. AC-STK, Owner 2026-08-27.
+
+DATA, NOT PATHS - deliberately no {% templatetag openblock %} static {% templatetag closeblock %} call in here. The two maps
+above are the only route to the files and a test counts their static calls
+against the token list; keeping this block free of them is what proves this
+feature introduced no second path to a picture.
+
+THE PICKER IS NOT THE GATE. Ownership is enforced where the line is written,
+in arena_chat_send, because a lock drawn in the browser is a courtesy. This
+list only decides which tiles look available.
+
+FAILS CLOSED. A missing or malformed block leaves the list EMPTY, which locks
+everything rather than unlocking everything - and empty is exactly what the
+token-gated preview routes render, where there is no reader to own anything.
+{% endcomment %}
+<script type="application/json" id="arena-chat-sticker-owned">{{ owned_sticker_tokens_json|default:"[]" }}</script>

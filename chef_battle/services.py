@@ -3095,6 +3095,125 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
     return gift
 
 
+# ---------------------------------------------------------------------------
+# AC-STK Part A: stickers are goods
+# ---------------------------------------------------------------------------
+#
+# The Owner, 2026-08-27: the thirteen Arena chat stickers become paid items -
+# 10 tokens each, 100 for the pack, sold from a Stickers section of the
+# artifact shop, owned forever and usable without limit.
+#
+# BOTH SERVICES TAKE A RecipeAuthor, never a User. That is not style: two call
+# sites in this file (send_battle_artifact, send_appreciation_gift) reach for
+# `getattr(sender_user, "recipe_author", None)` and the reverse accessor is
+# actually `recipe_author_profile`, so that expression has always been None and
+# the code silently falls through to the query below it. Taking the author
+# directly removes the hop and the trap, and matches debit_tokens(chef, ...).
+
+
+def buy_sticker(*, chef, sticker):
+    """One sticker, at its own price, owned forever.
+
+    Returns the new ChefSticker, or None when the chef already owns it - in
+    which case NOTHING IS CHARGED. Buying something twice is a mis-click, not a
+    purchase.
+    """
+    from .models import ChefSticker
+
+    if not sticker.is_active:
+        raise ValueError("That sticker is not on sale.")
+
+    # A courteous pre-check that saves the common case a transaction. It is NOT
+    # the safety - the unique constraint below is (see the except).
+    if ChefSticker.objects.filter(chef=chef, sticker=sticker).exists():
+        return None
+
+    try:
+        with transaction.atomic():
+            token_tx = debit_tokens(
+                chef, sticker.token_cost,
+                tx_type=TokenTransaction.TxType.COSMETIC_BOUGHT,
+                description=f"Sticker: {sticker.label}",
+            )
+            owned = ChefSticker.objects.create(
+                chef=chef,
+                sticker=sticker,
+                source=ChefSticker.Source.SINGLE,
+                token_transaction=token_tx,
+            )
+    except IntegrityError:
+        # TWO CONCURRENT BUYS. At READ COMMITTED both passed the exists() above;
+        # this one lost the race on unique_sticker_per_chef. The debit is inside
+        # the same atomic() block, so it rolled back with the create and this
+        # buyer was not charged. The `except` sits OUTSIDE the block on purpose:
+        # catching it inside a still-broken transaction raises
+        # TransactionManagementError instead. And debit_tokens opens its own
+        # atomic() which nests as a SAVEPOINT - that nesting is what makes the
+        # rollback reach the debit, so do not lift the debit out of here.
+        return None
+    return owned
+
+
+def buy_sticker_pack(*, chef, pack):
+    """The whole pack at one flat price.
+
+    THE PRICE IS FLAT AND THE OWNER SAID SO TWICE: "либо сразу все либо каждый
+    по 10". A buyer who already owns four of the thirteen still pays the full
+    100 and receives the missing nine. There is deliberately no discount
+    arithmetic here; what there IS, is a shop that states the rule before the
+    buyer pays rather than after.
+
+    Returns the list of ChefSticker rows created. Raises if the chef already
+    owns the whole pack - charging 100 for nothing is the one outcome that is
+    simply wrong.
+    """
+    from .models import ChefSticker
+
+    if not pack.is_active:
+        raise ValueError("That pack is not on sale.")
+
+    items = list(pack.stickers.filter(is_active=True))
+    if not items:
+        raise ValueError("That pack is empty.")
+
+    owned_ids = set(
+        ChefSticker.objects
+        .filter(chef=chef, sticker__in=items)
+        .values_list("sticker_id", flat=True)
+    )
+    missing = [item for item in items if item.pk not in owned_ids]
+    if not missing:
+        raise ValueError("You already own every sticker in this pack.")
+
+    try:
+        with transaction.atomic():
+            token_tx = debit_tokens(
+                chef, pack.token_cost,
+                tx_type=TokenTransaction.TxType.COSMETIC_BOUGHT,
+                description=f"Sticker pack: {pack.name}",
+            )
+            # ONE transaction for the whole pack, carried by every row, so a
+            # refund can find all of them from the debit it is reversing.
+            #
+            # NEVER ignore_conflicts=True: it would swallow exactly the race
+            # this constraint exists to report, and the buyer would be charged
+            # 100 for rows that were never written.
+            rows = ChefSticker.objects.bulk_create([
+                ChefSticker(
+                    chef=chef,
+                    sticker=item,
+                    source=ChefSticker.Source.PACK,
+                    token_transaction=token_tx,
+                )
+                for item in missing
+            ])
+    except IntegrityError:
+        raise ValueError(
+            "Some of those stickers were bought a moment ago - nothing was charged. Try again."
+        )
+    return rows
+
+
 # Rarity weights for artifact drops
 _DROP_WEIGHTS_WINNER = {
     "common": 30,

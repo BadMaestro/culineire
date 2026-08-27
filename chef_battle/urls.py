@@ -117,6 +117,11 @@ urlpatterns = [
     path("payout/", views.payout_statement, name="payout_statement"),
     path("payout/agreement/", views.reward_agreement, name="reward_agreement"),
     path("report/", views.content_report_submit, name="content_report_submit"),
+    # AC-STK: the Stickers section of the shop. All three carry
+    # @chef_battle_guard, so RoutedViewAccessAuditTests needs no allowlist edit.
+    path("stickers/", views.sticker_shop, name="sticker_shop"),
+    path("stickers/buy/", views.sticker_buy, name="sticker_buy"),
+    path("stickers/pack/buy/", views.sticker_pack_buy, name="sticker_pack_buy"),
     path("artifacts/", views.artifact_gallery, name="artifact_gallery"),
     path("artifacts/<int:pk>/", views.artifact_detail, name="artifact_detail"),
     path("artifacts/<int:pk>/generate/", views.artifact_generate_image, name="artifact_generate_image"),

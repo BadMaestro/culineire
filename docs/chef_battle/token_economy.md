@@ -48,8 +48,22 @@ Larger packages = better value. Encourages bulk purchases.
 | Gift Epic artifact | 150 | 150 | **300 tokens** |
 | Gift Legendary artifact | — | — | **prize only, cannot be bought** |
 | Appreciation gift (6 kinds, no fee) | 20–100 | — | **20–100 tokens** |
-| (Future) Profile cosmetics | TBD | | |
+| **Arena chat sticker, on its own** | 10 | — | **10 tokens** |
+| **The CulinEire Kitchen pack, all 13** | 100 | — | **100 tokens** |
 | (Future) Extra battle slot | TBD | | |
+
+**Stickers, AC-STK, Owner 2026-08-27.** The thirteen Arena chat stickers were
+free from v2.5.1372 until this card; they are goods now. **The pack price is
+FLAT** and that is his ruling rather than an implementation shortcut: a buyer
+who already owns four still pays the full 100 and receives the missing nine —
+*either all at once, or ten each*. **The pack's membership is frozen**: a
+fourteenth sticker goes into a NEW pack, never into this one, because adding to
+a pack that already has buyers silently enlarges what every one of them paid
+for. Ownership is per chef and permanent, with no limit on use, and it is
+enforced where a line is written rather than where one is read — every message
+already in the database renders for everybody exactly as it did before.
+A moderator may grant a sticker or a pack for nothing, from the moderation
+panel, and that grant writes no token transaction because nobody paid.
 
 ---
 

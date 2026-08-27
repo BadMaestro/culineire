@@ -37,6 +37,10 @@
   var relationUrl = root.getAttribute('data-relation-url');
   var reportUrl = root.getAttribute('data-report-url');
   var mySlug = root.getAttribute('data-me') || '';
+  /* AC-STK: where a locked sticker tile sends the reader. Reversed by Django
+   * into the markup rather than built here - a URL assembled in a script is a
+   * second copy of the routing table that nothing keeps in step. */
+  var SHOP_URL = root.getAttribute('data-sticker-shop-url') || '';
   /* Rendered from has_perm on the SERVER. Presentation only - every moderation
    * endpoint re-checks the permission itself. */
   var canModerate = root.getAttribute('data-can-moderate') === '1';
@@ -185,6 +189,50 @@
     try { STICKER_TILES = JSON.parse(node.textContent) || {}; }
     catch (err) { STICKER_TILES = {}; }
   }());
+
+  /* WHICH OF THEM THIS READER HAS BOUGHT. AC-STK, Owner 2026-08-27: the
+   * thirteen stickers are goods now, 10 tokens each or 100 for the pack.
+   *
+   * THIS IS NOT THE GATE AND MUST NOT BE MISTAKEN FOR ONE. Ownership is
+   * enforced where the line is written, in arena_chat_send, because anything
+   * decided in a browser is a courtesy to the person using it rather than a
+   * rule about them. All this set does is decide which tiles look available.
+   *
+   * FAILS CLOSED. A missing or malformed block leaves the set empty, which
+   * locks every tile rather than unlocking every tile - and empty is also
+   * exactly what a signed-out reader and the token-gated preview render, where
+   * there is nobody to own anything. */
+  var OWNED_STICKERS = {};
+  (function () {
+    var node = document.getElementById('arena-chat-sticker-owned');
+    if (!node) { return; }
+    var list;
+    try { list = JSON.parse(node.textContent); }
+    catch (err) { return; }
+    if (!Array.isArray(list)) { return; }
+    list.forEach(function (token) { OWNED_STICKERS[token] = true; });
+  }());
+
+  /* What the reader is told when the server refuses an unowned sticker. Names
+   * the tokens it actually refused rather than a general apology, because a
+   * line can carry more than one and only some of them are the problem. */
+  function notOwnedMessage(tokens) {
+    var list = (Array.isArray(tokens) ? tokens : []).map(function (t) {
+      var known = STICKER_BY_TOKEN[t];
+      return known ? known.label : ':' + t + ':';
+    });
+    if (!list.length) { return 'You do not own that sticker yet.'; }
+    if (list.length === 1) { return 'You do not own ' + list[0] + ' yet.'; }
+    return 'You do not own these yet: ' + list.join(', ') + '.';
+  }
+
+  function ownsSticker(token) {
+    var known = STICKER_BY_TOKEN[token];
+    /* An alias resolves to the picture it points at, so ownership is asked
+     * about the sticker that would actually be drawn - the same resolution the
+     * server does in unowned_sticker_tokens(). */
+    return !!(known && OWNED_STICKERS[known.token]);
+  }
 
   /* The picture, from OUR OWN table and never from the message text - the src
    * here can only be a URL the page itself printed, looked up by a token that
@@ -1900,11 +1948,17 @@
       if (!cat) { return; }
       if (cat.stickers) {
         STICKERS.forEach(function (item) {
+          var owned = ownsSticker(item.token);
           var b = document.createElement('button');
           b.type = 'button';
-          b.className = 'arena-chat__emoji-btn arena-chat__emoji-btn--sticker';
-          b.setAttribute('aria-label', item.label);
-          b.title = item.label;
+          b.className = 'arena-chat__emoji-btn arena-chat__emoji-btn--sticker'
+            + (owned ? '' : ' arena-chat__emoji-btn--locked');
+          /* SHOWN, NOT HIDDEN. A sticker somebody could buy is worth seeing;
+             an empty grid sells nothing and reads as a broken tab. */
+          b.setAttribute('aria-label', owned
+            ? item.label
+            : item.label + ' - not bought yet');
+          b.title = owned ? item.label : item.label + ' - tap to buy';
           var node = stickerNode(item.token, true);
           /* Thirteen pictures at once when the tab is opened, and the tab is
              not the one the picker starts on. Lazy keeps them off the wire
@@ -1912,6 +1966,15 @@
              asks for the 160px tile rather than the message's own file. */
           if (node) { node.loading = 'lazy'; b.appendChild(node); }
           b.addEventListener('click', function () {
+            if (!owned) {
+              /* THE ADDRESS COMES FROM DJANGO, never assembled here - the same
+                 rule as the picture URLs above, and for the same reason. If the
+                 page did not print one there is nowhere honest to send anybody,
+                 so the reader is told rather than navigated. */
+              if (SHOP_URL) { window.location.href = SHOP_URL; }
+              else { notice('You do not own ' + item.label + ' yet.'); }
+              return;
+            }
             // Inserted, not sent. Every other tile in this picker inserts, and
             // one tile that fires a message instead would be the same control
             // doing two different things.
@@ -2581,6 +2644,11 @@
           notice(
             (data && data.error === 'bad_media' && data.detail) ? data.detail
               : (data && data.error === 'rate_limited') ? 'Slow down a moment.'
+              // AC-STK. The line is already back in the composer above, which
+              // is the right behaviour here rather than a consolation: the
+              // reader keeps what they wrote, buys the sticker, and sends it.
+              : (data && data.error === 'sticker_not_owned')
+                ? notOwnedMessage(data.tokens)
               : 'That did not send.'
           );
         }

@@ -12504,3 +12504,42 @@ button.arena-chat__poll-option:hover {
 @media (max-width: 640px) {
   .arena-house-stream { grid-area: stream; }
 }
+
+/* AC-STK - A STICKER YOU HAVE NOT BOUGHT.
+
+   SHOWN, DIMMED, LOCKED - never hidden. A sticker somebody could buy for ten
+   tokens is worth seeing; a grid emptied down to what the reader owns sells
+   nothing and, on the day this ships, reads as a broken tab, because nobody
+   owns a row yet.
+
+   This is presentation and not the rule. Ownership is enforced in
+   arena_chat_send, where the line is actually written, so nothing here is
+   load-bearing: a reader who defeats this CSS reaches a 403 rather than a free
+   sticker.
+
+   Two classes on the selector, no !important - the blanket
+   `.arena-chat * { color: inherit }` reset in this file eats single-class
+   colour rules, and prefixing is how every other rule here answers it. */
+.arena-chat .arena-chat__emoji-btn--locked {
+  position: relative;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__emoji-btn--locked .arena-chat__sticker {
+  opacity: 0.34;
+  filter: grayscale(1);
+}
+.arena-chat .arena-chat__emoji-btn--locked::after {
+  content: "";
+  position: absolute;
+  right: 0.2rem;
+  bottom: 0.2rem;
+  width: 0.75rem;
+  height: 0.6rem;
+  border-radius: 0.12rem;
+  background: var(--accent-bronze);
+  box-shadow: 0 0 0 0.12rem rgba(0, 0, 0, 0.42);
+}
+.arena-chat .arena-chat__emoji-btn--locked:hover .arena-chat__sticker,
+.arena-chat .arena-chat__emoji-btn--locked:focus-visible .arena-chat__sticker {
+  opacity: 0.62;
+}

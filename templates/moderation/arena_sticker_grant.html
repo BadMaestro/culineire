@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sticker Grants | CulinEire{% endblock %}
+{% block meta_description %}Grant an Arena sticker or the whole pack to an account.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<style nonce="{{ request.csp_nonce }}">
+  .asg-shell { max-width:860px; margin-inline:auto; }
+  .asg-head h1 { margin:.2rem 0; font-family:var(--font-serif); }
+  .asg-kicker { color:var(--muted); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; }
+  .asg-note { max-width:70ch; color:var(--muted); }
+  .asg-card { margin-top:1.4rem; border:1px solid var(--line); border-radius:14px; padding:1.2rem; background:var(--surface); }
+  .asg-find { display:flex; gap:.6rem; flex-wrap:wrap; }
+  .asg-find input { flex:1 1 16rem; padding:.55rem .7rem; border:1px solid var(--line); border-radius:9px; background:var(--surface-soft); font:inherit; }
+  .asg-msg { margin:0 0 1rem; padding:.6rem .8rem; border-radius:9px; }
+  .asg-msg--ok { background:color-mix(in srgb, var(--brand) 14%, transparent); color:var(--brand-dark); }
+  .asg-msg--err { background:color-mix(in srgb, var(--danger, #a8321f) 12%, transparent); color:var(--danger, #a8321f); }
+  .asg-who { margin:.2rem 0 1rem; font-weight:700; }
+  .asg-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(9rem, 1fr)); gap:.6rem; margin:.8rem 0 0; }
+  .asg-item { border:1px solid var(--line); border-radius:10px; padding:.5rem; text-align:center; }
+  .asg-item--owned { opacity:.55; }
+  .asg-item code { display:block; font-size:.7rem; color:var(--muted); margin:.2rem 0 .4rem; }
+  .asg-item button { width:100%; }
+  .asg-field { display:block; margin:1rem 0; }
+  .asg-field > span { display:block; margin-bottom:.3rem; color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; }
+  .asg-field input { width:100%; box-sizing:border-box; padding:.55rem .7rem; border:1px solid var(--line); border-radius:9px; background:var(--surface-soft); font:inherit; }
+  .asg-pack { margin-top:1.2rem; padding-top:1rem; border-top:1px solid var(--line); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="asg-shell">
+  <header class="asg-head">
+    <p class="asg-kicker">Moderation</p>
+    <h1>Sticker Grants</h1>
+    <p class="asg-note">
+      Put a sticker, or a whole pack, on an account without charging for it. This is
+      how a pack goes back after a refund or a reversal - the seed migration removes
+      the catalogue, never anybody's purchases.
+      Every grant records who made it and why. It writes no privilege of any kind,
+      and the Owner's own account is not granted from here.
+    </p>
+  </header>
+
+  <div class="asg-card">
+    {% if error %}<p class="asg-msg asg-msg--err">{{ error }}</p>{% endif %}
+    {% if granted %}<p class="asg-msg asg-msg--ok">Granted {{ granted }} sticker{{ granted|pluralize }}.</p>{% endif %}
+
+    <form class="asg-find" method="get">
+      <input aria-label="Chef slug or name" name="chef" placeholder="Chef slug or name" type="text" value="{{ query }}">
+      <button class="btn-secondary" type="submit">Find</button>
+    </form>
+
+    {% if author %}
+    <p class="asg-who">{{ author.name }} <code>{{ author.slug }}</code> - owns {{ owned_ids|length }} sticker{{ owned_ids|length|pluralize }}.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="chef" value="{{ author.slug }}">
+      <label class="asg-field">
+        <span>Why</span>
+        <input maxlength="200" name="reason" placeholder="e.g. refund reversal for order 1234" required type="text">
+      </label>
+
+      {% for pack in packs %}
+      <div class="asg-pack">
+        <strong>{{ pack.name }}</strong>
+        <button class="btn-primary" name="pack" type="submit" value="{{ pack.pk }}">Grant the whole pack</button>
+        <div class="asg-grid">
+          {% for item in pack.stickers.all %}
+          <div class="asg-item{% if item.pk in owned_ids %} asg-item--owned{% endif %}">
+            {{ item.label }}
+            <code>:{{ item.token }}:</code>
+            {% if item.pk in owned_ids %}
+            <span>Owned</span>
+            {% else %}
+            <button class="btn-secondary" name="sticker" type="submit" value="{{ item.pk }}">Grant</button>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      {% if loose %}
+      <div class="asg-pack">
+        <strong>Singles</strong>
+        <div class="asg-grid">
+          {% for item in loose %}
+          <div class="asg-item{% if item.pk in owned_ids %} asg-item--owned{% endif %}">
+            {{ item.label }}
+            <code>:{{ item.token }}:</code>
+            {% if item.pk in owned_ids %}
+            <span>Owned</span>
+            {% else %}
+            <button class="btn-secondary" name="sticker" type="submit" value="{{ item.pk }}">Grant</button>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

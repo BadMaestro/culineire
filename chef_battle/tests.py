@@ -14455,6 +14455,9 @@ class DarkLaunchInvisibilityTests(TestCase):
         ("chef_battle:token_checkout_create", {}),
         ("chef_battle:send_appreciation_gift", {"pk": 1}),
         ("chef_battle:send_viewer_battle_gift", {"pk": 1}),
+        # AC-STK: two more money endpoints, held to the same rule.
+        ("chef_battle:sticker_buy", {}),
+        ("chef_battle:sticker_pack_buy", {}),
     )
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
@@ -25561,3 +25564,605 @@ class ArenaHouseStreamTests(TestCase):
         stage = css[css.index(".arena-house-stream__stage {"):]
         stage = stage[:stage.index("}")]
         self.assertIn("aspect-ratio: 16 / 9", stage)
+
+
+# ===========================================================================
+# AC-STK PART A - STICKERS ARE GOODS
+# ===========================================================================
+#
+# Owner, 2026-08-27: the thirteen Arena chat stickers become paid items, 10
+# tokens each or 100 for the pack, owned forever and usable without limit.
+
+
+STICKER_JS = Path(__file__).resolve().parent.parent / "static" / "js" / "arena_chat.js"
+STICKER_TEMPLATE = (
+    Path(__file__).resolve().parent.parent
+    / "templates" / "chef_battle" / "_arena_chat_stickers.html"
+)
+STICKER_IMAGE_DIR = (
+    Path(__file__).resolve().parent.parent
+    / "static" / "images" / "chef_battle" / "arena" / "stickers"
+)
+
+
+def _make_chef(slug, balance=0):
+    """A chef with a wallet holding `balance` tokens."""
+    user = get_user_model().objects.create_user(username=slug, password="pw")
+    author = RecipeAuthor.objects.create(user=user, name=slug.title(), slug=slug)
+    TokenWallet.objects.get_or_create(chef=author)
+    if balance:
+        from .services import credit_tokens
+        credit_tokens(author, balance, tx_type="admin_grant", description="test float")
+    return user, author
+
+
+class StickerCatalogueTests(TestCase):
+    """The seed, and the four places a token has to agree with itself.
+
+    A sticker's token is the key in the database, in the message body, in the
+    JSON map the page prints and in the WebP filename. Nothing joins those but
+    the string, so a drift in any one of them is a sticker that is sold and
+    cannot be sent - or one that is sent and cannot be drawn.
+    """
+
+    def test_the_seed_made_one_pack_of_thirteen(self):
+        from .models import StickerItem, StickerPack
+
+        pack = StickerPack.objects.get(slug="culineire-kitchen")
+        self.assertEqual(pack.token_cost, 100)
+        self.assertEqual(pack.stickers.count(), 13)
+        self.assertEqual(StickerItem.objects.count(), 13)
+        for item in StickerItem.objects.all():
+            self.assertEqual(item.token_cost, 10, f"{item.token} is not 10T")
+
+    def test_every_token_matches_the_renderer_own_pattern(self):
+        """BODY_TOKEN in arena_chat.js matches `:[a-z0-9_]{2,32}:` and nothing
+        else. A token the database accepts but the renderer cannot match is a
+        sticker that is SOLD and cannot be SENT - which a hyphen already caused
+        once, in v2.5.1302."""
+        from .models import StickerItem
+
+        for item in StickerItem.objects.all():
+            self.assertRegex(item.token, r"^[a-z0-9_]{2,32}$")
+            item.full_clean()
+
+    def test_every_token_is_in_the_script_and_in_both_maps(self):
+        from .models import StickerItem
+
+        js = STICKER_JS.read_text(encoding="utf-8")
+        template = STICKER_TEMPLATE.read_text(encoding="utf-8")
+        for token in StickerItem.objects.values_list("token", flat=True):
+            self.assertIn(f"token: '{token}'", js, f"{token} is not in STICKERS")
+            self.assertIn(f'"{token}"', template, f"{token} has no URL printed")
+            self.assertTrue(
+                (STICKER_IMAGE_DIR / f"{token}.webp").exists(),
+                f"{token} has no message-size picture",
+            )
+            self.assertTrue(
+                (STICKER_IMAGE_DIR / "tile" / f"{token}.webp").exists(),
+                f"{token} has no picker tile",
+            )
+
+    def test_no_sticker_token_collides_with_a_custom_emoji(self):
+        """Custom emoji share the `:token:` syntax exactly. A token that is both
+        would be a sticker somebody has to buy in order to keep using an emoji
+        that has always been free."""
+        from .models import StickerItem
+
+        js = STICKER_JS.read_text(encoding="utf-8")
+        custom_block = js[js.index("var CUSTOM_EMOJI = ["):js.index("var CUSTOM_EMOJI_BY_TOKEN")]
+        emoji = set(re.findall(r"token: '([a-z0-9_]+)'", custom_block))
+        self.assertEqual(len(emoji), 10, "the custom emoji list changed shape")
+        clash = emoji & set(StickerItem.objects.values_list("token", flat=True))
+        self.assertEqual(clash, set(), f"tokens sold AND free: {clash}")
+
+
+class LegacyStickerAliasesAgreeTests(TestCase):
+    """The five retired names are enforced too, and the two copies of the map
+    are held against each other.
+
+    THE ENFORCEMENT SET IS EIGHTEEN TOKENS, NOT THIRTEEN. arena_chat.js folds
+    five retired tokens into the live pack so that lines sent before v2.5.1345
+    keep drawing. The picker has never offered them, but arena_chat_send accepts
+    any body at all - so without this a hand-typed :fired: is a free SEARED.
+    """
+
+    def test_the_python_map_and_the_javascript_map_are_the_same(self):
+        from .arena_chat import LEGACY_STICKER_ALIASES
+
+        js = STICKER_JS.read_text(encoding="utf-8")
+        block = js[js.index("var LEGACY_STICKERS = {"):]
+        block = block[:block.index("}")]
+        found = dict(re.findall(r"(\w+):\s*'([a-z0-9_]+)'", block))
+        self.assertEqual(
+            found, LEGACY_STICKER_ALIASES,
+            "the alias maps have drifted; a token enforced on one side and not "
+            "the other is either a free sticker or a refusal nobody can explain",
+        )
+
+    def test_every_alias_points_at_a_real_sticker(self):
+        from .arena_chat import LEGACY_STICKER_ALIASES
+        from .models import StickerItem
+
+        real = set(StickerItem.objects.values_list("token", flat=True))
+        for old, new in LEGACY_STICKER_ALIASES.items():
+            self.assertIn(new, real, f"{old} resolves to {new}, which is not sold")
+
+
+class StickerPurchaseTests(TestCase):
+    """Buying one, and what happens when two buys race."""
+
+    def setUp(self):
+        from .models import StickerItem
+
+        self.user, self.author = _make_chef("buyer", balance=50)
+        self.sticker = StickerItem.objects.get(token="yes_chef")
+
+    def test_a_purchase_debits_ten_and_writes_one_row(self):
+        from .models import ChefSticker, TokenSpendAllocation, TokenTransaction
+        from .services import buy_sticker
+
+        owned = buy_sticker(chef=self.author, sticker=self.sticker)
+        self.assertIsNotNone(owned)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 40)
+        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 1)
+
+        tx = owned.token_transaction
+        self.assertEqual(tx.tx_type, TokenTransaction.TxType.COSMETIC_BOUGHT)
+        self.assertEqual(tx.amount, -10)
+        # Without an allocation a refund cannot say which lot funded the spend.
+        self.assertTrue(TokenSpendAllocation.objects.filter(transaction=tx).exists())
+
+    def test_buying_the_same_sticker_twice_charges_nothing(self):
+        from .models import ChefSticker
+        from .services import buy_sticker
+
+        buy_sticker(chef=self.author, sticker=self.sticker)
+        again = buy_sticker(chef=self.author, sticker=self.sticker)
+        self.assertIsNone(again)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 40)
+        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 1)
+
+    def test_the_constraint_is_the_idempotency_not_the_pre_check(self):
+        """The pre-check is a courtesy. The database is the guarantee: two
+        concurrent buys both pass exists(), and the second create() is what
+        actually stops the double row."""
+        from .models import ChefSticker
+        from .services import buy_sticker
+
+        buy_sticker(chef=self.author, sticker=self.sticker)
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ChefSticker.objects.create(chef=self.author, sticker=self.sticker)
+
+    def test_an_empty_wallet_leaves_no_row_and_no_transaction(self):
+        from .models import ChefSticker, TokenTransaction
+        from .services import buy_sticker
+
+        _, broke = _make_chef("skint", balance=3)
+        with self.assertRaises(ValueError):
+            buy_sticker(chef=broke, sticker=self.sticker)
+        self.assertFalse(ChefSticker.objects.filter(chef=broke).exists())
+        self.assertFalse(
+            TokenTransaction.objects.filter(
+                wallet__chef=broke,
+                tx_type=TokenTransaction.TxType.COSMETIC_BOUGHT,
+            ).exists()
+        )
+        self.assertEqual(TokenWallet.objects.get(chef=broke).balance, 3)
+
+
+class StickerPackPurchaseTests(TestCase):
+    """The flat price, which is the Owner's own ruling and the one thing about
+    this feature a buyer could feel cheated by if it were implemented politely
+    instead of literally."""
+
+    def setUp(self):
+        from .models import StickerPack
+
+        self.user, self.author = _make_chef("packbuyer", balance=300)
+        self.pack = StickerPack.objects.get(slug="culineire-kitchen")
+
+    def test_the_pack_costs_one_hundred_and_gives_thirteen(self):
+        from .models import ChefSticker
+        from .services import buy_sticker_pack
+
+        rows = buy_sticker_pack(chef=self.author, pack=self.pack)
+        self.assertEqual(len(rows), 13)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 200)
+        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 13)
+        # One debit for the lot, carried by every row, so a refund finds them.
+        self.assertEqual(len({r.token_transaction_id for r in rows}), 1)
+
+    def test_owning_four_already_still_costs_the_full_hundred(self):
+        """The Owner's ruling: all at once, or ten each. No discount, and
+        thirteen rows at the end rather than seventeen."""
+        from .models import ChefSticker, StickerItem
+        from .services import buy_sticker, buy_sticker_pack
+
+        for token in ("yes_chef", "seared", "salty", "noooo"):
+            buy_sticker(chef=self.author, sticker=StickerItem.objects.get(token=token))
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 260)
+
+        rows = buy_sticker_pack(chef=self.author, pack=self.pack)
+        self.assertEqual(len(rows), 9, "the pack added the four he already had")
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 160)
+        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 13)
+
+    def test_owning_all_thirteen_is_refused_and_charged_nothing(self):
+        from .services import buy_sticker_pack
+
+        buy_sticker_pack(chef=self.author, pack=self.pack)
+        balance = TokenWallet.objects.get(chef=self.author).balance
+        with self.assertRaises(ValueError):
+            buy_sticker_pack(chef=self.author, pack=self.pack)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, balance)
+
+    def test_a_pack_with_buyers_will_not_take_a_fourteenth_sticker(self):
+        """The Owner froze the membership: no more stickers in this pack, but
+        there will be other packs. Adding one after the first sale would
+        enlarge what every past buyer already paid for."""
+        from .models import StickerItem
+        from .services import buy_sticker_pack
+
+        buy_sticker_pack(chef=self.author, pack=self.pack)
+        newcomer = StickerItem(token="mise_en_place", label="Mise en place", pack=self.pack)
+        with self.assertRaises(ValidationError):
+            newcomer.full_clean()
+
+    def test_a_pack_with_no_buyers_yet_accepts_one(self):
+        from .models import StickerItem
+
+        newcomer = StickerItem(token="mise_en_place", label="Mise en place", pack=self.pack)
+        newcomer.full_clean()          # no buyers yet, so nothing to protect
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class StickerOwnershipGateTests(TestCase):
+    """The check on the send path. Without it the purchase means nothing.
+
+    Every assertion here also checks that a REFUSED line left NO ROW behind:
+    the check sits before the create precisely so that a refusal costs the
+    database nothing.
+    """
+
+    def setUp(self):
+        from chef_battle.arena_seating import claim_seat
+
+        self.user, self.author = _make_chef("speaker", balance=200)
+        claim_seat(self.author)
+        self.send_url = reverse("chef_battle:arena_chat_send")
+        self.client.force_login(self.user)
+
+    def _messages(self):
+        from .models import ArenaChatMessage
+        return ArenaChatMessage.objects.count()
+
+    def test_a_sticker_you_do_not_own_is_refused_and_stores_nothing(self):
+        before = self._messages()
+        response = self.client.post(self.send_url, {"body": ":yes_chef:"})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error"], "sticker_not_owned")
+        self.assertEqual(response.json()["tokens"], ["yes_chef"])
+        self.assertEqual(self._messages(), before, "a refused line left a row")
+
+    def test_the_same_chef_can_send_it_once_he_owns_it(self):
+        from .models import StickerItem
+        from .services import buy_sticker
+
+        buy_sticker(chef=self.author, sticker=StickerItem.objects.get(token="yes_chef"))
+        response = self.client.post(self.send_url, {"body": ":yes_chef:"})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["ok"])
+
+    def test_all_ten_custom_emoji_still_work_for_someone_who_owns_nothing(self):
+        """Custom emoji share the syntax exactly, and none of them was ever for
+        sale. The catalogue intersection is what keeps them apart - so this is
+        the test that fails first if that order is ever reversed."""
+        for token in (
+            "golden_knife", "flaming_pan", "chef_hat", "arena_crown",
+            "burned_toast", "perfect_sear", "bear_mascot", "culinary_master",
+            "sauce_splash", "battle_shield",
+        ):
+            response = self.client.post(self.send_url, {"body": f"nice :{token}:"})
+            self.assertEqual(response.status_code, 200, f"{token} was refused")
+
+    def test_ordinary_words_with_colons_are_not_stickers(self):
+        response = self.client.post(self.send_url, {"body": "ratio 1:2: today"})
+        self.assertEqual(response.status_code, 200)
+
+    def test_a_sticker_among_words_is_refused_too(self):
+        before = self._messages()
+        response = self.client.post(self.send_url, {"body": "well played :seared: mate"})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self._messages(), before)
+
+    def test_each_of_the_five_retired_aliases_is_refused(self):
+        """The five free doors. :fired: draws the SEARED painting through
+        LEGACY_STICKERS, so enforcing only the thirteen live tokens would leave
+        five stickers permanently free to anyone who typed the old name."""
+        from .arena_chat import LEGACY_STICKER_ALIASES
+
+        for alias, target in LEGACY_STICKER_ALIASES.items():
+            before = self._messages()
+            response = self.client.post(self.send_url, {"body": f":{alias}:"})
+            self.assertEqual(response.status_code, 403, f":{alias}: was free")
+            self.assertEqual(response.json()["tokens"], [target])
+            self.assertEqual(self._messages(), before)
+
+    def test_owning_the_target_lets_the_alias_through(self):
+        from .models import StickerItem
+        from .services import buy_sticker
+
+        buy_sticker(chef=self.author, sticker=StickerItem.objects.get(token="seared"))
+        response = self.client.post(self.send_url, {"body": ":fired:"})
+        self.assertEqual(response.status_code, 200)
+
+    def test_the_check_fires_in_a_private_conversation_too(self):
+        """It sits ABOVE the hall/DM branch on purpose: a sticker sent to one
+        person is still a sticker."""
+        from chef_battle.arena_chat import open_direct_conversation
+        from chef_battle.arena_seating import claim_seat
+
+        _, other = _make_chef("listener")
+        claim_seat(other)
+        conversation = open_direct_conversation(self.author, other)
+
+        before = self._messages()
+        response = self.client.post(
+            self.send_url, {"body": ":salty:", "conversation": conversation.pk},
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self._messages(), before)
+
+    def test_a_line_already_in_the_database_is_still_served_to_everyone(self):
+        """THE CHECK IS ON SEND, NEVER ON READ. Every message stored before this
+        feature renders exactly as it did yesterday, for anybody, whatever they
+        own - which is the whole backwards-compatibility story."""
+        from chef_battle.arena_seating import claim_seat
+
+        from .models import ArenaChatMessage
+
+        # Written from the reader's OWN seat. Reach is applied on the server, so
+        # a row planted at ring 0 / seat 0 would come back as "Talking
+        # Something" with no body at all - which would prove nothing about
+        # stickers and everything about hearing.
+        seat = claim_seat(self.author)
+        ArenaChatMessage.objects.create(
+            battle=None, speaker=self.author, display_name=self.author.name,
+            body=":yes_chef:",
+            ring_index=seat.ring_index, seat_index=seat.seat_index,
+        )
+        feed = self.client.get(reverse("chef_battle:arena_chat_feed")).json()
+        self.assertIn(":yes_chef:", [m.get("body") for m in feed["messages"]])
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class StickerShopAccessTests(TestCase):
+    """The three new URLs, held to the same gate as every other money surface."""
+
+    def setUp(self):
+        self.user, self.author = _make_chef("shopper", balance=200)
+        self.shop = reverse("chef_battle:sticker_shop")
+        self.buy = reverse("chef_battle:sticker_buy")
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_all_three_answer_404_during_a_dark_launch(self):
+        for url in (self.shop, self.buy, reverse("chef_battle:sticker_pack_buy")):
+            self.assertEqual(self.client.get(url).status_code, 404)
+            self.assertEqual(self.client.post(url, {}).status_code, 404)
+
+    def test_a_suspended_chef_is_refused_and_charged_nothing(self):
+        from .models import ChefSticker, StickerItem
+
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=self.author)
+        profile.age_verified = True
+        profile.is_suspended = True
+        profile.save()
+
+        self.client.force_login(self.user)
+        sticker = StickerItem.objects.get(token="salty")
+        self.client.post(self.buy, {"sticker": sticker.pk})
+        self.assertFalse(ChefSticker.objects.filter(chef=self.author).exists())
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 200)
+
+    def test_an_age_unverified_chef_is_refused_and_charged_nothing(self):
+        from .models import ChefSticker, StickerItem
+
+        ChefBattleProfile.objects.get_or_create(author=self.author)
+        self.client.force_login(self.user)
+        sticker = StickerItem.objects.get(token="salty")
+        self.client.post(self.buy, {"sticker": sticker.pk})
+        self.assertFalse(ChefSticker.objects.filter(chef=self.author).exists())
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 200)
+
+    def test_a_verified_chef_buys_through_the_endpoint(self):
+        from .models import ChefSticker, StickerItem
+
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=self.author)
+        profile.age_verified = True
+        profile.save()
+
+        self.client.force_login(self.user)
+        sticker = StickerItem.objects.get(token="salty")
+        self.client.post(self.buy, {"sticker": sticker.pk})
+        self.assertTrue(
+            ChefSticker.objects.filter(chef=self.author, sticker=sticker).exists()
+        )
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 190)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class StickerPickerRendersOwnershipTests(TestCase):
+    """The owned list on the page, and the two ways it must fail closed."""
+
+    def test_the_block_carries_no_static_call(self):
+        """DATA, NOT PATHS. The two URL maps are the only route to the files and
+        a separate test counts their static calls against the token list;
+        keeping the owned block free of them is what proves this feature added
+        no second path to a picture."""
+        template = STICKER_TEMPLATE.read_text(encoding="utf-8")
+        owned = template[template.index('id="arena-chat-sticker-owned"'):]
+        self.assertNotIn("{% static", owned)
+
+    def test_a_reader_with_no_profile_gets_an_empty_list(self):
+        """Shared with the token-gated preview routes, where viewer_author is
+        None. Empty locks everything, which is the correct answer for somebody
+        who cannot own anything - and it must not raise."""
+        from chef_battle.views import _owned_sticker_tokens_json
+
+        self.assertEqual(_owned_sticker_tokens_json(None), "[]")
+
+    def test_it_lists_exactly_what_the_reader_bought(self):
+        from chef_battle.views import _owned_sticker_tokens_json
+
+        from .models import StickerItem
+        from .services import buy_sticker
+
+        _, author = _make_chef("picker", balance=50)
+        buy_sticker(chef=author, sticker=StickerItem.objects.get(token="salty"))
+        buy_sticker(chef=author, sticker=StickerItem.objects.get(token="noooo"))
+        self.assertEqual(
+            json.loads(_owned_sticker_tokens_json(author)), ["noooo", "salty"],
+        )
+
+    def test_the_client_locks_everything_when_the_block_is_unreadable(self):
+        """The script's own fallback, read from the file: a parse failure or a
+        non-array returns early and leaves OWNED_STICKERS empty, which locks
+        every tile. Unlocking on failure would be the one bug in this feature
+        that gives goods away."""
+        js = STICKER_JS.read_text(encoding="utf-8")
+        block = js[js.index("var OWNED_STICKERS = {};"):]
+        block = block[:block.index("function notOwnedMessage")]
+        self.assertIn("catch (err) { return; }", block)
+        self.assertIn("if (!Array.isArray(list)) { return; }", block)
+
+
+class StickerPricesMatchTheirDocumentTests(TestCase):
+    """The prices the code charges and the prices token_economy.md states are
+    the same numbers - the same guard GiftPricesMatchTheirDocumentTests puts on
+    the appreciation gifts, and for the same reason: a drift nobody can see is
+    what let the gift prices sit wrong for months."""
+
+    DOC = Path(__file__).resolve().parent.parent / "docs" / "chef_battle" / "token_economy.md"
+
+    def test_the_document_states_the_single_and_pack_prices(self):
+        from .models import StickerItem, StickerPack
+
+        text = self.DOC.read_text(encoding="utf-8")
+        single = StickerItem.objects.first().token_cost
+        pack = StickerPack.objects.get(slug="culineire-kitchen").token_cost
+        self.assertIn(
+            f"{single} tokens", text,
+            f"a sticker costs {single}T and token_economy.md does not say so",
+        )
+        self.assertIn(
+            f"{pack} tokens", text,
+            f"the pack costs {pack}T and token_economy.md does not say so",
+        )
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class StickerGrantPanelTests(TestCase):
+    """The moderator's grant tool. Owner, Carpet #3550: operator tooling lives
+    on the moderation panel, not in Django Admin."""
+
+    def setUp(self):
+        self.url = reverse("recipes:arena_sticker_grant")
+        self.user, self.author = _make_chef("recipient")
+
+    def _moderator(self):
+        return get_user_model().objects.create_user(
+            username="stickermod", password="pw", is_staff=True, is_superuser=True,
+        )
+
+    def test_a_non_moderator_is_told_nothing(self):
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    def test_a_grant_writes_a_row_with_no_transaction(self):
+        from .models import ChefSticker, StickerItem
+
+        self.client.force_login(self._moderator())
+        sticker = StickerItem.objects.get(token="salty")
+        self.client.post(self.url, {
+            "chef": "recipient", "sticker": sticker.pk, "reason": "refund reversal",
+        })
+        row = ChefSticker.objects.get(chef=self.author, sticker=sticker)
+        self.assertEqual(row.source, ChefSticker.Source.GRANT)
+        self.assertIsNone(row.token_transaction, "a grant invented a payment")
+        self.assertEqual(row.grant_reason, "refund reversal")
+        # Nobody paid, so no wallet moved.
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 0)
+
+    def test_a_grant_needs_a_reason(self):
+        from .models import ChefSticker, StickerItem
+
+        self.client.force_login(self._moderator())
+        sticker = StickerItem.objects.get(token="salty")
+        self.client.post(self.url, {"chef": "recipient", "sticker": sticker.pk})
+        self.assertFalse(ChefSticker.objects.exists())
+
+    def test_the_whole_pack_can_be_put_back(self):
+        """This is the tool that answers the Owner on rollback - 0113 reverses
+        the CATALOGUE and never anybody's purchases, so restoring a pack is an
+        operator action and has to actually work."""
+        from .models import ChefSticker, StickerPack
+
+        self.client.force_login(self._moderator())
+        pack = StickerPack.objects.get(slug="culineire-kitchen")
+        self.client.post(self.url, {
+            "chef": "recipient", "pack": pack.pk, "reason": "reversal",
+        })
+        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 13)
+
+    @override_settings(OWNER_SLUG="greenbear")
+    def test_it_refuses_the_owner_account(self):
+        """AGENTS.md section 18. His account is his, and a grant is still a
+        write - so the panel does not offer it at all."""
+        from .models import ChefSticker, StickerItem
+
+        # get_or_create: something else in this test database may already own
+        # the slug, and this test is about the panel's refusal rather than about
+        # who created the row.
+        owner_user = get_user_model().objects.create_user(username="ownerbear", password="pw")
+        RecipeAuthor.objects.get_or_create(
+            slug="greenbear", defaults={"user": owner_user, "name": "GreenBear"},
+        )
+
+        self.client.force_login(self._moderator())
+        sticker = StickerItem.objects.get(token="salty")
+        self.client.post(self.url, {
+            "chef": "greenbear", "sticker": sticker.pk, "reason": "anything",
+        })
+        self.assertFalse(
+            ChefSticker.objects.filter(chef__slug="greenbear").exists(),
+            "the panel wrote to the Owner's account",
+        )
+
+    def test_it_writes_no_privilege_flag(self):
+        """AGENTS.md section 20: is_staff, is_superuser,
+        has_bearseeker_privileges and has_arena_console_access are the Owner's
+        alone. This tool must not be able to reach any of them, and the check is
+        on the SOURCE rather than on behaviour, because a tool that never
+        happens to write one is not the same as a tool that cannot.
+
+        COMMENTS AND THE DOCSTRING ARE STRIPPED FIRST. A guard that reads prose
+        finds every ghost it was written to bury: this one failed on its own
+        view's docstring, which NAMES the four flags in order to say it never
+        writes them.
+        """
+        source = (
+            Path(__file__).resolve().parent.parent / "recipes" / "views.py"
+        ).read_text(encoding="utf-8")
+        body = source[source.index("def arena_sticker_grant("):]
+        body = body[:body.index('return render(request, "moderation/arena_sticker_grant.html"')]
+        body = re.sub(r'"""..*?"""', "", body, flags=re.S)          # the docstring
+        body = re.sub(r"(?m)^\s*#.*$", "", body)                     # whole-line comments
+        body = re.sub(r"(?m)\s+#.*$", "", body)                      # trailing comments
+        for flag in (
+            "is_staff", "is_superuser",
+            "has_bearseeker_privileges", "has_arena_console_access",
+        ):
+            self.assertNotIn(flag, body, f"the grant tool mentions {flag}")

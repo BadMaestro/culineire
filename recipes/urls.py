@@ -28,6 +28,7 @@ urlpatterns = [
          name="arena_build_plan_public"),
     path("moderation/arena-build-plan/", views.arena_build_plan, name="arena_build_plan"),
     path("moderation/house-stream/", views.arena_house_stream, name="arena_house_stream"),
+    path("moderation/sticker-grant/", views.arena_sticker_grant, name="arena_sticker_grant"),
     path("moderation/arena-build-plan/start/", views.arena_build_start, name="arena_build_start"),
     path("moderation/site-research/", views.site_research_progress, name="site_research_progress"),
     path("moderation/deployment-journal/", views.deployment_journal, name="deployment_journal"),

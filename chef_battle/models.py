@@ -1450,6 +1450,150 @@ class ChefCosmetic(models.Model):
         ]
 
 
+class StickerPack(models.Model):
+    """A set of Arena chat stickers sold together at one flat price.
+
+    AC-STK, Owner 2026-08-27: the thirteen stickers that shipped free in
+    v2.5.1372 become goods - 10 tokens each, 100 for the pack.
+
+    THE PACK'S MEMBERSHIP IS FROZEN once anybody has bought it, and that is his
+    ruling rather than a technical limit: "в этом пакете больше не будет других
+    стикеров, но будут другие паки". A fourteenth sticker goes into a NEW pack.
+    Adding one here after the first sale would silently enlarge what every past
+    buyer paid 100 for, and there is no price at which that is fair to the next
+    buyer. StickerItem.clean() refuses it.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True)
+    name = models.CharField(max_length=120)
+    #: The whole-pack price, FLAT. A buyer who already owns some of it still
+    #: pays this and receives only the ones they are missing - the Owner's
+    #: words, "либо сразу все либо каждый по 10". The shop says so before
+    #: payment; buy_sticker_pack() does not invent a discount.
+    token_cost = models.PositiveIntegerField(default=100)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class StickerItem(models.Model):
+    """One sticker, sold on its own or as part of a pack.
+
+    `token` IS THE KEY, and it is the same string in three places: the body of
+    a chat message (`:let_him_cook:`), the JSON map in
+    templates/chef_battle/_arena_chat_stickers.html, and the WebP filename
+    stem. Nothing joins them but this string, which is why the validator below
+    is not decoration - see its own comment.
+    """
+
+    #: The pattern is BODY_TOKEN's own, from static/js/arena_chat.js: the
+    #: renderer matches `:([a-z0-9_]{2,32}):` and nothing else. A hyphenated
+    #: token already broke this feature once (v2.5.1302 - stickers among words
+    #: silently stayed literal text), and a token the database accepts but the
+    #: renderer cannot match is a sticker that is SOLD and cannot be SENT.
+    token = models.CharField(
+        max_length=32,
+        unique=True,
+        validators=[RegexValidator(
+            regex=r"^[a-z0-9_]{2,32}$",
+            message="A sticker token is 2-32 characters of a-z, 0-9 and underscore.",
+        )],
+    )
+    label = models.CharField(max_length=60)
+    #: PROTECT, not CASCADE: deleting a pack must never cascade away goods
+    #: somebody paid for.
+    pack = models.ForeignKey(
+        StickerPack, null=True, blank=True, on_delete=models.PROTECT,
+        related_name="stickers",
+    )
+    #: The price lives on the row rather than in a module constant, for the
+    #: same reason Artifact.token_cost does: a price is data an operator
+    #: changes, not a deploy.
+    token_cost = models.PositiveIntegerField(default=10)
+    #: Withdraws the sticker from SALE and from the PICKER. It never withdraws
+    #: it from paintBody: a line already sent keeps drawing, because the check
+    #: this feature adds is on SEND and never on READ.
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "token"]
+
+    def __str__(self):
+        return f":{self.token}:"
+
+    def clean(self):
+        super().clean()
+        if self.pack_id and self._state.adding:
+            if ChefSticker.objects.filter(sticker__pack_id=self.pack_id).exists():
+                raise ValidationError({
+                    "pack": (
+                        "This pack has already been bought. Its membership is frozen - "
+                        "put a new sticker in a new pack."
+                    ),
+                })
+
+
+class ChefSticker(models.Model):
+    """One chef owns one sticker, forever, with no usage limit.
+
+    WHY RecipeAuthor AND NOT User. The wallet hangs off RecipeAuthor
+    (TokenWallet.chef) and the Arena chat's speaker already IS a RecipeAuthor
+    (_arena_chat_speaker in views.py). Keying ownership the same way means the
+    money and the goods share one key and the send-path check needs no extra
+    hop from a request's user to a profile.
+
+    WHY NOT ChefCosmetic, directly above. CosmeticItem.price is a DecimalField
+    in EUROS and a sticker costs TOKENS - a column reading 10.00 that means ten
+    tokens is a trap, not a saving. CosmeticItem has no key the chat can
+    address, only a free-form name. And SeasonReward.cosmetic points into
+    ChefCosmetic as the non-cash season-reward leg, so thirteen sticker rows
+    per buyer would let a season-reward join land on a sticker.
+    """
+
+    class Source(models.TextChoices):
+        SINGLE = "single", "Bought on its own"
+        PACK = "pack", "Bought as part of a pack"
+        GRANT = "grant", "Granted by a moderator"
+
+    chef = models.ForeignKey(RecipeAuthor, on_delete=models.CASCADE, related_name="chef_stickers")
+    sticker = models.ForeignKey(StickerItem, on_delete=models.PROTECT, related_name="owners")
+    source = models.CharField(max_length=8, choices=Source.choices, default=Source.SINGLE)
+    #: The house pattern - AppreciationGift and ViewerBattleGift both carry it.
+    #: With TokenSpendAllocation it is what makes a refund traceable to the lot
+    #: that funded it. NULL for a moderator grant, which cost nobody anything.
+    token_transaction = models.ForeignKey(
+        "TokenTransaction", null=True, blank=True, on_delete=models.PROTECT,
+        related_name="chef_stickers",
+    )
+    granted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="granted_chef_stickers",
+    )
+    grant_reason = models.CharField(max_length=200, blank=True)
+    acquired_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["sticker__sort_order", "sticker__token"]
+        constraints = [
+            #: THIS CONSTRAINT IS THE IDEMPOTENCY, not the exists() check in
+            #: the service. At READ COMMITTED two concurrent buys both pass a
+            #: pre-check; the second create() raises IntegrityError inside the
+            #: same atomic() as the debit, so it rolls back with it and nobody
+            #: is charged twice.
+            models.UniqueConstraint(fields=["chef", "sticker"], name="unique_sticker_per_chef"),
+        ]
+
+    def __str__(self):
+        return f"{self.chef} - :{self.sticker.token}:"
+
+
 class Season(models.Model):
     class Status(models.TextChoices):
         UPCOMING = "upcoming", "Upcoming"
@@ -1795,6 +1939,12 @@ class TokenTransaction(models.Model):
         GIFT_SENT = "gift_sent", "Gift Sent"
         GIFT_RECEIVED = "gift_received", "Gift Received"
         ARTIFACT_BOUGHT = "artifact_bought", "Artifact Bought"
+        #: AC-STK, 2026-08-27. A sticker is a COSMETIC and an artifact is an
+        #: artifact: two goods, two ledger types, so a refund or a reconciliation
+        #: never has to guess which kind of thing a debit paid for.
+        #: ARTIFACT_BOUGHT above has existed since migration 0007 and is written
+        #: by nothing to this day - Part B of this card is its first producer.
+        COSMETIC_BOUGHT = "cosmetic_bought", "Cosmetic Bought"
         REFUND = "refund", "Refund"
         ADMIN_GRANT = "admin_grant", "Admin Grant"
         ADMIN_DEDUCT = "admin_deduct", "Admin Deduct"

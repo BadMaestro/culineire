@@ -5793,3 +5793,103 @@ def arena_house_stream(request):
         "error": error,
         "saved": saved,
     })
+def arena_sticker_grant(request):
+    """Give an account a sticker, or the whole pack, without charging for it.
+
+    AC-STK, Owner 2026-08-27 (Carpet #3550): operator tooling lives in
+    /recipes/moderation/, not in Django Admin - "у них уже много всего есть -
+    просто нужно будет добавить новый пункт". Same four-file shape as
+    arena_house_stream above: a view here, a path under moderation/, a small
+    template, and one line on the panel.
+
+    IT IS THE ANSWER TO ROLLBACK, so it has to work rather than decorate.
+    Migration 0113 reverses plainly on the Owner's instruction, which leaves
+    "put the pack back on the account" as an OPERATOR decision - this is the
+    tool that carries it out. It also shows what an account already holds,
+    because granting blind is how somebody gets granted twice.
+
+    TWO LIMITS IT NEVER CROSSES. It writes no privilege flag - is_staff,
+    is_superuser, has_bearseeker_privileges and has_arena_console_access are
+    the Owner's alone (AGENTS.md 20). And it refuses the `greenbear` account
+    outright (AGENTS.md 18): his account is his, and a grant is still a write.
+    """
+    from chef_battle.models import ChefSticker, StickerItem, StickerPack
+
+    if not is_moderator(request.user):
+        raise Http404
+
+    error = ""
+    granted = 0
+    query = (request.GET.get("chef") or request.POST.get("chef") or "").strip()
+
+    author = None
+    if query:
+        author = (
+            RecipeAuthor.objects.filter(slug=query).first()
+            or RecipeAuthor.objects.filter(name__iexact=query).first()
+        )
+        if author is None:
+            error = f"No account found for '{query}'."
+
+    if request.method == "POST" and author is not None and not error:
+        if author.slug == getattr(settings, "OWNER_SLUG", "greenbear"):
+            # AGENTS.md section 18. Not a soft warning and not a confirm
+            # dialog: the account is not writable from here at all.
+            error = "That is the Owner's own account. It is not granted from this panel."
+        else:
+            reason = (request.POST.get("reason") or "").strip()[:200]
+            if not reason:
+                error = "Say why. A grant with no reason is an unexplained row in somebody's account."
+            else:
+                wanted = []
+                pack_pk = request.POST.get("pack")
+                if pack_pk:
+                    pack = StickerPack.objects.filter(pk=pack_pk).first()
+                    if pack is None:
+                        error = "No such pack."
+                    else:
+                        wanted = list(pack.stickers.all())
+                else:
+                    item = StickerItem.objects.filter(pk=request.POST.get("sticker")).first()
+                    if item is None:
+                        error = "No such sticker."
+                    else:
+                        wanted = [item]
+
+                if wanted and not error:
+                    held = set(
+                        ChefSticker.objects
+                        .filter(chef=author, sticker__in=wanted)
+                        .values_list("sticker_id", flat=True)
+                    )
+                    rows = ChefSticker.objects.bulk_create([
+                        ChefSticker(
+                            chef=author,
+                            sticker=item,
+                            source=ChefSticker.Source.GRANT,
+                            # NO token_transaction: nobody paid, and pointing at
+                            # somebody else's debit would corrupt the ledger this
+                            # column exists to make readable.
+                            token_transaction=None,
+                            granted_by=request.user,
+                            grant_reason=reason,
+                        )
+                        for item in wanted if item.pk not in held
+                    ])
+                    granted = len(rows)
+
+    owned_ids = set()
+    if author is not None:
+        owned_ids = set(
+            ChefSticker.objects.filter(chef=author).values_list("sticker_id", flat=True)
+        )
+
+    return render(request, "moderation/arena_sticker_grant.html", {
+        "query": query,
+        "author": author,
+        "packs": StickerPack.objects.prefetch_related("stickers"),
+        "loose": StickerItem.objects.filter(pack__isnull=True),
+        "owned_ids": owned_ids,
+        "granted": granted,
+        "error": error,
+    })
