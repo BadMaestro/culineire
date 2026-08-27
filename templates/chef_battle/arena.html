@@ -397,10 +397,23 @@
         {% if active_battle %}Live Now{% else %}Floor Open{% endif %}
       </p>
     </header>
+    {% comment %}
+      THE HOURGLASS FLANKS THE CAPTION, TWO OF THEM. Owner, 2026-08-27: it was
+      a single badge to the left of the phase name and it sat over the words -
+      OPEN FLOOR is the largest type on the card and the badge overlapped its
+      O. Moved up to the caption line, one each side, where there is room for
+      it and where it reads as a mark on the phase rather than furniture
+      beside it. The sand runs three minutes and the glass turns; see
+      _arena_hourglass.html and the animation beside .arena-hourglass in
+      arena.css.
+    {% endcomment %}
     <div class="arena-phase-current">
-      <svg class="arena-ico arena-phase-current__ico" aria-hidden="true"><use href="#ad-hourglass"></use></svg>
       <div>
-        <p class="arena-phase-current__label">Current phase</p>
+        <p class="arena-phase-current__label">
+          {% include "chef_battle/_arena_hourglass.html" %}
+          <span>Current phase</span>
+          {% include "chef_battle/_arena_hourglass.html" %}
+        </p>
         <h3 id="arena-current-phase" class="arena-command-deck__phase-name">{% if arena_data.phase %}{{ arena_data.phase.label }}{% else %}Open floor{% endif %}</h3>
       </div>
     </div>

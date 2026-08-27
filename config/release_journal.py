@@ -1,5 +1,56 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1360",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The hourglass leaves the phase name, flanks CURRENT PHASE as a pair, and runs three minutes before it turns",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-27: the hourglass overlaps OPEN FLOOR - move it "
+            "to the top line, one before and one after CURRENT PHASE, and let "
+            "the sand run from full to empty in three minutes and then turn "
+            "over. IT WAS OVERLAPPING because it was a 1.7rem circular badge "
+            "in the phase row's first column while OPEN FLOOR is the largest "
+            "type on the card; on a narrow rail the badge sat across its "
+            "first letter. Two smaller glasses on the caption line have room "
+            "either side and read as a mark on the phase rather than a "
+            "control beside it. The badge itself is gone on purpose: a "
+            "circular plaque made sense for one icon anchored at a row's "
+            "edge, but two of them around a 0.62rem caption would outweigh "
+            "the words they flank and would compete with the shield's own "
+            "badge directly above. INLINE SVG, NOT THE SPRITE, and that is "
+            "the one structural decision here: a <use> builds a shadow tree "
+            "and page CSS cannot reach the parts inside it, so sand that has "
+            "to be animated cannot live behind one. The outline path is "
+            "byte-for-byte the sprite's own #ad-hourglass - a test asserts "
+            "both copies of it - and only the sand is new. The partial "
+            "carries NO ids at all, because it is included twice on the same "
+            "page and an id inside an SVG is a document-wide name; a test "
+            "holds that too. THE SAND IS SCALED FROM THE NECK AND FROM THE "
+            "FLOOR, which is what makes it read as sand rather than as a "
+            "shrinking triangle: transform-box: fill-box puts the origin on "
+            "each shape's own bounding box, so `bottom center` is the upper "
+            "chamber's apex at the neck and the lower chamber's heap at the "
+            "floor. Three minutes is his number and the turn is the end of "
+            "it: the sand runs 180s, the glass turns over 360s in two 1.44s "
+            "moves, and the sand finishes at 98.5% of its own run - 177.3s - "
+            "so the glass is already empty when it starts to move rather "
+            "than turning with sand still in it. VERIFIED ON A PAUSED "
+            "TIMELINE rather than by watching: full at 0s, 0.75 at 45s, 0.49 "
+            "at 90s, 0.24 at 135s, empty at 177s, mid-turn at 179.5s, "
+            "refilling and turned 180 degrees at 200s, back to the start at "
+            "360s. And measured at five widths: two glasses at each, neither "
+            "overlapping the phase name at any, the caption and the phase "
+            "name still on the card's centre at 0.0, and no duplicate ids on "
+            "the page. A reader who has asked for reduced motion gets a still "
+            "glass half run through - the animations are declared behind "
+            "no-preference rather than switched off behind reduce, so nothing "
+            "is ever attached for them to stop. 31 tests green; the inherited "
+            "superseded-declaration failure is unchanged at 28 items, none "
+            "added here."
+        ),
+    },
+    {
         "version": "2.5.1357",
         "date": "2026-08-27",
         "commit": "pending",

@@ -12220,8 +12220,7 @@ button.arena-chat__poll-option:hover {
   }
 
   /* The icons stay where they were; they simply stop moving the words. */
-  .arena-command-deck__phase-card .arena-panel__title > .arena-ico,
-  .arena-command-deck__phase-card .arena-phase-current__ico {
+  .arena-command-deck__phase-card .arena-panel__title > .arena-ico {
     grid-column: 1;
     justify-self: start;
   }
@@ -12238,4 +12237,106 @@ button.arena-chat__poll-option:hover {
     grid-column: 3;
     justify-self: end;
   }
+}
+/* ============================================================================
+ * THE RUNNING HOURGLASS, one each side of CURRENT PHASE. Owner, 2026-08-27:
+ * take it off the phase name, put one before and one after the caption, and
+ * let the sand run from full to empty in three minutes and then turn over.
+ *
+ * IT WAS OVERLAPPING THE WORDS. The glass was a 1.7rem badge in the phase
+ * row's first column and OPEN FLOOR is the largest type on the card; on a
+ * narrow rail the badge sat across its first letter. On the caption line
+ * there is room for it either side, and a pair reads as a mark on the phase
+ * rather than a control beside it.
+ *
+ * THE BADGE IS GONE ON PURPOSE. A circular plaque made sense for one icon
+ * anchored at the row's edge; two of them around a 0.62rem caption would
+ * outweigh the words they flank, and would compete with the shield's own
+ * badge directly above. The glyph keeps the bronze it always had.
+ *
+ * THREE MINUTES IS HIS NUMBER, and the turn is the fourth minute's business:
+ * the sand drains over 180s and the glass turns at the end of it, which makes
+ * the whole cycle 360s and two turns long. The sand finishes at 98.5% of its
+ * own 180s - 177.3s - and holds empty for the last second and a bit, so the
+ * glass is already empty when it starts to move rather than turning with sand
+ * still in it.
+ * ========================================================================== */
+.arena-phase-current__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.arena-hourglass {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+  color: var(--accent-bronze-dark);
+  /* The caption is uppercase and sits on its own baseline; the glass is
+     centred against the line box rather than the letters' feet. */
+  align-self: center;
+}
+
+.arena-hourglass__sand,
+.arena-hourglass__stream {
+  fill: currentColor;
+  opacity: 0.85;
+}
+
+/* SCALED FROM THE NECK AND FROM THE FLOOR, which is what makes it read as
+   sand rather than as a shrinking triangle: fill-box puts the origin on the
+   shape's own bounding box, so `bottom center` is the upper chamber's apex
+   at the neck and the lower chamber's heap at the floor. */
+.arena-hourglass__sand {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .arena-hourglass__glass {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: arena-hourglass-turn 360s linear infinite;
+  }
+  .arena-hourglass__sand--top {
+    animation: arena-hourglass-drain 180s linear infinite;
+  }
+  .arena-hourglass__sand--bottom {
+    animation: arena-hourglass-heap 180s linear infinite;
+  }
+  .arena-hourglass__stream {
+    animation: arena-hourglass-stream 180s linear infinite;
+  }
+}
+
+/* Still, and half run through, for a reader who has asked for no motion. A
+   full glass would read as "nothing has started" and an empty one as "time is
+   up"; neither is true, and the caption is the thing that carries the meaning
+   anyway. */
+@media (prefers-reduced-motion: reduce) {
+  .arena-hourglass__sand--top { transform: scaleY(0.5); }
+  .arena-hourglass__sand--bottom { transform: scaleY(0.5); }
+  .arena-hourglass__stream { opacity: 0; }
+}
+
+@keyframes arena-hourglass-drain {
+  0% { transform: scaleY(1); }
+  98.5%, 100% { transform: scaleY(0); }
+}
+@keyframes arena-hourglass-heap {
+  0% { transform: scaleY(0); }
+  98.5%, 100% { transform: scaleY(1); }
+}
+@keyframes arena-hourglass-stream {
+  0%, 1.5% { opacity: 0; }
+  3%, 96% { opacity: 0.85; }
+  98.5%, 100% { opacity: 0; }
+}
+/* Two turns per cycle, each taking 1.44s at the end of a 180s run. The long
+   holds are what keep the glass still while the sand is falling. */
+@keyframes arena-hourglass-turn {
+  0%, 49.6% { transform: rotate(0deg); }
+  50%, 99.6% { transform: rotate(180deg); }
+  100% { transform: rotate(360deg); }
 }

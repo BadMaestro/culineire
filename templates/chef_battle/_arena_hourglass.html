@@ -1,0 +1,33 @@
+{% comment %}
+The running hourglass that flanks CURRENT PHASE. Owner, 2026-08-27: move the
+hourglass off the phase name, put one before and one after the caption, and
+let the sand run from full to empty in three minutes and then turn over.
+
+WHY THIS IS INLINE SVG AND NOT #ad-hourglass FROM THE SPRITE. A <use> builds a
+shadow tree, and page CSS cannot reach the parts inside it - only inherited
+properties and custom properties cross that boundary. The sand has to be
+addressable to be animated, so the shape is written out here instead. The
+outline path is byte-for-byte the sprite's own #ad-hourglass, so the drawing
+is the same one; what is new is the sand inside it.
+
+NO IDS ANYWHERE IN HERE. This partial is included twice on the same page, and
+an id inside an SVG is a document-wide name - two of them would be a duplicate
+the moment the second copy rendered. Classes only.
+
+aria-hidden because the caption beside it already says CURRENT PHASE; the
+glass is decoration, and a screen reader announcing "image" twice around three
+words is noise.
+{% endcomment %}
+<svg class="arena-hourglass" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <g class="arena-hourglass__glass">
+    {% comment %} The sand sits under the outline so the strokes stay crisp over it. {% endcomment %}
+    <polygon class="arena-hourglass__sand arena-hourglass__sand--top"
+             points="7.4,4.6 16.6,4.6 12,11.4"/>
+    <rect class="arena-hourglass__stream" x="11.65" y="11.4" width="0.7" height="8"/>
+    <polygon class="arena-hourglass__sand arena-hourglass__sand--bottom"
+             points="12,12.6 16.6,19.4 7.4,19.4"/>
+    <path class="arena-hourglass__frame" fill="none" stroke="currentColor"
+          stroke-width="1.6" stroke-linejoin="round"
+          d="M6 3h12M6 21h12M6 3c0 5 4 6.5 6 9-2 2.5-6 4-6 9M18 3c0 5-4 6.5-6 9 2 2.5 6 4 6 9"/>
+  </g>
+</svg>

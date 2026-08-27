@@ -25165,8 +25165,10 @@ class ArenaStatusCardReadsOnOneAxisTests(TestCase):
         self.assertIn("display: grid", body)
 
     def test_the_icons_keep_the_edges_and_stop_moving_the_words(self):
-        icons = self._rule(".arena-command-deck__phase-card .arena-panel__title > .arena-ico, "
-                           ".arena-command-deck__phase-card .arena-phase-current__ico")
+        # The phase row's own icon left this rule in v2.5.1360 - it moved up
+        # to the caption line as a flanking pair - so only the header's shield
+        # is placed here now.
+        icons = self._rule(".arena-command-deck__phase-card .arena-panel__title > .arena-ico")
         self.assertIn("grid-column: 1", icons)
         self.assertIn("justify-self: start", icons)
         note = self._rule(".arena-command-deck__phase-card .arena-command-deck__live-note")
@@ -25181,3 +25183,102 @@ class ArenaStatusCardReadsOnOneAxisTests(TestCase):
         self.assertGreater(css.index(self.GATE + " {\n  .arena-command-deck__phase-card"),
                            css.index("@media (max-width: 767px)"),
                            "the centring block must come after the phone's own rules")
+class ArenaHourglassRunsThreeMinutesTests(TestCase):
+    """The hourglass flanks CURRENT PHASE and turns, v2.5.1360.
+
+    Owner, 2026-08-27: it overlaps OPEN FLOOR - move it to the top line, one
+    before and one after CURRENT PHASE, and let the sand run from full to
+    empty in three minutes and then turn over.
+
+    IT WAS OVERLAPPING because it was a 1.7rem badge in the phase row's first
+    column while OPEN FLOOR is the largest type on the card; on a narrow rail
+    the badge sat across its first letter. Two smaller glasses on the caption
+    line have room either side and read as a mark on the phase.
+
+    INLINE SVG, NOT THE SPRITE, and that is the one structural decision here:
+    a <use> builds a shadow tree and page CSS cannot reach the parts inside
+    it, so sand that has to be animated cannot live behind one. The outline
+    path is byte-for-byte the sprite's own #ad-hourglass; only the sand is
+    new. And no ids anywhere inside the partial, because it is included twice
+    on the same page and an id in an SVG is a document-wide name.
+
+    Sampled across a paused timeline: full at 0s, 0.75 at 45s, 0.49 at 90s,
+    0.24 at 135s, empty at 177s, mid-turn at 179.5s, refilling and turned
+    180 degrees at 200s, back to the start at 360s.
+    """
+
+    PARTIAL = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "_arena_hourglass.html"
+    TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+
+    def test_there_are_two_of_them_and_they_flank_the_caption(self):
+        html = self.TEMPLATE.read_text(encoding="utf-8")
+        self.assertEqual(html.count('{% include "chef_battle/_arena_hourglass.html" %}'), 2)
+        block = html[html.index('class="arena-phase-current__label"'):]
+        block = block[:block.index("</p>")]
+        first = block.index("_arena_hourglass.html")
+        word = block.index("Current phase")
+        second = block.index("_arena_hourglass.html", first + 1)
+        self.assertLess(first, word, "no hourglass before the caption")
+        self.assertLess(word, second, "no hourglass after the caption")
+
+    def test_the_old_badge_is_gone_from_the_phase_name_row(self):
+        html = self.TEMPLATE.read_text(encoding="utf-8")
+        self.assertNotIn("arena-phase-current__ico", html,
+                         "the badge that sat over OPEN FLOOR is back")
+
+    def test_the_partial_carries_no_ids_because_it_renders_twice(self):
+        """An id inside an SVG is a document-wide name; two copies of one
+        partial would be a duplicate the moment the second rendered."""
+        import re
+
+        partial = self.PARTIAL.read_text(encoding="utf-8")
+        self.assertEqual(re.findall(r'\sid="', partial), [])
+        self.assertIn('aria-hidden="true"', partial)
+
+    def test_the_drawing_is_the_sprites_own_outline(self):
+        """Inline because the sand must be reachable, not because it is a
+        different hourglass."""
+        partial = self.PARTIAL.read_text(encoding="utf-8")
+        sprite = (Path(settings.BASE_DIR) / "templates" / "chef_battle"
+                  / "_arena_deck_svg.html").read_text(encoding="utf-8")
+        path = ("M6 3h12M6 21h12M6 3c0 5 4 6.5 6 9-2 2.5-6 4-6 9"
+                "M18 3c0 5-4 6.5-6 9 2 2.5 6 4 6 9")
+        self.assertIn(path, sprite, "the sprite's hourglass changed shape")
+        self.assertIn(path, partial, "the inline glass is not the sprite's drawing")
+
+    def test_three_minutes_of_sand_and_a_turn_at_the_end_of_it(self):
+        css = self.CSS.read_text(encoding="utf-8")
+        self.assertIn("animation: arena-hourglass-drain 180s linear infinite", css)
+        self.assertIn("animation: arena-hourglass-heap 180s linear infinite", css)
+        self.assertIn("animation: arena-hourglass-turn 360s linear infinite", css)
+        self.assertIn("@keyframes arena-hourglass-turn", css)
+        # the glass is still while the sand falls, and turns only at the end
+        turn = css[css.index("@keyframes arena-hourglass-turn"):]
+        turn = turn[:turn.index("}\r\n") + 3] if "}\r\n" in turn else turn[:400]
+        self.assertIn("0%, 49.6% { transform: rotate(0deg); }", css)
+        self.assertIn("50%, 99.6% { transform: rotate(180deg); }", css)
+
+    def test_the_sand_is_empty_before_the_glass_starts_to_move(self):
+        """98.5% of 180s is 177.3s; the turn begins at 49.6% of 360s, which is
+        178.56s. The glass is empty for a second and a bit before it moves."""
+        css = self.CSS.read_text(encoding="utf-8")
+        self.assertIn("98.5%, 100% { transform: scaleY(0); }", css)
+        self.assertIn("98.5%, 100% { transform: scaleY(1); }", css)
+
+    def test_a_reader_who_asked_for_no_motion_gets_none(self):
+        css = self.CSS.read_text(encoding="utf-8")
+        # The animations are DECLARED behind no-preference rather than
+        # switched off behind reduce, so a reader who asked for stillness
+        # never has one attached in the first place. The file holds more
+        # than one no-preference block, so this finds the hourglass's own
+        # rather than the first that happens to appear.
+        anchor = css.index(".arena-hourglass__glass {")
+        opened = css.rindex("@media (prefers-reduced-motion: no-preference) {", 0, anchor)
+        block = css[opened:css.index("@media (prefers-reduced-motion: reduce)", opened)]
+        for name in ("arena-hourglass-turn", "arena-hourglass-drain",
+                     "arena-hourglass-heap", "arena-hourglass-stream"):
+            self.assertIn(name, block,
+                          "%s runs regardless of the setting" % name)
+        self.assertIn(".arena-hourglass__sand--top { transform: scaleY(0.5); }", css)
+        self.assertIn(".arena-hourglass__stream { opacity: 0; }", css)
