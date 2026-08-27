@@ -1,5 +1,61 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1345",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The Owner's own sticker pack replaces the eight line drawings in the Arena chat",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner on the old stickers: they look like rubbish, can we "
+            "find a library. Answered honestly first - no library has LET HIM "
+            "COOK, YES CHEF or 86'D, because those are kitchen words written "
+            "for this project, and the real fault was that the drawings were "
+            "thin outline ICONS blown up to 120px rather than stickers. He "
+            "then supplied his own pack: twelve paintings on one sheet. "
+            "CUT FROM THE SHEET, and the cutting is most of the work. The "
+            "background is near-black and every sticker is fenced off from it "
+            "by a white die-cut border, so the background is exactly the dark "
+            "region reachable from the sheet's edge. A plain flood fill from "
+            "the edge FAILED and the failure is worth recording: wherever the "
+            "white border is anti-aliased the two sides are joined by a "
+            "one-or-two-pixel channel of mid-dark pixels and the fill walked "
+            "straight through it - the burnt burger vanished entirely, so did "
+            "the bin, the chef's hair and most of the caption plaques. Fixed "
+            "with the standard anti-leak pair: erode the dark mask by six "
+            "pixels before filling so a narrow channel is no longer connected "
+            "at all, then dilate the result back and intersect it with the "
+            "original mask so the true background keeps its exact edge. Each "
+            "sticker is then trimmed to its own ink rather than to a grid "
+            "typed by hand. Twelve WebP files with alpha, about 23 KB each, "
+            "268 KB for the pack - well inside the 100 KB per-file cap the "
+            "image-weight gate holds this folder to. "
+            "A JSON MAP, NOT A SPRITE. The eight drawings this replaces were "
+            "an SVG sprite, which is right for line art a stylesheet "
+            "recolours; these are finished paintings that inherit no theme, "
+            "and inlining a quarter of a megabyte into every arena page "
+            "whether the picker opens or not is the opposite of what a sprite "
+            "is for. The URLs are rendered by Django in "
+            "_arena_chat_stickers.html because ManifestStaticFilesStorage "
+            "hashes every filename - a script that assembled its own path "
+            "would 404 on production and work perfectly in development, which "
+            "is the worst shape a bug can have. The picker's twelve tiles are "
+            "lazy, so the pack stays off the wire until somebody opens the "
+            "tab it is not on by default. "
+            "THREE TOKENS CARRY OVER - yes_chef, in_the_bin and seared mean "
+            "the same thing in the new pack, so the lines already sent with "
+            "them still draw. The other five (service, behind, fired, "
+            "still_raw, plated) have no counterpart; six test messages on "
+            "production carry them and will show their token as text, which "
+            "is what an unknown token has always done. Nothing about the "
+            "backend changes: a sticker is still an ordinary chat line whose "
+            "body is one token, no column, no migration. Verified in "
+            "Chromium: two stickers rendered in the log at 171px with nothing "
+            "broken, twelve picker tiles loaded and all twelve lazy. 50 "
+            "sticker, chat, emoji, template-hygiene and image-weight tests "
+            "green."
+        ),
+    },
+    {
         "version": "2.5.1343",
         "date": "2026-08-27",
         "commit": "pending",

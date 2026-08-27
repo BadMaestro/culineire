@@ -24207,13 +24207,29 @@ class ArenaChatEventFilterTests(TestCase):
 
 
 class ArenaChatStickerTests(TestCase):
-    """P2 item 13. Original CulinEire stickers.
+    """The Owner's own sticker pack, v2.5.1342.
 
-    A sticker is an ordinary chat line whose body is one token, so there is no
-    backend contract to test - and that is the point of the design. What is
-    tested is what breaks silently: a token with no drawing renders as an empty
-    box, and a sprite that stops being included takes all eight with it.
+    Twelve paintings he supplied as one sheet, cut from it with the background
+    made transparent, replacing the eight line drawings that came before. A
+    sticker is still an ordinary chat line whose body is one token, so there is
+    still no backend contract to test - and that is still the point of the
+    design. What is tested is what breaks silently.
+
+    THE NEW SILENT FAILURE IS THE URL. Static files are served through
+    ManifestStaticFilesStorage, so every name carries a content hash, and a
+    script that built its own URLs would 404 on production while working
+    perfectly in development. The map is therefore rendered by Django in
+    _arena_chat_stickers.html and read from the page; these tests pin both
+    ends of that, because either one alone leaves an empty box.
+
+    THREE TOKENS CARRY OVER on purpose - yes_chef, in_the_bin and seared mean
+    the same thing in the new pack as in the old one, so lines already sent
+    with them still draw. That is asserted rather than assumed: renaming one
+    of them would quietly turn somebody's message back into text.
     """
+
+    PACK = ("static", "images", "chef_battle", "arena", "stickers")
+    MAP = ("templates", "chef_battle", "_arena_chat_stickers.html")
 
     def _read(self, *parts):
         from pathlib import Path
@@ -24232,20 +24248,49 @@ class ArenaChatStickerTests(TestCase):
         self.assertTrue(tokens, "no sticker tokens found")
         return tokens
 
-    def test_every_sticker_token_has_a_drawing_in_the_sprite(self):
-        sprite = self._read(
-            "templates", "chef_battle", "_arena_chat_sticker_sprite.html",
-        )
+    def test_every_sticker_token_has_a_picture_on_disk(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        folder = Path(settings.BASE_DIR).joinpath(*self.PACK)
         for token in self._tokens():
-            self.assertIn(
-                'id="acs-%s"' % token, sprite,
-                "sticker :%s: has no symbol - it would render as an empty box"
+            self.assertTrue(
+                (folder / (token + ".webp")).is_file(),
+                "sticker :%s: has no file - it would render as an empty box"
                 % token,
             )
 
-    def test_the_sticker_sprite_is_included_on_the_arena_page(self):
+    def test_every_sticker_token_has_a_url_in_the_map(self):
+        """The map is what the script reads; a token missing from it draws
+        nothing at all, because stickerNode returns null without a src."""
+        mapping = self._read(*self.MAP)
+        for token in self._tokens():
+            self.assertIn('"%s":' % token, mapping)
+            self.assertIn("stickers/%s.webp" % token, mapping)
+
+    def test_the_urls_are_djangos_and_not_the_scripts(self):
+        """Hashed static names are the whole reason this map exists. A script
+        that assembled a path would work in development and 404 in
+        production - the worst shape a bug can have."""
+        mapping = self._read(*self.MAP)
+        self.assertIn("{% load static %}", mapping)
+        self.assertEqual(mapping.count("{% static '"), len(self._tokens()))
+        source = self._read("static", "js", "arena_chat.js")
+        self.assertIn("getElementById('arena-chat-sticker-urls')", source)
+        self.assertNotIn("'/static/images/chef_battle/arena/stickers", source)
+
+    def test_the_map_is_included_on_the_arena_page(self):
         markup = self._read("templates", "chef_battle", "arena.html")
-        self.assertIn("_arena_chat_sticker_sprite.html", markup)
+        self.assertIn("_arena_chat_stickers.html", markup)
+        self.assertNotIn("_arena_chat_sticker_sprite.html", markup)
+
+    def test_the_three_carried_over_tokens_keep_their_names(self):
+        """Lines already sent with these are in the database. Renaming one
+        turns somebody's sticker back into the literal text of its token."""
+        tokens = set(self._tokens())
+        for kept in ("yes_chef", "in_the_bin", "seared"):
+            self.assertIn(kept, tokens)
 
     def test_sticker_tokens_match_the_body_token_pattern(self):
         """A hyphen would make a sticker unrenderable among words.
@@ -24255,8 +24300,6 @@ class ArenaChatStickerTests(TestCase):
         text beside a sentence, which is exactly the half-working state this
         catches. It bit this feature once already.
         """
-        import re
-
         for token in self._tokens():
             self.assertRegex(
                 token, r"^[a-z0-9_]{2,32}$",
@@ -24274,27 +24317,32 @@ class ArenaChatStickerTests(TestCase):
         clash = emoji & set(self._tokens())
         self.assertEqual(clash, set(), "token(s) in both tables: %s" % sorted(clash))
 
-    def test_the_two_sprites_use_different_id_prefixes(self):
-        """ace- for emoji, acs- for stickers, so a token cannot resolve into
-        the wrong sprite and silently draw a 24px mark at 160px."""
-        stickers = self._read(
-            "templates", "chef_battle", "_arena_chat_sticker_sprite.html",
-        )
-        emoji = self._read(
-            "templates", "chef_battle", "_arena_chat_emoji_sprite.html",
-        )
-        self.assertNotIn('id="ace-', stickers)
-        self.assertNotIn('id="acs-', emoji)
+    def test_the_pack_is_light_enough_to_open_without_a_wait(self):
+        """The picker draws all twelve the moment the tab is opened. The
+        per-file cap in test_static_image_weight covers one file; this covers
+        the twelve arriving together, which is the number a reader waits on.
+        Measured when the pack landed: 268 KB for the set."""
+        from pathlib import Path
 
-    def test_the_captions_are_the_kitchen_s_own_words(self):
-        """The brief asked for anything reading as another brand's catchphrase
-        to be replaced. Asserted as an absence so it cannot drift back."""
-        sprite = self._read(
-            "templates", "chef_battle", "_arena_chat_sticker_sprite.html",
-        ).upper()
-        for borrowed in ("IDIOT SANDWICH", "RAW!", "WHERE IS THE LAMB SAUCE",
-                         "DONKEY", "BAM!", "LET'S GO"):
-            self.assertNotIn(borrowed, sprite)
+        from django.conf import settings
+
+        folder = Path(settings.BASE_DIR).joinpath(*self.PACK)
+        sizes = {p.name: p.stat().st_size for p in folder.glob("*.webp")}
+        self.assertTrue(sizes, "the pack is empty")
+        for name, size in sizes.items():
+            self.assertLess(
+                size, 60_000,
+                "%s is %d bytes; a sticker is drawn at most 180px wide" % (name, size),
+            )
+        self.assertLess(
+            sum(sizes.values()), 400_000,
+            "the pack weighs %d bytes opened all at once" % sum(sizes.values()),
+        )
+
+    def test_the_picker_does_not_fetch_the_pack_until_it_is_asked(self):
+        """Stickers are not the tab the picker opens on."""
+        source = self._read("static", "js", "arena_chat.js")
+        self.assertIn("node.loading = 'lazy'", source)
 
 
 class ArenaChatRecentMediaTests(TestCase):

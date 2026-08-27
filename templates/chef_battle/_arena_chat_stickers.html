@@ -1,0 +1,35 @@
+{% load static %}{% comment %}
+CulinEire Arena sticker pack - the Owner's own artwork, cut from the sheet he
+supplied on 2026-08-27. Twelve stickers, WebP with an alpha channel, about
+23 KB each.
+
+WHY A JSON MAP AND NOT A SPRITE. The eight drawings this replaces were an SVG
+sprite, and a sprite is right for line art a stylesheet recolours. These are
+finished paintings: nothing about them inherits a theme, and inlining a quarter
+of a megabyte of base64 into every arena page - loaded whether the picker is
+ever opened or not - is the opposite of what the sprite was for.
+
+WHY THE MAP IS RENDERED HERE RATHER THAN BUILT IN THE SCRIPT. Static files are
+served through ManifestStaticFilesStorage, so every name carries a content
+hash - `let_him_cook.a1b2c3d4e5f6.webp` - and only {% templatetag openblock %} static {% templatetag closeblock %} knows it. A
+script that assembled its own URLs would 404 on production and work perfectly
+in development, which is the worst shape a bug can have.
+
+The token is the key, the same token that appears in a message body as
+:let_him_cook:, so arena_chat.js can look one up without knowing anything
+about where the files live.
+{% endcomment %}
+<script type="application/json" id="arena-chat-sticker-urls">{
+  "let_him_cook":    "{% static 'images/chef_battle/arena/stickers/let_him_cook.webp' %}",
+  "yes_chef":        "{% static 'images/chef_battle/arena/stickers/yes_chef.webp' %}",
+  "order_up":        "{% static 'images/chef_battle/arena/stickers/order_up.webp' %}",
+  "burnt_it":        "{% static 'images/chef_battle/arena/stickers/burnt_it.webp' %}",
+  "in_the_bin":      "{% static 'images/chef_battle/arena/stickers/in_the_bin.webp' %}",
+  "eighty_sixed":    "{% static 'images/chef_battle/arena/stickers/eighty_sixed.webp' %}",
+  "seared":          "{% static 'images/chef_battle/arena/stickers/seared.webp' %}",
+  "salty":           "{% static 'images/chef_battle/arena/stickers/salty.webp' %}",
+  "chefs_kiss":      "{% static 'images/chef_battle/arena/stickers/chefs_kiss.webp' %}",
+  "battle_time":     "{% static 'images/chef_battle/arena/stickers/battle_time.webp' %}",
+  "bear_approved":   "{% static 'images/chef_battle/arena/stickers/bear_approved.webp' %}",
+  "absolute_cinema": "{% static 'images/chef_battle/arena/stickers/absolute_cinema.webp' %}"
+}</script>

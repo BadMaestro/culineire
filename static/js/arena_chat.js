@@ -88,7 +88,10 @@
   var CUSTOM_EMOJI_BY_TOKEN = {};
   CUSTOM_EMOJI.forEach(function (e) { CUSTOM_EMOJI_BY_TOKEN[e.token] = e; });
 
-  /* STICKERS - P2 item 13. Original artwork in _arena_chat_sticker_sprite.html.
+  /* STICKERS - the Owner's own pack, supplied as a sheet on 2026-08-27 and
+   * cut from it. Twelve paintings, WebP with alpha, about 23 KB each; the
+   * URLs come from _arena_chat_stickers.html because static names carry a
+   * content hash that only Django knows.
    *
    * A STICKER IS THE WHOLE MESSAGE, which is the only thing that separates it
    * from a custom emoji here: same token syntax, same picker, same insert -
@@ -97,47 +100,72 @@
    * 160px drawing wedged into a sentence is not a sticker, it is a mistake.
    *
    * NO NEW BACKEND. A sticker is an ordinary chat line whose body happens to
-   * be ':plated:'; nothing is stored that was not already storable, there is
+   * be ':seared:'; nothing is stored that was not already storable, there is
    * no column, no migration, and an older client that has never heard of
    * stickers shows the token as text rather than an empty box.
    *
-   * THE WORDS ARE KITCHEN WORDS - what is actually called across a pass. The
-   * brief's own rule was to replace anything that reads as another brand's
-   * catchphrase, so none of these is borrowed. */
+   * THREE TOKENS CARRY OVER from the eight line drawings this replaces -
+   * yes_chef, in_the_bin and seared mean the same thing and keep their name,
+   * so the lines already sent with them still draw. The other five
+   * (service, behind, fired, still_raw, plated) have no counterpart in the
+   * pack and are gone; six test messages on production carry them and will
+   * show their token as text, which is what an unknown token has always
+   * done. */
   var STICKERS = [
-    { token: 'service',    label: 'Service!' },
-    { token: 'behind',     label: 'Behind!' },
-    { token: 'yes_chef',   label: 'Yes chef' },
-    { token: 'fired',      label: 'Fired' },
-    { token: 'in_the_bin', label: 'In the bin' },
-    { token: 'seared',     label: 'Seared' },
-    { token: 'still_raw',  label: 'Still raw' },
-    { token: 'plated',     label: 'Plated' }
+    { token: 'let_him_cook',    label: 'Let him cook' },
+    { token: 'yes_chef',        label: 'Yes chef!' },
+    { token: 'order_up',        label: 'Order up!' },
+    { token: 'burnt_it',        label: 'Burnt it' },
+    { token: 'in_the_bin',      label: 'In the bin' },
+    { token: 'eighty_sixed',    label: "86'd" },
+    { token: 'seared',          label: 'Seared' },
+    { token: 'salty',           label: 'Salty' },
+    { token: 'chefs_kiss',      label: "Chef's kiss" },
+    { token: 'battle_time',     label: 'Battle time' },
+    { token: 'bear_approved',   label: 'Bear approved' },
+    { token: 'absolute_cinema', label: 'Absolute cinema' }
   ];
   var STICKER_BY_TOKEN = {};
   STICKERS.forEach(function (e) { STICKER_BY_TOKEN[e.token] = e; });
 
-  /* The drawing, from OUR OWN table and never from the message text - the
-   * href here can only be a string this file shipped. Same rule as
-   * customEmojiNode, and for the same reason. */
+  /* WHERE THE PICTURES ARE, read from the page rather than assembled here.
+   * ManifestStaticFilesStorage hashes every filename, so a URL this script
+   * built itself would 404 on production and work perfectly in development -
+   * the worst shape a bug can have. A missing or malformed block leaves the
+   * map empty and stickerNode() returns null, which paintBody already treats
+   * as "draw the token as text". */
+  var STICKER_URLS = {};
+  (function () {
+    var node = document.getElementById('arena-chat-sticker-urls');
+    if (!node) { return; }
+    try { STICKER_URLS = JSON.parse(node.textContent) || {}; }
+    catch (err) { STICKER_URLS = {}; }
+  }());
+
+  /* The picture, from OUR OWN table and never from the message text - the src
+   * here can only be a URL the page itself printed, looked up by a token that
+   * had to be in STICKER_BY_TOKEN to get this far. Same rule as
+   * customEmojiNode, and for the same reason: a body is user input.
+   *
+   * Width and height are set from the file's own pixels so the log does not
+   * jump when a sticker arrives; the stylesheet scales it from there. */
   function stickerNode(token) {
     var known = STICKER_BY_TOKEN[token];
     if (!known) { return null; }
-    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('class', 'arena-chat__sticker');
-    svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', known.label);
-    svg.setAttribute('viewBox', '0 0 120 120');
-    var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    use.setAttribute('href', '#acs-' + known.token);
-    svg.appendChild(use);
-    return svg;
+    var src = STICKER_URLS[known.token];
+    if (!src) { return null; }
+    var img = document.createElement('img');
+    img.className = 'arena-chat__sticker';
+    img.src = src;
+    img.alt = known.label;
+    img.decoding = 'async';
+    return img;
   }
 
-  /* The same drawing at emoji size, for a sticker token sent among words. */
+  /* The same picture at emoji size, for a sticker token sent among words. */
   function inlineStickerNode(token) {
     var art = stickerNode(token);
-    if (art) { art.setAttribute('class', 'arena-chat__sticker arena-chat__sticker--inline'); }
+    if (art) { art.className = 'arena-chat__sticker arena-chat__sticker--inline'; }
     return art;
   }
 
@@ -1834,7 +1862,10 @@
           b.setAttribute('aria-label', item.label);
           b.title = item.label;
           var node = stickerNode(item.token);
-          if (node) { b.appendChild(node); }
+          /* Twelve pictures at once when the tab is opened, and the tab is
+             not the one the picker starts on. Lazy keeps them off the wire
+             until the reader actually asks for stickers. */
+          if (node) { node.loading = 'lazy'; b.appendChild(node); }
           b.addEventListener('click', function () {
             // Inserted, not sent. Every other tile in this picker inserts, and
             // one tile that fires a message instead would be the same control

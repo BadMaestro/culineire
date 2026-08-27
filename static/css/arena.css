@@ -11469,11 +11469,16 @@ body.page--arena.is-zoom-locked {
 }
 
 /* ==========================================================================
-   P2 ITEM 13 - CulinEire stickers.
+   CulinEire stickers - the Owner's own pack, v2.5.1342.
    A sticker is the whole message, so it is sized against the panel rather
    than against the text: clamp keeps it inside the 240px rail at its lower
-   bound and reaches the brief's 180px on a wide one, without a media query
-   for either.
+   bound and reaches 180px on a wide one, without a media query for either.
+
+   These are finished paintings rather than the line art they replace, so the
+   two hooks that dressed that line art - `color` for currentColor and
+   --sticker-accent for its one warm fill - are gone. Nothing here inherits a
+   theme any more, and a rule that pretends otherwise is a rule the next
+   reader has to disprove.
    ========================================================================== */
 .arena-chat .arena-chat__said--sticker {
   display: block;
@@ -11485,10 +11490,10 @@ body.page--arena.is-zoom-locked {
 .arena-chat__sticker {
   width: clamp(120px, 46%, 180px);
   height: auto;
-  /* The line art is currentColor, so the sticker inherits the reader's
-     theme - a dark kitchen gets a light sticker without a second drawing. */
-  color: var(--arena-ink, var(--ink));
-  --sticker-accent: var(--accent-bronze, #d6a64b);
+  /* The pack is drawn wider than it is tall and each file is trimmed to its
+     own ink, so heights differ by a few percent. Left to itself that is
+     fine; what it must not do is stretch. */
+  object-fit: contain;
 }
 /* Among words: emoji-sized, on the text baseline. A sticker token beside a
    sentence is a mark, not a picture. */
@@ -11512,7 +11517,8 @@ body.page--arena.is-zoom-locked {
 }
 .arena-chat__emoji-btn--sticker .arena-chat__sticker {
   width: 100%;
-  --sticker-accent: var(--accent-bronze, #d6a64b);
+  height: 100%;
+  object-fit: contain;
 }
 
 /* ==========================================================================
