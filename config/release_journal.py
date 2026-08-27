@@ -1,5 +1,56 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1354",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The eight rings move above the arena and the lifecycle rail takes their old place below it",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-27: put that whole row up above the arena where "
+            "the stages are now, and move the stages down to where that row "
+            "is. Two full-width grid areas trade rows on the desktop; nothing "
+            "in the template moves and no column is touched, so the octagon's "
+            "own width - which comes from the middle COLUMN - cannot change. "
+            "AND THE SWAP BROKE THE OCTAGON, which is the part worth writing "
+            "down. The floor's own micro-grid begins with a row of "
+            "`var(--arena-deck-top-h, 0px)`, reserved for the furniture above "
+            "it, and arena_page_layout.js measures that as `ribbon.bottom - "
+            "floor.top`. That is a DISTANCE, not a height, and it is safe "
+            "only while the ribbon is above the floor. Moved below, the same "
+            "subtraction returned the whole gap between them - measured 965px "
+            "- which the floor duly reserved as its first row, leaving its "
+            "own stage at ZERO height. The octagon was still drawn and still "
+            "had its eight children; it was placed against a zero-height "
+            "region and landed 800px below the floor, off the frame "
+            "entirely. Nothing in a static read of the CSS would have shown "
+            "it - the page simply had no arena on it. Guarded by one "
+            "comparison that makes the function's own sentence true: "
+            "furniture ABOVE the floor, and below it there is nothing to "
+            "reserve. THE OCTAGON IS UNCHANGED, and measured rather than "
+            "asserted: four fresh loads at 1920x1080 give 730x503 on the "
+            "swapped page, four times out of four, against a pre-swap page "
+            "that gives 730x503 three times and 739x509 once on the same four "
+            "loads - so the swap is steadier than the noise it is being "
+            "compared against. What does move is position: the rings are "
+            "206px tall against the rail's 90, so everything below the first "
+            "row starts 112px lower. That is the arithmetic of the request, "
+            "not a side effect. The deck's end caps follow the rows - it is a "
+            "bordered card at this width and the row flush with its top edge "
+            "rounds its own top corners to match, which is now the rings; the "
+            "rail keeps its own card radius in the middle and the foot has "
+            "not moved. Source order is deliberately left alone: this grid "
+            "places by NAME and already did - .arena-mobile-scene sits "
+            "between the ribbon and the rails in the document and appears "
+            "nowhere near them at this width - and nothing in the rings is "
+            "focusable, so tab order is unaffected either way. Below 901px "
+            "nothing changes at all: the rings are display:none there and the "
+            "phone and tablet keep the layouts they had. 41 ring, octagon-"
+            "lock, geometry, camera, widget-band, chat, template-hygiene and "
+            "image-weight tests green; the inherited superseded-declaration "
+            "failure is unchanged at 28 items, none added here."
+        ),
+    },
+    {
         "version": "2.5.1351",
         "date": "2026-08-27",
         "commit": "pending",

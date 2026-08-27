@@ -4848,7 +4848,13 @@
       0 1.2rem 2.8rem color-mix(in srgb, var(--ink) 22%, transparent),
       inset 0 0 0 1px color-mix(in srgb, var(--surface) 55%, transparent);
   }
-  .arena-broadcast-ribbon {
+  /* THE END CAPS BELONG TO WHATEVER IS AT THE END. The deck is a bordered
+     card at this width (just above), and the row flush with its top edge
+     rounds its own top corners to match. That used to be the lifecycle
+     rail; since v2.5.1354 it is the rings. The rail keeps the radius its
+     own card rules give it and needs no cap of its own in the middle of
+     the deck. The foot has not moved and keeps the bottom pair. */
+  .arena-rank-strip {
     border-top-left-radius: 0.85rem;
     border-top-right-radius: 0.85rem;
   }
@@ -10953,12 +10959,29 @@ body.page--arena.is-zoom-locked {
      Between the arena and the lower dock, full width, exactly where he drew
      it. The other four areas are copied verbatim from the block at :7572 so
      that this is a row INSERTED, not a template rewritten. */
+  /* THE RINGS GO OVER THE ARENA AND THE LIFECYCLE RAIL GOES UNDER IT.
+     Owner, 2026-08-27: put that whole row up above the arena where the
+     stages are now, and move the stages down to where that row is.
+
+     A straight swap of two full-width areas - `ribbon` and `ranks` trade
+     rows and nothing else in the template moves. THE OCTAGON DOES NOT
+     CHANGE SIZE: its width comes from the middle COLUMN, and a row cannot
+     touch a column. It does change POSITION, and by a knowable amount -
+     the rings are 206px tall against the rail's 90, so everything below
+     row one starts 116px lower. That is the arithmetic of what he asked
+     for rather than a side effect, and it is the only thing that moves.
+
+     Source order is deliberately not touched. This grid places by NAME,
+     and it already did: .arena-mobile-scene sits between the ribbon and
+     the rails in the document and appears nowhere near them at this
+     width. Nothing in the rings is focusable - eight cards of images,
+     labels and counts - so tab order is unaffected either way. */
   .arena-command-deck {
     grid-template-areas:
-      "ribbon ribbon ribbon"
+      "ranks  ranks  ranks"
       "left   floor  right"
       "left   dock   ."
-      "ranks  ranks  ranks"
+      "ribbon ribbon ribbon"
       "foot   foot   foot";
   }
   .arena-rank-strip {

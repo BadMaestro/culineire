@@ -25024,3 +25024,83 @@ class ArenaChatComposerIsNailedToTheFootTests(TestCase):
         script = self.SCRIPT.read_text(encoding="utf-8")
         self.assertIn("sheet.style.maxHeight = room + 'px'", script)
         self.assertIn("var FLOOR = 128;", script)
+class ArenaRingsSitAboveTheArenaTests(TestCase):
+    """The rings go over the arena, the lifecycle rail under it, v2.5.1354.
+
+    Owner, 2026-08-27: put that whole row up above the arena where the stages
+    are now, and move the stages down to where that row is.
+
+    A straight swap of two full-width grid areas - and it broke the octagon,
+    which is why the guard below exists and why this class does.
+
+    THE FLOOR RESERVES A ROW FOR THE FURNITURE ABOVE IT. Its own micro-grid
+    starts `var(--arena-deck-top-h, 0px)`, and arena_page_layout.js measures
+    that as `ribbon.bottom - floor.top` - a DISTANCE, not a height, safe only
+    while the ribbon is above the floor. Moved below, the same subtraction
+    returned the whole gap between them: measured 965px, which the floor
+    reserved as its first row, and the octagon's own region collapsed to
+    nothing. The octagon was still drawn - it was placed against a zero-height
+    region and landed off the floor entirely, which is a far louder failure
+    than a wrong number and was invisible in every static check.
+
+    Guarded by one comparison, and the octagon comes back unchanged: four
+    fresh loads at 1920x1080 give 730x503 on both pages, against a
+    before-page that varies by 9px across the same four loads on its own.
+    """
+
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+    LAYOUT = Path(settings.BASE_DIR) / "static" / "js" / "arena_page_layout.js"
+    DESKTOP = "@media (min-width: 901px)"
+
+    def _areas(self):
+        """The LAST grid-template-areas that applies on a desktop - two rules
+        declare one and the later wins, which is the whole reason this reads
+        the cascade rather than the first match."""
+        found = [b for c, s, b in ArenaChatIsAFixedHeightPanelTests._blocks()
+                 if c == self.DESKTOP and s == ".arena-command-deck"
+                 and "grid-template-areas" in b]
+        self.assertTrue(found, "no desktop grid-template-areas found")
+        return found[-1]
+
+    def test_the_rings_are_the_first_row_and_the_rail_is_the_fourth(self):
+        import re
+
+        rows = re.findall(r'"([a-z. ]+)"', self._areas())
+        self.assertEqual(len(rows), 5, "the desktop deck has five rows")
+        self.assertEqual(rows[0].split()[0], "ranks",
+                         "the rings are not the row above the arena")
+        self.assertEqual(rows[3].split()[0], "ribbon",
+                         "the lifecycle rail is not the row below the arena")
+        self.assertEqual(rows[1].split(), ["left", "floor", "right"],
+                         "the arena's own row moved, and it must not")
+
+    def test_the_top_cap_belongs_to_whatever_is_at_the_top(self):
+        """The deck is a bordered card at this width and the row flush with
+        its top edge rounds its own top corners to match. That is now the
+        rings; the rail in the middle needs no cap."""
+        ranks = [b for c, s, b in ArenaChatIsAFixedHeightPanelTests._blocks()
+                 if c == self.DESKTOP and s == ".arena-rank-strip"
+                 and "border-top-left-radius" in b]
+        self.assertTrue(ranks, "the rings do not cap the top of the deck")
+        ribbon = [b for c, s, b in ArenaChatIsAFixedHeightPanelTests._blocks()
+                  if c == self.DESKTOP and s == ".arena-broadcast-ribbon"
+                  and "border-top-left-radius" in b]
+        self.assertFalse(ribbon, "the rail still caps a top it no longer sits at")
+
+    def test_the_floor_only_reserves_room_for_furniture_actually_above_it(self):
+        """`ribbon.bottom - floor.top` is a distance. Without the guard, a
+        ribbon below the floor reserves the gap between them - 965px measured
+        - and the octagon's region collapses to zero."""
+        source = self.LAYOUT.read_text(encoding="utf-8")
+        self.assertIn("box.top < floorBox.top", source,
+                      "the deck-top measurement counts furniture below the floor again")
+        self.assertIn("Math.round(box.bottom - floorBox.top)", source)
+
+    def test_the_arena_row_itself_is_untouched(self):
+        """The octagon's width comes from the middle COLUMN. A row swap must
+        not have gone near the columns."""
+        cols = [b for c, s, b in ArenaChatIsAFixedHeightPanelTests._blocks()
+                if c == self.DESKTOP and s == ".arena-command-deck"
+                and "grid-template-columns" in b]
+        self.assertTrue(cols)
+        self.assertIn("var(--arena-floor-target-width, 1fr)", cols[0])

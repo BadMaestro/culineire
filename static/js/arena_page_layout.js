@@ -91,6 +91,18 @@
    * not counted - it ends above the floor too and is nowhere near the caption,
    * and counting it is how a measured fix gets the wrong answer with a
    * straight face.
+   *
+   * AND THE RIBBON HAS TO ACTUALLY BE ABOVE THE FLOOR, which stopped being a
+   * given on 2026-08-27 when the Owner swapped the two full-width rows: the
+   * rings went over the arena and the lifecycle rail went under it. The
+   * subtraction below is a DISTANCE, not a height, so a ribbon sitting BELOW
+   * the floor returns the whole gap between them - measured 965px, which the
+   * floor then reserved as its own first grid row, and the octagon's region
+   * collapsed to nothing. The octagon was still drawn; it was placed against a
+   * zero-height region and landed off the floor entirely.
+   *
+   * The guard is one comparison, and it is this function's own sentence made
+   * true: furniture ABOVE the floor. Below it there is nothing to reserve.
    */
   function measureDeckTop() {
     var deck = document.querySelector('.arena-command-deck');
@@ -110,7 +122,9 @@
     if (ribbon && floor) {
       var floorBox = floor.getBoundingClientRect();
       var box = ribbon.getBoundingClientRect();
-      if (box.height > 0) { top = Math.max(0, Math.round(box.bottom - floorBox.top)); }
+      if (box.height > 0 && box.top < floorBox.top) {
+        top = Math.max(0, Math.round(box.bottom - floorBox.top));
+      }
     }
     var next = top + 'px';
     if (deck.style.getPropertyValue('--arena-deck-top-h') === next) { return false; }
