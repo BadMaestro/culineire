@@ -83,6 +83,30 @@
               <span class="artifact-card__effect-label">Effect:</span> {{ artifact.effect_type }}{% if artifact.effect_value %} ({{ artifact.effect_value }}){% endif %}
             </p>
             {% endif %}
+            {% comment %}
+            AC-STK part B, Owner 2026-08-27: artifacts are bought. His ruling
+            corrected a specification that had said the opposite for months
+            while the public rules page already described his real model.
+
+            LEGENDARY IS NOT SOLD AND SAYS SO instead of leaving somebody to
+            find out from a refusal - he ruled they stay prize-only.
+
+            The count is shown rather than a yes/no, because duplicates are
+            allowed here: ChefArtifact dropped its uniqueness constraint when
+            battle gifts needed to stack.
+            {% endcomment %}
+            {% if artifact.rarity == "legendary" %}
+            <p class="artifact-card__prize-only">Won in battle only</p>
+            {% elif can_buy %}
+            <form action="{% url 'chef_battle:artifact_buy' %}" class="artifact-card__buy" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="artifact" value="{{ artifact.pk }}">
+              <button class="btn-secondary" type="submit">Buy for {{ artifact.token_cost }}T</button>
+            </form>
+            {% endif %}
+            {% if artifact.owned_count %}
+            <p class="artifact-card__owned">In your chest{% if artifact.owned_count > 1 %} &times;{{ artifact.owned_count }}{% endif %}</p>
+            {% endif %}
             {% if can_generate %}
             <button class="artifact-card__regen-btn authoring-step-regen"
                     type="button"

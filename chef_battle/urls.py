@@ -123,6 +123,8 @@ urlpatterns = [
     path("stickers/buy/", views.sticker_buy, name="sticker_buy"),
     path("stickers/pack/buy/", views.sticker_pack_buy, name="sticker_pack_buy"),
     path("artifacts/", views.artifact_gallery, name="artifact_gallery"),
+    # AC-STK part B: buying one for yourself, at the shelf price.
+    path("artifacts/buy/", views.artifact_buy, name="artifact_buy"),
     path("artifacts/<int:pk>/", views.artifact_detail, name="artifact_detail"),
     path("artifacts/<int:pk>/generate/", views.artifact_generate_image, name="artifact_generate_image"),
     path("gifts/", views.appreciation_gallery, name="appreciation_gallery"),

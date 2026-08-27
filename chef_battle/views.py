@@ -736,12 +736,16 @@ def sticker_shop(request):
     })
 
 
-def _sticker_purchase_gates(author):
+def _paid_arena_gates(author):
     """The fraud gates that run BEFORE any money query, and their message.
 
     Returns an error string, or "" when the purchase may proceed. Same three
     gates the Treasury runs for a token spend, minus the ones that only mean
     something for a real-money checkout.
+
+    Named for the SPEND and not for the goods: stickers and artifacts are two
+    kinds of thing bought with the same tokens under the same three checks, and
+    a second copy of this list is how one of them quietly loses a gate.
     """
     result = run_fraud_gates([
         (gate_suspended_account, (author,), {}),
@@ -772,7 +776,7 @@ def sticker_buy(request):
         messages.error(request, "You need a chef profile to buy stickers.")
         return redirect("chef_battle:sticker_shop")
 
-    refusal = _sticker_purchase_gates(author)
+    refusal = _paid_arena_gates(author)
     if refusal:
         messages.error(request, refusal)
         return redirect("chef_battle:sticker_shop")
@@ -806,7 +810,7 @@ def sticker_pack_buy(request):
         messages.error(request, "You need a chef profile to buy stickers.")
         return redirect("chef_battle:sticker_shop")
 
-    refusal = _sticker_purchase_gates(author)
+    refusal = _paid_arena_gates(author)
     if refusal:
         messages.error(request, refusal)
         return redirect("chef_battle:sticker_shop")
@@ -823,6 +827,45 @@ def sticker_pack_buy(request):
         f"{pack.name}: {len(rows)} sticker{'' if len(rows) == 1 else 's'} added to your picker.",
     )
     return redirect("chef_battle:sticker_shop")
+
+
+@chef_battle_guard
+@require_POST
+@login_required
+def artifact_buy(request):
+    """AC-STK part B: buy an artifact for yourself, at the shelf price.
+
+    Same stack and same order as the sticker endpoints above - guard outermost,
+    fraud gates before any money query, the money itself inside a service under
+    a locked wallet, and `str(exc)` surfaced because debit_tokens' own
+    "Insufficient tokens: need XT, have YT." is the most useful sentence
+    anybody can be told here.
+    """
+    from .models import Artifact
+    from .services import buy_artifact
+
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "You need a chef profile to buy artifacts.")
+        return redirect("chef_battle:artifact_gallery")
+
+    refusal = _paid_arena_gates(author)
+    if refusal:
+        messages.error(request, refusal)
+        return redirect("chef_battle:artifact_gallery")
+
+    artifact = get_object_or_404(Artifact, pk=request.POST.get("artifact"), is_active=True)
+    try:
+        buy_artifact(chef=author, artifact=artifact)
+    except Exception as exc:
+        messages.error(request, str(exc))
+        return redirect("chef_battle:artifact_gallery")
+
+    messages.success(
+        request,
+        f"{artifact.name} is in your chest. Bring it into a battle when you are ready.",
+    )
+    return redirect("chef_battle:artifact_gallery")
 
 
 WITHDRAWAL_CONSENT_TEXT = (
@@ -3871,7 +3914,11 @@ def artifact_generate_image(request, pk):
 def artifact_gallery(request):
     from .models import Artifact
 
-    artifacts = Artifact.objects.filter(is_active=True).order_by("rarity", "name")
+    # Materialised ONCE, so the owned counts hung on these objects below are
+    # the same instances `grouped` holds. Leaving it a queryset worked only by
+    # relying on _result_cache, which is an implementation detail to bet a
+    # page on.
+    artifacts = list(Artifact.objects.filter(is_active=True).order_by("rarity", "name"))
 
     rarity_order = ["common", "uncommon", "rare", "epic", "legendary"]
     rarity_labels = {
@@ -3890,10 +3937,38 @@ def artifact_gallery(request):
     can_generate = request.user.is_authenticated and (
         request.user.is_staff or is_moderator(request.user)
     )
+
+    # AC-STK part B. What the viewer already holds, so the shelf can say "owned
+    # x2" instead of pretending every buy is a first one - duplicates are
+    # allowed here, so the count is the honest thing to show rather than a
+    # yes/no.
+    viewer_author = get_author_for_user(request.user)
+    wallet = None
+    if viewer_author:
+        wallet, _ = TokenWallet.objects.get_or_create(chef=viewer_author)
+        owned_counts = {}
+        for artifact_id in (
+            ChefArtifact.objects
+            .filter(chef=viewer_author)
+            .exclude(status__in=[ChefArtifact.Status.CONSUMED,
+                                 ChefArtifact.Status.EXPIRED,
+                                 ChefArtifact.Status.REVERSED])
+            .values_list("artifact_id", flat=True)
+        ):
+            owned_counts[artifact_id] = owned_counts.get(artifact_id, 0) + 1
+        # Hung on the object the template already has, rather than passed as a
+        # dict beside it: a Django template cannot look a dict up by a variable
+        # key without a custom filter, and one line here is cheaper than a
+        # templatetags module that exists to answer one question.
+        for artifact in artifacts:
+            artifact.owned_count = owned_counts.get(artifact.pk, 0)
+
     return render(request, "chef_battle/artifact_gallery.html", {
         "grouped": grouped,
-        "total": artifacts.count(),
+        "total": len(artifacts),
         "can_generate": can_generate,
+        "wallet": wallet,
+        "can_buy": viewer_author is not None,
     })
 
 

@@ -4998,3 +4998,15 @@ a.battle-home__pulse-msg:hover {
     transform: none;
   }
 }
+
+/* AC-STK part B - buying an artifact for yourself, Owner 2026-08-27.
+   The Buy control is quiet rather than a primary action: an armoury of 212
+   shelves where every card shouts is a wall, not a shop. Legendary says what
+   it is instead of leaving somebody to find out from a refusal. */
+.artifact-card__buy         { margin-top: 0.5rem; }
+.artifact-card__buy button  { width: 100%; }
+.artifact-card__prize-only  { margin: 0.5rem 0 0; font-size: 0.72rem; font-weight: 700;
+                              text-transform: uppercase; letter-spacing: 0.05em;
+                              color: var(--muted); }
+.artifact-card__owned       { margin: 0.35rem 0 0; font-size: 0.74rem; font-weight: 700;
+                              color: var(--brand); }

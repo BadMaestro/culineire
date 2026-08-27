@@ -26279,3 +26279,262 @@ class OwnerOwnsEveryStickerByRuleTests(TestCase):
         self.client.force_login(other.user)
         response = self.client.post(self.send_url, {"body": ":salty:"})
         self.assertEqual(response.status_code, 403)
+
+
+# ===========================================================================
+# AC-STK PART B - BUYING AN ARTIFACT FOR YOURSELF
+# ===========================================================================
+
+
+def _artifact(name, rarity="common", cost=None):
+    from chef_battle.models import Artifact
+
+    kwargs = {"name": name, "rarity": rarity, "effect_type": "attack", "effect_value": 1}
+    if cost is not None:
+        kwargs["token_cost"] = cost
+    return Artifact.objects.create(**kwargs)
+
+
+class BuyArtifactForYourselfTests(TestCase):
+    """Route 2 of the Owner's four: bought for yourself, at the shelf price,
+    into your own chest.
+
+    His ruling, 2026-08-27: there has never been any ban on buying artifacts.
+    Four lines in tz_main.md and artifact_3_models_rules.md said otherwise for
+    months while the PUBLIC rules page described his actual model.
+    """
+
+    def setUp(self):
+        self.user, self.author = _make_chef("collector", balance=500)
+        self.common = _artifact("Test Whetstone", "common", 10)
+
+    def test_the_shelf_price_is_charged_with_no_doubling(self):
+        """A battle gift costs token_cost * 2 - the second half is the price of
+        reaching a RUNNING fight. Nothing is running here: 10, not 20."""
+        from .services import buy_artifact
+
+        buy_artifact(chef=self.author, artifact=self.common)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 490)
+
+    def test_the_row_is_ordinary_property(self):
+        from .services import buy_artifact
+
+        owned = buy_artifact(chef=self.author, artifact=self.common)
+        self.assertEqual(owned.status, ChefArtifact.Status.AVAILABLE)
+        self.assertIsNone(
+            owned.locked_to_battle,
+            "a bought artifact must not inherit the battle-gift lock - it is "
+            "property, not something that expires with a fight",
+        )
+
+    def test_the_source_is_written_explicitly(self):
+        """PURCHASED is also the FIELD DEFAULT, and production carries 421 rows
+        wearing it from a 2026-07-15 catalogue seed that never chose it. A row
+        meaning "somebody bought this" and a row meaning "nobody said" are
+        indistinguishable unless every producer passes source= itself."""
+        from .services import buy_artifact
+
+        owned = buy_artifact(chef=self.author, artifact=self.common)
+        self.assertEqual(owned.source, ChefArtifact.Source.PURCHASED)
+        source = (
+            Path(__file__).resolve().parent / "services.py"
+        ).read_text(encoding="utf-8")
+        body = source[source.index("def buy_artifact("):]
+        body = body[:body.index("def send_battle_artifact(")]
+        self.assertIn("source=ChefArtifact.Source.PURCHASED", body)
+
+    def test_it_writes_the_two_ledger_values_nothing_has_ever_written(self):
+        """ARTIFACT_BOUGHT and ARTIFACT_PURCHASED have existed since migration
+        0007 and were produced by nothing at all. This is their first
+        producer."""
+        from .models import TokenTransaction
+        from .services import buy_artifact
+
+        owned = buy_artifact(chef=self.author, artifact=self.common)
+        self.assertEqual(
+            owned.artifact.chef_artifacts.count(), 1,
+        )
+        tx = TokenTransaction.objects.filter(
+            wallet__chef=self.author, tx_type=TokenTransaction.TxType.ARTIFACT_BOUGHT,
+        )
+        self.assertEqual(tx.count(), 1)
+        self.assertEqual(tx.first().amount, -10)
+
+        event = LedgerEvent.objects.get(
+            event_type=LedgerEvent.EventType.ARTIFACT_PURCHASED,
+        )
+        self.assertEqual(event.actor, self.author)
+        self.assertEqual(event.payload["tokens_spent"], 10)
+        self.assertEqual(
+            event.payload["delivery_fee"], 0,
+            "a purchase for yourself carries no delivery fee, and the ledger "
+            "should say so rather than leave it to be inferred",
+        )
+
+    def test_legendary_is_refused_and_charges_nothing(self):
+        """The Owner, asked directly on 2026-08-27: legendary artifacts stay
+        prize-only and cannot be bought."""
+        from .services import buy_artifact
+
+        legendary = _artifact("Test Crown Blade", "legendary", 400)
+        with self.assertRaises(ValueError):
+            buy_artifact(chef=self.author, artifact=legendary)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 500)
+        self.assertFalse(ChefArtifact.objects.filter(chef=self.author).exists())
+
+    def test_the_refusal_is_worded_the_same_as_the_battle_gift_path(self):
+        """Two paths refusing the same thing in two different sentences is how
+        one of them quietly stops refusing it."""
+        source = (
+            Path(__file__).resolve().parent / "services.py"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(
+            source.count(
+                'raise ValueError("Legendary artifacts are prize-only and cannot be bought.")'
+            ),
+            2,
+        )
+
+    def test_an_inactive_artifact_cannot_be_bought(self):
+        from .services import buy_artifact
+
+        self.common.is_active = False
+        self.common.save()
+        with self.assertRaises(ValueError):
+            buy_artifact(chef=self.author, artifact=self.common)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 500)
+
+    def test_an_empty_wallet_leaves_nothing_behind(self):
+        from .models import TokenTransaction
+        from .services import buy_artifact
+
+        _, broke = _make_chef("pennyless", balance=2)
+        with self.assertRaises(ValueError):
+            buy_artifact(chef=broke, artifact=self.common)
+        self.assertFalse(ChefArtifact.objects.filter(chef=broke).exists())
+        self.assertFalse(
+            TokenTransaction.objects.filter(
+                wallet__chef=broke, tx_type=TokenTransaction.TxType.ARTIFACT_BOUGHT,
+            ).exists()
+        )
+        self.assertFalse(LedgerEvent.objects.filter(actor=broke).exists())
+
+    def test_duplicates_are_allowed(self):
+        """ChefArtifact dropped its uniqueness constraint when battle gifts
+        needed to stack. Refusing here would make this one path behave
+        differently from every other producer for no stated reason."""
+        from .services import buy_artifact
+
+        buy_artifact(chef=self.author, artifact=self.common)
+        buy_artifact(chef=self.author, artifact=self.common)
+        self.assertEqual(ChefArtifact.objects.filter(chef=self.author).count(), 2)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 480)
+
+    def test_a_bought_artifact_counts_against_the_loadout_limit(self):
+        """It is ordinary property, so it competes for the three per type like
+        anything else the chef owns - COMBAT_ARTIFACTS_PER_TYPE_LIMIT."""
+        from .services import COMBAT_ARTIFACTS_PER_TYPE_LIMIT, buy_artifact
+
+        self.assertEqual(COMBAT_ARTIFACTS_PER_TYPE_LIMIT, 3)
+        for i in range(4):
+            buy_artifact(chef=self.author, artifact=_artifact(f"Test Blade {i}", "common", 10))
+        self.assertEqual(ChefArtifact.objects.filter(chef=self.author).count(), 4)
+
+    @override_settings(OWNER_SLUG="greenbear")
+    def test_the_owner_is_never_charged(self):
+        """AGENTS.md section 18: nothing the game does may take anything from
+        his account."""
+        from .services import buy_artifact
+
+        owner_user = get_user_model().objects.create_user(username="ownerbuyer", password="pw")
+        owner, created = RecipeAuthor.objects.get_or_create(
+            slug="greenbear", defaults={"user": owner_user, "name": "GreenBear"},
+        )
+        TokenWallet.objects.get_or_create(chef=owner)
+        from .services import credit_tokens
+        credit_tokens(owner, 500, tx_type="admin_grant", description="float")
+
+        with self.assertRaises(ValueError):
+            buy_artifact(chef=owner, artifact=self.common)
+        self.assertEqual(TokenWallet.objects.get(chef=owner).balance, 500)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class BuyArtifactEndpointTests(TestCase):
+    """The endpoint, held to the same gate as every other money surface."""
+
+    def setUp(self):
+        self.user, self.author = _make_chef("shelfshopper", balance=200)
+        self.url = reverse("chef_battle:artifact_buy")
+        self.artifact = _artifact("Test Cleaver", "common", 10)
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_it_answers_404_during_a_dark_launch(self):
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.assertEqual(self.client.post(self.url, {}).status_code, 404)
+
+    def test_an_age_unverified_chef_is_refused_and_charged_nothing(self):
+        ChefBattleProfile.objects.get_or_create(author=self.author)
+        self.client.force_login(self.user)
+        self.client.post(self.url, {"artifact": self.artifact.pk})
+        self.assertFalse(ChefArtifact.objects.filter(chef=self.author).exists())
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 200)
+
+    def test_a_verified_chef_buys_through_the_endpoint(self):
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=self.author)
+        profile.age_verified = True
+        profile.save()
+
+        self.client.force_login(self.user)
+        self.client.post(self.url, {"artifact": self.artifact.pk})
+        self.assertTrue(
+            ChefArtifact.objects.filter(chef=self.author, artifact=self.artifact).exists()
+        )
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 190)
+
+    def test_the_gallery_offers_no_buy_button_for_a_legendary(self):
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=self.author)
+        profile.age_verified = True
+        profile.save()
+        _artifact("Test Sovereign Ladle", "legendary", 400)
+
+        self.client.force_login(self.user)
+        page = self.client.get(reverse("chef_battle:artifact_gallery"))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Won in battle only")
+
+    def test_the_gallery_shows_what_the_viewer_already_holds(self):
+        from .services import buy_artifact
+
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=self.author)
+        profile.age_verified = True
+        profile.save()
+        buy_artifact(chef=self.author, artifact=self.artifact)
+        buy_artifact(chef=self.author, artifact=self.artifact)
+
+        self.client.force_login(self.user)
+        page = self.client.get(reverse("chef_battle:artifact_gallery"))
+        self.assertContains(page, "In your chest")
+        self.assertContains(page, "&times;2")
+
+
+class TheSpecificationSaysArtifactsAreBoughtTests(TestCase):
+    """The four stale lines the Owner ordered struck, 2026-08-27.
+
+    They said artifacts were earn-only while the PUBLIC rules page already
+    described his real model, and they misled an agent into telling him his own
+    product was forbidden. His standing instruction in the same breath: when
+    something is not written down, write it down yourself.
+    """
+
+    DOCS = Path(__file__).resolve().parent.parent / "docs" / "chef_battle"
+
+    def test_no_document_still_says_artifacts_cannot_be_bought(self):
+        for name in ("tz_main.md", "artifact_3_models_rules.md"):
+            text = (self.DOCS / name).read_text(encoding="utf-8").lower()
+            for stale in ("artifacts earn-only", "no direct artifact buying"):
+                self.assertNotIn(
+                    stale, text,
+                    f"{name} still carries '{stale}', which the Owner struck on "
+                    f"2026-08-27",
+                )

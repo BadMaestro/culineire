@@ -2944,6 +2944,94 @@ def submit_cooked_photo(*, battle: Battle, author, photo, real_photo_confirmed: 
 
 # ── Viewer gifts ───────────────────────────────────────────────────────────────
 
+def buy_artifact(*, chef, artifact: Artifact) -> ChefArtifact:
+    """Buy an artifact for yourself, at the shelf price, into your own chest.
+
+    AC-STK part B. The Owner's ruling, 2026-08-27: there has never been any ban
+    on buying artifacts and there never was one - users buy them, chefs buy
+    them. Four lines in tz_main.md and artifact_3_models_rules.md said the
+    opposite for months while the PUBLIC rules page described his actual model,
+    and they misled an agent into telling him his own product was forbidden.
+
+    NOTHING HERE IS NEW ECONOMICS. It is the existing catalogue, the existing
+    wallet and the existing chest, joined by an endpoint nobody had written.
+    This is route 2 of the four he stated:
+
+      1. won in battle              - built, drop_battle_artifacts, source=DROP
+      2. bought for yourself        - THIS
+      3. gifted before a battle     - part C
+      4. gifted during a battle     - send_battle_artifact, below
+
+    NO DELIVERY FEE, and the arithmetic is stated rather than implied: the
+    charge is artifact.token_cost EXACTLY, with no doubling. The second half of
+    a battle gift is the price of reaching a RUNNING fight (see the function
+    below, where total = cost + cost); nothing is running here, so there is
+    nothing to pay for.
+
+    LEGENDARY IS REFUSED - the Owner, asked directly on 2026-08-27, ruled that
+    legendary artifacts stay prize-only and cannot be bought. The refusal below
+    is the same one send_battle_artifact already makes, in the same words, so
+    the two paths cannot drift into disagreeing about it.
+
+    THE ROW IS ORDINARY PROPERTY: available, and NOT locked_to_battle. That is
+    the whole difference from a battle gift, which must be spent in the fight it
+    was sent to and expires with it. This one is carried into a later battle
+    against the three-per-type loadout limit like anything else the chef owns.
+
+    DUPLICATES ARE ALLOWED, deliberately. ChefArtifact dropped its uniqueness
+    constraint when battle gifts needed to stack, so two rows for one artifact
+    is already the shape of the table and of every other producer; refusing here
+    would make this one path behave differently for no stated reason.
+    """
+    if not artifact.is_active:
+        raise ValueError("This artifact is not available.")
+    if artifact.rarity == Artifact.Rarity.LEGENDARY:
+        raise ValueError("Legendary artifacts are prize-only and cannot be bought.")
+
+    # Nothing the game does may take anything from the Owner's account
+    # (AGENTS.md section 18), and is_immortal()/is_owner_author() are where that
+    # is decided rather than at each call site.
+    if is_owner_author(chef):
+        raise ValueError("The Owner's account is not charged for artifacts.")
+
+    with transaction.atomic():
+        token_tx = debit_tokens(
+            chef, artifact.token_cost,
+            tx_type=TokenTransaction.TxType.ARTIFACT_BOUGHT,
+            description=f"Artifact bought: {artifact.name}",
+        )
+        owned = ChefArtifact.objects.create(
+            chef=chef,
+            artifact=artifact,
+            # EXPLICIT, never left to the field default. `PURCHASED` IS the
+            # default (models.py), and production already carries 421 rows
+            # wearing it from a catalogue seed on 2026-07-15 that never chose
+            # it - so a row that means "somebody bought this" and a row that
+            # means "nobody said" are indistinguishable unless every producer
+            # passes it. Every other call site does; so does this one.
+            source=ChefArtifact.Source.PURCHASED,
+            status=ChefArtifact.Status.AVAILABLE,
+            locked_to_battle=None,
+        )
+        from .models import LedgerEvent
+        # ARTIFACT_BOUGHT and ARTIFACT_PURCHASED have both existed since
+        # migration 0007 and have been written by NOTHING ever since. This is
+        # their first producer.
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.ARTIFACT_PURCHASED,
+            actor=chef,
+            payload={
+                "artifact": artifact.name,
+                "artifact_id": artifact.pk,
+                "rarity": artifact.rarity,
+                "tokens_spent": artifact.token_cost,
+                "delivery_fee": 0,
+                "chef_artifact_id": owned.pk,
+            },
+        )
+    return owned
+
+
 def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Artifact) -> ViewerBattleGift:
     """Viewer delivers a battle artifact to a chef mid-battle.
 

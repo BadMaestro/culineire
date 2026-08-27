@@ -46,6 +46,7 @@ Larger packages = better value. Encourages bulk purchases.
 | Gift Uncommon artifact | 25 | 25 | **50 tokens** |
 | Gift Rare artifact | 60 | 60 | **120 tokens** |
 | Gift Epic artifact | 150 | 150 | **300 tokens** |
+| **Buy an artifact for yourself** | shelf price | — | **10 / 25 / 60 / 150 tokens** |
 | Gift Legendary artifact | — | — | **prize only, cannot be bought** |
 | Appreciation gift (6 kinds, no fee) | 20–100 | — | **20–100 tokens** |
 | **Arena chat sticker, on its own** | 10 | — | **10 tokens** |
@@ -68,7 +69,30 @@ panel, and that grant writes no token transaction because nobody paid.
 **The Owner owns every sticker by RULE, not by granted rows** (his own choice,
 2026-08-27, of the two put to him). Rows would have to be granted again for every
 pack this project ever adds, and the day somebody forgets is the day his own
-arena locks him out of it. The check is `is_owner_author()` — the same
+arena locks him out of it.
+
+**Buying an artifact for yourself, AC-STK part B, Owner 2026-08-27.** His ruling:
+*there has never been any ban on buying artifacts, and there never was one.* Four
+acquisition routes, and only two of them were ever built:
+
+1. **Won in battle** — `drop_battle_artifacts`, `source=DROP`. Built.
+2. **Bought for yourself** at the shelf price, into your own chest, carried into a
+   later battle. **No delivery fee** — the second half of a battle gift is the price
+   of reaching a *running* fight, and nothing is running. `source=PURCHASED`,
+   `tx_type=artifact_bought`, `LedgerEvent.ARTIFACT_PURCHASED`; those last two had
+   existed since migration 0007 and were written by nothing until this card.
+3. **Gifted to a chef BEFORE a battle**, at the shelf price with no delivery fee,
+   because there is no running fight to influence. Ordinary property when it
+   arrives — not locked, not forced, not expiring.
+4. **Gifted DURING a battle** — buy and deliver in one move at double price, or pay
+   the delivery half to send one you already own. The artifact is locked to that
+   battle, must be used in it, and expires unused when it ends.
+
+**Legendary is route 1 only.** Asked directly on 2026-08-27, the Owner ruled they
+stay prize-only and cannot be bought — so every purchase and gift path refuses
+them, in the same words, on purpose. **Duplicates are allowed**: `ChefArtifact` has
+carried no uniqueness constraint since battle gifts needed to stack. A bought
+artifact competes for the three-per-type combat loadout like anything else owned. The check is `is_owner_author()` — the same
 `settings.OWNER_SLUG` read that `is_immortal()` and `check_owner_not_in_battle()`
 already make — so the picker, the shop and the send path cannot disagree about who
 he is. He is never charged for one either: `buy_sticker` and `buy_sticker_pack`
