@@ -498,14 +498,25 @@
   <div class="arena-interface-rail arena-interface-rail--right" role="group" aria-label="Arena chat rail">
   <div class="arena-right-stack">
   {% comment %}
+    THE CAMERA IS FIRST IN THE RAIL, Owner 2026-08-27: "пусть камера будет
+    сверху". Running order only - the widget, its markup and its player are
+    the ones that shipped in v2.5.1363, and the rail's `gap` is symmetric, so
+    there is no margin to flip with it.
+  {% endcomment %}
+  {% include "chef_battle/_arena_house_stream.html" %}
+  {% comment %}
     THE CHAT GETS A SLOT OF ITS OWN, and it is not decoration. v2.5.1324 took
     the chat OUT OF FLOW inside this rail so that a thousand messages could
     not size the grid row and push the whole arena down the page - the rail
     had exactly one child and `inset: 0` was the whole arrangement. The house
-    stream below is a second tenant, so the chat's `inset: 0` now belongs to
+    stream above is a second tenant, so the chat's `inset: 0` now belongs to
     this slot instead: the slot is the flex item that takes what the stream
     leaves, and the chat fills the slot and still reports nothing back to the
     grid. Remove the slot and the growing-page fault of v2.5.1324 returns.
+
+    THE ORDER DOES NOT CHANGE THAT. The stream is `flex: 0 0 auto` and the
+    slot is `flex: 1 1 auto`, so whichever comes first, the stream takes its
+    own height and the slot takes the remainder.
   {% endcomment %}
   <div class="arena-chat-slot">
   {% comment %}
@@ -873,8 +884,6 @@
     </div>
   </section>
   </div>
-
-  {% include "chef_battle/_arena_house_stream.html" %}
   </div>
   </div>
 

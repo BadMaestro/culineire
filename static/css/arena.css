@@ -12364,7 +12364,8 @@ button.arena-chat__poll-option:hover {
   100% { transform: rotate(360deg); }
 }
 /* ============================================================================
- * THE HOUSE KITCHEN - the Arena's own camera, under the chat.
+ * THE HOUSE KITCHEN - the Arena's own camera, at the head of the right
+ * rail, above the chat (Owner, 2026-08-27).
  * Owner, 2026-08-27. A permanent fixture, so it keeps its place and its size
  * whether or not anybody is cooking: the off-air card is the same box as the
  * picture, and the right column never reshuffles when he throws the switch.

@@ -1,5 +1,39 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1366",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The camera goes above the chat",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-27, one line: swap the camera and the chat, the "
+            "camera on top. RUNNING ORDER AND NOTHING ELSE - the widget, its "
+            "markup, its player and the moderation record behind it are the "
+            "ones that shipped three hours earlier in v2.5.1363. DOM ORDER IS "
+            "WHAT DECIDES, because the right rail is a flex column at every "
+            "width above 640px, so moving the include from the foot of the "
+            "rail to its head is the whole change. Nothing had to be flipped "
+            "with it: the rail spaces its children with `gap`, which is "
+            "symmetric, so there was no margin sitting on one side of the "
+            "seam. THE SWAP CANNOT COST THE CONTAINMENT of v2.5.1324, and "
+            "that is a property of the flex values rather than luck - the "
+            "stream is `flex: 0 0 auto` and the slot is `flex: 1 1 auto`, so "
+            "whichever comes first the stream takes its own height and the "
+            "slot takes the remainder; measured after the swap, 300 messages "
+            "leave page, deck, floor and render identical at 1440 and 1280, "
+            "and the octagon did not move at any width. THE PHONE WAS LEFT "
+            "ALONE ON PURPOSE, and this is the one judgement in the release. "
+            "Below 641px the deck places by NAME, not by document order, so "
+            "the running order there is a separate list - and the Owner set "
+            "that list himself on 2026-08-24 with an explicit instruction "
+            "that the chat sit immediately under the arena, because it is the "
+            "spectators talking about the fight they are watching. Putting "
+            "the camera between them would have obeyed today's line by "
+            "breaking that one. Desktop and tablet swapped, the phone's order "
+            "put to him rather than decided."
+        ),
+    },
+    {
         "version": "2.5.1363",
         "date": "2026-08-27",
         "commit": "pending",

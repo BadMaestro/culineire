@@ -25291,7 +25291,7 @@ class ArenaHourglassRunsThreeMinutesTests(TestCase):
 class ArenaHouseStreamTests(TestCase):
     """The Arena's own kitchen camera, v2.5.1363.
 
-    Owner, 2026-08-27: a live stream under the chat, his own kitchen, on a
+    Owner, 2026-08-27: a live stream in the chat rail, his own kitchen, on a
     permanent basis - and, asked where the address should live, a record he
     edits himself rather than a line in the server's .env. The migration was
     authorised separately and explicitly, as AGENTS.md section 8 requires.
@@ -25442,6 +25442,22 @@ class ArenaHouseStreamTests(TestCase):
         self.assertIn("min-height: 0", slot)
         self.assertIn('<div class="arena-chat-slot">',
                       self.TEMPLATE.read_text(encoding="utf-8"))
+
+    def test_the_camera_comes_first_in_the_rail(self):
+        """Owner, 2026-08-27: "поменяй местами камеру и чат пусть камера будет сверху".
+
+        Running order and nothing else. It is DOM order that decides here,
+        because the rail is a flex column at every width above 640px; the
+        phone places by name instead and keeps its own order, which the
+        Owner set separately on 2026-08-24.
+
+        The swap cannot cost the containment: the stream is flex: 0 0 auto
+        and the slot is flex: 1 1 auto, so whichever is first, the stream
+        takes its own height and the slot takes what is left."""
+        html = self.TEMPLATE.read_text(encoding="utf-8")
+        self.assertLess(html.index("_arena_house_stream.html"),
+                        html.index('<div class="arena-chat-slot">'),
+                        "the camera has to be written before the chat's slot")
 
     def test_the_wrapper_does_not_hide_the_chat_from_the_tablet_override(self):
         """This stylesheet sets position:absolute and a 15.5rem width on the
