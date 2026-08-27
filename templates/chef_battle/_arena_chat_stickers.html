@@ -1,7 +1,12 @@
 {% load static %}{% comment %}
-CulinEire Arena sticker pack - the Owner's own artwork, cut from the sheet he
-supplied on 2026-08-27. Twelve stickers, WebP with an alpha channel, about
-23 KB each.
+CulinEire Arena sticker pack - the Owner's own artwork. THIRTEEN stickers,
+WebP with an alpha channel, 400px on the long side, 44-68 KB each.
+
+RE-CUT ON 2026-08-27 FROM THE OWNER'S OWN FILES. The first twelve were cut by
+an agent out of a contact sheet, through erode/flood/dilate, because a sheet
+was all there was; he then supplied the thirteen originals already die-cut
+with a real alpha channel, and said the old ones must go. Nothing is inherited
+from that cut - every file here was written from his PNG.
 
 WHY A JSON MAP AND NOT A SPRITE. The eight drawings this replaces were an SVG
 sprite, and a sprite is right for line art a stylesheet recolours. These are
@@ -18,6 +23,14 @@ in development, which is the worst shape a bug can have.
 The token is the key, the same token that appears in a message body as
 :let_him_cook:, so arena_chat.js can look one up without knowing anything
 about where the files live.
+
+TWO SIZES, AND THE REASON IS THE PICKER. A sticker in a message is drawn at
+most 180px wide; a tile in the picker is 4.6rem, about 74px. One file cannot
+serve both without wasting one of them: at the message's size the thirteen
+tiles cost 630 KB the moment the sticker tab is opened, and at the tile's size
+the caption plaque in a message turns to mush. So the message reads the full
+set and the picker reads `tile/` - 196 KB for all thirteen, which is what the
+weight guard measures, because that is the set a reader actually waits on.
 {% endcomment %}
 <script type="application/json" id="arena-chat-sticker-urls">{
   "let_him_cook":    "{% static 'images/chef_battle/arena/stickers/let_him_cook.webp' %}",
@@ -31,5 +44,21 @@ about where the files live.
   "chefs_kiss":      "{% static 'images/chef_battle/arena/stickers/chefs_kiss.webp' %}",
   "battle_time":     "{% static 'images/chef_battle/arena/stickers/battle_time.webp' %}",
   "bear_approved":   "{% static 'images/chef_battle/arena/stickers/bear_approved.webp' %}",
-  "absolute_cinema": "{% static 'images/chef_battle/arena/stickers/absolute_cinema.webp' %}"
+  "absolute_cinema": "{% static 'images/chef_battle/arena/stickers/absolute_cinema.webp' %}",
+  "noooo":           "{% static 'images/chef_battle/arena/stickers/noooo.webp' %}"
+}</script>
+<script type="application/json" id="arena-chat-sticker-tiles">{
+  "let_him_cook":      "{% static 'images/chef_battle/arena/stickers/tile/let_him_cook.webp' %}",
+  "yes_chef":          "{% static 'images/chef_battle/arena/stickers/tile/yes_chef.webp' %}",
+  "order_up":          "{% static 'images/chef_battle/arena/stickers/tile/order_up.webp' %}",
+  "burnt_it":          "{% static 'images/chef_battle/arena/stickers/tile/burnt_it.webp' %}",
+  "in_the_bin":        "{% static 'images/chef_battle/arena/stickers/tile/in_the_bin.webp' %}",
+  "eighty_sixed":      "{% static 'images/chef_battle/arena/stickers/tile/eighty_sixed.webp' %}",
+  "seared":            "{% static 'images/chef_battle/arena/stickers/tile/seared.webp' %}",
+  "salty":             "{% static 'images/chef_battle/arena/stickers/tile/salty.webp' %}",
+  "chefs_kiss":        "{% static 'images/chef_battle/arena/stickers/tile/chefs_kiss.webp' %}",
+  "battle_time":       "{% static 'images/chef_battle/arena/stickers/tile/battle_time.webp' %}",
+  "bear_approved":     "{% static 'images/chef_battle/arena/stickers/tile/bear_approved.webp' %}",
+  "absolute_cinema":   "{% static 'images/chef_battle/arena/stickers/tile/absolute_cinema.webp' %}",
+  "noooo":             "{% static 'images/chef_battle/arena/stickers/tile/noooo.webp' %}"
 }</script>

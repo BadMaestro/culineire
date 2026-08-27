@@ -123,7 +123,8 @@
     { token: 'chefs_kiss',      label: "Chef's kiss" },
     { token: 'battle_time',     label: 'Battle time' },
     { token: 'bear_approved',   label: 'Bear approved' },
-    { token: 'absolute_cinema', label: 'Absolute cinema' }
+    { token: 'absolute_cinema', label: 'Absolute cinema' },
+    { token: 'noooo',           label: 'Noooo!' }
   ];
   var STICKER_BY_TOKEN = {};
   STICKERS.forEach(function (e) { STICKER_BY_TOKEN[e.token] = e; });
@@ -172,6 +173,19 @@
     catch (err) { STICKER_URLS = {}; }
   }());
 
+  /* THE SAME PICTURES AT PICKER SIZE. A tile is 4.6rem, about 74px; a sticker
+   * in a message is drawn at up to 180px. Serving the message's file to the
+   * grid cost 630 KB the moment the sticker tab was opened, for thirteen
+   * pictures nobody had asked to see full size yet. An empty or malformed
+   * block is not a failure - stickerNode falls back to the full file. */
+  var STICKER_TILES = {};
+  (function () {
+    var node = document.getElementById('arena-chat-sticker-tiles');
+    if (!node) { return; }
+    try { STICKER_TILES = JSON.parse(node.textContent) || {}; }
+    catch (err) { STICKER_TILES = {}; }
+  }());
+
   /* The picture, from OUR OWN table and never from the message text - the src
    * here can only be a URL the page itself printed, looked up by a token that
    * had to be in STICKER_BY_TOKEN to get this far. Same rule as
@@ -179,10 +193,10 @@
    *
    * Width and height are set from the file's own pixels so the log does not
    * jump when a sticker arrives; the stylesheet scales it from there. */
-  function stickerNode(token) {
+  function stickerNode(token, wantTile) {
     var known = STICKER_BY_TOKEN[token];
     if (!known) { return null; }
-    var src = STICKER_URLS[known.token];
+    var src = (wantTile && STICKER_TILES[known.token]) || STICKER_URLS[known.token];
     if (!src) { return null; }
     var img = document.createElement('img');
     img.className = 'arena-chat__sticker';
@@ -1891,10 +1905,11 @@
           b.className = 'arena-chat__emoji-btn arena-chat__emoji-btn--sticker';
           b.setAttribute('aria-label', item.label);
           b.title = item.label;
-          var node = stickerNode(item.token);
-          /* Twelve pictures at once when the tab is opened, and the tab is
+          var node = stickerNode(item.token, true);
+          /* Thirteen pictures at once when the tab is opened, and the tab is
              not the one the picker starts on. Lazy keeps them off the wire
-             until the reader actually asks for stickers. */
+             until the reader actually asks for stickers, and `true` above
+             asks for the 160px tile rather than the message's own file. */
           if (node) { node.loading = 'lazy'; b.appendChild(node); }
           b.addEventListener('click', function () {
             // Inserted, not sent. Every other tile in this picker inserts, and

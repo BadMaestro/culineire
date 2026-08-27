@@ -24209,8 +24209,11 @@ class ArenaChatEventFilterTests(TestCase):
 class ArenaChatStickerTests(TestCase):
     """The Owner's own sticker pack, v2.5.1342.
 
-    Twelve paintings he supplied as one sheet, cut from it with the background
-    made transparent, replacing the eight line drawings that came before. A
+    THIRTEEN paintings, and they are no longer a cut. The first twelve were
+    carved by an agent out of a contact sheet through erode/flood/dilate,
+    because a sheet was all there was; on 2026-08-27 the Owner supplied the
+    thirteen originals already die-cut with a real alpha channel and said the
+    old files must go, so every picture here was written from his PNG. A
     sticker is still an ordinary chat line whose body is one token, so there is
     still no backend contract to test - and that is still the point of the
     design. What is tested is what breaks silently.
@@ -24229,6 +24232,7 @@ class ArenaChatStickerTests(TestCase):
     """
 
     PACK = ("static", "images", "chef_battle", "arena", "stickers")
+    TILES = ("static", "images", "chef_battle", "arena", "stickers", "tile")
     MAP = ("templates", "chef_battle", "_arena_chat_stickers.html")
 
     def _read(self, *parts):
@@ -24275,9 +24279,13 @@ class ArenaChatStickerTests(TestCase):
         production - the worst shape a bug can have."""
         mapping = self._read(*self.MAP)
         self.assertIn("{% load static %}", mapping)
-        self.assertEqual(mapping.count("{% static '"), len(self._tokens()))
+        # Two per sticker since v2.5.1372: the message's file and the
+        # picker's tile. Counting them keeps the assertion exact rather than
+        # letting a hand-assembled path hide behind a >= .
+        self.assertEqual(mapping.count("{% static '"), 2 * len(self._tokens()))
         source = self._read("static", "js", "arena_chat.js")
         self.assertIn("getElementById('arena-chat-sticker-urls')", source)
+        self.assertIn("getElementById('arena-chat-sticker-tiles')", source)
         self.assertNotIn("'/static/images/chef_battle/arena/stickers", source)
 
     def test_the_map_is_included_on_the_arena_page(self):
@@ -24318,26 +24326,66 @@ class ArenaChatStickerTests(TestCase):
         self.assertEqual(clash, set(), "token(s) in both tables: %s" % sorted(clash))
 
     def test_the_pack_is_light_enough_to_open_without_a_wait(self):
-        """The picker draws all twelve the moment the tab is opened. The
-        per-file cap in test_static_image_weight covers one file; this covers
-        the twelve arriving together, which is the number a reader waits on.
-        Measured when the pack landed: 268 KB for the set."""
+        """TWO SETS, BECAUSE THE PICKER AND THE MESSAGE ARE NOT THE SAME SIZE.
+
+        A sticker in a message is drawn at up to 180px, so the full file is
+        360px - two of them - and the per-file ceiling is what a single arrival
+        may cost. A tile in the picker is 4.6rem, about 74px, and thirteen of
+        them arrive TOGETHER the moment the sticker tab is opened; that is the
+        wait a reader actually feels, and it is the tile set the 400 KB
+        ceiling now measures.
+
+        This is the shape the guard grew into rather than a relaxation of it.
+        Serving the message's own file to the grid put 630 KB on the wire at
+        once, and the honest fix was a second size, not a bigger number."""
         from pathlib import Path
 
         from django.conf import settings
 
-        folder = Path(settings.BASE_DIR).joinpath(*self.PACK)
-        sizes = {p.name: p.stat().st_size for p in folder.glob("*.webp")}
-        self.assertTrue(sizes, "the pack is empty")
-        for name, size in sizes.items():
+        base = Path(settings.BASE_DIR)
+        full = {p.name: p.stat().st_size
+                for p in base.joinpath(*self.PACK).glob("*.webp")}
+        tiles = {p.name: p.stat().st_size
+                 for p in base.joinpath(*self.TILES).glob("*.webp")}
+        self.assertTrue(full, "the pack is empty")
+        self.assertEqual(
+            set(full), set(tiles),
+            "every sticker needs both sizes: the message file and the tile",
+        )
+        for name, size in full.items():
             self.assertLess(
                 size, 60_000,
                 "%s is %d bytes; a sticker is drawn at most 180px wide" % (name, size),
             )
+        for name, size in tiles.items():
+            self.assertLess(
+                size, 20_000,
+                "tile/%s is %d bytes; a picker tile is drawn at about 74px"
+                % (name, size),
+            )
         self.assertLess(
-            sum(sizes.values()), 400_000,
-            "the pack weighs %d bytes opened all at once" % sum(sizes.values()),
+            sum(tiles.values()), 400_000,
+            "the picker weighs %d bytes opened all at once" % sum(tiles.values()),
         )
+
+    def test_every_sticker_token_has_a_tile_and_the_picker_asks_for_it(self):
+        """A missing tile is invisible in review and expensive in use: the
+        script falls back to the message's own file, so the grid still draws
+        and the wire quietly carries four times the bytes."""
+        from pathlib import Path
+
+        from django.conf import settings
+
+        folder = Path(settings.BASE_DIR).joinpath(*self.TILES)
+        mapping = self._read(*self.MAP)
+        for token in self._tokens():
+            self.assertTrue((folder / (token + ".webp")).is_file(),
+                            "sticker :%s: has no picker tile" % token)
+            self.assertIn("stickers/tile/%s.webp" % token, mapping)
+        self.assertIn('id="arena-chat-sticker-tiles"', mapping)
+        script = self._read("static", "js", "arena_chat.js")
+        self.assertIn("stickerNode(item.token, true)", script,
+                      "the picker has to ask for the tile, not the full file")
 
     def test_the_picker_does_not_fetch_the_pack_until_it_is_asked(self):
         """Stickers are not the tab the picker opens on."""

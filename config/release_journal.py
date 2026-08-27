@@ -1,5 +1,41 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1372",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The sticker pack, re-cut from the Owner's own originals",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-27: \"старые нужно обязательно удалить и оставить только новые\", and "
+            "he supplied thirteen originals to replace them. THE OLD TWELVE "
+            "WERE A CUT AND THESE ARE NOT. In v2.5.1345 an agent carved them "
+            "out of a single contact sheet through erode/flood/dilate, "
+            "because a sheet was all there was, and the procedure had already "
+            "eaten a burnt burger, a bin and a chef's hair once before it was "
+            "tuned. These arrived die-cut with a real alpha channel at "
+            "1254x1254, so every file here was written from his PNG and "
+            "nothing is inherited from that cut. NOOOO! is the thirteenth and "
+            "is new - it is not on his own contact sheet either. TWO SIZES, "
+            "AND THAT IS THE ONE REAL DECISION IN THE RELEASE. A sticker in a "
+            "message is drawn at up to 180px; a tile in the picker is 4.6rem, "
+            "about 74px. One file cannot serve both. At the message's size the "
+            "thirteen tiles put 630 KB on the wire the moment the sticker tab "
+            "is opened - and the guard written when the pack landed says a "
+            "pack opened all at once must stay under 400 KB, which is the wait "
+            "a reader actually feels. The honest answer to a red guard there "
+            "is a second size, not a bigger number: `tile/` holds thirteen "
+            "160px files totalling 196 KB, the full set is 360px and arrives "
+            "one sticker at a time. The guard now measures the tile set for "
+            "the together-cost and keeps the 60 KB per-file ceiling on the "
+            "full one, and a new test fails if a tile is missing - because a "
+            "missing tile is invisible in review and expensive in use: the "
+            "script falls back to the message's own file and the grid quietly "
+            "carries four times the bytes. No model, no migration and no "
+            "backend contract: a sticker is still an ordinary chat line whose "
+            "body is one token. 13 tests green."
+        ),
+    },
+    {
         "version": "2.5.1369",
         "date": "2026-08-27",
         "commit": "pending",
