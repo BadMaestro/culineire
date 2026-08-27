@@ -2210,8 +2210,24 @@
  *     trigger never dimmed at all; asking about hover directly is both correct
  *     and independent of how wide the panel happens to be.
  * ========================================================================= */
+/* THE BOTTOM SHEET NEEDS THE PANEL TO BE THE SCREEN, which is true on a
+   phone and false everywhere else - so the phone layout is now part of the
+   gate, not just the absence of a pointer.
+
+   Owner, 2026-08-27, on a Samsung tablet in landscape. Measured on
+   production at 1280x800 with touch: `hover: none` matched, so this branch
+   ran; the chat rail there is 240px by his own <=1280px ruling; and
+   .arena-chat carries `container-type: inline-size`, whose layout
+   containment makes it the containing block for `position: fixed`
+   descendants. So `bottom: 0` meant the bottom of a 240px PANEL, not of the
+   screen - the sheet landed with its foot at 968.9px on an 800px viewport,
+   169px below the fold, with an 800px dimming layer painted inside the
+   panel. That grey block is what he photographed.
+
+   The same width with a mouse resolved to the anchored popover and was
+   clean, which is what a touch tablet gets from here on. */
 @container arena-chat (max-width: 30rem) {
- @media (hover: none) {
+ @media (hover: none) and (max-width: 640px) {
   /* NARROW AND NO POINTER: a bottom sheet, which is the phone's shape.
      Absolute-inside-the-panel was the bug the Owner photographed: anchored
      near the foot of the log it hung out of the chat and lay across the card
@@ -5477,6 +5493,32 @@
   .arena-command-deck__ladder,
   .arena-command-deck__gifts {
     z-index: var(--arena-z-panel);
+  }
+
+  /* THE CHAT IS NOT IN THE LIST ABOVE, AND MUST NOT BE. Owner, 2026-08-27,
+     on a phone and on a tablet: the sticker picker comes up underneath
+     ARENA STATUS.
+
+     Measured on production before this: .arena-chat sat at
+     var(--arena-z-cells), which is 3, from the six-panel rule at :2986 -
+     while the four panels above were lifted to 10, the lower bar to 11 and
+     the ribbon to 12. The chat was the lowest panel on the deck. Worse, it
+     had BOTH a position and a z-index, which makes it a stacking context, so
+     the picker's own z-index: 1000 was sealed inside layer 3 and could not
+     rise past a sibling at 10. A hit test at every overlap on production
+     returned the sibling, never the picker.
+
+     RAISING THE CHAT TO 10 WOULD NOT FIX IT - the popups would still be
+     sealed, ten floors higher. The seal is the problem, so the seal goes:
+     with z-index auto the chat is no longer a stacking context, and the
+     sheet's 1000 competes on the deck where it was always meant to.
+
+     The panel itself loses nothing by painting in source order: the deck
+     places it in its own grid column on a desktop and its own row on a
+     phone, so it overlaps no sibling in its resting state. Only what it
+     OPENS is supposed to leave its box. */
+  .arena-chat {
+    z-index: auto;
   }
   .arena-broadcast-ribbon {
     z-index: var(--arena-z-ribbon);

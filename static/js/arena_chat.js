@@ -128,6 +128,36 @@
   var STICKER_BY_TOKEN = {};
   STICKERS.forEach(function (e) { STICKER_BY_TOKEN[e.token] = e; });
 
+  /* THE FIVE NAMES THE PACK DID NOT KEEP, pointed at their nearest picture.
+   *
+   * They are in the database: lines were sent with them before v2.5.1345
+   * replaced the eight line drawings, and without this they print as the
+   * literal text ':fired:' in the middle of a conversation - which the Owner
+   * photographed on 2026-08-27.
+   *
+   * ALIASES, NOT STICKERS. They resolve for a line that already exists and
+   * they are deliberately absent from STICKERS, so the picker never offers
+   * them and nobody sends a new one. The day the old rows are gone, so is
+   * this table.
+   *
+   * Each mapping is the closest thing the pack actually says: service is the
+   * pass bell, which is what ORDER UP draws; plated is the finished dish held
+   * up, which is ABSOLUTE CINEMA; fired is a dish put on the heat, SEARED;
+   * still raw is a dish sent back, 86'D. `behind` is the one with no real
+   * counterpart - it is a warning call, not a verdict - and it points at LET
+   * HIM COOK as the only line-in-motion picture in the set. */
+  var LEGACY_STICKERS = {
+    service: 'order_up',
+    plated: 'absolute_cinema',
+    fired: 'seared',
+    still_raw: 'eighty_sixed',
+    behind: 'let_him_cook'
+  };
+  Object.keys(LEGACY_STICKERS).forEach(function (old) {
+    var target = STICKER_BY_TOKEN[LEGACY_STICKERS[old]];
+    if (target) { STICKER_BY_TOKEN[old] = target; }
+  });
+
   /* WHERE THE PICTURES ARE, read from the page rather than assembled here.
    * ManifestStaticFilesStorage hashes every filename, so a URL this script
    * built itself would 404 on production and work perfectly in development -

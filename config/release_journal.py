@@ -1,5 +1,67 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1348",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The chat stops being the lowest layer on the deck, and the phone's bottom sheet stops reaching tablets",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner photographed the same fault three times - on a phone, "
+            "on a tablet, in the chat's own picker - and named it himself: "
+            "the containers lie on top of each other. He was right, and the "
+            "stickers I had been staring at had nothing to do with it. "
+            "MEASURED ON PRODUCTION through the token-gated read-only "
+            "preview rather than from a screenshot. FAULT ONE: .arena-chat "
+            "sat at var(--arena-z-cells) = 3, from the six-panel rule; the "
+            "four panels beside it had been lifted to var(--arena-z-panel) = "
+            "10 by a later rule that simply does not name the chat, the lower "
+            "bar sits at 11 and the ribbon at 12. The chat was the LOWEST "
+            "panel on the deck. And because it carries both a position and a "
+            "z-index it is a stacking context, so the picker's own z-index: "
+            "1000 was sealed inside layer 3 and could never rise past a "
+            "sibling at 10. A hit test at every overlap returned the sibling "
+            "and never the picker. Raising the chat to 10 would NOT have "
+            "fixed it - the popups would still be sealed, ten floors higher - "
+            "so the seal goes instead: z-index: auto, at every width. The "
+            "panel loses nothing by painting in source order, because the "
+            "deck gives it its own column on a desktop and its own row on a "
+            "phone; only what it OPENS was ever meant to leave its box. "
+            "After: the same hit test on the phone returns the picker at "
+            "every overlap it can reach, against ARENA STATUS and against "
+            "the lower bar, at four scroll positions. FAULT TWO: the phone's "
+            "dimmed bottom sheet was reaching touch TABLETS. v2.5.1333 gated "
+            "it on `hover: none`, which is right about pointers and silent "
+            "about layout - and on a Samsung in landscape the chat rail is "
+            "240px by the Owner's own <=1280px ruling. Measured at 1280x800 "
+            "with touch: the sheet's foot landed at 968.9px on an 800px "
+            "viewport, 169px below the fold, with an 800px dimming layer "
+            "painted inside a 240px panel, because container-type: "
+            "inline-size on .arena-chat makes it the containing block for "
+            "position: fixed - so `bottom: 0` meant the bottom of the PANEL. "
+            "That grey block is what he photographed. A bottom sheet needs "
+            "the panel to BE the screen, so the phone layout joins the gate: "
+            "`(hover: none) and (max-width: 640px)`. The same width with a "
+            "mouse already resolved to the anchored popover and was clean, "
+            "which is now what a touch tablet gets. FAULT THREE: the five "
+            "sticker tokens the new pack did not keep - service, behind, "
+            "fired, still_raw, plated - were printing as literal text in "
+            "lines already sent, ':fired:' in the middle of a conversation. "
+            "They now alias to the nearest picture the pack actually has, as "
+            "aliases and not as stickers: they resolve for old rows and are "
+            "deliberately absent from the picker, so nobody sends a new one. "
+            "AND ONE CORRECTION I OWE: I reported earlier in the same session "
+            "that the arena page could not scroll at all. It scrolls fine - "
+            "wheel and End reach 2902px on production. I had read scrollY in "
+            "the same call that set it, before the scroll was committed. My "
+            "measurement, not the site's fault. 56 chat, sticker, sheet, "
+            "height, octagon-lock, template-hygiene and image-weight tests "
+            "green; two of my own v2.5.1333 tests failed first because they "
+            "pinned the old gate string, and were updated rather than "
+            "weakened. The inherited superseded-declaration failure is "
+            "unchanged at 28 items, none added here."
+        ),
+    },
+    {
         "version": "2.5.1345",
         "date": "2026-08-27",
         "commit": "pending",

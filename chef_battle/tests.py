@@ -24795,8 +24795,10 @@ class ArenaChatSheetIsAPhoneShapeOnlyOnAPhoneTests(TestCase):
 
     CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
 
+    # v2.5.1348 added the phone layout to this gate: a bottom sheet needs the
+    # panel to BE the screen, which a 240px rail on a touch tablet is not.
     TOUCH_GATE = ("@container arena-chat (max-width: 30rem) "
-                  ">> @media (hover: none)")
+                  ">> @media (hover: none) and (max-width: 640px)")
 
     def _context_of(self, selector, needle):
         """The at-rule context of the rule for `selector` that contains
@@ -24849,3 +24851,92 @@ class ArenaChatSheetIsAPhoneShapeOnlyOnAPhoneTests(TestCase):
                              "a sheet variant is sized against the viewport again")
         self.assertIn("min-width: min(13rem, 100%)", css,
                       "the poll composer's minimum can still overflow the rail")
+class ArenaChatIsNotASealedLayerTests(TestCase):
+    """The chat stops being the lowest panel on the deck, v2.5.1348.
+
+    The Owner photographed the same fault three times - on a phone, on a
+    tablet and in the chat's own picker - and named it himself: the containers
+    lie on top of each other. He was right and the stickers had nothing to do
+    with it.
+
+    MEASURED ON PRODUCTION, through the token-gated read-only preview rather
+    than from a screenshot. .arena-chat sat at var(--arena-z-cells), which is
+    3, from the six-panel rule; the four panels beside it had been lifted to
+    var(--arena-z-panel) = 10 by a later rule that does not name the chat, the
+    lower bar sits at 11 and the ribbon at 12. So the chat was the lowest
+    panel on the deck - and because it carries BOTH a position and a z-index
+    it was also a stacking context, which sealed the picker's own z-index:
+    1000 inside layer 3. A hit test at every overlap returned the sibling and
+    never the picker.
+
+    RAISING THE CHAT TO 10 IS NOT THE FIX and this is worth stating, because
+    it is the obvious move: the popups would still be sealed, ten floors
+    higher. The seal is what has to go.
+
+    After: the same hit test on the phone returns the picker at every overlap
+    it can reach - against ARENA STATUS and against the lower bar, at four
+    scroll positions.
+    """
+
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+    SCRIPT = Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
+
+    def _rules(self, selector):
+        return [(ctx, body)
+                for ctx, sel, body in ArenaChatIsAFixedHeightPanelTests._blocks()
+                if sel == selector]
+
+    def test_the_chat_is_not_a_stacking_context(self):
+        """A panel with a position AND a z-index seals everything it opens."""
+        hits = [(ctx, body) for ctx, body in self._rules(".arena-chat")
+                if "z-index" in body]
+        self.assertTrue(hits, "nothing gives .arena-chat a z-index of its own")
+        top = [b for ctx, b in hits if ctx == ""]
+        self.assertTrue(top, "the z-index: auto rule must apply at every width")
+        self.assertTrue(any("z-index: auto" in b for b in top),
+                        "the chat is sealed again; its popups cannot leave it")
+
+    def test_raising_the_chat_to_the_panel_layer_is_not_what_happened(self):
+        """The four panels are lifted to --arena-z-panel by a rule that must
+        keep NOT naming the chat. Adding it there looks like a fix and is not:
+        a sealed layer at 10 seals just as well as one at 3."""
+        css = self.CSS.read_text(encoding="utf-8")
+        block = css[css.index("z-index: var(--arena-z-panel)") - 400:
+                    css.index("z-index: var(--arena-z-panel)")]
+        self.assertNotIn(".arena-chat,", block)
+
+    def test_the_bottom_sheet_needs_the_phone_layout_and_not_only_touch(self):
+        """A bottom sheet needs the panel to BE the screen. On a touch tablet
+        the chat rail is 240px by the Owner's own <=1280px ruling, and
+        container-type: inline-size on .arena-chat makes it the containing
+        block for position: fixed - so `bottom: 0` meant the bottom of a 240px
+        panel. Measured on production at 1280x800 with touch: the sheet's foot
+        landed at 968.9px on an 800px viewport, 169px below the fold, with an
+        800px dimming layer painted inside the panel."""
+        css = self.CSS.read_text(encoding="utf-8")
+        self.assertIn("@media (hover: none) and (max-width: 640px)", css)
+        self.assertNotIn(" @media (hover: none) {", css,
+                         "the phone's bottom sheet is reachable on a tablet again")
+
+    def test_the_retired_sticker_tokens_still_draw_something(self):
+        """Lines sent before v2.5.1345 carry tokens the pack did not keep.
+        Without an alias they print as the literal text ':fired:' in the
+        middle of a conversation, which the Owner photographed."""
+        import re
+
+        source = self.SCRIPT.read_text(encoding="utf-8")
+        block = re.search(r"var LEGACY_STICKERS = \{(.*?)\};", source, re.S)
+        self.assertIsNotNone(block, "the legacy alias table is gone")
+        pairs = dict(re.findall(r"(\w+):\s*'([a-z0-9_]+)'", block.group(1)))
+        self.assertEqual(
+            sorted(pairs), ["behind", "fired", "plated", "service", "still_raw"],
+            "the five retired tokens are exactly the ones that need an alias",
+        )
+        current = set(re.findall(
+            r"token:\s*'([a-z0-9_]+)'",
+            re.search(r"var STICKERS = \[(.*?)\];", source, re.S).group(1)))
+        for old, new in pairs.items():
+            self.assertIn(new, current,
+                          "%s points at %s, which is not in the pack" % (old, new))
+            self.assertNotIn(old, current,
+                             "%s is an alias for old rows, not a sticker to send" % old)
