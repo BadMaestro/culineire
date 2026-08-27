@@ -74,8 +74,14 @@ THE PICKER IS NOT THE GATE. Ownership is enforced where the line is written,
 in arena_chat_send, because a lock drawn in the browser is a courtesy. This
 list only decides which tiles look available.
 
+PRINTED BY json_script AND NOT BY HAND, because printing a JSON string into a
+script tag is what broke this the first time: Django autoescapes, every quote
+became &quot;, JSON.parse threw, the client's fail-closed branch swallowed it,
+and the picker locked every sticker for every reader including the Owner.
+json_script escapes for a <script> element rather than for HTML text.
+
 FAILS CLOSED. A missing or malformed block leaves the list EMPTY, which locks
 everything rather than unlocking everything - and empty is exactly what the
 token-gated preview routes render, where there is no reader to own anything.
 {% endcomment %}
-<script type="application/json" id="arena-chat-sticker-owned">{{ owned_sticker_tokens_json|default:"[]" }}</script>
+{{ owned_sticker_tokens|default_if_none:""|json_script:"arena-chat-sticker-owned" }}

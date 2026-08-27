@@ -678,37 +678,35 @@ def _sticker_tile(item):
     return {"item": item, "tile_url": url}
 
 
-@chef_battle_guard
-def sticker_shop(request):
-    """The Stickers section: what is for sale, what you already own.
+def _sticker_shelf(viewer_author):
+    """The Stickers shelf of the artifact shop: packs, singles, what is owned.
 
-    The Owner's flat-price rule is stated HERE, before payment, rather than
-    discovered afterwards: a buyer who owns four of the thirteen still pays the
-    full 100 for the pack and receives the missing nine.
+    A HELPER AND NOT A PAGE. The Owner asked for a SECTION of the artifact shop
+    - "продаваться он будет в нашем магазине артефактов - для этого нам нужно
+    добавить новый раздел - Stickers" - and v2.5.1373 gave him a separate page
+    that the shop did not even link to. The shelf is assembled here and
+    rendered inside artifact_gallery.html, where he said it belongs.
     """
     from .models import ChefSticker, StickerItem, StickerPack
+    from .services import is_owner_author
 
     packs = list(
-        StickerPack.objects.filter(is_active=True)
-        .prefetch_related("stickers")
+        StickerPack.objects.filter(is_active=True).prefetch_related("stickers")
     )
     loose = list(StickerItem.objects.filter(is_active=True, pack__isnull=True))
 
-    from .services import is_owner_author
-
-    viewer_author = get_author_for_user(request.user)
-    wallet = None
     owned_ids = set()
-    if viewer_author:
-        wallet, _ = TokenWallet.objects.get_or_create(chef=viewer_author)
+    if viewer_author is not None:
         if is_owner_author(viewer_author):
-            # He owns every sticker by rule, so the shop must not offer to sell
-            # him one - a Buy button that charges the Owner for what he already
+            # He owns every sticker by rule, so the shelf must never offer to
+            # sell him one - a Buy button charging the Owner for what he already
             # has is the same defect as a locked tile in his own picker.
             owned_ids = set(StickerItem.objects.values_list("pk", flat=True))
         else:
             owned_ids = set(
-                ChefSticker.objects.filter(chef=viewer_author).values_list("sticker_id", flat=True)
+                ChefSticker.objects
+                .filter(chef=viewer_author)
+                .values_list("sticker_id", flat=True)
             )
 
     rows = []
@@ -726,14 +724,18 @@ def sticker_shop(request):
             "missing_count": len(items) - len(owned_here),
             "complete": bool(items) and len(owned_here) == len(items),
         })
+    return rows, [_sticker_tile(s) for s in loose], owned_ids
 
-    return render(request, "chef_battle/sticker_shop.html", {
-        "pack_rows": rows,
-        "loose_stickers": [_sticker_tile(s) for s in loose],
-        "owned_ids": owned_ids,
-        "wallet": wallet,
-        "has_profile": viewer_author is not None,
-    })
+
+@chef_battle_guard
+def sticker_shop(request):
+    """Kept as an ADDRESS, not as a page.
+
+    The shelf moved into the artifact shop, where he asked for it. This route
+    stays so links already printed - the chat's locked-tile target among them -
+    land on the section instead of a 404.
+    """
+    return redirect(reverse("chef_battle:artifact_gallery") + "#stickers")
 
 
 def _paid_arena_gates(author):
@@ -1865,21 +1867,22 @@ def _is_ios_webkit(request) -> bool:
     return any(device in ua for device in ("iPhone", "iPad", "iPod"))
 
 
-def _owned_sticker_tokens_json(viewer_author) -> str:
-    """The reader's own sticker tokens, as a JSON array literal.
+def _owned_sticker_tokens(viewer_author) -> list[str]:
+    """The reader's own sticker tokens, as a LIST for `json_script`.
 
-    Rendered into a <script type="application/json"> block rather than passed
-    through {% static %} or built in the browser: it is DATA about this reader,
-    not a path to a file, and the two must not be confused - the sticker
-    template's own static-call count is asserted in the tests.
+    RETURNS A LIST AND NOT A JSON STRING, and that distinction cost a release.
+    v2.5.1373 returned `json.dumps(...)` and printed it with
+    `{{ value|default:"[]" }}`, so Django's autoescaping turned every quote
+    into `&quot;`, JSON.parse threw in the browser, the client's fail-closed
+    branch swallowed it, and the picker locked EVERY sticker for EVERY reader -
+    including the Owner, who owns them all by rule. The Python was right, the
+    JavaScript was right, and nothing tested the seam between them.
 
-    json.dumps is what escapes it. The tokens are constrained to [a-z0-9_] at
-    the model, so there is nothing dangerous in them today; relying on that
-    rather than on the encoder would be relying on a validator staying strict
-    forever.
+    `json_script` is Django's own answer to exactly this: it serialises the
+    value and escapes it for a <script> element rather than for HTML text.
     """
     if viewer_author is None:
-        return "[]"
+        return []
     from .models import ChefSticker, StickerItem
     from .services import is_owner_author
 
@@ -1890,14 +1893,13 @@ def _owned_sticker_tokens_json(viewer_author) -> str:
     # him. `is_active` is not filtered: a sticker withdrawn from sale is still
     # his, which is the whole point of owning it by rule.
     if is_owner_author(viewer_author):
-        return json.dumps(sorted(StickerItem.objects.values_list("token", flat=True)))
+        return sorted(StickerItem.objects.values_list("token", flat=True))
 
-    tokens = list(
+    return sorted(
         ChefSticker.objects
         .filter(chef=viewer_author)
         .values_list("sticker__token", flat=True)
     )
-    return json.dumps(sorted(tokens))
 
 
 def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
@@ -1968,7 +1970,7 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
         # None. Empty locks every tile, which is the correct answer for a
         # reader who cannot own anything - and the same failure mode the client
         # falls back to when the block is missing altogether.
-        "owned_sticker_tokens_json": _owned_sticker_tokens_json(viewer_author),
+        "owned_sticker_tokens": _owned_sticker_tokens(viewer_author),
         # arena.html reads these three at the top level for the first
         # server-rendered paint (crown streak, crown ladder, recent gifts),
         # before the JS poll repaints from arena_state. They also live inside
@@ -3963,12 +3965,22 @@ def artifact_gallery(request):
         for artifact in artifacts:
             artifact.owned_count = owned_counts.get(artifact.pk, 0)
 
+    # THE STICKERS ARE A SECTION OF THIS SHOP, not a shop of their own. The
+    # Owner asked for exactly that - "продаваться он будет в нашем магазине
+    # артефактов - для этого нам нужно добавить новый раздел - Stickers" - and
+    # v2.5.1373 built a separate page instead, which he then could not find.
+    sticker_packs, loose_stickers, owned_sticker_ids = _sticker_shelf(viewer_author)
+
     return render(request, "chef_battle/artifact_gallery.html", {
         "grouped": grouped,
         "total": len(artifacts),
         "can_generate": can_generate,
         "wallet": wallet,
         "can_buy": viewer_author is not None,
+        "pack_rows": sticker_packs,
+        "loose_stickers": loose_stickers,
+        "owned_ids": owned_sticker_ids,
+        "has_profile": viewer_author is not None,
     })
 
 

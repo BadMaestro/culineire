@@ -1,5 +1,68 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1379",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "Two defects the Owner found on his own screen: his picker was locked, and Stickers was not in the shop",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "He sent two screenshots and both faults were mine. "
+            "ONE - EVERY STICKER WAS LOCKED FOR EVERY READER, INCLUDING HIM. "
+            "v2.5.1373 made him own all thirteen BY RULE, and the backend did "
+            "exactly that: measured on production, is_owner_author() is True "
+            "for his account and the helper returns all thirteen tokens. The "
+            "fault was in the seam. The view returned json.dumps(...) and the "
+            "template printed it with `{{ value|default:\"[]\" }}`, so Django "
+            "autoescaped every quote into &quot;, JSON.parse threw in the "
+            "browser, and the client's own fail-closed branch - written on "
+            "purpose so a malformed list could never unlock goods - swallowed "
+            "the error and locked everything. THE PYTHON WAS TESTED AND THE "
+            "JAVASCRIPT WAS TESTED AND NOTHING TESTED THE SEAM BETWEEN THEM, "
+            "which is the whole lesson: I asserted the function returned the "
+            "right list and asserted the script's fallback branches existed, "
+            "and never once rendered the template and parsed the result. It is "
+            "json_script now - Django's own answer, which escapes for a "
+            "<script> element rather than for HTML text - and five new tests "
+            "render the real template and parse it the way a browser would, "
+            "including one that pushes a </script> tag through it. "
+            "TWO - THE STICKERS WERE NOT IN THE SHOP HE WAS TOLD TO LOOK IN. "
+            "His instruction was a new SECTION of the artifact shop; I built a "
+            "separate page at /chef-battle/stickers/ and then did not even link "
+            "to it from the shop, so he followed the link to artifacts, saw a "
+            "filter sidebar reading All Artifacts / Attack / Defence / Boost, "
+            "and found nothing. That is not a missing link, it is having built "
+            "the wrong thing and written 'a link into it from "
+            "artifact_gallery.html' into my own plan without doing it. The "
+            "shelf is now a section of artifact_gallery.html with id=stickers, "
+            "the filter sidebar carries a Stickers entry, and "
+            "templates/chef_battle/sticker_shop.html is DELETED rather than "
+            "left as a second surface for one thing - a test asserts the file "
+            "is gone. The route survives as a redirect to the section, because "
+            "links already printed - the chat's own locked-tile target among "
+            "them - must land on the shelf and not on a 404. "
+            "THREE - THE LOCKED TILE LOOKED LIKE A BROKEN IMAGE. He described "
+            "it exactly: black and white with a brown thing in the corner. It "
+            "was grayscale(1) plus a bronze badge drawn over his own artwork, "
+            "and both are gone. What is left is opacity alone, lifting to full "
+            "on hover; nothing is painted on top of the pictures. Covering his "
+            "artwork was never a decision that was mine to take (17.13), and on "
+            "his own picker it should never have appeared at all. "
+            "Measured on production before touching anything, rather than "
+            "guessed: OWNER_SLUG is 'greenbear', the author row is pk 1, "
+            "is_owner_author returns True, the helper returns 13 tokens and he "
+            "holds 0 ChefSticker rows, which is correct - the rule is the point. "
+            "So the backend was never wrong and no data needed repairing. "
+            "11 new tests (5 on the seam, 6 on the section) plus 90 existing "
+            "sticker, artifact, chat, dark-launch, owner-account and "
+            "image-weight tests: 101 green on PostgreSQL --parallel 8. Two "
+            "inherited reds, unchanged and neither mine: "
+            "RoutedViewAccessAuditTests names the same three P2 chat endpoints "
+            "as before, and the AN13 duplicate-declaration list is byte-"
+            "identical to the baseline diffed at the start of this session. No "
+            "migration."
+        ),
+    },
+    {
         "version": "2.5.1376",
         "date": "2026-08-27",
         "commit": "pending",

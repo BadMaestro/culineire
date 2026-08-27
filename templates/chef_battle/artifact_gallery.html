@@ -44,11 +44,79 @@
         <a href="#" class="artifact-filter-link" data-filter="attack">Attack</a>
         <a href="#" class="artifact-filter-link" data-filter="defence">Defence</a>
         <a href="#" class="artifact-filter-link" data-filter="boost">Boost</a>
+        <a href="#stickers" class="artifact-filter-link artifact-filter-link--jump">Stickers</a>
       </nav>
       <p>Artifacts grant combat advantages in battle. Rarer artifacts carry stronger effects and higher costs.</p>
     </aside>
 
     <div class="artifact-gallery-content">
+
+      {% comment %}
+      THE STICKERS SECTION. The Owner asked for a new section IN this shop, and
+      v2.5.1373 built a separate page the shop never even linked to - which is
+      how he came looking for it here and found nothing.
+
+      THE FLAT PACK PRICE IS STATED BEFORE PAYMENT, not on the receipt: a buyer
+      holding four of the thirteen still pays the full 100 and receives the
+      missing nine. His rule, in his own words: all at once, or ten each.
+      {% endcomment %}
+      <section class="artifact-rarity-group" id="stickers">
+        <h2 class="artifact-rarity-group__title">Stickers</h2>
+
+        {% for row in pack_rows %}
+        <div class="sticker-pack">
+          <p class="sticker-pack__terms">
+            <strong>{{ row.pack.name }}</strong> &mdash;
+            {{ row.pack.token_cost }}T for all {{ row.stickers|length }}, or {{ row.stickers.0.item.token_cost }}T each.
+            {% if row.owned_count and not row.complete %}
+            You already own {{ row.owned_count }}; the pack price is flat, so it still costs
+            {{ row.pack.token_cost }}T and adds the {{ row.missing_count }} you are missing.
+            {% endif %}
+          </p>
+          {% if has_profile %}
+            {% if row.complete %}
+            <p class="sticker-pack__owned">You own this pack.</p>
+            {% else %}
+            <form action="{% url 'chef_battle:sticker_pack_buy' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="pack" value="{{ row.pack.pk }}">
+              <button class="btn-primary" type="submit">Buy the pack &mdash; {{ row.pack.token_cost }}T</button>
+            </form>
+            {% endif %}
+          {% endif %}
+
+          <div class="artifact-grid">
+            {% for tile in row.stickers %}
+            <article class="artifact-card sticker-card{% if tile.item.pk in owned_ids %} sticker-card--owned{% endif %}">
+              <div class="artifact-card__image-wrap">
+                {% if tile.tile_url %}
+                <img alt="{{ tile.item.label }}" class="artifact-card__image" loading="lazy" src="{{ tile.tile_url }}">
+                {% endif %}
+              </div>
+              <div class="artifact-card__header">
+                <span class="artifact-card__rarity">Sticker</span>
+                <span class="artifact-card__cost">{{ tile.item.token_cost }}T</span>
+              </div>
+              <h3 class="artifact-card__name">{{ tile.item.label }}</h3>
+              <code class="sticker-card__token">:{{ tile.item.token }}:</code>
+              {% if tile.item.pk in owned_ids %}
+              <p class="artifact-card__owned">Owned</p>
+              {% elif has_profile %}
+              <form action="{% url 'chef_battle:sticker_buy' %}" class="artifact-card__buy" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="sticker" value="{{ tile.item.pk }}">
+                <button class="btn-secondary" type="submit">Buy for {{ tile.item.token_cost }}T</button>
+              </form>
+              {% endif %}
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% empty %}
+        <p class="sticker-pack__terms">No sticker packs on sale yet.</p>
+        {% endfor %}
+      </section>
+
 
       {% for rarity_label, artifacts in grouped.items %}
       <section class="artifact-rarity-group artifact-rarity-group--{{ rarity_label|lower }}">

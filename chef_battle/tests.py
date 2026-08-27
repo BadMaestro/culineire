@@ -25951,6 +25951,11 @@ class StickerShopAccessTests(TestCase):
         for url in (self.shop, self.buy, reverse("chef_battle:sticker_pack_buy")):
             self.assertEqual(self.client.get(url).status_code, 404)
             self.assertEqual(self.client.post(url, {}).status_code, 404)
+        self.assertEqual(
+            self.client.get(reverse("chef_battle:artifact_gallery")).status_code, 404,
+            "the shelf lives in the artifact shop now, so that page is the one "
+            "the dark launch has to hide",
+        )
 
     def test_a_suspended_chef_is_refused_and_charged_nothing(self):
         from .models import ChefSticker, StickerItem
@@ -26002,19 +26007,21 @@ class StickerPickerRendersOwnershipTests(TestCase):
         keeping the owned block free of them is what proves this feature added
         no second path to a picture."""
         template = STICKER_TEMPLATE.read_text(encoding="utf-8")
-        owned = template[template.index('id="arena-chat-sticker-owned"'):]
+        # The block is printed by json_script now, so the id appears as the
+        # filter's argument rather than as a literal attribute.
+        owned = template[template.index('json_script:"arena-chat-sticker-owned"'):]
         self.assertNotIn("{% static", owned)
 
     def test_a_reader_with_no_profile_gets_an_empty_list(self):
         """Shared with the token-gated preview routes, where viewer_author is
         None. Empty locks everything, which is the correct answer for somebody
         who cannot own anything - and it must not raise."""
-        from chef_battle.views import _owned_sticker_tokens_json
+        from chef_battle.views import _owned_sticker_tokens
 
-        self.assertEqual(_owned_sticker_tokens_json(None), "[]")
+        self.assertEqual(_owned_sticker_tokens(None), [])
 
     def test_it_lists_exactly_what_the_reader_bought(self):
-        from chef_battle.views import _owned_sticker_tokens_json
+        from chef_battle.views import _owned_sticker_tokens
 
         from .models import StickerItem
         from .services import buy_sticker
@@ -26022,9 +26029,7 @@ class StickerPickerRendersOwnershipTests(TestCase):
         _, author = _make_chef("picker", balance=50)
         buy_sticker(chef=author, sticker=StickerItem.objects.get(token="salty"))
         buy_sticker(chef=author, sticker=StickerItem.objects.get(token="noooo"))
-        self.assertEqual(
-            json.loads(_owned_sticker_tokens_json(author)), ["noooo", "salty"],
-        )
+        self.assertEqual(_owned_sticker_tokens(author), ["noooo", "salty"])
 
     def test_the_client_locks_everything_when_the_block_is_unreadable(self):
         """The script's own fallback, read from the file: a parse failure or a
@@ -26219,11 +26224,11 @@ class OwnerOwnsEveryStickerByRuleTests(TestCase):
             self.assertEqual(response.status_code, 200, f"the Owner was refused :{alias}:")
 
     def test_his_picker_lists_every_token(self):
-        from chef_battle.views import _owned_sticker_tokens_json
+        from chef_battle.views import _owned_sticker_tokens
 
         from .models import StickerItem
 
-        listed = json.loads(_owned_sticker_tokens_json(self.owner))
+        listed = _owned_sticker_tokens(self.owner)
         self.assertEqual(
             sorted(listed), sorted(StickerItem.objects.values_list("token", flat=True)),
         )
@@ -26231,13 +26236,13 @@ class OwnerOwnsEveryStickerByRuleTests(TestCase):
     def test_a_new_pack_is_his_the_moment_it_exists(self):
         """The whole reason he chose the rule over the rows: nobody has to
         remember to grant him anything ever again."""
-        from chef_battle.views import _owned_sticker_tokens_json
+        from chef_battle.views import _owned_sticker_tokens
 
         from .models import StickerItem, StickerPack
 
         later = StickerPack.objects.create(slug="season-two", name="Season Two")
         StickerItem.objects.create(token="mise_en_place", label="Mise en place", pack=later)
-        self.assertIn("mise_en_place", json.loads(_owned_sticker_tokens_json(self.owner)))
+        self.assertIn("mise_en_place", _owned_sticker_tokens(self.owner))
 
     def test_nothing_takes_a_token_from_him(self):
         """AGENTS.md section 18: nothing the game does may take anything from
@@ -26265,8 +26270,10 @@ class OwnerOwnsEveryStickerByRuleTests(TestCase):
         profile.save()
 
         self.client.force_login(self.user)
-        page = self.client.get(reverse("chef_battle:sticker_shop"))
+        # The shelf lives in the artifact shop now, not on a page of its own.
+        page = self.client.get(reverse("chef_battle:artifact_gallery"))
         self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'id="stickers"')
         self.assertNotContains(page, 'name="sticker"')
         self.assertNotContains(page, 'name="pack"')
 
@@ -26538,3 +26545,145 @@ class TheSpecificationSaysArtifactsAreBoughtTests(TestCase):
                     f"{name} still carries '{stale}', which the Owner struck on "
                     f"2026-08-27",
                 )
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True, OWNER_SLUG="greenbear")
+class TheOwnedListSurvivesBeingRenderedTests(TestCase):
+    """THE SEAM, which is what actually broke.
+
+    v2.5.1373 shipped a correct Python function and a correct browser script
+    and nothing at all between them. The view returned `json.dumps(...)` and
+    the template printed it with `{{ value|default:"[]" }}`, so Django's
+    autoescaping turned every quote into `&quot;`, JSON.parse threw, the
+    client's fail-closed branch swallowed the error, and the picker locked
+    EVERY sticker for EVERY reader - including the Owner, who owns them all by
+    rule. The Owner found it on his own screen.
+
+    Both halves were tested. The seam was not. These tests render the real
+    template and parse the result the way a browser would, so the same class of
+    fault fails here instead of in his picker.
+    """
+
+    def _rendered_block(self, tokens):
+        from django.template.loader import render_to_string
+
+        html = render_to_string(
+            "chef_battle/_arena_chat_stickers.html",
+            {"owned_sticker_tokens": tokens},
+        )
+        start = html.index('id="arena-chat-sticker-owned"')
+        start = html.index(">", start) + 1
+        return html[start:html.index("</script>", start)]
+
+    def test_the_rendered_block_is_json_a_browser_can_parse(self):
+        payload = self._rendered_block(["salty", "seared"])
+        self.assertNotIn(
+            "&quot;", payload,
+            "the quotes were HTML-escaped again - JSON.parse cannot read this, "
+            "and the client fails CLOSED, so every sticker locks silently",
+        )
+        self.assertEqual(json.loads(payload), ["salty", "seared"])
+
+    def test_an_empty_list_renders_as_an_empty_array(self):
+        self.assertEqual(json.loads(self._rendered_block([])), [])
+
+    def test_a_missing_context_value_still_renders_valid_json(self):
+        """The token-gated preview routes and any future caller that forgets
+        the key must produce a parseable empty list, not a broken block."""
+        from django.template.loader import render_to_string
+
+        html = render_to_string("chef_battle/_arena_chat_stickers.html", {})
+        start = html.index('id="arena-chat-sticker-owned"')
+        start = html.index(">", start) + 1
+        payload = html[start:html.index("</script>", start)]
+        self.assertIn(json.loads(payload), ([], "", None))
+
+    def test_hostile_text_cannot_escape_the_script_element(self):
+        """json_script is used rather than a hand-printed string precisely
+        because it escapes for a <script> element. Tokens are [a-z0-9_] at the
+        model today; relying on that instead of on the encoder would be relying
+        on a validator staying strict forever."""
+        payload = self._rendered_block(["</script><script>alert(1)</script>"])
+        self.assertNotIn("<script>alert(1)", payload)
+
+    def test_the_owner_page_carries_all_thirteen(self):
+        """End to end, through the view helper and the template together."""
+        from chef_battle.views import _owned_sticker_tokens
+
+        from .models import StickerItem
+
+        user = get_user_model().objects.create_user(username="seamowner", password="pw")
+        owner, created = RecipeAuthor.objects.get_or_create(
+            slug="greenbear", defaults={"user": user, "name": "GreenBear"},
+        )
+        payload = self._rendered_block(_owned_sticker_tokens(owner))
+        self.assertEqual(
+            sorted(json.loads(payload)),
+            sorted(StickerItem.objects.values_list("token", flat=True)),
+        )
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class TheStickersAreASectionOfTheArtifactShopTests(TestCase):
+    """The Owner asked for a SECTION of the artifact shop and v2.5.1373 built a
+    separate page the shop did not link to - so he went looking for it on the
+    artifacts page and found nothing there.
+
+    "продаваться он будет в нашем магазине артефактов - для этого нам нужно
+    добавить новый раздел - Stickers"
+    """
+
+    def setUp(self):
+        self.user, self.author = _make_chef("sectionshopper", balance=300)
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=self.author)
+        profile.age_verified = True
+        profile.save()
+        self.gallery = reverse("chef_battle:artifact_gallery")
+
+    def test_the_artifact_shop_carries_the_stickers_section(self):
+        self.client.force_login(self.user)
+        page = self.client.get(self.gallery)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'id="stickers"')
+        self.assertContains(page, "Stickers")
+
+    def test_the_filter_sidebar_offers_it(self):
+        """He photographed that sidebar - All Artifacts / Attack / Defence /
+        Boost - and asked where Stickers was."""
+        self.client.force_login(self.user)
+        page = self.client.get(self.gallery)
+        self.assertContains(page, 'href="#stickers"')
+
+    def test_every_sticker_is_on_the_shelf_with_a_buy_button(self):
+        from .models import StickerItem
+
+        self.client.force_login(self.user)
+        page = self.client.get(self.gallery)
+        for item in StickerItem.objects.all():
+            self.assertContains(page, f":{item.token}:")
+        self.assertContains(page, "Buy the pack")
+
+    def test_the_flat_pack_price_is_stated_before_payment(self):
+        from .models import StickerItem
+        from .services import buy_sticker
+
+        buy_sticker(chef=self.author, sticker=StickerItem.objects.get(token="salty"))
+        self.client.force_login(self.user)
+        page = self.client.get(self.gallery)
+        self.assertContains(page, "the pack price is flat")
+
+    def test_the_old_address_lands_on_the_section(self):
+        """Links already printed - the chat's locked-tile target among them -
+        must reach the shelf rather than a 404."""
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("chef_battle:sticker_shop"))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].endswith("#stickers"))
+
+    def test_there_is_no_second_sticker_page_left_behind(self):
+        """One shelf, not two. A second surface for one thing is what drifts."""
+        page = (
+            Path(__file__).resolve().parent.parent
+            / "templates" / "chef_battle" / "sticker_shop.html"
+        )
+        self.assertFalse(page.exists(), "the separate sticker page is still there")

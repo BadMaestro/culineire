@@ -12507,39 +12507,29 @@ button.arena-chat__poll-option:hover {
 
 /* AC-STK - A STICKER YOU HAVE NOT BOUGHT.
 
-   SHOWN, DIMMED, LOCKED - never hidden. A sticker somebody could buy for ten
-   tokens is worth seeing; a grid emptied down to what the reader owns sells
-   nothing and, on the day this ships, reads as a broken tab, because nobody
-   owns a row yet.
+   REWRITTEN v2.5.1379. The first version desaturated the picture and painted a
+   bronze square in the corner; the Owner saw it on his own screen and said so
+   plainly. He was right twice over - it looked like a broken image rather than
+   a price tag, and it was on HIS picker at all only because of the escaping
+   bug this release fixes.
 
-   This is presentation and not the rule. Ownership is enforced in
-   arena_chat_send, where the line is actually written, so nothing here is
-   load-bearing: a reader who defeats this CSS reaches a 403 rather than a free
-   sticker.
+   What is left is the least this can be and still say anything: the tile is a
+   little quieter than its neighbours and nothing is drawn on top of the
+   artwork. The pictures are his, and covering them was never mine to decide.
 
-   Two classes on the selector, no !important - the blanket
+   This is presentation, not the rule. Ownership is enforced in
+   arena_chat_send; defeating this CSS reaches a 403, not a free sticker.
+
+   Two classes on the selector and no !important - the blanket
    `.arena-chat * { color: inherit }` reset in this file eats single-class
    colour rules, and prefixing is how every other rule here answers it. */
 .arena-chat .arena-chat__emoji-btn--locked {
-  position: relative;
   cursor: pointer;
 }
 .arena-chat .arena-chat__emoji-btn--locked .arena-chat__sticker {
-  opacity: 0.34;
-  filter: grayscale(1);
-}
-.arena-chat .arena-chat__emoji-btn--locked::after {
-  content: "";
-  position: absolute;
-  right: 0.2rem;
-  bottom: 0.2rem;
-  width: 0.75rem;
-  height: 0.6rem;
-  border-radius: 0.12rem;
-  background: var(--accent-bronze);
-  box-shadow: 0 0 0 0.12rem rgba(0, 0, 0, 0.42);
+  opacity: 0.55;
 }
 .arena-chat .arena-chat__emoji-btn--locked:hover .arena-chat__sticker,
 .arena-chat .arena-chat__emoji-btn--locked:focus-visible .arena-chat__sticker {
-  opacity: 0.62;
+  opacity: 1;
 }
