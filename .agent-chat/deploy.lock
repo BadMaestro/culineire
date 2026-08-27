@@ -1,5 +1,0 @@
-agent: GreenBear
-started_utc: 2026-08-27T23:17:39Z
-version: 2.5.1379
-commit: pending
-task: fix - the Owner picker was locked by an escaping bug, and Stickers belongs IN the artifact shop
