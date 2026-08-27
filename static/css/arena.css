@@ -9195,10 +9195,25 @@ body.page--arena.is-zoom-locked {
     height: auto;
     flex: 0 0 auto;
   }
-  .arena-right-stack > .arena-chat {
-    /* OUT OF FLOW ON PURPOSE - see the block comment above. It fills the
-       column exactly and reports nothing back to the grid, so the arena row
-       is the same height at 0 messages and at 5000. */
+  /* THE SLOT IS WHAT THE CHAT NOW FILLS, v2.5.1363. Until the house stream
+     arrived the rail had one child and the chat could take the whole of it;
+     now the stream is a second tenant with a height of its own, so the slot
+     takes what is left and the chat fills the slot. The slot's own content is
+     out of flow, so it contributes NOTHING to the grid row - which is the
+     guarantee the whole block above exists to make, moved down one level
+     rather than given up. */
+  .arena-right-stack > .arena-chat-slot {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .arena-right-stack > .arena-house-stream {
+    flex: 0 0 auto;
+  }
+  .arena-chat-slot > .arena-chat {
+    /* OUT OF FLOW ON PURPOSE - see the block comment above. It fills the slot
+       exactly and reports nothing back to the grid, so the arena row is the
+       same height at 0 messages and at 5000. */
     position: absolute;
     inset: 0;
     /* auto beats the `width: 100%` the `> *` rule above sets: with inset:0
@@ -9453,8 +9468,15 @@ body.page--arena.is-zoom-locked {
      this later declaration to win - the absolute one simply stands,
      unopposed, which is what stacked everything on top of itself the first
      time this block shipped. */
+  /* THE SLOT'S CHILD COUNTS AS THE RAIL'S OWN, v2.5.1363. `display: contents`
+     removes the slot's BOX, not the slot from the DOM, so `> *` still stops
+     one level short of the chat - measured at 800px, the chat came back as
+     the unconditional absolutely-positioned 138px column from :2986 and
+     :4938 and overflowed its rail by 142px. Naming the slot's children here
+     is what actually reaches it. */
   .arena-left-stack > *,
-  .arena-right-stack > * {
+  .arena-right-stack > *,
+  .arena-chat-slot > * {
     position: relative;
     inset: auto;
     width: 100%;
@@ -9907,6 +9929,7 @@ body.page--arena.is-zoom-locked {
       "ribbon"
       "floor"
       "chat"
+      "stream"
       "phase"
       "foot"
       "metrics"
@@ -12339,4 +12362,122 @@ button.arena-chat__poll-option:hover {
   0%, 49.6% { transform: rotate(0deg); }
   50%, 99.6% { transform: rotate(180deg); }
   100% { transform: rotate(360deg); }
+}
+/* ============================================================================
+ * THE HOUSE KITCHEN - the Arena's own camera, under the chat.
+ * Owner, 2026-08-27. A permanent fixture, so it keeps its place and its size
+ * whether or not anybody is cooking: the off-air card is the same box as the
+ * picture, and the right column never reshuffles when he throws the switch.
+ * ========================================================================== */
+.arena-house-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 0.7rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: 0 0.5rem 1.4rem color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.arena-house-stream__head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.arena-house-stream__head .arena-panel__kicker {
+  flex: 1 1 auto;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.arena-house-stream .arena-house-stream__head .arena-ico {
+  width: 0.95rem;
+  flex: 0 0 auto;
+  color: var(--accent-bronze-dark);
+}
+.arena-house-stream__live {
+  flex: 0 0 auto;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--danger, #a8321f);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ONE BOX, TWO STATES. The stage carries the 16:9 whether it holds a picture
+   or the off-air card, so the column's height does not move when the kitchen
+   opens. */
+.arena-house-stream__stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--ink) 86%, transparent);
+}
+.arena-house-stream__video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--ink) 86%, transparent);
+}
+.arena-house-stream__off {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.6rem;
+  text-align: center;
+}
+.arena-house-stream .arena-house-stream__off .arena-ico {
+  width: 1.1rem;
+  margin-bottom: 0.15rem;
+  color: color-mix(in srgb, var(--accent-bronze) 70%, transparent);
+}
+.arena-house-stream .arena-house-stream__off b {
+  color: color-mix(in srgb, var(--surface) 88%, transparent);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+.arena-house-stream .arena-house-stream__off span {
+  color: color-mix(in srgb, var(--surface) 58%, transparent);
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+.arena-house-stream .arena-house-stream__caption {
+  margin: 0;
+  color: var(--arena-muted);
+  font-size: 0.64rem;
+  line-height: 1.45;
+}
+
+/* BELOW THE DESKTOP THE SLOT STEPS OUT OF THE WAY ENTIRELY, and this is not
+   tidiness - it is the only safe shape. This stylesheet sets `position:
+   absolute` and a 15.5rem width on .arena-chat UNCONDITIONALLY (the six-panel
+   rule at :2986 and the prototype rail at :4938), and every breakpoint below
+   901px cancels those through `.arena-left-stack > *, .arena-right-stack > *`.
+   Putting a wrapper around the chat broke that selector the moment it
+   shipped: measured at 800px, the chat came back as an absolutely positioned
+   138px column overflowing its own rail by 142px, because the override no
+   longer matched it.
+
+   `display: contents` makes the slot vanish from layout, so the chat is a
+   direct child of the rail again below 901px and every one of those
+   overrides applies untouched. The slot is a real box only where it is
+   needed - the desktop, where it is what the chat fills.
+
+   The phone also places by NAME, so the stream needs an area of its own
+   there; see the 640px grid further up. */
+@media (max-width: 900px) {
+  .arena-chat-slot { display: contents; }
+}
+@media (max-width: 640px) {
+  .arena-house-stream { grid-area: stream; }
 }

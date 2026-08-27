@@ -1,5 +1,75 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1363",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "The house kitchen - a permanent live window under the Arena chat",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-27: a livestream widget under the chat, his own "
+            "kitchen, on a permanent basis. Asked where the picture should "
+            "come from he chose HLS - reusing what the project already has "
+            "rather than an embed with somebody else's branding and cookies "
+            "on his page - and asked for the address to live in a record he "
+            "edits himself rather than a line in the server's .env. THE "
+            "MIGRATION WAS AUTHORISED SEPARATELY AND EXPLICITLY, as section 8 "
+            "requires; it is one CreateModel and touches nothing that exists. "
+            "A MODEL OF ITS OWN RATHER THAN LiveStreamSession, which already "
+            "exists and is deliberately left alone: a session belongs to a "
+            "CHEF and a BATTLE and ends when the battle does, while the house "
+            "camera has no chef, no battle and no end. Modelling it as a "
+            "session with nulled foreign keys would have made every query "
+            "that means 'the competitors' cameras' quietly wrong. One row, "
+            "reached through current(); on_air is the switch AND an address, "
+            "because a switch on with nothing behind it is an operator "
+            "halfway through a change rather than a broadcast. "
+            "for_display() is a second reader that NEVER writes, and that is "
+            "not tidiness: the arena's context builder is shared with the "
+            "token-gated preview route whose whole contract is that it "
+            "records no presence and creates no profile, and current() would "
+            "have inserted a row the first time an anonymous holder of that "
+            "link opened it. THE PLAYER IS FETCHED ONLY WHEN THERE IS "
+            "SOMETHING TO PLAY: hls.min.js is 413 KB and the kitchen is quiet "
+            "most of the day, so the vendor script is loaded from inside the "
+            "branch that has a URL, and never at all on Safari, which plays "
+            "HLS natively. The off-air card is the same 16:9 box as the "
+            "picture, so the right column does not reshuffle when he throws "
+            "the switch. The address is validated where it is set - "
+            "javascript: and data: are refused outright and plain http is "
+            "refused too, because the site is https and the browser would "
+            "block it and it would read as a broken stream rather than a "
+            "rejected setting. THE RISKY PART WAS THE RAIL, and it broke "
+            "twice before it held. v2.5.1324 took the chat OUT OF FLOW inside "
+            "the right rail so a thousand messages could not size the arena's "
+            "grid row; the rail had exactly one child and inset: 0 was the "
+            "whole arrangement. A second tenant means that containment moves "
+            "down one level into a slot - the slot takes what the stream "
+            "leaves, the chat fills the slot, and the slot's own content is "
+            "out of flow so it still contributes nothing to the row. THEN THE "
+            "WRAPPER BROKE A SELECTOR: this stylesheet sets position: "
+            "absolute and a 15.5rem width on .arena-chat UNCONDITIONALLY, and "
+            "every breakpoint below 901px cancels that through "
+            "`.arena-right-stack > *` - which stops one level short of a "
+            "wrapped chat. Measured at 800px, the chat came back as an "
+            "absolutely positioned 138px column overflowing its rail by "
+            "142px. display: contents did not fix it either, because it "
+            "removes the box and not the DOM level; naming the slot's "
+            "children is what reached it. MEASURED AFTER, five widths: the "
+            "stream is 16:9 at every one, sits below the chat at every one, "
+            "and 300 messages leave page, deck and floor identical at 1920, "
+            "1440 and 1280 - the guarantee of v2.5.1324 survives its new "
+            "neighbour. The phone gets a grid row of its own for the stream, "
+            "because below 641px the deck places by NAME and an unnamed "
+            "widget would be auto-placed into whatever cell was free. 57 "
+            "arena tests plus 13 new ones green. TWO INHERITED REDS, NEITHER "
+            "TOUCHED AND NEITHER MINE: the superseded-declaration guard at 28 "
+            "items, and the board-baseline guard, which has been red since "
+            "long before this session - the build board and ARENA_BATTLE_PLAN "
+            "both read v2.5.1135 against a footer at v2.5.1360, 225 releases "
+            "of drift."
+        ),
+    },
+    {
         "version": "2.5.1360",
         "date": "2026-08-27",
         "commit": "pending",

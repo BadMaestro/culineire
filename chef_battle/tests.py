@@ -24619,7 +24619,11 @@ class ArenaChatIsAFixedHeightPanelTests(TestCase):
         return found[0]
 
     def test_the_chat_is_out_of_flow_so_the_arena_row_cannot_be_sized_by_it(self):
-        body = self._rule(self.DESKTOP, ".arena-right-stack > .arena-chat")
+        # The chat gained a neighbour in v2.5.1363 - the house stream - so
+        # the containment moved down one level into .arena-chat-slot. The
+        # guarantee is the same one: what fills the column is out of flow and
+        # reports nothing back to the grid.
+        body = self._rule(self.DESKTOP, ".arena-chat-slot > .arena-chat")
         self.assertIn("position: absolute", body)
         self.assertIn("inset: 0", body)
         self.assertNotIn(
@@ -24639,8 +24643,10 @@ class ArenaChatIsAFixedHeightPanelTests(TestCase):
         composer, the report sheet and the chef card into #arena-chat itself.
         `overflow: hidden` on the panel or on the rail - the obvious move when
         containing something - clips every one of them."""
-        for selector in (".arena-right-stack", ".arena-right-stack > .arena-chat"):
-            self.assertNotIn("overflow: hidden", self._rule(self.DESKTOP, selector))
+        self.assertNotIn("overflow: hidden",
+                         self._rule(self.DESKTOP, ".arena-right-stack"))
+        self.assertNotIn("overflow: hidden",
+                         self._rule(self.DESKTOP, ".arena-chat-slot > .arena-chat"))
         self.assertIn("root.appendChild(sheet)", self.SCRIPT.read_text(encoding="utf-8"))
 
     def test_the_log_is_the_only_thing_that_scrolls(self):
@@ -25282,3 +25288,186 @@ class ArenaHourglassRunsThreeMinutesTests(TestCase):
                           "%s runs regardless of the setting" % name)
         self.assertIn(".arena-hourglass__sand--top { transform: scaleY(0.5); }", css)
         self.assertIn(".arena-hourglass__stream { opacity: 0; }", css)
+class ArenaHouseStreamTests(TestCase):
+    """The Arena's own kitchen camera, v2.5.1363.
+
+    Owner, 2026-08-27: a live stream under the chat, his own kitchen, on a
+    permanent basis - and, asked where the address should live, a record he
+    edits himself rather than a line in the server's .env. The migration was
+    authorised separately and explicitly, as AGENTS.md section 8 requires.
+
+    A MODEL OF ITS OWN RATHER THAN LiveStreamSession, which already exists and
+    is left alone: a session belongs to a CHEF and a BATTLE and ends when the
+    battle does. The house camera has no chef, no battle and no end. Modelling
+    it as a session with nulled foreign keys would have made every query that
+    means "the competitors' cameras" quietly wrong.
+
+    THE TWO THINGS THAT WOULD BREAK SILENTLY are pinned here. for_display()
+    must never write, because the arena's context builder is shared with the
+    token-gated preview route whose whole contract is that it records nothing;
+    current() would have inserted a row the first time an anonymous holder of
+    that link opened it. And the chat must still be unable to size the grid
+    row now that it has a neighbour - the containment of v2.5.1324 moved down
+    one level into the slot rather than being given up.
+    """
+
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+    TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
+    PARTIAL = (Path(settings.BASE_DIR) / "templates" / "chef_battle"
+               / "_arena_house_stream.html")
+
+    def setUp(self):
+        User = get_user_model()
+        self.mod = User.objects.create_superuser(
+            username="house-mod", password="pw", email="house@example.com")
+        self.plain = User.objects.create_user(
+            username="house-plain", password="pw", email="plain@example.com")
+
+    # ---- the model -------------------------------------------------------
+
+    def test_on_air_needs_both_the_switch_and_an_address(self):
+        """A switch on with no URL is an operator halfway through a change,
+        not a broadcast."""
+        from chef_battle.models import ArenaHouseStream
+
+        row = ArenaHouseStream.objects.create()
+        self.assertFalse(row.on_air)
+        row.is_live = True
+        self.assertFalse(row.on_air, "live with no address is not on air")
+        row.playback_url = "https://stream.example.com/kitchen/index.m3u8"
+        self.assertTrue(row.on_air)
+        row.is_live = False
+        self.assertFalse(row.on_air, "the switch is the Owner's and it wins")
+
+    def test_for_display_never_writes(self):
+        """The arena's context builder is shared with the read-only preview."""
+        from chef_battle.models import ArenaHouseStream
+
+        self.assertEqual(ArenaHouseStream.objects.count(), 0)
+        self.assertIsNone(ArenaHouseStream.for_display())
+        self.assertEqual(ArenaHouseStream.objects.count(), 0,
+                         "reading the house stream created a row")
+
+    def test_current_creates_exactly_one_row_and_reuses_it(self):
+        from chef_battle.models import ArenaHouseStream
+
+        first = ArenaHouseStream.current()
+        again = ArenaHouseStream.current()
+        self.assertEqual(first.pk, again.pk)
+        self.assertEqual(ArenaHouseStream.objects.count(), 1)
+
+    # ---- the moderator page ----------------------------------------------
+
+    def test_the_page_is_moderators_only(self):
+        url = reverse("recipes:arena_house_stream")
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.login(username="house-plain", password="pw")
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.login(username="house-mod", password="pw")
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+    def test_saving_writes_the_row_and_records_who(self):
+        from chef_battle.models import ArenaHouseStream
+
+        self.client.login(username="house-mod", password="pw")
+        self.client.post(reverse("recipes:arena_house_stream"), {
+            "playback_url": "https://stream.example.com/kitchen/index.m3u8",
+            "title": "The house kitchen",
+            "caption": "Service from four.",
+            "is_live": "on",
+        })
+        row = ArenaHouseStream.current()
+        self.assertTrue(row.on_air)
+        self.assertEqual(row.title, "The house kitchen")
+        self.assertEqual(row.updated_by, self.mod)
+
+    def test_a_javascript_url_is_refused(self):
+        """The value is written into a page as a playback source, so the
+        scheme is checked here rather than trusted to the browser."""
+        from chef_battle.models import ArenaHouseStream
+
+        self.client.login(username="house-mod", password="pw")
+        page = self.client.post(reverse("recipes:arena_house_stream"), {
+            "playback_url": "javascript:alert(1)", "is_live": "on",
+        })
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(ArenaHouseStream.current().playback_url, "")
+
+    def test_plain_http_is_refused_because_the_page_is_https(self):
+        from chef_battle.models import ArenaHouseStream
+
+        self.client.login(username="house-mod", password="pw")
+        self.client.post(reverse("recipes:arena_house_stream"), {
+            "playback_url": "http://stream.example.com/kitchen.m3u8", "is_live": "on",
+        })
+        self.assertEqual(ArenaHouseStream.current().playback_url, "")
+
+    # ---- the widget ------------------------------------------------------
+
+    def test_the_arena_shows_the_off_air_card_when_nothing_is_set(self):
+        self.client.login(username="house-mod", password="pw")
+        html = self.client.get(reverse("chef_battle:arena")).content.decode("utf-8")
+        self.assertIn("arena-house-stream", html)
+        self.assertIn("arena-house-stream__off", html)
+        self.assertNotIn("hls.min.js", html,
+                         "the 413 KB player is fetched with a quiet kitchen")
+
+    def test_the_player_arrives_only_with_a_stream_to_play(self):
+        from chef_battle.models import ArenaHouseStream
+
+        row = ArenaHouseStream.current()
+        row.playback_url = "https://stream.example.com/kitchen/index.m3u8"
+        row.is_live = True
+        row.save()
+        self.client.login(username="house-mod", password="pw")
+        html = self.client.get(reverse("chef_battle:arena")).content.decode("utf-8")
+        self.assertIn("arena-house-stream__video", html)
+        self.assertNotIn("arena-house-stream__off", html)
+        self.assertIn("hls.min.js", html)
+
+    # ---- the rail --------------------------------------------------------
+
+    def test_the_chat_still_cannot_size_the_grid_row(self):
+        """v2.5.1324 took the chat out of flow because a thousand messages
+        were sizing the arena's row and pushing the page down. The stream is a
+        second tenant, so that containment moved into the slot - measured
+        after: 300 messages leave page, deck and floor identical at 1920,
+        1440 and 1280."""
+        css = self.CSS.read_text(encoding="utf-8")
+        self.assertIn(".arena-chat-slot > .arena-chat {", css)
+        slot = css[css.index(".arena-right-stack > .arena-chat-slot {"):]
+        slot = slot[:slot.index("}")]
+        self.assertIn("position: relative", slot)
+        self.assertIn("flex: 1 1 auto", slot)
+        self.assertIn("min-height: 0", slot)
+        self.assertIn('<div class="arena-chat-slot">',
+                      self.TEMPLATE.read_text(encoding="utf-8"))
+
+    def test_the_wrapper_does_not_hide_the_chat_from_the_tablet_override(self):
+        """This stylesheet sets position:absolute and a 15.5rem width on the
+        chat UNCONDITIONALLY, and every breakpoint below 901px cancels it
+        through `.arena-right-stack > *`. The wrapper broke that selector the
+        moment it shipped: measured at 800px, the chat came back as an
+        absolutely positioned 138px column overflowing its rail by 142px.
+        display:contents did NOT fix it - it removes the box, not the DOM
+        level - so the slot's children are named as well."""
+        css = self.CSS.read_text(encoding="utf-8")
+        self.assertIn(".arena-chat-slot > * {", css)
+
+    def test_the_phone_gives_the_stream_a_row_of_its_own(self):
+        """Below 641px the rail is display:contents and the deck places by
+        NAME, so a stream with no area would be auto-placed into whatever cell
+        happened to be free."""
+        css = self.CSS.read_text(encoding="utf-8")
+        # read_text normalises newlines, so the separator here is a bare
+        # newline even though the file on disk is CRLF.
+        self.assertIn('"chat"' + chr(10) + '      "stream"', css)
+        self.assertIn(".arena-house-stream { grid-area: stream; }", css)
+
+    def test_the_stage_holds_its_shape_in_both_states(self):
+        """The off-air card is the same box as the picture, so the column does
+        not reshuffle when the Owner throws the switch."""
+        css = self.CSS.read_text(encoding="utf-8")
+        stage = css[css.index(".arena-house-stream__stage {"):]
+        stage = stage[:stage.index("}")]
+        self.assertIn("aspect-ratio: 16 / 9", stage)

@@ -1,0 +1,80 @@
+{% load static %}{% comment %}
+THE HOUSE KITCHEN, under the chat. Owner, 2026-08-27: "я сюда буду стримить
+живую кухню на постоянной основе".
+
+A PERMANENT FIXTURE, WHICH IS WHY THE OFF-AIR CARD EXISTS. The box keeps its
+place and its size whether or not anybody is cooking; a widget that vanishes
+between broadcasts would reshuffle the right column every time the Owner
+switched the camera on, and would read as something that occasionally appears
+rather than as the room's own window.
+
+THE PLAYER IS LOADED ONLY WHEN THERE IS SOMETHING TO PLAY. hls.min.js is
+413 KB and the kitchen is quiet most of the day, so the vendor script is
+fetched from inside the branch that has a URL, and never at all on Safari,
+which plays HLS natively. The attach itself is the same shape as the one in
+live_arena_preview.html - native source first, hls.js second, silent if
+neither works.
+
+NO POLLING. The address changes when the Owner saves the form, and the arena
+page reloads itself every five minutes anyway; a poller for a value that
+changes twice a week is the kind of thing AGENTS.md section 5 was written
+about.
+{% endcomment %}
+<section class="arena-house-stream" aria-label="The house kitchen">
+  <header class="arena-house-stream__head">
+    <svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>
+    <h2 class="arena-panel__kicker">{{ house_stream.title|default:"The house kitchen" }}</h2>
+    {% if house_stream.on_air %}<span class="arena-house-stream__live">Live</span>{% endif %}
+  </header>
+
+  <div class="arena-house-stream__stage">
+    {% if house_stream.on_air %}
+      <video class="arena-house-stream__video"
+             data-hls-url="{{ house_stream.playback_url }}"
+             muted playsinline autoplay controls
+             aria-label="The house kitchen, live"></video>
+    {% else %}
+      <div class="arena-house-stream__off">
+        <svg class="arena-ico" aria-hidden="true"><use href="#ad-hourglass"></use></svg>
+        <b>The kitchen is quiet</b>
+        <span>The camera comes back on when the pass does.</span>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if house_stream.caption %}
+    <p class="arena-house-stream__caption">{{ house_stream.caption }}</p>
+  {% endif %}
+</section>
+
+{% if house_stream.on_air %}
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  var video = document.querySelector('.arena-house-stream__video');
+  if (!video) { return; }
+  var url = video.getAttribute('data-hls-url');
+  if (!url) { return; }
+
+  function play() { video.play().catch(function () {}); }
+
+  // Safari and iOS play an HLS manifest from src with no library at all.
+  if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+    video.addEventListener('loadedmetadata', play);
+    return;
+  }
+
+  // Everywhere else: fetch the player only now that there is a stream.
+  var s = document.createElement('script');
+  s.src = "{% static 'js/vendor/hls.min.js' %}";
+  s.onload = function () {
+    if (!window.Hls || !window.Hls.isSupported()) { return; }
+    var hls = new window.Hls({ lowLatencyMode: true });
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(window.Hls.Events.MANIFEST_PARSED, play);
+  };
+  document.head.appendChild(s);
+}());
+</script>
+{% endif %}

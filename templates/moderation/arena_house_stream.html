@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}House Stream | CulinEire{% endblock %}
+{% block meta_description %}The Arena's own kitchen camera.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<style nonce="{{ request.csp_nonce }}">
+  .ahs-shell { max-width:760px; margin-inline:auto; }
+  .ahs-head h1 { margin:.2rem 0; font-family:var(--font-serif); }
+  .ahs-kicker { color:var(--muted); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; }
+  .ahs-note { max-width:70ch; color:var(--muted); }
+  .ahs-card { margin-top:1.4rem; border:1px solid var(--line); border-radius:14px; padding:1.2rem; background:var(--surface); }
+  .ahs-field { display:block; margin-bottom:1rem; }
+  .ahs-field > span { display:block; margin-bottom:.3rem; color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; }
+  .ahs-field input[type=text], .ahs-field input[type=url] { width:100%; box-sizing:border-box; padding:.55rem .7rem; border:1px solid var(--line); border-radius:9px; background:var(--surface-soft); font:inherit; }
+  .ahs-hint { margin:.3rem 0 0; color:var(--muted); font-size:.74rem; }
+  .ahs-switch { display:flex; align-items:center; gap:.55rem; margin-bottom:1.1rem; }
+  .ahs-state { display:inline-flex; align-items:center; gap:.4rem; padding:.2rem .6rem; border-radius:999px; font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  .ahs-state--on { background:color-mix(in srgb, var(--brand) 16%, transparent); color:var(--brand-dark); }
+  .ahs-state--off { background:var(--surface-soft); color:var(--muted); }
+  .ahs-msg { margin:0 0 1rem; padding:.6rem .8rem; border-radius:9px; }
+  .ahs-msg--ok { background:color-mix(in srgb, var(--brand) 14%, transparent); color:var(--brand-dark); }
+  .ahs-msg--err { background:color-mix(in srgb, var(--danger, #a8321f) 12%, transparent); color:var(--danger, #a8321f); }
+  .ahs-meta { margin-top:1rem; color:var(--muted); font-size:.74rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ahs-shell">
+  <header class="ahs-head">
+    <p class="ahs-kicker">Moderation</p>
+    <h1>House Stream</h1>
+    <p class="ahs-note">
+      The Arena's own kitchen camera - one permanent channel, shown under the
+      chat. This is not a battle's stream: a chef's camera belongs to a battle
+      and ends with it, this one has no chef and no end.
+    </p>
+  </header>
+
+  <div class="ahs-card">
+    {% if saved %}<p class="ahs-msg ahs-msg--ok">Saved. The Arena picks it up on the next load.</p>{% endif %}
+    {% if error %}<p class="ahs-msg ahs-msg--err">{{ error }}</p>{% endif %}
+
+    <p>
+      <span class="ahs-state {% if row.on_air %}ahs-state--on{% else %}ahs-state--off{% endif %}">
+        {% if row.on_air %}On air{% else %}Off air{% endif %}
+      </span>
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <label class="ahs-field">
+        <span>Playback address</span>
+        <input type="url" name="playback_url" value="{{ row.playback_url }}"
+               placeholder="https://stream.example.com/kitchen/index.m3u8">
+        <p class="ahs-hint">
+          An HLS manifest over https. Leave it empty and the Arena shows the
+          off-air card. Plain http is refused: the site is https, so the
+          browser would block it and it would look like a broken stream.
+        </p>
+      </label>
+
+      <label class="ahs-field">
+        <span>Title</span>
+        <input type="text" name="title" value="{{ row.title }}" maxlength="80"
+               placeholder="The house kitchen">
+      </label>
+
+      <label class="ahs-field">
+        <span>Caption</span>
+        <input type="text" name="caption" value="{{ row.caption }}" maxlength="160"
+               placeholder="One quiet line under the title. Optional.">
+      </label>
+
+      <label class="ahs-switch">
+        <input type="checkbox" name="is_live" {% if row.is_live %}checked{% endif %}>
+        <span>Live now</span>
+      </label>
+      <p class="ahs-hint" style="margin-top:-.7rem;margin-bottom:1.1rem;">
+        There is nothing in an address that says whether anybody is standing in
+        front of the camera, so this switch is yours. Off shows the off-air
+        card even when an address is set.
+      </p>
+
+      <button class="btn-primary" type="submit">Save</button>
+    </form>
+
+    {% if row.updated_at %}
+      <p class="ahs-meta">
+        Last changed {{ row.updated_at }}{% if row.updated_by %} by {{ row.updated_by }}{% endif %}.
+      </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

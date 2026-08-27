@@ -3058,3 +3058,82 @@ class OwnerAccountRestriction(models.Model):
     def is_blocked(self, *, at=None):
         at = at or timezone.now()
         return bool(self.blocked_until and self.blocked_until > at)
+class ArenaHouseStream(models.Model):
+    """The Arena's own kitchen camera - one permanent channel, not a battle's.
+
+    Owner, 2026-08-27: "я сюда буду стримить живую кухню на постоянной основе".
+    That is a different thing from LiveStreamSession, which already exists and
+    is deliberately left alone: a session belongs to a CHEF and a BATTLE and
+    ends when the battle does. This is the house's own camera - it has no
+    chef, no battle and no end, and it is the Owner's to switch on and off.
+    Modelling it as a session with nulled foreign keys would have made every
+    query that means "the competitors' cameras" quietly wrong.
+
+    ONE ROW, and current() is the only way anything reads it. A settings table
+    with two rows is a bug waiting for somebody to wonder which one is live,
+    so there is exactly one and it is created on first read rather than by a
+    data migration - nothing to keep in step, nothing to seed on a fresh
+    checkout.
+
+    WHY is_live IS A SWITCH AND NOT A GUESS. The playback URL stays put when
+    the kitchen goes quiet; there is nothing in an HLS address that says
+    whether anybody is standing in front of the camera. So the Owner says when
+    the arena is watching, and the page shows the off-air card the rest of the
+    time rather than a spinner over a dead manifest.
+    """
+
+    playback_url = models.URLField(
+        max_length=500, blank=True,
+        help_text="HLS manifest (.m3u8). Left empty, the widget shows the off-air card.",
+    )
+    title = models.CharField(
+        max_length=80, blank=True,
+        help_text="Shown over the picture. Empty falls back to The house kitchen.",
+    )
+    caption = models.CharField(
+        max_length=160, blank=True,
+        help_text="One quiet line under the title. Optional.",
+    )
+    is_live = models.BooleanField(
+        default=False,
+        help_text="Off shows the off-air card even when a URL is set.",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="house_stream_edits",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Arena house stream"
+        verbose_name_plural = "Arena house stream"
+
+    def __str__(self):
+        return "House stream (%s)" % ("live" if self.on_air else "off air")
+
+    @property
+    def on_air(self):
+        """Live AND actually pointed at something. Both, always - a switch on
+        with no URL is an operator halfway through a change, not a broadcast."""
+        return bool(self.is_live and self.playback_url.strip())
+
+    @classmethod
+    def current(cls):
+        """The row, created if it is not there yet. Editing surfaces only."""
+        row = cls.objects.order_by("pk").first()
+        if row is None:
+            row = cls.objects.create()
+        return row
+
+    @classmethod
+    def for_display(cls):
+        """The row or None, and NEVER a write.
+
+        The arena page's context builder is shared with the token-gated
+        preview route, whose whole contract is that it records no presence and
+        creates no profile. current() would have quietly inserted a row the
+        first time an anonymous holder of that link opened it - a write on a
+        read-only route, which is exactly the sort of thing nobody notices
+        until it is in the audit trail.
+        """
+        return cls.objects.order_by("pk").first()

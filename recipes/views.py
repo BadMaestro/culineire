@@ -5,7 +5,7 @@ import uuid
 from datetime import timedelta
 from pathlib import Path
 from typing import cast
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 logger = logging.getLogger("recipes")
 
@@ -5742,3 +5742,54 @@ def recipe_studio_ai_fill(request):
     except Exception as exc:
         logger.error("recipe_studio_ai_fill failed: %s", exc, exc_info=True)
         return JsonResponse({"success": False, "error": str(exc)}, status=500)
+def arena_house_stream(request):
+    """The one form behind the Arena's house camera.
+
+    Owner, 2026-08-27, on where the address should live: a record he edits
+    himself rather than a line in the server's .env, so switching the kitchen
+    on and off never needs a deploy or an SSH session.
+
+    A PAGE OF ITS OWN RATHER THAN A SECTION OF THE PANEL. moderation_panel()
+    is already several hundred lines assembling a dozen querysets; one more
+    form inside it would be a change to all of that for something with no
+    relationship to any of it. This follows arena_build_plan next door - its
+    own route, its own is_moderator gate, its own small template.
+
+    THE URL IS VALIDATED, and narrowly. It is written into a page as a
+    playback source, so `javascript:` and `data:` are refused outright rather
+    than trusted to the browser; only http and https reach the field, and only
+    https is offered without complaint, because a plain-http manifest on an
+    https page is blocked as mixed content anyway and would look like a broken
+    stream rather than a rejected setting.
+    """
+    from chef_battle.models import ArenaHouseStream
+
+    if not is_moderator(request.user):
+        raise Http404
+
+    row = ArenaHouseStream.current()
+    error = ""
+    saved = False
+
+    if request.method == "POST":
+        url = (request.POST.get("playback_url") or "").strip()
+        if url:
+            parsed = urlparse(url)
+            if parsed.scheme not in ("http", "https") or not parsed.netloc:
+                error = "The address must be an http or https link to an .m3u8 manifest."
+            elif parsed.scheme == "http":
+                error = "Use https - a plain http stream is blocked on an https page."
+        if not error:
+            row.playback_url = url
+            row.title = (request.POST.get("title") or "").strip()[:80]
+            row.caption = (request.POST.get("caption") or "").strip()[:160]
+            row.is_live = request.POST.get("is_live") == "on"
+            row.updated_by = request.user if request.user.is_authenticated else None
+            row.save()
+            saved = True
+
+    return render(request, "moderation/arena_house_stream.html", {
+        "row": row,
+        "error": error,
+        "saved": saved,
+    })

@@ -57,7 +57,7 @@ from .fraud import (
     gate_withdrawal_consent,
     run_fraud_gates,
 )
-from .models import Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleIngredient, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet, VoteIntegrityEvent
+from .models import ArenaHouseStream, Artifact, Battle, BattleChatMessage, BattleChallenge, BattleEntry, BattleEvent, BattleIngredient, BattleVote, ChefArtifact, ChefBattleProfile, TokenWallet, VoteIntegrityEvent
 from .selectors import (
     _uncompeting_slugs,
     get_active_battles,
@@ -1690,6 +1690,9 @@ def _arena_page_context(request, *, viewer_author, user_enrolled, allow_demo):
     return {
         "rank_groups": rank_groups,
         "viewer_dm_policy": viewer_dm_policy,
+        # The house camera under the chat. for_display() rather than current()
+        # because this builder is shared with the read-only preview route.
+        "house_stream": ArenaHouseStream.for_display(),
         "spectator_count": len(spectators),
         "active_battle": active_battle,
         "arena_data": arena_data,
