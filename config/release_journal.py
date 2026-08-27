@@ -1,5 +1,51 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1357",
+        "date": "2026-08-27",
+        "commit": "pending",
+        "title": "ARENA STATUS reads on one axis - the card's own centre",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner asked for perfect alignment in this card, was shown "
+            "the current state and two candidates rendered from the live "
+            "page, and chose the centred one. MEASURED FIRST, from the "
+            "card's inner box with 0 as its centre: the shield at -231.6, "
+            "ARENA STATUS at -12.0 with text-align center, Emerald Hall "
+            "directly under it at -12.0 with text-align start, the hourglass "
+            "at -229.9, CURRENT PHASE at -88.4 with start and OPEN FLOOR at "
+            "-88.4 with center, while the deadline, the copy and the facts "
+            "row all sat at 0.0. TWO OF THOSE WERE PLAIN FAULTS RATHER THAN "
+            "TASTE: inside ONE group the label and the value disagreed about "
+            "alignment, twice over. And the axis they agreed to differ on was "
+            "not the card's - the phase name is centred inside a block that "
+            "itself sits to the right of the icon, which put the biggest "
+            "words on the card 88px off its middle, which is what reads as "
+            "'it has slipped'. THE ICONS WERE WHAT PUSHED THEM. Both rows "
+            "were flex - icon, then text - so the words could only ever be "
+            "centred in what the icon left over. Three columns with an equal "
+            "pair flanking the middle fix that by construction: the icon "
+            "keeps the left edge, Floor Open keeps the right, and the words "
+            "land on the card's own centre. The phase row has no third child "
+            "and that empty track is deliberate - it is what balances the "
+            "hourglass. AND THE PAIR HAS TO BE minmax(0, 1fr), NOT 1fr, "
+            "which cost a second measuring pass: a bare `fr` is "
+            "minmax(auto, 1fr) and its automatic minimum is the content's own "
+            "min-content width, so on the 240px rail the Owner fixed for "
+            "screens under 1281px the two outer tracks floored at DIFFERENT "
+            "sizes - 38.0px for the icon's side against 55.6px for Floor Now "
+            "- and the middle came out 8.8px off centre. With zero as the "
+            "minimum every axis in the card measures 0.0 at 1920, 1600, 1440, "
+            "1280, 1024 and 800, and the icon never reaches the words at any "
+            "of them. Below 768px nothing changes: the card already centres "
+            "itself in two earlier blocks and this one is gated above them "
+            "rather than fighting them - verified identical at 390px. 29 "
+            "status-card, ring, phase-panel, octagon-lock, widget-band, "
+            "template-hygiene and image-weight tests green; the inherited "
+            "superseded-declaration failure is unchanged at 28 items, none "
+            "added here."
+        ),
+    },
+    {
         "version": "2.5.1354",
         "date": "2026-08-27",
         "commit": "pending",

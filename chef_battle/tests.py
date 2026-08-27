@@ -25104,3 +25104,80 @@ class ArenaRingsSitAboveTheArenaTests(TestCase):
                 and "grid-template-columns" in b]
         self.assertTrue(cols)
         self.assertIn("var(--arena-floor-target-width, 1fr)", cols[0])
+class ArenaStatusCardReadsOnOneAxisTests(TestCase):
+    """ARENA STATUS is centred on the card, v2.5.1357.
+
+    The Owner asked for perfect alignment in this card and chose the centred
+    option from two rendered against the live page.
+
+    MEASURED FIRST, from the card's inner box, 0 being its centre:
+
+        shield icon        centre -231.6
+        ARENA STATUS       centre  -12.0    text-align: center
+        Emerald Hall       centre  -12.0    text-align: start
+        hourglass          centre -229.9
+        CURRENT PHASE      centre  -88.4    text-align: start
+        OPEN FLOOR         centre  -88.4    text-align: center
+        deadline / copy / facts    0.0
+
+    Two of those were plain faults rather than taste: inside ONE group the
+    label and the value disagreed about alignment, twice. And the axis they
+    agreed to differ on was not the card's - the phase name is centred inside
+    a block that itself sits right of the icon, which put the biggest words on
+    the card 88px off its middle.
+
+    THE ICONS WERE WHAT PUSHED THEM. Both rows were flex, icon then text, so
+    the text could only be centred in what the icon left over. Three columns
+    with an equal pair flanking fix it by construction.
+
+    AND THE PAIR HAS TO BE minmax(0, 1fr), NOT 1fr, which is the part worth a
+    test of its own: a bare `fr` is minmax(auto, 1fr) and its automatic
+    minimum is the content's min-content width, so at the 240px rail the
+    Owner fixed for screens under 1281px the two outer tracks floored at
+    DIFFERENT sizes - measured 38.0px against 55.6px - and the middle track
+    came out 8.8px off centre. With zero as the minimum every axis in the
+    card reads 0.0 at 1920, 1600, 1440, 1280, 1024 and 800.
+    """
+
+    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+    GATE = "@media (min-width: 768px)"
+
+    def _rule(self, selector):
+        found = [b for c, s, b in ArenaChatIsAFixedHeightPanelTests._blocks()
+                 if c == self.GATE and s == selector]
+        self.assertEqual(len(found), 1,
+                         "expected one `%s` in `%s`, found %d"
+                         % (selector, self.GATE, len(found)))
+        return found[0]
+
+    def test_the_card_carries_one_axis(self):
+        self.assertIn("text-align: center",
+                      self._rule(".arena-command-deck__phase-card"))
+
+    def test_the_flanking_pair_can_actually_be_equal(self):
+        """A bare 1fr floors at its own content and the pair comes out
+        lopsided; that is exactly what put the phase name 8.8px off centre on
+        a 240px rail."""
+        body = self._rule(".arena-command-deck__phase-card .arena-panel__title, "
+                          ".arena-command-deck__phase-card .arena-phase-current")
+        self.assertIn("grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr)", body)
+        self.assertNotIn("grid-template-columns: 1fr auto 1fr", body)
+        self.assertIn("display: grid", body)
+
+    def test_the_icons_keep_the_edges_and_stop_moving_the_words(self):
+        icons = self._rule(".arena-command-deck__phase-card .arena-panel__title > .arena-ico, "
+                           ".arena-command-deck__phase-card .arena-phase-current__ico")
+        self.assertIn("grid-column: 1", icons)
+        self.assertIn("justify-self: start", icons)
+        note = self._rule(".arena-command-deck__phase-card .arena-command-deck__live-note")
+        self.assertIn("grid-column: 3", note)
+        self.assertIn("justify-self: end", note)
+
+    def test_the_phone_is_left_to_its_own_rules(self):
+        """Below 768px this card already centres itself in two earlier blocks;
+        a second opinion arriving from here would fight them."""
+        css = self.CSS.read_text(encoding="utf-8")
+        self.assertIn("@media (max-width: 767px)", css)
+        self.assertGreater(css.index(self.GATE + " {\n  .arena-command-deck__phase-card"),
+                           css.index("@media (max-width: 767px)"),
+                           "the centring block must come after the phone's own rules")

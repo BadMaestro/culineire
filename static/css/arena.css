@@ -12166,3 +12166,76 @@ button.arena-chat__poll-option:hover {
      clears the frame on its own height alone; see the note above. */
   .arena-floor-caption { --arena-caption-lift: 0.5rem; }
 }
+/* ============================================================================
+ * ARENA STATUS READS ON ONE AXIS - the card's own centre. Owner, 2026-08-27,
+ * asked for perfect alignment in this card and chose the centred option.
+ *
+ * MEASURED FIRST, from the card's inner box (494.2px wide, 0 = its centre):
+ *
+ *     shield icon        left   1.0   centre -231.6
+ *     ARENA STATUS       left  46.5   centre  -12.0   text-align: center
+ *     Emerald Hall       left  46.5   centre  -12.0   text-align: start
+ *     hourglass          left   1.0   centre -229.9
+ *     CURRENT PHASE      left  47.4   centre  -88.4   text-align: start
+ *     OPEN FLOOR         left  47.4   centre  -88.4   text-align: center
+ *     deadline box       left   1.0   centre    0.0
+ *     the copy           left   1.0   centre    0.0
+ *     facts row          left   1.0   centre    0.0
+ *
+ * Two of those are plain faults rather than taste: inside ONE group the label
+ * and the value disagreed about alignment - ARENA STATUS centred over a
+ * left-aligned Emerald Hall, and a left-aligned CURRENT PHASE over a centred
+ * OPEN FLOOR. And the axis they centred on was not the card's: the phase name
+ * is centred inside a 222px block that itself sits right of the icon, which
+ * put the biggest words on the card 88px off its middle. That is what reads
+ * as "it has slipped".
+ *
+ * THE ICONS ARE WHAT PUSHED THE WORDS OFF. Both rows were flex - icon, then
+ * text - so the text could only ever be centred in what the icon left over.
+ * Three columns of `1fr auto 1fr` fix that by construction: the two outer
+ * tracks are equal whatever they hold, so the middle one is centred on the
+ * card and the icon keeps its place at the left edge.
+ *
+ * From 768px up only. Below it the card already centres itself - see the
+ * 767px and 640px blocks further up this file - and this must not fight them.
+ * ========================================================================== */
+@media (min-width: 768px) {
+  .arena-command-deck__phase-card {
+    text-align: center;
+  }
+
+  .arena-command-deck__phase-card .arena-panel__title,
+  .arena-command-deck__phase-card .arena-phase-current {
+    display: grid;
+    /* minmax(0, 1fr), NOT 1fr. A bare `fr` track is minmax(auto, 1fr), and
+       its automatic minimum is the content's own min-content width - so at
+       the 240px rail the Owner fixed for screens under 1281px the two outer
+       tracks floored at DIFFERENT sizes: measured 38.0px for the icon's side
+       against 55.6px for "Floor Open", which put the middle track 8.8px off
+       the card's centre. Zero as the minimum lets them be equal, which is the
+       whole point of flanking with a pair of them. */
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: center;
+  }
+
+  /* The icons stay where they were; they simply stop moving the words. */
+  .arena-command-deck__phase-card .arena-panel__title > .arena-ico,
+  .arena-command-deck__phase-card .arena-phase-current__ico {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  /* THE PHASE ROW HAS NO THIRD CHILD and that is deliberate: the empty track
+     is what balances the hourglass, so CURRENT PHASE and the phase name land
+     on the card's centre rather than on the icon's leftovers. */
+  .arena-command-deck__phase-card .arena-command-deck__identity,
+  .arena-command-deck__phase-card .arena-phase-current > div {
+    grid-column: 2;
+  }
+
+  .arena-command-deck__phase-card .arena-command-deck__live-note {
+    grid-column: 3;
+    justify-self: end;
+  }
+}
