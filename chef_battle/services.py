@@ -3120,6 +3120,15 @@ def buy_sticker(*, chef, sticker):
     """
     from .models import ChefSticker
 
+    # THE OWNER IS NEVER CHARGED FOR A STICKER. He owns them all by rule
+    # (is_owner_author, read in arena_chat and in the picker), so a debit here
+    # would take tokens from him for something he already has - and AGENTS.md
+    # section 18 says nothing the game does may take anything from his account.
+    # The shop never draws him a Buy button; this is the rule behind it, so a
+    # hand-crafted POST cannot reach his wallet either.
+    if is_owner_author(chef):
+        return None
+
     if not sticker.is_active:
         raise ValueError("That sticker is not on sale.")
 
@@ -3168,6 +3177,12 @@ def buy_sticker_pack(*, chef, pack):
     simply wrong.
     """
     from .models import ChefSticker
+
+    # Same rule as buy_sticker above, and stated rather than inherited: an
+    # exemption written once and left to be remembered at the next call site is
+    # exactly what section 18 says goes wrong.
+    if is_owner_author(chef):
+        raise ValueError("You already own every sticker.")
 
     if not pack.is_active:
         raise ValueError("That pack is not on sale.")

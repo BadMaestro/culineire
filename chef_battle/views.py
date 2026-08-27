@@ -694,14 +694,22 @@ def sticker_shop(request):
     )
     loose = list(StickerItem.objects.filter(is_active=True, pack__isnull=True))
 
+    from .services import is_owner_author
+
     viewer_author = get_author_for_user(request.user)
     wallet = None
     owned_ids = set()
     if viewer_author:
         wallet, _ = TokenWallet.objects.get_or_create(chef=viewer_author)
-        owned_ids = set(
-            ChefSticker.objects.filter(chef=viewer_author).values_list("sticker_id", flat=True)
-        )
+        if is_owner_author(viewer_author):
+            # He owns every sticker by rule, so the shop must not offer to sell
+            # him one - a Buy button that charges the Owner for what he already
+            # has is the same defect as a locked tile in his own picker.
+            owned_ids = set(StickerItem.objects.values_list("pk", flat=True))
+        else:
+            owned_ids = set(
+                ChefSticker.objects.filter(chef=viewer_author).values_list("sticker_id", flat=True)
+            )
 
     rows = []
     for pack in packs:
@@ -1829,7 +1837,17 @@ def _owned_sticker_tokens_json(viewer_author) -> str:
     """
     if viewer_author is None:
         return "[]"
-    from .models import ChefSticker
+    from .models import ChefSticker, StickerItem
+    from .services import is_owner_author
+
+    # THE OWNER OWNS EVERY STICKER BY RULE - his own choice of the two offered,
+    # 2026-08-27. The picker is only presentation; the rule that matters is the
+    # matching one in unowned_sticker_tokens(), and both read the same
+    # is_owner_author() so the tiles and the send path cannot disagree about
+    # him. `is_active` is not filtered: a sticker withdrawn from sale is still
+    # his, which is the whole point of owning it by rule.
+    if is_owner_author(viewer_author):
+        return json.dumps(sorted(StickerItem.objects.values_list("token", flat=True)))
 
     tokens = list(
         ChefSticker.objects

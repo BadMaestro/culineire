@@ -26166,3 +26166,116 @@ class StickerGrantPanelTests(TestCase):
             "has_bearseeker_privileges", "has_arena_console_access",
         ):
             self.assertNotIn(flag, body, f"the grant tool mentions {flag}")
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True, OWNER_SLUG="greenbear")
+class OwnerOwnsEveryStickerByRuleTests(TestCase):
+    """The Owner owns every sticker by RULE, never by granted rows.
+
+    His own choice of the two put to him, 2026-08-27: rows would have to be
+    granted again for every pack this project ever adds, and the day somebody
+    forgets is the day his own arena locks him out of it.
+
+    The check is is_owner_author(), the same helper is_immortal() and
+    check_owner_not_in_battle() already read, so the picker, the shop and the
+    send path cannot disagree about who he is. It is not a generalisation of
+    the hardcoded "greenbear" that AGENTS.md 18 protects - it is that existing
+    OWNER_SLUG check being reused.
+    """
+
+    def setUp(self):
+        from chef_battle.arena_seating import claim_seat
+
+        # A `greenbear` author already exists - migration 0020 seeds it, which
+        # is itself the proof that this account is a fixture of the project and
+        # not a row a test invents.
+        self.user = get_user_model().objects.create_user(username="theowner", password="pw")
+        self.owner, created = RecipeAuthor.objects.get_or_create(
+            slug="greenbear", defaults={"user": self.user, "name": "GreenBear"},
+        )
+        if not created:
+            self.owner.user = self.user
+            self.owner.save(update_fields=["user"])
+        TokenWallet.objects.get_or_create(chef=self.owner)
+        claim_seat(self.owner)
+        self.send_url = reverse("chef_battle:arena_chat_send")
+
+    def test_he_sends_any_sticker_owning_no_rows_at_all(self):
+        from .models import ChefSticker, StickerItem
+
+        self.assertFalse(ChefSticker.objects.filter(chef=self.owner).exists())
+        self.client.force_login(self.user)
+        for token in StickerItem.objects.values_list("token", flat=True):
+            response = self.client.post(self.send_url, {"body": f":{token}:"})
+            self.assertEqual(response.status_code, 200, f"the Owner was refused :{token}:")
+
+    def test_the_retired_aliases_reach_him_too(self):
+        """He owns the pictures, so he owns the old names that point at them."""
+        from .arena_chat import LEGACY_STICKER_ALIASES
+
+        self.client.force_login(self.user)
+        for alias in LEGACY_STICKER_ALIASES:
+            response = self.client.post(self.send_url, {"body": f":{alias}:"})
+            self.assertEqual(response.status_code, 200, f"the Owner was refused :{alias}:")
+
+    def test_his_picker_lists_every_token(self):
+        from chef_battle.views import _owned_sticker_tokens_json
+
+        from .models import StickerItem
+
+        listed = json.loads(_owned_sticker_tokens_json(self.owner))
+        self.assertEqual(
+            sorted(listed), sorted(StickerItem.objects.values_list("token", flat=True)),
+        )
+
+    def test_a_new_pack_is_his_the_moment_it_exists(self):
+        """The whole reason he chose the rule over the rows: nobody has to
+        remember to grant him anything ever again."""
+        from chef_battle.views import _owned_sticker_tokens_json
+
+        from .models import StickerItem, StickerPack
+
+        later = StickerPack.objects.create(slug="season-two", name="Season Two")
+        StickerItem.objects.create(token="mise_en_place", label="Mise en place", pack=later)
+        self.assertIn("mise_en_place", json.loads(_owned_sticker_tokens_json(self.owner)))
+
+    def test_nothing_takes_a_token_from_him(self):
+        """AGENTS.md section 18: nothing the game does may take anything from
+        his account. A hand-crafted POST must not reach his wallet either, so
+        the refusal lives in the service and not only in the template."""
+        from .models import ChefSticker, StickerItem, StickerPack
+        from .services import buy_sticker, buy_sticker_pack
+
+        from .services import credit_tokens
+        credit_tokens(self.owner, 500, tx_type="admin_grant", description="float")
+
+        self.assertIsNone(
+            buy_sticker(chef=self.owner, sticker=StickerItem.objects.get(token="salty"))
+        )
+        with self.assertRaises(ValueError):
+            buy_sticker_pack(
+                chef=self.owner, pack=StickerPack.objects.get(slug="culineire-kitchen"),
+            )
+        self.assertEqual(TokenWallet.objects.get(chef=self.owner).balance, 500)
+        self.assertFalse(ChefSticker.objects.filter(chef=self.owner).exists())
+
+    def test_the_shop_offers_him_nothing_to_buy(self):
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=self.owner)
+        profile.age_verified = True
+        profile.save()
+
+        self.client.force_login(self.user)
+        page = self.client.get(reverse("chef_battle:sticker_shop"))
+        self.assertEqual(page.status_code, 200)
+        self.assertNotContains(page, 'name="sticker"')
+        self.assertNotContains(page, 'name="pack"')
+
+    def test_the_rule_reaches_nobody_else(self):
+        """One account, and it is the one settings.OWNER_SLUG names."""
+        from chef_battle.arena_seating import claim_seat
+
+        _, other = _make_chef("notowner")
+        claim_seat(other)
+        self.client.force_login(other.user)
+        response = self.client.post(self.send_url, {"body": ":salty:"})
+        self.assertEqual(response.status_code, 403)

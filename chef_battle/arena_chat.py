@@ -680,6 +680,21 @@ def unowned_sticker_tokens(author, body: str) -> list[str]:
     if not body or ":" not in body:
         return []
 
+    # THE OWNER OWNS EVERY STICKER BY RULE, NOT BY ROWS. His instruction,
+    # 2026-08-27, asked directly: "Вариант B, для моего аккаунта GreenBear".
+    #
+    # Rows would have to be granted again for every pack this project ever
+    # adds, and the day somebody forgets is the day his own arena locks him
+    # out of it. This reads settings.OWNER_SLUG through the same helper
+    # is_immortal() and check_owner_not_in_battle() already use, so no path can
+    # invent its own answer about who he is - and it is not a generalisation of
+    # the hardcoded "greenbear" that AGENTS.md 18 protects, it is that same
+    # existing check being reused.
+    from .services import is_owner_author
+
+    if is_owner_author(author):
+        return []
+
     candidates = {
         LEGACY_STICKER_ALIASES.get(raw, raw)
         for raw in _STICKER_TOKEN_RE.findall(body)

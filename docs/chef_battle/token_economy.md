@@ -65,6 +65,16 @@ already in the database renders for everybody exactly as it did before.
 A moderator may grant a sticker or a pack for nothing, from the moderation
 panel, and that grant writes no token transaction because nobody paid.
 
+**The Owner owns every sticker by RULE, not by granted rows** (his own choice,
+2026-08-27, of the two put to him). Rows would have to be granted again for every
+pack this project ever adds, and the day somebody forgets is the day his own
+arena locks him out of it. The check is `is_owner_author()` — the same
+`settings.OWNER_SLUG` read that `is_immortal()` and `check_owner_not_in_battle()`
+already make — so the picker, the shop and the send path cannot disagree about who
+he is. He is never charged for one either: `buy_sticker` and `buy_sticker_pack`
+refuse him outright, because nothing the game does may take anything from his
+account (AGENTS.md §18). It reaches that one account and no other.
+
 ---
 
 ## Rules
