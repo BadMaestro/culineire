@@ -378,7 +378,7 @@ pending challenge
 | Vote brigading                | IP/session metadata, anomaly flags               |
 | Farming weak opponents        | Reduced rating gain for repeated weak targets    |
 | Content spam                  | Only approved content earns points/moves         |
-| Paid domination               | Limits on paid energy, no direct artifact buying |
+| Paid domination               | Limits on paid energy. NOT a ban on buying artifacts - the Owner ruled on 2026-08-27 that artifacts are bought, by users and by chefs; see tz_main.md section 14 |
 | Repeated refusal manipulation | Cooldowns and balanced penalty rules             |
 
 ---

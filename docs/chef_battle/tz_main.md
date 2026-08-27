@@ -9,7 +9,8 @@
 > **Держится:** лестница из восьми рангов (§10) в точном порядке; корона на 24
 > часа (§11); ходы даются только за одобренный контент (§16); кулдаун на пару,
 > дневной лимит вызовов, лог подозрительных голосов, rate limit, проверки
-> IP/устройства/сессии (§16); сильнейшие артефакты не продаются (§15).
+> IP/устройства/сессии (§16). Артефакты ПРОДАЮТСЯ - решение владельца
+> 2026-08-27, записано в §14.
 >
 > **Спор, решён в пользу кода:** стартовый рейтинг 0, а не 1000 (X19);
 > второй ранг подписан «Prep Chef», а не «Prep Cook» (X20).
@@ -461,9 +462,42 @@ blocked hit
 14. Artifacts
 Основной принцип
 
-Artifacts нельзя просто покупать напрямую.
+OWNER RULING, 2026-08-27 - THIS SECTION WAS WRONG AND IS NOW CORRECTED.
 
-Они зарабатываются через:
+There is no ban on buying artifacts and there never was one. His words:
+"У нас не существует запрета на покупку Артифактов, никогда не было таких
+запретов, пользователь может покупать артифакты, шефы могут покупать
+артифакты". The four lines that said otherwise stood here for months while the
+PUBLIC rules page (rules.html section 13) described the opposite, and they
+misled an agent into telling him his own product was forbidden.
+
+FOUR ROUTES AN ARTIFACT REACHES A CHEF:
+
+1. WON IN A BATTLE. Built.
+2. BOUGHT FOR YOURSELF at shelf price, lands in your own chest, carried into a
+   later battle. Not built.
+3. GIFTED TO A CHEF BEFORE A BATTLE - shelf price, NO delivery fee, because
+   there is no running fight to influence. The chef may carry it into a battle.
+   Not built.
+4. GIFTED TO A CHEF DURING A BATTLE - either bought and delivered in one move
+   at DOUBLE price, or, if the giver already owns it, for the delivery half.
+   The buy-and-send half is built.
+
+An artifact gifted DURING a battle is locked to it: the chef must use it and it
+expires unused when the battle ends. An artifact bought or gifted BEFORE a
+battle is ordinary property and competes for the finite loadout
+(COMBAT_ARTIFACTS_PER_TYPE_LIMIT = 3).
+
+APPRECIATION GIFTS ARE NOT INVENTORY. There is no sense in buying one before a
+battle: they are bought only during one, at any stage, land on the chef as
+separate messages - a falling star carrying the giver's name, the gift and a
+short wish - never touch the fight, persist afterwards, and convert to real
+money at a rate.
+
+Everything on the Arena is bought with TOKENS. Tokens are the in-game currency
+and are bought with real money through Stripe.
+
+They are ALSO earned, through:
 
 battles
 seasons
@@ -499,7 +533,6 @@ Optional extra battle energy with strict limits
 Что запрещено
 жёсткое pay-to-win;
 покупка ultimate power;
-прямая продажа сильнейших artifacts;
 возможность за деньги полностью убивать organic competition.
 16. Anti-abuse system
 
@@ -946,8 +979,8 @@ Featured chef options
 Prestige visuals
 Rule
 
-Artifacts earn-only.
-Cosmetics can be premium.
+Artifacts are BOUGHT and EARNED - see section 14 and the Owner's ruling of
+2026-08-27 recorded there. Cosmetics can be premium.
 
 PHASE 6 — Seasons, tournaments, clan/kitchen system
 Цель
@@ -994,7 +1027,6 @@ Artisan Bread Duel
 многоуровневую боёвку с 20 типами урона;
 сложные классы chefs;
 marketplace;
-direct paid artifacts;
 excessive animations;
 clan wars;
 advanced tournaments;
