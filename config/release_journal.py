@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1406",
         "date": "2026-08-28",
-        "commit": "pending",
+        "commit": "87d24222",
         "title": "The battle page 500ed for every signed-in viewer, and it was mine",
         "section": "Chef Battles",
         "summary": (
