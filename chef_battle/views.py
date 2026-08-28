@@ -2868,7 +2868,12 @@ def battle_detail(request, pk):
     user_available_artifacts = []
     opponent_active_ingredients = []
     if is_participant and viewer_author and battle.status == Battle.Status.ACTIVE:
-        from .models import ChefArtifact, BattleIngredient
+        # `ChefArtifact` is imported at module level. Re-importing it HERE made
+        # it a local for the WHOLE function, so the AC-STK part C2 block 15
+        # lines above - which runs first, and for every signed-in viewer - hit
+        # UnboundLocalError and 500ed the battle page. Nothing but the name was
+        # wrong, which is why it took a full-suite run to see it.
+        from .models import BattleIngredient
         user_available_artifacts = list(
             ChefArtifact.objects.filter(chef=viewer_author, status=ChefArtifact.Status.AVAILABLE)
             .select_related("artifact")

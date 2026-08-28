@@ -1,5 +1,31 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1406",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The battle page 500ed for every signed-in viewer, and it was mine",
+        "section": "Chef Battles",
+        "summary": (
+            "MY OWN REGRESSION, shipped yesterday in AC-STK part C2 and live "
+            "since. `battle_detail` imports ChefArtifact at module level. The "
+            "part C2 block reads it to list what the viewer could send into "
+            "the fight - and fifteen lines BELOW that, inside an `if`, sat "
+            "`from .models import ChefArtifact, BattleIngredient`. A function "
+            "that imports a name anywhere makes that name LOCAL FOR THE WHOLE "
+            "FUNCTION, so the earlier read hit UnboundLocalError and the page "
+            "500ed for every signed-in viewer. Nothing was misspelt and "
+            "nothing was missing; the name was simply bound too late. "
+            "Fixed by dropping ChefArtifact from the inner import, which was "
+            "redundant to begin with. "
+            "HOW IT WAS FOUND, which is the part worth keeping: the whole "
+            "chef_battle suite was run because a file-wide CSS change deserved "
+            "more than the classes that cover it, and seven tests came back "
+            "red - a11y, submit guards, artifacts, voiding - all of them "
+            "battle_detail wearing different hats. The focused run that "
+            "shipped part C2 never touched that view."
+        ),
+    },
+    {
         "version": "2.5.1403",
         "date": "2026-08-28",
         "commit": "df05738e",
