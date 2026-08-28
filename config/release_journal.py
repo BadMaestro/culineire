@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1409",
         "date": "2026-08-28",
-        "commit": "pending",
+        "commit": "c5f48ea9",
         "title": "The chat's 289 rules were in thirty places; 262 of them are now in one",
         "section": "Chef Battles / Arena",
         "summary": (
