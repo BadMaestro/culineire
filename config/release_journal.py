@@ -1,5 +1,40 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1403",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The July test artifacts deleted, and the filter that decides which ones",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Item 3 of the bug list, closed on the Owner's ruling: nobody "
+            "bought them, they were handed to chefs for a test, delete them. "
+            "ChefArtifact.source defaults to `purchased` and the 2026-07-15 "
+            "seed never set it, so 421 rows claimed to have been bought when no "
+            "tokens had changed hands - and now that buying an artifact "
+            "actually works, a real purchase and 'nobody filled this field in' "
+            "are the same row. "
+            "MEASURED BEFORE ANYTHING WAS DELETED, and the numbers are why this "
+            "was safe to do: all 421 belong to CrestedTen (210) and Jam "
+            "O'Liver (211), the Owner's own test accounts, all written inside "
+            "1.3 SECONDS on 2026-07-15. `greenbear` owns none of them and the "
+            "migration cannot reach that account whatever it does. The six "
+            "`admin_grant` rows and two `drop` rows, which mean something, are "
+            "untouched. "
+            "THE DANGER WAS THE FILTER, NOT THE DELETION. A genuine purchase "
+            "carries `source=purchased` too - buy_artifact sets it on purpose "
+            "and a test insists that it does - so a migration matching on that "
+            "value alone would delete every artifact anyone ever paid for, and "
+            "would read to whoever found it later as if that had been the "
+            "intention. The date bound is what makes it mean 'older than the "
+            "shop that could have sold them', and three tests hold that bound "
+            "in place: the July rows go, a purchase after the shop opened "
+            "survives, and a moderator grant of the same age survives. "
+            "gb_artifact_source_audit.py, the read-only instrument that "
+            "produced the counts, is in ops/audits/arena/tools/ rather than in "
+            "a session scratchpad."
+        ),
+    },
+    {
         "version": "2.5.1400",
         "date": "2026-08-28",
         "commit": "769de676",

@@ -1,3 +1,4 @@
+import datetime
 import json
 import re
 from pathlib import Path
@@ -27657,3 +27658,87 @@ class TheChefProfileAccessorIsNamedCorrectlyTests(TestCase):
             send_appreciation_gift(
                 sender_user=stranger, recipient=recipient, gift_type="coffee",
             )
+
+
+class JulyTestArtifactGrantsAreDroppedTests(TestCase):
+    """Migration 0117 — bug-list item 3, on the Owner's ruling.
+
+    `ChefArtifact.source` defaults to `purchased` and the 2026-07-15 seed never
+    set it, so 421 rows claimed to have been bought when nobody had paid. All
+    421 belong to `CrestedTen` and `Jam O'Liver`, the Owner's test accounts, and
+    were written inside 1.3 seconds. His words: nobody bought them, they were
+    handed to chefs for a test, delete them.
+
+    THE DANGER IS THE FILTER, not the deletion. A genuine purchase carries
+    `source="purchased"` too — `buy_artifact` sets it deliberately, and there is
+    a test that it does. A migration matching on that value alone would delete
+    every artifact anyone ever bought, and would read to whoever found it later
+    as if that were the intention. The date bound is what makes it mean
+    "artifacts older than the shop that could have sold them", and this is the
+    test that the bound is really doing that work."""
+
+    def _rows(self):
+        from .models import Artifact, ChefArtifact
+
+        _user, chef = _make_chef("julytestowner")
+        artifact = Artifact.objects.create(name="Test Whisk", token_cost=10)
+        old = ChefArtifact.objects.create(
+            chef=chef, artifact=artifact, source="purchased",
+        )
+        recent = ChefArtifact.objects.create(
+            chef=chef, artifact=artifact, source="purchased",
+        )
+        granted = ChefArtifact.objects.create(
+            chef=chef, artifact=artifact, source="admin_grant",
+        )
+        # earned_at is auto_now_add, so it can only be set after the fact.
+        ChefArtifact.objects.filter(pk=old.pk).update(
+            earned_at=datetime.datetime(
+                2026, 7, 15, 22, 46, 41, tzinfo=datetime.timezone.utc,
+            )
+        )
+        ChefArtifact.objects.filter(pk=granted.pk).update(
+            earned_at=datetime.datetime(
+                2026, 7, 15, 22, 46, 41, tzinfo=datetime.timezone.utc,
+            )
+        )
+        return old, recent, granted
+
+    def _run(self):
+        import importlib
+
+        from django.apps import apps
+
+        module = importlib.import_module(
+            "chef_battle.migrations.0117_drop_the_july_test_artifact_grants"
+        )
+        module.drop_the_test_grants(apps, None)
+
+    def test_the_july_rows_go(self):
+        from .models import ChefArtifact
+
+        old, _recent, _granted = self._rows()
+        self._run()
+        self.assertFalse(ChefArtifact.objects.filter(pk=old.pk).exists())
+
+    def test_a_real_purchase_after_the_shop_opened_survives(self):
+        """The one that matters. If this ever fails, the migration is deleting
+        artifacts people paid tokens for."""
+        from .models import ChefArtifact
+
+        _old, recent, _granted = self._rows()
+        self._run()
+        self.assertTrue(
+            ChefArtifact.objects.filter(pk=recent.pk).exists(),
+            "a purchase made after the shop opened was swept up with the test "
+            "grants",
+        )
+
+    def test_a_moderator_grant_of_the_same_age_survives(self):
+        """Six `admin_grant` rows and two `drop` rows are the same age as the
+        seed and mean something. The filter is on both fields for this reason."""
+        from .models import ChefArtifact
+
+        _old, _recent, granted = self._rows()
+        self._run()
+        self.assertTrue(ChefArtifact.objects.filter(pk=granted.pk).exists())

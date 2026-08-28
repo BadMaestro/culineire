@@ -46,6 +46,7 @@ phase and had to be corrected in the report.
 | `an22_static.py` | the static-asset inventory |
 | `an13_clean.py` | removes declarations the cascade already overrides, and refuses unless the applying set is byte-identical before and after |
 | `an14_move_guard.py` | proves a rule was MOVED and not changed: no conflicting pair changed places |
+| `gb_artifact_source_audit.py` | read-only: who owns the `ChefArtifact` rows marked `purchased`, and when — written before deleting any of them |
 
 `css_order_risk.py` reads a `scratchpad/css_supersede.py` that ended with the
 session it was written in. `an13_clean.py` is the part of it that survived, and
