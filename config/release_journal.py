@@ -1,5 +1,27 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1412",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The command deck gathered the same way the chat was",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Step 2 of the consolidation plan, and the point of doing the chat "
+            "first is that this one took a single command. 162 rules whose "
+            "every selector belongs to the deck, scattered over thirty runs; "
+            "150 are now one contiguous block and the file holds ten runs "
+            "instead of thirty. "
+            "The twelve left behind are mostly rules that style the deck AND "
+            "something else in one selector list - `.arena-command-deck__gifts` "
+            "beside `.arena-panel`, and so on. Splitting a shared rule to file "
+            "it under one component is a rewrite, not a move, so it was not "
+            "done. "
+            "Same proof as v2.5.1409 and no weaker: the applying declarations "
+            "are byte-identical, no conflicting pair changed places, 1453 rules "
+            "before and after. Nothing on the page moves."
+        ),
+    },
+    {
         "version": "2.5.1409",
         "date": "2026-08-28",
         "commit": "c5f48ea9",

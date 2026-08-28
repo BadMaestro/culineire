@@ -9297,13 +9297,23 @@ class ArenaRankColumnTests(TestCase):
         cannot honour.
         """
         css = self.CSS_POLISH.read_text(encoding="utf-8")
-        metrics = css.split("MOCKUP M12", 1)[1].split(
-            ".arena-command-deck__metrics {", 1
-        )[1].split("}", 1)[0]
-        self.assertIn("width: 100%", metrics)
-        self.assertNotIn("clamp(30rem", metrics)
-        # The four metrics stack in a sidebar rather than sitting side by side.
-        self.assertIn("flex-direction: column", metrics)
+        # Located by SELECTOR, not by "the first block after the MOCKUP M12
+        # comment". The comment travels with the rule it introduces, so the
+        # moment the deck's rules were gathered into one block (v2.5.1412) the
+        # comment and the rule were no longer neighbours and this guard failed
+        # on a requirement that had not changed at all.
+        blocks = _rules_for(css, ".arena-command-deck__metrics")
+        self.assertTrue(blocks, "the metrics panel has no rule at all")
+        for block in blocks:
+            self.assertNotIn(
+                "clamp(30rem", block,
+                "the panel carries a floor its 240-300px column cannot honour",
+            )
+        self.assertTrue(
+            any("width: 100%" in block and "flex-direction: column" in block
+                for block in blocks),
+            "no rule makes the metrics fill their column and stack in it",
+        )
 
     def test_arena_identity_uses_readable_site_tokens(self):
         """The arena's own name is set in design-system tokens, never raw hex.

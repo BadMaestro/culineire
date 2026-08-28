@@ -265,29 +265,49 @@ def apply(text, component, path):
     insert_at = where - sum(
         (end - start) for start, end, _b, _c in blocks if end <= where
     )
-    banner = ("\n\n/* %s - every rule for this component that could be proved\n"
-              "   safe to move, in one place. Gathered by an15_gather.py:\n"
-              "   the applying declarations are byte-identical and no\n"
-              "   conflicting pair changed places. */\n" % component)
+    banner = [
+        "",
+        "",
+        "/* %s - every rule for this component that could be proved" % component,
+        "   safe to move, in one place. Gathered by an15_gather.py:",
+        "   the applying declarations are byte-identical and no",
+        "   conflicting pair changed places. */",
+    ]
 
     # A RULE CARRIES ITS CONTEXT WITH IT. Lifting a rule out of
     # `@media (max-width: 640px)` and dropping it at the top level does not
     # move it, it rewrites it - the first run did exactly that and changed 318
     # applying declarations. Each mover is re-wrapped in the at-rules it lived
     # under, and consecutive movers sharing a context share one wrapper.
-    parts, open_ctx = [banner], ()
+    # Write the newline the file already uses. Emitting "\n" into a CRLF
+    # stylesheet leaves a block whose line endings differ from every other, and
+    # guards that read the sheet as text stop matching on formatting alone.
+    eol = "\r\n" if text.count("\r\n") > text.count("\n") / 2 else "\n"
+
+    parts, open_ctx = list(banner), ()
     for _s, _e, body, ctx in blocks:
         if ctx != open_ctx:
-            for _level in open_ctx:
-                parts.append("}\n")
-            for level in ctx:
-                parts.append(level + " {\n")
+            for _level in reversed(range(len(open_ctx))):
+                parts.append("  " * _level + "}")
+            for depth, level in enumerate(ctx):
+                parts.append("  " * depth + level + " {")
             open_ctx = ctx
-        parts.append(body.strip() + "\n")
-    for _level in open_ctx:
-        parts.append("}\n")
-    parts.append("\n")
-    out = cut[:insert_at] + "".join(parts) + cut[insert_at:]
+        # VERBATIM. Not re-indented to suit the new nesting: a rule keeps the
+        # context it had, so it keeps the indentation it had, and several
+        # guards read this file as text - one of them asserts a
+        # `grid-template-areas` spanning three lines with its exact leading
+        # spaces. Re-padding moved rules broke it while changing nothing about
+        # what the browser does, which is the worst kind of diff.
+        rows = [row.rstrip("\r") for row in body.splitlines()]
+        while rows and not rows[0].strip():
+            rows.pop(0)
+        while rows and not rows[-1].strip():
+            rows.pop()
+        parts.extend(rows)
+    for _level in reversed(range(len(open_ctx))):
+        parts.append("  " * _level + "}")
+    parts.append("")
+    out = cut[:insert_at] + eol.join(parts) + eol + cut[insert_at:]
 
     complaints = compare(text, out, collides=cohabitation().can_collide)
     if complaints:
