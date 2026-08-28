@@ -5010,3 +5010,16 @@ a.battle-home__pulse-msg:hover {
                               color: var(--muted); }
 .artifact-card__owned       { margin: 0.35rem 0 0; font-size: 0.74rem; font-weight: 700;
                               color: var(--brand); }
+
+/* AC-STK - the Stickers shelf inside the artifact shop, and the balance.
+   The pack's shop window is the Owner's own contact sheet at its own aspect;
+   it is never cropped or overlaid - the layout is his artwork. */
+.artifact-gallery__balance  { margin: 0.6rem 0 0; font-size: 0.9rem; color: var(--muted); }
+.sticker-pack               { margin-bottom: 2rem; }
+.sticker-pack__window       { display: block; width: 100%; height: auto; max-width: 900px;
+                              margin: 0 0 1rem; border-radius: var(--radius-md, 12px); }
+.sticker-pack__terms        { margin: 0 0 0.8rem; color: var(--muted); font-size: 0.86rem; }
+.sticker-pack__owned        { margin: 0.6rem 0 0; font-weight: 700; color: var(--brand); }
+.sticker-pack__separate     { margin-top: 1.4rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+.sticker-pack__separate .artifact-card { max-width: 15rem; }
+.sticker-card__token        { display: block; margin: 0.2rem 0 0.5rem; font-size: 0.72rem; color: var(--muted); }

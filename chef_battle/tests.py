@@ -25605,15 +25605,22 @@ class StickerCatalogueTests(TestCase):
     cannot be sent - or one that is sent and cannot be drawn.
     """
 
-    def test_the_seed_made_one_pack_of_thirteen(self):
+    def test_the_seed_made_one_collection_of_thirteen_selling_twelve(self):
+        """Owner, 2026-08-28: NOOOO! is in the pack and sold separately for 100.
+        So the COLLECTION is thirteen and the PACK PRICE buys twelve."""
         from .models import StickerItem, StickerPack
 
         pack = StickerPack.objects.get(slug="culineire-kitchen")
         self.assertEqual(pack.token_cost, 100)
-        self.assertEqual(pack.stickers.count(), 13)
+        self.assertEqual(pack.stickers.count(), 13, "the collection is thirteen")
+        self.assertEqual(
+            pack.stickers.filter(sold_separately=False).count(), 12,
+            "the pack price buys twelve",
+        )
         self.assertEqual(StickerItem.objects.count(), 13)
-        for item in StickerItem.objects.all():
+        for item in StickerItem.objects.filter(sold_separately=False):
             self.assertEqual(item.token_cost, 10, f"{item.token} is not 10T")
+        self.assertEqual(StickerItem.objects.get(token="noooo").token_cost, 100)
 
     def test_every_token_matches_the_renderer_own_pattern(self):
         """BODY_TOKEN in arena_chat.js matches `:[a-z0-9_]{2,32}:` and nothing
@@ -25763,14 +25770,15 @@ class StickerPackPurchaseTests(TestCase):
         self.user, self.author = _make_chef("packbuyer", balance=300)
         self.pack = StickerPack.objects.get(slug="culineire-kitchen")
 
-    def test_the_pack_costs_one_hundred_and_gives_thirteen(self):
+    def test_the_pack_costs_one_hundred_and_gives_twelve(self):
+        """Twelve, not thirteen: NOOOO! is sold on its own since 2026-08-28."""
         from .models import ChefSticker
         from .services import buy_sticker_pack
 
         rows = buy_sticker_pack(chef=self.author, pack=self.pack)
-        self.assertEqual(len(rows), 13)
+        self.assertEqual(len(rows), 12)
         self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 200)
-        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 13)
+        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 12)
         # One debit for the lot, carried by every row, so a refund finds them.
         self.assertEqual(len({r.token_transaction_id for r in rows}), 1)
 
@@ -25780,14 +25788,16 @@ class StickerPackPurchaseTests(TestCase):
         from .models import ChefSticker, StickerItem
         from .services import buy_sticker, buy_sticker_pack
 
-        for token in ("yes_chef", "seared", "salty", "noooo"):
+        # Four ORDINARY singles at 10 each. NOOOO! is 100 and is not in the
+        # pack price at all, so buying it here would test two rules at once.
+        for token in ("yes_chef", "seared", "salty", "burnt_it"):
             buy_sticker(chef=self.author, sticker=StickerItem.objects.get(token=token))
         self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 260)
 
         rows = buy_sticker_pack(chef=self.author, pack=self.pack)
-        self.assertEqual(len(rows), 9, "the pack added the four he already had")
+        self.assertEqual(len(rows), 8, "the pack added the four he already had")
         self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 160)
-        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 13)
+        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 12)
 
     def test_owning_all_thirteen_is_refused_and_charged_nothing(self):
         from .services import buy_sticker_pack
@@ -26026,10 +26036,12 @@ class StickerPickerRendersOwnershipTests(TestCase):
         from .models import StickerItem
         from .services import buy_sticker
 
+        # NOOOO! is 100 on its own since 2026-08-28, so this reader buys two
+        # ordinary ones - the test is about the list, not about the prices.
         _, author = _make_chef("picker", balance=50)
         buy_sticker(chef=author, sticker=StickerItem.objects.get(token="salty"))
-        buy_sticker(chef=author, sticker=StickerItem.objects.get(token="noooo"))
-        self.assertEqual(_owned_sticker_tokens(author), ["noooo", "salty"])
+        buy_sticker(chef=author, sticker=StickerItem.objects.get(token="seared"))
+        self.assertEqual(_owned_sticker_tokens(author), ["salty", "seared"])
 
     def test_the_client_locks_everything_when_the_block_is_unreadable(self):
         """The script's own fallback, read from the file: a parse failure or a
@@ -26768,54 +26780,167 @@ class TheArenaPageItselfCarriesTheOwnedListTests(TestCase):
         self.assertNotIn("&quot;", payload)
 
 
-class AnUnboughtStickerIsShownInFullColourTests(TestCase):
-    """The corrected specification, pinned so it cannot drift back.
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class OnlyOwnedStickersAreInThePickerTests(TestCase):
+    """Owner's ruling, 2026-08-28, which cancelled BOTH the original brief and
+    its first correction.
 
-    AC-STK_TZ_RU.md A8, corrected 2026-08-28: an unbought sticker is shown in
-    FULL COLOUR, distinguished only by something that does not paint over the
-    picture - light opacity, no desaturation, full colour on hover.
+    "не купленных стикеров в чате в панели стикеров вообще не должно быть - это
+     бесит людей - они думают что они есть а их нет ... если стикеров нет то там
+     должна быть просто ссылка на магазин артефактов в раздел стикеров"
 
-    The first implementation used grayscale(1) plus a bronze badge over the
-    Owner's own paintings, and he saw it at a glance; the second used opacity
-    0.55, which on a pale panel is a grey picture rather than a dimmed one, and
-    he saw that too, on a phone. This test is what stops a third reading.
+    Not dimmed, not locked, not in full colour - NOT THERE. A tile you cannot
+    use is not a shop window, it is rubbish in the chat window.
     """
 
+    JS = Path(__file__).resolve().parent.parent / "static" / "js" / "arena_chat.js"
     CSS = Path(__file__).resolve().parent.parent / "static" / "css" / "arena.css"
 
-    def _locked_block(self):
-        css = self.CSS.read_text(encoding="utf-8")
-        start = css.index(".arena-chat .arena-chat__emoji-btn--locked {")
-        return css[start:]
+    def _sticker_branch(self):
+        js = self.JS.read_text(encoding="utf-8")
+        start = js.index("      if (cat.stickers) {")
+        return js[start:js.index("      if (cat.custom) {")]
 
-    def test_nothing_desaturates_the_artwork(self):
-        block = self._locked_block()
-        for banned in ("grayscale", "saturate", "sepia"):
+    def test_the_grid_is_built_from_what_the_reader_owns(self):
+        branch = self._sticker_branch()
+        self.assertIn("STICKERS.filter(", branch)
+        self.assertIn("ownsSticker(item.token)", branch)
+
+    def test_nothing_locked_survives_anywhere(self):
+        """The class, its styling and its click handler all go together. A
+        leftover in any one of the three is the idea coming back."""
+        for path in (self.JS, self.CSS):
             self.assertNotIn(
-                banned, block,
-                f"the locked tile uses {banned}() - the specification says full colour",
+                "emoji-btn--locked", path.read_text(encoding="utf-8"),
+                f"{path.name} still carries the locked-tile idea",
             )
 
-    def test_nothing_is_painted_over_the_picture(self):
-        block = self._locked_block()
-        for banned in ("::after", "::before"):
-            self.assertNotIn(
-                banned, block,
-                "the locked tile draws a pseudo-element over the Owner's own "
-                "artwork; the specification forbids painting on top of it",
-            )
+    def test_owning_nothing_gives_one_link_and_no_tiles(self):
+        branch = self._sticker_branch()
+        self.assertIn("if (!mine.length)", branch)
+        self.assertIn("arena-chat__emoji-empty", branch)
+        self.assertIn("SHOP_URL", branch)
+        # A link, not a grid of things you cannot have.
+        self.assertIn("createElement('a')", branch)
 
-    def test_the_opacity_is_light_rather_than_dimming(self):
-        import re
+    def test_the_shop_address_still_comes_from_django(self):
+        js = self.JS.read_text(encoding="utf-8")
+        self.assertIn("getAttribute('data-sticker-shop-url')", js)
 
-        block = self._locked_block()
-        values = [float(v) for v in re.findall(r"opacity:\s*([0-9.]+)", block)]
-        self.assertTrue(values, "the locked tile sets no opacity at all")
-        self.assertGreaterEqual(
-            min(values), 0.85,
-            f"opacity {min(values)} reads as a grey picture on a pale panel, "
-            f"not as a sticker that has not been bought yet",
+    def test_the_send_path_check_is_untouched_by_any_of_this(self):
+        """The picker is presentation. A body can still be typed by hand, so
+        the rule stays where the line is written."""
+        from chef_battle.arena_chat import unowned_sticker_tokens
+
+        _, author = _make_chef("typist")
+        self.assertEqual(unowned_sticker_tokens(author, ":yes_chef:"), ["yes_chef"])
+
+
+class NoooIsSoldSeparatelyTests(TestCase):
+    """Owner, 2026-08-28: "стикер Nooo - входит в пак но продаётся отдельно -
+    за 100T - только с ним коллекция будет полной".
+
+    So the pack is TWELVE for 100, and the thirteenth belongs to the same
+    collection at 100 of its own. This also settles the shop window: his
+    contact sheet shows twelve and the pack now sells twelve, so nothing had to
+    be drawn onto his artwork to make the picture agree with the price.
+    """
+
+    def setUp(self):
+        from .models import StickerPack
+
+        self.user, self.author = _make_chef("collector2", balance=500)
+        self.pack = StickerPack.objects.get(slug="culineire-kitchen")
+
+    def test_it_is_in_the_pack_and_priced_on_its_own(self):
+        from .models import StickerItem
+
+        noooo = StickerItem.objects.get(token="noooo")
+        self.assertEqual(noooo.pack, self.pack, "it left the collection")
+        self.assertTrue(noooo.sold_separately)
+        self.assertEqual(noooo.token_cost, 100)
+
+    def test_the_pack_sells_twelve_and_the_sheet_shows_twelve(self):
+        self.assertEqual(self.pack.stickers.filter(sold_separately=False).count(), 12)
+        self.assertEqual(self.pack.stickers.count(), 13)
+
+    def test_buying_the_pack_does_not_grant_it(self):
+        from .models import ChefSticker
+        from .services import buy_sticker_pack
+
+        rows = buy_sticker_pack(chef=self.author, pack=self.pack)
+        self.assertEqual(len(rows), 12)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 400)
+        self.assertFalse(
+            ChefSticker.objects.filter(chef=self.author, sticker__token="noooo").exists(),
+            "100 tokens for the pack bought the separate sticker too",
         )
 
-    def test_hover_restores_it_completely(self):
-        self.assertIn("opacity: 1;", self._locked_block())
+    def test_it_costs_a_hundred_on_its_own(self):
+        from .models import StickerItem
+        from .services import buy_sticker
+
+        buy_sticker(chef=self.author, sticker=StickerItem.objects.get(token="noooo"))
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 400)
+
+    def test_the_collection_is_complete_only_with_it(self):
+        from .models import StickerItem
+        from .services import buy_sticker, buy_sticker_pack
+
+        buy_sticker_pack(chef=self.author, pack=self.pack)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 400)
+        buy_sticker(chef=self.author, sticker=StickerItem.objects.get(token="noooo"))
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 300)
+
+        from .models import ChefSticker
+        self.assertEqual(ChefSticker.objects.filter(chef=self.author).count(), 13)
+
+    def test_owning_all_twelve_refuses_the_pack_and_charges_nothing(self):
+        from .services import buy_sticker_pack
+
+        buy_sticker_pack(chef=self.author, pack=self.pack)
+        balance = TokenWallet.objects.get(chef=self.author).balance
+        with self.assertRaises(ValueError):
+            buy_sticker_pack(chef=self.author, pack=self.pack)
+        self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, balance)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class TheStickerShelfShowsTheWindowAndThePriceTests(TestCase):
+    """The section as the Owner asked to see it."""
+
+    def setUp(self):
+        self.user, self.author = _make_chef("windowshopper", balance=500)
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=self.author)
+        profile.age_verified = True
+        profile.save()
+        self.gallery = reverse("chef_battle:artifact_gallery")
+        self.client.force_login(self.user)
+
+    def test_the_pack_has_its_shop_window(self):
+        """He asked why the section had no picture of the pack AS a pack."""
+        page = self.client.get(self.gallery)
+        self.assertContains(page, "sticker_pack_arena_2026")
+
+    def test_the_window_file_exists_and_is_not_in_the_arena_folder(self):
+        """ArenaChatStickerTests globs the arena sticker folder, demands a
+        160px tile for every file in it and caps each at 60 KB. The sheet is
+        132 KB, so parking it there turns three guards red at once."""
+        root = Path(__file__).resolve().parent.parent / "static" / "images" / "chef_battle"
+        sheet = root / "sticker_pack_arena_2026.webp"
+        self.assertTrue(sheet.exists())
+        self.assertFalse((root / "arena" / "stickers" / "sticker_pack_arena_2026.webp").exists())
+
+    def test_the_separate_sticker_states_its_own_price(self):
+        page = self.client.get(self.gallery)
+        self.assertContains(page, "is not in the pack price")
+        self.assertContains(page, "only with it is the collection complete")
+
+    def test_the_balance_is_on_the_page_you_spend_it_on(self):
+        page = self.client.get(self.gallery)
+        self.assertContains(page, "Your balance")
+        self.assertContains(page, "500T")
+
+    def test_there_is_a_way_to_the_chest_it_lands_in(self):
+        page = self.client.get(self.gallery)
+        self.assertContains(page, reverse("chef_battle:battle_chest"))

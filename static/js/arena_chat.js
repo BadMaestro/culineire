@@ -1947,34 +1947,53 @@
       EMOJI_CATEGORIES.forEach(function (c) { if (c.key === emojiCategory) { cat = c; } });
       if (!cat) { return; }
       if (cat.stickers) {
-        STICKERS.forEach(function (item) {
-          var owned = ownsSticker(item.token);
+        /* ONLY WHAT THE READER OWNS. Owner's ruling, 2026-08-28, and it
+           cancels both the original brief and its first correction: an
+           unbought sticker is not dimmed, not locked, not shown in full
+           colour - it is NOT IN THE PICKER AT ALL.
+
+           His reason, and it is better than the one it replaces: a tile you
+           cannot use is not a shop window, it is rubbish in the chat window.
+           People think they have the sticker, click it, and nothing happens.
+
+           This is presentation only. Ownership is still enforced where the
+           line is written, in arena_chat_send, because a body can be typed by
+           hand and the picker is not a gate. */
+        var mine = STICKERS.filter(function (item) { return ownsSticker(item.token); });
+
+        if (!mine.length) {
+          /* NOTHING OWNED: ONE LINK, NOT AN EMPTY GRID and not a placeholder
+             with pictures in it. His words - "если стикеров нет то там должна
+             быть просто ссылка на магазин артефактов в раздел стикеров". */
+          var empty = document.createElement('p');
+          empty.className = 'arena-chat__emoji-empty';
+          if (SHOP_URL) {
+            var link = document.createElement('a');
+            /* The address is printed by Django into a data- attribute; a URL
+               assembled here would be a second copy of the routing table that
+               nothing keeps in step. */
+            link.href = SHOP_URL;
+            link.textContent = 'Get stickers in the artifact shop';
+            empty.appendChild(link);
+          } else {
+            empty.textContent = 'Stickers are sold in the artifact shop.';
+          }
+          grid.appendChild(empty);
+          return;
+        }
+
+        mine.forEach(function (item) {
           var b = document.createElement('button');
           b.type = 'button';
-          b.className = 'arena-chat__emoji-btn arena-chat__emoji-btn--sticker'
-            + (owned ? '' : ' arena-chat__emoji-btn--locked');
-          /* SHOWN, NOT HIDDEN. A sticker somebody could buy is worth seeing;
-             an empty grid sells nothing and reads as a broken tab. */
-          b.setAttribute('aria-label', owned
-            ? item.label
-            : item.label + ' - not bought yet');
-          b.title = owned ? item.label : item.label + ' - tap to buy';
+          b.className = 'arena-chat__emoji-btn arena-chat__emoji-btn--sticker';
+          b.setAttribute('aria-label', item.label);
+          b.title = item.label;
           var node = stickerNode(item.token, true);
-          /* Thirteen pictures at once when the tab is opened, and the tab is
-             not the one the picker starts on. Lazy keeps them off the wire
-             until the reader actually asks for stickers, and `true` above
-             asks for the 160px tile rather than the message's own file. */
+          /* Lazy: the tab is not the one the picker opens on, so the pictures
+             stay off the wire until the reader actually asks for them, and
+             `true` above asks for the 160px tile rather than the message file. */
           if (node) { node.loading = 'lazy'; b.appendChild(node); }
           b.addEventListener('click', function () {
-            if (!owned) {
-              /* THE ADDRESS COMES FROM DJANGO, never assembled here - the same
-                 rule as the picture URLs above, and for the same reason. If the
-                 page did not print one there is nowhere honest to send anybody,
-                 so the reader is told rather than navigated. */
-              if (SHOP_URL) { window.location.href = SHOP_URL; }
-              else { notice('You do not own ' + item.label + ' yet.'); }
-              return;
-            }
             // Inserted, not sent. Every other tile in this picker inserts, and
             // one tile that fires a message instead would be the same control
             // doing two different things.

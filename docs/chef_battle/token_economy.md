@@ -50,7 +50,8 @@ Larger packages = better value. Encourages bulk purchases.
 | Gift Legendary artifact | — | — | **prize only, cannot be bought** |
 | Appreciation gift (6 kinds, no fee) | 20–100 | — | **20–100 tokens** |
 | **Arena chat sticker, on its own** | 10 | — | **10 tokens** |
-| **The CulinEire Kitchen pack, all 13** | 100 | — | **100 tokens** |
+| **The CulinEire Kitchen pack, 12 stickers** | 100 | — | **100 tokens** |
+| **NOOOO! — the thirteenth, sold on its own** | 100 | — | **100 tokens** |
 | (Future) Extra battle slot | TBD | | |
 
 **Stickers, AC-STK, Owner 2026-08-27.** The thirteen Arena chat stickers were
@@ -65,6 +66,18 @@ enforced where a line is written rather than where one is read — every message
 already in the database renders for everybody exactly as it did before.
 A moderator may grant a sticker or a pack for nothing, from the moderation
 panel, and that grant writes no token transaction because nobody paid.
+
+**NOOOO! is in the collection and is sold separately, Owner 2026-08-28.** His words:
+*«стикер Nooo — входит в пак но продаётся отдельно — за 100T — только с ним коллекция
+будет полной»*. So the pack is **twelve** stickers for 100 tokens, and the thirteenth
+belongs to the same collection at **100 tokens of its own**; buying the pack does not
+grant it. The flag is `StickerItem.sold_separately`, a named field rather than a rule
+about price — deciding it by price would tie two unrelated things together, and the day
+an ordinary sticker is priced at 100 the pack would quietly stop including it.
+
+This also settles the shop window: the Owner's own contact sheet shows twelve and the
+pack sells twelve, so nothing has to be drawn onto his artwork to make the picture agree
+with the price. The layout is his and is never extended.
 
 **The Owner owns every sticker by RULE, not by granted rows** (his own choice,
 2026-08-27, of the two put to him). Rows would have to be granted again for every

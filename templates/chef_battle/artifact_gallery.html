@@ -15,6 +15,9 @@
       <p class="battle-kicker">Chef Battles Arena</p>
       <h1>Combat Artifact Gallery</h1>
       <p class="battle-room-hero__sub">{{ total }} active artifact{{ total|pluralize }} across 5 rarity tiers. Use them in battle to gain an edge.</p>
+      {% if wallet %}
+      <p class="artifact-gallery__balance">Your balance: <strong>{{ wallet.balance }}T</strong></p>
+      {% endif %}
       <div class="battle-actions hero__actions">
         <button aria-expanded="false" aria-label="Show navigation" class="hero__burger" type="button">
           <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 20 18" width="20">
@@ -25,6 +28,17 @@
         </button>
         <div class="hero__actions-list">
           <a class="btn-primary" href="{% url 'chef_battle:token_shop' %}">Get Tokens</a>
+          {% comment %}
+          AC-STK part B. Everything on this page is bought with tokens, so the
+          balance belongs on it - it was passed to the template from the day
+          the Buy buttons appeared and never rendered, which is being asked to
+          spend with no idea what you have. And "it is in your chest" needs
+          somewhere to go: the chest page already lists every artifact a chef
+          owns, bought ones included, and nothing here linked to it.
+          {% endcomment %}
+          {% if wallet %}
+          <a class="btn-secondary" href="{% url 'chef_battle:battle_chest' %}">Your Chest</a>
+          {% endif %}
           {% include '_enter_arena_btn.html' %}
           <a class="btn-secondary" href="{% url 'chef_battle:rules' %}">Rules</a>
         </div>
@@ -65,6 +79,18 @@
 
         {% for row in pack_rows %}
         <div class="sticker-pack">
+          {% comment %}
+          THE SHOP WINDOW. The Owner asked why the section had no picture of
+          the pack AS a pack. His own contact sheet, placed and never redrawn -
+          it shows the twelve the pack sells, which is exactly what the pack
+          sells since NOOOO! became a separate purchase, so nothing had to be
+          composed to make the picture agree with the price. Carpet #3552: the
+          layout is his artwork, not ours to extend.
+          {% endcomment %}
+          <img alt="The {{ row.pack.name }} sticker pack" class="sticker-pack__window"
+               height="675" loading="lazy" width="900"
+               src="{% static 'images/chef_battle/sticker_pack_arena_2026.webp' %}">
+
           <p class="sticker-pack__terms">
             <strong>{{ row.pack.name }}</strong> &mdash;
             {{ row.pack.token_cost }}T for all {{ row.stickers|length }}, or {{ row.stickers.0.item.token_cost }}T each.
@@ -111,6 +137,47 @@
             </article>
             {% endfor %}
           </div>
+
+          {% comment %}
+          SOLD SEPARATELY. The Owner, 2026-08-28: NOOOO! belongs to the pack and
+          is sold on its own for 100T - only with it is the collection complete.
+          It is shown WITH the collection because that is where it belongs, and
+          its own price and button say plainly that the pack did not buy it.
+          {% endcomment %}
+          {% for tile in row.separate %}
+          <div class="sticker-pack__separate">
+            <p class="sticker-pack__terms">
+              <strong>{{ tile.item.label }}</strong> is not in the pack price &mdash;
+              it is {{ tile.item.token_cost }}T on its own, and only with it is the collection complete.
+            </p>
+            <article class="artifact-card sticker-card{% if tile.item.pk in owned_ids %} sticker-card--owned{% endif %}">
+              <div class="artifact-card__image-wrap">
+                {% if tile.tile_url %}
+                <img alt="{{ tile.item.label }}" class="artifact-card__image" loading="lazy" src="{{ tile.tile_url }}">
+                {% endif %}
+              </div>
+              <div class="artifact-card__header">
+                <span class="artifact-card__rarity">Sold separately</span>
+                <span class="artifact-card__cost">{{ tile.item.token_cost }}T</span>
+              </div>
+              <h3 class="artifact-card__name">{{ tile.item.label }}</h3>
+              <code class="sticker-card__token">:{{ tile.item.token }}:</code>
+              {% if tile.item.pk in owned_ids %}
+              <p class="artifact-card__owned">Owned</p>
+              {% elif has_profile %}
+              <form action="{% url 'chef_battle:sticker_buy' %}" class="artifact-card__buy" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="sticker" value="{{ tile.item.pk }}">
+                <button class="btn-secondary" type="submit">Buy for {{ tile.item.token_cost }}T</button>
+              </form>
+              {% endif %}
+            </article>
+          </div>
+          {% endfor %}
+
+          {% if row.collection_complete %}
+          <p class="sticker-pack__owned">The collection is complete.</p>
+          {% endif %}
         </div>
         {% empty %}
         <p class="sticker-pack__terms">No sticker packs on sale yet.</p>

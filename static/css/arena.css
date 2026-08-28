@@ -12505,36 +12505,27 @@ button.arena-chat__poll-option:hover {
   .arena-house-stream { grid-area: stream; }
 }
 
-/* AC-STK - A STICKER YOU HAVE NOT BOUGHT.
+/* AC-STK - AN EMPTY STICKER TAB IS ONE LINK.
 
-   FULL COLOUR. The specification says so in as many words after its own
-   correction of 2026-08-28: "показывается в полном цвете... лёгкая
-   непрозрачность без обесцвечивания, полный цвет на наведении."
+   Owner's ruling, 2026-08-28, which cancelled the locked-tile idea entirely
+   and everything this block used to hold: an unbought sticker is not dimmed,
+   not locked, not shown in full colour - it is NOT IN THE PICKER. A tile you
+   cannot use is not a shop window, it is rubbish in the chat window, because
+   people think they own it, click, and nothing happens.
 
-   v2.5.1379 read "dimmed" as 0.55, which on a pale panel is not a dimmed
-   picture, it is a grey one - and the Owner said so the moment he saw it on a
-   phone. 0.92 is the whole difference between "not bought yet" and "broken
-   image", and it is deliberately almost nothing: these are his paintings, and
-   the strongest thing this rule is allowed to do is stand slightly back from
-   them.
-
-   NOTHING IS DRAWN ON TOP. No grayscale, no badge, no overlay - the first
-   version had a bronze square in the corner of his own artwork and that was
-   never a decision that was mine to take.
-
-   This is presentation, not the rule. Ownership is enforced in
-   arena_chat_send; defeating this CSS reaches a 403, not a free sticker.
-
-   Two classes on the selector and no !important - the blanket
-   `.arena-chat * { color: inherit }` reset in this file eats single-class
-   colour rules, and prefixing is how every other rule here answers it. */
-.arena-chat .arena-chat__emoji-btn--locked {
-  cursor: pointer;
+   So there is no "locked" state left to style. What is left is the one line
+   shown to somebody who owns none of them, which is a LINK and deliberately
+   not a grid of things they cannot have. */
+.arena-chat .arena-chat__emoji-empty {
+  margin: 0;
+  padding: 0.9rem 0.6rem;
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--arena-muted);
 }
-.arena-chat .arena-chat__emoji-btn--locked .arena-chat__sticker {
-  opacity: 0.92;
-}
-.arena-chat .arena-chat__emoji-btn--locked:hover .arena-chat__sticker,
-.arena-chat .arena-chat__emoji-btn--locked:focus-visible .arena-chat__sticker {
-  opacity: 1;
+.arena-chat .arena-chat__emoji-empty a {
+  color: var(--accent-bronze);
+  font-weight: 700;
+  text-decoration: underline;
 }

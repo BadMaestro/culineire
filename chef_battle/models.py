@@ -1520,6 +1520,19 @@ class StickerItem(models.Model):
     #: it from paintBody: a line already sent keeps drawing, because the check
     #: this feature adds is on SEND and never on READ.
     is_active = models.BooleanField(default=True)
+    #: IN THE PACK, BUT NOT INCLUDED IN THE PACK PRICE.
+    #:
+    #: Owner, 2026-08-28, about NOOOO!: "входит в пак но продаётся отдельно -
+    #: за 100T - только с ним коллекция будет полной". So it belongs to the
+    #: collection and is shown with it, and buying the pack does not grant it.
+    #:
+    #: A NAMED FLAG RATHER THAN "PRICE >= 100". Deciding it by price would tie
+    #: two unrelated things together, and the day he prices an ordinary sticker
+    #: at 100 the pack would quietly stop including it.
+    sold_separately = models.BooleanField(
+        default=False,
+        help_text="Shown with its pack, but the pack price does not grant it.",
+    )
     sort_order = models.PositiveIntegerField(default=0)
 
     class Meta:

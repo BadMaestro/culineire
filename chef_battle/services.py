@@ -3275,7 +3275,10 @@ def buy_sticker_pack(*, chef, pack):
     if not pack.is_active:
         raise ValueError("That pack is not on sale.")
 
-    items = list(pack.stickers.filter(is_active=True))
+    # SOLD SEPARATELY IS NOT IN THE PACK PRICE. The Owner, 2026-08-28, about
+    # NOOOO!: it belongs to the collection and is shown with it, and 100 tokens
+    # for the pack does not buy it - only with it is the collection complete.
+    items = list(pack.stickers.filter(is_active=True, sold_separately=False))
     if not items:
         raise ValueError("That pack is empty.")
 

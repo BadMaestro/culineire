@@ -712,17 +712,26 @@ def _sticker_shelf(viewer_author):
     rows = []
     for pack in packs:
         items = [s for s in pack.stickers.all() if s.is_active]
-        owned_here = [s for s in items if s.pk in owned_ids]
+        # SPLIT BY WHAT THE PACK PRICE ACTUALLY BUYS. NOOOO! belongs to the
+        # collection and is shown with it, but 100 tokens for the pack does not
+        # grant it - the Owner, 2026-08-28: only with it is the collection
+        # complete. `complete` below therefore means "owns everything the pack
+        # sells", which is what the Buy button has to answer.
+        in_pack = [s for s in items if not s.sold_separately]
+        apart = [s for s in items if s.sold_separately]
+        owned_here = [s for s in in_pack if s.pk in owned_ids]
         rows.append({
             "pack": pack,
+            "separate": [_sticker_tile(s) for s in apart],
+            "collection_complete": bool(items) and all(s.pk in owned_ids for s in items),
             # NOT "items": a Django template resolves `row.items` as a
             # DICTIONARY LOOKUP first and dict.items() second, so the key would
             # work today and turn into a bound method the moment anything
             # renamed it. One word avoids the whole question.
-            "stickers": [_sticker_tile(s) for s in items],
+            "stickers": [_sticker_tile(s) for s in in_pack],
             "owned_count": len(owned_here),
-            "missing_count": len(items) - len(owned_here),
-            "complete": bool(items) and len(owned_here) == len(items),
+            "missing_count": len(in_pack) - len(owned_here),
+            "complete": bool(in_pack) and len(owned_here) == len(in_pack),
         })
     return rows, [_sticker_tile(s) for s in loose], owned_ids
 
