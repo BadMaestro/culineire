@@ -1,5 +1,0 @@
-agent: GreenBear
-started_utc: 2026-08-28T15:06:56Z
-version: 2.5.1397
-commit: pending
-task: AN13 dead declarations removed under a proof, and the dead chef-profile accessor
