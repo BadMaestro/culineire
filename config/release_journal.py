@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1403",
         "date": "2026-08-28",
-        "commit": "pending",
+        "commit": "df05738e",
         "title": "The July test artifacts deleted, and the filter that decides which ones",
         "section": "Chef Battles / Arena",
         "summary": (
