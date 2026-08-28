@@ -1,5 +1,73 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1397",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "AN13's dead declarations removed under a proof, and the accessor that was always None",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Items 1 and 2 of the list, both on the Owner's approval, and the "
+            "first is the sixth red test finally closed. "
+            "TWENTY-NINE DEAD DECLARATIONS GONE FROM arena.css, and the point "
+            "is HOW rather than how many. The invariant: the set of "
+            "declarations that actually apply - context, selector, property AND "
+            "value - is computed before and after and must be byte-identical. "
+            "It is, at 4978. Only copies the cascade already overrides are "
+            "removed, so no pixel can move; that is checkable rather than "
+            "eyeballed, which matters because the Owner judges the visual and I "
+            "have broken it for him twice in two days. The diff is 75 lines "
+            "removed and ZERO added. "
+            "THE SCRIPT REFUSED ITSELF THREE TIMES BEFORE IT WAS ALLOWED TO "
+            "WRITE, and each refusal is why this was worth doing mechanically. "
+            "(1) It read @keyframes as a declaration block, so an animation's "
+            "0% and 100% steps looked like duplicates - cutting those deletes "
+            "the animation. Caught by making the script agree with the guard "
+            "before trusting it: 40 against 28. (2) Its first spans began where "
+            "the previous semicolon ended, so they carried the COMMENT above "
+            "each declaration; the first run removed a 44-line block recording "
+            "the Owner's own Region Model A of 2026-08-09 because it sat above "
+            "a dead `position: absolute`. Reverted, and spans start at the "
+            "property now. (3) A tidy-up pass that removed empty rules was "
+            "REFUSED by the invariant itself - a greedy regex would have taken "
+            "a live rule with it. "
+            "AND THE GUARD UNDERCOUNTS BY ONE, reported rather than papered "
+            "over: `.arena-broadcast-ribbon { background }` is declared three "
+            "times, once !important and twice not. By the cascade the "
+            "!important wins whatever the order, so BOTH plain copies are dead "
+            "- the guard reports one, because its loop `continue`s past an "
+            "earlier-!important case without counting it. Right for 'is this an "
+            "offence', wrong for 'how many are dead'. "
+            "WHAT WAS ACTUALLY IN THERE: the OLD desktop deck layout, superseded "
+            "by Bolt's row swap of v2.5.1354 and still sitting two thousand "
+            "lines above the live one. Whoever edited the deck next had even "
+            "odds of editing the corpse. "
+            "ITEM 2: THE ACCESSOR THAT WAS ALWAYS NONE. Two call sites read "
+            "`getattr(sender_user, 'recipe_author', None)` and had since they "
+            "were written; the related_name is `recipe_author_profile`, and it "
+            "is declared on the USER, not on RecipeAuthor - which is the half "
+            "that makes the wrong name so easy to write, because the thing "
+            "being reached FOR is an author. The expression was never anything "
+            "but None and the fallback query underneath did all the work, so "
+            "nothing ever failed and nothing was ever reported. It is "
+            "contagious: the same wrong name reached the gift form's chef list "
+            "on 2026-08-28, written by somebody reading the brief that warns "
+            "about it. Both sites now call get_author_for_user(), which does "
+            "the same query and additionally refuses an anonymous user, and a "
+            "guard pins the NAME - because behaviour is exactly what did not "
+            "give it away. "
+            "ITEM 5, AND IT WAS A MISUNDERSTANDING WORTH CORRECTING: there is "
+            "ONE arena.css in git and always was. The seven on the server were "
+            "collectstatic's own content-hashed copies, one per deploy, never "
+            "cleaned up - only the one named in staticfiles.json is ever "
+            "served. Eleven orphans across three files removed, 3.77 MB, after "
+            "checking that none of them was a served version and that the site "
+            "still answered 200 afterwards. Not merely disk: reading one of "
+            "those by hand is how a stale stylesheet gets reported as live, "
+            "which is exactly what I did earlier the same day. "
+            "105 focused tests green on PostgreSQL --parallel 8. No migration."
+        ),
+    },
+    {
         "version": "2.5.1394",
         "date": "2026-08-28",
         "commit": "pending",

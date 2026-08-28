@@ -1349,7 +1349,6 @@
 .arena-chat__action:focus-visible {
   background: color-mix(in srgb, var(--accent-bronze) 12%, transparent);
 }
-.arena-chat .arena-chat__action--danger { color: var(--chat-admin-text); }
 
 /* ============================================================================
  * THE 2026 LAYER, 2026-08-25: custom emoji, mentions, the emoji picker, the
@@ -3005,7 +3004,6 @@
        Two owners of one position. Now the caption cannot move the octagon
        because it is a grid item in a different row and has no way to.
        ============================================================ */
-    position: absolute;
     inset: 0;
     display: grid;
     grid-template-columns: 1fr;
@@ -3065,10 +3063,6 @@
     width: auto;
     transform: none;
     margin: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -4628,9 +4622,6 @@
        much as a page panel blocks - the page measures that and says so
        in --arena-caption-nudge-x. The writing never measures a
        neighbour; it is told where its band ends. */
-    translate: calc(-1 * var(--arena-caption-nudge-x, 0px));
-    margin: 0 0 var(--arena-caption-gap, 0.5rem);
-    text-align: center;
     pointer-events: none;
   }
   .arena-floor-caption span {
@@ -4663,7 +4654,6 @@
        --arena-caption-free on the deck. The policy - never wider than 26rem,
        never more than 42% of the floor, never wider than the room that is
        actually free - lives in this one line. */
-    width: min(26rem, 42%, var(--arena-caption-free, 100%));
   }
   .arena-rank-spine {
   /* position is the renderer's (AN6); size stays with the component */
@@ -5258,29 +5248,6 @@
     pointer-events: none;
     clip-path: polygon(29.3% 0, 70.7% 0, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0 70.7%, 0 29.3%);
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    background:
-      radial-gradient(
-        circle at 50% 50%,
-        color-mix(in srgb, var(--surface) 96%, var(--accent-bronze)) 0 16%,
-        transparent 16.4%
-      ),
-      repeating-radial-gradient(
-        circle at 50% 50%,
-        transparent 0 7.5%,
-        color-mix(in srgb, var(--accent-bronze) 42%, transparent) 7.6% 7.9%,
-        transparent 8.1% 12.5%
-      ),
-      conic-gradient(
-        from 22.5deg at 50% 50%,
-        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 0 12.4%,
-        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 12.5% 24.9%,
-        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 25% 37.4%,
-        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 37.5% 49.9%,
-        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 50% 62.4%,
-        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 62.5% 74.9%,
-        color-mix(in srgb, var(--surface) 92%, var(--accent-bronze)) 75% 87.4%,
-        color-mix(in srgb, var(--surface) 78%, var(--accent-bronze)) 87.5% 100%
-      );
   }
 
 @media (prefers-reduced-motion: reduce) {
@@ -5385,10 +5352,6 @@
 .page--arena .arena-command-deck__metrics,
 .page--arena .arena-command-deck__ladder,
 .page--arena .arena-command-deck__gifts {
-    border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
-    box-shadow:
-      0 0.45rem 1.2rem color-mix(in srgb, var(--ink) 28%, transparent),
-      inset 0 1px 0 color-mix(in srgb, var(--surface) 35%, transparent);
   }
   .arena-panel__kicker,
   .arena-command-deck__eyebrow {
@@ -5415,12 +5378,6 @@
     letter-spacing: 0.04em;
   }
   .arena-broadcast-ribbon {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--ink) 16%, var(--surface)),
-        color-mix(in srgb, var(--surface) 88%, transparent)
-      );
   }
 
 /* 3G — stage gold frame + VS medallion weight (prototype show core). */
@@ -5850,17 +5807,6 @@
   .page--arena .arena-command-deck__ladder,
   .page--arena .arena-command-deck__gifts {
     border-color: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
-    background:
-      linear-gradient(
-        165deg,
-        color-mix(in srgb, var(--surface) 28%, transparent),
-        color-mix(in srgb, var(--ink) 42%, transparent) 58%,
-        color-mix(in srgb, var(--ink) 55%, transparent)
-      );
-    box-shadow:
-      0 0.55rem 1.4rem color-mix(in srgb, var(--ink) 35%, transparent),
-      inset 0 0 0 1px color-mix(in srgb, var(--accent-bronze) 22%, transparent),
-      inset 0 1px 0 color-mix(in srgb, var(--surface) 35%, transparent);
     backdrop-filter: blur(10px) saturate(1.12);
     -webkit-backdrop-filter: blur(10px) saturate(1.12);
   }
@@ -5901,12 +5847,6 @@
 
   .arena-broadcast-ribbon {
     border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--ink) 55%, transparent),
-        color-mix(in srgb, var(--ink) 28%, transparent)
-      );
   }
   .arena-command-deck__phase-card .arena-command-deck__live-note.is-live {
     color: var(--accent-bronze);
@@ -6096,12 +6036,10 @@
   }
   .arena-rank-spine__list {
     flex: 0 0 auto;
-    display: flex;
     flex-direction: column;
     justify-content: flex-start;
     /* 5px on the reference's 667.5-tall floor = 0.0075 of it; at our floor
      * height that lands near 4px, which is what this evaluates to. */
-    gap: 0.25rem;
     min-height: 0;
   }
 }
@@ -6700,9 +6638,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.28rem;
-    font-size: 0.52rem;
     font-weight: 700;
-    letter-spacing: 0.07em;
     text-transform: uppercase;
     color: var(--muted);
   }
@@ -6716,12 +6652,9 @@
   .arena-command-deck__metrics .arena-metric strong {
     margin: 0;
     font-family: var(--font-serif, "Playfair Display", serif);
-    font-size: clamp(1.35rem, 2vw, 1.7rem);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     line-height: 1;
-    letter-spacing: 0.01em;
-    color: var(--accent-bronze);
     text-shadow: 0 0 0.85rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
   }
 }
@@ -9079,10 +9012,6 @@ body.page--arena.is-zoom-locked {
       minmax(260px, 1fr)
       minmax(0, var(--arena-floor-target-width, 1fr))
       minmax(400px, 1fr);
-    grid-template-areas:
-      "ribbon ribbon ribbon"
-      "left   floor  right"
-      "foot   foot   foot";
     align-items: start;
     gap: 1.1rem;
     width: 100%;
@@ -10832,7 +10761,6 @@ body.page--arena.is-zoom-locked {
      needs a bigger slot than the ladder owns, and enlarging that slot is the
      Owner's call. */
   .page--arena .arena-rank-spine__step {
-    border-radius: 0.6rem;
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
     background: color-mix(in srgb, var(--surface) 96%, transparent);
     box-shadow: none;
@@ -11576,14 +11504,11 @@ body.page--arena.is-zoom-locked {
 .arena-chat__viewer-count { margin-left: auto; }
 .arena-chat__viewer-report {
   padding: 0.25rem 0.6rem;
-  border: 1px solid color-mix(in srgb, #f4ece0 40%, transparent);
   border-radius: 0.3rem;
-  background: transparent;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #f4ece0;
   cursor: pointer;
 }
 .arena-chat__viewer-report:hover { border-color: #f4ece0; }

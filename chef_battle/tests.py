@@ -27464,3 +27464,80 @@ class TheCameraIsTheBearCaveFoodTrailerTests(TestCase):
         css = (self.ROOT / "static" / "css" / "arena.css").read_text(encoding="utf-8")
         self.assertNotIn("arena-house-stream__off", css)
         self.assertNotIn("arena-house-stream__off", self.WIDGET.read_text(encoding="utf-8"))
+
+
+class TheChefProfileAccessorIsNamedCorrectlyTests(TestCase):
+    """`recipe_author` is not the reverse accessor. `recipe_author_profile` is.
+
+    Two call sites in services.py read `getattr(user, "recipe_author", None)`
+    and had done since they were written: the expression is ALWAYS None, so the
+    fallback query underneath silently did all the work and nothing ever
+    failed. A wrong name that never raises is never reported, and this one
+    turned out to be contagious - it was copied into the gift form's chef list
+    on 2026-08-28 by somebody who was reading the brief that warns about it.
+
+    The guard is on the NAME rather than on behaviour, because behaviour is
+    exactly what did not give it away.
+    """
+
+    ROOT = Path(__file__).resolve().parent.parent
+
+    FILES = (
+        "chef_battle/services.py",
+        "chef_battle/views.py",
+        "chef_battle/arena_chat.py",
+        "recipes/views.py",
+    )
+
+    def test_nothing_reaches_for_the_name_that_does_not_exist(self):
+        import re
+
+        for rel in self.FILES:
+            source = (self.ROOT / rel).read_text(encoding="utf-8")
+            # Comments explain the fault on purpose; strip them, or this guard
+            # finds the ghost it was written to bury.
+            code = re.sub(r"(?m)^\s*#.*$", "", source)
+            code = re.sub(r"(?m)\s+#.*$", "", code)
+            code = re.sub(r'"""..*?"""', "", code, flags=re.S)
+            self.assertNotIn(
+                'getattr(sender_user, "recipe_author"', code,
+                f"{rel} reads an accessor that is always None",
+            )
+            self.assertNotIn(
+                "chef_battle_profile__", code,
+                f"{rel} filters on chef_battle_profile; the related_name is "
+                f"battle_profile",
+            )
+
+    def test_the_real_accessor_is_what_the_model_declares(self):
+        """If the related_name ever changes, this fails here rather than in a
+        silent None somewhere.
+
+        It is declared on RecipeAuthor.user and therefore lives on the USER,
+        which is the half that makes the wrong name so easy to write: the
+        thing being reached FOR is a RecipeAuthor, so `user.recipe_author`
+        reads perfectly and resolves to nothing."""
+        User = get_user_model()
+        self.assertIsNotNone(User._meta.get_field("recipe_author_profile"))
+        with self.assertRaises(Exception):
+            User._meta.get_field("recipe_author")
+
+    def test_both_gift_services_resolve_a_real_author(self):
+        """The behaviour the dead branch was hiding: a user with a profile is
+        found, and one without is refused rather than crashing."""
+        from chef_battle.models import Artifact
+        from chef_battle.services import send_appreciation_gift
+
+        user, author = _make_chef("giftsender", balance=500)
+        _, recipient = _make_chef("giftgetter")
+
+        gift = send_appreciation_gift(
+            sender_user=user, recipient=recipient, gift_type="coffee",
+        )
+        self.assertEqual(gift.recipient, recipient)
+
+        stranger = get_user_model().objects.create_user(username="noprofile", password="pw")
+        with self.assertRaises(ValueError):
+            send_appreciation_gift(
+                sender_user=stranger, recipient=recipient, gift_type="coffee",
+            )

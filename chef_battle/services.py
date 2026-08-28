@@ -3047,10 +3047,17 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
     if artifact.rarity == Artifact.Rarity.LEGENDARY:
         raise ValueError("Legendary artifacts are prize-only and cannot be bought.")
 
-    sender_author = getattr(sender_user, "recipe_author", None)
-    if sender_author is None:
-        from recipes.models import RecipeAuthor as RA
-        sender_author = RA.objects.filter(user=sender_user).first()
+    # THE ACCESSOR ABOVE THIS WAS DEAD, and had been since it was written.
+    # It read `getattr(sender_user, "recipe_author", None)`; the reverse
+    # accessor is `recipe_author_profile`, so the expression was ALWAYS None
+    # and the query below silently did all the work. Nothing ever failed, so
+    # nothing ever reported it - and it is contagious: the same wrong name
+    # was copied into the chef list for the gift form on 2026-08-28, by
+    # somebody reading the brief that warns about it. One lookup now, named
+    # correctly, with no dead branch above it to copy.
+    from recipes.authoring import get_author_for_user
+
+    sender_author = get_author_for_user(sender_user)
     if sender_author is None:
         raise ValueError("Sender must have a chef profile to send gifts.")
 
@@ -3263,10 +3270,17 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
     if cost is None:
         raise ValueError(f"Unknown gift type: {gift_type}")
 
-    sender_author = getattr(sender_user, "recipe_author", None)
-    if sender_author is None:
-        from recipes.models import RecipeAuthor as RA
-        sender_author = RA.objects.filter(user=sender_user).first()
+    # THE ACCESSOR ABOVE THIS WAS DEAD, and had been since it was written.
+    # It read `getattr(sender_user, "recipe_author", None)`; the reverse
+    # accessor is `recipe_author_profile`, so the expression was ALWAYS None
+    # and the query below silently did all the work. Nothing ever failed, so
+    # nothing ever reported it - and it is contagious: the same wrong name
+    # was copied into the chef list for the gift form on 2026-08-28, by
+    # somebody reading the brief that warns about it. One lookup now, named
+    # correctly, with no dead branch above it to copy.
+    from recipes.authoring import get_author_for_user
+
+    sender_author = get_author_for_user(sender_user)
     if sender_author is None:
         raise ValueError("Sender must have a chef profile to send gifts.")
 
