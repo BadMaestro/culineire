@@ -1,5 +1,44 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1409",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The chat's 289 rules were in thirty places; 262 of them are now in one",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Step 1 of the consolidation plan. `.arena-chat` owned 289 rules "
+            "in THIRTY runs across 11,947 lines, with 3,602 lines of other "
+            "components lying between two of them, because new work is written "
+            "at the end of the file instead of into the section that already "
+            "exists. 262 are now one contiguous block. The other 27 could not "
+            "be proved safe to move and are exactly where they were - they are "
+            "named in the run rather than moved on a hunch. "
+            "NOT ONE DECLARATION CHANGED: 5898 applying declarations, "
+            "byte-identical before and after, and no conflicting pair changed "
+            "places. 1453 rules before, 1453 after. "
+            "THE STRICT GUARD PERMITS NOTHING ON ITS OWN, which is the "
+            "interesting part. Asked what this move would cost, v2.5.1400's "
+            "guard reported 22,335 transposed pairs - nearly all of them "
+            "`.arena-page` against `.arena-chat__log`, two classes that never "
+            "share an element. an16_cohabit.py answers that question from the "
+            "markup instead of assuming: same declared value cannot matter "
+            "(6244 left), classes that never share an element in any template "
+            "(1735), `el.className = '...'` writes a set rather than releasing "
+            "a class to float anywhere (257), a toggled BEM modifier belongs to "
+            "its own block (147), an attribute test only narrows what a "
+            "selector matches (27 rules). Every step is a number and every one "
+            "is in the tool's own docstring. "
+            "THREE MISTAKES CAUGHT BY MACHINE, none by eye. A rule carries its "
+            "context - lifting one out of `@media (max-width: 640px)` and "
+            "dropping it at the top level changed 318 applying declarations. "
+            "The destination has to BE at the top level, or the gathered rules "
+            "land inside somebody else's media block. And a mover ends up above "
+            "whatever the destination is above; keying that on which of the two "
+            "rules moved inverted the test for half the pairs and shipped a "
+            "real transposition, which only the after-the-fact guard caught."
+        ),
+    },
+    {
         "version": "2.5.1406",
         "date": "2026-08-28",
         "commit": "87d24222",

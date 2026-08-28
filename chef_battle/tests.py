@@ -27742,3 +27742,97 @@ class JulyTestArtifactGrantsAreDroppedTests(TestCase):
         _old, _recent, granted = self._rows()
         self._run()
         self.assertTrue(ChefArtifact.objects.filter(pk=granted.pk).exists())
+
+
+class ArenaChatIsGatheredTests(TestCase):
+    """AN15 — `.arena-chat` in one block, and the arithmetic that put it there.
+
+    The component owned 289 rules in THIRTY runs spread over 11,947 lines, with
+    3,602 lines of other components lying between two of them. 262 of them are
+    now one contiguous block; the other 27 could not be proved safe to move and
+    were left exactly where they were.
+
+    What is guarded here is not the tidiness. It is the two pieces of reasoning
+    that decided which rules were allowed to move, because both were wrong on
+    the first attempt and one of them was caught only by the guard running
+    again after the file had been written:
+
+      - a class that no template and no script ever puts on an element cannot
+        collide with anything, and a class a script toggles is a BEM modifier
+        of the block it is toggled on, not a free-floating name that can land
+        anywhere. Read the other way round, every chat class collided with the
+        whole site and nothing could be moved at all.
+
+      - a rule that moves ends up ABOVE the rules the destination is above.
+        Keying that on which of the two rules moved inverted the test for half
+        the pairs and let a real transposition through."""
+
+    @staticmethod
+    def _tool(name):
+        import importlib.util
+
+        path = (Path(settings.BASE_DIR) / "ops" / "audits" / "arena" / "tools"
+                / (name + ".py"))
+        spec = importlib.util.spec_from_file_location(name, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_the_chat_lives_in_one_block(self):
+        gather = self._tool("an15_gather")
+        css = (Path(settings.BASE_DIR) / "static" / "css" / "arena.css")
+        text = css.read_text(encoding="utf-8")
+        chosen, _mixed = gather.component_rules(text, ".arena-chat")
+        runs = gather.islands(chosen, text)
+        biggest = max(len(run) for run in runs)
+        self.assertGreaterEqual(
+            biggest, 250,
+            f"the chat is scattered again: {len(chosen)} rules in "
+            f"{len(runs)} runs, the largest holding {biggest}",
+        )
+
+    def test_a_class_nothing_ever_carries_cannot_collide(self):
+        cohabit = self._tool("an16_cohabit")
+        model = cohabit.default_model(str(settings.BASE_DIR))
+        _classes, state = model.demands(".arena-page")
+        self.assertEqual(
+            state, "dead",
+            "`.arena-page` appears once in arena.css and in no template or "
+            "script; if it is ever put on an element this test is what says so",
+        )
+
+    def test_a_toggled_modifier_stays_with_its_block(self):
+        cohabit = self._tool("an16_cohabit")
+        model = cohabit.default_model(str(settings.BASE_DIR))
+        self.assertNotIn(
+            "arena-chat__emoji-grid--stickers", model.floating,
+            "a BEM modifier a script toggles belongs to its block; treated as "
+            "free-floating it collides with the entire stylesheet",
+        )
+        self.assertTrue(
+            model.can_collide(".arena-chat__emoji-grid",
+                              ".arena-chat__emoji-grid--stickers"),
+            "the block and its own modifier share an element",
+        )
+
+    def test_the_mover_lands_where_the_destination_is(self):
+        """The inverted comparison, held down.
+
+        Two rules, one moving to the top: afterwards the mover is above the
+        stayer exactly when the destination is above it - whichever of the two
+        happened to be the one that moved."""
+        gather = self._tool("an15_gather")
+        # One selector, twice: an element matching the first matches the
+        # second, so this is a pair that genuinely fights and the evidence
+        # model cannot argue otherwise.
+        css = """
+        .arena-chat__log { color: red }
+        .arena-chat__log { color: blue }
+        """
+        rules = list(gather.rules(css))
+        self.assertEqual(len(rules), 2)
+        # Move the SECOND rule above the first: their order changes, and a
+        # count of zero here is the bug that shipped a transposed pair.
+        hurt = gather.transpositions(css, [rules[1]["index"]],
+                                     rules[0]["index"])
+        self.assertTrue(hurt, "moving .beta above .alpha reorders the pair")

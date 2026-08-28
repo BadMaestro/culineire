@@ -47,6 +47,8 @@ phase and had to be corrected in the report.
 | `an13_clean.py` | removes declarations the cascade already overrides, and refuses unless the applying set is byte-identical before and after |
 | `an14_move_guard.py` | proves a rule was MOVED and not changed: no conflicting pair changed places |
 | `gb_artifact_source_audit.py` | read-only: who owns the `ChefArtifact` rows marked `purchased`, and when — written before deleting any of them |
+| `an15_gather.py` | gathers one component's scattered rules into a single block, moving only what can be proved safe |
+| `an16_cohabit.py` | can one element match both of these selectors? evidence from the markup, not an assumption |
 
 `css_order_risk.py` reads a `scratchpad/css_supersede.py` that ended with the
 session it was written in. `an13_clean.py` is the part of it that survived, and
@@ -82,6 +84,39 @@ python3 ops/audits/arena/tools/an14_move_guard.py /tmp/before.css static/css/are
 
 `ArenaStylesheetMoveGuardTests` in `chef_battle/tests.py` runs the selftest in
 CI, because a guard nobody has watched fail is not a guard.
+
+## AN15/AN16: what it takes to actually move a rule
+
+The strict guard, on its own, permits nothing. Asked what gathering
+`.arena-chat` would cost, it reported 22,335 transposed pairs - nearly all of
+them `.arena-page` against `.arena-chat__log`, two classes that never share an
+element. So `an16_cohabit.py` answers the question the guard refuses to guess
+at, from the markup itself, and each refinement is a number:
+
+| what was read | pairs still blocking |
+|---|---|
+| nothing: every selector collides with every other | 22335 |
+| same declared value cannot matter whichever wins | 6244 |
+| classes that never share an element in any template | 1735 |
+| `el.className = '...'` writes a set, it does not float | 257 |
+| a toggled BEM modifier belongs to its own block | 147 |
+| an attribute test only narrows what a selector matches | 27 rules |
+
+The 27 that remain are not moved. They are named in the run, and they stay
+exactly where they were.
+
+Three mistakes worth not repeating, all of them caught by machine:
+
+- **A rule carries its context.** Lifting a rule out of
+  `@media (max-width: 640px)` and dropping it at the top level is not a move,
+  it is a rewrite: 318 applying declarations changed. Movers are re-wrapped.
+- **The destination has to be at the top level.** An island that begins inside
+  a media block is a text position inside that block, so the gathered rules
+  landed under the media query.
+- **A mover ends up above whatever the destination is above** - `destination <=
+  stayer`, and not a comparison keyed on which of the two rules moved. That
+  version inverted the test for half the pairs and shipped a transposition
+  which only the after-the-fact guard caught.
 
 ## Running them
 

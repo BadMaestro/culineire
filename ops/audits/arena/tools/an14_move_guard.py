@@ -78,7 +78,7 @@ def rules(text):
         if c == "{":
             head = " ".join(clean[prelude:i].split())
             if NESTED.match(head):
-                stack.append(head)
+                stack.append((head, prelude))
                 i += 1
                 prelude = i
                 continue
@@ -101,7 +101,9 @@ def rules(text):
                     decls.append((prop, " ".join(value.split()),
                                   "!important" in value.lower()))
             yield {
-                "ctx": tuple(stack), "sel": head, "decls": decls, "index": idx,
+                "ctx": tuple(level for level, _at in stack),
+                "ctx_start": stack[0][1] if stack else prelude,
+                "sel": head, "decls": decls, "index": idx,
                 "start": prelude, "end": j,
             }
             idx += 1
@@ -160,8 +162,14 @@ def applying(text):
     return winner
 
 
-def compare(before, after):
-    """Return a list of complaints. Empty means the move is proved safe."""
+def compare(before, after, collides=None):
+    """Return a list of complaints. Empty means the move is proved safe.
+
+    `collides(selector_a, selector_b)` may be supplied to answer whether one
+    element can match both. Without it every selector is assumed to collide
+    with every other, which is the honest default for a guard and far too
+    coarse to permit any real move - see an16_cohabit.py, which supplies the
+    evidence, and an15_gather.py, which uses it."""
     bad = []
 
     ba, aa = applying(before), applying(after)
@@ -180,15 +188,26 @@ def compare(before, after):
                        % ((key[1], key[2]), len(b), len(a)))
             continue
         pos = {ident: n for n, ident in enumerate(a)}
-        for n in range(len(b) - 1):
-            if pos[b[n]] > pos[b[n + 1]]:
-                bad.append(
-                    "TRANSPOSED, %s at specificity %s%s:\n"
-                    "      was above: %s\n"
-                    "      now below: %s"
-                    % (key[1], key[2], " !important" if key[3] else "",
-                       b[n][1], b[n + 1][1]))
-                break
+        if collides is None:
+            pairs = [(n, n + 1) for n in range(len(b) - 1)]
+        else:
+            pairs = [(i, j) for i in range(len(b)) for j in range(i + 1, len(b))]
+        for i, j in pairs:
+            if pos[b[i]] <= pos[b[j]]:
+                continue
+            one, other = b[i], b[j]
+            if collides is not None:
+                if one[3] == other[3]:
+                    continue          # same value: order cannot matter
+                if not collides(one[1], other[1]):
+                    continue          # no element can match both
+            bad.append(
+                "TRANSPOSED, %s at specificity %s%s:\n"
+                "      was above: %s\n"
+                "      now below: %s"
+                % (key[1], key[2], " !important" if key[3] else "",
+                   one[1], other[1]))
+            break
     return bad
 
 
