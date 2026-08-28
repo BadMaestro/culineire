@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1412",
         "date": "2026-08-28",
-        "commit": "pending",
+        "commit": "89075b56",
         "title": "The command deck gathered the same way the chat was",
         "section": "Chef Battles / Arena",
         "summary": (
