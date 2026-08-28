@@ -44,6 +44,43 @@ phase and had to be corrected in the report.
 | `an18_audit.py` | classifies static assets by who names them |
 | `an20_scan.py` | counts listeners, observers, timers and read/write interleaves |
 | `an22_static.py` | the static-asset inventory |
+| `an13_clean.py` | removes declarations the cascade already overrides, and refuses unless the applying set is byte-identical before and after |
+| `an14_move_guard.py` | proves a rule was MOVED and not changed: no conflicting pair changed places |
+
+`css_order_risk.py` reads a `scratchpad/css_supersede.py` that ended with the
+session it was written in. `an13_clean.py` is the part of it that survived, and
+it is in the repository for that reason.
+
+## AN13 and AN14 are two different proofs, and the second is not optional
+
+`an13_clean.py` proves a DELETION safe: the set of declarations that actually
+apply — context, selector, property, value — is byte-identical before and after,
+so only copies that already lost were cut.
+
+That proof says nothing about a MOVE. Order decides between two DIFFERENT
+selectors of EQUAL specificity writing the SAME property, and AN13's map is
+keyed per selector, so it would not see the change:
+
+```css
+.a { color: red }      /* one element matches both */
+.b { color: blue }     /* the lower one wins */
+```
+
+`an14_move_guard.py` is the missing half. It groups every declaration by
+(context, property, specificity, importance) — inside such a group, and only
+there, source order decides — and requires the relative order of the rules
+within every group to be unchanged. It is deliberately conservative about
+whether one element can match two selectors: it assumes it always can. Being too
+strict costs a move that has to be done another way; being too permissive costs
+the Owner his layout.
+
+```bash
+python3 ops/audits/arena/tools/an14_move_guard.py --selftest static/css/arena.css
+python3 ops/audits/arena/tools/an14_move_guard.py /tmp/before.css static/css/arena.css
+```
+
+`ArenaStylesheetMoveGuardTests` in `chef_battle/tests.py` runs the selftest in
+CI, because a guard nobody has watched fail is not a guard.
 
 ## Running them
 

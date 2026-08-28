@@ -1,5 +1,47 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1400",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "AN14: the proof that has to exist before a single arena.css rule is moved",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Step 0 of the consolidation plan, and NOT ONE BYTE OF CSS CHANGED "
+            "in it. arena.css is 12455 lines and the trouble is scatter, not "
+            "size: .arena-chat owns 332 rules over 11947 lines in EIGHT "
+            "ISLANDS, with 3602 lines of other components lying between two of "
+            "them, and .arena-command-deck 339 rules over 11743. Gathering each "
+            "component into one block is the fix. "
+            "MOVING A RULE IS NOT THE SAME KIND OF EDIT AS DELETING ONE, and "
+            "v2.5.1397's proof does not cover it. That invariant - the set of "
+            "declarations that actually apply is byte-identical before and "
+            "after - is complete for a deletion and worthless for a move, "
+            "because order decides between two DIFFERENT selectors of EQUAL "
+            "specificity writing the SAME property. `.a { color: red }` above "
+            "`.b { color: blue }`: swap them and the colour changes, while a "
+            "map keyed per selector reports that nothing changed at all. "
+            "an14_move_guard.py is the missing half. It groups every "
+            "declaration by (context, property, specificity, importance) - "
+            "inside such a group, and only there, source order decides - and "
+            "requires the relative order of the rules within every group to be "
+            "untouched. It is deliberately conservative about whether one "
+            "element can match two selectors: it assumes it always can. Too "
+            "strict costs a move that has to be done another way; too "
+            "permissive costs the Owner his layout. "
+            "AND IT WAS WATCHED FAILING. ArenaStylesheetMoveGuardTests forges a "
+            "copy of arena.css with two genuinely conflicting top-level rules "
+            "transposed and requires a refusal - the run names .arena-page and "
+            ".arena-chat__tag, both writing max-width at specificity (0,1,0). "
+            "Four of the six red tests inherited yesterday were guards "
+            "asserting a spelling nobody had ever tested, which is exactly what "
+            "this refuses to become. "
+            "an13_clean.py moved out of a session scratchpad into "
+            "ops/audits/arena/tools/ beside it, for the same reason "
+            "css_order_risk.py is now dead: the scratchpad file it imports "
+            "ended with the session that wrote it."
+        ),
+    },
+    {
         "version": "2.5.1397",
         "date": "2026-08-28",
         "commit": "pending",

@@ -14216,6 +14216,122 @@ class ArenaStylesheetHasNoSupersededDeclarationTests(TestCase):
             )
 
 
+class ArenaStylesheetMoveGuardTests(TestCase):
+    """AN14 — the guard that has to exist BEFORE any rule is moved.
+
+    `.arena-chat` owns 332 rules spread over 11,947 lines in eight islands,
+    with 3,602 lines of other components lying between two of them. Gathering
+    each component into one block is the fix, and moving a rule is not the same
+    kind of edit as deleting one.
+
+    AN13's proof — "the set of declarations that actually apply is byte-identical
+    before and after" — is complete for a deletion and WORTHLESS for a move:
+
+        .a { color: red }      one element matches both, equal specificity,
+        .b { color: blue }     so the lower rule wins
+
+    Move `.a` past `.b` and the colour changes, while AN13's map, keyed per
+    selector, reports that nothing changed at all.
+
+    So this checks the other invariant: group every declaration by (context,
+    property, specificity, importance) — inside such a group, and only there,
+    source order decides — and require the relative order of the rules within
+    every group to be untouched.
+
+    The test does not compare two versions of the stylesheet; nothing is being
+    moved yet. It proves the instrument works, by handing it a forged file with
+    two genuinely conflicting rules swapped and requiring a refusal. A guard
+    nobody has watched fail is not a guard — four of the six red tests inherited
+    on 2026-08-27 were guards asserting a spelling nobody had ever tested."""
+
+    @staticmethod
+    def _guard():
+        import importlib.util
+
+        path = (
+            Path(settings.BASE_DIR)
+            / "ops" / "audits" / "arena" / "tools" / "an14_move_guard.py"
+        )
+        spec = importlib.util.spec_from_file_location("an14_move_guard", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    @staticmethod
+    def _css():
+        return (
+            Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
+        ).read_text(encoding="utf-8")
+
+    def test_the_stylesheet_agrees_with_itself(self):
+        """The floor. If a file does not match itself, no verdict it gives on a
+        real move means anything."""
+        guard = self._guard()
+        text = self._css()
+        self.assertEqual(guard.compare(text, text), [])
+
+    def test_a_transposed_pair_is_caught(self):
+        guard = self._guard()
+        text = self._css()
+
+        by_index = {rule["index"]: rule for rule in guard.rules(text)}
+        pair = None
+        for rule in guard.rules(text):
+            if rule["ctx"]:
+                continue
+            for other_index in range(rule["index"] + 1, len(by_index)):
+                other = by_index[other_index]
+                if other["ctx"] or other["start"] < rule["end"]:
+                    continue
+                shared = self._conflict(guard, rule, other)
+                if shared:
+                    pair = (rule, other, shared)
+                    break
+            if pair:
+                break
+
+        self.assertIsNotNone(
+            pair, "no two top-level rules in arena.css fight over a property "
+            "at equal specificity; the guard cannot be exercised"
+        )
+        first, second, shared = pair
+        forged = (
+            text[:first["start"]]
+            + text[second["start"]:second["end"]]
+            + text[first["end"]:second["start"]]
+            + text[first["start"]:first["end"]]
+            + text[second["end"]:]
+        )
+        complaints = guard.compare(text, forged)
+        self.assertTrue(
+            complaints,
+            f"swapping {first['sel'][:40]!r} and {second['sel'][:40]!r}, which "
+            f"both write {shared} at the same specificity, changes which one "
+            "wins — and the guard did not notice",
+        )
+        self.assertTrue(
+            any("TRANSPOSED" in line for line in complaints),
+            "the guard complained, but not about the order: " + str(complaints),
+        )
+
+    @staticmethod
+    def _conflict(guard, one, other):
+        """A property both rules write at the same specificity and importance."""
+        def written(rule):
+            out = set()
+            for selector in rule["sel"].split(","):
+                selector = selector.strip()
+                if not selector:
+                    continue
+                spec = guard.specificity(selector)
+                for name, _value, important in rule["decls"]:
+                    out.add((name, spec, important))
+            return out
+
+        overlap = written(one) & written(other)
+        return sorted(name for name, _spec, _important in overlap)[:1]
+
+
 class ArenaTemplateHygieneTests(TestCase):
     """AN21, master task section 14 — the templates carry markup, not CSS.
 
