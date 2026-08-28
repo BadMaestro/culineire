@@ -5023,3 +5023,17 @@ a.battle-home__pulse-msg:hover {
 .sticker-pack__separate     { margin-top: 1.4rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
 .sticker-pack__separate .artifact-card { max-width: 15rem; }
 .sticker-card__token        { display: block; margin: 0.2rem 0 0.5rem; font-size: 0.72rem; color: var(--muted); }
+
+/* AC-STK part C1 - gifting an artifact to a chef before a battle.
+   Quiet, under the Buy button: it is the same price and the second-most
+   likely thing somebody wants to do on this shelf, not the first. */
+.artifact-card__gift        { margin-top: 0.5rem; }
+.artifact-card__gift-label  { display: block; font-size: 0.72rem; color: var(--muted);
+                              margin-bottom: 0.2rem; }
+.artifact-card__gift-select { width: 100%; box-sizing: border-box; margin-bottom: 0.35rem;
+                              padding: 0.3rem 0.4rem; border: 1px solid var(--line);
+                              border-radius: 8px; background: var(--surface-soft);
+                              font: inherit; font-size: 0.78rem; }
+.artifact-card__gift button { width: 100%; font-size: 0.74rem; }
+.battle-gifts__owned        { margin-top: 1.2rem; padding-top: 1rem;
+                              border-top: 1px solid var(--line); }

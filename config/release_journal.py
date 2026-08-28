@@ -1,5 +1,71 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1388",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "AC-STK part C - an artifact can be given before a battle, and one you own can be delivered into a running one",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The last two of the Owner's four acquisition routes, and with them "
+            "AC-STK is complete. Neither was written down anywhere before this "
+            "card - both are now in audience_gifts.md, which is the gap he told "
+            "us to close ourselves rather than leave for the next agent. "
+            "C1, GIFTING BEFORE A BATTLE, COSTS THE SHELF PRICE AND NO "
+            "DELIVERY. His words: a user may give a chef an artifact for free "
+            "before a fight, and an artifact bought before one costs exactly "
+            "what the shelf says. The doubling in send_battle_artifact is the "
+            "price of REACHING A RUNNING FIGHT; nothing is running here, so "
+            "there is nothing to pay for, and the arithmetic is stated in a "
+            "comment because the function directly below charges twice this. "
+            "It lands as ORDINARY PROPERTY - not locked to a battle, not "
+            "forced, not expiring - which is the entire difference from a "
+            "battle gift and is one field. There is a test that ends a battle "
+            "and asserts the gift is still there. It writes "
+            "ChefArtifact.Source.GIFTED, a constant that has existed since the "
+            "model was drawn and has been produced by nothing at all: the "
+            "battle path writes BATTLE_GIFT. Third dead value this card has "
+            "given a producer, after ARTIFACT_BOUGHT and ARTIFACT_PURCHASED. "
+            "C2, SENDING ONE YOU ALREADY OWN, COSTS THE DELIVERY HALF ONLY - "
+            "one shelf price and not two, because the artifact was already "
+            "bought. THE ROW MOVES RATHER THAN BEING COPIED, and that is the "
+            "one line in this release that would have been a real defect if it "
+            "went the other way: creating a second row would mint an artifact "
+            "out of nothing. A test counts ChefArtifact before and after and "
+            "asserts the total does not move. The row arrives with "
+            "locked_to_battle set, so it inherits must-use-or-expire; a test "
+            "finishes the battle and asserts it expired. "
+            "TWO LOCKS, BOTH RE-READ UNDER THEMSELVES, and F37 is why. That "
+            "finding taught this file that a battle status read before the "
+            "transaction opens can change inside it. The same is true of the "
+            "artifact row - a second tab can reserve it into a combat loadout, "
+            "consume it, or send it to another battle - so the battle AND the "
+            "ChefArtifact row are both locked and both re-read, and nothing is "
+            "spent until they are. Ownership is re-checked under the lock too, "
+            "even though the view already resolved the row as the sender's: "
+            "that lookup is a convenience and this is the rule. Five tests "
+            "cover the refusals - not yours, reserved, consumed, already "
+            "committed, and a battle that finished between the page load and "
+            "the POST. "
+            "LEGENDARY IS REFUSED ON BOTH, and the guard that pins it was "
+            "rewritten rather than bumped. It asserted the refusal sentence "
+            "appeared exactly twice; there are four paths now, and a count has "
+            "to be edited every time one is added, which trains whoever adds "
+            "one to edit the guard instead of read it. It asserts the WORDING "
+            "instead: every legendary refusal in services.py must be the same "
+            "sentence. C2 is not a purchase, so relaxing it is the Owner's - "
+            "flagged rather than decided quietly. "
+            "ONE BUG THE MODELS CAUGHT BEFORE THE TESTS DID: the chef list for "
+            "the gift form filtered on `chef_battle_profile`, and the reverse "
+            "accessor is `battle_profile`. This file already carries two dead "
+            "getattr()s that guessed that same wrong name and have silently "
+            "returned None ever since - trap 4 of the brief, walked into while "
+            "reading about it. "
+            "112 focused tests green on PostgreSQL --parallel 8, 21 of them "
+            "new. No migration. The two routes are recorded in "
+            "audience_gifts.md and token_economy.md."
+        ),
+    },
+    {
         "version": "2.5.1385",
         "date": "2026-08-28",
         "commit": "pending",

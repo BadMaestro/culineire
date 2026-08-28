@@ -3096,6 +3096,161 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
     return gift
 
 
+def gift_artifact_before_battle(*, sender_author, recipient, artifact: Artifact) -> ChefArtifact:
+    """AC-STK part C1: give a chef an artifact when no battle is running.
+
+    Route 3 of the Owner's four, 2026-08-27: "пользователи могут дарить
+    артефакты шефам бесплатно до боя ... если артефакт или подарок куплен до
+    боя - то он покупается ровно за ту стоимость за сколько он стоит на
+    прилавке".
+
+    THE SHELF PRICE, ONCE. No delivery fee - the doubling in
+    send_battle_artifact below is the price of reaching a RUNNING fight, and
+    the whole point of this route is that nothing is running. The giver pays
+    what the shelf says and not a token more; the arithmetic is stated here
+    because the function underneath charges twice this and the two must never
+    be read as the same thing.
+
+    IT LANDS AS ORDINARY PROPERTY. Not locked_to_battle, not forced, not
+    expiring - the chef may carry it into a later battle against the
+    three-per-type loadout limit, or never use it at all. That is the entire
+    difference from a battle gift, and it is one field.
+
+    THE SOURCE IS `GIFTED`, which has been a dead constant since ChefArtifact
+    was drawn: the battle path writes BATTLE_GIFT and nothing has ever written
+    this one. It is the honest name for exactly this, and it finally has a
+    producer.
+    """
+    if not artifact.is_active:
+        raise ValueError("This artifact is not available.")
+    if artifact.rarity == Artifact.Rarity.LEGENDARY:
+        raise ValueError("Legendary artifacts are prize-only and cannot be bought.")
+    if sender_author is None:
+        raise ValueError("Sender must have a chef profile to send gifts.")
+    if recipient == sender_author:
+        # Buying one for yourself is buy_artifact, which charges the same and
+        # says what it is. Two names for one act is how a ledger stops meaning
+        # anything.
+        raise ValueError("To buy one for yourself, use the artifact shop.")
+
+    # Nothing the game does may take anything from the Owner's account
+    # (AGENTS.md 18). He may still RECEIVE one - the rule is about loss.
+    if is_owner_author(sender_author):
+        raise ValueError("The Owner's account is not charged for artifacts.")
+
+    with transaction.atomic():
+        token_tx = debit_tokens(
+            sender_author, artifact.token_cost,
+            tx_type=TokenTransaction.TxType.ARTIFACT_BOUGHT,
+            description=f"Artifact gift before a battle: {artifact.name} to {recipient.name}",
+        )
+        owned = ChefArtifact.objects.create(
+            chef=recipient,
+            artifact=artifact,
+            source=ChefArtifact.Source.GIFTED,
+            status=ChefArtifact.Status.AVAILABLE,
+            locked_to_battle=None,
+        )
+        from .models import LedgerEvent
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.ARTIFACT_PURCHASED,
+            actor=sender_author,
+            target=recipient,
+            payload={
+                "artifact": artifact.name,
+                "artifact_id": artifact.pk,
+                "rarity": artifact.rarity,
+                "tokens_spent": artifact.token_cost,
+                "delivery_fee": 0,
+                "route": "gift_before_battle",
+                "chef_artifact_id": owned.pk,
+                "token_transaction_id": token_tx.pk,
+            },
+        )
+    return owned
+
+
+def send_owned_artifact_to_battle(*, sender_author, recipient, battle: Battle,
+                                  chef_artifact: ChefArtifact) -> ViewerBattleGift:
+    """AC-STK part C2: send an artifact you ALREADY OWN into a running battle.
+
+    The missing half of route 4. His words: "если пользователь хочет подарить
+    уже купленный артефакт во время боя - он платит за доставку, либо он
+    покупает и сразу же дарит артефакт за двойную стоимость". The second case
+    is send_battle_artifact below; this is the first.
+
+    THE DELIVERY HALF ONLY. The artifact was already bought, so what is charged
+    is the fee for reaching a fight that is already under way - one
+    token_cost, not two.
+
+    THE ROW MOVES, IT IS NOT COPIED. The giver stops owning it and the
+    recipient starts, with locked_to_battle set, so it inherits the
+    must-use-or-expire rule every battle gift carries. Creating a second row
+    would mint an artifact out of nothing.
+
+    TWO LOCKS, BOTH RE-CHECKED UNDER THEMSELVES. F37 taught this file that a
+    status read before a transaction opens is a status that can change inside
+    it: the battle can finish between the check and the debit. The same is true
+    of the artifact - it can be reserved into a combat loadout, consumed, or
+    sent to another battle by a second tab. So the battle row and the
+    ChefArtifact row are both locked and both re-read under the lock, and
+    nothing is spent until they are.
+    """
+    if sender_author is None:
+        raise ValueError("Sender must have a chef profile to send gifts.")
+    if not battle.author_is_participant(recipient):
+        raise ValueError("Recipient must be a participant in this battle.")
+    if is_owner_author(sender_author):
+        raise ValueError("The Owner's account is not charged for artifacts.")
+
+    artifact = chef_artifact.artifact
+    if artifact.rarity == Artifact.Rarity.LEGENDARY:
+        # Kept in step with every other path, and flagged to the Owner rather
+        # than decided quietly: he ruled legendary artifacts prize-only on
+        # 2026-08-27. This is not a purchase, so it is his to relax; until he
+        # does, one rule in one wording everywhere.
+        raise ValueError("Legendary artifacts are prize-only and cannot be bought.")
+
+    delivery_fee = artifact.token_cost
+
+    with transaction.atomic():
+        locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+        if locked_battle.status not in Battle.ACTIVE_STATUSES:
+            raise ValueError("Cannot send battle gifts to a battle that is not active.")
+
+        locked_row = ChefArtifact.objects.select_for_update().get(pk=chef_artifact.pk)
+        if locked_row.chef_id != sender_author.pk:
+            raise ValueError("That artifact is not yours to send.")
+        if locked_row.status != ChefArtifact.Status.AVAILABLE:
+            raise ValueError("That artifact is not available to send.")
+        if locked_row.locked_to_battle_id is not None:
+            raise ValueError("That artifact is already committed to a battle.")
+        if locked_row.reserved_in_battle_id is not None:
+            raise ValueError("That artifact is reserved for a battle loadout.")
+
+        token_tx = debit_tokens(
+            sender_author, delivery_fee,
+            tx_type=TokenTransaction.TxType.GIFT_SENT,
+            description=f"Delivery of {artifact.name} to {recipient.name}",
+            battle=locked_battle,
+        )
+        gift = ViewerBattleGift.objects.create(
+            battle=locked_battle,
+            recipient=recipient,
+            sender=getattr(sender_author, "user", None),
+            artifact=artifact,
+            tokens_spent=delivery_fee,
+            delivery_fee=delivery_fee,
+            token_transaction=token_tx,
+        )
+        # THE MOVE. One row, one owner, now locked to this fight.
+        locked_row.chef = recipient
+        locked_row.source = ChefArtifact.Source.BATTLE_GIFT
+        locked_row.locked_to_battle = locked_battle
+        locked_row.save(update_fields=["chef", "source", "locked_to_battle"])
+    return gift
+
+
 def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: str = "") -> AppreciationGift:
     """Viewer spends tokens to send an appreciation gift to a chef. All gifts are digital items only.
 

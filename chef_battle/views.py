@@ -879,6 +879,91 @@ def artifact_buy(request):
     return redirect("chef_battle:artifact_gallery")
 
 
+@chef_battle_guard
+@require_POST
+@login_required
+def artifact_gift(request):
+    """AC-STK part C1: give a chef an artifact when no battle is running.
+
+    Shelf price, no delivery fee - there is no running fight to reach. Same
+    stack and same order as every other money endpoint on this page.
+    """
+    from .models import Artifact
+    from .services import gift_artifact_before_battle
+
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "You need a chef profile to send gifts.")
+        return redirect("chef_battle:artifact_gallery")
+
+    refusal = _paid_arena_gates(author)
+    if refusal:
+        messages.error(request, refusal)
+        return redirect("chef_battle:artifact_gallery")
+
+    artifact = get_object_or_404(Artifact, pk=request.POST.get("artifact"), is_active=True)
+    recipient = get_object_or_404(
+        RecipeAuthor, slug=(request.POST.get("recipient_slug") or "").strip(),
+    )
+    try:
+        gift_artifact_before_battle(sender_author=author, recipient=recipient, artifact=artifact)
+    except Exception as exc:
+        messages.error(request, str(exc))
+        return redirect("chef_battle:artifact_gallery")
+
+    messages.success(
+        request,
+        f"{artifact.name} sent to {recipient.name}. It is theirs to carry into a battle.",
+    )
+    return redirect("chef_battle:artifact_gallery")
+
+
+@chef_battle_guard
+@require_POST
+@login_required
+def send_owned_artifact_view(request, pk):
+    """AC-STK part C2: send an artifact you already own into a running battle.
+
+    The delivery half only, because the artifact was already bought. Lives
+    beside send_viewer_battle_gift_view on the battle page, which is the same
+    act paid for the other way.
+    """
+    from .services import send_owned_artifact_to_battle
+
+    author = get_author_for_user(request.user)
+    if not author:
+        messages.error(request, "You need a chef profile to send gifts.")
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    refusal = _paid_arena_gates(author)
+    if refusal:
+        messages.error(request, refusal)
+        return redirect("chef_battle:battle_detail", pk=pk)
+
+    battle = get_object_or_404(Battle, pk=pk)
+    recipient = get_object_or_404(
+        RecipeAuthor, slug=(request.POST.get("recipient_slug") or "").strip(),
+    )
+    # Resolved as the SENDER'S OWN row before anything else. The service
+    # re-checks ownership under the row lock too, because this lookup is a
+    # convenience and that one is the rule.
+    owned = get_object_or_404(
+        ChefArtifact, pk=request.POST.get("chef_artifact"), chef=author,
+    )
+
+    try:
+        send_owned_artifact_to_battle(
+            sender_author=author, recipient=recipient, battle=battle, chef_artifact=owned,
+        )
+        messages.success(
+            request,
+            f"{owned.artifact.name} delivered to {recipient.name} for this battle.",
+        )
+    except Exception as exc:
+        messages.error(request, str(exc))
+    return redirect("chef_battle:battle_detail", pk=pk)
+
+
 WITHDRAWAL_CONSENT_TEXT = (
     "I understand that CulinEire Arena Tokens are a digital item delivered immediately upon purchase. "
     "By proceeding, I expressly request immediate delivery and acknowledge that I lose my right of "
@@ -2759,6 +2844,27 @@ def battle_detail(request, pk):
         wallet = TokenWallet.objects.filter(chef=viewer_author).first()
         viewer_token_balance = wallet.balance if wallet else 0
 
+    # AC-STK part C2. What the VIEWER already owns and could send into this
+    # fight for the delivery half. Filtered to exactly what the service will
+    # accept - available, unreserved, not committed to any battle, and not
+    # legendary - so the form never offers a choice that is going to be
+    # refused. The service re-checks every one of these under a row lock,
+    # because this list is a courtesy and that is the rule.
+    sendable_owned_artifacts = []
+    if viewer_author:
+        sendable_owned_artifacts = list(
+            ChefArtifact.objects
+            .filter(
+                chef=viewer_author,
+                status=ChefArtifact.Status.AVAILABLE,
+                locked_to_battle__isnull=True,
+                reserved_in_battle__isnull=True,
+            )
+            .exclude(artifact__rarity=Artifact.Rarity.LEGENDARY)
+            .select_related("artifact")
+            .order_by("artifact__name")
+        )
+
     user_available_artifacts = []
     opponent_active_ingredients = []
     if is_participant and viewer_author and battle.status == Battle.Status.ACTIVE:
@@ -2820,6 +2926,7 @@ def battle_detail(request, pk):
         "opponent_has_moved": opponent_has_moved,
         "appreciation_gifts": appreciation_gifts,
         "giftable_artifacts": giftable_artifacts,
+        "sendable_owned_artifacts": sendable_owned_artifacts,
         "viewer_token_balance": viewer_token_balance,
         "active_statuses": Battle.ACTIVE_STATUSES,
         "battle_participants": [battle.challenger, battle.opponent],
@@ -3980,6 +4087,23 @@ def artifact_gallery(request):
     # v2.5.1373 built a separate page instead, which he then could not find.
     sticker_packs, loose_stickers, owned_sticker_ids = _sticker_shelf(viewer_author)
 
+    # AC-STK part C1. Who a gift can go to: enrolled chefs, the viewer aside -
+    # buying one for yourself is the Buy button next to it and says so. The
+    # Owner is excluded the same way the challenge path excludes him: he is
+    # outside the competition, and a gift is not a way around that.
+    giftable_chefs = []
+    if viewer_author:
+        giftable_chefs = list(
+            RecipeAuthor.objects
+            .filter(battle_profile__isnull=False)   # the reverse accessor is
+            # `battle_profile`, NOT `chef_battle_profile` - this file already
+            # carries two dead getattr()s that guessed the second name and have
+            # silently returned None ever since.
+            .exclude(pk=viewer_author.pk)
+            .exclude(slug=getattr(settings, "OWNER_SLUG", "greenbear"))
+            .order_by("name")
+        )
+
     return render(request, "chef_battle/artifact_gallery.html", {
         "grouped": grouped,
         "total": len(artifacts),
@@ -3990,6 +4114,7 @@ def artifact_gallery(request):
         "loose_stickers": loose_stickers,
         "owned_ids": owned_sticker_ids,
         "has_profile": viewer_author is not None,
+        "giftable_chefs": giftable_chefs,
     })
 
 

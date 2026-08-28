@@ -114,6 +114,8 @@ urlpatterns = [
     path("profile/<slug:slug>/", views.chef_battle_profile, name="chef_profile"),
     path("battles/<int:pk>/gift/appreciation/", views.send_appreciation_gift_view, name="send_appreciation_gift"),
     path("battles/<int:pk>/gift/artifact/", views.send_viewer_battle_gift_view, name="send_viewer_battle_gift"),
+    # AC-STK part C2: sending one you already own, the delivery half only.
+    path("battles/<int:pk>/gift/owned/", views.send_owned_artifact_view, name="send_owned_artifact"),
     path("payout/", views.payout_statement, name="payout_statement"),
     path("payout/agreement/", views.reward_agreement, name="reward_agreement"),
     path("report/", views.content_report_submit, name="content_report_submit"),
@@ -125,6 +127,8 @@ urlpatterns = [
     path("artifacts/", views.artifact_gallery, name="artifact_gallery"),
     # AC-STK part B: buying one for yourself, at the shelf price.
     path("artifacts/buy/", views.artifact_buy, name="artifact_buy"),
+    # AC-STK part C1: gifting one to a chef before a battle, no delivery fee.
+    path("artifacts/gift/", views.artifact_gift, name="artifact_gift"),
     path("artifacts/<int:pk>/", views.artifact_detail, name="artifact_detail"),
     path("artifacts/<int:pk>/generate/", views.artifact_generate_image, name="artifact_generate_image"),
     path("gifts/", views.appreciation_gallery, name="appreciation_gallery"),

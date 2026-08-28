@@ -47,6 +47,8 @@ Larger packages = better value. Encourages bulk purchases.
 | Gift Rare artifact | 60 | 60 | **120 tokens** |
 | Gift Epic artifact | 150 | 150 | **300 tokens** |
 | **Buy an artifact for yourself** | shelf price | — | **10 / 25 / 60 / 150 tokens** |
+| **Gift an artifact to a chef BEFORE a battle** | shelf price | — | **10 / 25 / 60 / 150 tokens** |
+| **Send one you already own into a running battle** | already paid | shelf price | **10 / 25 / 60 / 150 tokens** |
 | Gift Legendary artifact | — | — | **prize only, cannot be bought** |
 | Appreciation gift (6 kinds, no fee) | 20–100 | — | **20–100 tokens** |
 | **Arena chat sticker, on its own** | 10 | — | **10 tokens** |

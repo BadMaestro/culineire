@@ -238,6 +238,28 @@
               <input type="hidden" name="artifact" value="{{ artifact.pk }}">
               <button class="btn-secondary" type="submit">Buy for {{ artifact.token_cost }}T</button>
             </form>
+            {% comment %}
+            AC-STK part C1, Owner 2026-08-27: a user may give a chef an
+            artifact BEFORE a battle, at the shelf price with NO delivery fee,
+            because there is no running fight to influence. The price beside
+            this button is deliberately the same as the Buy button above it -
+            that is the whole rule, and stating it twice is cheaper than a
+            buyer discovering it from a receipt.
+            {% endcomment %}
+            {% if giftable_chefs %}
+            <form action="{% url 'chef_battle:artifact_gift' %}" class="artifact-card__gift" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="artifact" value="{{ artifact.pk }}">
+              <label class="artifact-card__gift-label" for="gift-{{ artifact.pk }}">Gift it to a chef</label>
+              <select class="artifact-card__gift-select" id="gift-{{ artifact.pk }}" name="recipient_slug" required>
+                <option value="">&mdash; choose a chef &mdash;</option>
+                {% for chef in giftable_chefs %}
+                <option value="{{ chef.slug }}">{{ chef.name }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn-secondary" type="submit">Gift for {{ artifact.token_cost }}T &mdash; no delivery fee</button>
+            </form>
+            {% endif %}
             {% endif %}
             {% if artifact.owned_count %}
             <p class="artifact-card__owned">In your chest{% if artifact.owned_count > 1 %} &times;{{ artifact.owned_count }}{% endif %}</p>

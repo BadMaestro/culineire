@@ -134,3 +134,28 @@ events, etc.) — the category is open-ended.
 - Gifting Legendary artifacts = higher price, higher platform revenue
 - Creates incentive to make battles more spectacular (bigger audience =
   more gifts = more revenue)
+
+## Artifacts before a battle, and sending one you already own
+
+**Recorded 2026-08-28 (AC-STK part C). Neither rule was written down anywhere
+before this, which is exactly the gap the Owner told us to close ourselves.**
+
+**Gifting BEFORE a battle costs the shelf price and NO delivery fee.** Delivery is
+the price of reaching a fight that is already running; before one starts there is
+nothing to reach and nothing to influence. The artifact lands in the chef's chest
+as **ordinary property** — not locked to a battle, not forced, and it does not
+expire when any battle ends. He may carry it into a later fight against the
+three-per-type combat loadout limit, or never use it. Written with
+`ChefArtifact.Source.GIFTED`, which had been a dead constant since the model was
+drawn.
+
+**Sending one you ALREADY OWN into a running battle costs the delivery half only** —
+one shelf price, not two, because the artifact was already bought. The row **moves**
+to the recipient rather than being copied, with `locked_to_battle` set, so it
+inherits the ordinary battle-gift rule: it must be used in that fight and expires
+unused when it ends. Both the battle and the artifact row are locked and re-read
+under their own locks before anything is charged, because either can change between
+the page load and the POST.
+
+**Legendary artifacts take neither route.** The Owner ruled them prize-only on
+2026-08-27: won in battle, never bought, gifted or delivered.

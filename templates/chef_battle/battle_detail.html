@@ -475,6 +475,35 @@
         </div>
         {% endfor %}
         <p class="battle-gifts__note">Combat artifacts are one-use digital items. Once used in battle they are consumed; an unused delivery expires when this battle ends.</p>
+
+        {% comment %}
+        AC-STK part C2, Owner 2026-08-27: "если пользователь хочет подарить уже
+        купленный артефакт во время боя - он платит за доставку, либо он
+        покупает и сразу же дарит артефакт за двойную стоимость". The form
+        above is the second case. This is the first, and it is offered only to
+        somebody who actually has something to send - an empty select is a
+        control that cannot work.
+        {% endcomment %}
+        {% if sendable_owned_artifacts %}
+        <div class="battle-gifts__chef battle-gifts__owned">
+          <strong class="battle-gifts__chef-name">&#x1F4E4; Send one you already own</strong>
+          <p class="battle-gifts__note" style="margin-block-end:0.75rem;">You bought it already, so only the delivery fee is charged.</p>
+          {% for chef in battle_participants %}
+          <form method="post" action="{% url 'chef_battle:send_owned_artifact' battle.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="recipient_slug" value="{{ chef.slug }}">
+            <label class="battle-muted" for="owned-artifact-{{ chef.pk }}">From your chest, to {{ chef.name }}</label>
+            <select id="owned-artifact-{{ chef.pk }}" name="chef_artifact" class="battle-form__input" required>
+              <option value="">&#x2014; Choose from your chest &#x2014;</option>
+              {% for owned in sendable_owned_artifacts %}
+              <option value="{{ owned.pk }}">{{ owned.artifact.name }} &middot; {{ owned.artifact.effect_type }} +{{ owned.artifact.effect_value }} &middot; delivery {{ owned.artifact.token_cost }}T</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="battle-gift-btn battle-gift-btn--artifact">Send for delivery only</button>
+          </form>
+          {% endfor %}
+        </div>
+        {% endif %}
       </section>
       {% endif %}
 

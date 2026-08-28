@@ -26401,17 +26401,29 @@ class BuyArtifactForYourselfTests(TestCase):
         self.assertEqual(TokenWallet.objects.get(chef=self.author).balance, 500)
         self.assertFalse(ChefArtifact.objects.filter(chef=self.author).exists())
 
-    def test_the_refusal_is_worded_the_same_as_the_battle_gift_path(self):
-        """Two paths refusing the same thing in two different sentences is how
-        one of them quietly stops refusing it."""
+    def test_every_path_refuses_legendary_in_the_same_words(self):
+        """Four paths now refuse it - buying one for yourself, gifting before a
+        battle, sending one you own, and the original battle gift. Paths that
+        refuse the same thing in different sentences are how one of them
+        quietly stops refusing it.
+
+        ASSERTS THE WORDING, NOT A COUNT. A count has to be bumped every time a
+        path is added, which trains whoever adds one to edit the guard rather
+        than read it."""
+        import re
+
         source = (
             Path(__file__).resolve().parent / "services.py"
         ).read_text(encoding="utf-8")
+        wordings = set(re.findall(r'raise ValueError\("([^"]*[Ll]egendary[^"]*)"\)', source))
         self.assertEqual(
-            source.count(
-                'raise ValueError("Legendary artifacts are prize-only and cannot be bought.")'
-            ),
-            2,
+            wordings,
+            {"Legendary artifacts are prize-only and cannot be bought."},
+            f"the legendary refusal is worded more than one way: {wordings}",
+        )
+        self.assertGreaterEqual(
+            len(re.findall(r"Legendary artifacts are prize-only", source)), 4,
+            "a path stopped refusing legendary artifacts",
         )
 
     def test_an_inactive_artifact_cannot_be_bought(self):
@@ -26944,3 +26956,284 @@ class TheStickerShelfShowsTheWindowAndThePriceTests(TestCase):
     def test_there_is_a_way_to_the_chest_it_lands_in(self):
         page = self.client.get(self.gallery)
         self.assertContains(page, reverse("chef_battle:battle_chest"))
+
+
+def _battle_between(challenger, opponent, status=None):
+    """An ACTIVE battle between two chefs, for the artifact-delivery tests."""
+    from chef_battle.models import Battle
+
+    now = timezone.now()
+    return Battle.objects.create(
+        challenger=challenger,
+        opponent=opponent,
+        theme="AC-STK delivery",
+        status=status or Battle.Status.ACTIVE,
+        start_time=now - timezone.timedelta(hours=1),
+        submission_deadline=now + timezone.timedelta(hours=47),
+        end_time=now + timezone.timedelta(hours=47),
+    )
+
+
+# ===========================================================================
+# AC-STK PART C - THE GIFT BEFORE A BATTLE, AND SENDING ONE YOU OWN
+# ===========================================================================
+
+
+class GiftAnArtifactBeforeABattleTests(TestCase):
+    """Route 3 of the Owner's four: given to a chef when nothing is running.
+
+    His words, 2026-08-27: "пользователи могут дарить артефакты шефам бесплатно
+    до боя ... если артефакт или подарок куплен до боя - то он покупается ровно
+    за ту стоимость за сколько он стоит на прилавке".
+    """
+
+    def setUp(self):
+        self.user, self.giver = _make_chef("giver", balance=500)
+        _, self.chef = _make_chef("receivingchef")
+        self.common = _artifact("Test Gift Whisk", "common", 10)
+
+    def test_the_giver_pays_the_shelf_price_once(self):
+        """No delivery fee. The doubling in send_battle_artifact is the price
+        of reaching a RUNNING fight, and nothing is running here."""
+        from .services import gift_artifact_before_battle
+
+        gift_artifact_before_battle(
+            sender_author=self.giver, recipient=self.chef, artifact=self.common,
+        )
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 490)
+
+    def test_it_lands_in_the_chef_chest_as_ordinary_property(self):
+        from .services import gift_artifact_before_battle
+
+        owned = gift_artifact_before_battle(
+            sender_author=self.giver, recipient=self.chef, artifact=self.common,
+        )
+        self.assertEqual(owned.chef, self.chef)
+        self.assertEqual(owned.status, ChefArtifact.Status.AVAILABLE)
+        self.assertIsNone(
+            owned.locked_to_battle,
+            "a pre-battle gift must not inherit the must-use-or-expire lock - "
+            "that rule belongs to a gift sent INTO a fight",
+        )
+
+    def test_it_finally_gives_the_dead_GIFTED_constant_a_producer(self):
+        """ChefArtifact.Source.GIFTED has existed since the model was drawn and
+        has been written by nothing: the battle path uses BATTLE_GIFT."""
+        from .services import gift_artifact_before_battle
+
+        owned = gift_artifact_before_battle(
+            sender_author=self.giver, recipient=self.chef, artifact=self.common,
+        )
+        self.assertEqual(owned.source, ChefArtifact.Source.GIFTED)
+
+    def test_it_survives_a_battle_ending(self):
+        """The difference from a battle gift, stated as behaviour rather than
+        as a field: nothing expires it."""
+        from .services import gift_artifact_before_battle, _release_battle_artifacts_on_finish
+
+        owned = gift_artifact_before_battle(
+            sender_author=self.giver, recipient=self.chef, artifact=self.common,
+        )
+        battle = _battle_between(self.chef, self.giver)
+        _release_battle_artifacts_on_finish(battle)
+        owned.refresh_from_db()
+        self.assertEqual(owned.status, ChefArtifact.Status.AVAILABLE)
+
+    def test_legendary_is_refused_and_charges_nothing(self):
+        from .services import gift_artifact_before_battle
+
+        legendary = _artifact("Test Gift Crown", "legendary", 400)
+        with self.assertRaises(ValueError):
+            gift_artifact_before_battle(
+                sender_author=self.giver, recipient=self.chef, artifact=legendary,
+            )
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 500)
+        self.assertFalse(ChefArtifact.objects.filter(chef=self.chef).exists())
+
+    def test_gifting_to_yourself_is_refused(self):
+        """That act already has a name and an endpoint - buy_artifact - and it
+        charges exactly the same. Two names for one act is how a ledger stops
+        meaning anything."""
+        from .services import gift_artifact_before_battle
+
+        with self.assertRaises(ValueError):
+            gift_artifact_before_battle(
+                sender_author=self.giver, recipient=self.giver, artifact=self.common,
+            )
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 500)
+
+    def test_an_empty_wallet_leaves_nothing_behind(self):
+        from .services import gift_artifact_before_battle
+
+        _, broke = _make_chef("brokegiver", balance=1)
+        with self.assertRaises(ValueError):
+            gift_artifact_before_battle(
+                sender_author=broke, recipient=self.chef, artifact=self.common,
+            )
+        self.assertFalse(ChefArtifact.objects.filter(chef=self.chef).exists())
+        self.assertFalse(LedgerEvent.objects.filter(actor=broke).exists())
+
+    @override_settings(OWNER_SLUG="greenbear")
+    def test_the_owner_account_is_never_charged(self):
+        from .services import gift_artifact_before_battle
+
+        owner_user = get_user_model().objects.create_user(username="ownergiver", password="pw")
+        owner, _ = RecipeAuthor.objects.get_or_create(
+            slug="greenbear", defaults={"user": owner_user, "name": "GreenBear"},
+        )
+        TokenWallet.objects.get_or_create(chef=owner)
+        from .services import credit_tokens
+        credit_tokens(owner, 500, tx_type="admin_grant", description="float")
+
+        with self.assertRaises(ValueError):
+            gift_artifact_before_battle(
+                sender_author=owner, recipient=self.chef, artifact=self.common,
+            )
+        self.assertEqual(TokenWallet.objects.get(chef=owner).balance, 500)
+
+
+class SendAnArtifactYouAlreadyOwnTests(TestCase):
+    """The missing half of route 4: the delivery fee alone, because the
+    artifact was already bought."""
+
+    def setUp(self):
+        from .services import buy_artifact
+
+        self.user, self.giver = _make_chef("owner_sender", balance=500)
+        _, self.chef = _make_chef("fighterone")
+        _, self.other = _make_chef("fightertwo")
+        self.battle = _battle_between(self.chef, self.other)
+        self.common = _artifact("Test Owned Ladle", "common", 10)
+        self.owned = buy_artifact(chef=self.giver, artifact=self.common)
+        # 500 - 10 for the purchase; the delivery half is what this class tests.
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 490)
+
+    def _send(self, **kwargs):
+        from .services import send_owned_artifact_to_battle
+
+        params = dict(
+            sender_author=self.giver, recipient=self.chef,
+            battle=self.battle, chef_artifact=self.owned,
+        )
+        params.update(kwargs)
+        return send_owned_artifact_to_battle(**params)
+
+    def test_only_the_delivery_half_is_charged(self):
+        self._send()
+        self.assertEqual(
+            TokenWallet.objects.get(chef=self.giver).balance, 480,
+            "the delivery half is one token_cost, not two - the artifact was "
+            "already paid for",
+        )
+
+    def test_the_row_moves_rather_than_being_copied(self):
+        """Creating a second row would mint an artifact out of nothing."""
+        before = ChefArtifact.objects.count()
+        self._send()
+        self.assertEqual(ChefArtifact.objects.count(), before)
+
+        self.owned.refresh_from_db()
+        self.assertEqual(self.owned.chef, self.chef)
+        self.assertEqual(self.owned.locked_to_battle, self.battle)
+        self.assertEqual(self.owned.source, ChefArtifact.Source.BATTLE_GIFT)
+
+    def test_it_inherits_the_must_use_or_expire_rule(self):
+        from .services import _release_battle_artifacts_on_finish
+
+        self._send()
+        _release_battle_artifacts_on_finish(self.battle)
+        self.owned.refresh_from_db()
+        self.assertEqual(self.owned.status, ChefArtifact.Status.EXPIRED)
+
+    def test_a_gift_row_records_it_like_any_other_battle_gift(self):
+        gift = self._send()
+        self.assertEqual(gift.battle, self.battle)
+        self.assertEqual(gift.recipient, self.chef)
+        self.assertEqual(gift.tokens_spent, 10)
+        self.assertEqual(gift.delivery_fee, 10)
+
+    def test_you_cannot_send_what_is_not_yours(self):
+        from .services import buy_artifact
+
+        _, stranger = _make_chef("stranger", balance=100)
+        theirs = buy_artifact(chef=stranger, artifact=self.common)
+        with self.assertRaises(Exception):
+            self._send(chef_artifact=theirs)
+        theirs.refresh_from_db()
+        self.assertEqual(theirs.chef, stranger)
+
+    def test_a_reserved_artifact_cannot_be_sent(self):
+        self.owned.reserved_in_battle = self.battle
+        self.owned.save(update_fields=["reserved_in_battle"])
+        with self.assertRaises(ValueError):
+            self._send()
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 490)
+
+    def test_a_consumed_artifact_cannot_be_sent(self):
+        self.owned.status = ChefArtifact.Status.CONSUMED
+        self.owned.save(update_fields=["status"])
+        with self.assertRaises(ValueError):
+            self._send()
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 490)
+
+    def test_one_already_committed_to_a_battle_cannot_be_sent_again(self):
+        self._send()
+        self.owned.refresh_from_db()
+        # It is not even his any more, but the lock is the rule that matters.
+        with self.assertRaises(Exception):
+            self._send()
+
+    def test_a_battle_that_is_not_running_refuses_the_delivery(self):
+        """F37's lesson: the status is re-read under the row lock, so a battle
+        that finished between the page load and the POST cannot take a gift."""
+        self.battle.status = Battle.Status.COMPLETED
+        self.battle.save(update_fields=["status"])
+        with self.assertRaises(ValueError):
+            self._send()
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 490)
+
+    def test_a_non_participant_cannot_receive(self):
+        _, bystander = _make_chef("bystander")
+        with self.assertRaises(ValueError):
+            self._send(recipient=bystander)
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 490)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class PartCEndpointsTests(TestCase):
+    """Both endpoints, held to the same gate as every other money surface."""
+
+    def setUp(self):
+        self.user, self.giver = _make_chef("endpointgiver", balance=500)
+        _, self.chef = _make_chef("endpointchef")
+        self.common = _artifact("Test Endpoint Pan", "common", 10)
+        self.gift_url = reverse("chef_battle:artifact_gift")
+
+    @override_settings(CHEF_BATTLE_ENABLED=False)
+    def test_both_answer_404_during_a_dark_launch(self):
+        for url in (self.gift_url, reverse("chef_battle:send_owned_artifact", kwargs={"pk": 1})):
+            self.assertEqual(self.client.get(url).status_code, 404)
+            self.assertEqual(self.client.post(url, {}).status_code, 404)
+
+    def test_an_age_unverified_giver_is_refused_and_charged_nothing(self):
+        ChefBattleProfile.objects.get_or_create(author=self.giver)
+        self.client.force_login(self.user)
+        self.client.post(self.gift_url, {
+            "artifact": self.common.pk, "recipient_slug": self.chef.slug,
+        })
+        self.assertFalse(ChefArtifact.objects.filter(chef=self.chef).exists())
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 500)
+
+    def test_a_verified_giver_sends_through_the_endpoint(self):
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=self.giver)
+        profile.age_verified = True
+        profile.save()
+
+        self.client.force_login(self.user)
+        self.client.post(self.gift_url, {
+            "artifact": self.common.pk, "recipient_slug": self.chef.slug,
+        })
+        row = ChefArtifact.objects.get(chef=self.chef, artifact=self.common)
+        self.assertEqual(row.source, ChefArtifact.Source.GIFTED)
+        self.assertIsNone(row.locked_to_battle)
+        self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 490)
