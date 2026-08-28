@@ -491,7 +491,117 @@
   font-size: .78rem;
   text-decoration: none;
 }
+
+/* .arena-broadcast-ribbon - every rule for this component that could be proved
+   safe to move, in one place. Gathered by an15_gather.py:
+   the applying declarations are byte-identical and no
+   conflicting pair changed places. */
 .arena-broadcast-ribbon { --arena-phase-gap: 0.382rem; --arena-phase-pad: 0.618rem; }
+  /* R6: full-width broadcast ribbon (identity + phase track). */
+  .arena-broadcast-ribbon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    display: grid;
+    border: 0;
+    border-radius: 0;
+    backdrop-filter: blur(10px) saturate(1.08);
+    -webkit-backdrop-filter: blur(10px) saturate(1.08);
+  }
+  /* Ribbon must be the first readable show strip. */
+  .arena-broadcast-ribbon {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 96%, transparent),
+        color-mix(in srgb, var(--surface-soft) 92%, transparent)
+      ) !important;
+    box-shadow: 0 0.75rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+/* 3G — denser broadcast ribbon phase track (prototype masthead). */
+
+  .arena-broadcast-ribbon {
+    grid-template-columns: minmax(14rem, 1fr) minmax(0, 2.6fr) auto;
+    align-items: center;
+    gap: 0.7rem 1rem;
+    min-height: 3.55rem;
+    padding: 0.38rem 1.2rem 0.45rem;
+  }
+  .arena-broadcast-ribbon {
+  }
+  .arena-broadcast-ribbon {
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  }
+  .page--arena .arena-broadcast-ribbon {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+    background: color-mix(in srgb, var(--surface-soft) 84%, var(--ink) 5%);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+@media (min-width: 901px) {
+/* A11: the deadline is NO LONGER hidden here. It was the one authoritative,
+     server-driven number in the panel, and hiding it on desktop is what left
+     the 30 s page-refresh countdown standing alone in the reference's clock
+     position, looking like a battle clock. Copy and compact facts stay hidden:
+     the reference panel carries neither, and the viewer count they duplicated
+     already lives in the pulse strip. */
+
+
+/* The clock sits on the phase name's baseline, right-aligned, as in the
+     reference: gold, Playfair, no card chrome of its own — the panel is the
+     card, and the clock must not read as a second one inside it. */
+
+
+/* No deadline is a real state and it must not shout. The arena spends most of
+     its life with no battle running, and "No active deadline" set in a clock
+     face would read as a fault instead of as calm. */
+
+
+/* The refresh countdown, demoted onto the gauge it actually measures — ONE
+     row, because two would cost more height than the card is trying to save. */
+
+
+  .page--arena .arena-broadcast-ribbon {
+    left: clamp(18.5rem, 23vw, 26rem);
+    right: clamp(16rem, 22vw, 24rem);
+    width: auto;
+    display: block;
+  }
+  /* Ribbon: was position:absolute;left:0;right:0;top:0 (Stage16). Now a
+     normal grid item spanning the top row, full width by the grid itself. */
+  .arena-command-deck > .arena-broadcast-ribbon,
+  .arena-broadcast-ribbon {
+    grid-area: ribbon;
+    position: static;
+    inset: auto;
+  }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+  .arena-command-deck > .arena-broadcast-ribbon { grid-area: ribbon; position: static; }
+}
+@media (max-width: 640px) {
+  /* THE RIBBON IS ONE COLUMN HERE. Its three-column desktop track -
+     minmax(14rem,1fr) minmax(0,2.6fr) auto - is stated with no @media around
+     it, so on a 375px phone the rail was being parked in a 14rem first column
+     and the other two thirds of the card stood empty. */
+  .arena-broadcast-ribbon {
+    grid-area: ribbon;
+    grid-template-columns: 1fr;
+    gap: var(--arena-phase-gap);
+    padding: var(--arena-phase-gap) var(--arena-phase-pad);
+    min-height: 0;
+  }
+}
+@media (max-width: 767px) {
+  /* The ribbon's desktop track - minmax(14rem,1fr) minmax(0,2.6fr) auto - is
+     also unconditional, and it was parking the strip in a 224px first column
+     with the rest of the card empty. One column here. */
+  .arena-broadcast-ribbon {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 .arena-command-deck__phase-rail { grid-area: phase-rail; border-radius: 1rem; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: .45rem; }
 .arena-command-deck__phase-rail.is-open .arena-phase-step { opacity: .82; }
 .arena-phase-step { justify-content: center; min-height: 2.3rem; }
@@ -679,14 +789,6 @@
    left with v2.5.922; the width stays, because a component knows its own
    intrinsic size - taking it away in v2.5.920 shrank the octagon by 126px. */
 .arena-rank-spine { position: absolute; pointer-events: none; }
-.arena-rank-spine__label { margin: 0 0 .28rem; font-size: .43rem; font-weight: 800; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
-/* The steps became <li> under an <ol> so the ladder is an ordered progression
-   in the markup too; the stacking that used to live on the <nav> moves to the
-   list, and the list's own marker/indent is removed. */
-.arena-rank-spine__list { margin: 0; padding: 0; list-style: none; }
-.arena-rank-spine__item { display: block; }
-/* Prototype hex chips, parchment tokens (contrast pinned by ArenaRankColumnTests). */
-.arena-rank-spine__step { display: flex; align-items: center; line-height: 1; text-decoration: none; }
 /* The count uses the official ink token for reliable contrast; bronze measured
    below the 7:1 the column is held to. Measured against the shipped tokens:
    --ink #1f2c25 on --surface #fffdf9 = 14.30:1 (label), and on --surface-soft
@@ -1505,19 +1607,6 @@
     color: var(--ink);
   }
 
-  /* R6: full-width broadcast ribbon (identity + phase track). */
-  .arena-broadcast-ribbon {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    display: grid;
-    border: 0;
-    border-radius: 0;
-    backdrop-filter: blur(10px) saturate(1.08);
-    -webkit-backdrop-filter: blur(10px) saturate(1.08);
-  }
-
   .arena-command-deck__phase-card { left: 1.5%; width: 20%; }
   .arena-command-deck__ladder  { left: 1.5%;  bottom: 8%; width: 20%; }
 
@@ -1582,12 +1671,6 @@
   .arena-lower-broadcast .btn-secondary,
   .arena-lower-broadcast .ce-nav__link {
     min-height: 2.35rem;
-  }
-
-/* 3G — rank spine broadcast chips (stay readable on the floor photo). */
-
-  .arena-rank-spine__step {
-    border-width: 1.5px;
   }
 
 /* Media layer, stage 1 (Owner 2026-08-03). Restored from 58efc0d4^ unchanged.
@@ -1876,18 +1959,8 @@
   .arena-live-chef, .arena-live-chef--opponent { justify-content: center; text-align: center; }
   .arena-live-chef--opponent { flex-direction: row-reverse; }
   .arena-command-deck__floor .arena-legend { max-width: 100%; justify-content: flex-start; }
-  /* Stage 3E: the complete rank ladder stays available on a phone. It was
-     display:none here, which removed all eight ranks below 768px. Instead of
-     hiding it, the column stops being an overlay on the floor and becomes a
-     compact wrapped row in normal flow: every rank is still present and
-     readable, nothing covers the crown, and the chips wrap rather than pushing
-     the page sideways. placeRankSpine() clears its measured inline top/left/
-     width at this width so the stylesheet, not the renderer, owns the layout. */
-  .arena-rank-spine { position: static; width: 100%; margin: .15rem 0 .4rem; transform: none; }
   .arena-rank-spine__label { text-align: left; margin-bottom: .2rem; }
-  .arena-rank-spine__list { display: flex; flex-wrap: wrap; gap: .25rem; }
   .arena-rank-spine__item { flex: 1 1 auto; }
-  .arena-rank-spine__step { min-height: 1.5rem; padding: .2rem .5rem; font-size: .58rem; clip-path: none; }
   .arena-crowd-rail__actions { width: 100%; }
   .arena-crowd-rail__actions > * { flex: 1 1 0; text-align: center; justify-content: center; }
 }
@@ -2077,23 +2150,6 @@
   .page--arena .arena-confrontation-band .arena-live-centre:not(.arena-live-centre--crown):not(.arena-live-centre--quiet) {
     min-width: 7.5rem;
     padding: 0.7rem 1rem;
-  }
-
-  .page--arena .arena-rank-spine__step {
-    border-color: color-mix(in srgb, var(--hall-gold) 42%, var(--hall-border));
-    color: var(--hall-gold-light);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--hall-dark-1) 70%, var(--hall-gold)),
-        color-mix(in srgb, var(--hall-dark-0) 88%, transparent)
-      );
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hall-gold) 18%, transparent);
-  }
-
-  .page--arena .arena-rank-spine__name {
-    overflow: visible;
-    text-overflow: clip;
   }
 .arena-panel__kicker {
   font-size:.66rem; letter-spacing:.09em; text-transform:uppercase;
@@ -2618,9 +2674,499 @@
     position: relative;
     z-index: var(--arena-z-floor);
   }
+
+/* .arena-rank-spine - every rule for this component that could be proved
+   safe to move, in one place. Gathered by an15_gather.py:
+   the applying declarations are byte-identical and no
+   conflicting pair changed places. */
+.arena-rank-spine__label { margin: 0 0 .28rem; font-size: .43rem; font-weight: 800; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
+/* The steps became <li> under an <ol> so the ladder is an ordered progression
+   in the markup too; the stacking that used to live on the <nav> moves to the
+   list, and the list's own marker/indent is removed. */
+.arena-rank-spine__list { margin: 0; padding: 0; list-style: none; }
+.arena-rank-spine__item { display: block; }
+/* Prototype hex chips, parchment tokens (contrast pinned by ArenaRankColumnTests). */
+.arena-rank-spine__step { display: flex; align-items: center; line-height: 1; text-decoration: none; }
+/* 3G — rank spine broadcast chips (stay readable on the floor photo). */
+
+  .arena-rank-spine__step {
+    border-width: 1.5px;
+  }
+@media (max-width: 767px) {
+  /* Stage 3E: the complete rank ladder stays available on a phone. It was
+     display:none here, which removed all eight ranks below 768px. Instead of
+     hiding it, the column stops being an overlay on the floor and becomes a
+     compact wrapped row in normal flow: every rank is still present and
+     readable, nothing covers the crown, and the chips wrap rather than pushing
+     the page sideways. placeRankSpine() clears its measured inline top/left/
+     width at this width so the stylesheet, not the renderer, owns the layout. */
+  .arena-rank-spine { position: static; width: 100%; margin: .15rem 0 .4rem; transform: none; }
+  .arena-rank-spine__list { display: flex; flex-wrap: wrap; gap: .25rem; }
+  .arena-rank-spine__step { min-height: 1.5rem; padding: .2rem .5rem; font-size: .58rem; clip-path: none; }
+}
+  .page--arena .arena-rank-spine__step {
+    border-color: color-mix(in srgb, var(--hall-gold) 42%, var(--hall-border));
+    color: var(--hall-gold-light);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--hall-dark-1) 70%, var(--hall-gold)),
+        color-mix(in srgb, var(--hall-dark-0) 88%, transparent)
+      );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hall-gold) 18%, transparent);
+  }
+  .page--arena .arena-rank-spine__name {
+    overflow: visible;
+    text-overflow: clip;
+  }
   .arena-floor-stage .arena-rank-spine {
     z-index: var(--arena-z-stage);
   }
+/* 3G — rank spine under confrontation with spine rail. */
+
+  .arena-rank-spine::before {
+    content: "";
+    position: absolute;
+    z-index: var(--arena-z-under);
+    left: 50%;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 2px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--accent-bronze) 55%, transparent),
+      transparent
+    );
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  .arena-rank-spine {
+  /* position is the renderer's (AN6); size stays with the component */
+}
+  /* Rank ladder as a bottom strip (prototype rank-progression), not a sticker on the crown. */
+  .arena-rank-spine__list {
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+  .arena-rank-spine__step {
+    gap: 0.2rem;
+  }
+  .arena-rank-spine__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+/* 3G — rank spine as prototype vertical progression above crown. */
+
+  .arena-rank-spine__list {
+    display: grid;
+  }
+  .arena-rank-spine__item {
+    min-width: 0;
+  }
+  .arena-rank-spine__step {
+    width: 100%;
+  }
+  .arena-rank-spine::before {
+    display: none;
+  }
+  .arena-floor-stage .arena-rank-spine {
+    /* keep spine upright above the tilted floor */
+  }
+  .arena-rank-spine__step:hover,
+  .arena-rank-spine__step:focus-visible {
+    border-color: var(--accent-bronze);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent-bronze) 22%, var(--surface)),
+        color-mix(in srgb, var(--ink) 28%, var(--surface))
+      );
+  }
+@media (prefers-reduced-motion: reduce) {
+  .arena-rank-spine__step {
+    transition: none;
+  }
+}
+/* 3G — r10b: spine ladder over centre + ribbon LIVE weight (mockup #1). */
+
+  .arena-rank-spine {
+    gap: 0.22rem;
+  }
+  .arena-rank-spine::before {
+    margin-bottom: 0.35rem;
+    color: var(--accent-bronze);
+    font-size: 0.48rem;
+    letter-spacing: 0.14em;
+    text-shadow: 0 0 0.6rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  }
+  .arena-rank-spine__step {
+    text-transform: uppercase;
+    border-color: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
+  }
+  .arena-rank-spine__step:nth-child(1),
+  .arena-rank-spine__step:nth-child(2) {
+    border-color: var(--accent-bronze);
+    box-shadow: 0 0 0.55rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  }
+/* ============================================================================
+ * 3G R4 - Owner D1 Option B (2026-07-24): Ember prototype centred rank stack.
+ * Overturns GreenBear Option A (keep side column). Wins over earlier polish
+ * tops that pushed the spine down the floor; CSS owns desktop placement.
+ * ============================================================================ */
+
+  .arena-rank-spine {
+    width: min(11.5rem, 25%);
+    z-index: var(--arena-z-ladder);
+  }
+  .arena-rank-spine__label {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-rank-spine__list {
+    /* 0.15rem measured 2.4px, which put every rung after the first on a
+       fraction of a pixel and made eight identical chips render as eight
+       slightly different ones. Four whole pixels; the rung itself is 22 plus
+       two of rim, so the pitch is 28. */
+    gap: 4px;
+  }
+@media (min-width: 901px) {
+  /* SCOPED TO THE DESKTOP ARENA. The first version of this sat at top level and
+   * therefore applied below 901px too, where the Owner froze the arena on
+   * 2026-08-03: at 563px it made the stack content-width while the base rule
+   * still translated it -50 per cent, so it hung 57px off the LEFT EDGE of the
+   * screen with its titles cut by the viewport. Found in his own screenshot. */
+  /* OWNER, 2026-08-07: "the ladders are not in their places - put them where the
+   * mockup has them". They were stretched down the whole floor - top 26%,
+   * bottom 18%, space-between - so the eight titles spread across the rings and
+   * the middle two, Commis Chef and Chef de Partie, lay across the crown hub.
+   *
+   * The reference does not stretch them. Its ladder is ONE COMPACT STACK at the
+   * top centre: left 960 (canvas centre), top 196, flex column, gap 5px, each
+   * chip 5px/16px padding at 10.5px type. Block 198.7 x 235 on a floor 1585.4 x
+   * 667.5 whose top edge is at 329 - so the stack starts a fifth of the floor's
+   * height ABOVE the floor and ends 217px clear of the crown.
+   *
+   * Height and position are therefore NOT percentages of the deck any more:
+   * placeRankSpine() measures the floor and applies the reference's own ratios.
+   * The rules here only make the stack compact so it can be placed. */
+  .arena-rank-spine {
+    width: max-content;
+    max-width: 28%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    pointer-events: none;
+  }
+  .arena-rank-spine__label {
+    display: none;
+  }
+  .arena-rank-spine__list {
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    /* 5px on the reference's 667.5-tall floor = 0.0075 of it; at our floor
+     * height that lands near 4px, which is what this evaluates to. */
+    min-height: 0;
+  }
+}
+  .arena-rank-spine__item {
+    flex: 0 0 auto;
+  }
+  .arena-rank-spine__step {
+    justify-content: center;
+    /* 1.375rem = 22px on a 16px root, so a rung plus its two rim pixels plus
+       the 0.25rem gap is 28 whole pixels. 1.35rem measured 21.59 and every rung
+       landed on a different subpixel - see placeRankSpine for the rest of it. */
+    min-height: 1.375rem;
+    padding: 0.16rem 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 72%, var(--ink));
+    border-radius: 0;
+    clip-path: polygon(
+      0.7rem 0,
+      calc(100% - 0.7rem) 0,
+      100% 50%,
+      calc(100% - 0.7rem) 100%,
+      0.7rem 100%,
+      0 50%
+    );
+    background: color-mix(in srgb, var(--ink) 88%, transparent);
+    box-shadow:
+      inset 0 0 0.45rem color-mix(in srgb, var(--accent-bronze) 18%, transparent),
+      0 0.2rem 0.45rem color-mix(in srgb, var(--ink) 24%, transparent);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: var(--surface);
+    font-size: clamp(0.52rem, 0.72vw, 0.7rem);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-shadow:
+      0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent),
+      0 0 0.55rem color-mix(in srgb, var(--surface) 55%, transparent);
+    pointer-events: none;
+    transition: none;
+  }
+  /* THE RUNG WEARS ITS RING'S COLOUR — Owner, 2026-08-07.
+   *
+   * The colour is NOT here. paintRankLadder() reads it off the ring that is
+   * actually painted and writes it onto the rung; see the note there for why a
+   * fourth list of these eight colours would be a fourth thing to keep in step.
+   * What is here is the consequence: the background is now sometimes #52422e
+   * and sometimes near-white, and the old rule set one light ink and one light
+   * glow for all eight, which is unreadable at the pale end of the ramp. The
+   * data-on-dark attribute is set from the fill's own luminance. */
+  .arena-rank-spine__step[data-on-dark="true"] {
+    color: var(--surface);
+    text-shadow: 0 1px 0.35rem color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+  .arena-rank-spine__step[data-on-dark="false"] {
+    color: var(--ink);
+    text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 65%, transparent);
+  }
+  /* THE EDGE — Owner, 2026-08-07: "границы лестницы плохо видны."
+   *
+   * The chip HAD a 1px bronze border and an 8.8px bronze glow, and neither one
+   * reached the screen. clip-path cuts the element's own painting, and a CSS
+   * border and box-shadow are part of that painting: the polygon takes the two
+   * bevelled ends off, so the border survived only along the flat top and
+   * bottom and the glow was clipped away entirely. Nothing was missing from the
+   * stylesheet; it was being cut off after it was drawn.
+   *
+   * drop-shadow is applied to the element AFTER the clip, and follows the
+   * clipped silhouette, so it can draw the one line the border could not. Two
+   * tight passes make a hairline that turns both bevels, and a third, softer
+   * and offset, lifts the chip off the floor behind it.
+   *
+   * The colour flips with the fill, like the ink does: a dark rim on the pale
+   * end of the ramp is invisible against the deck, and a bronze rim on
+   * Culinary Master is invisible against the chip. */
+  /* The reset carries the attribute too. arena_hall.css sets this border under
+   * `.page--arena .arena-rank-spine__step`, and a bare class loses to it - the
+   * first attempt at this rule was written without the attribute and never
+   * reached the screen, which is the same lesson as the border itself. */
+  .arena-rank-spine__step[data-on-dark="true"],
+  .arena-rank-spine__step[data-on-dark="false"] {
+    border-color: transparent;
+    box-shadow: none;
+    filter: drop-shadow(0 1px 1.5px color-mix(in srgb, var(--ink) 22%, transparent));
+  }
+  /* AND THE RIM IS THE ITEM, NOT THE CHIP. Owner, 2026-08-07: "первых две
+   * вообще не видно."
+   *
+   * Rings 7 and 8 measure rgb(228,221,209) and the deck behind them measures
+   * rgb(229,222,213). The chip is the same colour as the page it lies on, so
+   * those two rungs have no shape of their own AT ALL - only an edge can give
+   * them one, and a hairline drawn by drop-shadow was not enough to be that
+   * edge. Two rungs of eight were invisible, which is what he photographed.
+   *
+   * So the rim is a FILLED SHAPE behind the chip: the list item takes the same
+   * bevelled clip and one pixel of padding, and its background is the rim. The
+   * chip sits on top of it and leaves that pixel showing all the way round,
+   * bevels included. It is an outline that cannot be clipped away, because it
+   * is not an outline - it is the object underneath. */
+  .arena-rank-spine__item {
+    --rim: color-mix(in srgb, var(--accent-bronze) 62%, var(--ink));
+    padding: 1px;
+    background: var(--rim);
+    clip-path: polygon(
+      0.72rem 0,
+      calc(100% - 0.72rem) 0,
+      100% 50%,
+      calc(100% - 0.72rem) 100%,
+      0.72rem 100%,
+      0 50%
+    );
+  }
+  /* ONE RIM, ALL EIGHT. Owner, 2026-08-07: rungs 3, 2 and 1 take the same rim
+   * as the rest - the difference was the thing the eye landed on.
+   *
+   * They briefly had a pale rim on the reasoning that a dark line on a dark
+   * chip would vanish the way the bronze one vanished on the two palest. It
+   * does not: those chips are #52422e through #9b8467 against a light deck, so
+   * they have a shape whatever their rim does, and the pale line only announced
+   * that three of eight were built differently. The rim is one colour now
+   * because the ladder is one object. */
+
+  /* Owner, 2026-08-07: "выравнивание цифр по левому краю а статусы по центру
+   * ячейки лестницы."
+   *
+   * The numeral leaves the text flow and stands in a gutter at the chip's left
+   * edge; the rank name is then centred on the CHIP rather than on what is left
+   * of it after the numeral. In flow they were one centred group, so the name's
+   * centre moved with the width of the numeral beside it and no two rungs
+   * agreed. The chip carries symmetric inline padding so a long name cannot run
+   * under the gutter on either side. Tabular figures so eight numerals sit in
+   * one column however the type is rendered. */
+  .arena-rank-spine__step {
+    position: relative;
+    padding-inline: 1.45rem;
+  }
+  /* The divider comes back (Owner, 2026-08-07). It was a border on the numeral
+   * while the numeral sat in the text flow; once the numeral went absolute the
+   * border went with it, which was not asked for. It is a rule of its own now,
+   * at a fixed offset, so it stands in one place on all eight rungs instead of
+   * following the width of a digit. */
+  .arena-rank-spine__step::before {
+    content: "";
+    position: absolute;
+    left: 1.15rem;
+    top: 0.18rem;
+    bottom: 0.18rem;
+    width: 1px;
+    background: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  }
+  /* Owner, 2026-08-07: on rung 3 the divider is barely there. Head Chef fills
+   * rgb(155,132,103) and the bronze line is rgb(180,122,51) - the line and the
+   * chip under it are nearly the same colour, and it only gets worse on 2 and
+   * 1. So the divider turns over with the fill, exactly as the ink and the type
+   * already do; one attribute decides all three. */
+  .arena-rank-spine__step[data-on-dark="true"]::before {
+    background: color-mix(in srgb, var(--surface) 62%, transparent);
+  }
+  .arena-rank-spine__ring {
+    position: absolute;
+    left: 0.62rem;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    padding: 0;
+    font-style: normal;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+    opacity: 0.78;
+  }
+  .arena-rank-spine__name {
+    text-align: center;
+  }
+@media (max-width: 640px) {
+  .arena-floor-stage > .arena-rank-spine {
+    display: none;
+  }
+}
+@media (min-width: 901px) {
+  /* ---- 4. THE RANK LADDER ----------------------------------------------
+     THE ONE THE BRIEF NAMES, AND THE ONE WITH A REAL LIMIT.
+
+     The phone draws eight ivory tiles, 79x150, 11.2px radius, a bronze
+     hairline, the Owner's own emblem art inside each. The desktop ladder is
+     eight flat chips 157x22, square corners, a gold glow - a different
+     component, not a smaller version of the same one.
+
+     WHY THE TILES ARE NOT TRANSPLANTED WHOLE. Measured at 1440: the desktop
+     ladder's slot is 159x220 and it sits INSIDE the octagon's own region, put
+     there by placeRankSpine() against the octagon's geometry. The phone's
+     grid is 339x308. Moving it across needs 180px more width and 88px more
+     height, and every one of those pixels comes out of the octagon. A
+     redesign that quietly eats the arena is not a redesign.
+
+     SO THE SURFACE CROSSES AND THE GEOMETRY DOES NOT. Each chip keeps its
+     exact box and takes the tile's material: ivory ground, bronze hairline,
+     soft radius, the count as a tabular numeral. Same family, same palette,
+     same weight of line, at the size this slot actually has. The emblem art
+     needs a bigger slot than the ladder owns, and enlarging that slot is the
+     Owner's call. */
+  .page--arena .arena-rank-spine__step {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    box-shadow: none;
+    clip-path: none;
+  }
+  /* NO MARGIN BETWEEN THE CHIPS, and the omission is deliberate. A first pass
+     put 0.22rem here for the tiles' rhythm and the ladder went 220px to 245px
+     - measured - which is 25px more of the octagon's own region covered by an
+     overlay that promised to change paint only. The rhythm is not worth it.
+     Nothing in this block changes a box. */
+  /* The ring number is the tile's own numeral: bronze and tabular, quiet
+     enough that the rank NAME is what the eye reads first. */
+  .page--arena .arena-rank-spine__ring {
+    color: var(--accent-bronze-dark);
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+  }
+  .page--arena .arena-rank-spine__name {
+    color: var(--ink);
+    letter-spacing: 0.06em;
+  }
+  /* Culinary Master keeps the warmer ground and firmer edge the phone gives
+     it - and NOT a larger box. On the phone that tile was brought back to the
+     same size as the other seven for exactly this reason: the gold is already
+     the emphasis, and a second one reads as uneven. */
+  .page--arena .arena-rank-spine__item[data-ring="1"] .arena-rank-spine__step {
+    border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
+  }
+}
+/* ============================================================================
+ * THE RANK LADDER GETS ITS EMBLEMS. Owner, 2026-08-24: "расширяй слот под
+ * эмблемы" - the decision I said was his and would not take.
+ *
+ * DEFAULT IS HIDDEN, AND THAT IS THE SAFETY. The <img> now exists in the
+ * markup at every width, so it is switched OFF here and ON only at 901px.
+ * Below 640px this ladder is display:none entirely and the mobile scene
+ * carries the ranks; between 641 and 900 the ladder keeps the chip form the
+ * brief says not to disturb. Hiding by default means the element's existence
+ * changes nothing anywhere except the desktop.
+ * ========================================================================== */
+.arena-rank-spine__emblem { display: none; }
+@media (min-width: 901px) {
+  .arena-rank-spine__item {
+    display: block;
+    min-width: 0;
+  }
+  /* The chip becomes the phone's tile: a column, emblem first, the name and
+     the count under it - the same reading order the kitchen-ranks scene uses,
+     so a viewer meets one component on both screens. */
+  .page--arena .arena-rank-spine__step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.12rem;
+    width: 100%;
+    padding: 0.32rem 0.2rem 0.4rem;
+    border-radius: 0.7rem;
+    text-align: center;
+  }
+  .arena-rank-spine__emblem {
+    display: block;
+    width: 100%;
+    max-width: 3.6rem;
+    height: auto;
+    aspect-ratio: 11 / 18;
+    object-fit: contain;
+  }
+  /* The art carries the rank NUMBER baked in - that is why the phone dropped
+     its own numeral when these crops arrived (v2.5.1208). The same is true
+     here, so the ring numeral goes rather than printing the number twice. */
+  .page--arena .arena-rank-spine__ring { display: none; }
+  /* THE NAME GOES TOO, and for the same reason as the numeral above it - I
+     got this wrong first time and the Owner photographed it. His crops carry
+     the rank NAMEPLATE as well as the number baked into the art (v2.5.1208
+     is where the phone dropped both its own spans for exactly this). Printing
+     the name again underneath meant every tile said its rank twice, and the
+     second copy was the one that clipped: KITCHEN PORTE, EXECUTIVE CHE.
+
+     The accessible name is untouched - it lives on the step's aria-label,
+     which spells out the ring, the rank and the chef count, so nothing is
+     lost to a screen reader by taking the visible duplicate away. */
+  .page--arena .arena-rank-spine__name { display: none; }
+  /* The label above the stack comes back: with tiles rather than a list of
+     names, the stack no longer says what it is. */
+  .page--arena .arena-rank-spine__label {
+    display: block;
+    font-size: 0.46rem;
+    color: var(--accent-bronze-dark);
+  }
+  /* ---- 2. THE OLD OVERLAY GOES QUIET HERE ------------------------------
+     Same mechanism the phone already uses at :8459, at the other end of the
+     range. The overlay's ~50 rules are NOT deleted: they still dress the
+     ladder between 641 and 900px, which this pass does not touch. */
+  .arena-floor-stage > .arena-rank-spine { display: none; }
+}
+
+
   .arena-rank-spine__step b {
     min-width: 1.15rem;
     height: 1.15rem;
@@ -2712,28 +3258,6 @@
     margin-top: 0.4rem;
   }
 
-/* 3G — rank spine under confrontation with spine rail. */
-
-  .arena-rank-spine::before {
-    content: "";
-    position: absolute;
-    z-index: var(--arena-z-under);
-    left: 50%;
-    top: 0.35rem;
-    bottom: 0.35rem;
-    width: 2px;
-    transform: translateX(-50%);
-    border-radius: 999px;
-    background: linear-gradient(
-      180deg,
-      transparent,
-      color-mix(in srgb, var(--accent-bronze) 55%, transparent),
-      transparent
-    );
-    opacity: 0.85;
-    pointer-events: none;
-  }
-
 /* 3G — centre floor caption (prototype arena-core heading). */
 
   .arena-floor-caption {
@@ -2781,9 +3305,6 @@
        never more than 42% of the floor, never wider than the room that is
        actually free - lives in this one line. */
   }
-  .arena-rank-spine {
-  /* position is the renderer's (AN6); size stays with the component */
-}
 
 /* 3G — mobile-safe panel titles + compact facts. */
 /* ONE PANEL HEADER, ONE RULE. Owner, 2026-08-24: "все блоки должны быть
@@ -3009,17 +3530,6 @@
     box-shadow: none !important;
   }
 
-  /* Ribbon must be the first readable show strip. */
-  .arena-broadcast-ribbon {
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--surface) 96%, transparent),
-        color-mix(in srgb, var(--surface-soft) 92%, transparent)
-      ) !important;
-    box-shadow: 0 0.75rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent);
-  }
-
   /* Confrontation sits under ribbon, above the rings. */
 
   /* Spine is a side legend, not a sticker on the crown. */
@@ -3030,20 +3540,6 @@
   .arena-confrontation-band[data-centre-key^="crown-"] .arena-live-centre--crown {
     width: 7.8rem;
     height: 7.8rem;
-  }
-
-  /* Rank ladder as a bottom strip (prototype rank-progression), not a sticker on the crown. */
-  .arena-rank-spine__list {
-    flex-wrap: nowrap;
-    justify-content: center;
-  }
-  .arena-rank-spine__step {
-    gap: 0.2rem;
-  }
-  .arena-rank-spine__name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   /* Keep confrontation above the strip, clearer empty/crown focus. */
@@ -3070,21 +3566,6 @@
       );
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 50%, transparent);
     box-shadow: 0 0 1.4rem color-mix(in srgb, var(--accent-bronze) 22%, transparent);
-  }
-
-/* 3G — rank spine as prototype vertical progression above crown. */
-
-  .arena-rank-spine__list {
-    display: grid;
-  }
-  .arena-rank-spine__item {
-    min-width: 0;
-  }
-  .arena-rank-spine__step {
-    width: 100%;
-  }
-  .arena-rank-spine::before {
-    display: none;
   }
   /* Caption sits above the progression; confrontation stays at floor centre. */
   .arena-floor-caption {
@@ -3122,9 +3603,6 @@
     pointer-events: none;
     transform: translate(-50%, -50%);
   }
-  .arena-floor-stage .arena-rank-spine {
-    /* keep spine upright above the tilted floor */
-  }
   .arena-puzzle-label {
     display: none;
   }
@@ -3138,16 +3616,6 @@
     filter: none;
   }
 }
-
-/* 3G — denser broadcast ribbon phase track (prototype masthead). */
-
-  .arena-broadcast-ribbon {
-    grid-template-columns: minmax(14rem, 1fr) minmax(0, 2.6fr) auto;
-    align-items: center;
-    gap: 0.7rem 1rem;
-    min-height: 3.55rem;
-    padding: 0.38rem 1.2rem 0.45rem;
-  }
 
 /* 3G — prototype rail widths (narrower show panels). */
 .arena-command-deck__phase-card,
@@ -5434,8 +5902,6 @@ button.arena-chat__poll-option { cursor: pointer; }
     font-style: normal;
     letter-spacing: 0.04em;
   }
-  .arena-broadcast-ribbon {
-  }
   .arena-confrontation-band .arena-live-centre span,
   .arena-confrontation-band .arena-live-centre em {
     font-size: 0.52rem;
@@ -6930,16 +7396,6 @@ button.arena-chat__poll-option { cursor: pointer; }
   .arena-confrontation-band .arena-live-chef--opponent {
     min-height: 5.35rem;
   }
-  .arena-rank-spine__step:hover,
-  .arena-rank-spine__step:focus-visible {
-    border-color: var(--accent-bronze);
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent-bronze) 22%, var(--surface)),
-        color-mix(in srgb, var(--ink) 28%, var(--surface))
-      );
-  }
 
 /* 3G — gift/ladder list density (show panels, not admin lists). */
 
@@ -6983,9 +7439,6 @@ button.arena-chat__poll-option { cursor: pointer; }
   }
 
 @media (prefers-reduced-motion: reduce) {
-  .arena-rank-spine__step {
-    transition: none;
-  }
 }
 
 /* 3G — challenger/opponent rail edge glow (hex cards). */
@@ -7130,37 +7583,11 @@ button.arena-chat__poll-option { cursor: pointer; }
     opacity: 0.9;
     filter: blur(1.45rem);
   }
-
-/* 3G — r10b: spine ladder over centre + ribbon LIVE weight (mockup #1). */
-
-  .arena-rank-spine {
-    gap: 0.22rem;
-  }
-  .arena-rank-spine::before {
-    margin-bottom: 0.35rem;
-    color: var(--accent-bronze);
-    font-size: 0.48rem;
-    letter-spacing: 0.14em;
-    text-shadow: 0 0 0.6rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
-  }
-  .arena-rank-spine__step {
-    text-transform: uppercase;
-    border-color: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
-  }
   .arena-rank-spine__step b {
     color: var(--accent-bronze);
     border-color: color-mix(in srgb, var(--accent-bronze) 65%, transparent);
     background: color-mix(in srgb, var(--ink) 35%, var(--surface));
     box-shadow: 0 0 0.35rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
-  }
-  .arena-rank-spine__step:nth-child(1),
-  .arena-rank-spine__step:nth-child(2) {
-    border-color: var(--accent-bronze);
-    box-shadow: 0 0 0.55rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
-  }
-
-  .arena-broadcast-ribbon {
-    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
   }
 
   .arena-confrontation-band .arena-live-chef img {
@@ -7258,27 +7685,6 @@ button.arena-chat__poll-option { cursor: pointer; }
   }
 
 /* ============================================================================
- * 3G R4 - Owner D1 Option B (2026-07-24): Ember prototype centred rank stack.
- * Overturns GreenBear Option A (keep side column). Wins over earlier polish
- * tops that pushed the spine down the floor; CSS owns desktop placement.
- * ============================================================================ */
-
-  .arena-rank-spine {
-    width: min(11.5rem, 25%);
-    z-index: var(--arena-z-ladder);
-  }
-  .arena-rank-spine__label {
-    color: var(--accent-bronze-dark);
-  }
-  .arena-rank-spine__list {
-    /* 0.15rem measured 2.4px, which put every rung after the first on a
-       fraction of a pixel and made eight identical chips render as eight
-       slightly different ones. Four whole pixels; the rung itself is 22 plus
-       two of rim, so the pitch is 28. */
-    gap: 4px;
-  }
-
-/* ============================================================================
  * MOCKUP M05/M06/M11 — floor rank titles + crown hub + Emerald Hall identity.
  * DOM and visual order stay model order (Kitchen Porter → Culinary Master):
  * the far/top edge begins with Kitchen Porter and Culinary Master finishes
@@ -7287,220 +7693,9 @@ button.arena-chat__poll-option { cursor: pointer; }
 
 
 @media (min-width: 901px) {
-  /* SCOPED TO THE DESKTOP ARENA. The first version of this sat at top level and
-   * therefore applied below 901px too, where the Owner froze the arena on
-   * 2026-08-03: at 563px it made the stack content-width while the base rule
-   * still translated it -50 per cent, so it hung 57px off the LEFT EDGE of the
-   * screen with its titles cut by the viewport. Found in his own screenshot. */
-  /* OWNER, 2026-08-07: "the ladders are not in their places - put them where the
-   * mockup has them". They were stretched down the whole floor - top 26%,
-   * bottom 18%, space-between - so the eight titles spread across the rings and
-   * the middle two, Commis Chef and Chef de Partie, lay across the crown hub.
-   *
-   * The reference does not stretch them. Its ladder is ONE COMPACT STACK at the
-   * top centre: left 960 (canvas centre), top 196, flex column, gap 5px, each
-   * chip 5px/16px padding at 10.5px type. Block 198.7 x 235 on a floor 1585.4 x
-   * 667.5 whose top edge is at 329 - so the stack starts a fifth of the floor's
-   * height ABOVE the floor and ends 217px clear of the crown.
-   *
-   * Height and position are therefore NOT percentages of the deck any more:
-   * placeRankSpine() measures the floor and applies the reference's own ratios.
-   * The rules here only make the stack compact so it can be placed. */
-  .arena-rank-spine {
-    width: max-content;
-    max-width: 28%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    pointer-events: none;
-  }
-  .arena-rank-spine__label {
-    display: none;
-  }
-  .arena-rank-spine__list {
-    flex: 0 0 auto;
-    flex-direction: column;
-    justify-content: flex-start;
-    /* 5px on the reference's 667.5-tall floor = 0.0075 of it; at our floor
-     * height that lands near 4px, which is what this evaluates to. */
-    min-height: 0;
-  }
 }
-
-  .arena-rank-spine__item {
-    flex: 0 0 auto;
-  }
-  .arena-rank-spine__step {
-    justify-content: center;
-    /* 1.375rem = 22px on a 16px root, so a rung plus its two rim pixels plus
-       the 0.25rem gap is 28 whole pixels. 1.35rem measured 21.59 and every rung
-       landed on a different subpixel - see placeRankSpine for the rest of it. */
-    min-height: 1.375rem;
-    padding: 0.16rem 0.85rem;
-    border: 1px solid color-mix(in srgb, var(--accent-bronze) 72%, var(--ink));
-    border-radius: 0;
-    clip-path: polygon(
-      0.7rem 0,
-      calc(100% - 0.7rem) 0,
-      100% 50%,
-      calc(100% - 0.7rem) 100%,
-      0.7rem 100%,
-      0 50%
-    );
-    background: color-mix(in srgb, var(--ink) 88%, transparent);
-    box-shadow:
-      inset 0 0 0.45rem color-mix(in srgb, var(--accent-bronze) 18%, transparent),
-      0 0.2rem 0.45rem color-mix(in srgb, var(--ink) 24%, transparent);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    color: var(--surface);
-    font-size: clamp(0.52rem, 0.72vw, 0.7rem);
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-shadow:
-      0 1px 0 color-mix(in srgb, var(--surface) 70%, transparent),
-      0 0 0.55rem color-mix(in srgb, var(--surface) 55%, transparent);
-    pointer-events: none;
-    transition: none;
-  }
   .arena-rank-spine__step b {
     display: none;
-  }
-
-  /* THE RUNG WEARS ITS RING'S COLOUR — Owner, 2026-08-07.
-   *
-   * The colour is NOT here. paintRankLadder() reads it off the ring that is
-   * actually painted and writes it onto the rung; see the note there for why a
-   * fourth list of these eight colours would be a fourth thing to keep in step.
-   * What is here is the consequence: the background is now sometimes #52422e
-   * and sometimes near-white, and the old rule set one light ink and one light
-   * glow for all eight, which is unreadable at the pale end of the ramp. The
-   * data-on-dark attribute is set from the fill's own luminance. */
-  .arena-rank-spine__step[data-on-dark="true"] {
-    color: var(--surface);
-    text-shadow: 0 1px 0.35rem color-mix(in srgb, var(--ink) 55%, transparent);
-  }
-  .arena-rank-spine__step[data-on-dark="false"] {
-    color: var(--ink);
-    text-shadow: 0 1px 0 color-mix(in srgb, var(--surface) 65%, transparent);
-  }
-
-  /* THE EDGE — Owner, 2026-08-07: "границы лестницы плохо видны."
-   *
-   * The chip HAD a 1px bronze border and an 8.8px bronze glow, and neither one
-   * reached the screen. clip-path cuts the element's own painting, and a CSS
-   * border and box-shadow are part of that painting: the polygon takes the two
-   * bevelled ends off, so the border survived only along the flat top and
-   * bottom and the glow was clipped away entirely. Nothing was missing from the
-   * stylesheet; it was being cut off after it was drawn.
-   *
-   * drop-shadow is applied to the element AFTER the clip, and follows the
-   * clipped silhouette, so it can draw the one line the border could not. Two
-   * tight passes make a hairline that turns both bevels, and a third, softer
-   * and offset, lifts the chip off the floor behind it.
-   *
-   * The colour flips with the fill, like the ink does: a dark rim on the pale
-   * end of the ramp is invisible against the deck, and a bronze rim on
-   * Culinary Master is invisible against the chip. */
-  /* The reset carries the attribute too. arena_hall.css sets this border under
-   * `.page--arena .arena-rank-spine__step`, and a bare class loses to it - the
-   * first attempt at this rule was written without the attribute and never
-   * reached the screen, which is the same lesson as the border itself. */
-  .arena-rank-spine__step[data-on-dark="true"],
-  .arena-rank-spine__step[data-on-dark="false"] {
-    border-color: transparent;
-    box-shadow: none;
-    filter: drop-shadow(0 1px 1.5px color-mix(in srgb, var(--ink) 22%, transparent));
-  }
-
-  /* AND THE RIM IS THE ITEM, NOT THE CHIP. Owner, 2026-08-07: "первых две
-   * вообще не видно."
-   *
-   * Rings 7 and 8 measure rgb(228,221,209) and the deck behind them measures
-   * rgb(229,222,213). The chip is the same colour as the page it lies on, so
-   * those two rungs have no shape of their own AT ALL - only an edge can give
-   * them one, and a hairline drawn by drop-shadow was not enough to be that
-   * edge. Two rungs of eight were invisible, which is what he photographed.
-   *
-   * So the rim is a FILLED SHAPE behind the chip: the list item takes the same
-   * bevelled clip and one pixel of padding, and its background is the rim. The
-   * chip sits on top of it and leaves that pixel showing all the way round,
-   * bevels included. It is an outline that cannot be clipped away, because it
-   * is not an outline - it is the object underneath. */
-  .arena-rank-spine__item {
-    --rim: color-mix(in srgb, var(--accent-bronze) 62%, var(--ink));
-    padding: 1px;
-    background: var(--rim);
-    clip-path: polygon(
-      0.72rem 0,
-      calc(100% - 0.72rem) 0,
-      100% 50%,
-      calc(100% - 0.72rem) 100%,
-      0.72rem 100%,
-      0 50%
-    );
-  }
-  /* ONE RIM, ALL EIGHT. Owner, 2026-08-07: rungs 3, 2 and 1 take the same rim
-   * as the rest - the difference was the thing the eye landed on.
-   *
-   * They briefly had a pale rim on the reasoning that a dark line on a dark
-   * chip would vanish the way the bronze one vanished on the two palest. It
-   * does not: those chips are #52422e through #9b8467 against a light deck, so
-   * they have a shape whatever their rim does, and the pale line only announced
-   * that three of eight were built differently. The rim is one colour now
-   * because the ladder is one object. */
-
-  /* Owner, 2026-08-07: "выравнивание цифр по левому краю а статусы по центру
-   * ячейки лестницы."
-   *
-   * The numeral leaves the text flow and stands in a gutter at the chip's left
-   * edge; the rank name is then centred on the CHIP rather than on what is left
-   * of it after the numeral. In flow they were one centred group, so the name's
-   * centre moved with the width of the numeral beside it and no two rungs
-   * agreed. The chip carries symmetric inline padding so a long name cannot run
-   * under the gutter on either side. Tabular figures so eight numerals sit in
-   * one column however the type is rendered. */
-  .arena-rank-spine__step {
-    position: relative;
-    padding-inline: 1.45rem;
-  }
-  /* The divider comes back (Owner, 2026-08-07). It was a border on the numeral
-   * while the numeral sat in the text flow; once the numeral went absolute the
-   * border went with it, which was not asked for. It is a rule of its own now,
-   * at a fixed offset, so it stands in one place on all eight rungs instead of
-   * following the width of a digit. */
-  .arena-rank-spine__step::before {
-    content: "";
-    position: absolute;
-    left: 1.15rem;
-    top: 0.18rem;
-    bottom: 0.18rem;
-    width: 1px;
-    background: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-  }
-  /* Owner, 2026-08-07: on rung 3 the divider is barely there. Head Chef fills
-   * rgb(155,132,103) and the bronze line is rgb(180,122,51) - the line and the
-   * chip under it are nearly the same colour, and it only gets worse on 2 and
-   * 1. So the divider turns over with the fill, exactly as the ink and the type
-   * already do; one attribute decides all three. */
-  .arena-rank-spine__step[data-on-dark="true"]::before {
-    background: color-mix(in srgb, var(--surface) 62%, transparent);
-  }
-  .arena-rank-spine__ring {
-    position: absolute;
-    left: 0.62rem;
-    top: 50%;
-    transform: translateY(-50%);
-    margin: 0;
-    padding: 0;
-    font-style: normal;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0;
-    opacity: 0.78;
-  }
-  .arena-rank-spine__name {
-    text-align: center;
   }
   .arena-confrontation-band .arena-live-centre--crown {
     width: 8.4rem;
@@ -8194,12 +8389,6 @@ button.arena-chat__poll-option { cursor: pointer; }
   }
 }
 
-  .page--arena .arena-broadcast-ribbon {
-    border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
-    background: color-mix(in srgb, var(--surface-soft) 84%, var(--ink) 5%);
-    box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 12%, transparent);
-  }
-
   .page--arena .arena-lower-broadcast,
   .page--arena .arena-command-deck__crowd-rail {
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 32%, transparent);
@@ -8340,35 +8529,6 @@ button.arena-chat__poll-option { cursor: pointer; }
  * on a phone too. The rules below are the original ones, byte for byte; what
  * is restored is the width they were always meant to be scoped to. */
 @media (min-width: 901px) {
-
-/* A11: the deadline is NO LONGER hidden here. It was the one authoritative,
-     server-driven number in the panel, and hiding it on desktop is what left
-     the 30 s page-refresh countdown standing alone in the reference's clock
-     position, looking like a battle clock. Copy and compact facts stay hidden:
-     the reference panel carries neither, and the viewer count they duplicated
-     already lives in the pulse strip. */
-
-
-/* The clock sits on the phase name's baseline, right-aligned, as in the
-     reference: gold, Playfair, no card chrome of its own — the panel is the
-     card, and the clock must not read as a second one inside it. */
-
-
-/* No deadline is a real state and it must not shout. The arena spends most of
-     its life with no battle running, and "No active deadline" set in a clock
-     face would read as a fault instead of as calm. */
-
-
-/* The refresh countdown, demoted onto the gauge it actually measures — ONE
-     row, because two would cost more height than the card is trying to save. */
-
-
-  .page--arena .arena-broadcast-ribbon {
-    left: clamp(18.5rem, 23vw, 26rem);
-    right: clamp(16rem, 22vw, 24rem);
-    width: auto;
-    display: block;
-  }
 }
 
 /* ── The runway: 3 - 2 - 1 - GO, on the arena itself ──────────────────────
@@ -10040,15 +10200,6 @@ body.page--arena.is-zoom-locked {
 
 @media (min-width: 901px) {
 
-  /* Ribbon: was position:absolute;left:0;right:0;top:0 (Stage16). Now a
-     normal grid item spanning the top row, full width by the grid itself. */
-  .arena-command-deck > .arena-broadcast-ribbon,
-  .arena-broadcast-ribbon {
-    grid-area: ribbon;
-    position: static;
-    inset: auto;
-  }
-
   /* Left column: ARENA STATUS, CROWN LADDER, ARENA GUIDE, SPECTATOR CHAT, one
      real flex column, no JS-measured top offset (see arena.html's own comment
      at the stack's opening tag - --arena-left-stack-top is retired with it). */
@@ -10290,7 +10441,6 @@ body.page--arena.is-zoom-locked {
     width: 100%;
     flex: 0 0 auto;
   }
-  .arena-command-deck > .arena-broadcast-ribbon { grid-area: ribbon; position: static; }
 }
 
 /* The sitewide "Chef Battles Arena" widget (_widget.html) is untouched -
@@ -10714,17 +10864,6 @@ body.page--arena.is-zoom-locked {
      down on the phone too, and that area has sat empty since v2.5.1270 moved
      the nav inside the dock. No areas string is edited to place it. */
   .arena-command-dock { grid-area: command; }
-  /* THE RIBBON IS ONE COLUMN HERE. Its three-column desktop track -
-     minmax(14rem,1fr) minmax(0,2.6fr) auto - is stated with no @media around
-     it, so on a 375px phone the rail was being parked in a 14rem first column
-     and the other two thirds of the card stood empty. */
-  .arena-broadcast-ribbon {
-    grid-area: ribbon;
-    grid-template-columns: 1fr;
-    gap: var(--arena-phase-gap);
-    padding: var(--arena-phase-gap) var(--arena-phase-pad);
-    min-height: 0;
-  }
   /* THE OCTAGON TAKES THE ROOM IT HAS HERE (Owner, 2026-08-20: too much empty
      space around it). The renderer sizes it as a share of its region's WIDTH -
      the accepted desktop composition is 659 of 1268, about 52%, which on a
@@ -10886,9 +11025,6 @@ body.page--arena.is-zoom-locked {
       carries all eight, so the requirement keeps a guard rather than losing
       one. */
 @media (max-width: 640px) {
-  .arena-floor-stage > .arena-rank-spine {
-    display: none;
-  }
 }
 
 /* ============================================================================
@@ -10916,12 +11052,6 @@ body.page--arena.is-zoom-locked {
  * text source and a screen reader's words with it.
  * ========================================================================= */
 @media (max-width: 767px) {
-  /* The ribbon's desktop track - minmax(14rem,1fr) minmax(0,2.6fr) auto - is
-     also unconditional, and it was parking the strip in a 224px first column
-     with the rest of the card empty. One column here. */
-  .arena-broadcast-ribbon {
-    grid-template-columns: 1fr;
-  }
   .arena-broadcast-ribbon .arena-phase-step {
     position: relative;
     width: auto;
@@ -11392,50 +11522,6 @@ body.page--arena.is-zoom-locked {
     font-size: 0.6rem;
     letter-spacing: 0.05em;
   }
-
-  /* ---- 4. THE RANK LADDER ----------------------------------------------
-     THE ONE THE BRIEF NAMES, AND THE ONE WITH A REAL LIMIT.
-
-     The phone draws eight ivory tiles, 79x150, 11.2px radius, a bronze
-     hairline, the Owner's own emblem art inside each. The desktop ladder is
-     eight flat chips 157x22, square corners, a gold glow - a different
-     component, not a smaller version of the same one.
-
-     WHY THE TILES ARE NOT TRANSPLANTED WHOLE. Measured at 1440: the desktop
-     ladder's slot is 159x220 and it sits INSIDE the octagon's own region, put
-     there by placeRankSpine() against the octagon's geometry. The phone's
-     grid is 339x308. Moving it across needs 180px more width and 88px more
-     height, and every one of those pixels comes out of the octagon. A
-     redesign that quietly eats the arena is not a redesign.
-
-     SO THE SURFACE CROSSES AND THE GEOMETRY DOES NOT. Each chip keeps its
-     exact box and takes the tile's material: ivory ground, bronze hairline,
-     soft radius, the count as a tabular numeral. Same family, same palette,
-     same weight of line, at the size this slot actually has. The emblem art
-     needs a bigger slot than the ladder owns, and enlarging that slot is the
-     Owner's call. */
-  .page--arena .arena-rank-spine__step {
-    border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
-    background: color-mix(in srgb, var(--surface) 96%, transparent);
-    box-shadow: none;
-    clip-path: none;
-  }
-  /* NO MARGIN BETWEEN THE CHIPS, and the omission is deliberate. A first pass
-     put 0.22rem here for the tiles' rhythm and the ladder went 220px to 245px
-     - measured - which is 25px more of the octagon's own region covered by an
-     overlay that promised to change paint only. The rhythm is not worth it.
-     Nothing in this block changes a box. */
-  /* The ring number is the tile's own numeral: bronze and tabular, quiet
-     enough that the rank NAME is what the eye reads first. */
-  .page--arena .arena-rank-spine__ring {
-    color: var(--accent-bronze-dark);
-    font-variant-numeric: tabular-nums;
-    font-weight: 800;
-  }
-  .page--arena .arena-rank-spine__name {
-    color: var(--ink);
-    letter-spacing: 0.06em;
-  }
   /* The count sits as a plain tabular numeral, the way the phone tile sets
      its count under the emblem - not as a filled bronze bead, which is what
      made this chip read as a control rather than a card. */
@@ -11453,28 +11539,7 @@ body.page--arena.is-zoom-locked {
     font-variant-numeric: tabular-nums;
     font-weight: 700;
   }
-  /* Culinary Master keeps the warmer ground and firmer edge the phone gives
-     it - and NOT a larger box. On the phone that tile was brought back to the
-     same size as the other seven for exactly this reason: the gold is already
-     the emphasis, and a second one reads as uneven. */
-  .page--arena .arena-rank-spine__item[data-ring="1"] .arena-rank-spine__step {
-    border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
-    background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
-  }
 }
-
-/* ============================================================================
- * THE RANK LADDER GETS ITS EMBLEMS. Owner, 2026-08-24: "расширяй слот под
- * эмблемы" - the decision I said was his and would not take.
- *
- * DEFAULT IS HIDDEN, AND THAT IS THE SAFETY. The <img> now exists in the
- * markup at every width, so it is switched OFF here and ON only at 901px.
- * Below 640px this ladder is display:none entirely and the mobile scene
- * carries the ranks; between 641 and 900 the ladder keeps the chip form the
- * brief says not to disturb. Hiding by default means the element's existence
- * changes nothing anywhere except the desktop.
- * ========================================================================== */
-.arena-rank-spine__emblem { display: none; }
 
 @media (min-width: 901px) {
   /* HOW THE SLOT GREW, AND IN WHICH DIRECTION - this is the whole design
@@ -11505,57 +11570,10 @@ body.page--arena.is-zoom-locked {
     gap: 0.3rem;
     width: 9.4rem;
   }
-  .arena-rank-spine__item {
-    display: block;
-    min-width: 0;
-  }
-  /* The chip becomes the phone's tile: a column, emblem first, the name and
-     the count under it - the same reading order the kitchen-ranks scene uses,
-     so a viewer meets one component on both screens. */
-  .page--arena .arena-rank-spine__step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.12rem;
-    width: 100%;
-    padding: 0.32rem 0.2rem 0.4rem;
-    border-radius: 0.7rem;
-    text-align: center;
-  }
-  .arena-rank-spine__emblem {
-    display: block;
-    width: 100%;
-    max-width: 3.6rem;
-    height: auto;
-    aspect-ratio: 11 / 18;
-    object-fit: contain;
-  }
-  /* The art carries the rank NUMBER baked in - that is why the phone dropped
-     its own numeral when these crops arrived (v2.5.1208). The same is true
-     here, so the ring numeral goes rather than printing the number twice. */
-  .page--arena .arena-rank-spine__ring { display: none; }
-  /* THE NAME GOES TOO, and for the same reason as the numeral above it - I
-     got this wrong first time and the Owner photographed it. His crops carry
-     the rank NAMEPLATE as well as the number baked into the art (v2.5.1208
-     is where the phone dropped both its own spans for exactly this). Printing
-     the name again underneath meant every tile said its rank twice, and the
-     second copy was the one that clipped: KITCHEN PORTE, EXECUTIVE CHE.
-
-     The accessible name is untouched - it lives on the step's aria-label,
-     which spells out the ring, the rank and the chef count, so nothing is
-     lost to a screen reader by taking the visible duplicate away. */
-  .page--arena .arena-rank-spine__name { display: none; }
   .page--arena .arena-rank-spine__step b {
     display: block;
     font-size: 0.52rem;
     line-height: 1;
-  }
-  /* The label above the stack comes back: with tiles rather than a list of
-     names, the stack no longer says what it is. */
-  .page--arena .arena-rank-spine__label {
-    display: block;
-    font-size: 0.46rem;
-    color: var(--accent-bronze-dark);
   }
 }
 
@@ -11601,12 +11619,6 @@ body.page--arena.is-zoom-locked {
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     box-shadow: 0 0.5rem 1.4rem color-mix(in srgb, var(--ink) 10%, transparent);
   }
-
-  /* ---- 2. THE OLD OVERLAY GOES QUIET HERE ------------------------------
-     Same mechanism the phone already uses at :8459, at the other end of the
-     range. The overlay's ~50 rules are NOT deleted: they still dress the
-     ladder between 641 and 900px, which this pass does not touch. */
-  .arena-floor-stage > .arena-rank-spine { display: none; }
 
   /* ---- 3. THE HEADING --------------------------------------------------
      One line saying what the strip IS, one saying how to read it. The lead

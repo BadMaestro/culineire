@@ -1,5 +1,38 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1415",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The ribbon and the rank ladder gathered; the plan is finished",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Steps 3 and 4, and the end of the consolidation plan. The "
+            "broadcast ribbon's 12 rules and the rank ladder's 57 are each in "
+            "one block now. Same proof throughout: the applying declarations "
+            "are byte-identical, no conflicting pair changed places, 1453 "
+            "rules before and after, and 237 tests across every class that "
+            "reads the arena stylesheets are green. "
+            "FOUR MORE GUARDS LOCATED THEIR RULE BY WHERE IT SAT, and all four "
+            "were rewritten to say what they mean rather than softened. Two "
+            "read `css.split(\"MOCKUP M05/M06/M11\")[1]` and then took the "
+            "first matching block after it - a comment travels with the rule "
+            "it introduces, so gathering a component separates them. Two more "
+            "took \"everything after the FIRST @media (min-width: 901px)\", "
+            "which stopped being the right block the moment a gathered section "
+            "re-declared that query higher up the file. "
+            "Each is now asked by selector and by context: the deadline is not "
+            "hidden in ANY 901px block, the rank column is not switched off in "
+            "ANY 767px block, the rank list runs top-to-bottom in the desktop "
+            "rule and never reversed, the step keeps its plinth in the base "
+            "rule. The desktop plinth is still deliberately dropped at 901px "
+            "and up, and the rewritten test says so instead of accidentally "
+            "not looking. "
+            "Where the four components stood at the start of the day: 289, "
+            "162, 12 and 57 rules, scattered across thirty runs apiece. They "
+            "are four blocks now, and nothing on the page moved."
+        ),
+    },
+    {
         "version": "2.5.1412",
         "date": "2026-08-28",
         "commit": "89075b56",

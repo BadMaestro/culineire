@@ -8999,9 +8999,20 @@ class ArenaPhasePanelTests(TestCase):
         css = (
             Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
-        desktop = css.split("@media (min-width: 901px)", 1)[1]
-        hidden = desktop.split("display: none;", 1)[0]
-        self.assertNotIn("phase-deadline", hidden)
+        # EVERY 901px block, not "everything after the first one". There are
+        # several, and which one comes first is a fact about where rules sit in
+        # the file - it changed the moment components started being gathered
+        # into their own sections (v2.5.1415), while the requirement did not.
+        for block in _media_blocks(css, "@media (min-width: 901px)"):
+            for rule in re.finditer(r"([^{}]+)\{([^{}]*)\}", block):
+                if "phase-deadline" not in rule.group(1):
+                    continue
+                self.assertNotIn(
+                    "display: none", rule.group(2),
+                    "the deadline is hidden again on desktop, which is what "
+                    "left the refresh countdown standing alone in the clock "
+                    "position",
+                )
 
     def test_the_server_still_owns_phase_and_deadline(self):
         """Acceptance: no client phase inference, no fixture countdown. The
@@ -9098,6 +9109,42 @@ def _media_blocks(css: str, query: str) -> list[str]:
         blocks.append(css[opening + 1:i - 1])
         start = css.find(query, i)
     return blocks
+
+def _unconditional_rules(css: str, selector: str, context=None) -> list[str]:
+    """Declaration bodies for `selector`, in one context.
+
+    `context=None` means the rule sits under no media query at all; passing a
+    query string means the rule sits under that one.
+
+    Several guards used to locate a rule as "the first block after such-and-such
+    comment". A comment travels with the rule it introduces, so gathering a
+    component into its own section (v2.5.1409 onwards) separated them and the
+    guards failed on a requirement that had not changed. Asking for the rule by
+    selector, and for the context it has to be in, says what is actually meant.
+    """
+    import importlib.util
+
+    path = (Path(settings.BASE_DIR) / "ops" / "audits" / "arena" / "tools"
+            / "an14_move_guard.py")
+    spec = importlib.util.spec_from_file_location("an14_move_guard", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    out = []
+    for rule in module.rules(css):
+        if context is None:
+            if rule["ctx"]:
+                continue
+        elif context not in rule["ctx"]:
+            continue
+        heads = [one.strip() for one in rule["sel"].split(",")]
+        if selector in heads:
+            out.append("; ".join(
+                "%s: %s%s" % (name, value, " !important" if imp else "")
+                for name, value, imp in rule["decls"]
+            ))
+    return out
+
 
 def _rules_for(css: str, selector: str) -> list[str]:
     """Every declaration block whose selector list mentions `selector`."""
@@ -9248,18 +9295,30 @@ class ArenaRankColumnTests(TestCase):
     def test_desktop_rank_stack_runs_outer_to_centre(self):
         """Reference: Kitchen Porter at the far edge, Culinary Master at centre."""
         css = self.CSS_POLISH.read_text(encoding="utf-8")
-        mockup_rules = css.split("MOCKUP M05/M06/M11", 1)[1]
-        rank_list = mockup_rules.split(".arena-rank-spine__list {", 1)[1].split("}", 1)[0]
-        self.assertIn("flex-direction: column", rank_list)
-        self.assertNotIn("column-reverse", rank_list)
+        # Desktop, because that is what the test is about: the stack runs top
+        # to bottom at 901px and up. Below that the ranks wrap into a row.
+        desktop = _unconditional_rules(
+            css, ".arena-rank-spine__list", "@media (min-width: 901px)")
+        self.assertTrue(desktop, "the rank list has no desktop rule")
+        self.assertIn("flex-direction: column", " ".join(desktop))
+        self.assertNotIn(
+            "column-reverse",
+            " ".join(desktop + _unconditional_rules(
+                css, ".arena-rank-spine__list")),
+            "Kitchen Porter must stay at the far edge and Culinary Master at "
+            "the centre",
+        )
 
     def test_desktop_rank_steps_use_reference_plinth_silhouette(self):
         css = self.CSS_POLISH.read_text(encoding="utf-8")
-        mockup_rules = css.split("MOCKUP M05/M06/M11", 1)[1]
-        rank_step = mockup_rules.split(".arena-rank-spine__step {", 1)[1].split("}", 1)[0]
-        self.assertIn("clip-path: polygon(", rank_step)
-        self.assertIn("var(--accent-bronze)", rank_step)
-        self.assertNotIn("clip-path: none", rank_step)
+        bodies = _unconditional_rules(css, ".arena-rank-spine__step")
+        self.assertTrue(bodies, "the rank step has no unconditional rule")
+        joined = " ".join(bodies)
+        self.assertIn("clip-path: polygon(", joined)
+        self.assertIn("var(--accent-bronze)", joined)
+        # The plinth IS dropped again at 901px and up, deliberately. What must
+        # not happen is the base rule cancelling its own silhouette.
+        self.assertNotIn("clip-path: none", joined)
 
     def test_phase_card_is_separate_from_the_lifecycle_header(self):
         """The side column owns identity + phase; the top ribbon owns only the
@@ -9480,10 +9539,24 @@ class ArenaRankColumnTests(TestCase):
         """It used to be `display: none` below 768px, which removed the whole
         progression on a phone. Stage 3E requires all eight ranks to stay."""
         css = self.CSS_DECK.read_text(encoding="utf-8")
-        mobile = css.split("@media (max-width: 767px)", 1)[1].split("\n}", 1)[0]
-        self.assertNotIn("display: none", mobile.split(".arena-rank-spine", 1)[1].split(";", 1)[0] + ";")
-        self.assertIn(".arena-rank-spine { position: static", mobile)
-        self.assertIn("flex-wrap: wrap", mobile.split(".arena-rank-spine__list", 1)[1])
+        # Read across ALL the 767px blocks. The old form took the first one and
+        # cut it at the first "\n}", which is a statement about the file's
+        # layout rather than about the rule, and it stopped being true when the
+        # components were gathered into their own sections (v2.5.1415).
+        blocks = _media_blocks(css, "@media (max-width: 767px)")
+        self.assertTrue(blocks, "the phone breakpoint is gone entirely")
+        joined = "\n".join(blocks)
+        for block in blocks:
+            for rule in re.finditer(r"([^{}]+)\{([^{}]*)\}", block):
+                head = " ".join(rule.group(1).split())
+                if re.search(r"(^|[\s,>])\.arena-rank-spine([\s,{:]|$)", head):
+                    self.assertNotIn(
+                        "display: none", rule.group(2),
+                        "the whole rank progression is switched off on a phone",
+                    )
+        self.assertIn(".arena-rank-spine { position: static", joined)
+        self.assertIn("flex-wrap: wrap",
+                      joined.split(".arena-rank-spine__list", 1)[1])
 
     def test_a_phone_still_reaches_all_eight_ranks(self):
         """Stage 3E's real requirement, guarded where it now lives.
