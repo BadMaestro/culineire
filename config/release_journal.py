@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1400",
         "date": "2026-08-28",
-        "commit": "pending",
+        "commit": "769de676",
         "title": "AN14: the proof that has to exist before a single arena.css rule is moved",
         "section": "Chef Battles / Arena",
         "summary": (
