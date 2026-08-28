@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1415",
         "date": "2026-08-28",
-        "commit": "pending",
+        "commit": "10422e0b",
         "title": "The ribbon and the rank ladder gathered; the plan is finished",
         "section": "Chef Battles / Arena",
         "summary": (
