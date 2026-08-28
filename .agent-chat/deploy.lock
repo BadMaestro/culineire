@@ -1,0 +1,5 @@
+agent: GreenBear
+started_utc: 2026-08-28T14:21:11Z
+version: 2.5.1394
+commit: pending
+task: five of the six inherited red tests - four were the guards, one was real
