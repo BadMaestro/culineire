@@ -1,5 +1,69 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1394",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "Five of the six inherited red tests - four were the guards being wrong, one was real",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner: fix these and keep hunting, but collect what you find "
+            "rather than fixing it. Five of the six are closed here and the "
+            "sixth is on the list for him, because it is the one that changes "
+            "what he sees. "
+            "FOUR WERE THE GUARDS, NOT THE CODE, and every one failed the same "
+            "way - by asserting a SPELLING where the requirement had not "
+            "changed. That is worth naming once, because a test that goes red "
+            "while correct code is improved teaches the next reader to edit the "
+            "test, and a guard people learn to edit has stopped guarding. "
+            "RoutedViewAccessAudit named arena_chat_poll_create, "
+            "arena_chat_poll_vote and arena_chat_recent_media. All three DO "
+            "call is_battle_visible inline and 404 without it, exactly like "
+            "every sibling; P2 simply never wrote them into "
+            "UNGUARDED_BY_DESIGN. Recorded now with the real reason - the "
+            "guard's suspended-POST branch stacks a redirect banner onto an "
+            "endpoint that answers JSON - and each claim checked against the "
+            "view rather than asserted: the poll voter comes from the session "
+            "and never the body, and recent-media filters on speaker=author. "
+            "ArenaRankColumn sliced "
+            "css.split('@media (max-width: 640px)')[-1], which is not the phone "
+            "rules - it is everything after the LAST such query, so any block "
+            "appended to arena.css silently became 'the phone'. The rule it "
+            "looks for never moved; it is in the second of three phone blocks. "
+            "Replaced with a brace-matching reader. "
+            "ArenaHeaderMeasurement pinned the exact one-line resize listener. "
+            "That listener grew a rAF coalescer and a phantom-resize guard on "
+            "2026-08-20 chasing an iPhone crash on pinch-zoom, and the test "
+            "went red for the improvement. It asserts the requirement now - a "
+            "resize forces a re-fit - and a SECOND test was added to pin the "
+            "pinch-zoom fix, which had no guard at all. "
+            "ArenaRingNumbering banned 'gap: 0.15rem' across the WHOLE "
+            "stylesheet over a rule about eight ladder rungs, so it fired on a "
+            "facts card and an effect layer that have nothing to do with where "
+            "a rung lands. Scoped to the ladder's own selectors, and verified "
+            "by putting the real fault back and watching it catch it. "
+            "ONE WAS REAL. ArenaReadinessLifecycle was right: the chat carried "
+            "FOUR bare z-index literals - 40, 1000, -1 and 2000 - written one "
+            "at a time by whoever needed to be on top that day, which is "
+            "precisely the habit the layer ladder exists to end. They have "
+            "named rungs now, at the values they already used: this moves "
+            "ownership and changes no pixel, the same principle the AN phase "
+            "assembled the ladder under. That guard ALSO had to stop reading "
+            "prose - it was matching a comment explaining a fixed stacking bug, "
+            "the fourth time in one day a test that reads text found the ghost "
+            "it was written to bury. "
+            "THE SIXTH IS NOT FIXED AND THAT IS DELIBERATE. AN13's "
+            "duplicate-declaration guard is correct and is reporting real debt: "
+            "27 declarations set twice for one selector in one context, across "
+            "the deck, the ribbon, the metrics, the caption and the chat. "
+            "Several need a per-case judgement about which copy is dead. It is "
+            "pre-existing, it is not mine, and clearing it edits CSS the Owner "
+            "judges by eye - so it is item 1 of the list he asked for rather "
+            "than a silent change. "
+            "58 tests across the six classes, 45 more across everything these "
+            "edits touch. No migration."
+        ),
+    },
+    {
         "version": "2.5.1391",
         "date": "2026-08-28",
         "commit": "pending",

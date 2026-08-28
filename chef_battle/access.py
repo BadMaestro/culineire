@@ -227,6 +227,33 @@ UNGUARDED_BY_DESIGN = {
         "is_moderator() is exactly that conflation. Re-checked server-side on "
         "every call, so hidden buttons are never the control."
     ),
+
+    # P2 AND ITS POLL LOOP, 2026-08-26. All three call is_battle_visible
+    # directly and 404 without it, exactly like every sibling above; they were
+    # simply never written into this record when they shipped, which is what
+    # left RoutedViewAccessAuditTests red for two days. The audit's own message
+    # offers both answers - add the guard, or state why it is safe without one -
+    # and for these it is the second, for the same reason as arena_chat_send:
+    # the guard's suspended-POST branch stacks a redirect banner onto an
+    # endpoint that answers JSON.
+    "arena_chat_poll_create": (
+        "Calls is_battle_visible directly, then refuses anyone not signed in "
+        "and anyone without a seat. One open poll per person is enforced "
+        "server-side; the question is the caller's own and the row records "
+        "them as its author, so there is nothing here to authorise per object."
+    ),
+    "arena_chat_poll_vote": (
+        "Calls is_battle_visible directly, then requires a signed-in author. "
+        "A vote is written for the REQUEST'S OWN author and can never be cast "
+        "for anybody else - the voter is taken from the session, never from "
+        "the body - and a closed poll is refused by its own end time."
+    ),
+    "arena_chat_recent_media": (
+        "Calls is_battle_visible directly, then requires a signed-in author. "
+        "It returns only rows THIS SAME AUTHOR wrote: the queryset is filtered "
+        "by that authorship, which is the same ownership rule that makes "
+        "reusing a stored GIF safe, so there is no id to tamper with."
+    ),
     "cooking_moderation": (
         "Moderator-only, checked with is_moderator AND is_battle_visible in the "
         "view (F8, 2026-08-11) - is_moderator alone admits has_bearseeker_"

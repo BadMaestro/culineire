@@ -34,6 +34,16 @@
   --arena-z-overlay: 60;   /* full-deck overlays */
   --arena-z-tooltip: 130;   /* the chef tooltip */
   --arena-z-tooltip-top: 200;   /* the tooltip's own top layer */
+  /* THE CHAT'S OWN LAYERS, added 2026-08-28. All four numbers below were
+     ALREADY in the file as bare literals - 40, 1000, -1 and 2000 - written
+     one at a time by whoever needed to be on top that day, which is the exact
+     habit this table was built to end. Nothing is re-ordered: every value is
+     the one the chat already used, given the name of the job it does, the
+     same way this whole ladder was assembled in the AN phase. */
+  --arena-z-chat-sheet: 40;   /* a chat popover, anchored beside its trigger */
+  --arena-z-chat-bottom-sheet: 1000;   /* the phone's bottom sheet, over the page */
+  --arena-z-chat-scrim: -1;   /* the dim behind that sheet, under it */
+  --arena-z-chat-viewer: 2000;   /* the chat's own picture viewer, over everything */
   --arena-z-popup: 9998;   /* the battle popup */
   --arena-z-modal: 10000;   /* the modal backdrop and dialog */
 }
@@ -1294,7 +1304,7 @@
   left: min(var(--sheet-left, 0px), calc(100% - 12rem));
   right: auto;
   bottom: auto;
-  z-index: 40;
+  z-index: var(--arena-z-chat-sheet);
   display: flex;
   flex-direction: column;
   min-width: 11rem;
@@ -2271,7 +2281,7 @@
        !important was there to beat the old wide-container branch, which no
        longer exists. */
     top: auto;
-    z-index: 1000;
+    z-index: var(--arena-z-chat-bottom-sheet);
     max-height: 70vh;
     border-radius: .9rem .9rem 0 0;
     padding: .4rem .4rem max(.4rem, env(safe-area-inset-bottom));
@@ -2289,7 +2299,7 @@
     inset: 0 0 100% 0;
     height: 100vh;
     background: color-mix(in srgb, var(--ink) 38%, transparent);
-    z-index: -1;
+    z-index: var(--arena-z-chat-scrim);
   }
  }
 }
@@ -11522,7 +11532,7 @@ body.page--arena.is-zoom-locked {
 .arena-chat__viewer {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: var(--arena-z-chat-viewer);
   display: none;
   align-items: center;
   justify-content: center;

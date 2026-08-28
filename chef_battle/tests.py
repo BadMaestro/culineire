@@ -9073,6 +9073,42 @@ class ArenaFixtureDisconnectedTests(TestCase):
         self.assertIn("liveNote.classList.remove('is-live')", copy)
 
 
+def _media_blocks(css: str, query: str) -> list[str]:
+    """Every block introduced by `query`, matched by its own braces.
+
+    Splitting on the query string and taking one piece is what this file used
+    to do, and it is wrong in both directions: the first piece stops at the
+    NEXT query rather than at the block's end, and the last piece runs to the
+    end of the file and swallows everything appended after it.
+    """
+    blocks = []
+    start = css.find(query)
+    while start != -1:
+        opening = css.find("{", start + len(query))
+        if opening == -1:
+            break
+        depth, i = 1, opening + 1
+        while i < len(css) and depth:
+            if css[i] == "{":
+                depth += 1
+            elif css[i] == "}":
+                depth -= 1
+            i += 1
+        blocks.append(css[opening + 1:i - 1])
+        start = css.find(query, i)
+    return blocks
+
+def _rules_for(css: str, selector: str) -> list[str]:
+    """Every declaration block whose selector list mentions `selector`."""
+    import re
+
+    blocks = []
+    for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+        head = " ".join(m.group(1).split())
+        if re.search(r"(^|[\s,]){}([\s,{{:]|$)".format(re.escape(selector)), head):
+            blocks.append(m.group(2))
+    return blocks
+
 class ArenaRankColumnTests(TestCase):
     """Stage 3E — the rank floor column.
 
@@ -9468,8 +9504,19 @@ class ArenaRankColumnTests(TestCase):
         self.assertIn("arena-rank-tile", scene)
 
         # And the ladder is hidden only on the phone, not at any larger width.
-        phone = css.split("@media (max-width: 640px)")[-1]
-        self.assertIn(".arena-floor-stage > .arena-rank-spine", phone)
+        #
+        # READS EVERY PHONE BLOCK, NOT THE LAST ONE. This assertion used to
+        # slice `css.split("@media (max-width: 640px)")[-1]`, which is not "the
+        # phone rules" - it is everything after the LAST such query, so any
+        # block appended to the end of the file silently became "the phone" and
+        # the rule went missing without moving. It broke exactly that way once
+        # arena.css grew a tail. The rule lives in the second of three phone
+        # blocks and always did.
+        self.assertTrue(
+            any(".arena-floor-stage > .arena-rank-spine" in block
+                for block in _media_blocks(css, "@media (max-width: 640px)")),
+            "the rank ladder is no longer hidden on the phone",
+        )
 
     # ---- contrast --------------------------------------------------------
 
@@ -12456,9 +12503,37 @@ class ArenaHeaderMeasurementTests(TestCase):
     def test_the_window_retriggers_the_measurement(self):
         """The window path forces a re-fit, measured or not - see
         test_a_window_resize_always_refits_the_scene for why measuring alone
-        was not enough."""
-        self.assertIn("addEventListener('resize', function () { remeasure(true); })",
-                      self._layout())
+        was not enough.
+
+        ASSERTS THE REQUIREMENT, NOT THE SPELLING. This used to pin the exact
+        one-line listener `addEventListener('resize', function () {
+        remeasure(true); })`, and it went red without the behaviour changing at
+        all: the listener grew a rAF coalescer and a phantom-resize guard on
+        2026-08-20, chasing an iPhone crash on pinch-zoom. A test that fails
+        when correct code is improved teaches the next reader to edit the test,
+        which is how a guard stops guarding.
+        """
+        js = self._layout()
+        listener = js[js.index("addEventListener('resize'"):]
+        listener = listener[:listener.index("document.fonts")]
+        self.assertIn(
+            "remeasure(true)", listener,
+            "a window resize no longer forces a re-fit",
+        )
+
+    def test_a_pinch_zoom_is_not_treated_as_a_resize(self):
+        """iOS fires `resize` throughout a pinch gesture, and a pinch changes
+        the VISUAL viewport, not the layout one. Re-fitting on it put the
+        octagon's own scale in a fight with the zoom the Owner was holding with
+        two fingers, every frame, for as long as he held it - which is what
+        crashed his iPhone. The layout viewport is what tells them apart."""
+        js = self._layout()
+        listener = js[js.index("addEventListener('resize'"):]
+        listener = listener[:listener.index("document.fonts")]
+        self.assertIn("global.innerWidth === lastLayoutW", listener)
+        self.assertIn("global.innerHeight === lastLayoutH", listener)
+        self.assertIn("requestAnimationFrame", listener,
+                      "a burst of resize events is no longer coalesced")
 
     def test_web_fonts_retrigger_it(self):
         """Fonts land after init and grow the header; by then nothing asked again."""
@@ -13058,7 +13133,23 @@ class ArenaRingNumberingTests(TestCase):
         css = (
             Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
         ).read_text(encoding="utf-8")
-        self.assertNotIn("gap: 0.15rem;", css)
+
+        # SCOPED TO THE LADDER, not to the whole stylesheet. This used to
+        # assert `gap: 0.15rem;` appeared NOWHERE in arena.css, which is a
+        # file-wide ban on a value over a rule about eight rungs. It went red
+        # the moment an unrelated element - the compact facts card, and an
+        # effect layer - used 0.15rem for a reason that has nothing to do with
+        # where a rung lands. A guard that fires on innocent code is a guard
+        # people learn to edit.
+        for selector in (".arena-rank-spine", ".arena-rank-spine__item",
+                         ".arena-rank-spine__step"):
+            for block in _rules_for(css, selector):
+                self.assertNotIn(
+                    "gap: 0.15rem", block,
+                    f"{selector} is back on a fractional gap - 0.15rem is "
+                    f"2.4px, so every rung after the first lands off the "
+                    f"pixel grid, which is what the Owner photographed",
+                )
         self.assertIn("min-height: 1.375rem;", css)
 
 
@@ -13873,6 +13964,13 @@ class ArenaReadinessLifecycleTests(TestCase):
         raw = re.compile(r"z-index\s*:\s*-?\d")
         for name in ("arena.css", "arena_atmosphere.css"):
             text = (css_dir / name).read_text(encoding="utf-8")
+            # COMMENTS ARE STRIPPED FIRST. A guard that reads prose finds every
+            # ghost it was written to bury: this one went red on a comment
+            # EXPLAINING a fixed stacking bug - "the picker's own z-index: 1000
+            # was sealed inside layer 3" - which is exactly the sentence a
+            # reader needs and exactly what a text search cannot tell from a
+            # declaration.
+            text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
             # the ladder itself declares the numbers; nothing else may
             body = text.split("}", 1)[1] if name == "arena.css" else text
             self.assertFalse(
