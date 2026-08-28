@@ -25459,7 +25459,10 @@ class ArenaHouseStreamTests(TestCase):
         self.client.login(username="house-mod", password="pw")
         html = self.client.get(reverse("chef_battle:arena")).content.decode("utf-8")
         self.assertIn("arena-house-stream", html)
-        self.assertIn("arena-house-stream__off", html)
+        # The off-air card is the Owner's own test-card placeholder since
+        # 2026-08-28, in place of an hourglass and two lines of apology.
+        self.assertIn("arena-house-stream__placeholder", html)
+        self.assertIn("live_camera_placeholder", html)
         self.assertNotIn("hls.min.js", html,
                          "the 413 KB player is fetched with a quiet kitchen")
 
@@ -25473,7 +25476,8 @@ class ArenaHouseStreamTests(TestCase):
         self.client.login(username="house-mod", password="pw")
         html = self.client.get(reverse("chef_battle:arena")).content.decode("utf-8")
         self.assertIn("arena-house-stream__video", html)
-        self.assertNotIn("arena-house-stream__off", html)
+        self.assertNotIn("arena-house-stream__placeholder", html,
+                         "the placeholder is still there with a stream running")
         self.assertIn("hls.min.js", html)
 
     # ---- the rail --------------------------------------------------------
@@ -27237,3 +27241,128 @@ class PartCEndpointsTests(TestCase):
         self.assertEqual(row.source, ChefArtifact.Source.GIFTED)
         self.assertIsNone(row.locked_to_battle)
         self.assertEqual(TokenWallet.objects.get(chef=self.giver).balance, 490)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class TheCameraIsTheBearCaveFoodTrailerTests(TestCase):
+    """Owner, 2026-08-28: the widget is the BearCave Food Trailer, not "the
+    house kitchen", and the off-air card is his own test-card placeholder.
+
+    `BearCave` is the company's own spelling - bearcave.ie,
+    culineire@bearcave.ie - so it is one word with two capitals here as well.
+    """
+
+    ROOT = Path(__file__).resolve().parent.parent
+    WIDGET = ROOT / "templates" / "chef_battle" / "_arena_house_stream.html"
+    PANEL = ROOT / "templates" / "moderation" / "arena_house_stream.html"
+    PLACEHOLDER = ROOT / "static" / "images" / "chef_battle" / "live_camera_placeholder.webp"
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="trailer-mod", password="pw", is_staff=True, is_superuser=True,
+        )
+
+    @staticmethod
+    def _visible(path):
+        """The template with its {% comment %} blocks removed.
+
+        A guard that reads prose finds every ghost it was written to bury: the
+        widget's own comment records what the name was BEFORE 2026-08-28, which
+        is exactly what a reader needs and exactly what a naive search trips
+        over. Third time this file has learned that today."""
+        import re
+
+        text = path.read_text(encoding="utf-8")
+        return re.sub(r"\{%\s*comment\s*%\}.*?\{%\s*endcomment\s*%\}", "", text, flags=re.S)
+
+    def test_the_old_name_is_gone_from_every_surface(self):
+        """A rename that leaves the old name in one of four places is a rename
+        somebody finds later on the one screen nobody re-read."""
+        for path in (self.WIDGET, self.PANEL):
+            self.assertNotIn(
+                "house kitchen", self._visible(path).lower(),
+                f"{path.name} still calls it the house kitchen",
+            )
+        models = (self.ROOT / "chef_battle" / "models.py").read_text(encoding="utf-8")
+        self.assertNotIn("falls back to The house kitchen", models)
+
+    def test_the_spelling_is_the_company_own(self):
+        """Not "Bearcave", not "Bear Cave" - the site writes it BearCave
+        everywhere else it appears."""
+        import re
+
+        for path in (self.WIDGET, self.PANEL):
+            text = self._visible(path)
+            self.assertIn("BearCave Food Trailer", text)
+            self.assertEqual(
+                re.findall(r"Bear ?[Cc]ave", text).count("Bear cave"), 0,
+            )
+            self.assertNotIn("Bearcave", text)
+            self.assertNotIn("Bear Cave", text)
+
+    def test_the_heading_does_not_say_live_twice(self):
+        """The LIVE badge beside the title already says it when the camera is
+        on, and off air a title claiming a live stream would be untrue."""
+        text = self.WIDGET.read_text(encoding="utf-8")
+        heading = text[text.index("arena-panel__kicker"):]
+        heading = heading[:heading.index("</h2>")]
+        for wrong in ("LiveStream", "Live Stream", "Livestream"):
+            self.assertNotIn(wrong, heading)
+
+    def test_the_default_title_is_the_new_name(self):
+        from chef_battle.models import ArenaHouseStream
+
+        row = ArenaHouseStream.current()
+        self.assertEqual(row.title, "")
+        self.client.login(username="trailer-mod", password="pw")
+        html = self.client.get(reverse("chef_battle:arena")).content.decode("utf-8")
+        self.assertIn("BearCave Food Trailer", html)
+
+    def test_a_title_the_owner_types_still_wins(self):
+        """The default is a fallback, not a hard-coded caption - he can rename
+        it from the panel without a deploy, which is the whole point of the
+        record existing."""
+        from chef_battle.models import ArenaHouseStream
+
+        row = ArenaHouseStream.current()
+        row.title = "Sunday service"
+        row.save()
+        self.client.login(username="trailer-mod", password="pw")
+        html = self.client.get(reverse("chef_battle:arena")).content.decode("utf-8")
+        self.assertIn("Sunday service", html)
+
+    def test_the_placeholder_exists_and_is_under_the_byte_cap(self):
+        """It arrived as a 9.7 MB animated GIF. Served as one it would be
+        sixty-four times what this project holds arena art to, and the grain
+        and scan lines are exactly what a compressor cannot help with."""
+        self.assertTrue(self.PLACEHOLDER.exists())
+        size = self.PLACEHOLDER.stat().st_size
+        self.assertLess(
+            size, 150_000,
+            f"the placeholder is {size} B, over the default image cap",
+        )
+
+    def test_the_placeholder_is_webp_at_the_owner_own_resolution(self):
+        from PIL import Image
+
+        with Image.open(self.PLACEHOLDER) as im:
+            self.assertEqual(im.format, "WEBP")
+            self.assertEqual(im.size, (960, 540))
+
+    def test_the_placeholder_fills_the_same_box_as_the_video(self):
+        """The stage is 16/9 and the picture covers it, so the rail does not
+        change shape when the camera comes on - which is the entire reason the
+        off-air card exists rather than the widget disappearing."""
+        css = (self.ROOT / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        block = css[css.index(".arena-house-stream__placeholder {"):]
+        block = block[:block.index("}")]
+        self.assertIn("object-fit: cover", block)
+        self.assertIn("width: 100%", block)
+        self.assertIn("height: 100%", block)
+
+    def test_no_orphan_rule_is_left_behind_for_the_old_card(self):
+        """A selector nothing matches is a rule the next reader has to prove
+        dead before touching anything near it."""
+        css = (self.ROOT / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        self.assertNotIn("arena-house-stream__off", css)
+        self.assertNotIn("arena-house-stream__off", self.WIDGET.read_text(encoding="utf-8"))

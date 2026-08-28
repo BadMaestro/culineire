@@ -12448,31 +12448,19 @@ button.arena-chat__poll-option:hover {
   object-fit: cover;
   background: color-mix(in srgb, var(--ink) 86%, transparent);
 }
-.arena-house-stream__off {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.15rem;
-  padding: 0.6rem;
-  text-align: center;
-}
-.arena-house-stream .arena-house-stream__off .arena-ico {
-  width: 1.1rem;
-  margin-bottom: 0.15rem;
-  color: color-mix(in srgb, var(--accent-bronze) 70%, transparent);
-}
-.arena-house-stream .arena-house-stream__off b {
-  color: color-mix(in srgb, var(--surface) 88%, transparent);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-}
-.arena-house-stream .arena-house-stream__off span {
-  color: color-mix(in srgb, var(--surface) 58%, transparent);
-  font-size: 0.62rem;
-  line-height: 1.4;
+/* THE OFF-AIR CARD IS THE OWNER'S OWN TEST-CARD PLACEHOLDER since 2026-08-28.
+   It replaced an hourglass and two lines of apology text, whose rules are
+   deleted rather than left orphaned - a selector nothing matches is a rule the
+   next reader has to prove dead before touching anything near it.
+
+   object-fit: cover and the same 16/9 stage as the video, so the box does not
+   change shape when the camera comes on: the picture and the stream occupy the
+   identical rectangle, which is the whole reason the off-air card exists. */
+.arena-house-stream__placeholder {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 .arena-house-stream .arena-house-stream__caption {
   margin: 0;

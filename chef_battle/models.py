@@ -3251,7 +3251,7 @@ class ArenaHouseStream(models.Model):
     )
     title = models.CharField(
         max_length=80, blank=True,
-        help_text="Shown over the picture. Empty falls back to The house kitchen.",
+        help_text="Shown over the picture. Empty falls back to BearCave Food Trailer.",
     )
     caption = models.CharField(
         max_length=160, blank=True,

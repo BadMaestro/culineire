@@ -1,5 +1,60 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1391",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The camera is the BearCave Food Trailer, and off air it shows the Owner's own test card",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Two instructions, 2026-08-28: put this placeholder on the live "
+            "camera, and rename the house kitchen to something like BearCave "
+            "Food Trailer LiveStream, nicely and without mistakes. "
+            "THE NAME IS BearCave Food Trailer, AND THE HEADING DOES NOT SAY "
+            "LIVESTREAM. That is the one judgement here and it is worth stating "
+            "rather than burying: the LIVE badge sits beside the title already "
+            "and says exactly that when the camera is on, so a title carrying "
+            "it too reads as a line nobody read back - and OFF air a title "
+            "claiming a live stream would simply be untrue. `BearCave` is one "
+            "word with two capitals because that is the company's own spelling "
+            "everywhere else on this site: bearcave.ie, culineire@bearcave.ie. "
+            "Renamed on all four surfaces at once - the arena widget, its aria "
+            "label, the moderation page and its panel entry, and the model's "
+            "own fallback text - because a rename that misses one of four is "
+            "the one somebody finds later on the screen nobody re-read. "
+            "Migration 0116 is help_text only and sqlmigrate confirms it is a "
+            "no-op on PostgreSQL. Production carries NO ArenaHouseStream row "
+            "yet, checked before writing anything, so the new default applies "
+            "and no saved title had to be corrected; a title he types still "
+            "wins over it, which is the whole point of the record existing. "
+            "THE PLACEHOLDER ARRIVED AS A 9.7 MB ANIMATED GIF and is served as "
+            "an 86 KB still, and the arithmetic is why rather than the "
+            "preference. This project caps arena art at 150 KB; the GIF is "
+            "sixty-four times that. Grain and scan lines are exactly what a "
+            "compressor cannot help with, so the animation was measured rather "
+            "than assumed: 960x540 animated WebP is 777 KB at q70 and still "
+            "567 KB at q45, and it only comes under the cap at 480x270 with ten "
+            "choppy frames - half the resolution of a card that renders up to "
+            "about 500px wide in the rail. The still keeps his full 960x540 and "
+            "is sharp. THE ANIMATION IS ONE WORD AWAY if he wants it at that "
+            "cost; the numbers are in his report rather than the decision being "
+            "made quietly for him. Softening the weight guard was never an "
+            "option - a red that tells the truth outranks a green that lies. "
+            "THE OLD OFF-AIR CARD IS DELETED, NOT HIDDEN: the hourglass, its "
+            "two lines of apology copy and all four of their CSS rules go with "
+            "it, because a selector nothing matches is a rule the next reader "
+            "has to prove dead before touching anything near it. The picture "
+            "covers the same 16/9 stage the video does, so the rail does not "
+            "change shape when the camera comes on - which is the entire reason "
+            "this widget has an off-air state instead of disappearing. "
+            "9 new tests and Bolt's own 15 updated where they asserted the "
+            "removed card; 31 green. One of the new guards failed first on the "
+            "widget's own comment, which records the old name on purpose - the "
+            "third time today a test that reads prose found the ghost it was "
+            "written to bury, so it strips {% comment %} blocks now, the same "
+            "way the privilege-flag guard strips docstrings."
+        ),
+    },
+    {
         "version": "2.5.1388",
         "date": "2026-08-28",
         "commit": "pending",

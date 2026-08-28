@@ -1,5 +1,5 @@
 {% load static %}{% comment %}
-THE HOUSE KITCHEN, at the top of the right rail, above the chat
+THE BEARCAVE FOOD TRAILER, at the top of the right rail, above the chat
 (Owner, 2026-08-27: "пусть камера будет сверху"). Owner, 2026-08-27: "я сюда буду стримить
 живую кухню на постоянной основе".
 
@@ -20,11 +20,29 @@ NO POLLING. The address changes when the Owner saves the form, and the arena
 page reloads itself every five minutes anyway; a poller for a value that
 changes twice a week is the kind of thing AGENTS.md section 5 was written
 about.
+
+RENAMED 2026-08-28, on the Owner's instruction: this is the BearCave Food
+Trailer, not "the house kitchen". `BearCave` is the company's own spelling -
+bearcave.ie, culineire@bearcave.ie - and it is one word with two capitals
+everywhere else in this project, so it is one word with two capitals here.
+
+The heading does NOT say "LiveStream". The LIVE badge beside it already says
+that when the camera is on, and saying it twice in one line reads as a title
+that has not been read back. Off air, a title claiming a live stream would
+simply be untrue.
+
+THE OFF-AIR CARD IS THE OWNER'S OWN PLACEHOLDER, a test-card frame he supplied
+on 2026-08-28. It arrived as a 9.7 MB animated GIF; served as one it would be
+sixty-four times the byte cap this project holds arena art to, and the grain
+and scan lines are exactly what a compressor cannot help with - an animated
+WebP only fits by dropping to 480x270 and ten choppy frames. So the still is
+served at his full 960x540 and 86 KB, sharp, and the animation is one word
+away if he wants it at that cost.
 {% endcomment %}
-<section class="arena-house-stream" aria-label="The house kitchen">
+<section class="arena-house-stream" aria-label="BearCave Food Trailer">
   <header class="arena-house-stream__head">
     <svg class="arena-ico" aria-hidden="true"><use href="#ad-eye"></use></svg>
-    <h2 class="arena-panel__kicker">{{ house_stream.title|default:"The house kitchen" }}</h2>
+    <h2 class="arena-panel__kicker">{{ house_stream.title|default:"BearCave Food Trailer" }}</h2>
     {% if house_stream.on_air %}<span class="arena-house-stream__live">Live</span>{% endif %}
   </header>
 
@@ -33,13 +51,12 @@ about.
       <video class="arena-house-stream__video"
              data-hls-url="{{ house_stream.playback_url }}"
              muted playsinline autoplay controls
-             aria-label="The house kitchen, live"></video>
+             aria-label="BearCave Food Trailer, live"></video>
     {% else %}
-      <div class="arena-house-stream__off">
-        <svg class="arena-ico" aria-hidden="true"><use href="#ad-hourglass"></use></svg>
-        <b>The kitchen is quiet</b>
-        <span>The camera comes back on when the pass does.</span>
-      </div>
+      <img class="arena-house-stream__placeholder"
+           src="{% static 'images/chef_battle/live_camera_placeholder.webp' %}"
+           alt="Live camera coming soon"
+           width="960" height="540" loading="lazy" decoding="async">
     {% endif %}
   </div>
 
