@@ -31,34 +31,27 @@ that when the camera is on, and saying it twice in one line reads as a title
 that has not been read back. Off air, a title claiming a live stream would
 simply be untrue.
 
-THE OFF-AIR CARD IS THE OWNER'S OWN PLACEHOLDER, the animated test card he
-supplied on 2026-08-28: 960x540, 28 frames, 2.24 seconds a turn.
+THE OFF-AIR CARD IS THE OWNER'S OWN PLACEHOLDER, and both the picture and
+the way it plays are his, decided twice.
 
-IT TURNS TWICE AND STOPS - 4.48 seconds - and that is the whole point of
-the encoding. Owner, 2026-08-29: play the first seconds and then stop, or
-it is a permanent flicker on the screen. A looping test card next to a
-live arena is exactly that. The stop costs nothing: the loop count is one
-number in the file, so there is no script, no timer and no second asset,
-and it rests on its own last frame - measured as different from the first
-by 4.9 out of 255, the same as any two neighbouring frames, because the
-grain is a seamless loop.
+His first card, 2026-08-28, was hard TV static: 28 frames, 2.24 seconds a
+turn. It shipped as a SINGLE STILL FRAME in v2.5.1391 because the source
+GIF is 9.7 MB - which was not a decision to make on his behalf. He handed
+over an animation and asked for it installed. His answer when he found it
+frozen: "а я разве давал тебе право голоса?" The animation went back in
+at v2.5.1435, and at v2.5.1447 it was set to turn twice and stop, because
+static that never stops is a permanent ripple beside a live arena.
 
-Two turns rather than a cut at exactly five seconds: a partial turn means
-storing the frames twice and the file goes from 1.3 MB to 2.7 MB.
+He then replaced the card itself with a calmer one, 2026-08-29: 42 frames,
+4.6 seconds a turn, and ruled that it may run continuously - "тут нет
+такой жёсткой анимации, поэтому убираем блок". So the loop count is 0,
+which is forever.
 
-It shipped as a STILL FRAME in v2.5.1391 because the source GIF is 9.7 MB.
-That was not a decision to make on his behalf - he handed over an animation
-and asked for it installed. His answer when he found it frozen, 2026-08-29:
-"а я разве давал тебе право голоса?"
-
-As an animated WebP the same 28 frames at the same size are 1.3 MB, and that
-is what is served. The cap it needs is registered by name in
-chef_battle/test_static_image_weight.py with his ruling beside it, rather
-than the guard being loosened for everything.
-
-It is only ever fetched when the camera is OFF, and it is lazy-loaded, so it
-is not on the critical path. If the lazy attribute ever comes off, the cap
-goes with it.
+1.19 MB as an animated WebP at his own 960x540. The cap that allows it is
+registered by name in chef_battle/test_static_image_weight.py rather than
+the guard being loosened for everything, and it is affordable because the
+card is fetched only when the camera is OFF and it is lazy-loaded. If the
+lazy attribute ever comes off, that entry goes with it.
 {% endcomment %}
 <section class="arena-house-stream" aria-label="BearCave Food Trailer">
   <header class="arena-house-stream__head">

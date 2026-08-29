@@ -1,5 +1,30 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1474",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "His new off-air card, and it runs continuously because he said it may",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "He supplied a new test card and replaced the old one: 42 frames, "
+            "4.6 seconds a turn, the same 960x540, and calm where the first "
+            "was hard static. 1.19 MB as an animated WebP - LIGHTER than the "
+            "1.3 MB it replaces, and inside the cap already registered for "
+            "this file by name. "
+            "AND IT LOOPS. v2.5.1447 stopped the old card after two turns on "
+            "his instruction, because static that never stops is a permanent "
+            "ripple beside a live arena. His ruling on the new one, in the "
+            "same breath as handing it over: тут нет такой жёсткой анимации, "
+            "поэтому убираем блок. Loop count back to 0. "
+            "The test that guarded the stop was NOT deleted. It is rewritten "
+            "to guard the loop, and it says in as many words that this number "
+            "is a decision he has made twice - so nobody sets it back on their "
+            "own judgement of what looks better. That judgement is exactly "
+            "what went wrong on 2026-08-28, when his animation was installed "
+            "as a single frozen frame without asking him."
+        ),
+    },
+    {
         "version": "2.5.1471",
         "date": "2026-08-28",
         "commit": "pending",

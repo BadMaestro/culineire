@@ -27688,26 +27688,29 @@ class TheCameraIsTheBearCaveFoodTrailerTests(TestCase):
                 getattr(im, "is_animated", False),
                 "the off-air card is a still again",
             )
-            self.assertEqual(im.n_frames, 28, "frames have been dropped")
+            self.assertEqual(im.n_frames, 42, "frames have been dropped")
 
-    def test_the_card_stops_instead_of_flickering_forever(self):
-        """Owner, 2026-08-29: play the first seconds, then stop - otherwise
-        it is a permanent flicker on the screen.
+    def test_the_card_loops_because_this_one_is_calm(self):
+        """The loop count is the OWNER'S, and it has been both values.
 
-        A looping test card beside a live arena is exactly that. The stop is
-        one number in the file - the loop count - so there is no script, no
-        timer and no second asset to keep in step. `loop: 0` means forever
-        and is the failure this guards."""
+        The first card was hard TV static. He watched it and said: play the
+        first seconds and then stop, otherwise it is a permanent ripple on
+        the screen. It shipped in v2.5.1447 stopping after two turns.
+
+        He then replaced the card with a calmer one - 42 frames, 4.6
+        seconds a turn - and ruled again: "тут нет такой жёсткой анимации,
+        поэтому убираем блок". So it loops.
+
+        This test does not defend a number. It defends the fact that the
+        number is a decision he has made twice, so nobody changes it back
+        on their own judgement of what looks better."""
         from PIL import Image
 
         with Image.open(self.PLACEHOLDER) as im:
-            loops = im.info.get("loop")
-            self.assertNotEqual(loops, 0, "the card loops forever again")
-            self.assertEqual(loops, 2)
-            seconds = im.n_frames * 80 * loops / 1000
-            self.assertLessEqual(
-                seconds, 6,
-                f"the card runs for {seconds}s before settling",
+            self.assertEqual(
+                im.info.get("loop"), 0,
+                "the card was stopped again; looping is his ruling of "
+                "2026-08-29 for this calmer card",
             )
 
     def test_the_placeholder_is_webp_at_the_owner_own_resolution(self):
