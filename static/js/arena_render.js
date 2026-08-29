@@ -3088,7 +3088,8 @@
     });
   }
 
-  var lastFitScale = NaN;
+  var lastFitScale = NaN;
+  var lastFitWidth = 0;
   var fitting = false;
   // TWO, NOT EIGHT, AND THE NUMBER WAS MEASURED RATHER THAN CHOSEN.
   // Eight passes converged the scale beautifully on a fast machine and made a
@@ -3183,6 +3184,10 @@
       requestFit(svg);
       return;
     }
+
+    // ONE PUBLISH, AND ONLY NOW. The column may resize because of it, which
+    // asks for one more fit; that fit finds the same scale and stops.
+    if (lastFitWidth > 0) { publishFloorTargetWidth(lastFitWidth); }
 
     arenaState('geometry');
     placeRankSpine(svg);
@@ -3410,7 +3415,14 @@
     var targetY = region.top + region.height * centreY;
     writePlacement(camera, scale, targetX - sized.cx, targetY - sized.cy);
 
-    publishFloorTargetWidth(sized.width);
+    // NOT PUBLISHED HERE ANY MORE. This line is the feedback: the width it
+    // writes is the centre column ceiling, so the column resizes, the region
+    // resizes, and the next fit measures a different page than this one did.
+    // Six passes were needed to walk that out, and on a machine throttled 6x
+    // each pass costs about a second and a half of forced layout. fitScene
+    // publishes it once, after the size has settled, so the fit no longer
+    // moves its own input while it is trying to find it.
+    lastFitWidth = sized.width;
   }
 
   /**

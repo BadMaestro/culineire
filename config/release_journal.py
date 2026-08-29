@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1468",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The fit stopped moving its own input",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "With the climb hidden, what remained was its cost: on a machine "
+            "throttled 6x the arena did not appear for 12.8 seconds, because "
+            "the fit needed six passes and each pass forces a layout of a "
+            "3024-node page. The six passes existed for one reason. "
+            "placeOctagon ended by publishing --arena-floor-target-width from "
+            "the size it had just produced; that width is the centre column's "
+            "ceiling, so the column resized, the region resized, and the next "
+            "pass measured a different page than the one it was correcting. "
+            "The fit was walking after its own footprints. It is published "
+            "ONCE now, from fitScene, after the scale has settled - so during "
+            "the settle the only thing moving the region is the deck's own "
+            "rows arriving, which happens with or without us. The column still "
+            "narrows to the octagon exactly as the Owner asked on 2026-08-26; "
+            "it just narrows once, at the end, instead of six times on the way "
+            "there."
+        ),
+    },
+    {
         "version": "2.5.1465",
         "date": "2026-08-28",
         "commit": "pending",
