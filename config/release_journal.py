@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1418",
         "date": "2026-08-28",
-        "commit": "pending",
+        "commit": "53aab9a6",
         "title": "The tails gathered too - the Owner asked for it done properly",
         "section": "Chef Battles / Arena",
         "summary": (
