@@ -1,5 +1,34 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1426",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The last two controls that still differed by width",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Third and final pass on the same complaint, and the third time "
+            "the rendered page found something the file did not show. After "
+            "v2.5.1423 the tabs, the Pinned Rules and the panel frame matched "
+            "across widths and two controls still did not. THE COMPOSER ICONS "
+            "had a desktop rule that only meant to grow them to a comfortable "
+            "hit area and restated the edge while it was there, at 30% bronze "
+            "against the family edge on a phone; it now sets size and takes "
+            "the edge from the token, so it cannot reopen the split it was not "
+            "trying to make. THE SEND BUTTON was the one I had left genuinely "
+            "inconsistent: v2.5.1420 gave the desktop copy the accent pair and "
+            "left the phone on the neutral base, so the same control read as "
+            "two different buttons. Send carries the accent at rest on every "
+            "width now, stated in the base rule rather than in a desktop copy - "
+            "it is the one primary action in the panel, and in this scheme a "
+            "primary control is still an edge over a wash rather than a block "
+            "of colour. All five sampled controls now measure identical on 1440 "
+            "and 390. What this release cost is the lesson: a stylesheet that "
+            "holds duplicate rules for one selector in places far apart cannot "
+            "be audited by reading, and each of the three passes was reported "
+            "finished only because the live page was measured after it."
+        ),
+    },
+    {
         "version": "2.5.1423",
         "date": "2026-08-28",
         "commit": "pending",

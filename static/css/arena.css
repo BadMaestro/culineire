@@ -1204,16 +1204,22 @@
   border-color: var(--arena-gold);
   outline: none;
 }
+/* SEND CARRIES THE ACCENT AT REST, on every width. It is the one primary
+   action in the panel, and in the site scheme a primary control is still an
+   edge over a wash rather than a block of colour - so it takes the family
+   accent pair while every other button rests neutral. Stated here, in the
+   base rule, because the desktop had its own copy of this and the phone did
+   not, which is exactly the split the Owner objected to on 2026-08-28. */
 .arena-chat__composer button {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
   width: 1.9rem;
   height: 1.9rem;
-  border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  border: 1px solid var(--chat-btn-edge-on);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  color: var(--arena-gold);
+  background: var(--chat-btn-fill-on);
+  color: var(--chat-btn-ink-on);
   cursor: pointer;
 }
 .arena-chat__composer button:hover,
@@ -5147,7 +5153,12 @@
   .arena-chat__composer .arena-chat__composer-action {
     width: 2.1rem;
     height: 2.1rem;
-    border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+    /* Size only. The EDGE is the family token, set once and unconditionally,
+       so this rule cannot reintroduce the desktop/phone split that
+       v2.5.1420 existed to close - measured on 2026-08-28, this line was
+       still drawing 30% bronze on a desktop against the family edge on a
+       phone. */
+    border-color: var(--chat-btn-edge);
   }
 }
 }
