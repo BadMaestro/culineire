@@ -1,0 +1,5 @@
+agent: GreenBear
+started_utc: 2026-08-29T17:10:00Z
+version: 2.5.1483
+commit: pending
+task: the lamp control moves into the master console as a static block
