@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1459",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The climb cannot be made instant on a slow machine, so it is never painted",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Four releases tried to make the octagon reach its final size "
+            "faster and each one traded one symptom for another: twelve passes "
+            "inside a frame settled it in one visible step and cost a 9134ms "
+            "freeze under 6x throttling; two passes cost 3732ms and put the "
+            "steps back. The measurement that ended the search: each forced "
+            "layout of this 3024-node page costs about a second and a half on "
+            "that machine, and the fit needs about six of them to reach its "
+            "fixed point against a deck still growing 873px to 1456px. THAT "
+            "CANNOT BE MADE INSTANT. It can be made INVISIBLE. The deck is "
+            "already hidden by CSS while data-arena-state is boot; it now stays "
+            "there until two consecutive fits agree on the scale, so the climb "
+            "happens across several quiet frames with nobody looking at it and "
+            "only the settled scene is ever painted. Two passes per fit keeps "
+            "any single task short. ONE FAILURE MODE WAS CLOSED IN THE SAME "
+            "CHANGE and it would have been fatal: publishFloorTargetWidth "
+            "returns early when the width it computes equals the one already "
+            "set, which on a warm load can be the first pass - no column "
+            "change, no observer, no second fit, and a deck hidden for ever "
+            "waiting for a confirmation nobody was going to send. An unsettled "
+            "fit now asks for the next one itself, so the only path out of boot "
+            "does not depend on the page moving again."
+        ),
+    },
+    {
         "version": "2.5.1456",
         "date": "2026-08-28",
         "commit": "pending",

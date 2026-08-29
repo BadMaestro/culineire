@@ -3088,6 +3088,7 @@
     });
   }
 
+  var lastFitScale = NaN;
   var fitting = false;
   // TWO, NOT EIGHT, AND THE NUMBER WAS MEASURED RATHER THAN CHOSEN.
   // Eight passes converged the scale beautifully on a fast machine and made a
@@ -3114,7 +3115,13 @@
   // Twelve leaves headroom for a composition that needs more, and the
   // FIT_SETTLED test stops it the moment the number stops moving - on a
   // settled page the loop runs twice and leaves.
-  var FIT_MAX_PASSES = 12;
+  // TWO. On a machine throttled 6x each forced layout of this page costs about
+  // a second and a half, so twelve passes bought a settled octagon at the
+  // price of a 9134ms freeze - measured. The scale still needs about six
+  // passes to reach its fixed point; it gets them across several QUIET FRAMES
+  // instead of inside one, and the deck stays hidden until it has, so the
+  // steps cost nothing to look at because nobody looks at them.
+  var FIT_MAX_PASSES = 2;
   var FIT_SETTLED = 0.002;   // 0.2% of scale: below what a pixel can show
 
   function fitScene(svg) {
@@ -3124,7 +3131,6 @@
     var camera = svg.parentElement;
     if (!camera) { return; }
     if (!geometryIsValid(svg)) { return; }
-    arenaState('geometry');
 
     // Re-entrancy: our own writes fire the region's ResizeObserver. Without
     // this the convergence loop would be re-entered from inside itself.
@@ -3152,6 +3158,33 @@
       }
     }
 
+    // NOTHING IS REVEALED UNTIL THE SIZE HAS STOPPED CHANGING.
+    //
+    // The Owner watched the octagon climb from 0.6378 to 1.0068 over four and
+    // a half seconds and called it what it is: the site sliding in from the
+    // sides while every block squeezes down to fit. The climb is the fit
+    // finding its fixed point against a deck that is still growing, and it
+    // cannot be made instant on a slow machine - each pass forces a layout of
+    // 3024 nodes. What it can be is INVISIBLE. The deck is already hidden by
+    // CSS while data-arena-state is boot; it stays there until two consecutive
+    // fits agree, and only the settled scene is ever painted.
+    var reachedScale = parseFloat(camera.style.getPropertyValue('--arena-camera-scale'));
+    var stable = (reachedScale > 0) && (lastFitScale > 0) &&
+                 Math.abs(reachedScale - lastFitScale) < FIT_SETTLED;
+    lastFitScale = reachedScale;
+    if (!stable) {
+      // ASK FOR THE NEXT ONE OURSELVES rather than trusting a trigger to
+      // arrive. publishFloorTargetWidth returns early when the width it
+      // computed equals the one already set, and on a warm load that can be
+      // the very first pass - no column change, no observer, no second fit,
+      // and a deck that stays hidden for ever because it is waiting for a
+      // confirmation nobody was going to send. This is the only path out of
+      // boot, so it must not depend on the page moving again.
+      requestFit(svg);
+      return;
+    }
+
+    arenaState('geometry');
     placeRankSpine(svg);
     paintRankLadder(svg);
     // Everything measured off the octagon now holds a real position, so the
