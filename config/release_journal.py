@@ -93,7 +93,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1432",
         "date": "2026-08-28",
-        "commit": "pending",
+        "commit": "01069db1",
         "title": "The sticker sheet was pinned to the screen; it belongs to the chat",
         "section": "Chef Battles / Arena",
         "summary": (
