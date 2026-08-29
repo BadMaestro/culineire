@@ -12735,3 +12735,32 @@ button.arena-chat__poll-option:hover {
 .page--arena .arena-command-deck[data-arena-live="0"] .arena-atmo-gift {
   animation: none;
 }
+
+/* THE STROBE BLEND IS THE SINGLE MOST EXPENSIVE THING IN THE DRAWING.
+
+   Measured on production in the Owner's browser, 2026-08-29, five
+   interleaved A/B pairs on one loaded page: 76.6ms a frame with these
+   blend modes, 59.7ms without - 22% of every frame, and every pair agreed.
+   Nothing else inside the octagon came close: filters cost 2ms, opacity
+   nothing, hiding the lamps nothing, a compositor layer nothing.
+
+   The blend is 24 lamp strobes and a handful of sparks painting in `screen`
+   - deliberately, because they are LIGHT rather than drawn outlines, and
+   two rings that cross should add up instead of stacking as paint. That is
+   the Owner's composition and it is not being changed.
+
+   What changes is that an arena with no battle in it does not pay for it.
+   Same gate as the idle animations above, same reason: lamp strobes on an
+   empty floor are decorating nothing. During a battle every one of them
+   looks exactly as it always has.
+
+   Written to beat the rules it turns off, one mirrored selector each. The
+   short form was tried on the animations first and lost to an id. */
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-vip-spark[data-lit="true"],
+.arena-command-deck[data-arena-live="0"] #arena-render .arena-floor-crown__bulb-glow,
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-floor-crown__cone,
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-floor-crown__gold-spot,
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-cell-spark[data-lit="true"],
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-lamp-strobe {
+  mix-blend-mode: normal;
+}

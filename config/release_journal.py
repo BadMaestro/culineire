@@ -1,5 +1,46 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1492",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "Two stale guards, a board that could not stop going stale, and the strobe blend",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner: чини всё. Three loose ends, all closed. "
+            "TWO RED TESTS, neither of them a fault in the code. Both asserted "
+            "a SPELLING that v2.5.1456 changed when the fit was deferred to a "
+            "quiet frame: `fitScene(svg)` became `requestFit(svg)`, and the "
+            "region observer grew a body. The requirements never moved - a "
+            "window resize must re-fit whatever the header did, and the "
+            "observer must watch the REGION because the camera viewport's box "
+            "is a constant and can never fire. Both now assert that, not the "
+            "characters. Same trap as the four false reds on 2026-08-27. "
+            "THE BUILD BOARD SAID PRODUCTION WAS v2.5.1135. It has gone stale "
+            "twice now: T15 found it 242 releases behind on 2026-08-15 and "
+            "fixed it by typing a newer number, which was 350 behind by today "
+            "and failed the guard on every release in between. Typing a third "
+            "number would fail again tomorrow, so both the board and "
+            "ARENA_BATTLE_PLAN.md now point at the footer - the one string "
+            "bumped on every deploy - and the test guards that neither has "
+            "grown a hand-typed copy again. "
+            "THE STROBE BLEND, which turned out to be the most expensive "
+            "single thing in the drawing. Five interleaved A/B pairs on one "
+            "loaded production page: 76.6ms a frame with `mix-blend-mode: "
+            "screen` on the 24 lamp strobes and their sparks, 59.7ms without. "
+            "22% of every frame, and every pair agreed. Nothing else was "
+            "close - filters 2ms, opacity nothing, hiding the lamps nothing, "
+            "a compositor layer nothing. "
+            "THE BLEND IS NOT TAKEN AWAY. It is his composition: the strobes "
+            "are light, not drawn outlines, so two crossing rings add up "
+            "rather than stack as paint. During a battle they look exactly as "
+            "they always have. An arena with no battle in it simply stops "
+            "paying for them, on the same gate as the idle animations. "
+            "Five interleaved pairs rather than one before-and-after, because "
+            "a single A/B this morning reported a 5x gain that was an artifact "
+            "of a narrow window and did nothing on his screen."
+        ),
+    },
+    {
         "version": "2.5.1489",
         "date": "2026-08-29",
         "commit": "652f452e",

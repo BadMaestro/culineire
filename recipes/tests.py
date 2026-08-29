@@ -486,11 +486,19 @@ class ModerationPanelRoleTests(TestCase):
         )
 
         plan = (settings.BASE_DIR / "docs" / "ARENA_BATTLE_PLAN.md").read_text(encoding="utf-8")
-        baseline = re.search(r"Production baseline:\s*\*\*v?([0-9]+(?:\.[0-9]+)+)\*\*", plan)
-        self.assertIsNotNone(baseline, "ARENA_BATTLE_PLAN.md has no Production baseline line")
-        self.assertEqual(
-            baseline.group(1), shipped,
-            f"ARENA_BATTLE_PLAN baseline is v{baseline.group(1)}, footer is v{shipped}",
+        self.assertIn("Production baseline:", plan)
+        # THE BOARD MUST NOT REPEAT THE NUMBER. It used to, and this test
+        # compared the two: a version typed into a document goes stale the
+        # next time anybody deploys, and it did - 242 releases behind by
+        # 2026-08-15, 350 by 2026-08-29, failing on every release between.
+        # Both the board and the doc now point at the footer instead, so
+        # what is guarded is that neither has grown a hand-typed copy again.
+        typed = re.search(r"Production baseline:\s*\*\*v?([0-9]+(?:\.[0-9]+)+)\*\*", plan)
+        self.assertIsNone(
+            typed,
+            f"ARENA_BATTLE_PLAN has a hand-typed baseline again "
+            f"({typed.group(1) if typed else ''}); it will be stale by the "
+            f"next deploy",
         )
 
     def test_no_stage_claims_a_current_production_version_in_free_prose(self):

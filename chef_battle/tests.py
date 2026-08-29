@@ -12651,7 +12651,20 @@ class ArenaHeaderMeasurementTests(TestCase):
         That is what `force` carries: the window and the late pass re-fit
         whatever the header did."""
         self.assertIn("remeasure(true)", self._layout())
-        self.assertIn("if (changed || force) { fitScene(svg); }", self._renderer())
+        # ASSERTED AS A REQUIREMENT, NOT AS A SPELLING. This read
+        # `fitScene(svg)` until v2.5.1456 deferred the fit to a quiet frame
+        # and the call became `requestFit(svg)`. The requirement never
+        # changed - a window resize must re-fit whatever the header did -
+        # but the guard failed, which is the same trap that produced four
+        # false red tests on 2026-08-27.
+        renderer = self._renderer()
+        branch = renderer.split("changed || force", 1)
+        self.assertEqual(
+            len(branch), 2,
+            "nothing re-fits on `force`; a window resize leaves the scene "
+            "at the coordinates it was given at the old size",
+        )
+        self.assertRegex(branch[1][:80], r"(fitScene|requestFit)\(svg\)")
 
     def test_the_octagon_no_longer_looks_for_its_neighbours(self):
         """Master task section 9. The renderer draws inside the box it is given.
@@ -13720,9 +13733,25 @@ class ArenaLifecycleMechanismCountTests(TestCase):
         """A trigger that cannot fire is worse than one that is missing: it
         reads as covered. The viewport's box is a constant now."""
         code = self._code("arena_render.js")
-        self.assertIn("new global.ResizeObserver(function () { fitScene(svg); }).observe(region)",
-                      " ".join(code.split()))
+        # The REGION is what must be observed - the camera viewport's box is
+        # a constant and an observer on it can never fire. Written as an
+        # exact one-line match, this failed the moment v2.5.1456 gave the
+        # callback a body: the target had not moved at all.
+        flat = " ".join(code.split())
         self.assertIn("svg.parentElement.parentElement", code)
+        observer = flat.split("new global.ResizeObserver", 1)
+        self.assertEqual(len(observer), 2, "the region observer is gone")
+        head = observer[1].split(".observe(", 1)
+        self.assertEqual(len(head), 2)
+        self.assertRegex(
+            head[0], r"(fitScene|requestFit)\(svg\)",
+            "the observer fires and does not re-fit",
+        )
+        self.assertTrue(
+            head[1].lstrip().startswith("region"),
+            "the observer watches something other than the region; on the "
+            "camera viewport it can never fire at all",
+        )
 
     def test_the_page_owns_the_page_level_triggers_and_owns_them_once(self):
         code = self._code("arena_page_layout.js")
@@ -28366,3 +28395,80 @@ class ThePinnedRulesStartCollapsedTests(TestCase):
             "a stored decision is no longer read; the default would override "
             "the reader every time",
         )
+
+
+class AnIdleArenaDoesNotPayForTheStrobeBlendTests(TestCase):
+    """The most expensive single thing in the drawing, and it was paid for on
+    an empty floor.
+
+    Measured on production in the Owner's browser, five interleaved A/B pairs
+    on one loaded page: 76.6ms a frame with `mix-blend-mode: screen` on the 24
+    lamp strobes and their sparks, 59.7ms without - 22% of every frame, and
+    every pair agreed. Nothing else inside the octagon was close: filters cost
+    2ms, opacity nothing, hiding the lamps nothing, a compositor layer nothing.
+
+    THE BLEND ITSELF IS NOT BEING TAKEN AWAY. It is the Owner's composition -
+    the strobes are light, not drawn outlines, so two crossing rings add up
+    rather than stacking as paint. During a battle every one of them looks
+    exactly as it always has. What changes is that an arena with no battle in
+    it does not pay for it.
+
+    Guarded on SPECIFICITY, like the idle animations: the rules being turned
+    off are anchored on an id, and a gate written with classes alone loses to
+    them silently - which happened once already and turned a 25% gain into 9%.
+    """
+
+    @staticmethod
+    def _tool():
+        import importlib.util
+
+        path = (Path(settings.BASE_DIR) / "ops" / "audits" / "arena" / "tools"
+                / "an14_move_guard.py")
+        spec = importlib.util.spec_from_file_location("an14_move_guard", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_every_blend_is_turned_off_by_a_rule_that_can_beat_it(self):
+        tool = self._tool()
+        css = (Path(settings.BASE_DIR) / "static" / "css"
+               / "arena.css").read_text(encoding="utf-8")
+
+        starts, stops = [], []
+        for rule in tool.rules(css):
+            if rule["ctx"]:
+                continue
+            for prop, value, _important in rule["decls"]:
+                if prop != "mix-blend-mode":
+                    continue
+                for selector in rule["sel"].split(","):
+                    selector = selector.strip()
+                    if not selector:
+                        continue
+                    if value.strip() == "normal":
+                        if 'data-arena-live="0"' in selector:
+                            stops.append(selector)
+                    else:
+                        starts.append(selector)
+
+        self.assertTrue(starts, "the arena has no blend modes left at all")
+        self.assertTrue(stops, "nothing turns the blend off on an empty floor")
+        for selector in starts:
+            tail = selector.split()[-1]
+            self.assertTrue(
+                [s for s in stops
+                 if s.split()[-1] == tail
+                 and tool.specificity(s) > tool.specificity(selector)],
+                f"`{selector}` blends at {tool.specificity(selector)} and "
+                f"nothing outweighs it - the empty arena still pays for it",
+            )
+
+    def test_a_running_battle_keeps_the_composition(self):
+        """The gate is keyed to `data-arena-live="0"`. If it ever loses the
+        attribute selector it becomes an unconditional switch-off, and his
+        lamps stop being light during the one time they matter."""
+        css = (Path(settings.BASE_DIR) / "static" / "css"
+               / "arena.css").read_text(encoding="utf-8")
+        block = css.split("mix-blend-mode: normal", 1)[0]
+        tail = block[block.rindex("}") + 1:]
+        self.assertIn('data-arena-live="0"', tail)

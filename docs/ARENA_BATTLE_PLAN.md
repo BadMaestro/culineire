@@ -4,7 +4,7 @@
 contract for the Arena. The Owner gives an agent **one card at a time**. The
 agent returns its exact commit, files, visible result, checks and evidence.
 
-Last reconciled: 2026-08-17 · Production baseline: **v2.5.1135**
+Last reconciled: 2026-08-29 · Production baseline: **the site footer**, which `config.release_journal.current_version()` reads and the build board prints. A number typed here went 242 releases stale by 2026-08-15 and 350 by 2026-08-29; a baseline that depends on somebody remembering is a baseline that will be wrong.
 
 ## Owner ruling, 2026-08-17 — the gallery is a closed ring built from octagon cells
 

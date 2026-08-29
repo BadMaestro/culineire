@@ -4886,7 +4886,13 @@ ARENA_RELEASE_STAGES = [
         "dependencies": "Stage 1 baseline DONE.",
         "blockers": [],
         "branch": "One disposable worktree while a card is active; origin/main after each deployed slice.",
-        "commit": "75ec5c86 / production v2.5.1135",
+        # DERIVED, NOT TYPED. This line has now gone stale twice: T15 found
+        # it 242 releases behind on 2026-08-15 and fixed it by typing a new
+        # number, which was 350 behind by 2026-08-29 and failed the guard on
+        # every release in between. current_version() reads the footer in
+        # base.html - the one string that is bumped on every deploy and that
+        # a visitor actually sees - so it cannot drift again.
+        "commit": "75ec5c86 / production " + current_version(str(settings.BASE_DIR)),
         "verification": "Stage 2 is CLOSED - the Owner signed off G01 on 2026-08-10 and every "
                         "card A00 through G01 is DONE and deployed. (T15, 2026-08-15: this line "
                         "opened by confirming a production version that was 242 releases "
