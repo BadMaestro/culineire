@@ -480,25 +480,6 @@
   box-shadow: 0 .55rem 1.6rem color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
-/* ==========================================================================
-   THE CHAT PANEL FRAME IS LIGHTER THAN ITS SIBLINGS - Owner, 2026-08-28.
-
-   .arena-chat shares one frame declaration with the other Arena panels. He
-   asked for the chat's own to be lighter on 2026-08-26 and then answered
-   "not yet" on that half, so AC-BTN left it and said so in writing. He opened
-   it on 2026-08-28, naming the site's scheme as the standard the Arena holds
-   to.
-
-   SCOPED TO THE CHAT AND NOTHING ELSE, and stated after the shared rule so it
-   wins on source order at equal specificity: the floor, the status card, the
-   ladder, the metrics, the gifts, the command grid and the phase rail keep
-   the frame they have. 22% of --brand is the ratio .arena-command-tile
-   already uses, so the panel and the buttons inside it now say the same
-   thing.
-   ========================================================================== */
-.arena-chat {
-  border-color: color-mix(in srgb, var(--brand) 22%, transparent);
-}
 .arena-command-deck__eyebrow, .arena-panel__kicker { margin: 0; color: var(--arena-gold); font-size: .69rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 
 /* .arena-broadcast-ribbon - every rule for this component that could be proved
@@ -1753,7 +1734,28 @@
     -webkit-backdrop-filter: blur(9px) saturate(1.1);
     box-shadow: 0 .8rem 2rem color-mix(in srgb, var(--ink) 45%, transparent);
     color: var(--ink);
-  }
+  }
+
+/* ==========================================================================
+   THE CHAT PANEL FRAME IS LIGHTER THAN ITS SIBLINGS - Owner, 2026-08-28.
+
+   .arena-chat shares one frame declaration with the other Arena panels. He
+   asked for the chat's own to be lighter on 2026-08-26 and then answered
+   "not yet" on that half, so AC-BTN left it and said so in writing. He opened
+   it on 2026-08-28, naming the site's scheme as the standard the Arena holds
+   to.
+
+   SCOPED TO THE CHAT AND NOTHING ELSE, and stated after the shared rule so it
+   wins on source order at equal specificity: the floor, the status card, the
+   ladder, the metrics, the gifts, the command grid and the phase rail keep
+   the frame they have. 22% of --brand is the ratio .arena-command-tile
+   already uses, so the panel and the buttons inside it now say the same
+   thing.
+   ========================================================================== */
+.arena-chat {
+  border-color: color-mix(in srgb, var(--brand) 22%, transparent);
+}
+
 
 
 .arena-command-deck__phase-card *,
@@ -5918,52 +5920,24 @@ button.arena-chat__poll-option { cursor: pointer; }
    DESKTOP-ONLY correction lives later in this file, behind the same
    @media gate as the tabs/rules-toggle corrections above - see the note
    there. */
-.arena-chat .arena-chat__composer-action,
-.arena-chat .arena-chat__composer-action:hover,
-.arena-chat .arena-chat__composer-action:focus-visible { color: var(--chat-btn-ink); }
-.arena-chat .arena-chat__composer-action:active { transform: scale(.94); }
-@media (min-width: 901px) {
-/* Tabs: underline, not fill - color values are unchanged from base
-     (:1873/:1876 - --arena-muted idle, --arena-ink selected), only the
-     shape changes. */
-  .arena-chat .arena-chat__tab {
-    border: 0;
-    border-bottom: 2px solid transparent;
-    background: none;
-    color: var(--arena-muted);
-    border-radius: 0;
-    transition: border-color .15s ease, color .15s ease;
-  }
-.arena-chat .arena-chat__tab[aria-selected="true"] {
-    border-bottom-color: var(--accent-bronze-dark);
-    background: none;
-    color: var(--arena-ink);
-    box-shadow: none;
-  }
-/* Pinned Rules toggle: quiet again, plain ink on the rules card's own
-     light tint - not a bronze fill. */
-  .arena-chat .arena-chat__rules-toggle {
-    background: none;
-    box-shadow: none;
-    color: var(--arena-ink);
-  }
-/* Composer action icons: neutral and secondary, not the Send button's
-     own visual weight. Send is a bare <button> (arena.html:693, no
-     .arena-chat__composer-action class) and is untouched by this or any
-     other rule in this block. */
-  .arena-chat .arena-chat__composer-action {
-    background: none;
-    border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
-    color: var(--accent-bronze-dark);
-    box-shadow: none;
-  }
-.arena-chat .arena-chat__composer-action:hover,
-  .arena-chat .arena-chat__composer-action:focus-visible {
-    background: color-mix(in srgb, var(--accent-bronze) 14%, transparent);
-    border-color: var(--accent-bronze);
-    color: var(--accent-bronze-dark);
-  }
-}
+/* The composer's action buttons carry the family's own resting state, set
+   once in the block above. Two things used to live here and both are gone:
+   a duplicate ink declaration, and the last surviving copy of the
+   DESKTOP-ONLY rescue gate.
+
+   THAT GATE IS WHY THE OWNER SAW TWO DIFFERENT CHATS. Its three amendments -
+   underline tabs, a quieter Pinned Rules, neutral composer icons - were
+   right, and they were locked behind min-width:901px because the brief that
+   asked for them forbade touching mobile the same day. They are base rules
+   now, so a phone and a desktop draw one control.
+
+   Deleted on 2026-08-28 after the live measurement caught it: the tabs and
+   the Pinned Rules already matched across widths because the base said the
+   same thing, but the composer icon did not - it was still being repainted
+   here at 30% bronze on the desktop alone. Measuring the rendered page is
+   what found that; the file read as though it had already been removed,
+   because the gathering pass had left a SECOND, emptied copy elsewhere and I
+   deleted that one. */
 @media (max-width: 900px) {
 .arena-chat-slot { display: contents; }
 }

@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1423",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "Two misses in v2.5.1420, both found by measuring the live page",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "v2.5.1420 shipped and the desktop/phone comparison it was built to "
+            "pass still failed on two of five controls. Both were mine and "
+            "neither would have been visible by reading the file. THE GATHERING "
+            "PASS LEFT TWO COPIES OF THE DESKTOP GATE - v2.5.1409 moved most of "
+            "the rescue pass into the family block and left an emptied one-line "
+            "@media behind as well as the real one. I found the emptied copy, "
+            "deleted it, and reported the gate gone; the live measurement then "
+            "showed a composer icon still drawing at 30% bronze on the desktop "
+            "and at the family edge on the phone, because the real gate was "
+            "forty lines further up and untouched. AND THE FRAME OVERRIDE WAS "
+            "SEATED TOO EARLY: .arena-chat is painted by TWO grouped panel "
+            "rules, not one. The override went after the first and the second "
+            "repainted it at 55% bronze, so the panel measured exactly as it "
+            "had before the release. Re-seated after the rule that was beating "
+            "it. Both defects share one lesson worth keeping: this stylesheet "
+            "holds duplicate rules for the same selector in places far apart, "
+            "so finding one and stopping is not proof - the rendered page is. "
+            "29 chat tests green, braces balanced at 1654, no geometric "
+            "property in the diff."
+        ),
+    },
+    {
         "version": "2.5.1420",
         "date": "2026-08-28",
         "commit": "pending",
