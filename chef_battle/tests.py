@@ -28256,3 +28256,51 @@ class TheLampControlLivesInTheMasterConsoleTests(TestCase):
             "the control reads the store directly again; one owner for the "
             "stored layout is the whole point of the split",
         )
+
+
+class TheFloatingArenaWidgetStartsClosedTests(TestCase):
+    """Owner, 2026-08-29: the floating arena widget is to be closed by default
+    on every page.
+
+    It shipped with `<details ... open>`, so every visitor on every page arrived
+    to an expanded card over the corner of the site.
+
+    THE JAVASCRIPT HAD TO CHANGE WITH THE MARKUP, and that is the part worth a
+    test. The restore was ONE-WAY: it closed the card for somebody who had
+    collapsed it, and did nothing otherwise, because the markup was always open
+    to begin with. Flipping the default without touching it would have thrown
+    away the choice of everyone who had it open - they would find it shut again
+    on every page, with their preference sitting in localStorage being ignored.
+    """
+
+    ROOT = Path(settings.BASE_DIR)
+
+    def test_the_markup_is_closed(self):
+        markup = (self.ROOT / "templates" / "chef_battle"
+                  / "_widget.html").read_text(encoding="utf-8")
+        opener = markup.split("site-battle-widget__details", 1)[1].split(">", 1)[0]
+        self.assertNotIn(
+            "open", opener,
+            "the widget renders expanded again on every page",
+        )
+
+    def test_the_comment_explaining_it_cannot_leak_onto_the_page(self):
+        """A wrapped `{# #}` is not a comment in Django - it prints. This file
+        got one on the first attempt, which is the third time in this codebase,
+        so the note lives in `{% comment %}` and the rendered page is what is
+        asserted."""
+        response = self.client.get("/")
+        body = response.content.decode()
+        self.assertNotIn("{#", body)
+        self.assertNotIn("Owner, 2026-08-29: closed by default", body)
+
+    def test_a_remembered_choice_still_wins_in_both_directions(self):
+        source = (self.ROOT / "static" / "js"
+                  / "battle_widget.js").read_text(encoding="utf-8")
+        block = source.split("if (details) {", 1)[1].split("addEventListener", 1)[0]
+        self.assertIn("details.open = false", block)
+        self.assertIn(
+            "details.open = true", block,
+            "nothing re-opens the widget for a visitor who chose to have it "
+            "open; their preference is stored and ignored",
+        )

@@ -1,7 +1,17 @@
 {% load static author_tags %}
 {% if battle_widget %}
 <aside class="site-battle-widget" aria-label="Chef Battles Arena" id="site-battle-widget">
-  <details class="site-battle-widget__details" open>
+  {% comment %}
+  Owner, 2026-08-29: closed by default on every page. The visitor's own
+  choice still wins - battle_widget.js restores it in both directions from
+  localStorage - but nobody arrives to a card already covering the page.
+
+  {% templatetag openvariable %}#...#{% templatetag closevariable %} is
+  SINGLE-LINE in Django: wrapped, it leaks to the page as text. This very
+  comment was written that way first, which is the third time in this
+  codebase, and there is a test that catches it.
+{% endcomment %}
+  <details class="site-battle-widget__details">
     <summary class="site-battle-widget__toggle">
       <span class="site-battle-widget__label"><img class="site-battle-widget__brand-icon" src="{% static 'images/logo2.webp' %}" alt="" aria-hidden="true">Chef Battles Arena</span>
       <span class="site-battle-widget__toggle-icon" aria-hidden="true"></span>

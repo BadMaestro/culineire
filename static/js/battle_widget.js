@@ -36,9 +36,18 @@
   if (!isNaN(saved)) applyTop(saved);
 
   if (details) {
+    // THE MARKUP SHIPS CLOSED. Owner, 2026-08-29: the widget is to be closed
+    // by default on every page. It used to render with `open` and this branch
+    // only ever CLOSED it, for a visitor who had collapsed it before; with the
+    // default flipped, that one-way restore would have quietly thrown away the
+    // choice of everyone who had it open. The restore works both ways now, and
+    // "by default" means what it says - the state nobody has chosen yet.
     try {
-      if (window.localStorage.getItem(COLLAPSE_STORE_KEY) === 'true') {
+      var stored = window.localStorage.getItem(COLLAPSE_STORE_KEY);
+      if (stored === 'true') {
         details.open = false;
+      } else if (stored === 'false') {
+        details.open = true;
       }
     } catch (err) {}
     details.addEventListener('toggle', function () {

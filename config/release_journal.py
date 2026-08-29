@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1486",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "The floating arena widget starts closed, on every page",
+        "section": "Site",
+        "summary": (
+            "Owner: make it closed by default everywhere. It shipped as "
+            "`<details open>`, so every visitor on every page arrived to an "
+            "expanded card over the corner of the site. "
+            "THE JAVASCRIPT HAD TO CHANGE WITH THE MARKUP. The restore was "
+            "one-way: it closed the card for somebody who had collapsed it "
+            "before, and did nothing otherwise, because the markup was always "
+            "open to begin with. Flipping the default alone would have thrown "
+            "away the choice of everyone who had it OPEN - shut again on every "
+            "page, with their preference sitting in localStorage being "
+            "ignored. It restores both ways now, so `by default` means the "
+            "state nobody has chosen yet, which is what the words mean. "
+            "The note explaining it was written as a wrapped `{# #}` first. "
+            "That is not a comment in Django, it PRINTS - third time in this "
+            "codebase - so it moved into `{% comment %}` and the test asserts "
+            "the rendered home page rather than the file."
+        ),
+    },
+    {
         "version": "2.5.1483",
         "date": "2026-08-29",
         "commit": "99cbc2a0",
