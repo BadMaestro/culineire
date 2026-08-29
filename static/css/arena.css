@@ -8866,8 +8866,20 @@ button.arena-chat__poll-option { cursor: pointer; }
    The octagon is drawn by JavaScript in any case, so a page with no scripting
    has no arena to hide.
    ============================================================ */
+/* SHELL IS HIDDEN TOO, since 2026-08-28.
+
+   The lifecycle used to reveal the deck the moment the header had been
+   measured, and that is one step too early: the octagon has not been fitted
+   at that point. The reader watched it climb from 0.6897 to 1.0068 across
+   several frames, which is what the Owner described as the site sliding in
+   from the sides while every block squeezes down to fit.
+
+   The deck is revealed at `geometry` now, and fitScene announces that state
+   only once two consecutive fits agree on the scale. The climb happens behind
+   this rule, and the settled scene is the first one painted. */
 .page--arena .arena-command-deck:not([data-arena-state]) > *,
-.page--arena .arena-command-deck[data-arena-state="boot"] > * {
+.page--arena .arena-command-deck[data-arena-state="boot"] > *,
+.page--arena .arena-command-deck[data-arena-state="shell"] > * {
   visibility: hidden;
 }
 

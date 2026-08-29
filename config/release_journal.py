@@ -1,5 +1,26 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1465",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The deck stays hidden through shell, so the climb is finally unseen",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Last piece of the load defect. The state machine was correct after "
+            "v2.5.1462 - shell while the octagon climbs, interactive only when "
+            "two fits agree - and the deck was still visible the whole way, "
+            "because the CSS that hides it tests only for boot and for no state "
+            "at all. Shell was a revealing state. It is a hiding one now, so "
+            "the reveal happens at geometry, which fitScene announces only once "
+            "the size has stopped moving. Three releases in a row were correct "
+            "in the file and wrong on the page, each caught by measuring rather "
+            "than by reading, and each time the thing that beat the change was "
+            "somewhere else entirely: an unconditional state announcement "
+            "ninety lines away, and then a CSS rule in another file listing the "
+            "states by name."
+        ),
+    },
+    {
         "version": "2.5.1462",
         "date": "2026-08-28",
         "commit": "pending",
