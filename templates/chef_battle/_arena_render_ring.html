@@ -151,9 +151,15 @@ subscribes and re-fits.
 <script src="{% static 'js/arena_rank_ladder.js' %}"></script>
 <script src="{% static 'js/arena_render.js' %}?v=20260826-floor-fit"></script>
 {% comment %}
-The lamp console (Owner, 2026-07-31). It loads AFTER the renderer because it
-reads ArenaRender.lampDefaults and calls ArenaRender.applyLampLayout. It carries
-no access logic of its own: this whole page is staff/superuser only, and a
-second gate here would look like access control while being none.
+The lamp LAYOUT (Owner, 2026-07-31; split out 2026-08-29). It loads AFTER the
+renderer because it reads ArenaRender.lampDefaults and calls
+ArenaRender.applyLampLayout. It has no interface at all - it reads the stored
+positions and applies them, and that is all this partial needs.
+
+THE CONTROL ITSELF IS NOT HERE ANY MORE. The Owner moved it into the Master
+Console on 2026-08-29 and asked for it as a static block inside the battle
+control panel, so arena_lamp_console.js is loaded by that template alone. His
+positions still apply here, which was his other instruction: "на арене пусть
+применяется то, что я настроил в консоли".
 {% endcomment %}
-<script src="{% static 'js/arena_lamp_console.js' %}"></script>
+<script src="{% static 'js/arena_lamp_layout.js' %}"></script>

@@ -1,30 +1,38 @@
 /*
- * Arena lamp console — the Owner's own control over where the lamps stand.
+ * Arena lamp console — the Owner's control over where the lamps stand.
  *
  * Built 2026-07-31 on his order, after the throwaway plan he called the ideal
- * way to control them. This is that plan, on the arena page: he drags a lamp on
- * a small schematic and the real floor answers immediately.
+ * way to control them: he drags a lamp on a small schematic and the real floor
+ * answers immediately.
  *
- * Three things it deliberately does NOT do:
+ * MOVED INTO THE MASTER CONSOLE on 2026-08-29, on his instruction: "Перенеси
+ * виджет управления лампочками в мастер консоль и встрой в панель управления
+ * боем", and then "чтоб он стал статичным блоком управления внутри мастер
+ * консоли". So it is no longer a floating panel with a toggle bolted to the
+ * corner of the public arena. It mounts into the operator panel it was given
+ * and stays open: a control inside a control deck does not need to ask
+ * permission to be visible.
+ *
+ * IT NO LONGER READS OR WRITES THE LAYOUT ITSELF. arena_lamp_layout.js does
+ * that, and both pages load it - otherwise moving this panel off the arena
+ * would have taken his stored positions with it and quietly returned the floor
+ * to the defaults, which is the one thing he said he did not want.
+ *
+ * Three things it still deliberately does NOT do:
  *
  *  - It does not touch the server. Positions live in localStorage, in his own
  *    browser. Persisting them would mean a schema change, and a schema change
  *    needs his explicit word every time (AGENTS.md section 8).
- *  - It does not widen access. The arena page is staff/superuser only, so
- *    anything on it already is; nothing here loosens that, and the panel adds no
- *    route of its own.
+ *  - It does not widen access. It renders only where the template gives it a
+ *    mount point, and that mount point sits inside the owner-only branch of the
+ *    Master Console's first panel. It adds no route and no gate of its own.
  *  - It does not draw the floor. It writes a layout and asks the renderer to
- *    repaint, so there is exactly one piece of code that knows how a lamp is
- *    drawn, and it is arena_render.js.
- *
- * localStorage is what makes it usable at all: the arena reloads its payload
- * every 30 seconds, and without a stored layout every adjustment would be wiped
- * by the next poll.
+ *    repaint, so exactly one piece of code knows how a lamp is drawn, and it is
+ *    arena_render.js.
  */
 (function (global) {
   'use strict';
 
-  var KEY = 'culineire.arena.lamps.v1';
   var GROUPS = [
     { key: 'outer', label: '1 — внешние на плите', colour: '#ffb347' },
     { key: 'inner', label: '2 — внутренние на плите', colour: '#ff5f5f' },
@@ -38,50 +46,11 @@
   var C = 150;
 
   var NS = 'http://www.w3.org/2000/svg';
+  var store = null;
   var state = null;
   var panel = null;
   var plan = null;
-
-  function defaults() {
-    var d = (global.ArenaRender && global.ArenaRender.lampDefaults) || {};
-    return JSON.parse(JSON.stringify({
-      outer: d.outer || { r: 1.128, deg: 0 },
-      inner: d.inner || { r: 0.9475, deg: 22.7 },
-      moat: d.moat || { r: 1.3161, deg: 0.2 }
-    }));
-  }
-
-  function load() {
-    var base = defaults();
-    try {
-      var raw = global.localStorage && global.localStorage.getItem(KEY);
-      if (!raw) { return base; }
-      var saved = JSON.parse(raw);
-      for (var i = 0; i < GROUPS.length; i++) {
-        var k = GROUPS[i].key;
-        if (saved[k] && isFinite(saved[k].r) && isFinite(saved[k].deg)) {
-          base[k] = { r: saved[k].r, deg: saved[k].deg };
-        }
-      }
-    } catch (error) {
-      // A corrupt or blocked store is not a reason to lose the arena: fall back
-      // to the defaults rather than throwing on the way in.
-    }
-    return base;
-  }
-
-  function save() {
-    try {
-      if (global.localStorage) { global.localStorage.setItem(KEY, JSON.stringify(state)); }
-    } catch (error) { /* private mode, quota — the layout still works this session */ }
-  }
-
-  function push() {
-    global.ArenaLampLayout = state;
-    if (global.ArenaRender && global.ArenaRender.applyLampLayout) {
-      global.ArenaRender.applyLampLayout();
-    }
-  }
+  var dragging = null;
 
   function svgEl(name, attrs) {
     var node = document.createElementNS(NS, name);
@@ -105,17 +74,19 @@
     plan.appendChild(svgEl('polygon', { points: octagon(88), fill: '#1d180f', stroke: '#6a5a44', 'stroke-width': 1 }));
     plan.appendChild(svgEl('polygon', { points: octagon(UNIT * 1.006), fill: '#20342a', stroke: '#e0b34a', 'stroke-width': 2 }));
 
-    for (var g = 0; g < GROUPS.length; g++) {
-      var group = GROUPS[g];
-      var set = state[group.key];
-      for (var i = 0; i < 8; i++) {
-        var a = (i * 45 + set.deg) * Math.PI / 180;
+    for (var i = 0; i < GROUPS.length; i++) {
+      var grp = GROUPS[i];
+      var here = state[grp.key];
+      for (var n = 0; n < 8; n++) {
+        var a = (n * 45 + here.deg) * Math.PI / 180;
         var dot = svgEl('circle', {
-          cx: (C + set.r * UNIT * K * Math.cos(a)).toFixed(1),
-          cy: (C + set.r * UNIT * K * Math.sin(a)).toFixed(1),
-          r: 4.6, fill: group.colour, class: 'arena-lampc__dot'
+          cx: (C + here.r * K * UNIT * Math.cos(a)).toFixed(1),
+          cy: (C + here.r * K * UNIT * Math.sin(a)).toFixed(1),
+          r: n === 0 ? 7 : 4.5,
+          fill: grp.colour,
+          'class': 'arena-lampc__dot',
+          'data-lamp-group': grp.key
         });
-        dot.setAttribute('data-lamp-group', group.key);
         plan.appendChild(dot);
       }
     }
@@ -123,28 +94,22 @@
   }
 
   function readout() {
-    for (var g = 0; g < GROUPS.length; g++) {
-      var key = GROUPS[g].key;
+    for (var i = 0; i < GROUPS.length; i++) {
+      var key = GROUPS[i].key;
       var node = panel.querySelector('[data-lamp-readout="' + key + '"]');
       if (node) {
-        node.textContent = 'r = ' + (state[key].r * UNIT).toFixed(2) +
-          '  (' + state[key].r.toFixed(4) + ' x 82)   угол = ' + state[key].deg.toFixed(1) + '°';
+        node.textContent = 'r ' + state[key].r.toFixed(4) + '  ·  ' + state[key].deg.toFixed(1) + '°';
       }
     }
     var box = panel.querySelector('[data-lamp-copy]');
-    if (box) {
-      box.value = 'ЛАМПЫ\n' + GROUPS.map(function (grp) {
-        return grp.label + ': r = ' + (state[grp.key].r).toFixed(4) + ' x 82, угол = ' + state[grp.key].deg.toFixed(1);
-      }).join('\n');
-    }
+    if (box) { box.value = JSON.stringify(state, null, 2); }
   }
-
-  var dragging = null;
 
   function pointerToLayout(event) {
     var box = plan.getBoundingClientRect();
-    var x = (event.clientX - box.left) * (300 / box.width) - C;
-    var y = (event.clientY - box.top) * (300 / box.height) - C;
+    var scale = 300 / box.width;
+    var x = (event.clientX - box.left) * scale - C;
+    var y = (event.clientY - box.top) * scale - C;
     var deg = Math.atan2(y, x) * 180 / Math.PI;
     return {
       // Clamped so a slip of the hand cannot throw a lamp off the floor.
@@ -154,13 +119,12 @@
     };
   }
 
-  function build() {
-    panel = document.createElement('aside');
+  function build(mount) {
+    panel = document.createElement('div');
     panel.className = 'arena-lampc';
     panel.setAttribute('aria-label', 'Управление лампами арены');
     panel.innerHTML =
-      '<button type="button" class="arena-lampc__toggle" data-lamp-toggle>Лампы</button>' +
-      '<div class="arena-lampc__body" data-lamp-body hidden>' +
+      '<div class="arena-lampc__body">' +
       '<p class="arena-lampc__hint">Тяните лампу — вся восьмёрка едет вместе. Арена меняется сразу.</p>' +
       '<svg class="arena-lampc__plan" viewBox="0 0 300 300" data-lamp-plan></svg>' +
       GROUPS.map(function (grp) {
@@ -176,19 +140,13 @@
       'aria-label="Lamp layout values, ready to copy" readonly rows="4"></textarea>' +
       '</div>';
 
-    document.body.appendChild(panel);
+    mount.appendChild(panel);
     plan = panel.querySelector('[data-lamp-plan]');
 
-    var body = panel.querySelector('[data-lamp-body]');
-    panel.querySelector('[data-lamp-toggle]').addEventListener('click', function () {
-      body.hidden = !body.hidden;
-      if (!body.hidden) { drawPlan(); }
-    });
-
     panel.querySelector('[data-lamp-reset]').addEventListener('click', function () {
-      state = defaults();
-      save();
-      push();
+      state = store.defaults();
+      store.save(state);
+      store.push(state);
       drawPlan();
     });
 
@@ -203,27 +161,31 @@
     plan.addEventListener('pointermove', function (event) {
       if (!dragging) { return; }
       state[dragging] = pointerToLayout(event);
-      push();
+      store.push(state);
       drawPlan();
     });
 
     function release() {
       if (!dragging) { return; }
       dragging = null;
-      save();
+      store.save(state);
     }
     plan.addEventListener('pointerup', release);
     plan.addEventListener('pointercancel', release);
   }
 
   function start() {
-    if (!document.getElementById('arena-render')) { return; }
-    state = load();
-    // Publish before the first paint where possible, so a stored layout is what
-    // the floor is built with rather than something it flickers away from.
-    global.ArenaLampLayout = state;
-    build();
-    push();
+    // NO MOUNT POINT, NO PANEL, and that is the whole of the access story: the
+    // template decides where this control may appear, and it writes the mount
+    // only inside the owner-only branch of the console's first panel.
+    var mount = document.querySelector('[data-lamp-mount]');
+    if (!mount) { return; }
+    store = global.ArenaLampStore;
+    if (!store) { return; }
+    state = global.ArenaLampLayout || store.load();
+    build(mount);
+    store.push(state);
+    drawPlan();
   }
 
   global.ArenaLampConsole = { start: start };

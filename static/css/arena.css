@@ -10322,20 +10322,23 @@ body.page--arena.is-zoom-locked {
 }
 
 /* ---- lamp console (arena_lamp_console.js) ----
-   The Owner's own control over where the lamps stand. It lives on the arena
-   page, which is staff/superuser only, so it is not gated again here — a second
-   gate that looks like access control but is only CSS would be worse than none.
-   Collapsed to a single button until he opens it. */
+   The Owner's own control over where the lamps stand.
+
+   IT WAS A FLOATING CORNER PANEL on the public arena - fixed to the bottom
+   right, collapsed behind a Лампы button, sitting on the overlay layer over
+   the page. He moved it into the Master Console on 2026-08-29 and asked for
+   a static block inside the battle control panel, so all of that goes: no
+   fixed position, no z-index, no toggle. It is a block in a panel now and it
+   flows with the panel like everything else in there.
+
+   Not gated in CSS. The template gives it a mount point only inside the
+   owner-only branch of that panel, and a second gate here would look like
+   access control while being none. */
 .arena-lampc {
-  position: fixed;
-  right: 0.75rem;
-  bottom: 0.75rem;
-  z-index: var(--arena-z-overlay);
   font-family: Georgia, "Playfair Display", serif;
   color: var(--surface-soft);
 }
 
-.arena-lampc__toggle,
 .arena-lampc__actions button {
   font: inherit;
   font-size: 0.82rem;
@@ -10347,14 +10350,15 @@ body.page--arena.is-zoom-locked {
   cursor: pointer;
 }
 
-.arena-lampc__toggle:hover,
 .arena-lampc__actions button:hover {
   background: color-mix(in srgb, var(--ink) 68%, var(--accent-bronze));
 }
 
 .arena-lampc__body {
-  width: 19rem;
-  margin-top: 0.5rem;
+  /* Was a fixed 19rem card floating over the arena. Inside a console panel
+     it takes the width it is given, like every other block in there. */
+  width: 100%;
+  margin-top: 0.35rem;
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--accent-bronze);
   border-radius: 0.6rem;

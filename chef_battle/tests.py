@@ -28133,3 +28133,126 @@ class AnIdleArenaDoesNotAnimateTests(TestCase):
                 f"{tool.specificity(selector)} and nothing stops it with more "
                 f"weight - it will keep running on an empty floor",
             )
+
+
+class TheLampControlLivesInTheMasterConsoleTests(TestCase):
+    """Owner, 2026-08-29: move the lamp widget into the master console and build
+    it into the battle control panel - as a static block, not a floating panel.
+
+    And, when asked what should then happen on the arena itself: "на арене пусть
+    применяется то, что я настроил в консоли".
+
+    THOSE TWO SENTENCES ARE WHY THE FILE WAS SPLIT. One script both drew the
+    control and read the stored layout, so moving it would have taken his
+    positions with it and returned the public floor to the defaults without
+    saying so. arena_lamp_layout.js reads and applies; arena_lamp_console.js
+    offers the way to change it. The arena page loads the first and not the
+    second.
+
+    The mount point is also the access story. The console script renders nothing
+    unless it finds `data-lamp-mount`, and the only one in the codebase is
+    inside the owner-only branch of the console's first panel - so this checks
+    that it is still inside that branch, not merely that it exists."""
+
+    ROOT = Path(settings.BASE_DIR)
+
+    def _read(self, *parts):
+        """The file with its COMMENTS REMOVED.
+
+        Every one of these files explains this move in its own header, by
+        name - `arena_lamp_console.js`, `data-lamp-mount`, `localStorage`.
+        The first draft of this class read the raw text and three of its six
+        tests failed on the prose documenting the very thing they check. It
+        is the fourth time this trap has been walked into here: strip first,
+        then look."""
+        import re
+
+        if len(parts) == 1 and isinstance(parts[0], Path):
+            text = parts[0].read_text(encoding="utf-8")
+        else:
+            text = (self.ROOT.joinpath(*parts)).read_text(encoding="utf-8")
+        text = re.sub(r"\{%\s*comment\s*%\}.*?\{%\s*endcomment\s*%\}", " ",
+                      text, flags=re.S)
+        # JS COMMENT STRIPPING ONLY ON JAVASCRIPT. Run over the console
+        # template it ate everything between an unrelated `/*` and the next
+        # `*/` - including the whole owner-only branch - and the branch test
+        # then reported the mount as sitting outside a branch that was still
+        # there. A cleaner that can delete markup is worse than no cleaner.
+        name = str(parts[-1])
+        if name.endswith(".js") or name.endswith(".css"):
+            text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+            text = re.sub(r"(?m)^\s*//.*$", "", text)
+        return text
+
+    def test_the_arena_applies_the_layout_but_offers_no_control(self):
+        ring = self._read("templates", "chef_battle", "_arena_render_ring.html")
+        self.assertIn("js/arena_lamp_layout.js", ring)
+        self.assertNotIn(
+            "js/arena_lamp_console.js", ring,
+            "the control is back on the public arena; it belongs to the console",
+        )
+
+    def test_the_console_is_the_only_page_that_loads_the_control(self):
+        console = self._read("templates", "chef_battle", "arena_master_console.html")
+        self.assertIn("js/arena_lamp_console.js", console)
+
+        carriers = [
+            path for path in (self.ROOT / "templates").rglob("*.html")
+            if "arena_lamp_console.js" in self._read(path)
+        ]
+        self.assertEqual(
+            [p.name for p in carriers], ["arena_master_console.html"],
+            "something else loads the lamp control now",
+        )
+
+    def test_the_mount_point_is_inside_the_owner_only_branch(self):
+        import re
+
+        console = self._read("templates", "chef_battle", "arena_master_console.html")
+        self.assertEqual(console.count("data-lamp-mount"), 1)
+
+        before = console.split("data-lamp-mount", 1)[0]
+        self.assertIn("{% if operator_is_owner %}", before)
+        opened = before.rindex("{% if operator_is_owner %}")
+        # COUNTED, NOT SEARCHED FOR. There is an `{% if console_test_mode %}`
+        # inside this branch, so "is there an endif between here and the mount"
+        # answers yes while the owner branch is still wide open. The branch is
+        # open when more ifs have been opened than closed.
+        between = before[opened:]
+        opens = len(re.findall(r"\{%\s*if\b", between))
+        closes = len(re.findall(r"\{%\s*endif\s*%\}", between))
+        self.assertGreater(
+            opens, closes,
+            "the lamp control sits outside the owner-only branch of the panel",
+        )
+
+    def test_the_control_draws_nothing_without_a_mount_point(self):
+        source = self._read("static", "js", "arena_lamp_console.js")
+        self.assertIn("querySelector('[data-lamp-mount]')", source)
+        self.assertNotIn(
+            "document.body.appendChild", source,
+            "the control attaches itself to the page again instead of to the "
+            "panel it was given",
+        )
+
+    def test_it_is_a_static_block_with_no_toggle(self):
+        source = self._read("static", "js", "arena_lamp_console.js")
+        css = self._read("static", "css", "arena.css")
+        self.assertNotIn("data-lamp-toggle", source, "the toggle is back")
+        self.assertNotIn("arena-lampc__toggle", css)
+        block = css.split(".arena-lampc {", 1)[1].split("}", 1)[0]
+        self.assertNotIn(
+            "position: fixed", block,
+            "the panel is floating over the page again rather than sitting in "
+            "the console",
+        )
+
+    def test_only_the_layout_file_touches_the_store(self):
+        console = self._read("static", "js", "arena_lamp_console.js")
+        layout = self._read("static", "js", "arena_lamp_layout.js")
+        self.assertIn("culineire.arena.lamps.v1", layout)
+        self.assertNotIn(
+            "localStorage", console,
+            "the control reads the store directly again; one owner for the "
+            "stored layout is the whole point of the split",
+        )

@@ -213,6 +213,24 @@
         </div>
         <p class="amc-panel__hint amc-hidden" id="amc-emu-progress" role="status" aria-live="polite"></p>
         <p class="amc-panel__hint amc-hidden" id="amc-action-error" role="alert"></p>
+        {% comment %}
+        THE LAMPS. Owner, 2026-08-29: move the lamp widget into the master
+        console and build it into the battle control panel, as a static block
+        rather than the floating corner panel it used to be on the public
+        arena.
+
+        THIS MOUNT POINT IS THE ACCESS CONTROL. arena_lamp_console.js renders
+        nowhere unless it finds `data-lamp-mount`, and the only one in the
+        codebase is here, inside the owner-only branch of this panel. The
+        script carries no gate of its own, which is deliberate: a second gate
+        in JavaScript would look like access control while being none.
+
+        The arena page still APPLIES whatever he sets here - that is
+        arena_lamp_layout.js, loaded by the ring partial on both pages - it
+        just no longer offers a way to change it.
+        {% endcomment %}
+        <h4 class="amc-panel__subtitle">Lamps</h4>
+        <div id="amc-lamp-console" data-lamp-mount></div>
         {% else %}
         <p class="amc-empty">Read-only access</p>
         <p class="amc-panel__hint">Phase controls are reserved for the arena owner (DG-02). You can monitor every panel and submit battle reports (P08).</p>
@@ -529,4 +547,11 @@
 {{ master_state|json_script:"amc-state-json" }}
 <script nonce="{{ request.csp_nonce }}">window.AMC_OPERATOR = { isOwner: {{ operator_is_owner|yesno:"true,false" }} };</script>
 <script src="{% static 'js/arena_master_console.js' %}?v=20260806-mc01-removed"></script>
+{% comment %}
+The lamp CONTROL, and only here. It mounts into the `data-lamp-mount` in the
+first operator panel above; on the public arena that mount does not exist and
+the script draws nothing. Loaded after the ring partial, which brings in the
+renderer it talks to and arena_lamp_layout.js, which owns the stored layout.
+{% endcomment %}
+<script src="{% static 'js/arena_lamp_console.js' %}"></script>
 {% endblock %}

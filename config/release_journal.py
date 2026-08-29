@@ -1,5 +1,44 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1483",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "The lamp control moves into the Master Console, as a block rather than a floating panel",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner: move the lamp widget into the master console and build it "
+            "into the battle control panel; then, asked whether it could stop "
+            "being a pop-out, make it a static block inside the console. Both "
+            "done. It sits in panel 1, Arena Control / Battle Flow, always "
+            "open - no fixed position, no z-index, no toggle. "
+            "THE FILE HAD TO BE SPLIT FIRST, and asking him about it was the "
+            "point. One script both drew the control and read the stored "
+            "layout, so moving it would have taken his positions with it and "
+            "returned the public floor to the defaults without a word. His "
+            "ruling when asked: на арене пусть применяется то, что я настроил "
+            "в консоли. So arena_lamp_layout.js now reads and applies - no "
+            "interface at all, loaded by both pages - and "
+            "arena_lamp_console.js offers the way to change it, loaded by the "
+            "console alone. "
+            "THE MOUNT POINT IS THE ACCESS CONTROL. The console script renders "
+            "nothing unless it finds `data-lamp-mount`, and the only one in "
+            "the codebase is inside the owner-only branch of that panel. No "
+            "route, no second gate in JavaScript - a gate there would look "
+            "like access control while being none. A test asserts the mount is "
+            "inside that branch by COUNTING opened against closed tags, not by "
+            "looking for an endif: there is an inner `if` in the panel, so the "
+            "naive check passes on a mount that has fallen outside. "
+            "Still no server, still localStorage in his own browser. "
+            "Persisting would be a schema change and that needs his word every "
+            "time. "
+            "Six new tests, and three of them failed on their first run "
+            "against the PROSE that documents this move - every file explains "
+            "it by name in its own header. Fourth time in this codebase. They "
+            "strip comments before scanning now, and only from JavaScript: "
+            "running a `/* */` cleaner over an HTML template can eat markup."
+        ),
+    },
+    {
         "version": "2.5.1480",
         "date": "2026-08-29",
         "commit": "be8226cb",
