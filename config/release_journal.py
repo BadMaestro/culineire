@@ -1,5 +1,27 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1462",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The hiding did nothing because one line lifted it unconditionally",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "v2.5.1459 held the deck in its boot state until two fits agreed on "
+            "the scale, and measuring it afterwards showed the deck appearing "
+            "at 0.6897 and climbing in view exactly as before. The gate was "
+            "correct and irrelevant: arenaState('interactive') stood on its own "
+            "line straight after the first fitScene call, 'interactive' is the "
+            "highest state in the lifecycle, and the CSS that hides the deck "
+            "tests for boot - so that one line lifted the hiding no matter what "
+            "the fit had settled on. The announcement moved to where the work "
+            "actually finishes, inside the settled branch of fitScene next to "
+            "arenaState('scene'). Found by measuring the page after the release "
+            "rather than by reading the change - the diff looked right, and the "
+            "line that beat it was ninety lines away and had been there for "
+            "weeks."
+        ),
+    },
+    {
         "version": "2.5.1459",
         "date": "2026-08-28",
         "commit": "pending",

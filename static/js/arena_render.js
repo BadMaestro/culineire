@@ -3191,6 +3191,9 @@
     // furniture may be shown. This is the only line that reveals it, and it is
     // reached by having done the work rather than by having waited.
     arenaState('scene');
+    // The scene is placed and the furniture is up: this is the moment the page
+    // is genuinely usable, so it is the moment the lifecycle says so.
+    arenaState('interactive');
   }
   // ============================================================
   // THE CAPTION IS NOT PLACED BY THIS FILE ANY MORE.
@@ -3661,8 +3664,15 @@
     // ladder got: an element appears when the number it depends on is known.
     measureHeader();
     arenaState('shell');
+    // NOT arenaState('interactive') HERE, and that line standing here is what
+    // made the first attempt at hiding the climb do nothing at all. It ran
+    // unconditionally after the first fit, and 'interactive' is the highest
+    // state, so it lifted the boot-state CSS that hides the deck no matter
+    // what the fit had or had not settled on. Measured after that change: the
+    // deck still appeared at scale 0.6897 and climbed in view exactly as
+    // before. The announcement belongs where the work finishes - fitScene
+    // makes it, once the size has stopped moving.
     fitScene(svg);
-    arenaState('interactive');
     // THE OBSERVER WATCHES THE REGION, NOT THE CAMERA.
     //
     // AN-R2/3, 2026-08-09, found by the lifecycle audit and not by a test.
