@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1438",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "01069db1",
         "title": "Sign In vanished under the cursor in the burger menu",
         "section": "Site / Header",
         "summary": (
