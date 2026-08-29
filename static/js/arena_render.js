@@ -3072,7 +3072,20 @@
   // itself grows from 873px to 1456px as its own rows settle, and the octagon
   // follows the region that growth produces. That is a page-layout problem,
   // recorded rather than papered over.
-  var FIT_MAX_PASSES = 2;
+  // TWELVE, AND THE NUMBER CHANGED TWICE BECAUSE THE COST OF A PASS DID.
+  //
+  // The first attempt used eight and made a slow machine WORSE than the bug -
+  // 9127ms in one task against 3072ms before it - because a pass then forced
+  // THREE full-page layouts: geometryIsValid, the scale-1 reset measurement,
+  // and the sized measurement. Two passes was the most that was affordable.
+  //
+  // With the drawing size cached (naturalSize, above) a pass forces ONE
+  // layout, so the budget that bought two now buys six, and the observed
+  // sequence needs six: 0.6897, 0.7804, 0.8573, 0.9205, 0.9755, 1.0068.
+  // Twelve leaves headroom for a composition that needs more, and the
+  // FIT_SETTLED test stops it the moment the number stops moving - on a
+  // settled page the loop runs twice and leaves.
+  var FIT_MAX_PASSES = 12;
   var FIT_SETTLED = 0.002;   // 0.2% of scale: below what a pixel can show
 
   function fitScene(svg) {

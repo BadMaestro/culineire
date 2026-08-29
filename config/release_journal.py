@@ -1,5 +1,26 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1453",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The fit can afford to finish now that a pass costs one layout",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The pass cap changed twice because the price of a pass did. Eight "
+            "passes in v2.5.1441 made a slow machine worse than the bug - one "
+            "9127ms task against 3072ms before - because a pass then forced "
+            "THREE full-page layouts, and two was all that was affordable. With "
+            "the drawing size cached in v2.5.1450 a pass forces ONE, so the "
+            "same budget buys six, and six is exactly what the observed "
+            "sequence needs: 0.6897, 0.7804, 0.8573, 0.9205, 0.9755, 1.0068. "
+            "Twelve, with the settle test stopping it the moment the number "
+            "holds - on an already-settled page the loop runs twice and leaves. "
+            "The point of the pair is that the octagon reaches its final size "
+            "inside the frame that starts it, so the growth the Owner watched "
+            "climb for four and a half seconds is never painted."
+        ),
+    },
+    {
         "version": "2.5.1450",
         "date": "2026-08-28",
         "commit": "pending",
