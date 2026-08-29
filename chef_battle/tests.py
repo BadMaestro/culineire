@@ -28547,3 +28547,68 @@ class StoppedDecorationRestsInvisibleTests(TestCase):
             "the shafts are stopped at full opacity - brighter than they ever "
             "were while animating",
         )
+
+
+class ACellGlowsOnlyWhileAChefStandsInItTests(TestCase):
+    """Owner, 2026-08-29: "только когда в ячейку заходит шеф - только тогда его
+    ячейка должна начинать светиться тем цветом который соответствует его
+    рангу".
+
+    The COLOUR was already right and is not touched by this: the spark carries
+    its ring, the ring is the rank, and arena.css turns that into white, blue,
+    rose or prism across five intensities.
+
+    What was wrong is that the outline was drawn for ALL 184 rank cells the
+    moment the floor was built, and a chef arriving only switched one of them
+    on. 183 invisible outlines were laid out on every frame for nothing - and he
+    found them by counting the shapes in the drawing himself.
+
+    So the renderer must not build them up front. It makes one when a chef
+    arrives and removes it when the floor is cleared."""
+
+    ROOT = Path(settings.BASE_DIR)
+
+    def _renderer(self):
+        return (self.ROOT / "static" / "js"
+                / "arena_render.js").read_text(encoding="utf-8")
+
+    def test_the_floor_is_not_drawn_with_a_spark_on_every_cell(self):
+        source = self._renderer()
+        drawing = source.split("function bind(", 1)[0]
+        self.assertNotIn(
+            "class: 'arena-cell-spark'", drawing.split("kind === 'rank'", 1)[-1][:400],
+            "the renderer builds a spark for every rank cell again",
+        )
+
+    def test_it_is_made_when_a_chef_arrives(self):
+        source = self._renderer()
+        self.assertIn("function lightCellSpark(", source)
+        arrival = source.split("occupancy === 'chef'", 1)[1][:400]
+        self.assertIn("lightCellSpark(svg, assignment)", arrival)
+
+    def test_the_spark_traces_its_own_cell(self):
+        """It must copy the cell's `d`, or the light lands somewhere other than
+        the outline it belongs to."""
+        source = self._renderer()
+        body = source.split("function lightCellSpark(", 1)[1].split("\n  }", 1)[0]
+        self.assertIn("cell.getAttribute('d')", body)
+        self.assertIn("data-arena-layer=\\\"sparks\\\"", body.replace('"', '\\"'))
+
+    def test_clearing_the_floor_removes_them(self):
+        source = self._renderer()
+        clearing = source.split("arena-cell-spark'), function (spark)", 1)[1][:300]
+        self.assertIn("removeChild(spark)", clearing)
+        self.assertNotIn(
+            "removeAttribute('data-lit')", clearing,
+            "the spark is unlit rather than removed, so the floor keeps 184 of "
+            "them again",
+        )
+
+    def test_the_rank_colours_are_still_there(self):
+        """The part he did NOT ask to change. Eight ranks, eight lit rules."""
+        css = (self.ROOT / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        for ring in range(1, 9):
+            self.assertIn(
+                f'.arena-cell-spark[data-lit="true"][data-ring="{ring}"]',
+                css.replace("\n", " "),
+            )

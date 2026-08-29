@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1498",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "A cell glows only while a chef stands in it",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, after counting the shapes in the drawing himself: только "
+            "когда в ячейку заходит шеф - только тогда его ячейка должна "
+            "начинать светиться тем цветом который соответствует его рангу. "
+            "THE COLOUR WAS ALREADY RIGHT and is untouched. The spark carries "
+            "its ring, the ring IS the rank, and arena.css turns that into "
+            "white, blue, rose or prism across five intensities - his own "
+            "scheme from 2026-07-31. Nothing about how a lit cell looks has "
+            "changed. "
+            "WHAT WAS WRONG IS THAT ALL 184 EXISTED FROM THE START. The floor "
+            "was drawn with one outline per rank cell and a chef arriving only "
+            "switched one of them on, so 183 invisible outlines were laid out "
+            "and considered on every frame, forever, for nothing. He found "
+            "them by counting - and his count of the floor, 145, was right: "
+            "centre plus seven rings. The eighth reads as part of the dark "
+            "border. "
+            "The renderer builds the spark when the chef arrives and removes "
+            "it when the floor is cleared. Removing it rather than unlighting "
+            "it also settles what the old data-lit reset was guarding: a crown "
+            "left on a cell the Owner has moved off cannot pass his aura to "
+            "the next chef, because the element is gone. "
+            "Also raised by him and NOT done yet, because it is his call: the "
+            "moat is drawn as eight cells with seat attributes - occupancy, "
+            "state, a cell index - when it is one ring with nobody in it."
+        ),
+    },
+    {
         "version": "2.5.1495",
         "date": "2026-08-29",
         "commit": "4e316dfa",

@@ -666,13 +666,14 @@
         // bright dash running round it. It carries the same ring and cell keys
         // as the seat it belongs to, which is how bind() finds it when a chef
         // arrives or leaves.
-        if (entry.kind === 'rank') {
-          sparks.appendChild(el('path', {
-            d: d, pathLength: '100', fill: 'none',
-            'data-ring': ringAttr, 'data-cell': String(pos),
-            'pointer-events': 'none', class: 'arena-cell-spark'
-          }));
-        }
+        // NOT BUILT HERE ANY MORE. Owner, 2026-08-29: the cell should
+        // start glowing when a chef walks into it, and not before.
+        //
+        // One of these was drawn for every rank cell at draw time and then
+        // switched on with data-lit - 184 outlines on the floor, 183 of
+        // them invisible, all of them laid out and considered on every
+        // frame. lightCellSpark() makes the one that is needed when the
+        // chef arrives; clearCellSparks() removes it when he leaves.
 
         // AR3 — the moat is lit, not decorated. One lantern at each cell centre;
         // the glow is CSS so the light stays a token and never a literal.
@@ -1528,6 +1529,42 @@
     }
   }
 
+  /**
+   * The chef's own cell begins to glow, in the colour of his rank.
+   *
+   * Owner, 2026-08-29: "только когда в ячейку заходит шеф - только тогда
+   * его ячейка должна начинать светиться тем цветом который соответствует
+   * его рангу".
+   *
+   * The COLOUR was already right and is untouched: the spark carries its
+   * ring, the ring is the rank, and arena.css turns that into white, blue,
+   * rose or prism with five intensities. What was wrong is that the outline
+   * existed on all 184 rank cells from the moment the floor was drawn, and
+   * a chef arriving only switched one on. 183 invisible outlines were laid
+   * out on every frame for nothing.
+   *
+   * It traces the cell's own path - the same `d`, so the light sits exactly
+   * on the outline it belongs to - and goes into the sparks layer, which is
+   * where it has always been drawn.
+   */
+  function lightCellSpark(svg, assignment) {
+    var selector = '[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]';
+    var existing = svg.querySelector('.arena-cell-spark' + selector);
+    if (existing) { return existing; }
+
+    var cell = svg.querySelector('.arena-cell' + selector);
+    var layer = svg.querySelector('[data-arena-layer="sparks"]');
+    if (!cell || !layer) { return null; }
+
+    var spark = el('path', {
+      d: cell.getAttribute('d'), pathLength: '100', fill: 'none',
+      'data-ring': String(assignment.ring), 'data-cell': String(assignment.cell),
+      'pointer-events': 'none', class: 'arena-cell-spark'
+    });
+    layer.appendChild(spark);
+    return spark;
+  }
+
   function bind(svg, payload, geometry) {
     var occupants = svg.querySelector('[data-arena-layer="occupants"]');
     while (occupants.firstChild) { occupants.removeChild(occupants.firstChild); }
@@ -1551,11 +1588,13 @@
       seat.removeAttribute('data-avatar-default');
       seat.chefRecord = null;
     });
+    // REMOVED, not unlit. The spark is now made when a chef arrives, so
+    // clearing the floor means taking it away again - and that also settles
+    // what unsetting data-lit was there for: a crown left behind on a cell
+    // the Owner has moved off cannot hand his aura to whoever sits there
+    // next, because the element itself is gone.
     Array.prototype.forEach.call(svg.querySelectorAll('.arena-cell-spark'), function (spark) {
-      spark.removeAttribute('data-lit');
-      // Cleared with data-lit, not separately: a crown left behind on a cell
-      // the Owner has moved off would hand his aura to whoever sits there next.
-      spark.removeAttribute('data-owner');
+      if (spark.parentNode) { spark.parentNode.removeChild(spark); }
     });
 
     lightRows(svg, geometry);
@@ -1590,9 +1629,7 @@
       // The spark belongs to chefs, not to every occupant: a gallery spectator
       // is atmosphere and does not get a ring of light on the floor.
       if (assignment.occupancy === 'chef') {
-        var spark = svg.querySelector(
-          '.arena-cell-spark[data-ring="' + assignment.ring + '"][data-cell="' + assignment.cell + '"]'
-        );
+        var spark = lightCellSpark(svg, assignment);
         if (spark) {
           spark.setAttribute('data-lit', 'true');
           // 2026-08-16: the Owner wears a gold crown, not a rank aura. His
