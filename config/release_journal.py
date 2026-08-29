@@ -1,5 +1,32 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1429",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The brown square was the DISABLED send button",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Fourth pass, and this one found the thing the Owner was actually "
+            "looking at. THE COMPOSER IS DISABLED FOR ANYONE NOT SEATED, which "
+            "is most readers most of the time, and a desktop-only rule painted "
+            "that state a solid 35% bronze over the surface - an opaque brown "
+            "square, the last block of flat colour left in the chat. Three "
+            "releases of unifying resting states never touched it because the "
+            "resting state was not what was on his screen. Disabled now dims "
+            "and keeps its colours, which is what the base rule always said. "
+            "AND ONE I BROKE IN v2.5.1426: putting the accent on "
+            ".arena-chat__composer button made it a DESCENDANT selector that "
+            "also caught the emoji, attachment, poll and GIF icons - the exact "
+            "trap the AC-BTN card had written down and I walked into anyway. On "
+            "a desktop a later rule put their edge back and on a phone nothing "
+            "did, so the icons swapped which side was wrong. The base rule now "
+            "carries :not(.arena-chat__composer-action) and Send is the only "
+            "button it reaches. Four passes on one complaint, each one "
+            "reportable only because the live page was measured after it, and "
+            "three of the four defects were invisible in the source."
+        ),
+    },
+    {
         "version": "2.5.1426",
         "date": "2026-08-28",
         "commit": "pending",

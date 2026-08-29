@@ -1210,7 +1210,7 @@
    accent pair while every other button rests neutral. Stated here, in the
    base rule, because the desktop had its own copy of this and the phone did
    not, which is exactly the split the Owner objected to on 2026-08-28. */
-.arena-chat__composer button {
+.arena-chat__composer button:not(.arena-chat__composer-action) {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
@@ -1222,10 +1222,18 @@
   color: var(--chat-btn-ink-on);
   cursor: pointer;
 }
-.arena-chat__composer button:hover,
-.arena-chat__composer button:focus-visible {
-  border-color: var(--arena-gold);
+.arena-chat__composer button:not(.arena-chat__composer-action):hover,
+.arena-chat__composer button:not(.arena-chat__composer-action):focus-visible {
+  border-color: var(--accent-bronze-dark);
+  background: color-mix(in srgb, var(--accent-bronze) 18%, transparent);
 }
+/* DISABLED IS DIMMER, NEVER A DIFFERENT COLOUR. The composer is disabled for
+   anyone not seated, which is most readers most of the time, so this is the
+   state the button is usually in - and a desktop-only rule used to paint it
+   a solid 35% bronze block over the surface. That opaque brown square is
+   what the Owner was looking at when he said the buttons do not belong to
+   the scheme; it was measured on the live page on 2026-08-28 and it is the
+   reason the desktop and the phone still disagreed after two releases. */
 .arena-chat__composer button:disabled { opacity: .5; cursor: default; }
 .arena-chat__composer .arena-ico { width: .85rem; margin: 0; }
 
@@ -5141,7 +5149,9 @@
     outline-offset: 2px;
   }
 .arena-chat__composer button:not(.arena-chat__composer-action):disabled {
-    background: color-mix(in srgb, var(--accent-bronze) 35%, var(--surface));
+    /* Keeps the resting colours and only dims, per the base rule - see the
+       note there. The 35% bronze fill that used to live here was the last
+       solid block of colour in the chat. */
     box-shadow: none;
   }
 /* Composer ACTION icons (emoji/attachment/poll/gif): neutral and
