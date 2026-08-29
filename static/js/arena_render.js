@@ -2938,7 +2938,13 @@
         // Geometry is re-read only when the server actually sent it: AA1
         // omits the key entirely once the client's reported version matches,
         // so "geometry present" already means "geometry changed."
-        if (payload.geometry) { bind(svg, payload, payload.geometry); fitScene(svg); }
+        if (payload.geometry) {
+          bind(svg, payload, payload.geometry);
+          // The drawing changed, so its own size may have: drop the cached
+          // measurement rather than sizing the new scene from the old one.
+          forgetNaturalBox();
+          fitScene(svg);
+        }
         if (global.ArenaDeck) { global.ArenaDeck.refresh(payload); }
         paintRunway(payload.runway || null);
         if (global.ArenaBattleRoom) { global.ArenaBattleRoom.maybeCelebrate(payload.latest_result); }
@@ -3159,6 +3165,38 @@
   // ============================================================
 
   /** The octagon's own rendered box - the thing the region has to hold. */
+  // THE DRAWING'S OWN SIZE IS A CONSTANT, AND IT WAS COSTING 3.3 SECONDS.
+  //
+  // placeOctagon needs the SVG's box at scale 1 to divide by. That box is a
+  // property of the DRAWING - the viewBox and the shapes inside it - and it
+  // does not change when the window resizes, when the deck settles, or when
+  // the camera is scaled. It changes when the scene is re-bound, and at no
+  // other time.
+  //
+  // It was being obtained by resetting the camera to scale 1 and measuring,
+  // on every single pass. Each of those measurements is a getBoundingClientRect
+  // immediately after a style write, which forces a synchronous layout of the
+  // whole page - 3024 nodes, 920 of them inside this SVG. PROFILED ON
+  // PRODUCTION with the CPU throttled 6x: elementBox alone accounted for
+  // 3353ms of a 13.8-second load, more than any other function in the file.
+  //
+  // Measured once and kept. The reset write disappears with it, and so does
+  // the flash of unscaled octagon that reset produced on every re-fit.
+  var naturalBox = null;
+
+  /** Called wherever the scene is re-drawn: the cached size is about to be
+   *  wrong, and a stale one would size the octagon from the old geometry. */
+  function forgetNaturalBox() { naturalBox = null; }
+
+  function naturalSize(svg, camera) {
+    if (naturalBox) { return naturalBox; }
+    writePlacement(camera, 1, 0, 0);
+    var box = elementBox(svg);
+    if (!box) { return null; }
+    naturalBox = { width: box.width, height: box.height };
+    return naturalBox;
+  }
+
   function elementBox(svg) {
     var b = svg.getBoundingClientRect();
     if (!(b.width > 0) || !(b.height > 0)) { return null; }
@@ -3221,9 +3259,10 @@
     var region = camera.parentElement.getBoundingClientRect();
     if (!(region.width > 0) || !(region.height > 0)) { return; }
 
-    // A KNOWN BASE, so the answer cannot depend on what the last pass left.
-    writePlacement(camera, 1, 0, 0);
-    var natural = elementBox(svg);
+    // A KNOWN BASE, so the answer cannot depend on what the last pass left -
+    // measured ONCE now and cached, because it is the drawing's own size and
+    // nothing that happens on this page changes it. See naturalSize().
+    var natural = naturalSize(svg, camera);
     if (!natural || !(natural.width > 0) || !(natural.height > 0)) { return; }
 
     // THE SIZE. One division, because the scale is outside the projection.
@@ -3526,6 +3565,10 @@
     lastGeometryVersion = payload.geometry_version || null;
 
     drawGrid(svg, geometry);
+    // The rings were just built, so any size cached from a previous scene is
+    // stale. Dropped here as well as on re-bind, so no path can size a new
+    // drawing from an old measurement.
+    forgetNaturalBox();
     bind(svg, payload, geometry);
     attachEvents(svg);
     // THE SHELL IS NOT READY UNTIL THE HEADER HAS BEEN MEASURED.

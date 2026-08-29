@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1450",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The octagon measured its own size on every pass, and each measurement laid out the whole page",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "PROFILED RATHER THAN GUESSED. With the CPU throttled 6x to stand "
+            "in for a weak machine, a sampling profile of the load put "
+            "elementBox at 3353ms of 13.8 seconds - more than any other "
+            "function in the renderer, and more than placeOctagon and "
+            "placeRankSpine combined. elementBox is one getBoundingClientRect. "
+            "What makes it cost seconds is WHEN it is called: immediately after "
+            "a style write, which forces a synchronous layout of 3024 nodes, "
+            "920 of them inside this SVG. THE MEASUREMENT WAS NEEDLESS. "
+            "placeOctagon needs the drawing's box at scale 1 to divide by, and "
+            "that box is a property of the DRAWING - its viewBox and its shapes. "
+            "It does not change when the window resizes, when the deck settles, "
+            "or when the camera is scaled; it changes when the scene is "
+            "re-bound and at no other time. It was nevertheless obtained by "
+            "resetting the camera to scale 1 and measuring, on every single "
+            "pass. Measured once and cached now, dropped whenever the rings are "
+            "re-drawn or the scene re-bound, so no path can size a new drawing "
+            "from an old number. The reset write goes with it - and with the "
+            "reset goes the flash of unscaled octagon it produced before every "
+            "re-fit."
+        ),
+    },
+    {
         "version": "2.5.1447",
         "date": "2026-08-29",
         "commit": "a3464cba",
