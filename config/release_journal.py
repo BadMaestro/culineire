@@ -1,5 +1,31 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1444",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "Eight convergence passes made a weak machine worse, not better",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "v2.5.1441 collapsed nine painted fit steps into two by running the "
+            "loop to its fixed point inside one frame. On a fast machine that "
+            "worked. ON A SLOW ONE IT WAS WORSE THAN THE BUG, and the "
+            "measurement said so plainly: the longest single task went from "
+            "3072ms to 9127ms under 6x CPU throttling, because each convergence "
+            "pass forces a synchronous layout of a 3024-node page and eight of "
+            "them cost about a second each. Nine small janks became one nine-"
+            "second freeze - on exactly the machines the Owner asked me to "
+            "protect. Capped at two passes, which is where the visual settling "
+            "almost all is and where the cost is two reflows rather than eight. "
+            "AND THE HONEST PART: the remaining movement is not this loop. The "
+            "deck grows from 873px to 1456px on its own as its rows settle, and "
+            "the octagon follows the region that growth produces. The loop was "
+            "the visible half of a page-layout problem, and capping it does not "
+            "solve that half - recorded in the code and here rather than papered "
+            "over, because the next person to measure this will find the deck "
+            "still growing and deserves to know it was seen."
+        ),
+    },
+    {
         "version": "2.5.1441",
         "date": "2026-08-28",
         "commit": "pending",

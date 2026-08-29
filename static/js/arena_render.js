@@ -3054,7 +3054,19 @@
   // one of the eight rings, and there is no sense doing that against a size
   // that is about to change again.
   var fitting = false;
-  var FIT_MAX_PASSES = 8;
+  // TWO, NOT EIGHT, AND THE NUMBER WAS MEASURED RATHER THAN CHOSEN.
+  // Eight passes converged the scale beautifully on a fast machine and made a
+  // slow one WORSE than the bug: each pass forces a synchronous layout of a
+  // 3024-node page, which costs about a second under 6x CPU throttling, so the
+  // first attempt turned nine small janks into one 9127ms freeze - measured on
+  // production, against a 3072ms worst case before it. Two passes buy nearly
+  // all of the visual settling and cost two reflows instead of eight.
+  //
+  // THE REMAINING MOVEMENT IS NOT THIS LOOP AND CANNOT BE FIXED HERE. The deck
+  // itself grows from 873px to 1456px as its own rows settle, and the octagon
+  // follows the region that growth produces. That is a page-layout problem,
+  // recorded rather than papered over.
+  var FIT_MAX_PASSES = 2;
   var FIT_SETTLED = 0.002;   // 0.2% of scale: below what a pixel can show
 
   function fitScene(svg) {
