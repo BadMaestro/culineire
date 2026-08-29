@@ -601,20 +601,27 @@
     {% comment %}
       Pinned Rules — original copy; nothing like this existed anywhere in the
       repo before it was written for the earlier pass (checked
-      docs/chef_battle/ and this file). EXPANDED by default on desktop
-      (Owner's visual brief, 2026-08-25) unless the reader's own session
-      already remembers closing it - arena_chat.js's sessionStorage read
-      distinguishes "never decided" from "decided closed", so the markup's
-      own starting state below matches what a fresh session will show.
+      docs/chef_battle/ and this file).
+
+      COLLAPSED BY DEFAULT since 2026-08-29, on the Owner's instruction the
+      same day he had the floating arena widget closed: "сверни так же
+      правила чата". It was expanded by default from his visual brief of
+      2026-08-25; a standing rule the reader has already read does not need
+      to hold the top of the panel open on every visit.
+
+      The reader's own choice still wins, both ways. arena_chat.js's
+      sessionStorage read distinguishes "never decided" from a decision, so
+      the markup's starting state below is what a fresh session shows and
+      anyone who opens the rules keeps them open.
     {% endcomment %}
     <div class="arena-chat__rules">
       <button type="button" class="arena-chat__rules-toggle" id="arena-chat-rules-toggle"
-              aria-expanded="true" aria-controls="arena-chat-rules-body">
+              aria-expanded="false" aria-controls="arena-chat-rules-body">
         <svg class="arena-ico" aria-hidden="true"><use href="#ad-book"></use></svg>
         <span>Pinned Rules</span>
         <em aria-hidden="true">&rsaquo;</em>
       </button>
-      <ul class="arena-chat__rules-body" id="arena-chat-rules-body">
+      <ul class="arena-chat__rules-body" id="arena-chat-rules-body" hidden>
         <li>Be respectful — the hall is shared by spectators and chefs alike.</li>
         <li>No spam or promo codes outside the sponsor channels built for them.</li>
         <li>English, or the hall's own house language.</li>

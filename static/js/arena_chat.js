@@ -3198,12 +3198,18 @@
     });
   }
 
-  /* Pinned Rules - EXPANDED by default (Owner's visual brief, 2026-08-25),
-   * unless this tab's own session explicitly remembers the reader closed
-   * it. sessionStorage carries three states, not two: never touched (open),
-   * '1' (reader opened it - already open, a no-op), '0' (reader closed it -
-   * stay closed). A missing key must read as "never decided", not as
-   * "decided closed", or the default could never actually take effect. */
+  /* Pinned Rules - COLLAPSED by default since 2026-08-29, on the Owner's
+   * instruction the same day the floating arena widget was closed: "сверни
+   * так же правила чата". They were expanded by default from his visual
+   * brief of 2026-08-25.
+   *
+   * sessionStorage carries THREE states, not two: never touched (the
+   * default, whatever it currently is), '1' (the reader opened them - keep
+   * them open), '0' (the reader closed them - keep them closed). A missing
+   * key must read as "never decided" rather than as either decision, or the
+   * default could never take effect and the reader's choice could never
+   * survive. That distinction is why flipping the default here is one line
+   * and costs nobody their preference. */
   var rulesToggle = document.getElementById('arena-chat-rules-toggle');
   var rulesBody = document.getElementById('arena-chat-rules-body');
   if (rulesToggle && rulesBody) {
@@ -3214,7 +3220,7 @@
     }
     var storedRulesState = window.sessionStorage && window.sessionStorage.getItem(RULES_KEY);
     paintRules(storedRulesState === null || storedRulesState === undefined
-      ? true
+      ? false
       : storedRulesState === '1');
     rulesToggle.addEventListener('click', function () {
       var open = rulesToggle.getAttribute('aria-expanded') !== 'true';

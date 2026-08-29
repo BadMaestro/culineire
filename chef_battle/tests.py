@@ -28304,3 +28304,65 @@ class TheFloatingArenaWidgetStartsClosedTests(TestCase):
             "nothing re-opens the widget for a visitor who chose to have it "
             "open; their preference is stored and ignored",
         )
+
+
+class ThePinnedRulesStartCollapsedTests(TestCase):
+    """Owner, 2026-08-29, straight after having the floating widget closed:
+    "Сверни так же правила чата".
+
+    They were expanded by default from his visual brief of 2026-08-25. A
+    standing rule the reader has already read does not need to hold the top of
+    the chat panel open on every visit.
+
+    TWO PLACES HAD TO AGREE, which is the only thing hard about this. The markup
+    paints the first frame and the script repaints it from sessionStorage; if
+    they disagree, the rules flash open and then shut on every load. So this
+    asserts both, and asserts that the script still distinguishes "never
+    decided" from a decision - without that distinction, flipping a default
+    silently overrides everyone who had already chosen."""
+
+    ROOT = Path(settings.BASE_DIR)
+
+    def test_the_markup_paints_them_closed(self):
+        markup = (self.ROOT / "templates" / "chef_battle"
+                  / "arena.html").read_text(encoding="utf-8")
+        button = markup.split("arena-chat-rules-toggle", 1)[1].split(">", 1)[0]
+        self.assertIn('aria-expanded="false"', button)
+
+        body = markup.split('id="arena-chat-rules-body"', 1)[1].split(">", 1)[0]
+        self.assertIn(
+            "hidden", body,
+            "the list is painted open while the button says closed; the rules "
+            "will flash open on every load",
+        )
+
+    def test_the_script_agrees_with_the_markup(self):
+        source = (self.ROOT / "static" / "js"
+                  / "arena_chat.js").read_text(encoding="utf-8")
+        # Sliced from the paintRules CALL, not from the declaration: the
+        # declaration ends in `getItem(RULES_KEY)` and a naive cut at the
+        # first ");" stops inside it, so the test read nine words and
+        # failed on a file that was correct.
+        block = source.split("paintRules(storedRulesState", 1)[1].split(");", 1)[0]
+        self.assertIn(
+            "? false", block,
+            "the script still opens the rules when nothing is remembered, so "
+            "the markup's closed state is undone on the first frame",
+        )
+
+    def test_a_reader_who_opens_them_keeps_them_open(self):
+        source = (self.ROOT / "static" / "js"
+                  / "arena_chat.js").read_text(encoding="utf-8")
+        # Sliced from the paintRules CALL, not from the declaration: the
+        # declaration ends in `getItem(RULES_KEY)` and a naive cut at the
+        # first ");" stops inside it, so the test read nine words and
+        # failed on a file that was correct.
+        block = source.split("paintRules(storedRulesState", 1)[1].split(");", 1)[0]
+        # The slice begins after the identifier, so the first mention of it
+        # is not in the text - assert on the comparison itself.
+        self.assertIn("=== null", block)
+        self.assertIn(
+            "storedRulesState === '1'", block,
+            "a stored decision is no longer read; the default would override "
+            "the reader every time",
+        )

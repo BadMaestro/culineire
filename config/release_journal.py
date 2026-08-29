@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1489",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "The pinned chat rules start collapsed too",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, straight after the floating widget: сверни так же правила "
+            "чата. They were expanded by default from his visual brief of "
+            "2026-08-25; a standing rule the reader has already read does not "
+            "need to hold the top of the chat panel open on every visit. "
+            "TWO PLACES HAD TO AGREE. The markup paints the first frame and "
+            "the script repaints it from sessionStorage - flip one and the "
+            "rules flash open and then shut on every load. The button's "
+            "aria-expanded, the list's hidden attribute and the script's "
+            "default now say the same thing, and a test asserts all three. "
+            "The reader's own choice still wins. sessionStorage carries three "
+            "states here rather than two - never decided, opened, closed - "
+            "which is exactly what makes flipping a default a one-line change "
+            "that costs nobody their preference. The same three-state shape "
+            "had to be BUILT for the floating widget an hour earlier, where "
+            "the restore was one-way."
+        ),
+    },
+    {
         "version": "2.5.1486",
         "date": "2026-08-29",
         "commit": "3d25bd9e",
