@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1498",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "b5c0d2ba",
         "title": "A cell glows only while a chef stands in it",
         "section": "Chef Battles / Arena",
         "summary": (
