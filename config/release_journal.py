@@ -1,5 +1,41 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1438",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "Sign In vanished under the cursor in the burger menu",
+        "section": "Site / Header",
+        "summary": (
+            "Owner, 2026-08-29, with a screenshot: hovering Sign In in the "
+            "collapsed menu darkened it almost to nothing. "
+            "The drawer paints its rows cream on a dark panel. Every row in it "
+            "is a .ce-nav__link EXCEPT Sign In, which is a .ce-nav__text - and "
+            "the drawer's hover rule lists links and buttons but not text. So "
+            "on hover it fell through to the header's own "
+            "`.ce-nav__text:hover { color: #3a2c1e }`, a dark brown written "
+            "for the cream desktop bar. Dark brown on a dark panel is "
+            "invisible, and the row also carries opacity 0.75, dimming it "
+            "further at the exact moment it was being pointed at. "
+            "A TIE BROKEN BY SOURCE ORDER, which is why nothing caught it. "
+            "`.ce-nav--open .ce-nav__text` and `.ce-nav__text:hover` are both "
+            "(0,2,0); at equal specificity the lower rule wins, and the "
+            "desktop one sits 140 lines lower. Adding the state to the "
+            "drawer's own rule makes it (0,3,0) and settles it on specificity "
+            "rather than on which rule happens to be written last. Sign In "
+            "also gets an explicit hover that lifts it to full opacity: it is "
+            "quieter than Join Us at rest by design, but not while the cursor "
+            "is on it. "
+            "Two tests, both watched failing on the old stylesheet first. They "
+            "assert by CONTRAST rather than by spelling - whatever colour the "
+            "drawer settles on must be a light one, because the panel behind "
+            "it is dark. The first draft of them PASSED on the broken file: "
+            "the comment above the touch rules says \"iOS doesn't reliably "
+            "fire :hover\", and a scan that keeps comments reads that prose as "
+            "part of the next selector. Same trap that fooled four guards in "
+            "the arena; comments are stripped before scanning now."
+        ),
+    },
+    {
         "version": "2.5.1435",
         "date": "2026-08-29",
         "commit": "b8719cb1",

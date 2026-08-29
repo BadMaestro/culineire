@@ -377,8 +377,24 @@
   font-size: 0.97rem;
   color: rgb(247 242 234 / 0.88);
 }
+/* .ce-nav__text BELONGS IN THIS LIST, and leaving it out is what made
+   Sign In disappear under the cursor (Owner, 2026-08-29).
+
+   The drawer paints its rows cream on a dark panel. Every row here is a
+   .ce-nav__link EXCEPT Sign In, which is a .ce-nav__text - so on hover it
+   fell through to the header's own `.ce-nav__text:hover { color: #3a2c1e }`,
+   a dark brown meant for the cream desktop bar. Dark brown on a dark panel
+   is invisible.
+
+   AND IT WAS A TIE BROKEN BY ORDER, which is why it was easy to miss:
+   `.ce-nav--open .ce-nav__text` and `.ce-nav__text:hover` are BOTH (0,2,0),
+   so the lower one in the file wins, and the desktop rule is 140 lines
+   lower. Adding the state here makes it (0,3,0) and settles it on
+   specificity instead of on which rule happens to be written last. */
 .ce-nav--open .ce-nav__link:hover,
 .ce-nav--open .ce-nav__link:focus-visible,
+.ce-nav--open .ce-nav__text:hover,
+.ce-nav--open .ce-nav__text:focus-visible,
 .ce-nav--open .ce-nav__button:hover,
 .ce-nav--open .ce-nav__button:focus-visible {
   background: rgb(247 242 234 / 0.1);
@@ -417,6 +433,17 @@
   text-align: center;
   font-size: 0.88rem;
   opacity: 0.75;
+}
+/* Sign In is quieter than Join Us at rest, and that is the design. Under
+   the cursor it has to come UP, not down: the 0.75 above was dimming the
+   row at the exact moment it was being pointed at. */
+.ce-nav--open .ce-nav__auth a[href*="login"]:hover,
+.ce-nav--open .ce-nav__auth a[href*="login"]:focus-visible,
+.ce-nav--open .ce-nav__auth a[href*="signin"]:hover,
+.ce-nav--open .ce-nav__auth a[href*="signin"]:focus-visible {
+  background: rgb(247 242 234 / 0.1);
+  color: #fff;
+  opacity: 1;
 }
 
 /* Touch-active class set by JS on touchstart — replaces sticky iOS :hover */

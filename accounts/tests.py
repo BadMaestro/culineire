@@ -513,3 +513,77 @@ class BearseekerAdminTierTests(TestCase):
             self.target_user.refresh_from_db()
             request.user = self.target_user
             self.assertTrue(is_battle_visible(request))
+
+
+class SignInStaysVisibleInTheBurgerMenuTests(TestCase):
+    """Owner, 2026-08-29: hovering Sign In in the collapsed menu made it vanish.
+
+    The drawer paints its rows cream on a dark panel. Every row in it is a
+    `.ce-nav__link` EXCEPT Sign In, which is a `.ce-nav__text` - so on hover it
+    fell through to the header's own `.ce-nav__text:hover { color: #3a2c1e }`,
+    a dark brown written for the cream desktop bar. Dark brown on a dark panel
+    is invisible, and the row also carried `opacity: 0.75`, which dimmed it
+    further at the exact moment it was being pointed at.
+
+    IT WAS A TIE BROKEN BY SOURCE ORDER, which is why nothing caught it:
+    `.ce-nav--open .ce-nav__text` and `.ce-nav__text:hover` are both (0,2,0),
+    so the lower rule in the file wins and the desktop one is 140 lines lower.
+
+    This asserts the fix by CONTRAST rather than by spelling: whatever colour
+    the drawer's hover state ends up being, it must be a light one, because the
+    panel behind it is dark."""
+
+    @staticmethod
+    def _rules(css, needle):
+        """Rules whose selector mentions `needle`, comments stripped first.
+
+        The comment above the touch rules says "iOS doesn't reliably fire
+        :hover", and a scan that keeps comments reads that prose as part of
+        the next selector - so this guard passed on the broken stylesheet
+        the first time it was run. Four other guards in this codebase have
+        been fooled by their own comments the same way."""
+        import re
+
+        css = re.sub(r"/\*.*?\*/", " ", css, flags=re.S)
+        out = []
+        for match in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+            head = " ".join(match.group(1).split())
+            if needle in head:
+                out.append((head, match.group(2)))
+        return out
+
+    def _css(self):
+        from pathlib import Path
+
+        from django.conf import settings as django_settings
+
+        return (Path(django_settings.BASE_DIR) / "static" / "css"
+                / "header.css").read_text(encoding="utf-8")
+
+    def test_the_drawer_lights_the_row_it_is_pointing_at(self):
+        css = self._css()
+        lit = [
+            body for head, body in self._rules(css, ".ce-nav--open")
+            if ".ce-nav__text:hover" in head
+        ]
+        self.assertTrue(
+            lit,
+            "no rule lights a .ce-nav__text on hover inside the open drawer, "
+            "so Sign In falls through to the desktop bar's dark brown",
+        )
+        self.assertTrue(
+            any("#fff" in body or "247 242 234" in body for body in lit),
+            f"the drawer's hover colour is not a light one: {lit}",
+        )
+
+    def test_sign_in_is_not_dimmed_while_it_is_hovered(self):
+        css = self._css()
+        hovered = [
+            body for head, body in self._rules(css, ".ce-nav--open")
+            if ":hover" in head and ("login" in head or "signin" in head)
+        ]
+        self.assertTrue(hovered, "Sign In has no hover rule in the drawer")
+        self.assertTrue(
+            any("opacity: 1" in body for body in hovered),
+            "Sign In rests at opacity 0.75 and nothing lifts it on hover",
+        )
