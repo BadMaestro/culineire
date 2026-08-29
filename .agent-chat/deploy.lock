@@ -1,5 +1,0 @@
-agent: GreenBear
-started_utc: 2026-08-29T15:05:00Z
-version: 2.5.1480
-commit: pending
-task: an idle arena no longer animates - it was running at 11fps permanently

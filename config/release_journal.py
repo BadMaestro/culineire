@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1480",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "be8226cb",
         "title": "The arena was running at 11 frames a second with nothing happening",
         "section": "Chef Battles / Arena",
         "summary": (
