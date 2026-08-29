@@ -1,5 +1,0 @@
-agent: GreenBear
-started_utc: 2026-08-29T12:10:00Z
-version: 2.5.1447
-commit: pending
-task: the off-air card turns twice and stops instead of flickering forever

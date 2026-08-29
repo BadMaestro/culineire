@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1447",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "a3464cba",
         "title": "The off-air card turns twice and stops, instead of flickering all day",
         "section": "Chef Battles / Arena",
         "summary": (
