@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1435",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "b8719cb1",
         "title": "The off-air camera card animates - it was never mine to freeze",
         "section": "Chef Battles / Arena",
         "summary": (
