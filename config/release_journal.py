@@ -1,26 +1,28 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.1468",
+        "version": "2.5.1471",
         "date": "2026-08-28",
         "commit": "pending",
-        "title": "The fit stopped moving its own input",
+        "title": "v2.5.1468 reverted: it shrank the octagon and put the climb back on screen",
         "section": "Chef Battles / Arena",
         "summary": (
-            "With the climb hidden, what remained was its cost: on a machine "
-            "throttled 6x the arena did not appear for 12.8 seconds, because "
-            "the fit needed six passes and each pass forces a layout of a "
-            "3024-node page. The six passes existed for one reason. "
-            "placeOctagon ended by publishing --arena-floor-target-width from "
-            "the size it had just produced; that width is the centre column's "
-            "ceiling, so the column resized, the region resized, and the next "
-            "pass measured a different page than the one it was correcting. "
-            "The fit was walking after its own footprints. It is published "
-            "ONCE now, from fitScene, after the scale has settled - so during "
-            "the settle the only thing moving the region is the deck's own "
-            "rows arriving, which happens with or without us. The column still "
-            "narrows to the octagon exactly as the Owner asked on 2026-08-26; "
-            "it just narrows once, at the end, instead of six times on the way "
-            "there."
+            "v2.5.1468 moved the column-width publish out of the fit loop so "
+            "the fit would stop moving its own input. It did - and that broke "
+            "the thing that decides when the scene has settled. With nothing "
+            "moving the region, two consecutive passes agree IMMEDIATELY, at "
+            "the first scale the page happens to offer, so the deck was "
+            "revealed at 0.6378 while the deck rows were still arriving. "
+            "Measured on production straight after the deploy: the eye saw "
+            "three scales again on a normal machine, and the octagon finished "
+            "at 0.7364 instead of 1.0068 - a visibly smaller arena, which is a "
+            "composition change nobody asked for. Reverted whole. What stands "
+            "is v2.5.1465: the deck hidden until two fits agree, the eye seeing "
+            "exactly one scale, the octagon at its correct 1.0068 - and the "
+            "cost still unpaid on a slow machine, where it appears at 12.8 "
+            "seconds. The idea was not wrong; stability has to be judged "
+            "against the DECK having stopped growing, not against the fit "
+            "having stopped moving, and those were the same signal only because "
+            "the fit was driving the deck."
         ),
     },
     {
