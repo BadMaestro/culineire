@@ -74,7 +74,8 @@
 {% include "chef_battle/_arena_deck_svg.html" %}
 {% include "chef_battle/_arena_chat_emoji_sprite.html" %}
 {% include "chef_battle/_arena_chat_stickers.html" %}
-<main class="arena-command-deck" aria-labelledby="arena-command-title">
+<main class="arena-command-deck" aria-labelledby="arena-command-title"
+      data-arena-live="{% if active_battle %}1{% else %}0{% endif %}">
   {% comment %}
     T28 — six decorative atmosphere elements (light shafts, dust motes, rising
     gift glyphs). Pure decoration: no identity, no state, no pointer events.

@@ -12681,3 +12681,53 @@ button.arena-chat__poll-option:hover {
   font-weight: 700;
   text-decoration: underline;
 }
+
+/* ============================================================
+   AN ARENA WITH NO BATTLE IN IT DOES NOT ANIMATE.
+
+   Owner, 2026-08-29, after the load was still 10 to 15 seconds on his
+   machine: find the problem and fix it. It was never the load path.
+
+   MEASURED IN HIS OWN BROWSER, on production, with nothing happening: the
+   arena renders 11 FRAMES A SECOND. The recipes page, in the same window,
+   renders 55. The machine is saturated the entire time the arena is open,
+   which is why everything that runs during the load takes as long as it
+   does - the octagon's fit needs quiet frames and there are none.
+
+   Attributed by hiding one subtree at a time and re-timing the frames:
+   hide the deck and the page runs at 55 again, so all of it is in here.
+   Turning every animation off took 85ms a frame to 64ms - a quarter of the
+   cost, spent decorating an empty floor.
+
+   `data-arena-live` is written by the template from `active_battle`, the
+   same flag that decides whether the status card reads Live Now or Floor
+   Open. Everything below is decoration: light shafts, dust motes, rising
+   gifts, the floor's slow breath, the lamp strobes, the VIP and crown
+   sparks. Every one of them is `infinite` and none of them says anything.
+
+   SPECIFICITY IS WHY THESE LOOK OVER-QUALIFIED. The first attempt wrote
+   `.arena-command-deck[data-arena-live="0"] .arena-lamp-strobe`, which is
+   (0,3,0), against `.page--arena #arena-render .arena-lamp-strobe` at
+   (1,2,0) - one ID beats any number of classes, so 24 strobe rings carried
+   on animating and the measured gain was 9% instead of 25%. Each rule here
+   mirrors the selector it has to beat.
+
+   NOT TOUCHED: the hourglass, which shows a phase timer; the presence dot,
+   which says somebody is here; the activity ticker, which is text a reader
+   can be waiting for. Those carry information - stopping them would tell
+   the reader something false.
+   ============================================================ */
+.arena-command-deck[data-arena-live="0"] .arena-command-deck__floor,
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-vip-spark[data-lit="true"],
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-floor-crown__gold-spot,
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-cell-spark[data-lit="true"],
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-cell-spark[data-lit="true"][data-ring="3"],
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-cell-spark[data-lit="true"][data-ring="2"],
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-cell-spark[data-lit="true"][data-ring="1"],
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-cell-spark[data-lit="true"][data-owner="true"],
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-lamp-strobe,
+.page--arena .arena-command-deck[data-arena-live="0"] .arena-atmo-shaft,
+.page--arena .arena-command-deck[data-arena-live="0"] .arena-atmo-mote,
+.page--arena .arena-command-deck[data-arena-live="0"] .arena-atmo-gift {
+  animation: none;
+}

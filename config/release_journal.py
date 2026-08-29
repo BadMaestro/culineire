@@ -1,5 +1,48 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1480",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "The arena was running at 11 frames a second with nothing happening",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "His verdict on v2.5.1477 was blunt and correct: no visible gain, "
+            "still 10 to 15 seconds of blank page, find the real problem. "
+            "IT WAS NEVER THE LOAD PATH. Measured in his own browser on "
+            "production, with the page idle and nothing being clicked: the "
+            "arena renders 11 FRAMES A SECOND. The recipes page, same window, "
+            "same moment, renders 55. The machine is saturated the entire time "
+            "the arena is open, so the octagon's fit - which waits for a quiet "
+            "frame before it reveals anything - is waiting for a frame that "
+            "never comes. "
+            "Attributed by hiding one subtree at a time and re-timing: hide "
+            "the deck and the page runs at 55 again. Turning every animation "
+            "off took a frame from 85ms to 64ms - a quarter of the cost, spent "
+            "decorating an empty floor. 58 animations were running, every one "
+            "of them `infinite`. "
+            "They stop now when no battle is on. `data-arena-live` is written "
+            "by the template from `active_battle`, the same flag that already "
+            "decides whether the status card reads Live Now or Floor Open. "
+            "Measured with the gate on: 58 animations down to 15, and 103ms a "
+            "frame down to 77ms - the whole of what was available. "
+            "SPECIFICITY ATE THE FIRST ATTEMPT and the measurement caught it. "
+            "The gate was written as `.arena-command-deck[data-arena-live=0] "
+            ".arena-lamp-strobe`, (0,3,0), against `.page--arena #arena-render "
+            ".arena-lamp-strobe` at (1,2,0). One id beats any number of "
+            "classes, so 24 strobe rings carried on and the gain was 9% "
+            "instead of 25%, with a stylesheet that read perfectly. Each "
+            "stopping rule now mirrors the selector it has to beat, and the "
+            "new test guards SPECIFICITY rather than the rule existing - it "
+            "found a cell-spark variant I had missed on its first run. "
+            "Not touched: the hourglass, the presence dot, the activity "
+            "ticker. Those carry information; stopping them would tell the "
+            "reader something false. "
+            "What remains is the octagon's own paint - about 60ms of the 77 - "
+            "and that is the next question for him rather than a decision for "
+            "me."
+        ),
+    },
+    {
         "version": "2.5.1477",
         "date": "2026-08-29",
         "commit": "73b184de",

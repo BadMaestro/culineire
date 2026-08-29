@@ -28046,3 +28046,90 @@ class EveryArenaComponentIsGatheredTests(TestCase):
                 f"rules). Write new rules into its block, or run "
                 f"an15_gather.py --tidy and prove the move.",
             )
+
+
+class AnIdleArenaDoesNotAnimateTests(TestCase):
+    """Owner, 2026-08-29: turn the endless animations off when no battle runs.
+
+    Measured on production in his own browser, with nothing happening on the
+    page: the arena renders 11 frames a second where the recipes page in the
+    same window renders 55. The machine is saturated the whole time the arena
+    is open, and that - not the load path - is why his load took 10 to 15
+    seconds. Turning every animation off took a frame from 85ms to 64ms.
+
+    THE FIRST ATTEMPT AT THIS SHIPPED NOTHING AND MEASURED 9% INSTEAD OF 25%.
+    The gate was written as `.arena-command-deck[data-arena-live="0"]
+    .arena-lamp-strobe` - specificity (0,3,0) - against
+    `.page--arena #arena-render .arena-lamp-strobe` at (1,2,0). One id beats
+    any number of classes, so 24 strobe rings carried on animating and the
+    stylesheet looked correct while the page had not changed.
+
+    So the guard is on SPECIFICITY, not on the rule existing: for every
+    decorative animation, the rule that stops it must be able to beat the rule
+    that starts it."""
+
+    DECORATIVE = (
+        "arena-strobe-ring",
+        "arena-mote-float",
+        "arena-gift-rise",
+        "arena-shaft-sway",
+        "arena-command-deck-breathe",
+        "arena-spot-run",
+        "arena-crown-breathe",
+        "arena-crown-shimmer",
+    )
+
+    @staticmethod
+    def _tool():
+        import importlib.util
+
+        path = (Path(settings.BASE_DIR) / "ops" / "audits" / "arena" / "tools"
+                / "an14_move_guard.py")
+        spec = importlib.util.spec_from_file_location("an14_move_guard", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_the_template_says_whether_a_battle_is_running(self):
+        markup = (Path(settings.BASE_DIR) / "templates" / "chef_battle"
+                  / "arena.html").read_text(encoding="utf-8")
+        self.assertIn("data-arena-live=", markup)
+        self.assertIn("{% if active_battle %}1{% else %}0{% endif %}", markup)
+
+    def test_every_stopping_rule_can_beat_the_rule_it_stops(self):
+        tool = self._tool()
+        css = "\n".join(
+            (Path(settings.BASE_DIR) / "static" / "css" / name)
+            .read_text(encoding="utf-8")
+            for name in ("arena.css", "arena_atmosphere.css")
+        )
+
+        starts, stops = [], []
+        for rule in tool.rules(css):
+            for prop, value, _important in rule["decls"]:
+                if prop in ("animation", "animation-name"):
+                    for selector in rule["sel"].split(","):
+                        selector = selector.strip()
+                        if not selector:
+                            continue
+                        if value.strip() == "none":
+                            if 'data-arena-live="0"' in selector:
+                                stops.append(selector)
+                        elif any(name in value for name in self.DECORATIVE):
+                            starts.append((selector, value))
+
+        self.assertTrue(stops, "nothing stops the decoration when the floor is empty")
+        for selector, value in starts:
+            name = next(n for n in self.DECORATIVE if n in value)
+            tail = selector.split()[-1]
+            beaten = [
+                s for s in stops
+                if s.split()[-1] == tail
+                and tool.specificity(s) > tool.specificity(selector)
+            ]
+            self.assertTrue(
+                beaten,
+                f"`{name}` is started by `{selector}` at "
+                f"{tool.specificity(selector)} and nothing stops it with more "
+                f"weight - it will keep running on an empty floor",
+            )
