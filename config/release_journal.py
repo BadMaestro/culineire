@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1495",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "4e316dfa",
         "title": "Twenty-four lit rings frozen on the floor - my own regression, photographed",
         "section": "Chef Battles / Arena",
         "summary": (
