@@ -1,5 +1,38 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1495",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "Twenty-four lit rings frozen on the floor - my own regression, photographed",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner sent a screenshot of the octagon wearing orange and "
+            "green rings that do not belong there. Mine, from v2.5.1480. "
+            "STOPPING AN ANIMATION IS NOT THE SAME AS PUTTING IT AWAY, and "
+            "that is the whole lesson. `animation: none` hands control back to "
+            "the element's own base style. arena-strobe-ring runs opacity 0 at "
+            "0%, 0.75 at 12%, back to 0 at 100% - the ring is invisible almost "
+            "all the time and the ANIMATION was what hid it. Removed, the base "
+            "style - full radius, opacity 1 - painted all 24 rings "
+            "permanently. Stopping the decoration made it MORE visible than "
+            "leaving it alone. "
+            "Two more had the same fault and neither had been noticed: the "
+            "three light shafts rest at 0.5 in their keyframes and were "
+            "sitting at 1, brighter than they ever were while moving; the VIP "
+            "and cell sparks froze mid-dash. "
+            "Each stopped element is now put into the state its OWN 0% frame "
+            "describes - opacity 0 for the strobes, 0.5 for the shafts, "
+            "dashoffset 100 for the sparks. Nothing invented: those are the "
+            "values the animation starts and ends on, which is what the floor "
+            "looked like between pulses for as long as it has existed. "
+            "The new test states the general rule rather than patching the two "
+            "elements: if an animation the idle gate stops begins at opacity "
+            "0, something must put the element at opacity 0 when it is "
+            "stopped. The performance win is untouched - an invisible ring "
+            "costs less to paint than a lit one, not more."
+        ),
+    },
+    {
         "version": "2.5.1492",
         "date": "2026-08-29",
         "commit": "e6345854",

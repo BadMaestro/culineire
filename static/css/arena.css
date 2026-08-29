@@ -12764,3 +12764,31 @@ button.arena-chat__poll-option:hover {
 .page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-lamp-strobe {
   mix-blend-mode: normal;
 }
+
+/* STOPPING AN ANIMATION IS NOT THE SAME AS PUTTING IT AWAY.
+
+   v2.5.1480 turned the idle decoration off with `animation: none` and left
+   twenty-four LIT RINGS FROZEN ON THE FLOOR. The Owner photographed them.
+
+   The reason is in the keyframes: arena-strobe-ring runs from
+   `opacity: 0` at 0% through 0.75 at 12% back to 0 at 100%, so the ring is
+   invisible almost all the time and the ANIMATION is what was hiding it.
+   Take the animation away and the element's own base style - full radius,
+   opacity 1 - is what remains, painted permanently. Same for the three
+   light shafts, which rest at 0.5 in their keyframes and sat at 1.
+
+   So each stopped element is put into the state its own 0% frame
+   describes. Nothing is invented here: these are the values the animation
+   itself starts and ends on, which is what the floor looked like between
+   pulses for as long as it has existed.
+   ============================================================ */
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-lamp-strobe {
+  opacity: 0;
+}
+.page--arena .arena-command-deck[data-arena-live="0"] .arena-atmo-shaft {
+  opacity: 0.5;
+}
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-vip-spark[data-lit="true"],
+.page--arena .arena-command-deck[data-arena-live="0"] #arena-render .arena-cell-spark[data-lit="true"] {
+  stroke-dashoffset: 100;
+}

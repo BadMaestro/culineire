@@ -28472,3 +28472,78 @@ class AnIdleArenaDoesNotPayForTheStrobeBlendTests(TestCase):
         block = css.split("mix-blend-mode: normal", 1)[0]
         tail = block[block.rindex("}") + 1:]
         self.assertIn('data-arena-live="0"', tail)
+
+
+class StoppedDecorationRestsInvisibleTests(TestCase):
+    """v2.5.1480 stopped the idle decoration and left 24 LIT RINGS FROZEN on the
+    floor. The Owner photographed them.
+
+    `animation: none` does not put an element away, it hands control back to the
+    element's own base style. arena-strobe-ring runs `opacity: 0` at 0%, 0.75 at
+    12%, back to 0 at 100% - the ring is invisible almost all the time and the
+    ANIMATION was what hid it. Removed, the base style (full radius, opacity 1)
+    painted every ring permanently. The three light shafts rest at 0.5 in their
+    keyframes and sat at 1.
+
+    THE TEST IS THE GENERAL RULE, not those two elements: for every animation
+    the idle gate stops, if the keyframes begin at `opacity: 0` then something
+    must put the element at `opacity: 0` when it is stopped. Otherwise stopping
+    it makes it MORE visible than leaving it alone, which is how this shipped.
+    """
+
+    def _css(self):
+        return "\n".join(
+            (Path(settings.BASE_DIR) / "static" / "css" / name)
+            .read_text(encoding="utf-8")
+            for name in ("arena.css", "arena_atmosphere.css")
+        )
+
+    @staticmethod
+    def _keyframes(css, name):
+        import re
+
+        match = re.search(
+            r"@keyframes\s+" + re.escape(name) + r"\s*\{(.*?)\n\}", css, re.S)
+        return match.group(1) if match else None
+
+    def test_a_stopped_pulse_is_put_away_and_not_frozen_lit(self):
+        import re
+
+        css = self._css()
+        stopped = re.findall(
+            r'data-arena-live="0"[^{]*\{[^}]*animation:\s*none', css, re.S)
+        self.assertTrue(stopped, "nothing stops the idle decoration any more")
+
+        # The pulse whose frozen state he photographed, held by name.
+        frames = self._keyframes(css, "arena-strobe-ring")
+        self.assertIsNotNone(frames)
+        self.assertIn("opacity: 0", frames)
+
+        rest = [
+            block for block in re.findall(
+                r'([^{}]*data-arena-live="0"[^{}]*\{[^}]*\})', css, re.S)
+            if "arena-lamp-strobe" in block and "opacity: 0" in block
+        ]
+        self.assertTrue(
+            rest,
+            "the lamp strobes are stopped but nothing hides them; their base "
+            "style is opacity 1, so an idle floor wears 24 frozen rings",
+        )
+
+    def test_the_light_shafts_rest_where_their_keyframes_rest(self):
+        import re
+
+        css = self._css()
+        frames = self._keyframes(css, "arena-shaft-sway")
+        self.assertIsNotNone(frames)
+        self.assertIn("opacity: 0.5", frames)
+        rest = [
+            block for block in re.findall(
+                r'([^{}]*data-arena-live="0"[^{}]*\{[^}]*\})', css, re.S)
+            if "arena-atmo-shaft" in block and "opacity: 0.5" in block
+        ]
+        self.assertTrue(
+            rest,
+            "the shafts are stopped at full opacity - brighter than they ever "
+            "were while animating",
+        )
