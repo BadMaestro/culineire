@@ -1,0 +1,5 @@
+agent: GreenBear
+started_utc: 2026-08-29T18:00:00Z
+version: 2.5.1486
+commit: pending
+task: the floating arena widget starts closed on every page
