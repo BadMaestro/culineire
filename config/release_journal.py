@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1483",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "99cbc2a0",
         "title": "The lamp control moves into the Master Console, as a block rather than a floating panel",
         "section": "Chef Battles / Arena",
         "summary": (
