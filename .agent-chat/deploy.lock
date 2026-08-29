@@ -1,5 +1,0 @@
-agent: GreenBear
-started_utc: 2026-08-29T19:30:00Z
-version: 2.5.1492
-commit: pending
-task: two stale guards, the board that could not stop going stale, and the strobe blend

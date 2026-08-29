@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1492",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "e6345854",
         "title": "Two stale guards, a board that could not stop going stale, and the strobe blend",
         "section": "Chef Battles / Arena",
         "summary": (
