@@ -1,5 +1,69 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1420",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The chat's buttons belong to the site's scheme, on both screens",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-28: the chat's buttons are brown and ugly, they do "
+            "not match the site's colour scheme, and it is wrong on the desktop "
+            "AND in the mobile version. THE BOARD SAID THIS CARD WAS UNSTARTED "
+            "AND THE BOARD WAS WRONG, which is the part worth keeping. AC-BTN "
+            "had shipped TWICE on 2026-08-26: v2.5.1308 made one filled bronze "
+            "family of every control in the chat, and v2.5.1317 - the same day, "
+            "under a separate 44-part visual brief with a mock-up - partly "
+            "undid it for the DESKTOP ONLY, because that brief said in terms "
+            "'DO NOT MODIFY MOBILE CHAT FILES'. Gating the second on "
+            "min-width:901px obeyed the instruction and left TWO CHATS "
+            "STANDING: a phone drew the filled family, a desktop drew half of "
+            "it corrected. Nobody wrote that down, the board still read NEXT, "
+            "and I told him the card was unstarted before checking the git log "
+            "- he agreed to me taking it on that false basis, so the correction "
+            "is in the board row rather than only in a commit. HIS STANDARD, "
+            "NAMED BY HIM: the site's scheme is not bronze and its best example "
+            "is the Arena widget, which he identified as site-battle-widget, "
+            "the floating card. ITS HEX VALUES ARE DELIBERATELY NOT COPIED - "
+            "that widget is a dark glass card and the chat is light parchment, "
+            "so importing its #f8d28a would have been a third palette rather "
+            "than one scheme. What transfers is its BEHAVIOUR, and its own "
+            "primary control states it plainly: .site-battle-widget .btn-primary "
+            "is a 1px translucent edge over a 10% wash, so even the main button "
+            "there is not filled, and gold appears under the pointer and "
+            "nowhere else. Translated into the light palette through the ratio "
+            "the Arena already uses for .arena-command-tile - 22% of --brand - "
+            "so nothing here is invented. WHAT SHIPPED: the four "
+            "--chat-btn-fill/ink/edge/shadow tokens now describe the RESTING "
+            "state (transparent fill, --ink-soft, a 22% --brand edge, no "
+            "shadow) with a second -on trio carrying the bronze for hover and "
+            "focus, so no control restates the palette to describe its own "
+            "hover; every 'border: 0' in the family became that edge; the "
+            "underline tabs, the quieter Pinned Rules and the neutral composer "
+            "icons were promoted off their desktop gate and THE GATE ITSELF IS "
+            "DELETED, so no width changes the chat's buttons; the send button "
+            "keeps its 2.3rem weight and loses its gradient, because weight is "
+            "what should say 'primary', not a block of colour; the media "
+            "viewer's Report loses its fill. ZERO BRONZE GRADIENTS REMAIN IN "
+            "THE STYLESHEET, counted. The chat's own frame is lighter too: "
+            ".arena-chat overrides the shared panel border with the same 22% "
+            "--brand, scoped to the chat alone and stated after the shared "
+            "rule, so the floor, the status card, the ladder, the metrics, the "
+            "gifts, the command grid and the phase rail are untouched - he had "
+            "answered 'not yet' on that half on 2026-08-26 and opened it on "
+            "2026-08-28. THE WORK WAS BUILT TWICE, honestly: the first pass "
+            "was written against the pre-normalisation stylesheet and "
+            "GreenBear's v2.5.1409-1418 gathering rewrote nine thousand lines "
+            "of it underneath me, so it was discarded to a patch file and "
+            "re-applied against his structure rather than rebased into a "
+            "conflict. NOT TOUCHED: the four chat themes each redeclare "
+            "--accent-bronze on .arena-chat[data-theme] and are a deliberate "
+            "per-reader palette set from arena_chat.js, not the complaint. "
+            "29 chat tests green; the change touches colour, background, "
+            "border, shadow and transition only - no geometric property is in "
+            "the diff, checked property by property."
+        ),
+    },
+    {
         "version": "2.5.1418",
         "date": "2026-08-28",
         "commit": "53aab9a6",
