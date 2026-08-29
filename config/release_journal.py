@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1477",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "73b184de",
         "title": "A forced layout of the arena cost 70ms; it costs 23ms",
         "section": "Chef Battles / Arena",
         "summary": (
