@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1486",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "3d25bd9e",
         "title": "The floating arena widget starts closed, on every page",
         "section": "Site",
         "summary": (
