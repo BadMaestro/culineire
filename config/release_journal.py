@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1474",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "25f18505",
         "title": "His new off-air card, and it runs continuously because he said it may",
         "section": "Chef Battles / Arena",
         "summary": (
