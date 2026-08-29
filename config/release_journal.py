@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1456",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The fit was running against a page that had not finished arriving",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The trace that settled it: the deck grows 873 to 937 to 1247 "
+            "BEFORE the camera scale changes at all. Those are the deck's own "
+            "rows arriving - fonts landing, the header settling, panels "
+            "filling - and the fit was running against every one of them, on a "
+            "page that was not finished, then publishing a column width that "
+            "moved the deck again. The passes were never the problem to solve; "
+            "running at all, that early, was. A trigger now only ASKS for a "
+            "fit and the ask is deferred to the next frame, with a later ask "
+            "REPLACING the pending one rather than adding to it, so the fit "
+            "happens on the first frame nothing else asked for one - the page "
+            "has gone quiet - and needs one or two passes instead of six. Not "
+            "a timer: a timeout guesses how long a machine needs and the "
+            "machines that need most are the ones a guess hurts, while a frame "
+            "is the browser's own answer to whether the work has stopped, and "
+            "it is the same answer fast or slow."
+        ),
+    },
+    {
         "version": "2.5.1453",
         "date": "2026-08-28",
         "commit": "pending",

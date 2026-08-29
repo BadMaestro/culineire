@@ -3059,6 +3059,35 @@
   // paintRankLadder walk the ladder and query cells inside the SVG for every
   // one of the eight rings, and there is no sense doing that against a size
   // that is about to change again.
+  // THE FIT WAITS FOR THE PAGE TO STOP MOVING.
+  //
+  // The trace that settled this: the deck grows 873 -> 937 -> 1247 BEFORE the
+  // camera scale changes at all. Those are the deck's own rows arriving -
+  // fonts landing, the header settling, panels filling - and the fit was
+  // running against every one of them, on a page that was not finished. Each
+  // run then published a column width that moved the deck again.
+  //
+  // So the passes were never the problem to solve; running at all, that early,
+  // was. A trigger now only ASKS for a fit, and the ask is deferred to the next
+  // frame; another trigger arriving before that frame replaces it rather than
+  // adding to it. The fit happens on the first frame that nothing else asked
+  // for one - the page has gone quiet - and by then it needs one or two passes
+  // instead of six.
+  //
+  // WHY NOT A TIMER: a timeout guesses how long a machine needs, and the
+  // machines that need the most are the ones a guess hurts. A frame is the
+  // browser's own answer to "has the work stopped", and it is the same answer
+  // on a fast machine and a slow one.
+  var fitQueued = null;
+  function requestFit(svg) {
+    if (!global.requestAnimationFrame) { fitScene(svg); return; }
+    if (fitQueued !== null) { global.cancelAnimationFrame(fitQueued); }
+    fitQueued = global.requestAnimationFrame(function () {
+      fitQueued = null;
+      fitScene(svg);
+    });
+  }
+
   var fitting = false;
   // TWO, NOT EIGHT, AND THE NUMBER WAS MEASURED RATHER THAN CHOSEN.
   // Eight passes converged the scale beautifully on a fast machine and made a
@@ -3617,7 +3646,7 @@
     if (global.ResizeObserver && region) {
       new global.ResizeObserver(function () {
         // Not while a fit is in flight: the region is resizing BECAUSE of it.
-        if (!fitting) { fitScene(svg); }
+        if (!fitting) { requestFit(svg); }
       }).observe(region);
     }
     // AN15, master task section 9: the page owns its own layout and the
@@ -3634,7 +3663,10 @@
     // scene to measure itself again.
     if (global.ArenaPageLayout) {
       global.ArenaPageLayout.subscribe(function (changed, force) {
-        if (changed || force) { fitScene(svg); }
+        // Deferred like the observer: the header settling, the fonts landing
+        // and the late pass all arrive while the deck is still growing, and
+        // each of them used to spend a full fit on a page mid-flight.
+        if (changed || force) { requestFit(svg); }
       });
       global.ArenaPageLayout.watch();
     }
