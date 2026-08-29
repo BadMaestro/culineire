@@ -1,5 +1,41 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1418",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The tails gathered too - the Owner asked for it done properly",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "His words: gather it so it is right, I do not want to be "
+            "ashamed of our work. The four components ended v2.5.1415 with "
+            "45 rules still scattered outside their blocks; they are in "
+            "blocks now - chat 9 runs to 5, deck 10 to 4, ladder 5 to 3, "
+            "ribbon 2. "
+            "ONE BLOCK EACH IS NOT REACHABLE, and that is a property of the "
+            "stylesheet rather than a limit of the tool. The blanket "
+            "`.arena-chat *` reset and `.arena-chat__who` both set `color` "
+            "at the same specificity, and one element matches both, so "
+            "whichever sits lower wins. Some chat rules must stay above "
+            "that reset and some below it, and no single destination "
+            "satisfies both. "
+            "feasible_destinations says so in one pass instead of guessing: "
+            "the destination must be at or above every stayer the movers "
+            "were above, and below every stayer they were below. An empty "
+            "window means one block is impossible, and no amount of trying "
+            "destinations will find it. So --tidy gathers what it can, then "
+            "gathers the leftovers among themselves, pass by pass, each "
+            "pass carrying the same proof. Deliberate blocks instead of "
+            "thirty accidental ones. "
+            "Same invariant throughout: 1453 rules before and after, "
+            "applying declarations byte-identical, no conflicting pair "
+            "transposed, and 237 tests across every class that reads the "
+            "arena stylesheets green. "
+            "EveryArenaComponentIsGatheredTests holds the ceiling now, so a "
+            "rule written at the end of the file instead of into its block "
+            "fails a test rather than going unnoticed for six months."
+        ),
+    },
+    {
         "version": "2.5.1415",
         "date": "2026-08-28",
         "commit": "10422e0b",

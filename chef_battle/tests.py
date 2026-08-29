@@ -27919,3 +27919,51 @@ class ArenaChatIsGatheredTests(TestCase):
         hurt = gather.transpositions(css, [rules[1]["index"]],
                                      rules[0]["index"])
         self.assertTrue(hurt, "moving .beta above .alpha reorders the pair")
+
+
+class EveryArenaComponentIsGatheredTests(TestCase):
+    """AN15, finished — each component lives in a countable number of places.
+
+    The Owner, 2026-08-28: "собери всё так чтоб было правильно, я не хочу чтоб
+    нам было стыдно за нашу работу". Four components began the day in about
+    thirty runs apiece.
+
+    ONE BLOCK IS NOT ALWAYS REACHABLE, and the reason is worth writing down
+    because it is a property of the stylesheet rather than of the tool. The
+    blanket `.arena-chat *` reset and `.arena-chat__who` both set `color` at
+    the same specificity, and one element matches both - so whichever sits
+    lower wins. Some chat rules must therefore stay above that reset and some
+    below it, and no single destination satisfies both. `feasible_destinations`
+    reports exactly that: an empty window.
+
+    So the target is a small number of DELIBERATE blocks instead of thirty
+    accidental ones, and this is the ceiling. If a number here starts climbing,
+    rules are being written at the end of the file again."""
+
+    CEILINGS = {
+        ".arena-chat": 5,
+        ".arena-command-deck": 4,
+        ".arena-broadcast-ribbon": 2,
+        ".arena-rank-spine": 3,
+    }
+
+    def test_no_component_is_scattered(self):
+        import importlib.util
+
+        path = (Path(settings.BASE_DIR) / "ops" / "audits" / "arena" / "tools"
+                / "an15_gather.py")
+        spec = importlib.util.spec_from_file_location("an15_gather", path)
+        gather = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gather)
+
+        css = (Path(settings.BASE_DIR) / "static" / "css"
+               / "arena.css").read_text(encoding="utf-8")
+        for component, ceiling in self.CEILINGS.items():
+            chosen, _mixed = gather.component_rules(css, component)
+            runs = gather.islands(chosen, css)
+            self.assertLessEqual(
+                len(runs), ceiling,
+                f"{component} is in {len(runs)} places again ({len(chosen)} "
+                f"rules). Write new rules into its block, or run "
+                f"an15_gather.py --tidy and prove the move.",
+            )

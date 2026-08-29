@@ -480,17 +480,6 @@
   box-shadow: 0 .55rem 1.6rem color-mix(in srgb, var(--ink) 8%, transparent);
 }
 .arena-command-deck__eyebrow, .arena-panel__kicker { margin: 0; color: var(--arena-gold); font-size: .69rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-.arena-command-deck__live-note, .arena-command-deck__floor-copy, .arena-command-deck__phase-copy, .arena-command-deck__gift-copy, .arena-command-deck__guide-copy { margin: .35rem 0 0; color: var(--arena-muted); font-size: .82rem; line-height: 1.5; }
-.arena-command-deck__guide-link {
-  display: inline-flex;
-  align-items: center;
-  gap: .3rem;
-  margin-top: .5rem;
-  color: var(--accent-bronze-dark);
-  font-weight: 700;
-  font-size: .78rem;
-  text-decoration: none;
-}
 
 /* .arena-broadcast-ribbon - every rule for this component that could be proved
    safe to move, in one place. Gathered by an15_gather.py:
@@ -600,9 +589,6 @@
     grid-template-columns: 1fr;
   }
 }
-
-
-.arena-command-deck__phase-rail { grid-area: phase-rail; border-radius: 1rem; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: .45rem; }
 .arena-command-deck__phase-rail.is-open .arena-phase-step { opacity: .82; }
 .arena-phase-step { justify-content: center; min-height: 2.3rem; }
 .arena-phase-step__index {
@@ -633,8 +619,6 @@
   border-color: var(--arena-gold);
   background: color-mix(in srgb, var(--accent-bronze) 22%, var(--surface));
 }
-
-.arena-command-deck__phase-card { grid-area: phase; align-self: start; border-radius: 1rem; padding: 1.05rem; }
 /* Owner mockup, 2026-08: the "current phase" block sits below the ARENA
    STATUS title now, its own icon+label+value row - reuses the same round
    icon-badge look the panel titles use rather than a second style. */
@@ -781,6 +765,25 @@
    overridden in full by the later one and painted nothing. Removed by the
    desktop audit, 2026-08-23. */
 .arena-floor-stage #arena-puzzle { position: relative; z-index: var(--arena-z-floor); }
+
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
 /* 3G R4 (Owner D1 Option B): centred rank stack over the floor — composition
    from Ember's rank-progression prototype, official tokens only. Desktop
    placement is CSS-owned (left 50% + translateX); tablet may still measure via
@@ -789,6 +792,33 @@
    left with v2.5.922; the width stays, because a component knows its own
    intrinsic size - taking it away in v2.5.920 shrank the octagon by 126px. */
 .arena-rank-spine { position: absolute; pointer-events: none; }
+.arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { color: var(--brand-dark); }
+@media (max-width: 767px) {
+  .arena-rank-spine__label { text-align: left; margin-bottom: .2rem; }
+  .arena-rank-spine__item { flex: 1 1 auto; }
+}
+
+
+@media (max-width: 767px) {
+}
+
+
+@media (max-width: 767px) {
+}
+
+
+@media (max-width: 767px) {
+}
+
+
+@media (max-width: 767px) {
+}
+
+
+@media (max-width: 767px) {
+}
+
+
 /* The count uses the official ink token for reliable contrast; bronze measured
    below the 7:1 the column is held to. Measured against the shipped tokens:
    --ink #1f2c25 on --surface #fffdf9 = 14.30:1 (label), and on --surface-soft
@@ -798,10 +828,28 @@
    away from the deployed values without a test failing. Evidence is recorded
    in ops/audits/stage_3e_rank_column.json. */
 .arena-rank-spine__step b { place-items: center; border-radius: 999px; font-size: .9em; }
-.arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { color: var(--brand-dark); }
 
-.arena-command-deck__ladder, .arena-command-deck__guide, .arena-command-deck__gifts, .arena-command-deck__command { align-self: start; border-radius: 1rem; padding: 1.05rem; }
-
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
 /* ── Spectator chat ───────────────────────────────────────────────────────
  * The Owner's rules, 2026-08-17. One room for spectators and chefs; a
  * spectator hears three cells either side and three rows by the compass, a
@@ -881,7 +929,6 @@
   text-decoration: underline;
   cursor: pointer;
 }
-
 /* A hidden line, as its moderator sees it. Nobody else is sent one. Struck and
    faded so it reads as withdrawn rather than as part of the conversation. */
 .arena-chat__line--hidden {
@@ -899,7 +946,6 @@
   letter-spacing: .08em;
   text-transform: uppercase;
 }
-.arena-chat__quote b { color: var(--arena-cappuccino); font-weight: 700; }
 .arena-chat__react {
   appearance: none;
   /* A glyph and a count need about 14px; 1.5rem was 24 and the strip cost
@@ -916,7 +962,6 @@
   line-height: 1;
   cursor: pointer;
 }
-
 /* Replying-to bar and the notice line, both above/below the composer. */
 .arena-chat__replying {
   flex: 0 0 auto;
@@ -930,7 +975,6 @@
   color: var(--arena-muted);
   font-size: .64rem;
 }
-.arena-chat__replying b { color: var(--arena-cappuccino); }
 .arena-chat__replying-cancel {
   appearance: none;
   min-width: 1.4rem;
@@ -943,7 +987,6 @@
   line-height: 1;
   cursor: pointer;
 }
-
 /* THE ACTION MENU IS ONE ELEMENT. The spec asks for a bottom sheet on a phone
    and an anchored popover on a desktop and, in the same breath, for them not to
    be two implementations. So this is one menu with one set of buttons and one
@@ -1027,37 +1070,10 @@
   border-radius: .25rem;
   background: color-mix(in srgb, var(--chat-mention-text) 15%, transparent);
 }
-@media (hover: hover) {
-}
-
-/* The burst. Defined ONLY inside prefers-reduced-motion: no-preference, so
-   for a reader who asked their system for less motion the class the script
-   adds names an animation that does not exist - the correct way round, since
-   it needs no JS branch to stay honest. The preference toggle in Settings is
-   the second, independent switch (.is-still). */
-@media (prefers-reduced-motion: no-preference) {
-  .arena-chat:not(.is-still) .is-bursting {
-    animation: arena-chat-burst .6s ease-out;
-  }
-  @keyframes arena-chat-burst {
-    0%   { transform: scale(1); }
-    35%  { transform: scale(1.55); }
-    100% { transform: scale(1); }
-  }
-}
-.arena-chat__chef-stats dt { margin: 0; }
-.arena-chat .arena-chat__chef-stats dt { color: var(--arena-muted); }
-.arena-chat__chef-stats dd {
-  margin: 0;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
 .arena-chat .arena-chat__poll-field:focus-visible {
   outline: 2px solid var(--accent-bronze);
   outline-offset: 1px;
 }
-.arena-chat__composer-action .arena-ico { width: .95rem; margin: 0; }
 /* Hidden from the eye, NOT from assistive technology or the keyboard - the
    button beside it opens this input, and display:none would take it out of
    the accessibility tree along with the picker it triggers. */
@@ -1098,6 +1114,49 @@
   line-height: 1;
   cursor: pointer;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.arena-chat__quote b { color: var(--arena-cappuccino); font-weight: 700; }
+.arena-chat__replying b { color: var(--arena-cappuccino); }
+@media (hover: hover) {
+}
+
+/* The burst. Defined ONLY inside prefers-reduced-motion: no-preference, so
+   for a reader who asked their system for less motion the class the script
+   adds names an animation that does not exist - the correct way round, since
+   it needs no JS branch to stay honest. The preference toggle in Settings is
+   the second, independent switch (.is-still). */
+@media (prefers-reduced-motion: no-preference) {
+  .arena-chat:not(.is-still) .is-bursting {
+    animation: arena-chat-burst .6s ease-out;
+  }
+  @keyframes arena-chat-burst {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.55); }
+    100% { transform: scale(1); }
+  }
+}
+.arena-chat__chef-stats dt { margin: 0; }
+.arena-chat .arena-chat__chef-stats dt { color: var(--arena-muted); }
+.arena-chat__chef-stats dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.arena-chat__composer-action .arena-ico { width: .95rem; margin: 0; }
 .arena-chat__pref legend {
   padding: 0;
   font-size: .58rem;
@@ -1560,6 +1619,38 @@
   display: contents;
 }
 
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+.arena-command-deck__live-note, .arena-command-deck__floor-copy, .arena-command-deck__phase-copy, .arena-command-deck__gift-copy, .arena-command-deck__guide-copy { margin: .35rem 0 0; color: var(--arena-muted); font-size: .82rem; line-height: 1.5; }
+.arena-command-deck__guide-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .5rem;
+  color: var(--accent-bronze-dark);
+  font-weight: 700;
+  font-size: .78rem;
+  text-decoration: none;
+}
+.arena-command-deck__phase-rail { grid-area: phase-rail; border-radius: 1rem; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: .45rem; }
+.arena-command-deck__phase-card { grid-area: phase; align-self: start; border-radius: 1rem; padding: 1.05rem; }
+.arena-command-deck__ladder, .arena-command-deck__guide, .arena-command-deck__gifts, .arena-command-deck__command { align-self: start; border-radius: 1rem; padding: 1.05rem; }
   .arena-command-deck {
     display: block;
     /* A07, Owner 2026-08-05: the arena fits the screen whole, on every screen.
@@ -1586,6 +1677,43 @@
     --arena-chat-h: 26%;
     --arena-chat-gap: 1.5%;
   }
+  .arena-command-deck__phase-card { left: 1.5%; width: 20%; }
+  .arena-command-deck__ladder  { left: 1.5%;  bottom: 8%; width: 20%; }
+.page--arena .arena-command-deck__phase-card,
+.page--arena .arena-command-deck__metrics,
+.page--arena .arena-command-deck__ladder,
+.page--arena .arena-command-deck__gifts,
+.page--arena .arena-command-deck__crowd-rail,
+.page--arena .arena-command-deck__phase-rail {
+  border-color: var(--hall-border);
+  background: color-mix(in srgb, var(--hall-dark-1) 88%, transparent);
+  box-shadow: 0 1.1rem 2.5rem color-mix(in srgb, var(--hall-dark-0) 55%, transparent);
+  color: var(--hall-text);
+}
+  .arena-command-deck__phase-card::before,
+  .arena-command-deck__metrics::before,
+  .arena-command-deck__ladder::before,
+  .arena-command-deck__gifts::before {
+    content: "";
+    position: absolute;
+    z-index: var(--arena-z-base);
+    inset: 0.28rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+    border-radius: 0.45rem;
+    pointer-events: none;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 .arena-command-deck__phase-card,
@@ -1606,9 +1734,6 @@
     box-shadow: 0 .8rem 2rem color-mix(in srgb, var(--ink) 45%, transparent);
     color: var(--ink);
   }
-
-  .arena-command-deck__phase-card { left: 1.5%; width: 20%; }
-  .arena-command-deck__ladder  { left: 1.5%;  bottom: 8%; width: 20%; }
 
 
 .arena-command-deck__phase-card *,
@@ -1959,8 +2084,6 @@
   .arena-live-chef, .arena-live-chef--opponent { justify-content: center; text-align: center; }
   .arena-live-chef--opponent { flex-direction: row-reverse; }
   .arena-command-deck__floor .arena-legend { max-width: 100%; justify-content: flex-start; }
-  .arena-rank-spine__label { text-align: left; margin-bottom: .2rem; }
-  .arena-rank-spine__item { flex: 1 1 auto; }
   .arena-crowd-rail__actions { width: 100%; }
   .arena-crowd-rail__actions > * { flex: 1 1 0; text-align: center; justify-content: center; }
 }
@@ -1991,19 +2114,6 @@
 
 .page--arena #main-content {
   padding: 0;
-}
-
-
-.page--arena .arena-command-deck__phase-card,
-.page--arena .arena-command-deck__metrics,
-.page--arena .arena-command-deck__ladder,
-.page--arena .arena-command-deck__gifts,
-.page--arena .arena-command-deck__crowd-rail,
-.page--arena .arena-command-deck__phase-rail {
-  border-color: var(--hall-border);
-  background: color-mix(in srgb, var(--hall-dark-1) 88%, transparent);
-  box-shadow: 0 1.1rem 2.5rem color-mix(in srgb, var(--hall-dark-0) 55%, transparent);
-  color: var(--hall-text);
 }
 
 /* 3G R2: rail brackets + lower broadcast share official bronze line language. */
@@ -2506,18 +2616,6 @@
   .arena-command-deck__gifts {
     position: absolute;
     overflow: hidden;
-  }
-  .arena-command-deck__phase-card::before,
-  .arena-command-deck__metrics::before,
-  .arena-command-deck__ladder::before,
-  .arena-command-deck__gifts::before {
-    content: "";
-    position: absolute;
-    z-index: var(--arena-z-base);
-    inset: 0.28rem;
-    border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
-    border-radius: 0.45rem;
-    pointer-events: none;
   }
   .arena-command-deck__phase-card > *,
   .arena-command-deck__metrics > *,

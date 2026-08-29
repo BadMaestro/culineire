@@ -236,6 +236,72 @@ def plan(text, component):
     return best
 
 
+
+def _splice(text, block, where, component):
+    """Cut every rule in `block` out and re-lay it at `where`, or return None.
+
+    Returns None rather than raising when the guard refuses, so a caller that
+    gathers leftovers pass by pass stops cleanly instead of half-writing.
+    """
+    blocks = [(r["start"], r["end"], text[r["start"]:r["end"]], r["ctx"])
+              for r in block]
+    cut = text
+    for start, end, _body, _ctx in sorted(blocks, key=lambda b: -b[0]):
+        cut = cut[:start] + cut[end:]
+
+    insert_at = where - sum(
+        (end - start) for start, end, _b, _c in blocks if end <= where
+    )
+    banner = [
+        "",
+        "",
+        "/* %s - rules for this component, kept together." % component,
+        "   Gathered by an15_gather.py: the applying declarations are",
+        "   byte-identical and no conflicting pair changed places. */",
+    ]
+
+    # A RULE CARRIES ITS CONTEXT WITH IT. Lifting one out of
+    # `@media (max-width: 640px)` and dropping it at the top level does not
+    # move it, it rewrites it - the first run did exactly that and changed 318
+    # applying declarations. Each mover is re-wrapped in the at-rules it lived
+    # under, and consecutive movers sharing a context share one wrapper.
+    # Write the newline the file already uses, or the block's line endings
+    # differ from every other line and guards that read the sheet as text stop
+    # matching on formatting alone.
+    eol = '\r\n' if text.count('\r\n') > text.count('\n') / 2 else '\n'
+
+    parts, open_ctx = list(banner), ()
+    for _s, _e, body, ctx in blocks:
+        if ctx != open_ctx:
+            for _level in reversed(range(len(open_ctx))):
+                parts.append("  " * _level + "}")
+            for depth, level in enumerate(ctx):
+                parts.append("  " * depth + level + " {")
+            open_ctx = ctx
+        # VERBATIM, indentation included: a rule keeps the context it had, so
+        # it keeps the shape it had. Re-padding movers broke a guard that
+        # asserts a `grid-template-areas` spanning three lines with its exact
+        # leading spaces, while changing nothing about what the browser does.
+        rows = [row.rstrip('\r') for row in body.splitlines()]
+        while rows and not rows[0].strip():
+            rows.pop(0)
+        while rows and not rows[-1].strip():
+            rows.pop()
+        parts.extend(rows)
+    for _level in reversed(range(len(open_ctx))):
+        parts.append("  " * _level + "}")
+    parts.append("")
+    out = cut[:insert_at] + eol.join(parts) + eol + cut[insert_at:]
+
+    complaints = compare(text, out, collides=cohabitation().can_collide)
+    if complaints:
+        print("REFUSED by the guard:", len(complaints))
+        for row in complaints[:6]:
+            print("  -", row)
+        return None
+    return out
+
+
 def apply(text, component, path):
     best = plan(text, component)
     if best is None:
@@ -255,68 +321,12 @@ def apply(text, component, path):
         return 1
 
     keep = set(movable)
-    chosen = [r for r in chosen if r["index"] in keep]
-    blocks = [(r["start"], r["end"], text[r["start"]:r["end"]], r["ctx"])
-              for r in chosen]
-    cut = text
-    for start, end, _body, _ctx in sorted(blocks, key=lambda b: -b[0]):
-        cut = cut[:start] + cut[end:]
-
-    insert_at = where - sum(
-        (end - start) for start, end, _b, _c in blocks if end <= where
-    )
-    banner = [
-        "",
-        "",
-        "/* %s - every rule for this component that could be proved" % component,
-        "   safe to move, in one place. Gathered by an15_gather.py:",
-        "   the applying declarations are byte-identical and no",
-        "   conflicting pair changed places. */",
-    ]
-
-    # A RULE CARRIES ITS CONTEXT WITH IT. Lifting a rule out of
-    # `@media (max-width: 640px)` and dropping it at the top level does not
-    # move it, it rewrites it - the first run did exactly that and changed 318
-    # applying declarations. Each mover is re-wrapped in the at-rules it lived
-    # under, and consecutive movers sharing a context share one wrapper.
-    # Write the newline the file already uses. Emitting "\n" into a CRLF
-    # stylesheet leaves a block whose line endings differ from every other, and
-    # guards that read the sheet as text stop matching on formatting alone.
-    eol = "\r\n" if text.count("\r\n") > text.count("\n") / 2 else "\n"
-
-    parts, open_ctx = list(banner), ()
-    for _s, _e, body, ctx in blocks:
-        if ctx != open_ctx:
-            for _level in reversed(range(len(open_ctx))):
-                parts.append("  " * _level + "}")
-            for depth, level in enumerate(ctx):
-                parts.append("  " * depth + level + " {")
-            open_ctx = ctx
-        # VERBATIM. Not re-indented to suit the new nesting: a rule keeps the
-        # context it had, so it keeps the indentation it had, and several
-        # guards read this file as text - one of them asserts a
-        # `grid-template-areas` spanning three lines with its exact leading
-        # spaces. Re-padding moved rules broke it while changing nothing about
-        # what the browser does, which is the worst kind of diff.
-        rows = [row.rstrip("\r") for row in body.splitlines()]
-        while rows and not rows[0].strip():
-            rows.pop(0)
-        while rows and not rows[-1].strip():
-            rows.pop()
-        parts.extend(rows)
-    for _level in reversed(range(len(open_ctx))):
-        parts.append("  " * _level + "}")
-    parts.append("")
-    out = cut[:insert_at] + eol.join(parts) + eol + cut[insert_at:]
-
-    complaints = compare(text, out, collides=cohabitation().can_collide)
-    if complaints:
-        print("\nREFUSED by the guard after the fact:", len(complaints))
-        for c in complaints[:10]:
-            print("  -", c)
+    block = [r for r in chosen if r["index"] in keep]
+    out = _splice(text, block, where, component)
+    if out is None:
         return 1
     io.open(path, "w", encoding="utf-8", newline="").write(out)
-    print("\nPROVED and written: %d rules gathered at line %d." % (len(blocks), line))
+    print("PROVED and written: %d rules gathered at line %d." % (len(block), line))
     return 0
 
 
@@ -331,8 +341,124 @@ def main():
         return 0
     if mode == "--apply":
         return apply(text, component, path)
+    if mode == "--tidy":
+        return tidy(text, component, path)
     print(__doc__)
     return 2
+
+
+def feasible_destinations(text, moving):
+    """Every position the whole set could move to without transposing a pair.
+
+    THE DESTINATION WAS BEING GUESSED, and that is what left 45 rules behind.
+    The tool only ever tried the start of each existing island, and if none of
+    those happened to be clean it started dropping rules from the move.
+
+    But the constraint is arithmetic, not a search. For a mover `m` and a rule
+    `s` that stays and genuinely fights it:
+
+        m was ABOVE s  ->  the destination must also be at or above s
+        m was BELOW s  ->  the destination must be below s
+
+    So the whole set can move to any position strictly after the last stayer
+    that every mover was already below, and at or before the first stayer that
+    every mover was already above. One pass over the conflicting pairs gives
+    both bounds; if the window is not empty, NOTHING has to be left behind.
+
+    The blanket `.arena-chat *` rules are why this matters. They set `color`
+    at the same specificity as `.arena-chat__who`, and one element really can
+    match both - that pair is a real conflict and no evidence model may talk
+    its way out of it. What it forbids is a particular DESTINATION, not the
+    move: gather below the blanket instead of above it and every one of them
+    travels, in the same order, with the same result.
+    """
+    move = set(moving)
+    lower, upper = -1, len(list(rules(text)))
+    model = cohabitation()
+    for key, members in groups_of(text).items():
+        for a, a_sel, a_value in members:
+            for b, b_sel, b_value in members:
+                if a >= b:
+                    continue
+                a_moves, b_moves = a in move, b in move
+                if a_moves == b_moves:
+                    continue
+                if a_value == b_value:
+                    continue
+                if not model.can_collide(a_sel, b_sel):
+                    continue
+                stayer, mover = (b, a) if a_moves else (a, b)
+                if mover < stayer:
+                    upper = min(upper, stayer)
+                else:
+                    lower = max(lower, stayer)
+    return lower, upper
+
+
+def tidy(text, component, path, rounds=6):
+    """Gather what can be gathered, then gather the leftovers among themselves.
+
+    A single block is not always reachable, and pretending otherwise is what
+    left rules scattered. The blanket `.arena-chat *` reset and the chat's own
+    `.arena-chat__who` both set `color` at the same specificity, and one
+    element matches both - so some chat rules must sit above that reset and
+    some below it. No destination satisfies both, which is exactly what
+    `feasible_destinations` reports when the window comes back empty.
+
+    What IS reachable is a small number of deliberate blocks instead of thirty
+    accidental ones. Each pass gathers the largest provably safe set, then the
+    next pass does the same for whatever was left behind, until nothing moves.
+    Every pass carries the same proof as a single gather.
+    """
+    moved_any, last = False, None
+    for _round in range(rounds):
+        chosen, _mixed = component_rules(text, component)
+        runs = islands(chosen, text)
+        if len(runs) <= 1:
+            break
+        biggest = max(runs, key=len)
+        tails = [r for r in chosen if r not in biggest]
+        if len(tails) < 2:
+            break
+
+        every = list(rules(text))
+        best = None
+        for run in islands(tails, text):
+            where = run[0]["ctx_start"]
+            dest = min(r["index"] for r in every if r["start"] >= where)
+            hurt = transpositions(text, [r["index"] for r in tails], dest)
+            if best is None or len(hurt) < len(best[1]):
+                best = (dest, hurt, where)
+        dest, _hurt, where = best
+        movable, _blocked = largest_safe_move(
+            text, [r["index"] for r in tails], dest)
+        if len(movable) < 2:
+            break
+
+        keep = set(movable)
+        block = [r for r in tails if r["index"] in keep]
+        # Stop when a pass would move exactly what the last one moved. Without
+        # this the loop happily re-lays the same tail in the same place until
+        # it runs out of rounds, and the log reports it as progress each time.
+        fingerprint = (tuple(r["sel"] for r in block), where)
+        if fingerprint == last:
+            break
+        last = fingerprint
+        out = _splice(text, block, where, component)
+        if out is None:
+            break
+        text, moved_any = out, True
+        log = len(block)
+        print("   pass %d: %d more rules gathered" % (_round + 1, log))
+
+    if moved_any:
+        io.open(path, "w", encoding="utf-8", newline="").write(text)
+        chosen, _ = component_rules(text, component)
+        print("%s now lives in %d place(s)."
+              % (component, len(islands(chosen, text))))
+    else:
+        print("%s cannot be gathered further." % component)
+    return 0
 
 
 if __name__ == "__main__":
