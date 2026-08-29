@@ -1,5 +1,42 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1432",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The sticker sheet was pinned to the screen; it belongs to the chat",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-28, three complaints and seven screenshots taken "
+            "through one scroll of the phone: the grey mask is STILL there in "
+            "the mobile version and should have been removed everywhere long "
+            "ago; the sticker popup floats above every other panel and stays "
+            "exactly where it is all the way down the site; and at the very "
+            "bottom it disappears UNDER the footer. THE SECOND AND THIRD ARE "
+            "ONE CAUSE and it is position: fixed - a fixed box is pinned to "
+            "the viewport, so it rides the whole page and then has to win a "
+            "stacking fight against the footer, which it loses. It is absolute "
+            "inside .arena-chat again, which is what the base rule already "
+            "said; the phone branch now only gives it the bottom-sheet SHAPE "
+            "against the panel's own foot instead of the screen's. It scrolls "
+            "away with the chat, covers nothing else, and has no footer to "
+            "fight. WHY IT WAS EVER FIXED, recorded so nobody restores it: "
+            "v2.5.1333 made it a bottom sheet because an absolute menu "
+            "anchored near the foot of the LOG hung out of the chat and lay "
+            "across the card below. Anchoring to the panel's bottom rather "
+            "than to a trigger is what makes absolute safe - bottom: 0 with a "
+            "ceiling of the panel keeps it inside by construction. AND THE "
+            "GREY MASK IS GONE FROM EVERY WIDTH. He asked for it on "
+            "2026-08-27; it came off the desktop path and a touch-only copy "
+            "survived, which is exactly why he was still looking at it today. "
+            "Removing it from one branch is what let it live, so the guard is "
+            "now the ABSENCE of the pseudo-element anywhere rather than its "
+            "presence behind a gate. TWO OF MY OWN TESTS FAILED AND WERE "
+            "RIGHT TO: they asserted the fixed sheet and the mask as "
+            "requirements. They are reversed rather than deleted, so the "
+            "overturned design cannot come back quietly. 26 tests green."
+        ),
+    },
+    {
         "version": "2.5.1429",
         "date": "2026-08-28",
         "commit": "pending",

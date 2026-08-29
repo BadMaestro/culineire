@@ -4905,35 +4905,42 @@
      to the panel and the dim never covered the page at all. On a phone that
      makes no visible difference, because there the panel is the width of the
      screen - which is why this stood for so long. */
+  /* THE SHEET BELONGS TO THE PANEL, NOT TO THE SCREEN. Owner, 2026-08-28,
+     with three screenshots taken while scrolling one page: the picker sat
+     over everything, stayed exactly where it was all the way down the site,
+     and then slipped UNDER the footer at the bottom. All three are one
+     cause - it was position: fixed, so it was pinned to the viewport and
+     had to fight every stacking context on the page to stay on top.
+
+     It is absolute inside .arena-chat again, which is what the base rule
+     above already says; this branch only gives it the phone's SHAPE - full
+     width of the panel, sitting on the panel's own foot. It scrolls away
+     with the chat, it cannot cover the rest of the site, and there is
+     nothing for the footer to win against.
+
+     WHY IT WAS FIXED, so nobody restores it: v2.5.1333 made it a bottom
+     sheet because an absolute menu anchored near the foot of the LOG hung
+     out of the chat and lay across the card below. Anchoring to the
+     panel bottom instead of to a trigger is what makes absolute safe here -
+     bottom: 0 with a ceiling of the panel keeps it inside by construction.
+
+     AND THE GREY MASK IS GONE, EVERYWHERE. He asked for it removed on
+     2026-08-27 - "убирайте нахуй" - and it was taken off the desktop path
+     while this touch-only copy survived, which is why he was still looking
+     at it on his phone today. */
   .arena-chat__sheet {
-    position: fixed;
+    position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
-    /* No !important: the base rule above sets `top` and this branch is later
-       in the file at the same specificity, so it wins on order. The
-       !important was there to beat the old wide-container branch, which no
-       longer exists. */
+    /* The base rule sets a `top`; this branch is later in the file at
+       equal specificity, so `auto` wins on order and `bottom` takes
+       over. */
     top: auto;
-    z-index: var(--arena-z-chat-bottom-sheet);
-    max-height: 70vh;
+    bottom: 0;
+    max-height: min(70vh, 100%);
     border-radius: .9rem .9rem 0 0;
-    padding: .4rem .4rem max(.4rem, env(safe-area-inset-bottom));
+    padding: .4rem;
     box-shadow: 0 -.5rem 1.6rem color-mix(in srgb, var(--ink) 32%, transparent);
-  }
-/* The page behind it dims, so the sheet reads as the thing being answered.
-     It does NOT double as a way out: a click here lands on the sheet itself,
-     because a pseudo-element's hit target is the element that owns it, and
-     the outside-click handler correctly reads that as a click inside the
-     menu. Verified 2026-08-27 - clicking the dim left the picker open. Only
-     a touch device sees this at all now. */
-  .arena-chat__sheet::before {
-    content: "";
-    position: fixed;
-    inset: 0 0 100% 0;
-    height: 100vh;
-    background: color-mix(in srgb, var(--ink) 38%, transparent);
-    z-index: var(--arena-z-chat-scrim);
   }
 }
 }

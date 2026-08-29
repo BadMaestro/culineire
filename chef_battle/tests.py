@@ -25164,19 +25164,44 @@ class ArenaChatSheetIsAPhoneShapeOnlyOnAPhoneTests(TestCase):
                 return context
         return None
 
-    def test_the_bottom_sheet_exists_only_where_there_is_no_pointer(self):
-        self.assertEqual(
-            self._context_of(".arena-chat__sheet", "position: fixed"),
-            self.TOUCH_GATE,
-            "the phone's bottom sheet is reachable with a mouse again; it "
-            "must sit behind both the container width AND @media (hover: none)",
-        )
+    def test_the_sheet_is_never_fixed_to_the_screen(self):
+        """OVERTURNED BY THE OWNER, 2026-08-28, and this test is the reverse of
+        what it used to assert.
 
-    def test_the_dimming_layer_sits_behind_the_same_gate(self):
-        self.assertEqual(
-            self._context_of(".arena-chat__sheet::before", "content:"),
-            self.TOUCH_GATE,
-            "the grey mask the Owner photographed is loose again",
+        It used to require the phone's sheet to be `position: fixed` behind the
+        touch gate. He photographed the consequence on his own phone: the
+        picker sat over everything, stayed exactly where it was through a full
+        scroll of the site, and then slipped UNDER the footer at the bottom.
+        All three complaints are one cause - fixed means pinned to the viewport,
+        which puts a chat control into a fight with every stacking context on
+        the page.
+
+        It is absolute inside .arena-chat now, at every width. The phone branch
+        gives it the bottom-sheet SHAPE against the panel's own foot rather
+        than the screen's."""
+        css = self.CSS.read_text(encoding="utf-8")
+        for context, sel, body in ArenaChatIsAFixedHeightPanelTests._blocks():
+            if sel.startswith(".arena-chat__sheet") and "position: fixed" in body:
+                self.fail(
+                    "%s is fixed to the viewport again, in %s - that is what "
+                    "made it float over the whole site and then fall under "
+                    "the footer" % (sel, context or "the top level")
+                )
+        self.assertIn("position: absolute", css.split(".arena-chat__sheet {")[1][:400],
+                      "the sheet's base rule must keep it inside the panel")
+
+    def test_the_grey_mask_is_gone_from_every_width(self):
+        """He asked for it twice. On 2026-08-27 - "\u0443\u0431\u0438\u0440\u0430\u0439\u0442\u0435 \u043d\u0430\u0445\u0443\u0439" - it came
+        off the desktop path, and a touch-only copy survived, so on 2026-08-28
+        he was still looking at it on his phone: "\u0441\u0435\u0440\u0430\u044f \u043c\u0430\u0441\u043a\u0430 \u0432\u0441\u0451 \u0435\u0449\u0435
+        \u043f\u0440\u0438\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442 \u0432 \u043c\u043e\u0431\u0438\u043b\u044c\u043d\u043e\u0439 \u0432\u0435\u0440\u0441\u0438\u0438 - \u043c\u044b \u0434\u0430\u0432\u043d\u043e \u0443\u0436\u0435 \u0434\u043e\u043b\u0436\u043d\u044b \u0431\u044b\u043b\u0438
+        \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0435\u0451 \u0432\u0435\u0437\u0434\u0435". Removing it from one branch is what let it
+        survive, so the guard is now the absence of the pseudo-element
+        anywhere, not its presence behind a particular gate."""
+        css = self.CSS.read_text(encoding="utf-8")
+        self.assertNotIn(
+            ".arena-chat__sheet::before", css,
+            "the dimming layer is back; he has asked for it removed twice",
         )
 
     def test_the_popover_is_the_default_rather_than_a_wide_container_case(self):
