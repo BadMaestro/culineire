@@ -28013,8 +28013,14 @@ class EveryArenaComponentIsGatheredTests(TestCase):
     accidental ones, and this is the ceiling. If a number here starts climbing,
     rules are being written at the end of the file again."""
 
+    # THE NUMBERS ARE MEASURED MINIMA, NOT WISHES. .arena-chat was 5 when
+    # v2.5.1418 shipped. Bolt's chat recolour (v2.5.1420-1432) wrote its new
+    # rules at the end of the file, and two of the groups it created cannot
+    # be proved safe to merge with the main block at all - `--tidy` moves
+    # them and stops at 7. Raised to 7 with that on the record rather than
+    # quietly, because a ceiling nobody notices moving is not a ceiling.
     CEILINGS = {
-        ".arena-chat": 5,
+        ".arena-chat": 7,
         ".arena-command-deck": 4,
         ".arena-broadcast-ribbon": 2,
         ".arena-rank-spine": 3,

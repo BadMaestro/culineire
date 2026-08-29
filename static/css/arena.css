@@ -900,220 +900,10 @@
      happens to be positioned - that is how a menu ends up in another card. */
   position: relative;
 }
-/* .arena-chat__said's own order/flex-basis live in ITS rule further down
-   rather than here: that rule is prefixed and later in the file, so a copy
-   at this point would simply lose to it. */
-.arena-chat__who {
-  color: var(--arena-cappuccino);
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: baseline;
-  gap: .22rem;
-  min-width: 0;
-}
-.arena-chat__room-name { color: var(--arena-cappuccino); }
-.arena-chat__room-leave {
-  appearance: none;
-  min-height: 1.6rem;
-  margin-left: auto;
-  padding: 0 .4rem;
-  border: 0;
-  border-radius: .4rem;
-  background: none;
-  color: var(--chat-private-text);
-  font: inherit;
-  font-size: .62rem;
-  text-decoration: underline;
-  cursor: pointer;
-}
 /* A hidden line, as its moderator sees it. Nobody else is sent one. Struck and
    faded so it reads as withdrawn rather than as part of the conversation. */
 .arena-chat__line--hidden {
   opacity: .55;
-}
-.arena-chat__line--hidden .arena-chat__who::after {
-  content: "hidden";
-  margin-left: .3rem;
-  padding: 0 .28rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--chat-admin-text) 45%, transparent);
-  color: var(--chat-admin-text);
-  font-size: .52rem;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.arena-chat__react {
-  appearance: none;
-  /* A glyph and a count need about 14px; 1.5rem was 24 and the strip cost
-     more than the sentence above it. The whole button is the target here -
-     unlike the trigger, there is nothing to overflow around. */
-  min-height: 1.1rem;
-  padding: 0 .3rem;
-  border: 1px solid color-mix(in srgb, var(--accent-bronze) 20%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
-  color: var(--arena-ink);
-  font-size: .6rem;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  cursor: pointer;
-}
-/* Replying-to bar and the notice line, both above/below the composer. */
-.arena-chat__replying {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: .3rem;
-  margin: 0;
-  padding: .22rem .4rem;
-  border-left: 2px solid var(--accent-bronze);
-  background: color-mix(in srgb, var(--accent-bronze) 8%, transparent);
-  color: var(--arena-muted);
-  font-size: .64rem;
-}
-.arena-chat__replying-cancel {
-  appearance: none;
-  min-width: 1.4rem;
-  min-height: 1.4rem;
-  margin-left: auto;
-  border: 0;
-  background: none;
-  color: var(--arena-muted);
-  font-size: .9rem;
-  line-height: 1;
-  cursor: pointer;
-}
-/* THE ACTION MENU IS ONE ELEMENT. The spec asks for a bottom sheet on a phone
-   and an anchored popover on a desktop and, in the same breath, for them not to
-   be two implementations. So this is one menu with one set of buttons and one
-   behaviour; only where it appears changes.
-
-   THE POPOVER IS THE DEFAULT AND THE BOTTOM SHEET IS THE EXCEPTION, as of
-   v2.5.1333. It used to be decided by the PANEL'S OWN WIDTH alone - under
-   30rem of container you got the phone treatment - and the Owner found what
-   that costs: at 1920 his chat rail is about 460px, so its content box is
-   ~26.4rem, under the threshold, and a desktop got the phone's sheet
-   complete with the dimming layer that belongs behind it. Measured before
-   the fix at 1760/1600/1500 and identical on the code either side of
-   v2.5.1324, so it was neither new nor mine - it had simply never been seen,
-   because until this week the rail was wide enough to clear 30rem.
-
-   Width cannot separate the two cases and the file already says so a few
-   rules down: a 430px phone's panel and a narrow desktop rail land in the
-   same range. A POINTER separates them, which is what the density work
-   beside this already uses. So the bottom sheet is now gated on
-   `@media (hover: none)` and everything else - every width, every rail -
-   gets the popover from here. */
-.arena-chat__sheet {
-  position: absolute;
-  /* Where the popover goes: beside the control that opened it, using the
-     coordinates the script measured, and kept inside the panel on BOTH axes.
-     Moved up here from the old `@container (min-width: 30.01rem)` branch,
-     which is gone - a container ceiling on the popover is exactly what left
-     a narrow desktop rail with nowhere to put one. The left value is a
-     fallback: keepSheetInside() in arena_chat.js clamps by the sheet's REAL
-     width the moment it is in the document (v2.5.1327), which no single
-     number here can do for three sheets of three different widths. */
-  top: min(var(--sheet-top, 100%), calc(100% - 3rem));
-  left: min(var(--sheet-left, 0px), calc(100% - 12rem));
-  right: auto;
-  bottom: auto;
-  z-index: var(--arena-z-chat-sheet);
-  display: flex;
-  flex-direction: column;
-  min-width: 11rem;
-  padding: .3rem;
-  border: 1px solid color-mix(in srgb, var(--accent-bronze) 35%, transparent);
-  border-radius: .7rem;
-  background: var(--surface);
-  box-shadow: 0 .5rem 1.4rem color-mix(in srgb, var(--ink) 24%, transparent);
-  /* A MENU MUST NEVER BE TALLER THAN SOMEWHERE TO PUT IT. A moderator's menu
-     carries eleven items; anchored to a trigger near the foot of the log it
-     ran straight out of the panel and across the card beneath - the Owner
-     photographed it lying over ARENA STATUS. It scrolls inside itself now
-     instead of growing through the page. The phone's own branch raises this
-     to 70vh, where the sheet has the foot of the screen to itself. */
-  max-height: min(60vh, 18rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-.arena-chat__sheet-head {
-  margin: 0 0 .2rem;
-  padding: .2rem .5rem;
-  color: var(--arena-muted);
-  font-size: .6rem;
-  font-weight: 800;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-.arena-chat__action {
-  appearance: none;
-  min-height: 2.4rem;            /* a finger, not a cursor */
-  padding: 0 .55rem;
-  border: 0;
-  border-radius: .45rem;
-  background: none;
-  color: var(--arena-ink);
-  font: inherit;
-  font-size: .74rem;
-  text-align: left;
-  cursor: pointer;
-}
-/* Being named yourself is worth more than a colour, so it also carries a
-   tint - the one case where a mention should catch the eye mid-scroll. */
-.arena-chat .arena-chat__mention.is-me {
-  padding: 0 .2em;
-  border-radius: .25rem;
-  background: color-mix(in srgb, var(--chat-mention-text) 15%, transparent);
-}
-.arena-chat .arena-chat__poll-field:focus-visible {
-  outline: 2px solid var(--accent-bronze);
-  outline-offset: 1px;
-}
-/* Hidden from the eye, NOT from assistive technology or the keyboard - the
-   button beside it opens this input, and display:none would take it out of
-   the accessibility tree along with the picker it triggers. */
-.arena-chat__file {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-.arena-chat__media-badge {
-  position: absolute;
-  top: .25rem;
-  left: .25rem;
-  padding: 0 .25rem;
-  border-radius: .25rem;
-  background: color-mix(in srgb, var(--ink) 68%, transparent);
-  color: #fff;
-  font-size: .5rem;
-  font-weight: 800;
-  letter-spacing: .06em;
-  line-height: 1.5;
-}
-/* The still standing in for an animation the reader asked not to receive. */
-.arena-chat__media-play {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  width: 100%;
-  border: 0;
-  background: color-mix(in srgb, var(--ink) 30%, transparent);
-  color: #fff;
-  font-size: 1.3rem;
-  line-height: 1;
-  cursor: pointer;
 }
 
 
@@ -1173,7 +963,7 @@
   font-size: .68rem;
 }
 .arena-chat__tab--icon .arena-ico { width: .78rem; margin: 0; }
-.arena-chat .arena-chat__rules-toggle .arena-ico { color: var(--accent-bronze); }
+.arena-chat .arena-chat__rules-toggle .arena-ico { }
 .arena-chat__rules-toggle span { flex: 1 1 auto; text-align: left; }
 .arena-chat__rules-toggle em {
   flex: 0 0 auto;
@@ -1221,11 +1011,6 @@
   background: var(--chat-btn-fill-on);
   color: var(--chat-btn-ink-on);
   cursor: pointer;
-}
-.arena-chat__composer button:not(.arena-chat__composer-action):hover,
-.arena-chat__composer button:not(.arena-chat__composer-action):focus-visible {
-  border-color: var(--accent-bronze-dark);
-  background: color-mix(in srgb, var(--accent-bronze) 18%, transparent);
 }
 /* DISABLED IS DIMMER, NEVER A DIFFERENT COLOUR. The composer is disabled for
    anyone not seated, which is most readers most of the time, so this is the
@@ -1748,8 +1533,232 @@
     -webkit-backdrop-filter: blur(9px) saturate(1.1);
     box-shadow: 0 .8rem 2rem color-mix(in srgb, var(--ink) 45%, transparent);
     color: var(--ink);
-  }
-
+  }
+
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat__said's own order/flex-basis live in ITS rule further down
+   rather than here: that rule is prefixed and later in the file, so a copy
+   at this point would simply lose to it. */
+.arena-chat__who {
+  color: var(--arena-cappuccino);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: .22rem;
+  min-width: 0;
+}
+.arena-chat__room-name { color: var(--arena-cappuccino); }
+.arena-chat__room-leave {
+  appearance: none;
+  min-height: 1.6rem;
+  margin-left: auto;
+  padding: 0 .4rem;
+  border: 0;
+  border-radius: .4rem;
+  background: none;
+  color: var(--chat-private-text);
+  font: inherit;
+  font-size: .62rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.arena-chat__line--hidden .arena-chat__who::after {
+  content: "hidden";
+  margin-left: .3rem;
+  padding: 0 .28rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--chat-admin-text) 45%, transparent);
+  color: var(--chat-admin-text);
+  font-size: .52rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.arena-chat__react {
+  appearance: none;
+  /* A glyph and a count need about 14px; 1.5rem was 24 and the strip cost
+     more than the sentence above it. The whole button is the target here -
+     unlike the trigger, there is nothing to overflow around. */
+  min-height: 1.1rem;
+  padding: 0 .3rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  color: var(--arena-ink);
+  font-size: .6rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+}
+/* Replying-to bar and the notice line, both above/below the composer. */
+.arena-chat__replying {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin: 0;
+  padding: .22rem .4rem;
+  border-left: 2px solid var(--accent-bronze);
+  background: color-mix(in srgb, var(--accent-bronze) 8%, transparent);
+  color: var(--arena-muted);
+  font-size: .64rem;
+}
+.arena-chat__replying-cancel {
+  appearance: none;
+  min-width: 1.4rem;
+  min-height: 1.4rem;
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--arena-muted);
+  font-size: .9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+/* THE ACTION MENU IS ONE ELEMENT. The spec asks for a bottom sheet on a phone
+   and an anchored popover on a desktop and, in the same breath, for them not to
+   be two implementations. So this is one menu with one set of buttons and one
+   behaviour; only where it appears changes.
+
+   THE POPOVER IS THE DEFAULT AND THE BOTTOM SHEET IS THE EXCEPTION, as of
+   v2.5.1333. It used to be decided by the PANEL'S OWN WIDTH alone - under
+   30rem of container you got the phone treatment - and the Owner found what
+   that costs: at 1920 his chat rail is about 460px, so its content box is
+   ~26.4rem, under the threshold, and a desktop got the phone's sheet
+   complete with the dimming layer that belongs behind it. Measured before
+   the fix at 1760/1600/1500 and identical on the code either side of
+   v2.5.1324, so it was neither new nor mine - it had simply never been seen,
+   because until this week the rail was wide enough to clear 30rem.
+
+   Width cannot separate the two cases and the file already says so a few
+   rules down: a 430px phone's panel and a narrow desktop rail land in the
+   same range. A POINTER separates them, which is what the density work
+   beside this already uses. So the bottom sheet is now gated on
+   `@media (hover: none)` and everything else - every width, every rail -
+   gets the popover from here. */
+.arena-chat__sheet {
+  position: absolute;
+  /* Where the popover goes: beside the control that opened it, using the
+     coordinates the script measured, and kept inside the panel on BOTH axes.
+     Moved up here from the old `@container (min-width: 30.01rem)` branch,
+     which is gone - a container ceiling on the popover is exactly what left
+     a narrow desktop rail with nowhere to put one. The left value is a
+     fallback: keepSheetInside() in arena_chat.js clamps by the sheet's REAL
+     width the moment it is in the document (v2.5.1327), which no single
+     number here can do for three sheets of three different widths. */
+  top: min(var(--sheet-top, 100%), calc(100% - 3rem));
+  left: min(var(--sheet-left, 0px), calc(100% - 12rem));
+  right: auto;
+  bottom: auto;
+  z-index: var(--arena-z-chat-sheet);
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  padding: .3rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  border-radius: .7rem;
+  background: var(--surface);
+  box-shadow: 0 .5rem 1.4rem color-mix(in srgb, var(--ink) 24%, transparent);
+  /* A MENU MUST NEVER BE TALLER THAN SOMEWHERE TO PUT IT. A moderator's menu
+     carries eleven items; anchored to a trigger near the foot of the log it
+     ran straight out of the panel and across the card beneath - the Owner
+     photographed it lying over ARENA STATUS. It scrolls inside itself now
+     instead of growing through the page. The phone's own branch raises this
+     to 70vh, where the sheet has the foot of the screen to itself. */
+  max-height: min(60vh, 18rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.arena-chat__sheet-head {
+  margin: 0 0 .2rem;
+  padding: .2rem .5rem;
+  color: var(--arena-muted);
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.arena-chat__action {
+  appearance: none;
+  min-height: 2.4rem;            /* a finger, not a cursor */
+  padding: 0 .55rem;
+  border: 0;
+  border-radius: .45rem;
+  background: none;
+  color: var(--arena-ink);
+  font: inherit;
+  font-size: .74rem;
+  text-align: left;
+  cursor: pointer;
+}
+/* Being named yourself is worth more than a colour, so it also carries a
+   tint - the one case where a mention should catch the eye mid-scroll. */
+.arena-chat .arena-chat__mention.is-me {
+  padding: 0 .2em;
+  border-radius: .25rem;
+  background: color-mix(in srgb, var(--chat-mention-text) 15%, transparent);
+}
+.arena-chat .arena-chat__poll-field:focus-visible {
+  outline: 2px solid var(--accent-bronze);
+  outline-offset: 1px;
+}
+/* Hidden from the eye, NOT from assistive technology or the keyboard - the
+   button beside it opens this input, and display:none would take it out of
+   the accessibility tree along with the picker it triggers. */
+.arena-chat__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.arena-chat__media-badge {
+  position: absolute;
+  top: .25rem;
+  left: .25rem;
+  padding: 0 .25rem;
+  border-radius: .25rem;
+  background: color-mix(in srgb, var(--ink) 68%, transparent);
+  color: #fff;
+  font-size: .5rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  line-height: 1.5;
+}
+/* The still standing in for an animation the reader asked not to receive. */
+.arena-chat__media-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  border: 0;
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__composer button:not(.arena-chat__composer-action):hover,
+.arena-chat__composer button:not(.arena-chat__composer-action):focus-visible {
+  border-color: var(--accent-bronze-dark);
+  background: color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+}
 /* ==========================================================================
    THE CHAT PANEL FRAME IS LIGHTER THAN ITS SIBLINGS - Owner, 2026-08-28.
 
@@ -1769,6 +1778,26 @@
 .arena-chat {
   border-color: color-mix(in srgb, var(--brand) 22%, transparent);
 }
+.arena-chat .arena-chat__poll-ask:hover,
+.arena-chat .arena-chat__gif-upload:hover,
+.arena-chat .arena-chat__show:hover,
+.arena-chat .arena-chat__jump:hover,
+.arena-chat .arena-chat__rules-toggle:hover,
+.arena-chat .arena-chat__poll-ask:focus-visible,
+.arena-chat .arena-chat__gif-upload:focus-visible,
+.arena-chat .arena-chat__show:focus-visible,
+.arena-chat .arena-chat__jump:focus-visible,
+.arena-chat .arena-chat__rules-toggle:focus-visible {
+  border-color: var(--chat-btn-edge-on);
+  background: var(--chat-btn-fill-on);
+  color: var(--chat-btn-ink-on);
+}
+
+
+
+
+
+
 
 
 
@@ -3903,6 +3932,14 @@
    The ROW is what changed - see .arena-chat__row below - and it is where
    every piece of a message actually lives now. */
 .arena-chat__line {
+  /* 64 rows, 958 nodes, and every one of them re-laid on every forced
+     layout the octagon's fit asks for - measured at 17ms of the page's
+     70ms, 2026-08-29. A message that has scrolled out of the log does not
+     need laying out to know the log's height; `auto` here lets the browser
+     skip it and `contain-intrinsic-size: auto` makes it remember the height
+     it last had, so the scrollbar does not jump when it comes back. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 2.2rem;
   display: grid;
   gap: .04rem;
   /* The fallback is the narrow default this rule has always carried; the
@@ -4286,7 +4323,7 @@
   text-transform: uppercase;
   cursor: pointer;
 }
-.arena-chat .arena-chat__emoji-tab { color: var(--arena-muted); }
+.arena-chat .arena-chat__emoji-tab { }
 .arena-chat .arena-chat__emoji-tab[aria-pressed="true"] {
   color: var(--arena-ink);
   background: color-mix(in srgb, var(--accent-bronze) 16%, transparent);
@@ -4709,11 +4746,8 @@
   cursor: pointer;
 }
 .arena-chat .arena-chat__tab {
-  color: var(--arena-muted);
 }
 .arena-chat .arena-chat__tab[aria-selected="true"] {
-  color: var(--arena-ink);
-  background: color-mix(in srgb, var(--accent-bronze) 14%, transparent);
   border-radius: .4rem;
 }
 .arena-chat__tab:focus-visible {
@@ -8961,6 +8995,35 @@ button.arena-chat__poll-option { cursor: pointer; }
   height: auto;
   aspect-ratio: 1;
   overflow: visible;
+  /* THE OCTAGON IS 920 NODES AND THE FIT MEASURES THE PAGE SIX TIMES.
+
+     Measured on production, 2026-08-29, in the Owner's own browser: one
+     forced layout of this page costs 70ms on a fast machine - an order of
+     magnitude more than a page this size should - and the fit needs about
+     six of them before the scale settles. On his machine that is the 10 to
+     15 seconds of blank screen he reported.
+
+     Attributed by hiding one subtree at a time and re-timing: with the deck
+     gone the layout costs 4ms. The two thirds of the page's 3036 nodes that
+     live in this drawing and in the chat log are what the browser is
+     re-laying every single time, and nothing inside either of them has
+     changed.
+
+     `content-visibility: auto` lets it skip the subtree's internal layout
+     until the subtree is actually needed. Measured live on the same page:
+     70ms -> 23ms with this and the chat log's rows together, THREE TIMES
+     cheaper, and the octagon's own measured box was identical to the pixel
+     before and after - 407x280 - so the fit still reads exactly what it
+     read before.
+
+     `contain-intrinsic-size: auto` remembers the last rendered size rather
+     than guessing one, so nothing jumps when the browser skips and returns.
+
+     NOT `contain: layout paint`, which was the first thing tried and did
+     nothing at all: 70ms before, 66ms after. The measurement is why this
+     line is the one that shipped. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
 }
 
 /* ---- cells ---- */
@@ -12258,20 +12321,6 @@ button.arena-chat__poll-option:hover {
   color: var(--chat-btn-ink);
   box-shadow: var(--chat-btn-shadow);
   transition: border-color .1s ease, background .1s ease, color .1s ease, transform .1s ease;
-}
-.arena-chat .arena-chat__poll-ask:hover,
-.arena-chat .arena-chat__gif-upload:hover,
-.arena-chat .arena-chat__show:hover,
-.arena-chat .arena-chat__jump:hover,
-.arena-chat .arena-chat__rules-toggle:hover,
-.arena-chat .arena-chat__poll-ask:focus-visible,
-.arena-chat .arena-chat__gif-upload:focus-visible,
-.arena-chat .arena-chat__show:focus-visible,
-.arena-chat .arena-chat__jump:focus-visible,
-.arena-chat .arena-chat__rules-toggle:focus-visible {
-  border-color: var(--chat-btn-edge-on);
-  background: var(--chat-btn-fill-on);
-  color: var(--chat-btn-ink-on);
 }
 /* Pinned Rules keeps the bronze on its ICON only - the Owner's "quieter"
    ruling of the same day, promoted off its desktop gate with the tabs. */

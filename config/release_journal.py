@@ -1,5 +1,48 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1477",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "A forced layout of the arena cost 70ms; it costs 23ms",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner, after checking the shipped load: it took 10 to 15 "
+            "seconds, nothing at all was visible and then everything appeared "
+            "at once. And the correction that reframed the whole task - the "
+            "goal is to make the load FAST AND LIGHT, not to postpone it. "
+            "Hiding the climb was treating the symptom. "
+            "MEASURED ON PRODUCTION IN HIS OWN BROWSER, which is the only "
+            "reason this release says anything true. One forced layout of the "
+            "arena page costs 70ms on a FAST machine - an order of magnitude "
+            "more than 3036 nodes should - and the octagon fit needs about six "
+            "of them before the scale settles. On his machine that is the "
+            "blank screen. "
+            "Attributed by hiding one subtree at a time and re-timing: with "
+            "the deck gone a layout costs 4ms. The chat log is 958 of those "
+            "nodes and the octagon drawing 920 - two thirds of the page - and "
+            "the browser re-lays every one of them each time, though nothing "
+            "inside either has changed. "
+            "`content-visibility: auto` on the drawing and on each chat line "
+            "lets it skip that work. Measured live on the same page: 70ms to "
+            "23ms, THREE TIMES cheaper, with the octagon's own measured box "
+            "identical to the pixel before and after - 407x280 - so the fit "
+            "still reads exactly what it read before. `contain-intrinsic-size: "
+            "auto` makes each skipped row remember its last height, so the "
+            "chat scrollbar does not jump. "
+            "THE FIRST IDEA WAS WRONG AND THE MEASUREMENT KILLED IT. `contain: "
+            "layout paint` on the camera and the scene, which is what I "
+            "proposed to him, changed 70ms into 66ms - nothing. It was tried "
+            "on the live page before a line was written, and the line that "
+            "shipped is the one that moved the number. "
+            "Also cleared, on his standing instruction to tidy up after Bolt "
+            "once he was out of the file: the five duplicate declarations and "
+            "the scattered rules his chat recolour left behind. The scatter "
+            "ceiling for .arena-chat moves from 5 to 7 - two of the groups he "
+            "created cannot be proved safe to merge at all - and that is "
+            "recorded in the test rather than quietly changed."
+        ),
+    },
+    {
         "version": "2.5.1474",
         "date": "2026-08-29",
         "commit": "25f18505",
