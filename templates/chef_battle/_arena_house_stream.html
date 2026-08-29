@@ -32,7 +32,19 @@ that has not been read back. Off air, a title claiming a live stream would
 simply be untrue.
 
 THE OFF-AIR CARD IS THE OWNER'S OWN PLACEHOLDER, the animated test card he
-supplied on 2026-08-28: 960x540, 28 frames, 2.24 seconds, looping.
+supplied on 2026-08-28: 960x540, 28 frames, 2.24 seconds a turn.
+
+IT TURNS TWICE AND STOPS - 4.48 seconds - and that is the whole point of
+the encoding. Owner, 2026-08-29: play the first seconds and then stop, or
+it is a permanent flicker on the screen. A looping test card next to a
+live arena is exactly that. The stop costs nothing: the loop count is one
+number in the file, so there is no script, no timer and no second asset,
+and it rests on its own last frame - measured as different from the first
+by 4.9 out of 255, the same as any two neighbouring frames, because the
+grain is a seamless loop.
+
+Two turns rather than a cut at exactly five seconds: a partial turn means
+storing the frames twice and the file goes from 1.3 MB to 2.7 MB.
 
 It shipped as a STILL FRAME in v2.5.1391 because the source GIF is 9.7 MB.
 That was not a decision to make on his behalf - he handed over an animation

@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1447",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "The off-air card turns twice and stops, instead of flickering all day",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-29: let it play the first seconds and then stop, "
+            "otherwise it is a permanent ripple on the screen. He is right - a "
+            "looping test card beside a live arena is exactly that. "
+            "THE STOP IS ONE NUMBER IN THE FILE. An animated WebP carries a "
+            "loop count; 0 means forever, and it was 0. It is 2 now, so the "
+            "card turns twice - 4.48 seconds - and rests. No script, no timer, "
+            "no second asset to keep in step with the first, and not one byte "
+            "more: still 1.3 MB. "
+            "It settles on its own last frame, which is as close to the first "
+            "as any two neighbouring frames are - measured at 4.9 out of 255 - "
+            "because the grain is a seamless loop. Nothing jumps when it "
+            "stops. "
+            "Two turns rather than a cut at exactly five seconds: a partial "
+            "turn means storing the frames a second time and the file goes "
+            "from 1.3 MB to 2.7 MB. Half a second is not worth doubling what "
+            "the visitor downloads. "
+            "A test now asks for the loop count by name. Every other check in "
+            "that class passes on a card that flickers forever - right format, "
+            "right size, right frame count, right box."
+        ),
+    },
+    {
         "version": "2.5.1444",
         "date": "2026-08-28",
         "commit": "pending",

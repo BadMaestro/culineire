@@ -27690,6 +27690,26 @@ class TheCameraIsTheBearCaveFoodTrailerTests(TestCase):
             )
             self.assertEqual(im.n_frames, 28, "frames have been dropped")
 
+    def test_the_card_stops_instead_of_flickering_forever(self):
+        """Owner, 2026-08-29: play the first seconds, then stop - otherwise
+        it is a permanent flicker on the screen.
+
+        A looping test card beside a live arena is exactly that. The stop is
+        one number in the file - the loop count - so there is no script, no
+        timer and no second asset to keep in step. `loop: 0` means forever
+        and is the failure this guards."""
+        from PIL import Image
+
+        with Image.open(self.PLACEHOLDER) as im:
+            loops = im.info.get("loop")
+            self.assertNotEqual(loops, 0, "the card loops forever again")
+            self.assertEqual(loops, 2)
+            seconds = im.n_frames * 80 * loops / 1000
+            self.assertLessEqual(
+                seconds, 6,
+                f"the card runs for {seconds}s before settling",
+            )
+
     def test_the_placeholder_is_webp_at_the_owner_own_resolution(self):
         from PIL import Image
 
