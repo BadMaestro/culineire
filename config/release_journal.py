@@ -1,5 +1,46 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1441",
+        "date": "2026-08-28",
+        "commit": "pending",
+        "title": "The arena settled over nine painted steps; it settles in one frame",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-28: on every page load the site looks as though it "
+            "slides in from the sides and everything inside every block "
+            "squeezes down to fit - an obvious bug that KILLS THE LOAD ON WEAK "
+            "MACHINES and looks disgusting. Measured on production at 1440x900 "
+            "before the fix: NINE painted steps, camera scale climbing 0.6378 "
+            "to 1.0068, the last landing 4.46 SECONDS in, 14 long tasks "
+            "totalling 4621ms. With the CPU throttled 6x to stand in for a weak "
+            "machine it had reached step three at 9.5 seconds and was still "
+            "going, one long task alone lasting 3072ms - three seconds of "
+            "frozen main thread. THE CAUSE IS A CLOSED LOOP ACROSS TWO FILES "
+            "running one iteration per FRAME. placeOctagon ends by publishing "
+            "--arena-floor-target-width from the size it just produced; that "
+            "width is the centre grid column's ceiling, so the column resizes, "
+            "so the region resizes, so the ResizeObserver on the region calls "
+            "fitScene again, which measures the new region and publishes a "
+            "slightly larger width. Each pass got a little closer and every one "
+            "of them was painted. THE LOOP IS NOT WRONG - it had no business "
+            "being visible. It runs to its own fixed point inside ONE frame "
+            "now, before anything is painted, capped at eight passes and "
+            "stopping when the scale moves less than 0.2%. That is cheap: "
+            "placeOctagon reads two boxes and writes three custom properties "
+            "and never touches the 920 nodes of the scene. The expensive half - "
+            "placeRankSpine and paintRankLadder, which walk the ladder and "
+            "query cells for all eight rings - now runs ONCE at the end rather "
+            "than once per step against a size about to change. A re-entrancy "
+            "guard stops the region's observer being re-entered by the writes "
+            "that caused it, released on the next frame. The end state is the "
+            "same number the page was already crawling towards; only the "
+            "journey stops being visible. The octagon's locked width share and "
+            "seat are untouched and their test is green, with the "
+            "camera-ownership, reads-before-writes, public-contract and "
+            "initial-render guards."
+        ),
+    },
+    {
         "version": "2.5.1438",
         "date": "2026-08-29",
         "commit": "01069db1",

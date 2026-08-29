@@ -3025,6 +3025,38 @@
     return box.width > 0 && box.height > 0;
   }
 
+  // THE FIT FEEDS ITSELF, AND UNTIL 2026-08-28 IT DID SO ON SCREEN.
+  //
+  // placeOctagon() ends by publishing --arena-floor-target-width from the size
+  // it just produced (see publishFloorTargetWidth). That width is the centre
+  // grid column's ceiling, so the column resizes, so the REGION resizes, so
+  // the ResizeObserver on the region calls fitScene again - which measures the
+  // new region and publishes a slightly larger width. A closed loop across two
+  // files, converging by a little each time.
+  //
+  // MEASURED ON PRODUCTION at 1440x900 before this change: NINE painted steps,
+  // scale climbing 0.6378 -> 1.0068, the last one landing 4.46 SECONDS after
+  // the page began, 14 long tasks totalling 4621ms. With the CPU throttled 6x
+  // to stand in for a weak machine it had reached step three at 9.5 seconds
+  // and was still going, with a single long task of 3072ms - three seconds of
+  // frozen main thread. The Owner's words: it kills the load and looks
+  // disgusting.
+  //
+  // The loop is not wrong, it was just being run one iteration per FRAME. It
+  // runs to its own fixed point here, inside one frame, before anything is
+  // painted: placeOctagon is cheap (two box reads and three custom properties
+  // - it does not touch the 920 nodes of the scene), so iterating it costs a
+  // few forced reflows and no paint at all. The end state is the same number
+  // the page was crawling towards; only the journey there stops being visible.
+  //
+  // THE EXPENSIVE HALF RUNS ONCE, at the end. placeRankSpine and
+  // paintRankLadder walk the ladder and query cells inside the SVG for every
+  // one of the eight rings, and there is no sense doing that against a size
+  // that is about to change again.
+  var fitting = false;
+  var FIT_MAX_PASSES = 8;
+  var FIT_SETTLED = 0.002;   // 0.2% of scale: below what a pixel can show
+
   function fitScene(svg) {
     // The SVG's parent is the CAMERA VIEWPORT, and the viewport's parent is
     // the page region. Naming it says which is which: this file places the
@@ -3034,7 +3066,31 @@
     if (!geometryIsValid(svg)) { return; }
     arenaState('geometry');
 
-    placeOctagon(svg, camera);
+    // Re-entrancy: our own writes fire the region's ResizeObserver. Without
+    // this the convergence loop would be re-entered from inside itself.
+    if (fitting) { return; }
+    fitting = true;
+    try {
+      var previous = NaN;
+      for (var pass = 0; pass < FIT_MAX_PASSES; pass++) {
+        placeOctagon(svg, camera);
+        var current = parseFloat(
+          camera.style.getPropertyValue('--arena-camera-scale')
+        );
+        if (!(current > 0)) { break; }
+        if (Math.abs(current - previous) < FIT_SETTLED) { break; }
+        previous = current;
+      }
+    } finally {
+      // Released on the next frame rather than immediately: the observer
+      // callback for the writes above has not run yet, and letting it through
+      // would spend a whole extra fit arriving at the number we already have.
+      if (global.requestAnimationFrame) {
+        global.requestAnimationFrame(function () { fitting = false; });
+      } else {
+        fitting = false;
+      }
+    }
 
     placeRankSpine(svg);
     paintRankLadder(svg);
@@ -3491,7 +3547,10 @@
     // still exactly one ResizeObserver in this file.
     var region = svg.parentElement && svg.parentElement.parentElement;
     if (global.ResizeObserver && region) {
-      new global.ResizeObserver(function () { fitScene(svg); }).observe(region);
+      new global.ResizeObserver(function () {
+        // Not while a fit is in flight: the region is resizing BECAUSE of it.
+        if (!fitting) { fitScene(svg); }
+      }).observe(region);
     }
     // AN15, master task section 9: the page owns its own layout and the
     // octagon re-fits inside whatever it is handed. The four triggers that can
