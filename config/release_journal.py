@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1489",
         "date": "2026-08-29",
-        "commit": "pending",
+        "commit": "652f452e",
         "title": "The pinned chat rules start collapsed too",
         "section": "Chef Battles / Arena",
         "summary": (
