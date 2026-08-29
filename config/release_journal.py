@@ -1,5 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1435",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "The off-air camera card animates - it was never mine to freeze",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner handed over an animated test card on 2026-08-28 and asked for it installed on the camera. It shipped in v2.5.1391 as a SINGLE STILL FRAME, because the source GIF is 9.7 MB and this project caps images at 150 KB. "
+            "Reducing it was not the fault. Not asking him was. He found it frozen today and said so in four words: a I razve daval tebe pravo golosa. "
+            "The same 28 frames at his own 960x540 are now served as an animated WebP at 1.3 MB, looping every 2.24 seconds. My estimate yesterday that the animation would only fit at 480x270 and ten choppy frames was simply wrong - measured properly, full size and every frame costs 1.3 MB at q60 and 1.1 MB at q45. "
+            "THE CAP IS REGISTERED BY NAME, not loosened. test_static_image_weight.py gets one entry for this one file, carrying his ruling and the reason it is affordable: the card is fetched only when the camera is OFF and it is lazy-loaded, so it is on no page's critical path. If the lazy attribute ever comes off, the entry goes with it. "
+            "And a new test asks the only question that mattered: does it ACTUALLY ANIMATE. A one-frame WebP passes every other check in that class - right format, right resolution, right box - and shows him a frozen picture, which is exactly what happened."
+        ),
+    },
+    {
         "version": "2.5.1432",
         "date": "2026-08-28",
         "commit": "pending",

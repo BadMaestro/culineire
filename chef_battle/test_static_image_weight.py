@@ -75,6 +75,17 @@ CAPS: list[tuple[str, int, str]] = [
     ("images/male-avatar", 400_000, "default avatar — WebP"),
     ("images/neutral-avatar", 400_000, "default avatar — WebP"),
     ("images/female-avatar", 400_000, "default avatar — WebP"),
+    # THE OFF-AIR CAMERA CARD, and the only entry here the Owner chose by
+    # name. It is his own animated test card: 960x540, 28 frames, 1.3 MB as
+    # an animated WebP - the source GIF is 9.7 MB. A still frame was shipped
+    # in v2.5.1391 at 86 KB WITHOUT ASKING HIM, which was not mine to decide;
+    # he asked for the animation and this cap is his answer to the cost.
+    #
+    # It is shown only when the camera is OFF and it is lazy-loaded, so it is
+    # not on the critical path of any page. If it ever stops being lazy, this
+    # entry must go rather than the loading attribute.
+    ("images/chef_battle/live_camera_placeholder", 1_500_000,
+     "the Owner's animated off-air card, his call, 2026-08-29"),
     ("", 150_000, "default UI chrome"),
 ]
 

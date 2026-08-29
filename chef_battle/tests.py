@@ -27655,15 +27655,40 @@ class TheCameraIsTheBearCaveFoodTrailerTests(TestCase):
         self.assertIn("Sunday service", html)
 
     def test_the_placeholder_exists_and_is_under_the_byte_cap(self):
-        """It arrived as a 9.7 MB animated GIF. Served as one it would be
-        sixty-four times what this project holds arena art to, and the grain
-        and scan lines are exactly what a compressor cannot help with."""
+        """The card is the OWNER'S ANIMATION and the cap is his ruling.
+
+        It arrived as a 9.7 MB animated GIF and shipped in v2.5.1391 as a
+        single still frame at 86 KB, because 9.7 MB is sixty-four times what
+        this project holds arena art to. Reducing it was not the fault - not
+        asking him was. He handed over an animation and asked for it
+        installed, and when he found it frozen: "а я разве давал тебе право
+        голоса?"
+
+        So the same 28 frames at his own 960x540 are served as an animated
+        WebP at 1.3 MB, and the ceiling here matches the one registered by
+        name in test_static_image_weight.py. It is still a ceiling: it stops
+        the 9.7 MB original being dropped in, and it stops the file drifting
+        upward unnoticed."""
         self.assertTrue(self.PLACEHOLDER.exists())
         size = self.PLACEHOLDER.stat().st_size
         self.assertLess(
-            size, 150_000,
-            f"the placeholder is {size} B, over the default image cap",
+            size, 1_500_000,
+            f"the placeholder is {size} B, past the ceiling the Owner set "
+            f"for his own animated card",
         )
+
+    def test_the_placeholder_actually_animates(self):
+        """The point of the whole thing. A single-frame WebP passes every
+        other test in this class - the format is right, the size is right,
+        the box is right - and shows him a frozen picture."""
+        from PIL import Image
+
+        with Image.open(self.PLACEHOLDER) as im:
+            self.assertTrue(
+                getattr(im, "is_animated", False),
+                "the off-air card is a still again",
+            )
+            self.assertEqual(im.n_frames, 28, "frames have been dropped")
 
     def test_the_placeholder_is_webp_at_the_owner_own_resolution(self):
         from PIL import Image
