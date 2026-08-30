@@ -1,5 +1,38 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1504",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "The floor width is solved, not walked to",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-29, on an effect he had already ordered removed: "
+            "the arena spreads to fit the screen over several seconds, it is "
+            "ugly, it lags the load, and with real traffic the machine goes "
+            "under. TRACED ON PRODUCTION AND IT IS ONE VARIABLE. "
+            "--arena-floor-target-width went 536, 597, 648, 691, 727, 748 "
+            "across six frames and the deck height followed it exactly: 873, "
+            "1306, 1356, 1387, 1422, 1452, 1456. --arena-deck-top-h stayed at "
+            "0 throughout and the header stayed at 146, so neither was moving "
+            "anything. The loop is octagon size to published column width to "
+            "floor row height to region height and back to octagon size, and "
+            "placeOctagon was walking it ONE STEP PER FRAME, each step forcing "
+            "a full layout of a 3024-node page - about a second and a half on "
+            "a machine throttled 6x. IT IS A LINEAR FIXED POINT AND IT HAS A "
+            "CLOSED FORM. The region height is affine in the column width, so "
+            "two probes give the line and the width that reproduces itself is "
+            "solved rather than approached: W = (k*a + 2cm) / (1 - k*b). The "
+            "width-bound branch is solved the same way and the smaller answer "
+            "governs, which is the same min() the scale already applies. "
+            "NOTHING ABOUT THE STYLESHEET IS ASSUMED - not the floor's aspect, "
+            "not the 78vh ceiling, not the gaps. Two measurements describe "
+            "whatever the CSS currently does, so changing the composition "
+            "changes the numbers and not this code. The answer is then "
+            "verified against a real placement and corrected once if a ceiling "
+            "began binding between the probes."
+        ),
+    },
+    {
         "version": "2.5.1501",
         "date": "2026-08-29",
         "commit": "pending",

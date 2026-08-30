@@ -3217,6 +3217,26 @@
     if (fitting) { return; }
     fitting = true;
     try {
+      // SOLVE, PLACE, VERIFY. The loop that used to stand here walked the
+      // fixed point one frame at a time and the page grew under the reader
+      // while it did. solveFloorWidth answers it directly from two probes;
+      // placeOctagon is then run against that answer, and run a SECOND time
+      // only if the answer did not hold - which happens when a ceiling starts
+      // binding between the two probe points and the line is not straight
+      // over the interval. Two probes plus one placement, and one more only
+      // when the page says so, against six placements every time.
+      var deckNode = document.querySelector('.arena-command-deck');
+      var solvedShare = parseFloat(
+        global.getComputedStyle(camera).getPropertyValue('--arena-octagon-width-share')
+      );
+      if (!(solvedShare > 0 && solvedShare <= 1.15)) {
+        solvedShare = OCTAGON_VISUAL_WIDTH_SHARE;
+      }
+      var solved = naturalBox ? solveFloorWidth(svg, camera, naturalBox, solvedShare) : null;
+      if (solved && deckNode) {
+        deckNode.style.setProperty('--arena-floor-target-width', Math.round(solved) + 'px');
+      }
+
       var previous = NaN;
       for (var pass = 0; pass < FIT_MAX_PASSES; pass++) {
         placeOctagon(svg, camera);
@@ -3377,6 +3397,86 @@
     camera.style.setProperty('--arena-camera-y', y.toFixed(2) + 'px');
   }
 
+  // ============================================================
+  // THE FLOOR WIDTH IS SOLVED, NOT WALKED TO.
+  //
+  // Owner, 2026-08-29, on the effect he had already ordered removed: the arena
+  // spreads to fit the screen over several seconds, it is ugly, it lags the
+  // load, and with real traffic the machine will go under.
+  //
+  // TRACED ON PRODUCTION, and it is one variable. --arena-floor-target-width
+  // went 536 -> 597 -> 648 -> 691 -> 727 -> 748 across six frames and the deck
+  // height followed it exactly, 873 -> 1306 -> 1356 -> 1387 -> 1422 -> 1452 ->
+  // 1456. --arena-deck-top-h stayed at 0 the whole time and the header stayed
+  // at 146: neither of them was moving anything. The loop is
+  //
+  //     octagon size -> published column width -> floor row height
+  //                  -> region height -> octagon size
+  //
+  // and placeOctagon was walking it one step per frame, each step costing a
+  // full layout of a 3024-node page - about a second and a half on a machine
+  // throttled 6x. Six steps, six layouts, and the page visibly growing under
+  // the reader the whole way.
+  //
+  // IT IS A LINEAR FIXED POINT AND IT HAS A CLOSED FORM. The region's height
+  // is an affine function of the column width - the floor row is the column
+  // width times a constant aspect, plus whatever chrome sits above and below
+  // it - so two probes give the line, and the width that reproduces itself
+  // can be solved rather than approached:
+  //
+  //     W = k * regionH(W) + 2cm ,  regionH(W) = a + b*W
+  //     W = (k*a + 2cm) / (1 - k*b)
+  //
+  // The same is done for the width-bound branch, because either constraint
+  // can bind depending on the shape of the region, and the smaller of the two
+  // answers is the one that governs - exactly the min() placeOctagon applies
+  // to the scale itself.
+  //
+  // NOTHING IS ASSUMED ABOUT THE STYLESHEET. The aspect of the floor, the
+  // 78vh ceiling, the gaps - none of it is modelled here. Two measurements
+  // describe whatever the CSS currently does, so a change to the composition
+  // changes the numbers and not this code. The prediction is then VERIFIED
+  // against a real placement, and a single correction pass runs if the line
+  // was not straight over the interval, which is what happens when a ceiling
+  // starts binding between the probes.
+  var SOLVE_CM = 37.78;   // 1cm at 96dpi, the margin the Owner asked for
+  function solveFloorWidth(svg, camera, natural, share) {
+    var deck = document.querySelector('.arena-command-deck');
+    var region = camera.parentElement;
+    if (!deck || !region) { return null; }
+
+    function probe(w) {
+      deck.style.setProperty('--arena-floor-target-width', Math.round(w) + 'px');
+      var box = region.getBoundingClientRect();
+      return { w: box.width, h: box.height };
+    }
+
+    // Two points far enough apart to describe the line and both inside the
+    // range the column can actually take. The current value is one of them
+    // when there is one, so a settled page spends its first probe learning
+    // nothing new and its second confirming it.
+    var current = parseFloat(deck.style.getPropertyValue('--arena-floor-target-width'));
+    var p1 = probe(current > 0 ? current : 480);
+    var p2 = probe((current > 0 ? current : 480) + 200);
+    var w1 = current > 0 ? current : 480;
+    var w2 = w1 + 200;
+
+    var bH = (p2.h - p1.h) / (w2 - w1);
+    var aH = p1.h - bH * w1;
+    var bW = (p2.w - p1.w) / (w2 - w1);
+    var aW = p1.w - bW * w1;
+
+    var kH = natural.width * REGION_MAX_Y / natural.height;
+    var answers = [];
+    var denomH = 1 - kH * bH;
+    if (Math.abs(denomH) > 1e-6) { answers.push((kH * aH + 2 * SOLVE_CM) / denomH); }
+    var denomW = 1 - share * bW;
+    if (Math.abs(denomW) > 1e-6) { answers.push((share * aW + 2 * SOLVE_CM) / denomW); }
+    answers = answers.filter(function (w) { return isFinite(w) && w > 0; });
+    if (!answers.length) { return null; }
+    return Math.min.apply(null, answers);
+  }
+
   function placeOctagon(svg, camera) {
     // ============================================================
     // THE OCTAGON'S LAYOUT OWNER - Owner's correction of 2026-08-09.
