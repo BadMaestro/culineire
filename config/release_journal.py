@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1501",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "The moat is one ring with nothing inside it",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, 2026-08-29, answering a question that had been open since "
+            "the handoff: the moat is a moat. Nobody sits there, there is "
+            "nothing in it but the lamps it may hold later, and he gave it "
+            "transparent borders himself so that it would separate the central "
+            "cell. It is decoration and nothing else. It was drawn as eight "
+            "cells like any rank ring, each carrying data-cell, data-occupancy "
+            "and data-state - eight seats nobody can ever sit in, walked by "
+            "anything that walks seats. Measured on production before the "
+            "change: 725 nodes in the scene, 339 of them carrying seat "
+            "attributes, and eight of those 339 were moat. THE PIXELS ARE "
+            "IDENTICAL BY CONSTRUCTION. The eight wedges already met with no "
+            "gap - angGap is zero for the moat, which is why its band reads "
+            "unbroken - so the same eight tpl.ringSegmentPath calls with the "
+            "same arguments are concatenated into one d string. One node "
+            "instead of eight, no seat attributes on any of it. The ring is "
+            "appended BEFORE the per-position loop rather than after, because "
+            "that loop appends the moat's lanterns and SVG paints in document "
+            "order: a ring added afterwards would cover the very lamps it "
+            "exists to hold."
+        ),
+    },
+    {
         "version": "2.5.1498",
         "date": "2026-08-29",
         "commit": "b5c0d2ba",

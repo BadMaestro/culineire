@@ -620,6 +620,47 @@
       // seating index at all rather than a made-up one.
       var ringAttr = entry.ring === null ? '' : String(entry.ring);
 
+      // THE MOAT IS ONE RING WITH NOTHING INSIDE IT. Owner, 2026-08-29:
+      // "ров это ров - там никто не сидит - там нет ничего кроме потенциальных
+      // лампочек в дальнейшем - по этому я и сделал его с прозрачными
+      // границами - чтоб отделить им центральную ячейку - это исключительно
+      // декорация".
+      //
+      // It used to be eight cells like any rank ring, each carrying data-cell,
+      // data-occupancy and data-state - a seat that nobody can ever sit in,
+      // eight of them, walked by anything that walks seats. The eight already
+      // met with no gap between them (angGap is 0 for the moat, just below),
+      // so their outlines were one unbroken band on screen and eight nodes in
+      // the tree.
+      //
+      // The same eight wedge paths are concatenated into ONE `d` here. The
+      // pixels are identical by construction - the same tpl.ringSegmentPath
+      // calls with the same arguments - and the ring carries no seat
+      // attributes at all, so nothing can mistake it for somewhere to stand.
+      //
+      // It is appended BEFORE the loop below on purpose: that loop appends the
+      // moat's lanterns, and an SVG paints in document order, so a ring added
+      // afterwards would cover the very lamps it exists to hold.
+      if (entry.kind === 'moat') {
+        var moatD = '';
+        for (var mp = 0; mp < count; mp++) {
+          moatD += tpl.ringSegmentPath(
+            cx, cy, innerR + gap, outerR - gap / 2,
+            offset + mp * sweep, offset + (mp + 1) * sweep
+          );
+        }
+        cells.appendChild(el('path', {
+          d: moatD,
+          'data-ring-visual': String(entry.visual),
+          'data-ring-key': entry.key,
+          'data-ring-kind': entry.kind,
+          // No data-cell, no data-occupancy, no data-state, no centroid: this
+          // is decoration and none of those mean anything on it.
+          'pointer-events': 'none',
+          class: 'arena-cell arena-cell--moat'
+        }));
+      }
+
       for (var pos = 0; pos < count; pos++) {
         // The moat has no dividers: its eight cells meet at the octagon's
         // vertices, so an angular gap there is not a seam between cells but a
@@ -659,7 +700,9 @@
             : 'arena-cell arena-cell--' + entry.kind
         };
         if (ringAttr !== '') { attrs['data-ring'] = ringAttr; }
-        cells.appendChild(el('path', attrs));
+        // The moat's own band was appended once, above. This loop still runs
+        // for it because the lanterns below are placed per position.
+        if (entry.kind !== 'moat') { cells.appendChild(el('path', attrs)); }
 
         // Owner 2026-07-31: the firefly that used to circle a lamp belongs on a
         // chef's own cell instead — the cell's outline traced again with one
