@@ -1,5 +1,25 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1507",
+        "date": "2026-08-29",
+        "commit": "pending",
+        "title": "The last step went too: the solver had nothing to solve from on the first pass",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "v2.5.1504 cut the width climb from six steps to one - 536 then "
+            "748, where it had been 536, 597, 648, 691, 727, 748 - and one "
+            "step is still one step. The cause was ordering: the cached "
+            "drawing size is filled in by placeOctagon, so on the VERY FIRST "
+            "fit it was still null, the solver was skipped, and placeOctagon "
+            "published its own un-solved 536px before the answer could land. "
+            "The size is resolved before the solve now, so the first width "
+            "written is the final one. Measured on production, not reasoned "
+            "about: the trace is the acceptance test for this defect and it "
+            "has been the acceptance test since the Owner first described the "
+            "page as sliding in from the sides."
+        ),
+    },
+    {
         "version": "2.5.1504",
         "date": "2026-08-29",
         "commit": "pending",

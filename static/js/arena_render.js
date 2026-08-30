@@ -3232,7 +3232,13 @@
       if (!(solvedShare > 0 && solvedShare <= 1.15)) {
         solvedShare = OCTAGON_VISUAL_WIDTH_SHARE;
       }
-      var solved = naturalBox ? solveFloorWidth(svg, camera, naturalBox, solvedShare) : null;
+      // The drawing's own size first: on the very first fit naturalBox is
+      // still null, and without this the solver had nothing to work from, so
+      // placeOctagon published its own un-solved 536px and the page took one
+      // visible step before the answer landed. Measured on production: the
+      // width went 536 then 748 instead of straight to 748.
+      var known = naturalSize(svg, camera);
+      var solved = known ? solveFloorWidth(svg, camera, known, solvedShare) : null;
       if (solved && deckNode) {
         deckNode.style.setProperty('--arena-floor-target-width', Math.round(solved) + 'px');
       }
