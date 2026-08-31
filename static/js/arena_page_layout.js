@@ -313,7 +313,14 @@
     if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
       document.fonts.ready.then(function () { remeasure(false); }).catch(function () {});
     }
-    global.setTimeout(function () { remeasure(true); }, LATE_PASS_MS);
+    // THE LATE PASS ASKS, IT NO LONGER ORDERS. Profiled 2026-08-31: this fired
+    // remeasure(true) unconditionally 1.2 seconds after load, and `force`
+    // means every subscriber re-fits even when not one measured number moved -
+    // a full octagon placement, on a timer, for nothing, on every single load.
+    // It exists for what the other three triggers cannot see (a lazy banner, a
+    // consent strip), and those all CHANGE a number, so asking without forcing
+    // still catches them.
+    global.setTimeout(function () { remeasure(false); }, LATE_PASS_MS);
   }
 
   global.ArenaPageLayout = {

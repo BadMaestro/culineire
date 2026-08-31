@@ -1,5 +1,39 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1510",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "Every load did two full fits because the first could not prove itself settled",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "First code of the load-stability card, and only the parts that "
+            "cannot change a pixel - the Owner reserved the grid and column "
+            "sizing for his own word. THE SECOND FIT WAS MINE AND IT RAN EVERY "
+            "TIME. The settle test compared the scale against the PREVIOUS "
+            "fitScene call, and on the first call there is no previous: "
+            "lastFitScale starts NaN, so `stable` was false on every load and "
+            "the branch below asked for another complete fit, with its own two "
+            "probes and two placements. Profiled: four placeOctagon runs and "
+            "four probe measurements where one of each is enough. The inner "
+            "loop already knew the answer - it breaks early exactly when two "
+            "consecutive placements agree inside FIT_SETTLED, which IS settled, "
+            "with no memory between calls and nothing to be wrong on a cold "
+            "start. THREE TRIGGERS HAD NO GUARD. The region observer has "
+            "checked `fitting` since v2.5.1441, but the ArenaPageLayout "
+            "subscriber never did - so the header's own ResizeObserver, the "
+            "window listener, document.fonts and the late pass could all reach "
+            "requestFit while a fit was in flight, and every one of them fires "
+            "during load. AND THE LATE PASS ASKED WITH force=true, which means "
+            "every subscriber re-fits even when not one measured number moved: "
+            "a full octagon placement, on a 1200ms timer, for nothing, on every "
+            "load. It exists for what the other triggers cannot see - a lazy "
+            "banner, a consent strip - and those all CHANGE a number, so asking "
+            "without forcing still catches them. Nothing here touches "
+            "grid-template-columns, the published width, the octagon's share or "
+            "its seat."
+        ),
+    },
+    {
         "version": "2.5.1507",
         "date": "2026-08-29",
         "commit": "pending",

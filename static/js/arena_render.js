@@ -3216,6 +3216,7 @@
     // this the convergence loop would be re-entered from inside itself.
     if (fitting) { return; }
     fitting = true;
+    var converged = false;
     try {
       // SOLVE, PLACE, VERIFY. The loop that used to stand here walked the
       // fixed point one frame at a time and the page grew under the reader
@@ -3250,7 +3251,7 @@
           camera.style.getPropertyValue('--arena-camera-scale')
         );
         if (!(current > 0)) { break; }
-        if (Math.abs(current - previous) < FIT_SETTLED) { break; }
+        if (Math.abs(current - previous) < FIT_SETTLED) { converged = true; break; }
         previous = current;
       }
     } finally {
@@ -3274,9 +3275,23 @@
     // 3024 nodes. What it can be is INVISIBLE. The deck is already hidden by
     // CSS while data-arena-state is boot; it stays there until two consecutive
     // fits agree, and only the settled scene is ever painted.
+    // SETTLED IS WHAT THE LOOP SAYS, NOT WHAT THE LAST CALL SAID.
+    //
+    // This compared the scale against the PREVIOUS fitScene call, and on the
+    // first call there is no previous - lastFitScale starts NaN, so `stable`
+    // was false every single time the page loaded, and the branch below asked
+    // for another full fit. A second complete fit on every load, guaranteed,
+    // with its own two probes and two placements. Profiled on production: four
+    // placeOctagon runs and four probe measurements where one of each is
+    // enough.
+    //
+    // The loop above already knows the answer. It breaks early exactly when
+    // two consecutive placements agree inside FIT_SETTLED, which IS settled -
+    // no memory between calls required, and nothing to be wrong on a cold
+    // start. Written 2026-08-31 after the Owner ordered the load fixed
+    // properly rather than hidden.
     var reachedScale = parseFloat(camera.style.getPropertyValue('--arena-camera-scale'));
-    var stable = (reachedScale > 0) && (lastFitScale > 0) &&
-                 Math.abs(reachedScale - lastFitScale) < FIT_SETTLED;
+    var stable = converged && reachedScale > 0;
     lastFitScale = reachedScale;
     if (!stable) {
       // ASK FOR THE NEXT ONE OURSELVES rather than trusting a trigger to
@@ -3850,6 +3865,10 @@
     // ladder got: an element appears when the number it depends on is known.
     measureHeader();
     arenaState('shell');
+    // Through the coalescer like every other trigger, not around it. A direct
+    // call here could not be merged with the header observer, the fonts
+    // callback or the late pass arriving in the same frame, so the page paid
+    // for two fits that a single one would have satisfied.
     // NOT arenaState('interactive') HERE, and that line standing here is what
     // made the first attempt at hiding the climb do nothing at all. It ran
     // unconditionally after the first fit, and 'interactive' is the highest
@@ -3895,7 +3914,13 @@
         // Deferred like the observer: the header settling, the fonts landing
         // and the late pass all arrive while the deck is still growing, and
         // each of them used to spend a full fit on a page mid-flight.
-        if (changed || force) { requestFit(svg); }
+        //
+        // AND GUARDED LIKE THE OBSERVER, 2026-08-31. The region observer has
+        // checked `fitting` since v2.5.1441; this path never did, so the
+        // header's own ResizeObserver, the window listener, document.fonts
+        // and the 1200ms late pass could all reach requestFit while a fit was
+        // still in flight - and every one of them fires during load.
+        if (!fitting && (changed || force)) { requestFit(svg); }
       });
       global.ArenaPageLayout.watch();
     }
