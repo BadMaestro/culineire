@@ -896,6 +896,73 @@
   </div>
   </div>
 
+  {% comment %}
+    THE TWO ACTIONS MOVED UP HERE, Owner 2026-08-31, in his own words: the
+    buttons go to the top so a guest sees them at once, the black one where he
+    marked 1 and the white one where he marked 2, both about 30% smaller.
+    Number 1 is the left of the floor caption and number 2 its right, so the
+    row is a space-between flank around THE KITCHEN FLOOR rather than a bar
+    under the octagon.
+
+    A GENUINE DOM MOVE, not a copy: the same three-branch action
+    (challenge_create / arena_take_seat / login) and the same Issue a
+    Challenge link, cut from the footer and pasted here. The branches, the
+    URLs, data-seat-url and the js-arena-join-crowd hook are untouched, so the
+    backend and arena_deck.js see exactly what they saw before.
+
+    THE ROW IS THE CAPTION'S BAND. The caption is out of flow - absolute,
+    lifted above the floor by its own height - which is what let it land on the
+    rank strip earlier today, and v2.5.1567 bought it air with a margin. This
+    row now stands in that same band as REAL CONTENT, so the space is reserved
+    by something that is actually there and the margin is no longer needed.
+  {% endcomment %}
+  <div class="arena-floor-head">
+    <div class="arena-lower-actions arena-lower-actions--head">
+      {% if user_enrolled %}
+        <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
+          <span class="arena-lower-actions__medallion" aria-hidden="true">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
+          </span>
+          <span class="arena-lower-actions__text">
+            <span class="arena-lower-actions__title">Enter Arena</span>
+            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          </span>
+        </a>
+      {% elif request.user.is_authenticated %}
+        <button type="button" class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}">
+          <span class="arena-lower-actions__medallion" aria-hidden="true">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
+          </span>
+          <span class="arena-lower-actions__text">
+            <span class="arena-lower-actions__title">Enter Arena</span>
+            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          </span>
+        </button>
+      {% else %}
+        <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
+          <span class="arena-lower-actions__medallion" aria-hidden="true">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
+          </span>
+          <span class="arena-lower-actions__text">
+            <span class="arena-lower-actions__title">Enter Arena</span>
+            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          </span>
+        </a>
+      {% endif %}
+      {% if request.user.is_authenticated %}
+        <a class="arena-lower-actions__secondary" href="{% url 'chef_battle:challenge_create' %}">
+          <span class="arena-lower-actions__title">Issue a Challenge</span>
+          <span class="arena-lower-actions__subtitle">Challenge an opponent when you're ready.</span>
+        </a>
+      {% else %}
+        <a class="arena-lower-actions__secondary" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
+          <span class="arena-lower-actions__title">Issue a Challenge</span>
+          <span class="arena-lower-actions__subtitle">Challenge an opponent when you're ready.</span>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
   <section class="arena-command-deck__floor" aria-label="Ranked arena floor">
     {% comment %}
       Owner mockup, 2026-08: a parchment frame with gold corner flourishes
@@ -1283,73 +1350,6 @@
         <span id="arena-top-supporter">{% if arena_data.top_supporter %}Top Supporter: {{ arena_data.top_supporter.name }} {{ arena_data.top_supporter.tokens }}T{% else %}Top Supporter: —{% endif %}</span>
         <span id="arena-ticker-watching">{{ arena_data.metrics.active_viewers|default:0 }} watching</span>
       </div>
-    </div>
-    {% comment %}
-      Owner mockup, 2026-08: a medallion and TWO actions, not the previous
-      "Browse rankings" + one contextual button. Backend is unchanged - this
-      is the same three-state action (challenge_create /
-      arena_take_seat / login) that always lived here, relabelled Enter Arena
-      and given a subtitle, sitting centre. Issue a Challenge is a second,
-      always-present link straight to challenge_create for anyone signed in
-      (or to login for anyone who is not) - a plain link to an existing URL,
-      no new view logic. Browse rankings is not deleted from the site, only
-      from this bar - ARENA COMMAND's Rankings tile already covers it.
-    {% endcomment %}
-    {% comment %}
-      Owner's target mockup, round 6: the crown medallion must read as
-      PART of Enter Arena, not a third sibling column - round 5's negative-
-      margin overlap still left it visually protruding. The medallion is
-      now the first child inside each of the three Enter Arena variants
-      below (a genuine DOM move, one copy per branch since each branch is a
-      different element/URL) instead of one shared sibling outside all
-      three; .arena-lower-actions__title/__subtitle are wrapped so the
-      button can lay out medallion + text as two flex children. Click
-      targets, hrefs, data-seat-url and the js-arena-join-crowd hook are
-      unchanged.
-    {% endcomment %}
-    <div class="arena-lower-actions">
-      {% if user_enrolled %}
-        <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
-          <span class="arena-lower-actions__medallion" aria-hidden="true">
-            <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
-          </span>
-          <span class="arena-lower-actions__text">
-            <span class="arena-lower-actions__title">Enter Arena</span>
-            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
-          </span>
-        </a>
-      {% elif request.user.is_authenticated %}
-        <button type="button" class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}">
-          <span class="arena-lower-actions__medallion" aria-hidden="true">
-            <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
-          </span>
-          <span class="arena-lower-actions__text">
-            <span class="arena-lower-actions__title">Enter Arena</span>
-            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
-          </span>
-        </button>
-      {% else %}
-        <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
-          <span class="arena-lower-actions__medallion" aria-hidden="true">
-            <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
-          </span>
-          <span class="arena-lower-actions__text">
-            <span class="arena-lower-actions__title">Enter Arena</span>
-            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
-          </span>
-        </a>
-      {% endif %}
-      {% if request.user.is_authenticated %}
-        <a class="arena-lower-actions__secondary" href="{% url 'chef_battle:challenge_create' %}">
-          <span class="arena-lower-actions__title">Issue a Challenge</span>
-          <span class="arena-lower-actions__subtitle">Challenge an opponent when you're ready.</span>
-        </a>
-      {% else %}
-        <a class="arena-lower-actions__secondary" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
-          <span class="arena-lower-actions__title">Issue a Challenge</span>
-          <span class="arena-lower-actions__subtitle">Challenge an opponent when you're ready.</span>
-        </a>
-      {% endif %}
     </div>
 
   </footer>

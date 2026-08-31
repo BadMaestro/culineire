@@ -7798,7 +7798,94 @@ button.arena-chat__poll-option { cursor: pointer; }
    phone the legend is nowhere near the floor - clearance measured in
    thousands of pixels - and the same margin would be a gap for nothing. */
 @media (min-width: 901px) {
-  .arena-command-deck__floor { margin-top: 3rem; }
+  .arena-command-deck__floor { margin-top: 0; }
+}
+
+/* ----------------------------------------------------------------------------
+ * THE FLOOR HEAD - the two actions, flanking THE KITCHEN FLOOR.
+ *
+ * Owner, 2026-08-31, pointing at his own screenshot: the buttons go up where a
+ * guest sees them at once, the black pill on the left (his number 1), the white
+ * one on the right (his number 2), both about 30% smaller.
+ *
+ * SPACE-BETWEEN, NOT A THREE-COLUMN GRID, and the reason is that the caption is
+ * not in this row at all. It is absolutely positioned against the floor, 57%
+ * wide and centred, and lifted above the floor by its own height. So the row
+ * only has to keep its two children off that centre strip: 57% centred leaves
+ * 21.5% at each edge, which is 310px at 1440 and 207px at 961 - both wider than
+ * a pill at 70%, measured below.
+ *
+ * AND IT REPLACES THE MARGIN. v2.5.1567 held the caption off the rank strip
+ * with margin-top: 3rem on the floor - air made of nothing, because the thing
+ * that needed the room contributes no height. This row stands in the same band
+ * as real content, so the band is now reserved by something that is there. The
+ * margin is set to 0 rather than deleted, so the guard that reads it still has
+ * its rule and the history stays legible.
+ *
+ * THE PHONE PUTS THEM ABOVE THE CAPTION, NOT BESIDE IT. At 390px the caption is
+ * still 57% - 222px - leaving 84px an edge, which fits no pill. So below 901px
+ * the row keeps a padding-bottom the size of the caption's band and the pills
+ * sit at the top of it, clear of the writing.
+ * ------------------------------------------------------------------------- */
+.arena-floor-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The caption's band on the phone: two lines, measured at 31.63px, plus the
+     1.2rem lift the caption takes there. */
+  padding-block-end: 3.2rem;
+}
+.arena-floor-head .arena-lower-actions--head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: clamp(0.5rem, 2vw, 1.5rem);
+}
+/* 30% OFF, and it is every dimension rather than a transform. `scale(0.7)`
+   would shrink the pill and leave the space it used to take, which is the
+   opposite of what a smaller button is for; these are the same numbers the
+   pills already carried, each multiplied by 0.7 and rounded to the nearest
+   sensible step. Padding 0.5/0.7 -> 0.35/0.5, min-height 2.9 -> 2rem, title
+   0.78 -> 0.55, subtitle 0.66 -> 0.46, medallion 1.9 -> 1.35 with a 0.66 icon
+   inside it. Nothing about the colours, the ground or the border moves - the
+   Owner's "обе пилюли одинаковые, разным остаётся только цвет" still holds,
+   because both are addressed by the same selectors here. */
+.arena-floor-head .arena-lower-actions__primary,
+.arena-floor-head .arena-lower-actions__secondary {
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+}
+.arena-floor-head .arena-lower-actions__title {
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+}
+.arena-floor-head .arena-lower-actions__subtitle {
+  font-size: 0.46rem;
+}
+.arena-floor-head .arena-lower-actions__medallion {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+.arena-floor-head .arena-lower-actions__medallion .arena-ico {
+  width: 0.66rem;
+  height: 0.66rem;
+}
+@media (min-width: 901px) {
+  /* Level with the writing, which is what he drew. The band here is the
+     three-line caption (53.06px measured) plus its desktop 0.5rem lift. */
+  .arena-floor-head {
+    min-height: 3.8rem;
+    padding-block-end: 0;
+  }
 }
 /* ============================================================
    THE TYPE SHRINKS WITH THE LAYOUT, which is the half that makes the rest

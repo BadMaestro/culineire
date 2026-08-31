@@ -1,6 +1,52 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1573",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The two actions move up beside the writing, where a guest sees them",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "HIS QUESTION FIRST, because the move came out of it: he asked what "
+            "Enter Arena is for when he is already on the arena. It had three "
+            "meanings and he was seeing the worst one - a guest it sends to the "
+            "sign-in, a signed-in reader with no seat it seats on a field, and a "
+            "chef already enrolled it sends to challenge_create, which is exactly "
+            "where Issue a Challenge beside it goes. For an enrolled chef the two "
+            "pills were the same button twice. His answer was not to delete one "
+            "but to move both: to the top, where a guest meets them at once, the "
+            "black pill left of the writing and the white one right of it, both "
+            "about 30 percent smaller. "
+            "A GENUINE DOM MOVE. The whole three-branch block is cut from the "
+            "footer and pasted above the floor - one copy, not two. The branches, "
+            "the URLs, data-seat-url and the js-arena-join-crowd hook are byte for "
+            "byte what they were, so arena.html's own script still finds "
+            ".arena-lower-actions__title to write Seated and Arena full into, and "
+            "no view changed. The comment in the footer that described the markup "
+            "went with the markup. "
+            "SPACE-BETWEEN RATHER THAN A THREE-COLUMN GRID, because the caption is "
+            "not in this row at all: it is absolute against the floor, 57 percent "
+            "wide and centred. That leaves 21.5 percent at each edge - 310px at "
+            "1440, 207px at 961 - and a pill at 70 percent fits both. "
+            "AND IT PAYS FOR THE FIX THREE RELEASES BACK. v2.5.1567 held the "
+            "caption off the rank strip with margin-top: 3rem on the floor, which "
+            "is air made of nothing, because the thing needing the room contributes "
+            "no height. This row stands in the same band as real content, so the "
+            "band is reserved by something that is actually there. The margin is "
+            "set to 0 rather than deleted, so the rule the guard reads still "
+            "exists and the history stays legible. "
+            "THE PHONE PUTS THEM ABOVE THE WRITING, NOT BESIDE IT. At 390px the "
+            "caption is still 57 percent - 222px - leaving 84px an edge, which "
+            "fits no pill, so below 901px the row carries a padding the size of "
+            "the caption band and the pills sit clear at the top of it. "
+            "30 percent is taken off every dimension rather than applied as a "
+            "transform: a scale would shrink the pill and leave the space it used "
+            "to take, which is the opposite of what a smaller button is for."
+        ),
+    },
+    {
         "version": "2.5.1570",
+        "date": "2026-08-31",
+        "commit": "pending",
         "title": "The three dock cards reflow instead of breaking, so they stay in a row",
         "section": "Chef Battles / Arena",
         "summary": (
