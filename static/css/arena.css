@@ -1607,23 +1607,9 @@
        the gaps), so 1440 does not move; below it the composition shrinks
        instead of snapping, and the two rails are equal, which the old
        260/400 pair was not - it stood the octagon 70px left of centre. */
-    /* AND THE RATIO IS A CEILING, NOT A WIDTH, 2026-08-31. The ratio alone
-       hands the centre column every pixel the two rails do not need, and on a
-       real screen the octagon is bound by HEIGHT - the floor's own max-height
-       is 78vh - so the column stays wide while the shape stops growing, and
-       the difference shows as air at the sides. Measured on the deployed page
-       in a 1920x900 window: a 969px frame around an 863px shape, 53px each
-       side, while top and bottom were 5 and 9.
-
-       --arena-floor-target-width is the octagon's own rendered shape plus half
-       a centimetre each way, published by placeOctagon() after it has actually
-       placed the shape. The fallback is the ratio, so the first paint - before
-       any script has run - is exactly what it was. This is the mechanism the
-       2026-08-26 note above describes; the ratio replaced it and the air came
-       back with it. */
     grid-template-columns:
       minmax(0, 1fr)
-      minmax(0, var(--arena-floor-target-width, 2.214fr))
+      minmax(0, 2.214fr)
       minmax(0, 1fr);
     align-items: start;
     gap: clamp(0.5rem, 1.1vw, 1.1rem);
@@ -7906,6 +7892,17 @@ button.arena-chat__poll-option { cursor: pointer; }
   .arena-command-deck__floor {
     aspect-ratio: auto;
     height: min(78vh, 820px);
+    /* THE CAP GOES ON THE FLOOR, NOT ON THE TRACK. Put on the grid column it
+       overrides the 2.214 ratio outright, and the octagon then had the same
+       size at 1920, 1440 and 1100 - measured, 863px of shape at all three -
+       because only the screen's HEIGHT was left deciding anything and the
+       rails were squeezed to whatever remained. As a max-width on the floor
+       the ratio still sets the ceiling, and this only takes back the width the
+       octagon cannot use once its height has bound it. Centred, so the pixels
+       it gives up are split evenly between the two rails - which is where the
+       Owner asked them to go on 2026-08-26. */
+    max-width: var(--arena-floor-target-width, none);
+    margin-inline: auto;
   }
   /* HALF A CENTIMETRE ON EVERY SIDE, Owner 2026-08-31: too much air is left
      to the edges, stretch the octagon so no side keeps more than 0.5cm. The
