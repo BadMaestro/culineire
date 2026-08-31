@@ -2005,7 +2005,13 @@
      `@media (max-width: 767px)` after an earlier gather - 641 AND max-767 AND
      min-901 at once, which matches nothing. It shipped twice and changed
      nothing, and the second time I blamed the cascade for it. */
-  .arena-command-deck__floor {
+  /* (0,3,0), AND THE NUMBER IS THE POINT. `.page--arena
+     .arena-command-deck__floor { max-width: 100% }` is (0,2,0) and lives
+     further down this file, so a plain class here was outranked and a two-class
+     rule would still lose on position. This is the third time today one of
+     these numbers was written where it could not win; the computed value said
+     100% every time, which is the thing to read rather than the file. */
+  .page--arena .arena-command-deck > .arena-command-deck__floor {
     max-width: calc(min(78vh, 820px) * 1.2422);
     margin-inline: auto;
   }
