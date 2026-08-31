@@ -1,5 +1,26 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1513",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "Eight small chips cost seven full-page layouts",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "paintRankLadder read getComputedStyle and wrote style.background "
+            "on the SAME iteration, so every read after the first was preceded "
+            "by a write and forced the browser to lay out a 2826-node page "
+            "again: seven forced layouts to paint eight rank chips. The two "
+            "halves are independent - the colour of a rank cell does not depend "
+            "on anything the ladder does - so the eight colours are read first "
+            "and written second, one layout for the whole set. Measured before "
+            "this on the Owner's own authenticated page after v2.5.1510: CLS 0, "
+            "four long tasks totalling 1422ms, and the deck, the published "
+            "width and the octagon scale unchanged at 1518px, 748px and 1.0068. "
+            "No visual change of any kind - same colours, same chips, same "
+            "order."
+        ),
+    },
+    {
         "version": "2.5.1510",
         "date": "2026-08-31",
         "commit": "pending",

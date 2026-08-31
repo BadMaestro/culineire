@@ -3655,15 +3655,27 @@
     deck.style.setProperty('--arena-floor-target-width', next);
   }
 
+  // READ ALL EIGHT, THEN WRITE ALL EIGHT. Profiled 2026-08-31 on production:
+  // this was one loop that read getComputedStyle and wrote style.background on
+  // the same iteration, so every read after the first was preceded by a write
+  // and forced the browser to lay the page out again - seven forced layouts of
+  // a 2826-node page to paint eight small chips.
+  //
+  // The two halves are independent: the colour of a rank cell does not depend
+  // on anything the ladder does. Reading them all first costs one layout for
+  // the whole set.
   function paintRankLadder(svg) {
     var steps = document.querySelectorAll('.arena-rank-spine__step[data-ring]');
-    for (var i = 0; i < steps.length; i++) {
-      var ring = steps[i].getAttribute('data-ring');
-      var cell = svg.querySelector(
-        '.arena-cell[data-ring-kind="rank"][data-ring="' + ring + '"]'
+    var fills = [];
+    for (var r = 0; r < steps.length; r++) {
+      var rcell = svg.querySelector(
+        '.arena-cell[data-ring-kind="rank"][data-ring="' +
+        steps[r].getAttribute('data-ring') + '"]'
       );
-      if (!cell) { continue; }
-      var fill = global.getComputedStyle(cell).fill;
+      fills[r] = rcell ? global.getComputedStyle(rcell).fill : null;
+    }
+    for (var i = 0; i < steps.length; i++) {
+      var fill = fills[i];
       if (!fill || fill === 'none') { continue; }
       steps[i].style.background = fill;
       // Ink or light, decided by the colour itself. The ramp runs from #52422e
