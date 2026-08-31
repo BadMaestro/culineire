@@ -7877,31 +7877,22 @@ button.arena-chat__poll-option { cursor: pointer; }
    thousands of pixels - and the same margin would be a gap for nothing. */
 @media (min-width: 901px) {
   .arena-command-deck__floor { margin-top: 0; }
-  /* HEIGHT FROM THE SCREEN, WIDTH FROM THE OCTAGON - and the pair has to be
-     that way round or the two feed each other. With aspect-ratio the floor's
-     HEIGHT came from its WIDTH, and since v2.5.1606 its width comes from the
-     octagon, which is sized by the height: a loop, and it settles small. Twice
-     measured at 1920, 660 then 681px of shape where 926 fits.
+  /* THE HEIGHT CEILING HAS TO CAP THE WIDTH TOO, and in CSS rather than
+     through the renderer. The floor is `aspect-ratio: 1/0.805` with a
+     `max-height: min(78vh, 820px)`: when that ceiling binds - which it does on
+     any ordinary laptop - the height stops and the WIDTH does not, so the box
+     stops being the octagon's shape and the difference shows as air at the
+     sides. Measured in a 1920x900 window: a 969px frame around an 863px shape,
+     53px each side, while top and bottom were 5 and 9.
 
-     So the floor takes the height it always had here - min(78vh, 820px), the
-     same numbers as the max-height beside it - as an actual height, and the
-     column is the octagon's own width plus half a centimetre each way. Nothing
-     circular is left: the screen decides the height, the height decides the
-     octagon, the octagon decides the column. Below 901px the aspect still
-     rules, because there the floor is not competing with two rails. */
+     Two attempts went through JavaScript and both looped: the column was
+     published from the octagon, the octagon was sized by the region, and the
+     pair settled at 660 then 681px of shape where 926 fits. This needs no
+     measurement at all - the ceiling is a known length, so the width it allows
+     is that length over the same aspect, and the two ceilings simply agree.
+     Centred, so what the floor gives up is split evenly between the rails. */
   .arena-command-deck__floor {
-    aspect-ratio: auto;
-    height: min(78vh, 820px);
-    /* THE CAP GOES ON THE FLOOR, NOT ON THE TRACK. Put on the grid column it
-       overrides the 2.214 ratio outright, and the octagon then had the same
-       size at 1920, 1440 and 1100 - measured, 863px of shape at all three -
-       because only the screen's HEIGHT was left deciding anything and the
-       rails were squeezed to whatever remained. As a max-width on the floor
-       the ratio still sets the ceiling, and this only takes back the width the
-       octagon cannot use once its height has bound it. Centred, so the pixels
-       it gives up are split evenly between the two rails - which is where the
-       Owner asked them to go on 2026-08-26. */
-    max-width: var(--arena-floor-target-width, none);
+    max-width: calc(min(78vh, 820px) / 0.805);
     margin-inline: auto;
   }
   /* HALF A CENTIMETRE ON EVERY SIDE, Owner 2026-08-31: too much air is left
