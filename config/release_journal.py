@@ -1,5 +1,56 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1519",
+        "date": "2026-08-30",
+        "commit": "pending",
+        "title": "A shop sticker cannot come back as an ordinary chat upload",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner found the hole himself and it was a real one: why buy "
+            "stickers, if the picture can be copied out of the chat or the "
+            "artifact gallery and pasted straight back in as a message. "
+            "THE PAYWALL WAS WATCHING THE WRONG DOOR. unowned_sticker_tokens() "
+            "guards the TOKEN - `:yes_chef:` typed by somebody who has not "
+            "bought it is refused - and knows nothing about a picture. The 13 "
+            "sticker files are ordinary static assets; curl fetches one with "
+            "no login, 40KB. Upload it back as a chat image and the paid "
+            "product arrived free by a route nothing watched. "
+            "The download cannot be stopped - the picture has to reach every "
+            "reader or the chat does not work - but the return trip is ours, "
+            "and it now compares every uploaded picture against the shop's own "
+            "artwork. A difference hash, not a checksum: a checksum matches "
+            "the file and the file is never what comes back, because a "
+            "re-upload has been re-encoded and usually resized. "
+            "MEASURED AGAINST THE REAL ARTWORK, both ways. All 13 stickers "
+            "are caught after being halved in size and re-encoded to PNG. A "
+            "screenshot is caught too, with 0, 4, 15 or 30 percent of page "
+            "around it - which needed two things: hashing each sticker "
+            "FLATTENED onto white, cream and the dark chat panel, because a "
+            "screenshot has no transparency, and trimming a uniform border "
+            "off the upload, because a difference hash reads the whole frame "
+            "and padding shifts every gradient in it. And 200 unrelated "
+            "images from this project were run through it: zero refused. The "
+            "two most similar stickers are 15 bits apart while the check "
+            "calls anything within 8 the same picture, so it cannot mistake "
+            "one sticker for another - a test asserts that margin rather than "
+            "trusting the number. "
+            "Refused for OWNERS too, deliberately: an owner has the sticker in "
+            "the picker one click away and correctly accounted for, so "
+            "uploading the same picture as a file is the accounting going "
+            "missing. The refusal says where the button is. "
+            "No new dependency - twelve lines of Pillow rather than imagehash "
+            "and NumPy on a one-core box - and it runs on the bytes we "
+            "produced, after normalise_uploaded_chat_media has already decoded "
+            "and re-encoded them, so a hostile file has stopped being one "
+            "before this looks at it. "
+            "WHAT IT DOES NOT DO, stated plainly because the Owner asked for "
+            "screenshot blocking and it does not exist in a browser: a heavy "
+            "crop, a mirror, a strong recolour or a photograph of the screen "
+            "will pass. Each of those leaves a copy visibly worse than the "
+            "ten-token original."
+        ),
+    },
+    {
         "version": "2.5.1516",
         "date": "2026-08-31",
         "commit": "pending",

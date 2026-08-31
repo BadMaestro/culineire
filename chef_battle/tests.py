@@ -28612,3 +28612,154 @@ class ACellGlowsOnlyWhileAChefStandsInItTests(TestCase):
                 f'.arena-cell-spark[data-lit="true"][data-ring="{ring}"]',
                 css.replace("\n", " "),
             )
+
+
+class AShopStickerCannotComeBackAsAnUploadTests(TestCase):
+    """Owner, 2026-08-30: "зачем мне их покупать, если я тупо могу скопировать
+    стикер из чата или даже из галереи в артефактах и тупо вставить в чат как
+    сообщение или как гиф?"
+
+    He was right, and the paywall had been watching the wrong door. The send
+    path checks the TOKEN - `:yes_chef:` typed by somebody who has not bought
+    it is refused - and knows nothing about a picture. The 13 sticker files are
+    ordinary static assets: `curl` fetches one with no login. Download it, or
+    copy it out of somebody else's message, upload it as an ordinary chat
+    image, and the paid product arrives for free.
+
+    The upload path is the one door that can be closed, and it belongs to us.
+
+    WHAT THESE TESTS ACTUALLY DEFEND is the threshold. A perceptual check has
+    two ways to be useless and they pull in opposite directions: too tight and
+    a re-encoded copy walks through, too loose and it refuses somebody's
+    holiday photograph. Both are measured here against the real artwork rather
+    than asserted."""
+
+    def _image(self, name="yes_chef.webp"):
+        from PIL import Image
+
+        path = (Path(settings.BASE_DIR) / "static" / "images" / "chef_battle"
+                / "arena" / "stickers" / name)
+        image = Image.open(path)
+        image.load()
+        return image
+
+    def _stickers(self):
+        folder = (Path(settings.BASE_DIR) / "static" / "images" / "chef_battle"
+                  / "arena" / "stickers")
+        return sorted(p for p in folder.glob("*.webp"))
+
+    def test_the_shop_artwork_is_all_hashed(self):
+        from chef_battle.sticker_likeness import sticker_hashes
+
+        self.assertTrue(sticker_hashes(), "no sticker was hashed at all")
+
+    def test_a_re_encoded_and_rescaled_copy_is_caught(self):
+        """The realistic re-upload: the browser or an image editor has already
+        re-encoded it, and it usually arrives at another size."""
+        import io as _io
+
+        from PIL import Image
+
+        from chef_battle.sticker_likeness import looks_like_a_sticker
+
+        missed = []
+        for path in self._stickers():
+            with Image.open(path) as art:
+                art.load()
+                buffer = _io.BytesIO()
+                art.convert("RGBA").resize(
+                    (art.width // 2, art.height // 2)).save(buffer, "PNG")
+            buffer.seek(0)
+            with Image.open(buffer) as copy:
+                copy.load()
+                if not looks_like_a_sticker(copy):
+                    missed.append(path.name)
+        self.assertEqual(missed, [], "these re-encoded copies walked through")
+
+    def test_a_screenshot_against_the_page_is_caught_with_or_without_margin(self):
+        """A screenshot has no transparency - the sticker has been flattened
+        onto whatever was behind it - and it usually carries a margin of page
+        around it. Both are why the stickers are hashed flattened, and why the
+        upload is hashed again with a uniform border trimmed off."""
+        from PIL import Image
+
+        from chef_battle.sticker_likeness import looks_like_a_sticker
+
+        art = self._image().convert("RGBA")
+        for margin in (0.0, 0.04, 0.15, 0.30):
+            pad = int(art.width * margin)
+            shot = Image.new(
+                "RGB", (art.width + pad * 2, art.height + pad * 2), (250, 246, 240))
+            shot.paste(art, (pad, pad), art)
+            self.assertTrue(
+                looks_like_a_sticker(shot),
+                f"a screenshot with {int(margin * 100)}% of page around it "
+                f"was not recognised",
+            )
+
+    def test_it_does_not_refuse_the_rest_of_the_site(self):
+        """THE EXPENSIVE FAILURE. Refusing an honest picture costs a real
+        person their message and is invisible to us. Every other image this
+        project ships stands in for one."""
+        from PIL import Image
+
+        from chef_battle.sticker_likeness import looks_like_a_sticker
+
+        root = Path(settings.BASE_DIR) / "static" / "images"
+        others = [
+            p for p in list(root.rglob("*.webp")) + list(root.rglob("*.png"))
+            if "stickers" not in p.as_posix()
+        ][:120]
+        self.assertTrue(others, "no other artwork to test against")
+
+        wrong = []
+        for path in others:
+            try:
+                with Image.open(path) as picture:
+                    picture.load()
+                    hit = looks_like_a_sticker(picture)
+            except Exception:
+                continue
+            if hit:
+                wrong.append(f"{path.name} -> {hit}")
+        self.assertEqual(wrong, [], "these were refused and should not have been")
+
+    def test_the_stickers_are_further_apart_than_the_threshold(self):
+        """The check must never mistake one sticker for another, and the margin
+        that guarantees it is measurable: the two most similar stickers must be
+        further apart than the distance at which two pictures are called the
+        same."""
+        import itertools
+
+        from PIL import Image
+
+        from chef_battle.sticker_likeness import (
+            MATCH_WITHIN, distance, hashes_for,
+        )
+
+        values = {}
+        for path in self._stickers():
+            with Image.open(path) as art:
+                art.load()
+                values[path.name] = hashes_for(art)[0]
+
+        closest = min(
+            distance(a, b)
+            for (_na, a), (_nb, b) in itertools.combinations(values.items(), 2)
+        )
+        self.assertGreater(
+            closest, MATCH_WITHIN,
+            f"two different stickers are only {closest} bits apart while the "
+            f"check calls anything within {MATCH_WITHIN} the same picture",
+        )
+
+    def test_the_send_view_refuses_it_and_says_where_the_button_is(self):
+        source = (Path(settings.BASE_DIR) / "chef_battle"
+                  / "views.py").read_text(encoding="utf-8")
+        block = source.split("def arena_chat_send(", 1)[1]
+        self.assertIn("looks_like_a_sticker", block)
+        self.assertIn("sticker_upload", block)
+        self.assertIn(
+            "sticker button", block,
+            "the refusal does not tell the reader how to send it properly",
+        )

@@ -5216,6 +5216,48 @@ def arena_chat_send(request):
                 status=400,
             )
 
+        # A SHOP STICKER MAY NOT COME BACK AS AN ORDINARY PICTURE.
+        #
+        # Owner, 2026-08-30: why buy them, if the picture can be copied out
+        # of the chat or out of the artifact gallery and pasted back in as a
+        # message. He is right, and the paywall was watching the wrong door:
+        # unowned_sticker_tokens() guards the TOKEN `:yes_chef:` and knows
+        # nothing about a picture, while the 13 files are ordinary static
+        # assets that curl fetches without a login.
+        #
+        # This is the door it comes back through, and it is ours. Checked on
+        # the STORED bytes rather than on what was uploaded: those have been
+        # decoded and re-encoded already, so the comparison runs on a picture
+        # this project produced, and a hostile file has stopped being one.
+        #
+        # REFUSED FOR OWNERS TOO, deliberately. An owner already has the
+        # sticker in the picker, one click away and correctly accounted for;
+        # uploading the same picture as a file is the accounting going
+        # missing. The refusal says where the button is.
+        if media is not None:
+            from PIL import Image as _Image
+
+            from .sticker_likeness import looks_like_a_sticker
+
+            try:
+                media.seek(0)
+                with _Image.open(media) as _picture:
+                    _picture.load()
+                    matched = looks_like_a_sticker(_picture)
+            except Exception:
+                matched = None      # never let the check break the chat
+            finally:
+                media.seek(0)
+            if matched:
+                logger.info(
+                    "arena chat: sticker upload refused, matched %s", matched,
+                )
+                return JsonResponse(
+                    {"ok": False, "error": "sticker_upload",
+                     "detail": "That picture is one of the Arena stickers. Send it from the sticker button - buy it in the shop if you do not have it yet."},
+                    status=400,
+                )
+
     # SENDING A GIF AGAIN WITHOUT UPLOADING IT AGAIN. P2 item 11.
     #
     # The Owner chose GIFs-as-uploads over an external provider, so there is no
