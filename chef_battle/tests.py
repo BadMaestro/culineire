@@ -9003,7 +9003,7 @@ class ArenaPhasePanelTests(TestCase):
         # several, and which one comes first is a fact about where rules sit in
         # the file - it changed the moment components started being gathered
         # into their own sections (v2.5.1415), while the requirement did not.
-        for block in _media_blocks(css, "@media (min-width: 901px)"):
+        for block in _media_blocks(css, "@media (min-width: 641px)"):
             for rule in re.finditer(r"([^{}]+)\{([^{}]*)\}", block):
                 if "phase-deadline" not in rule.group(1):
                     continue
@@ -9298,7 +9298,7 @@ class ArenaRankColumnTests(TestCase):
         # Desktop, because that is what the test is about: the stack runs top
         # to bottom at 901px and up. Below that the ranks wrap into a row.
         desktop = _unconditional_rules(
-            css, ".arena-rank-spine__list", "@media (min-width: 901px)")
+            css, ".arena-rank-spine__list", "@media (min-width: 641px)")
         self.assertTrue(desktop, "the rank list has no desktop rule")
         self.assertIn("flex-direction: column", " ".join(desktop))
         self.assertNotIn(
@@ -24954,7 +24954,7 @@ class ArenaChatIsAFixedHeightPanelTests(TestCase):
     TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
     SCRIPT = Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
 
-    DESKTOP = "@media (min-width: 901px)"
+    DESKTOP = "@media (min-width: 641px)"
     TABLET = "@media (min-width: 641px) and (max-width: 900px)"
 
     @classmethod
@@ -25418,7 +25418,7 @@ class ArenaChatComposerIsNailedToTheFootTests(TestCase):
         the panel has a bounded height of its own, so the log can have the
         room and there is no slack left to sit under the composer."""
         self.assertIn("max-height: none",
-                      self._rule("@media (min-width: 901px)", ".arena-chat__log"))
+                      self._rule("@media (min-width: 641px)", ".arena-chat__log"))
 
     def test_the_phone_keeps_its_ceiling(self):
         """Below 901px the chat is a normal-flow card and the ceiling is the
@@ -25473,7 +25473,7 @@ class ArenaRingsSitAboveTheArenaTests(TestCase):
 
     CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
     LAYOUT = Path(settings.BASE_DIR) / "static" / "js" / "arena_page_layout.js"
-    DESKTOP = "@media (min-width: 901px)"
+    DESKTOP = "@media (min-width: 641px)"
 
     def _areas(self):
         """The LAST grid-template-areas that applies on a desktop - two rules

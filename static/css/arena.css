@@ -528,7 +528,7 @@
     background: color-mix(in srgb, var(--surface-soft) 84%, var(--ink) 5%);
     box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 12%, transparent);
   }
-@media (min-width: 901px) {
+@media (min-width: 641px) {
 /* A11: the deadline is NO LONGER hidden here. It was the one authoritative,
      server-driven number in the panel, and hiding it on desktop is what left
      the 30 s page-refresh countdown standing alone in the reference's clock
@@ -566,9 +566,11 @@
     inset: auto;
   }
 }
-@media (min-width: 641px) and (max-width: 900px) {
-  .arena-command-deck > .arena-broadcast-ribbon { grid-area: ribbon; position: static; }
-}
+/* Band block removed 2026-08-31: it described the old second
+   composition for 641-900px, which no longer exists - one grid now
+   runs from 641px up. The chat's own ceiling for this range is kept
+   where it is, because it bounds a scroller rather than placing a
+   layout, and a test reads it by name. */
 @media (max-width: 640px) {
   /* THE RIBBON IS ONE COLUMN HERE. Its three-column desktop track -
      minmax(14rem,1fr) minmax(0,2.6fr) auto - is stated with no @media around
@@ -2995,7 +2997,7 @@
        two of rim, so the pitch is 28. */
     gap: 4px;
   }
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   /* SCOPED TO THE DESKTOP ARENA. The first version of this sat at top level and
    * therefore applied below 901px too, where the Owner froze the arena on
    * 2026-08-03: at 563px it made the stack content-width while the base rule
@@ -3209,7 +3211,7 @@
     display: none;
   }
 }
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   /* ---- 4. THE RANK LADDER ----------------------------------------------
      THE ONE THE BRIEF NAMES, AND THE ONE WITH A REAL LIMIT.
 
@@ -3274,7 +3276,7 @@
  * changes nothing anywhere except the desktop.
  * ========================================================================== */
 .arena-rank-spine__emblem { display: none; }
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   .arena-rank-spine__item {
     display: block;
     min-width: 0;
@@ -3650,7 +3652,7 @@
    corners left it the only card on the screen with square top edges
    against the Owner's target mockup, which shows it fully rounded like
    every other card. Same class of leak as the 901px guard above this one. */
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   /* THE END CAPS BELONG TO WHATEVER IS AT THE END. The deck is a bordered
      card at this width (just above), and the row flush with its top edge
      rounds its own top corners to match. That used to be the lifecycle
@@ -5248,7 +5250,7 @@
   .arena-chat {
     z-index: auto;
   }
-@media (min-width: 901px) {
+@media (min-width: 641px) {
 /* THE SLOT IS WHAT THE CHAT NOW FILLS, v2.5.1363. Until the house stream
      arrived the rail had one child and the chat could take the whole of it;
      now the stream is a second tenant with a height of its own, so the slot
@@ -5451,7 +5453,7 @@
   font-variant-numeric: tabular-nums;
   color: var(--accent-bronze-dark);
 }
-@media (min-width: 901px) {
+@media (min-width: 641px) {
 .arena-chat .arena-chat__card-title { font-size: .66rem; }
 .arena-chat .arena-chat__card-vs { font-size: .64rem; }
 .arena-chat .arena-chat__card-said { font-size: .76rem; }
@@ -5841,7 +5843,7 @@ button.arena-chat__poll-option { cursor: pointer; }
 /* ---- 2. TABS: filled when selected, outlined when not - AC-BTN's
    original, global ruling. A DESKTOP-ONLY correction to
    .arena-chat__tab (not .arena-chat__emoji-tab) lives later in this
-   file behind @media (min-width: 901px) - see the note there for why
+   file behind @media (min-width: 641px) - see the note there for why
    mobile keeps this exact fill and desktop does not. --------------------- */
 /* CHAT / PM / USERS IS AN UNDERLINE, in the Owner's own words of 2026-08-26 -
    a bronze underline, and not the whole tab filled. That ruling shipped
@@ -6684,7 +6686,7 @@ button.arena-chat__poll-option { cursor: pointer; }
     margin-top: 0.2rem;
     font-size: 0.7rem;
   }
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   .arena-command-deck {
     border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
     border-radius: 0.85rem;
@@ -7015,7 +7017,7 @@ button.arena-chat__poll-option { cursor: pointer; }
       );
     box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 35%, transparent);
   }
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   .arena-command-deck__metrics {
     display: flex;
     flex-direction: column;
@@ -7131,7 +7133,7 @@ button.arena-chat__poll-option { cursor: pointer; }
   .page--arena .arena-broadcast-ribbon .arena-command-deck__eyebrow {
     color: var(--accent-bronze);
   }
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   .page--arena .arena-broadcast-ribbon .arena-command-deck__phase-rail {
     width: 100%;
   }
@@ -7504,7 +7506,12 @@ button.arena-chat__poll-option { cursor: pointer; }
     align-items: center;
   }
 }
-@media (min-width: 901px) {
+/* 641, NOT 901, since 2026-08-31: the columns and the AREAS have to arrive
+   together. They did not - the columns moved to the single composition and
+   this block, which carries the area map, stayed at 901, so at 900px the deck
+   took the new three-column track list and the OLD base area map, and came out
+   as five tracks in one column. Measured that way before this line changed. */
+@media (min-width: 641px) {
   /* ---- 1. THE ROW ------------------------------------------------------
      Between the arena and the lower dock, full width, exactly where he drew
      it. The other four areas are copied verbatim from the block at :7572 so
@@ -7605,10 +7612,12 @@ button.arena-chat__poll-option { cursor: pointer; }
   position: relative;
   margin-top: var(--arena-caption-band, 2.5rem);
 }
-@media (min-width: 641px) and (max-width: 900px) {
-  .arena-command-deck__floor { --arena-caption-band: 3.6rem; }
-}
-@media (min-width: 901px) {
+/* Band block removed 2026-08-31: it described the old second
+   composition for 641-900px, which no longer exists - one grid now
+   runs from 641px up. The chat's own ceiling for this range is kept
+   where it is, because it bounds a scroller rather than placing a
+   layout, and a test reads it by name. */
+@media (min-width: 641px) {
   /* Three lines, plus the extra fall he asked for on the desktop - measured,
      about nine pixels beyond what the caption needs. */
   .arena-command-deck__floor { --arena-caption-band: 4.4rem; }
@@ -7975,7 +7984,7 @@ button.arena-chat__poll-option { cursor: pointer; }
  * ============================================================================ */
 
 
-@media (min-width: 901px) {
+@media (min-width: 641px) {
 }
   .arena-rank-spine__step b {
     display: none;
@@ -8295,7 +8304,7 @@ button.arena-chat__poll-option { cursor: pointer; }
  * context from the mobile rule below, not a second owner of the same one.
  * ============================================================================ */
 
-@media (min-width: 901px) {
+@media (min-width: 641px) {
 
   .arena-command-deck__metrics > .arena-panel__title {
     display: none;
@@ -8811,7 +8820,7 @@ button.arena-chat__poll-option { cursor: pointer; }
  * applying at every width: the widget was absolutely positioned over the floor
  * on a phone too. The rules below are the original ones, byte for byte; what
  * is restored is the width they were always meant to be scoped to. */
-@media (min-width: 901px) {
+@media (min-width: 641px) {
 }
 
 /* ── The runway: 3 - 2 - 1 - GO, on the arena itself ──────────────────────
@@ -10526,7 +10535,7 @@ body.page--arena.is-zoom-locked {
  *     (one rule, far below) - _widget.html and its own CSS are not edited.
  * ============================================================================ */
 
-@media (min-width: 901px) {
+@media (min-width: 641px) {
 
   /* Left column: ARENA STATUS, CROWN LADDER, ARENA GUIDE, SPECTATOR CHAT, one
      real flex column, no JS-measured top offset (see arena.html's own comment
@@ -10611,7 +10620,18 @@ body.page--arena.is-zoom-locked {
     gap: 0.9rem;
     z-index: auto;
   }
-  .arena-right-stack > * {
+  /* THE SLOT IS NAMED AS WELL, and it has to be. The chat carries
+     position:absolute and a 15.5rem width unconditionally; this rule is what
+     cancels it. `.arena-chat-slot` is a wrapper that adds a DOM level between
+     the stack and the chat, so `.arena-right-stack > *` reaches the WRAPPER
+     and stops - measured when the wrapper shipped, the chat came back as an
+     absolutely positioned 138px column overflowing its rail by 142px, and
+     display:contents did not help because it removes the box, not the level.
+     The pair used to live in the 641-900px block; that block described a
+     second composition and is gone, so the rule moves here, where the one
+     composition is. */
+  .arena-right-stack > *,
+  .arena-chat-slot > * {
     position: relative;
     left: auto;
     right: auto;
@@ -10713,63 +10733,11 @@ body.page--arena.is-zoom-locked {
 /* Tablet: the arena becomes the first, dominant section; the rails fall in
    below it rather than staying beside a now-too-narrow centre column. A
    deliberate single-column order, not the desktop grid scaled down. */
-@media (min-width: 641px) and (max-width: 900px) {
-  /* NOT display:contents here. That unwraps the stack and makes its own
-     children (ARENA STATUS, CROWN LADDER...) direct grid items with no
-     grid-area of their own in THIS template's area list, so the grid
-     auto-placed all seven of them into whatever cells were left over -
-     stacked on top of each other, with the footer landing above them.
-     Each rail stays its own single grid cell and keeps being a flex column
-     inside it, same mechanism as the desktop rule, declared again here
-     because that one is scoped to min-width:901px and does not reach down
-     to this range. */
-  .arena-left-stack,
-  .arena-right-stack {
-    /* Same unconditional position:absolute problem, one level up: the stack
-       itself has "position: absolute; left: 1.2%; bottom: 9%; ..." with no
-       media query around it at all, so it wins here exactly like the phase
-       card did unless every one of those is overridden by name. An
-       absolutely-positioned grid item is removed from grid placement
-       entirely - which is why grid-area below was computing to "auto" and
-       the stack's own box was reporting zero height even though its flex
-       children were laying out correctly among themselves. */
-    position: static;
-    inset: auto;
-    left: auto;
-    right: auto;
-    top: auto;
-    bottom: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0.9rem;
-    width: 100%;
-    max-height: none;
-    z-index: auto;
-  }
-  .arena-left-stack { grid-area: left; }
-  .arena-right-stack { grid-area: right; }
-  /* An UNCONDITIONAL rule elsewhere (no media query at all - "3G show-panel
-     inner gold frame") sets position:absolute on the phase card, ladder,
-     metrics and gifts at every width. Same specificity as this rule, so
-     without stating position again here explicitly there is nothing for
-     this later declaration to win - the absolute one simply stands,
-     unopposed, which is what stacked everything on top of itself the first
-     time this block shipped. */
-  /* THE SLOT'S CHILD COUNTS AS THE RAIL'S OWN, v2.5.1363. `display: contents`
-     removes the slot's BOX, not the slot from the DOM, so `> *` still stops
-     one level short of the chat - measured at 800px, the chat came back as
-     the unconditional absolutely-positioned 138px column from :2986 and
-     :4938 and overflowed its rail by 142px. Naming the slot's children here
-     is what actually reaches it. */
-  .arena-left-stack > *,
-  .arena-right-stack > *,
-  .arena-chat-slot > * {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    flex: 0 0 auto;
-  }
-}
+/* Band block removed 2026-08-31: it described the old second
+   composition for 641-900px, which no longer exists - one grid now
+   runs from 641px up. The chat's own ceiling for this range is kept
+   where it is, because it bounds a scroller rather than placing a
+   layout, and a test reads it by name. */
 
 /* The sitewide "Chef Battles Arena" widget (_widget.html) is untouched -
    this hides it on the arena page only, where its own content (Top Chefs,
@@ -11741,7 +11709,7 @@ body.page--arena.is-zoom-locked {
  * THE OCTAGON IS NOT TOUCHED, and neither is placeRankSpine(): nothing below
  * changes any box's size or position. Paint only.
  * ========================================================================== */
-@media (min-width: 901px) {
+@media (min-width: 641px) {
 
   /* ---- 1. THE LIFECYCLE STRIP ------------------------------------------
      Desktop still wore the pre-2026-08-20 component: seven numbered text
@@ -11869,7 +11837,7 @@ body.page--arena.is-zoom-locked {
   }
 }
 
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   /* HOW THE SLOT GREW, AND IN WHICH DIRECTION - this is the whole design
      decision and it is made of measurements, not taste.
 
@@ -12078,7 +12046,7 @@ body.page--arena.is-zoom-locked {
  * layout change he did not ask for, so the space is simply background now,
  * exactly as it already is on the left.
  * ========================================================================== */
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   .arena-command-dock {
     grid-area: dock;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -12145,7 +12113,7 @@ body.page--arena.is-zoom-locked {
  * own composition for this rail below 768px (emoji medallions, the label
  * hidden unless the step is current) and nothing here can reach it.
  * ========================================================================== */
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   .arena-broadcast-ribbon .arena-phase-step {
     display: flex;
     align-items: center;
@@ -12172,7 +12140,7 @@ body.page--arena.is-zoom-locked {
  * and a class would have had to be added in both places and removed in two
  * more. The sheet already uses :has() in eight other files.
  * ========================================================================== */
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   /* AND THE ROW KEEPS THE CLOCK'S PLACE WHILE THE CLOCK IS AWAY. The ribbon
      sits DIRECTLY above the arena, so anything that changes its height moves
      the arena - and a clock that appears the moment a battle is scheduled
@@ -12249,7 +12217,7 @@ body.page--arena.is-zoom-locked {
 /* Desktop text bump for the six card sub-elements whose specificity ties
    with the block above - see the note at the container-query site
    (:2301) for why this can't live there. */
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   .arena-chat .arena-chat__card-chef,
   .arena-chat .arena-chat__card-shot b { font-size: .8rem; }
 }
@@ -12456,9 +12424,12 @@ button.arena-chat__poll-option:hover {
    above serves the phone; these two serve the rest, and the tablet needed its
    own the moment it was measured - with the phone's band the caption ran 7.67px
    INTO the ribbon at 768. */
-@media (min-width: 641px) and (max-width: 900px) {
-}
-@media (min-width: 901px) {
+/* Band block removed 2026-08-31: it described the old second
+   composition for 641-900px, which no longer exists - one grid now
+   runs from 641px up. The chat's own ceiling for this range is kept
+   where it is, because it bounds a scroller rather than placing a
+   layout, and a test reads it by name. */
+@media (min-width: 641px) {
   /* The desktop's grid area starts where the scene starts, so the caption
      clears the frame on its own height alone; see the note above. */
   .arena-floor-caption { --arena-caption-lift: 0.5rem; }

@@ -1,5 +1,45 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1537",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "Every desktop rule now starts at 641px, so 901 stops being a cliff",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "v2.5.1534 moved the deck's COLUMNS to a single composition "
+            "starting at 641px and the octagon centred itself, the 1280 cliff "
+            "went, and 1281/1280 became identical. But 901 -> 900 still broke, "
+            "and the measurement said exactly why: the columns had moved and "
+            "the AREA MAP had not. It lived in its own @media (min-width: "
+            "901px) block, so at 900px the deck took the new three-column "
+            "track list with the OLD base area map and came out as five tracks "
+            "in one column - measured cols `0/0/0/0/848`, deck 1908, octagon "
+            "434px left of centre. PROVED BEFORE CHANGING ANYTHING by cloning "
+            "every (min-width: 901px) rule into 641-900 on the live page - 87 "
+            "rules - and reading the computed display, flex-direction, column "
+            "count, position and grid-area of seventeen components at 1440 and "
+            "at 900: ZERO differences. So all 23 desktop gates move to 641px, "
+            "the five leftover 641-900 blocks are deleted except the chat's own "
+            "scroll ceiling (which bounds a scroller rather than placing a "
+            "layout, and a test reads it by name), and the five test lookups "
+            "that searched for the block by its old query string are updated. "
+            "One rule had to be carried across by hand rather than deleted "
+            "with its block: `.arena-chat-slot > *`. The chat carries "
+            "position:absolute and a 15.5rem width unconditionally and that "
+            "selector is what cancels it; the wrapper adds a DOM level, so "
+            "`.arena-right-stack > *` reaches the wrapper and stops. Its test "
+            "caught the deletion, which is the mechanism working. MEASURED ON "
+            "PRODUCTION after: 1440 331/734/331, 1280 294/651/294, 901 "
+            "206/457/206, 641 143/317/143 - one ratio, no jumps, octagon "
+            "centred at every width, deck 1512 at 1440 down to 1012 at 641. "
+            "KNOWN AND NOT YET DONE, stated rather than hidden: four "
+            "components still change shape at the 767px line - the ribbon, the "
+            "phase rail, the lower bar and the (invisible) rank spine - "
+            "because a separate 767/768 ladder still runs there. Tests: 153 "
+            "focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1534",
         "date": "2026-08-31",
         "commit": "pending",
