@@ -1,0 +1,5 @@
+agent: GreenBear
+started_utc: 2026-08-31T20:05:00Z
+version: 2.5.1561
+commit: pending
+task: the empty picker was one grid cell wide - that was the whole fault
