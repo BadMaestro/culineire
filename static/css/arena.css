@@ -12126,22 +12126,19 @@ body.page--arena.is-zoom-locked {
 @media (min-width: 641px) {
   .arena-command-dock {
     grid-area: dock;
-    /* AUTO-FIT, NOT A FIXED THREE. Owner, 2026-08-31, on the shrunken
-       layout: the information inside the blocks breaks. Measured at 650px -
-       three cards forced into a 322px dock came out 101px wide, and the
-       metrics inside them 38px wide by 118 TALL, which is a label wrapped one
-       letter per line. A column that cannot hold its content is not a column.
+    /* THREE, OR ONE - NEVER TWO AND A STRAY. Owner, 2026-08-31: the third
+       block has slid down. auto-fit did exactly what it promises and it
+       looked wrong doing it - at 650px it laid two tracks, so two cards sat
+       in a row and the third dropped onto a line of its own with half that
+       line empty. Wrapping three items always makes that shape, at every
+       width where two fit and three do not.
 
-       150px is a floor in PIXELS on purpose: the type shrinks with the page,
-       so a rem floor would shrink with it and never trip. `min(100%, 150px)`
-       keeps it from overflowing a container narrower than the floor itself.
-
-       The desktop does not move: at 1440 the dock is 733px, auto-fit lays 4
-       tracks, the empty one collapses with its gap, and the three cards come
-       out 235px each - the number they have today. At 650 it drops to two
-       columns of 157 and wraps the third, which is a card reflowing inside
-       its own box, not the page changing composition. */
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+       So the count is three again, and the DOCK'S OWN WIDTH decides when
+       three stop fitting: a container query, not a viewport one, so it
+       answers to the room the cards actually have rather than to the size of
+       the screen. The query is below, beside the cards it moves. */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    container-type: inline-size;
     gap: 0.9rem;
     /* Three cards of one height, because he asked for them to sit evenly and
        three different heights in one row is what "not evenly" looks like.
@@ -12152,6 +12149,15 @@ body.page--arena.is-zoom-locked {
   .arena-command-dock .arena-dock-card--gifts .arena-dock-card__panel,
   .arena-command-dock .arena-dock-card--pulse .arena-dock-card__panel {
     flex: 1 1 auto;
+  }
+
+  /* AND HERE IS WHERE THREE BECOMES ONE. 470px is three cards of 150 plus
+     their gaps - the width below which a third column has nothing left to
+     hold. Every card then spans the whole row and they stack, each as wide as
+     the dock, instead of two sitting together and one hanging under them.
+     Measured at 1440 after: 235/235/235 in one row, unchanged. */
+  @container (max-width: 470px) {
+    .arena-command-dock .arena-dock-card { grid-column: 1 / -1; }
   }
 
   /* ARENA COMMAND, in a third of the width instead of a whole column: two
@@ -12509,7 +12515,17 @@ button.arena-chat__poll-option:hover {
      kept exactly as it always was. */
   translate: calc(-50% - var(--arena-caption-nudge-x, 0px))
              calc(-100% - var(--arena-caption-lift, 1.2rem));
-  width: min(26rem, 90%);
+  /* 57%, NOT 90%. Owner, 2026-08-31: look at the title above the octagon.
+     The rem term wins at every width, and the type scale is deliberately
+     gentler than the layout scale - the page goes 1440 -> 650 by 0.45 while
+     the type only goes 16px -> 11px, or 0.69 - so the caption kept 0.69 of
+     its size over an octagon that had gone to 0.42 and read as oversized.
+     Measured: 416px over a 733px floor at 1440 (57%), but 283px over a 322px
+     floor at 650 (88%). At 57% the share is the same at both, and 1440 does
+     not move - 57% of 733 is 418, so min() still takes the 26rem = 416 there.
+     Shrinking the TYPE instead was the other option and is worse: the line is
+     already 10.5px at 650. */
+  width: min(26rem, 57%);
   margin: 0;
   text-align: center;
 }

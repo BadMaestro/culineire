@@ -1,5 +1,44 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1552",
+        "title": "The floor caption keeps its share, and the dock stacks whole",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, on the shrunken layout: look at the title above the "
+            "octagon, and the third block has slid down. Both measured, both "
+            "fixed, and neither moves the desktop. THE CAPTION. Its width is "
+            "`min(26rem, 90%)` and the rem term wins at every width, so it "
+            "followed the TYPE scale rather than the LAYOUT scale - and those "
+            "are deliberately different: 1440 -> 650 takes the page to 0.45 "
+            "and the type only from 16px to 11px, or 0.69. Measured, the "
+            "caption was 416px over a 733px floor at 1440 (57%) but 283px over "
+            "a 322px floor at 650 (88%), which is why it read as oversized "
+            "sitting on a much smaller octagon. The percentage becomes 57%, so "
+            "the share is now the same at both ends - and 1440 does not move, "
+            "because 57% of 733 is 418 and min() still takes the 26rem = 416 "
+            "there. Shrinking the type further was the other option and is "
+            "worse: that line is already 10.5px at 650. THE DOCK. v2.5.1546 "
+            "made it `auto-fit`, which did exactly what it promises and looked "
+            "wrong doing it - at 650px it laid two tracks, so two cards sat "
+            "together and the third dropped onto a line of its own with half "
+            "that line empty. Wrapping three items always makes that shape at "
+            "every width where two fit and three do not. The count goes back "
+            "to three, and the DOCK'S OWN WIDTH decides when three stop "
+            "fitting: `container-type: inline-size` on the dock and "
+            "`@container (max-width: 470px)` - three cards of 150 plus their "
+            "gaps - after which every card spans the whole row and they stack, "
+            "each as wide as the dock. A container query, not a viewport one, "
+            "so it answers to the room the cards actually have. MEASURED AFTER "
+            "at 650: caption 179 on a 322 floor, 56%; cards 322/322/322 "
+            "stacked, no orphan. At 1440: caption 416 of 734 (57%), cards "
+            "235/235/235 in one row, dock 734x375, deck 1512, columns "
+            "331/734/331, octagon 673x464 centred - every number identical. "
+            "Tests: 66 of 67; the one red is FloorCaptionGetsARegionTests, "
+            "which is about --arena-deck-top-h in the renderer and was already "
+            "red at v2.5.1531."
+        ),
+    },
+    {
         "version": "2.5.1549",
         "date": "2026-08-31",
         "commit": "pending",
