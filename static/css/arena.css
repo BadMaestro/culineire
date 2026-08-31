@@ -528,47 +528,6 @@
     background: color-mix(in srgb, var(--surface-soft) 84%, var(--ink) 5%);
     box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 12%, transparent);
   }
-/* MOVED UP 2026-08-31, and it is a CASCADE fix, not a tidy-up.
-
-   This rule is the deck's BASE - no media query, so it applies at every
-   width - and it had come to sit BELOW the `@media (min-width: 641px)` block
-   that carries the desktop composition. Same selector, same specificity, so
-   the later one wins: the base area map was overriding the desktop's at
-   EVERY width. Measured on production at v2.5.1552, 1440px: the deck's
-   computed areas read `header header header / phase-rail phase-rail metrics
-   / phase floor gifts ...` and its columns `176px 0px 176px 0px 1012px`.
-   The arena had no composition left at all.
-
-   It arrived that way in v2.5.1549, a gathering pass that collected the
-   deck's rules together and in doing so lifted them above their own base -
-   checked commit by commit: at 56d2e4c8 the base sat at 6239 and the 641
-   blocks at 7377/7545, which is the right order; at a070b707 the 641 blocks
-   are at 1677/1830 and the base at 6706, which is not.
-
-   Gathering a component into one place is worth having. What it must not do
-   is reorder rules that decide each other, and a base that outranks its own
-   overrides is exactly that. */
-.arena-command-deck {
-  /* Every value below restated an existing global token byte-for-byte —
-     ink/ink-soft/muted/brand/brand-dark/surface/surface-soft. Pointed at the
-     real tokens instead of a second copy of each. */
-  --arena-ink: var(--ink);
-  --arena-forest: var(--ink-soft);
-  --arena-muted: var(--muted);
-  --arena-gold: var(--accent-bronze);
-  --arena-cappuccino: var(--brand-dark);
-  --arena-paper: var(--surface);
-  --arena-cream: var(--surface-soft);
-  grid-template-columns: minmax(11rem, .9fr) minmax(0, 3.3fr) minmax(11rem, .9fr);
-  grid-template-areas:
-    "header header header"
-    "phase-rail phase-rail metrics"
-    "phase floor gifts"
-    "ladder floor gifts"
-    "chat floor gifts"
-    "crowd crowd crowd";
-  gap: 1rem;
-}
 
 @media (min-width: 641px) {
 /* A11: the deadline is NO LONGER hidden here. It was the one authoritative,
@@ -1469,6 +1428,53 @@
 /* .arena-command-deck - rules for this component, kept together.
    Gathered by an15_gather.py: the applying declarations are
    byte-identical and no conflicting pair changed places. */
+/* MOVED UP 2026-08-31, and it is a CASCADE fix, not a tidy-up.
+
+   This rule is the deck's BASE - no media query, so it applies at every
+   width - and it had come to sit BELOW the `@media (min-width: 641px)` block
+   that carries the desktop composition. Same selector, same specificity, so
+   the later one wins: the base area map was overriding the desktop's at
+   EVERY width. Measured on production at v2.5.1552, 1440px: the deck's
+   computed areas read `header header header / phase-rail phase-rail metrics
+   / phase floor gifts ...` and its columns `176px 0px 176px 0px 1012px`.
+   The arena had no composition left at all.
+
+   It arrived that way in v2.5.1549, a gathering pass that collected the
+   deck's rules together and in doing so lifted them above their own base -
+   checked commit by commit: at 56d2e4c8 the base sat at 6239 and the 641
+   blocks at 7377/7545, which is the right order; at a070b707 the 641 blocks
+   are at 1677/1830 and the base at 6706, which is not.
+
+   Gathering a component into one place is worth having. What it must not do
+   is reorder rules that decide each other, and a base that outranks its own
+   overrides is exactly that. */
+.arena-command-deck {
+  /* Every value below restated an existing global token byte-for-byte —
+     ink/ink-soft/muted/brand/brand-dark/surface/surface-soft. Pointed at the
+     real tokens instead of a second copy of each. */
+  --arena-ink: var(--ink);
+  --arena-forest: var(--ink-soft);
+  --arena-muted: var(--muted);
+  --arena-gold: var(--accent-bronze);
+  --arena-cappuccino: var(--brand-dark);
+  --arena-paper: var(--surface);
+  --arena-cream: var(--surface-soft);
+  grid-template-columns: minmax(11rem, .9fr) minmax(0, 3.3fr) minmax(11rem, .9fr);
+  grid-template-areas:
+    "header header header"
+    "phase-rail phase-rail metrics"
+    "phase floor gifts"
+    "ladder floor gifts"
+    "chat floor gifts"
+    "crowd crowd crowd";
+  gap: 1rem;
+}
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
 /* .arena-command-deck - rules for this component, kept together.
    Gathered by an15_gather.py: the applying declarations are
    byte-identical and no conflicting pair changed places. */
@@ -1846,7 +1852,6 @@
     align-items: center;
   }
 }
-
 @media (min-width: 641px) {
   /* ---- 1. THE ROW ------------------------------------------------------
      Between the arena and the lower dock, full width, exactly where he drew
@@ -1961,6 +1966,39 @@
     grid-column: 3;
     justify-self: end;
   }
+}
+
+
+@media (min-width: 641px) {
+}
+@media (max-width: 640px) {
+}
+@media (max-width: 767px) {
+}
+@media (max-width: 767px) {
+}
+@media (min-width: 641px) {
+}
+@media (min-width: 641px) {
+}
+@media (min-width: 768px) {
+}
+
+
+@media (min-width: 641px) {
+}
+@media (max-width: 640px) {
+}
+@media (max-width: 767px) {
+}
+@media (max-width: 767px) {
+}
+
+@media (min-width: 641px) {
+}
+@media (min-width: 641px) {
+}
+@media (min-width: 768px) {
 }
 
 
@@ -7717,6 +7755,40 @@ button.arena-chat__poll-option { cursor: pointer; }
   padding-inline: 21.965%;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+/* THE CAPTION HANGS ABOVE THE FLOOR, SO THE FLOOR MUST LEAVE ROOM FOR IT.
+
+   The Owner circled it on his own screen: `THE KITCHEN FLOOR / The floor
+   holds the show` sitting on top of the rank strip.
+
+   MEASURED ON PRODUCTION, in his browser, at two widths. The caption is
+   `position: absolute; top: 0` inside the floor and translated up by its
+   own full height plus the lift - which is how it comes to sit ABOVE the
+   frame, deliberately, since v2.5.1311. Being out of flow, it occupies a
+   band that nothing reserves: the floor's own third grid row was built for
+   exactly this writing and computes to 0px, because an absolutely
+   positioned child contributes no height to it.
+
+   While there was slack above the floor nobody saw it. After the rows were
+   rearranged there is none, and the band lands on `.arena-legend`:
+   measured overlap 17px at 961 wide and 21px at 1900.
+
+   Reserved on the floor rather than on the row, because the row does not
+   move the caption - the caption is anchored to the FLOOR box, not to the
+   stage, so growing row three moves the stage and leaves the writing
+   exactly where it was. Tried, measured, discarded.
+
+   3rem clears it at both widths - 27px of air at 1900, 22px at 961 - and
+   THE OCTAGON DOES NOT SHRINK: its rendered height is 616px before and
+   after at 1900, 308px at 961. The floor keeps its height and moves down;
+   only the deck grows, by 48px.
+
+   Gated at 901px because that is where the collision was measured. On a
+   phone the legend is nowhere near the floor - clearance measured in
+   thousands of pixels - and the same margin would be a gap for nothing. */
+@media (min-width: 901px) {
+  .arena-command-deck__floor { margin-top: 3rem; }
 }
 /* ============================================================
    THE TYPE SHRINKS WITH THE LAYOUT, which is the half that makes the rest

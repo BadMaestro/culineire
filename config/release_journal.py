@@ -1,5 +1,54 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1567",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The floor caption had no room reserved, and landed on the rank strip",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "He circled it on his own screen: THE KITCHEN FLOOR / The floor "
+            "holds the show sitting on top of the eight rings. He asked first "
+            "whether I had broken it, and the answer was no - checked "
+            "mechanically rather than by memory: across the whole chain of "
+            "today's releases my two changed ZERO caption or deck layout "
+            "declarations, and the only one that moved was a width, 90% to "
+            "57%, in v2.5.1552. "
+            "THE CAPTION IS OUT OF FLOW. It is `position: absolute; top: 0` "
+            "inside the floor, translated up by its own full height plus a "
+            "lift - which is how it comes to sit above the frame, deliberately, "
+            "since v2.5.1311. Out of flow means it occupies a band nothing "
+            "reserves: the floor's third grid row was built for exactly this "
+            "writing - the file calls it THE WRITING - and computes to 0px, "
+            "because an absolutely positioned child contributes no height. "
+            "While there was slack above the floor nobody saw it. After the "
+            "rows were rearranged there is none, and the band lands on "
+            "`.arena-legend`. Measured in his browser on production: 17px of "
+            "overlap at 961 wide, 21px at 1900. "
+            "RESERVED ON THE FLOOR, NOT ON THE ROW, and the difference was "
+            "measured rather than reasoned. Growing row three moves the STAGE "
+            "and leaves the writing exactly where it was, because the caption "
+            "is anchored to the floor box and not to the stage - tried at "
+            "2.6, 3 and 3.4rem, caption top unchanged at 337 every time. A "
+            "3rem margin on the floor itself moves both. "
+            "It clears at both widths - 27px of air at 1900, 22px at 961 - and "
+            "THE OCTAGON DOES NOT SHRINK: rendered height 616px before and "
+            "after at 1900, 308px at 961. The floor keeps its height and moves "
+            "down; the deck grows by 48px. "
+            "Gated at 901px because that is where the collision exists. On a "
+            "phone the legend is nowhere near the floor - clearance measured in "
+            "thousands of pixels - and the same margin would be a gap for "
+            "nothing. "
+            "The forced part, declared: the new rule is inside a media query, "
+            "so it counted as a separate island and EveryArenaComponentIsGatheredTests went red; --tidy folded 34 rules back, applying declarations identical. "
+            "FOUND AND NOT TOUCHED, per 12a: "
+            "FloorCaptionGetsARegionTests.test_the_region_boundary_is_published "
+            "is red on main and was before this change - it asserts "
+            "`--arena-deck-top-h` appears nowhere in arena_render.js, and the "
+            "name now appears there in a COMMENT explaining that the value "
+            "stayed at 0. Prose, not code. Not mine, not fixed."
+        ),
+    },
+    {
         "version": "2.5.1564",
         "commit": "pending",
         "title": "URGENT: a stray deck grid inside max-width 767 was governing the phone",
