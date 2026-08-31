@@ -7898,7 +7898,11 @@ button.arena-chat__poll-option { cursor: pointer; }
 
      641-900px IS NOT TOUCHED: it keeps the 1cm frame and the 0.918 share,
      because he said to start with the desktop. */
-  .arena-command-deck__floor { aspect-ratio: 1 / 0.708; }
+  /* 0.79, NOT 0.708. The first pass cut the frame against the wrong shape -
+     see the correction below - and a frame cut for a shape that is not there
+     is simply the wrong height. 724 of octagon plus 0.5cm each way, plus the
+     frame's own 7px inset top and bottom, is 776 over a 983 column. */
+  .arena-command-deck__floor { aspect-ratio: 1 / 0.79; }
   /* WRITTEN AT (0,2,0), and that is not decoration. The 1cm pass declared
      `.arena-floor-stage { --arena-octagon-width-share: 0.918 }` inside the
      641px block, which sits LOWER IN THIS FILE than the desktop block. At
@@ -7909,7 +7913,23 @@ button.arena-chat__poll-option { cursor: pointer; }
      specificity instead of by position, which is the only thing that holds
      while the two blocks live where they do. */
   .arena-command-deck__floor .arena-floor-stage {
-    --arena-octagon-width-share: 0.969;
+    /* 1.101, AND THE FIRST NUMBER WAS MEASURED AGAINST THE WRONG THING.
+       0.969 came from the union of every painted node in the scene, which is
+       896px wide - but that union includes the floor glow and the labels,
+       which reach about 40px past the shape on each side. THE OCTAGON A
+       READER SEES is the union of `.arena-cell`, and it was 815 of a 983
+       column: 84px of air at each side. He photographed exactly that and drew
+       four arrows outward.
+
+       Measured on the deployed page: cells 815x637, box 953, so the shape is
+       0.8552 of the box and 0.7816 as tall as it is wide, and the decorative
+       frame is inset 9.5px at the sides and 7 top and bottom.
+
+       The shape has to reach 964 - 2*18.89 = 926 inside that frame, which
+       needs a box of 926 / 0.8552 = 1083, and 1083 / 983 = 1.101. Still under
+       the renderer's 1.15 ceiling, and the resulting box height of 745 is
+       under 0.99 of the 770px region, so neither guard clamps it. */
+    --arena-octagon-width-share: 1.101;
     --arena-octagon-height-share: 0.99;
     /* AND IT SITS 1.5px HIGHER THAN THE 1cm PASS LEFT IT. Measured on the
        deployed result: 18px left, 18 right, 18 below and 21 above - 0.48cm
