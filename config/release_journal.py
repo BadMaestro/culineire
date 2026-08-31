@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1561",
         "date": "2026-08-31",
-        "commit": "pending",
+        "commit": "ac37e591",
         "title": "The empty sticker picker was one grid cell wide, and that was the whole fault",
         "section": "Chef Battles / Arena",
         "summary": (
