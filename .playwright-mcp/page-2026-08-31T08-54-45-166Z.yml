@@ -1,5 +1,0 @@
-- generic [active] [ref=e1]:
-  - heading "1 img" [level=3] [ref=e2]
-  - heading "2 css background + overlay shield" [level=3] [ref=e3]
-  - heading "3 canvas 2d" [level=3] [ref=e6]
-  - heading "4 webgl" [level=3] [ref=e8]

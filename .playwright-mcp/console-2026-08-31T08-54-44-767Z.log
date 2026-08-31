@@ -1,2 +1,0 @@
-[     334ms] [WARNING] WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost @ http://127.0.0.1:8899/index.html:0
-[     345ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8899/favicon.ico:0

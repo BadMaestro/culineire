@@ -7899,7 +7899,16 @@ button.arena-chat__poll-option { cursor: pointer; }
      641-900px IS NOT TOUCHED: it keeps the 1cm frame and the 0.918 share,
      because he said to start with the desktop. */
   .arena-command-deck__floor { aspect-ratio: 1 / 0.708; }
-  .arena-floor-stage {
+  /* WRITTEN AT (0,2,0), and that is not decoration. The 1cm pass declared
+     `.arena-floor-stage { --arena-octagon-width-share: 0.918 }` inside the
+     641px block, which sits LOWER IN THIS FILE than the desktop block. At
+     equal specificity the later rule wins, so a plain `.arena-floor-stage`
+     here computed to 0.918 and the octagon did not move a pixel - measured on
+     the deployed page before this line existed: the frame was cut to 690 and
+     the shape stayed 896x618. Naming the floor as well decides it by
+     specificity instead of by position, which is the only thing that holds
+     while the two blocks live where they do. */
+  .arena-command-deck__floor .arena-floor-stage {
     --arena-octagon-width-share: 0.969;
     --arena-octagon-height-share: 0.99;
   }

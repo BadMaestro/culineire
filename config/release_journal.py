@@ -1,6 +1,6 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.1585",
+        "version": "2.5.1588",
         "date": "2026-08-31",
         "commit": "pending",
         "title": "Half a centimetre from the octagon to the frame, on every side",
@@ -36,7 +36,15 @@ RELEASE_JOURNAL = [
             "writes, so it is the desktop's number and nothing else changes "
             "hands. 641-900px keeps its 1cm frame and its 0.918 share - he said "
             "to start with the desktop. The phone's locked 1.097 and 0.557 are "
-            "in a different query and are untouched; their guard is green."
+            "in a different query and are untouched; their guard is green. "
+            "AND ONE MORE PASS, because the first deploy cut the frame and left "
+            "the octagon exactly where it was. The 1cm block declares the share "
+            "on .arena-floor-stage and sits LOWER IN THE FILE than the desktop "
+            "block, so at equal specificity it won and the desktop computed to "
+            "0.918 - measured on the deployed page: frame 983x690, shape still "
+            "896x618, not a pixel moved. The desktop declaration now names the "
+            "floor as well, (0,2,0) against (0,1,0), so position stops deciding "
+            "it."
         ),
     },
     {

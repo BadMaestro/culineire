@@ -40,3 +40,5 @@ coworking/dashboard.html
 .codex/
 .cursor/
 scratchpad/
+
+.playwright-mcp/
