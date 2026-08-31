@@ -1,5 +1,38 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1546",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The dock's cards wrap instead of being crushed, and their metrics with them",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, continuing to narrow the window: the information inside "
+            "the blocks breaks. Nothing overlapped any more and nothing "
+            "overflowed - checked by walking every sibling pair in the deck at "
+            "650px, zero hits - but the content was being crushed. MEASURED: "
+            "three dock cards forced into a 322px dock came out 101px wide, "
+            "and the metrics inside them 38px wide by 118 TALL, which is a "
+            "label wrapped one letter per line. That is the "
+            "`ACTIVE V WEBLIC VO` mess in his screenshot. CAUSE: both grids "
+            "were fixed counts - the dock `repeat(3, minmax(0, 1fr))` and the "
+            "metric pair `repeat(2, minmax(0, 1fr))` - so they kept their "
+            "column COUNT no matter how little room each column had. A column "
+            "that cannot hold its content is not a column. Both become "
+            "`repeat(auto-fit, minmax(min(100%, N), 1fr))`, N in PIXELS on "
+            "purpose: the type shrinks with the page, so a rem floor would "
+            "shrink with it and never trip, and `min(100%, N)` keeps it from "
+            "overflowing a container narrower than the floor. RESULT at 650px: "
+            "cards 101 -> 156, metrics 38x118 -> 74x41, two cards to a row and "
+            "the third wrapping. THE DESKTOP DOES NOT MOVE, measured at 1440 "
+            "after: cards 235/235/235, dock 734x375, deck 1512, columns "
+            "331/734/331, octagon 673x464 centred - every number identical. "
+            "auto-fit lays four tracks at that width, the empty one collapses "
+            "with its gap, and three cards come out at the 235 they have "
+            "today. This is a card reflowing inside its own box, not the page "
+            "changing composition. Tests: 52 focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1543",
         "commit": "pending",
         "title": "The chat stops sitting on top of the house stream below 900px",

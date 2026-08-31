@@ -12057,7 +12057,22 @@ body.page--arena.is-zoom-locked {
 @media (min-width: 641px) {
   .arena-command-dock {
     grid-area: dock;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* AUTO-FIT, NOT A FIXED THREE. Owner, 2026-08-31, on the shrunken
+       layout: the information inside the blocks breaks. Measured at 650px -
+       three cards forced into a 322px dock came out 101px wide, and the
+       metrics inside them 38px wide by 118 TALL, which is a label wrapped one
+       letter per line. A column that cannot hold its content is not a column.
+
+       150px is a floor in PIXELS on purpose: the type shrinks with the page,
+       so a rem floor would shrink with it and never trip. `min(100%, 150px)`
+       keeps it from overflowing a container narrower than the floor itself.
+
+       The desktop does not move: at 1440 the dock is 733px, auto-fit lays 4
+       tracks, the empty one collapses with its gap, and the three cards come
+       out 235px each - the number they have today. At 650 it drops to two
+       columns of 157 and wraps the third, which is a card reflowing inside
+       its own box, not the page changing composition. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
     gap: 0.9rem;
     /* Three cards of one height, because he asked for them to sit evenly and
        three different heights in one row is what "not evenly" looks like.
@@ -12085,7 +12100,10 @@ body.page--arena.is-zoom-locked {
      card needs it because the heading carries the collapse control. */
   .arena-command-dock .arena-dock-card--pulse .arena-dock-card__panel {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* Same reasoning one level down: two metrics side by side need room for
+       their labels. Below 110px of card the pair becomes a single column
+       instead of two 38px slivers. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr));
     gap: 0;
   }
   .arena-command-dock .arena-command-deck__metrics .arena-metric {
