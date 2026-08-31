@@ -7891,7 +7891,10 @@ button.arena-chat__poll-option { cursor: pointer; }
      measurement at all - the ceiling is a known length, so the width it allows
      is that length over the same aspect, and the two ceilings simply agree.
      Centred, so what the floor gives up is split evenly between the rails. */
-  .arena-command-deck__floor {
+  /* (0,2,0), because something already gives this box `max-width: 100%` and a
+     plain class rule lost to it - measured: 1618 shipped and the computed
+     value stayed 100%. Naming the deck decides it by specificity. */
+  .arena-command-deck > .arena-command-deck__floor {
     max-width: calc(min(78vh, 820px) / 0.805);
     margin-inline: auto;
   }
