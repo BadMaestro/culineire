@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1528",
         "date": "2026-08-31",
-        "commit": "pending",
+        "commit": "b955508c",
         "title": "The house mark burned into the sticker shop window",
         "section": "Chef Battles / Arena",
         "summary": (
