@@ -1,5 +1,41 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1555",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "URGENT: the deck's base rule was outranking its own desktop composition",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "PRODUCTION WAS BROKEN AT EVERY DESKTOP WIDTH and this restores it. "
+            "Measured at v2.5.1552, 1440px: the deck's computed grid-template-"
+            "areas read `header header header / phase-rail phase-rail metrics / "
+            "phase floor gifts ...` and its columns `176px 0px 176px 0px "
+            "1012px`. That is the deck's BASE map, not the desktop one - the "
+            "arena had no composition left. CAUSE, traced commit by commit and "
+            "NOT mine: the base rule carries no media query, so it applies at "
+            "every width, and it had come to sit BELOW the `@media (min-width: "
+            "641px)` block that carries the desktop composition. Same selector, "
+            "same specificity - the later one wins. At 56d2e4c8 the base sat at "
+            "line 6239 and the 641 blocks at 7377/7545, which is the right "
+            "order; at a070b707 (v2.5.1549, a pass that gathered each "
+            "component's rules into one place) the 641 blocks are at 1677/1830 "
+            "and the base at 6706, which is not. Gathering a component is worth "
+            "having; what it must not do is reorder rules that decide each "
+            "other, and a base that outranks its own overrides is exactly that. "
+            "FIX: the base rule moves back above the 641 block, with the "
+            "measurement and the two commit hashes written beside it so the "
+            "next gathering pass can see what the order is for. STILL WRONG AND "
+            "SAID PLAINLY: between 641 and 767 a one-line rule inside `@media "
+            "(max-width: 767px)` re-declares the whole deck grid and is the "
+            "last rule standing, so that range still shows the phone's stack. "
+            "Re-gating it to 640 was tried in this same pass and REVERTED - the "
+            "phone already declares its own grid, and a second declaration in "
+            "the same context is a superseded declaration, which this project's "
+            "own test refuses. It needs the two phone grids reconciled, not a "
+            "query renamed. Tests: 59 focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1552",
         "title": "The floor caption keeps its share, and the dock stacks whole",
         "section": "Chef Battles / Arena",
