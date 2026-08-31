@@ -1684,7 +1684,13 @@
    grow to match a taller neighbour column. */
 .arena-command-deck__floor {
   align-self: start !important;
-  aspect-ratio: 1 / 0.82;
+  /* 0.805, from 641px up. 0.82 was the 1cm frame; this is the shape's own
+     0.7816 plus half a centimetre each way and the frame's 7px inset, and it
+     is stated once here rather than per range so the composition SHRINKS
+     smoothly instead of snapping at a breakpoint - Owner, 2026-08-31, after
+     accepting the desktop: bring the same thing down proportionally all the
+     way to the phone. The phone's own 0.86 is a later rule and is untouched. */
+  aspect-ratio: 1 / 0.805;
   min-height: 0 !important;
   max-height: min(78vh, 820px);
 }
@@ -7896,58 +7902,9 @@ button.arena-chat__poll-option { cursor: pointer; }
      it, so the half centimetre comes from the frame rather than from a
      constant that never knew about it.
 
-     641-900px IS NOT TOUCHED: it keeps the 1cm frame and the 0.918 share,
-     because he said to start with the desktop. */
-  /* 0.79, NOT 0.708. The first pass cut the frame against the wrong shape -
-     see the correction below - and a frame cut for a shape that is not there
-     is simply the wrong height. 724 of octagon plus 0.5cm each way, plus the
-     frame's own 7px inset top and bottom, is 776 over a 983 column. */
-  /* 0.805. The column now hugs the SHAPE (see publishFloorTargetWidth), so
-     the frame that holds it is 0.7816 of the shape's width tall, plus half a
-     centimetre each way and the frame's own 7px inset: 0.7816*(W-38)+52 over
-     W, which is 0.805 at the width this settles to. 0.82 was the 1cm frame,
-     0.708 was cut against the painted union rather than the shape. */
-  .arena-command-deck__floor { aspect-ratio: 1 / 0.805; }
-  /* WRITTEN AT (0,2,0), and that is not decoration. The 1cm pass declared
-     `.arena-floor-stage { --arena-octagon-width-share: 0.918 }` inside the
-     641px block, which sits LOWER IN THIS FILE than the desktop block. At
-     equal specificity the later rule wins, so a plain `.arena-floor-stage`
-     here computed to 0.918 and the octagon did not move a pixel - measured on
-     the deployed page before this line existed: the frame was cut to 690 and
-     the shape stayed 896x618. Naming the floor as well decides it by
-     specificity instead of by position, which is the only thing that holds
-     while the two blocks live where they do. */
-  .arena-command-deck__floor .arena-floor-stage {
-    /* 1.101, AND THE FIRST NUMBER WAS MEASURED AGAINST THE WRONG THING.
-       0.969 came from the union of every painted node in the scene, which is
-       896px wide - but that union includes the floor glow and the labels,
-       which reach about 40px past the shape on each side. THE OCTAGON A
-       READER SEES is the union of `.arena-cell`, and it was 815 of a 983
-       column: 84px of air at each side. He photographed exactly that and drew
-       four arrows outward.
-
-       Measured on the deployed page: cells 815x637, box 953, so the shape is
-       0.8552 of the box and 0.7816 as tall as it is wide, and the decorative
-       frame is inset 9.5px at the sides and 7 top and bottom.
-
-       The shape has to reach 964 - 2*18.89 = 926 inside that frame, which
-       needs a box of 926 / 0.8552 = 1083, and 1083 / 983 = 1.101. Still under
-       the renderer's 1.15 ceiling, and the resulting box height of 745 is
-       under 0.99 of the 770px region, so neither guard clamps it. */
-    /* 1.12: with the column hugging the shape, the shape has to fill
-       column - 2*18.89, so the box wants (W-38)/0.8552 and the share is that
-       over W - 1.1207 at the settled width. Under the renderer's 1.15. */
-    --arena-octagon-width-share: 1.12;
-    --arena-octagon-height-share: 0.99;
-    /* AND IT SITS 1.5px HIGHER THAN THE 1cm PASS LEFT IT. Measured on the
-       deployed result: 18px left, 18 right, 18 below and 21 above - 0.48cm
-       on three sides and 0.56 on the fourth, because 0.503 seats the shape a
-       little low and the frame no longer has the slack to hide it. Half of
-       the 3px difference is 1.5px, which is 0.0022 of the 690px region:
-       0.503 -> 0.5008. The reason 0.503 existed - buying the caption clear
-       air - is now held by the head row above the floor instead. */
-    --arena-octagon-centre-y: 0.5008;
-  }
+     641-900px NOW SHARES THIS, 2026-08-31: the whole block moved down to the
+     641px composition so one set of numbers governs every width above the
+     phone and nothing snaps at 901. See the note beside the share there. */
 }
 
 /* ----------------------------------------------------------------------------
@@ -11113,7 +11070,17 @@ body.page--arena.is-zoom-locked {
     flex: 0 0 auto;
   }
   .arena-floor-stage {
-    --arena-octagon-width-share: 0.918;
+    /* 1.12 FROM 641px UP, not 0.918 here and something else on the desktop.
+       0.918 was derived on 2026-08-25 against the SVG's box; the box carries
+       the floor glow and the ring labels, which reach well past the shape, so
+       the octagon it produced filled 80% of its frame - measured across this
+       range on the deployed page: 354 of a 442 frame at 880, 284 of 371 at
+       760, 260 of 340 at 700, about 44px of air at each side every time.
+       Above 901 the same numbers now give 5 to 8px. One share for both, so
+       the composition shrinks smoothly down to the phone instead of snapping
+       at 901. The phone's own locked 1.097 is a later rule and is untouched. */
+    --arena-octagon-width-share: 1.12;
+    --arena-octagon-height-share: 0.99;
     /* AND IT SITS DOWN A LITTLE, because growing it uncovered a collision
        the small octagon never reached. The stage's region deliberately spans
        the caption's own grid row (rows 3..-1, see the floor's micro-grid) -
@@ -11126,12 +11093,15 @@ body.page--arena.is-zoom-locked {
        rail reads beneath it; that reasoning predates the widget band, which
        now occupies that space instead. 0.4894 -> 0.503 moves the centre down
        ~11px of the region's 814 and buys the caption clear air, while the
-       lower edge still keeps ~1.24cm to the frame - so the "at most 1cm"
-       side margins are untouched and nothing else in the composition moves.
-       This is the same hook the phone uses, and the renderer states plainly
-       that the seat is the stylesheet's decision to make. The phone's own
-       locked 0.557 is a different declaration under max-width:767px. */
-    --arena-octagon-centre-y: 0.503;
+       lower edge still keeps clear air. This is the same hook the phone uses,
+       and the renderer states plainly that the seat is the stylesheet's to
+       make. The phone's own locked 0.557 is a different declaration under
+       max-width:767px.
+
+       0.503 -> 0.5008 on 2026-08-31: with the frame cut to the shape, 0.503
+       showed as 21px above and 18 below where both should be 19, and the
+       caption clearance it was bought for is held by the head row now. */
+    --arena-octagon-centre-y: 0.5008;
   }
 
   /* The floor's decorative frame now wraps the CENTRE CELL only - it inherited
