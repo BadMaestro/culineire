@@ -12392,9 +12392,10 @@ body.page--arena.is-zoom-locked {
      hold. Every card then spans the whole row and they stack, each as wide as
      the dock, instead of two sitting together and one hanging under them.
      Measured at 1440 after: 235/235/235 in one row, unchanged. */
-  @container (max-width: 470px) {
-    .arena-command-dock .arena-dock-card { grid-column: 1 / -1; }
-  }
+  /* The stacking query that stood here is gone. It existed because a card
+     110px wide could not hold its contents; the contents reflow now, so all
+     three cards stay in a row at every width - which is what the Owner asked
+     to see when he found the third one on a line of its own. */
 
   /* ARENA COMMAND, in a third of the width instead of a whole column: two
      tiles per row rather than the four the full-width footer drawer used. */
@@ -12424,9 +12425,14 @@ body.page--arena.is-zoom-locked {
        What it replaces is a 2x2 grid, which needed room for two labels side
        by side and did not have it: measured at 650px each metric came out
        38px wide by 118 TALL, a label wrapped one letter per line. Four short
-       rows are shorter than two rows of that, and they read. */
-    display: flex;
-    flex-direction: column;
+       rows are shorter than two rows of that, and they read.
+
+       AND TWO ACROSS WHERE TWO FIT. A metric needs about 110px; auto-fit
+       gives the desktop's 235px card its two columns - which is what keeps
+       the dock 375 tall there rather than 622 - and hands a narrow card one
+       column of four short rows. Neither shape is a breakpoint's decision. */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr));
     gap: 0;
   }
   .arena-command-dock .arena-command-deck__metrics .arena-metric {

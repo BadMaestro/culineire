@@ -1,5 +1,32 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1576",
+        "title": "The dock cards stay in a row and the desktop keeps its height",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Correcting v2.5.1570 in the same evening, because measuring it "
+            "showed it did the opposite of what it said. Two faults, both mine. "
+            "FIRST, the stacking container query was not actually removed - the "
+            "edit replaced the COMMENT above it and left the rule, so the three "
+            "cards were still stacking: measured at 900px, cards at "
+            "217,756 / 217,1263 / 217,1396, all 456 wide, one under another. It "
+            "is gone now, verified by grep as well as by measurement. SECOND, "
+            "turning ARENA PULSE into a flat column of four rows made the "
+            "DESKTOP taller: the dock went 375 to 622 and the deck 1441 to "
+            "1737, which is growth above the arena and not acceptable. The "
+            "panel goes back to `repeat(auto-fit, minmax(min(100%, 110px), "
+            "1fr))`, which gives the desktop's 235px card two columns and a "
+            "narrow card one column of four short rows - the same rule "
+            "producing both shapes, with no breakpoint choosing between them. "
+            "What v2.5.1570 got right and keeps: the metric TILE shape - icon "
+            "over label over numeral - now belongs to (max-width: 640px) alone. "
+            "It is correct on the phone, where four of them share a full-width "
+            "row, and it was what produced the 38px-wide, 118px-tall metric "
+            "inside a narrow card. And ARENA COMMAND's tiles still count "
+            "themselves with auto-fit. Tests: 27 focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1573",
         "date": "2026-08-31",
         "commit": "pending",
