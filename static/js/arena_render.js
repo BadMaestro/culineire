@@ -3577,9 +3577,26 @@
       ? declaredShare
       : OCTAGON_VISUAL_WIDTH_SHARE;
     var scale = region.width * widthShare / natural.width;
+    // THE CEILING IS THE PAGE'S TO STATE TOO, 2026-08-31, and for exactly the
+    // reason the width share above already is. Owner: leave no more than half
+    // a centimetre from the octagon to the edge on ANY side. On the desktop
+    // that makes the HEIGHT the binding axis, and 0.95 - a constant chosen
+    // when the octagon sat in a much taller frame - is 2.5% of the region at
+    // each end, which is more than half a centimetre the moment the frame is
+    // cut to hug the shape. A composition that has cut its frame can now say
+    // how much of it the octagon may take; anything outside (0, 1], including
+    // an unset value, still falls back to the constant, so every other width
+    // keeps the ceiling it always had.
+    var declaredCeiling = parseFloat(
+      global.getComputedStyle(camera)
+            .getPropertyValue('--arena-octagon-height-share')
+    );
+    var heightShare = (declaredCeiling > 0 && declaredCeiling <= 1)
+      ? declaredCeiling
+      : REGION_MAX_Y;
     // The ceiling, applied to the same known base rather than to a result.
-    if (natural.height * scale > region.height * REGION_MAX_Y) {
-      scale = region.height * REGION_MAX_Y / natural.height;
+    if (natural.height * scale > region.height * heightShare) {
+      scale = region.height * heightShare / natural.height;
     }
 
     // THE POSITION. Measured once at the chosen scale, then corrected once.
@@ -3646,10 +3663,13 @@
   function publishFloorTargetWidth(octagonWidth) {
     var deck = document.querySelector('.arena-command-deck');
     if (!deck) { return; }
-    // 1cm at 96dpi, the same constant the phone composition's own note
-    // derives it from - a margin the Owner can see and expects to be able
-    // to measure, not a guess.
-    var CM = 37.78;
+    // HALF A CENTIMETRE, 18.89px at 96dpi. It was 37.78 - a full centimetre -
+    // from 2026-08-26, when the Owner asked for "roughly a centimetre to the
+    // frame"; on 2026-08-31 he looked at the same screen and said the octagon
+    // still leaves too much air, and named half that. Only the min-width:901px
+    // branch reads --arena-floor-target-width at all, so this number is the
+    // desktop's and nothing else changes hands.
+    var CM = 18.89;
     var next = Math.round(octagonWidth + CM * 2) + 'px';
     if (deck.style.getPropertyValue('--arena-floor-target-width') === next) { return; }
     deck.style.setProperty('--arena-floor-target-width', next);

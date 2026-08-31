@@ -1,5 +1,45 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1585",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "Half a centimetre from the octagon to the frame, on every side",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner, on the desktop: too much air is left to the edges, stretch "
+            "the octagon so no side keeps more than 0.5cm. The 2026-08-25 pass "
+            "was the same instruction at 1cm and it ended with an admission that "
+            "one axis had to be the limit. ON ANY SIDE is what changed. "
+            "MEASURED IN HIS OWN BROWSER at 1920, by rendering the live page "
+            "into a 1920px frame and taking the union of every painted node in "
+            "the scene: a 983x774 frame around an 896x618 shape - 43, 43, 80 and "
+            "76px, which is 1.14cm at the sides and 2.12 and 2.01cm above and "
+            "below. "
+            "THE FRAME IS CUT FIRST, because no size of octagon fits 0.5cm on "
+            "four sides of a box that is the wrong shape: the shape is 1.450 "
+            "wide to tall and the frame was 1.270. A frame that hugs it is half "
+            "a centimetre larger on each axis, 945+38 by 652+38, an aspect of "
+            "0.708 against the old 0.82. "
+            "THEN THE SHARE. The shape has to reach 945.2px, a factor of 1.0549 "
+            "on 896. The share sizes the SVG BOX and the shape fills 99.2% of it "
+            "here, so the box wants 952.6 of the 983 column: 0.969. "
+            "AND THE CEILING BECAME STATEABLE. At this aspect the octagon binds "
+            "on HEIGHT, and the renderer's REGION_MAX_Y of 0.95 - chosen when "
+            "the frame was far taller than the shape - would clamp the box half "
+            "a pixel short and then keep 2.5% of the region at each end for "
+            "itself. --arena-octagon-height-share mirrors the width share that "
+            "has been the stylesheet's to state since the phone work: anything "
+            "outside (0,1] or unset still falls back to the constant, so every "
+            "other width keeps the ceiling it always had. "
+            "The desktop's margin constant in publishFloorTargetWidth goes 37.78 "
+            "-> 18.89. Only the min-width:901px branch reads the variable it "
+            "writes, so it is the desktop's number and nothing else changes "
+            "hands. 641-900px keeps its 1cm frame and its 0.918 share - he said "
+            "to start with the desktop. The phone's locked 1.097 and 0.557 are "
+            "in a different query and are untouched; their guard is green."
+        ),
+    },
+    {
         "version": "2.5.1579",
         "date": "2026-08-31",
         "commit": "pending",
