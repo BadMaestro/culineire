@@ -1,5 +1,56 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1525",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The 641-900px band gets proportions, not one full-width column",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner, after v2.5.1522 removed the old rank ladder: taking "
+            "the ladder out was not the task. The task is that every element "
+            "is proportioned properly at every transition from desktop to "
+            "phone. MEASURED at 800px against 1440px before touching "
+            "anything: the deck 3606 against 1518; the dock 788x771 with "
+            "three cards 788 wide STACKED, against 733x375 with three cards "
+            "235 wide in a row; the phase rail 224px wide inside a ribbon "
+            "788px wide; the phase chips 1.05rem, smaller than the desktop's "
+            "1.55rem AND the phone's 1.4rem, a size belonging to no screen. "
+            "EVERY ONE IS THE SHAPE OF THE LADDER BUG: a rule written once "
+            "for min-width:901px and once for the phone, with 641-900 covered "
+            "by neither, so the band kept an ungated base value nobody meant "
+            "to be seen. Found by walking the cascade and asking, per selector "
+            "and property, whether the band's WINNING declaration is ungated "
+            "while both neighbours' are gated. The worst and least visible: "
+            "grid-area is `dock` at 901px and `command` on the phone, so in "
+            "the band the dock matched neither and was AUTO-PLACED - it never "
+            "entered its own cell, which is why it spanned the full width "
+            "whatever the column count. Same for the ribbon: display is "
+            "`block` at 901px and `flex` at 767px, so the band kept the base "
+            "`grid`, whose second track holds .arena-phase-blurb - an element "
+            "that is display:none at EVERY width - so 491px of nothing was "
+            "crushing the rail beside it. FIXED, all inside the band: the deck "
+            "becomes two columns with the floor, ribbon, ranks and foot "
+            "spanning both, so the chat, ladder and house stream get 388px at "
+            "800 and 310px at 641 instead of being stretched to the full "
+            "width; the dock is named into its cell and given its three "
+            "columns back; the ribbon takes the desktop's block box; the chips "
+            "take the phone's size; padding-block takes 0.95rem between the "
+            "desktop's 1.1 and the phone's 0.8. RESULT, measured on "
+            "production: deck 3606 -> 2370, dock 788x771 -> 788x341 with "
+            "cards 255x341 in a row against the desktop's 235. VERIFIED BY "
+            "AUDIT, not by eye: the computed display, flex-direction, column "
+            "count, position, grid-area and overflow of twenty components read "
+            "at 1440, 800 and 390 - 15 of 20 now identical to the desktop, 1 "
+            "to the phone, and of the 4 remaining two are correct by design "
+            "(the deck's own 3-to-2-to-1 column reflow, and the rank spine "
+            "which is display:none at all three) while the other two, a "
+            "`static` chip and a `static` stack, were aligned to their "
+            "neighbours in this same pass. Desktop untouched: the change is "
+            "confined to (min-width:641px) and (max-width:900px). Tests: 115 "
+            "focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1522",
         "date": "2026-08-31",
         "commit": "pending",
