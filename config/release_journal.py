@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1540",
         "date": "2026-08-31",
-        "commit": "pending",
+        "commit": "dd65952e",
         "title": "The sticker shelf is grey, watermarked, and opens in colour",
         "section": "Chef Battles / Arena",
         "summary": (
