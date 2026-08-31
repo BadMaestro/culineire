@@ -1431,6 +1431,9 @@
 /* .arena-command-deck - rules for this component, kept together.
    Gathered by an15_gather.py: the applying declarations are
    byte-identical and no conflicting pair changed places. */
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
 /* MOVED UP 2026-08-31, and it is a CASCADE fix, not a tidy-up.
 
    This rule is the deck's BASE - no media query, so it applies at every
@@ -1978,6 +1981,50 @@
     grid-column: 3;
     justify-self: end;
   }
+}
+@media (min-width: 641px) {
+  /* THE HEIGHT CEILING HAS TO CAP THE WIDTH TOO. The floor is
+     `aspect-ratio: 1/0.805` under `max-height: min(78vh, 820px)`; when that
+     ceiling binds - and it does on any ordinary laptop - the height stops and
+     the WIDTH does not, so the box stops being the octagon's shape and the
+     difference shows as air at the sides. Measured in a 1920x900 window: a
+     969px frame around an 863px shape, 53px each side, while top and bottom
+     were 5 and 9.
+
+     No measurement is needed to fix it, and two attempts that went through the
+     renderer both looped - the column published from the octagon, the octagon
+     sized by the region, settling at 660 then 681px of shape where 926 fits.
+     The ceiling is a KNOWN LENGTH, so the width it allows is that length over
+     the same aspect, and the two ceilings simply agree. 1.2422 is 1/0.805, and
+     it is multiplied rather than divided because `calc(min(...) / 0.805)`
+     shipped once and the browser dropped the whole declaration.
+
+     AND IT LIVES HERE, in the 641px composition, because that is where this
+     octagon's numbers live. The first attempt was written into what looked
+     like the desktop block and was in fact nested inside
+     `@media (max-width: 767px)` after an earlier gather - 641 AND max-767 AND
+     min-901 at once, which matches nothing. It shipped twice and changed
+     nothing, and the second time I blamed the cascade for it. */
+  .arena-command-deck__floor {
+    max-width: calc(min(78vh, 820px) * 1.2422);
+    margin-inline: auto;
+  }
+}
+
+
+@media (min-width: 641px) {
+}
+@media (max-width: 640px) {
+}
+@media (max-width: 767px) {
+}
+@media (max-width: 767px) {
+}
+@media (min-width: 641px) {
+}
+@media (min-width: 641px) {
+}
+@media (min-width: 768px) {
 }
 @media (min-width: 641px) {
   /* THE OCTAGON TAKES THE ROOM IT HAS ON A DESKTOP TOO. Owner, 2026-08-25:
@@ -7877,31 +7924,6 @@ button.arena-chat__poll-option { cursor: pointer; }
    thousands of pixels - and the same margin would be a gap for nothing. */
 @media (min-width: 901px) {
   .arena-command-deck__floor { margin-top: 0; }
-  /* THE HEIGHT CEILING HAS TO CAP THE WIDTH TOO, and in CSS rather than
-     through the renderer. The floor is `aspect-ratio: 1/0.805` with a
-     `max-height: min(78vh, 820px)`: when that ceiling binds - which it does on
-     any ordinary laptop - the height stops and the WIDTH does not, so the box
-     stops being the octagon's shape and the difference shows as air at the
-     sides. Measured in a 1920x900 window: a 969px frame around an 863px shape,
-     53px each side, while top and bottom were 5 and 9.
-
-     Two attempts went through JavaScript and both looped: the column was
-     published from the octagon, the octagon was sized by the region, and the
-     pair settled at 660 then 681px of shape where 926 fits. This needs no
-     measurement at all - the ceiling is a known length, so the width it allows
-     is that length over the same aspect, and the two ceilings simply agree.
-     Centred, so what the floor gives up is split evenly between the rails. */
-  /* (0,2,0), because something already gives this box `max-width: 100%` and a
-     plain class rule lost to it - measured: 1618 shipped and the computed
-     value stayed 100%. Naming the deck decides it by specificity. */
-  .arena-command-deck > .arena-command-deck__floor {
-    /* MULTIPLIED, NOT DIVIDED: `calc(min(78vh, 820px) / 0.805)` shipped and
-       the browser dropped it - the declaration was in the served file, the
-       selector matched, and it was not in the CSSOM at all, so the computed
-       value stayed at the 100% it had before. 1.2422 is 1/0.805. */
-    max-width: calc(min(78vh, 820px) * 1.2422);
-    margin-inline: auto;
-  }
   /* HALF A CENTIMETRE ON EVERY SIDE, Owner 2026-08-31: too much air is left
      to the edges, stretch the octagon so no side keeps more than 0.5cm. The
      2026-08-25 pass was the same instruction at 1cm, and it ended with the
