@@ -11103,6 +11103,23 @@ body.page--arena.is-zoom-locked {
        caption clearance it was bought for is held by the head row now. */
     --arena-octagon-centre-y: 0.5008;
   }
+  /* THE REGION IS THE FRAME, from 641px up. Region Model A gave the octagon
+     rows 3..-1 of the floor's micro-grid, which leaves the two rows above it -
+     the published deck-top height and the caption's lead - OUTSIDE the region
+     while the decorative frame still wraps the WHOLE floor. The two boxes are
+     therefore not concentric, and the difference is not constant: measured on
+     the deployed page, 6px at 880 and 14px at 760. At 700 that showed as 30px
+     of air above the octagon and the shape hanging 4px BELOW the frame, while
+     the sides were a clean 12 and 12.
+
+     The rows it gives up are empty. Row 3 was the writing's, and the writing
+     has been absolutely positioned above the floor since v2.5.1311; rows 1 and
+     2 exist to hold air above it. Spanning all of them makes the region the
+     same box as the frame at every width, which is what lets one seat value be
+     right at 1920 and at 700 at the same time. */
+  .arena-command-deck__floor > .arena-floor-stage {
+    grid-row: 1 / -1;
+  }
 
   /* The floor's decorative frame now wraps the CENTRE CELL only - it inherited
      inset:2% of the whole viewport when the floor itself filled the whole
