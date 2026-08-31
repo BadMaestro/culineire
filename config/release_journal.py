@@ -1,5 +1,55 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1540",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The sticker shelf is grey, watermarked, and opens in colour",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Four of his instructions on one shelf, in the order he gave them: "
+            "the gallery stickers are grey and colour under the pointer, they "
+            "carry a watermark, each one opens the sticker full size in colour, "
+            "the way a sponsors cell opens its form - and no right click. "
+            "THE SHOP IS NOT THE PRODUCT, and that distinction is the whole "
+            "design. Marking the file the CHAT sends would put a watermark "
+            "inside every message a buyer paid to send. So the shelf reads its "
+            "own marked copies from stickers/shop/ - tile and full size, 26 "
+            "files - written by the same command that marks the shop window, "
+            "and the chat's own artwork is never written to. The first test in "
+            "the new class asserts exactly that and is the one to keep if the "
+            "others are ever thrown away. "
+            "THE MARK IS CLIPPED TO THE ARTWORK. A sticker is a cut-out shape, "
+            "not a rectangle: painted across the whole frame the lattice would "
+            "trace the outline of the transparency onto every background the "
+            "sticker is ever placed on. Its alpha is taken as the darker of "
+            "itself and the sticker's, and measured on the shipped file: of "
+            "34,363 fully transparent pixels, every one is still exactly 0. "
+            "STRENGTH SET BY THE TWO HARDEST STICKERS, not by taste. The sheet "
+            "is one dark card and 0.17 white reads across all of it; a sticker "
+            "is not - YES CHEF! is a bright yellow burst and SEARED is "
+            "near-black. At 0.30 with a half-weight shadow the mark vanished "
+            "on the first. Two strokes of equal weight at 0.42 survive both, "
+            "and survive the browser drawing a 160px tile smaller still. "
+            "THE TILE IS A BUTTON, NOT A LINK, and that is not decoration: a "
+            "link offers `open image in new tab` and `save image as` in the "
+            "very menu this card is trying not to have. A button offers "
+            "neither and still works from the keyboard. On top of it, "
+            "sticker_viewer.js refuses contextmenu and dragstart on the shelf "
+            "art, the viewer and the shop window. "
+            "HIS SWAPPED-BUTTONS CASE IS COVERED WITHOUT DETECTING ANYTHING. "
+            "The context menu is opened by the OS GESTURE, not by a particular "
+            "physical button - MDN: the event fires when the user attempts to "
+            "open a context menu - so one handler covers a reader who has "
+            "swapped his buttons, and nothing has to detect a swap the browser "
+            "cannot see. Written down because it was asked: in Firefox, Shift "
+            "plus the gesture opens the menu WITHOUT firing the event at all, "
+            "and no page anywhere can prevent that. "
+            "Grey only where there is a pointer: `@media (hover: none)` leaves "
+            "a phone in colour, because goods a reader can never light up are "
+            "not a catalogue, they are a fault."
+        ),
+    },
+    {
         "version": "2.5.1537",
         "date": "2026-08-31",
         "commit": "pending",

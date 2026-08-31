@@ -1,4 +1,4 @@
-"""Burn the house watermark into the sticker shop window.
+"""Burn the house watermark into the sticker shop window and the shelf tiles.
 
 Owner, 2026-08-30: "теперь водяной знак на витрину".
 
@@ -46,6 +46,21 @@ SOURCE = os.path.join("ops", "reference", "stickers", "sticker_pack_arena_2026.w
 TARGET = os.path.join(
     "static", "images", "chef_battle", "sticker_pack_arena_2026.webp")
 
+#: The picker tiles and full stickers the CHAT uses. Sources only -
+#: nothing here is ever written to. Marking the file the chat SENDS would
+#: put the watermark inside every message a buyer paid to send, which is
+#: not protecting the goods, it is damaging them.
+CHAT_FULL_DIR = os.path.join(
+    "static", "images", "chef_battle", "arena", "stickers")
+CHAT_TILE_DIR = os.path.join(CHAT_FULL_DIR, "tile")
+
+#: The marked copies the SHOP SHELF uses - the gallery is the shop, the
+#: chat is the product. A separate folder so a glob can never confuse the
+#: two, and so the existing sticker guards keep globbing what they always
+#: globbed.
+SHELF_FULL_DIR = os.path.join(CHAT_FULL_DIR, "shop")
+SHELF_TILE_DIR = os.path.join(SHELF_FULL_DIR, "tile")
+
 MARK = "culineire.ie"
 #: Opacity of the mark. Measured by eye against the sheet: below 0.10 it stops
 #: surviving a screenshot re-scale, above 0.20 it starts competing with the
@@ -92,13 +107,17 @@ class Command(BaseCommand):
                     f"{TARGET} is not the current watermark of {SOURCE}. "
                     f"Run manage.py watermark_shop_window."
                 )
-            self.stdout.write("shop window is watermarked and current")
+            self.shelf(root, check=True)
+            self.stdout.write("shop window and shelf are watermarked and current")
             return
 
         with open(target, "wb") as handle:
             handle.write(fresh)
         self.stdout.write(
             f"watermarked {os.path.basename(target)}: {len(fresh)} bytes")
+
+        written = self.shelf(root, check=False)
+        self.stdout.write(f"watermarked {written} shelf files")
 
     # ---------------------------------------------------------------- marking
 
@@ -144,6 +163,121 @@ class Command(BaseCommand):
         out = art.convert("RGBA")
         out.alpha_composite(layer)
         return out.convert("RGB")
+
+
+    # ------------------------------------------------------------------ shelf
+
+    def shelf(self, root, *, check):
+        """The gallery's own marked copies, in both sizes.
+
+        BOTH SIZES, because the Owner asked for two things at once: the shelf
+        shows the small tile, and clicking it opens the sticker in colour. Mark
+        only the tile and that click hands over the clean full-size file,
+        undoing the whole exercise.
+
+        The chat's files are read and never written. The marked copies live in
+        `stickers/shop/`, which no existing guard globs - ArenaChatStickerTests
+        pairs `stickers/*.webp` with `stickers/tile/*.webp` and would read a
+        third set of files as a sticker with no tile.
+        """
+        from PIL import Image
+
+        pairs = (
+            (os.path.join(root, CHAT_FULL_DIR), os.path.join(root, SHELF_FULL_DIR)),
+            (os.path.join(root, CHAT_TILE_DIR), os.path.join(root, SHELF_TILE_DIR)),
+        )
+        written = 0
+        for source_dir, out_dir in pairs:
+            if not check:
+                os.makedirs(out_dir, exist_ok=True)
+            for name in sorted(os.listdir(source_dir)):
+                if not name.endswith(".webp"):
+                    continue
+                with Image.open(os.path.join(source_dir, name)) as art:
+                    art.load()
+                    marked = self.mark_transparent(art)
+                fresh = self.encode_sticker(marked)
+                out = os.path.join(out_dir, name)
+                if check:
+                    if not os.path.exists(out):
+                        raise CommandError(f"the shelf is missing {name}")
+                    with open(out, "rb") as handle:
+                        current = handle.read()
+                    if (hashlib.sha256(current).hexdigest()
+                            != hashlib.sha256(fresh).hexdigest()):
+                        raise CommandError(
+                            f"the shelf copy of {name} is stale. Run "
+                            f"manage.py watermark_shop_window."
+                        )
+                else:
+                    with open(out, "wb") as handle:
+                        handle.write(fresh)
+                written += 1
+        return written
+
+    def mark_transparent(self, art):
+        """A sticker with the mark over it, TRANSPARENCY PRESERVED.
+
+        The sheet is a rectangle on a dark card; a sticker is a cut-out shape
+        with an alpha channel. Flattening it here would put a grey box behind
+        every tile on the shelf, so the mark is composited onto the RGBA image
+        and the alpha survives.
+
+        AND THE MARK IS CLIPPED TO THE ARTWORK. Its own alpha is taken as the
+        darker of itself and the sticker's, so the lattice appears only where
+        the sticker is opaque and never floats in the empty corners around the
+        cut-out - which is both what it should look like and what stops the
+        mark from advertising the shape of the transparency.
+        """
+        from PIL import Image, ImageChops, ImageDraw
+
+        rgba = art.convert("RGBA")
+        width, height = rgba.size
+        font = self.font(max(9, width // 11))
+
+        span = int((width ** 2 + height ** 2) ** 0.5) + 12
+        layer = Image.new("RGBA", (span, span), (0, 0, 0, 0))
+        pen = ImageDraw.Draw(layer)
+        box = pen.textbbox((0, 0), MARK, font=font)
+        step_x = (box[2] - box[0]) + max(10, width // 8)
+        step_y = (box[3] - box[1]) + max(10, height // 5)
+
+        # HEAVIER THAN THE SHEET'S 0.17, AND THE SHADOW CARRIES EQUAL WEIGHT.
+        # The sheet is one dark card, so white at 0.17 reads across all of it.
+        # A sticker is not: YES CHEF! is a bright yellow burst and SEARED is
+        # near-black, and a white mark that reads on the second vanishes on the
+        # first - measured, on this exact file, at 0.30 with a half-strength
+        # shadow. Two strokes of equal weight, white over dark, give a mark
+        # that survives both, and 0.42 survives the browser drawing a 160px
+        # tile smaller still.
+        ink = int(255 * 0.42)
+        for row, y in enumerate(range(0, span, step_y)):
+            offset = (step_x // 2) if row % 2 else 0
+            for x in range(-step_x, span, step_x):
+                pen.text((x + offset, y), MARK, font=font,
+                         fill=(255, 255, 255, ink))
+                pen.text((x + offset + 1, y + 1), MARK, font=font,
+                         fill=(0, 0, 0, ink))
+
+        layer = layer.rotate(ANGLE, resample=Image.BICUBIC)
+        left = (span - width) // 2
+        top = (span - height) // 2
+        layer = layer.crop((left, top, left + width, top + height))
+        layer.putalpha(ImageChops.darker(layer.split()[3], rgba.split()[3]))
+
+        out = rgba.copy()
+        out.alpha_composite(layer)
+        return out
+
+    def encode_sticker(self, image):
+        import io
+
+        buffer = io.BytesIO()
+        # Lossless would double the size of art that already ships lossy. 82
+        # keeps a marked tile inside the 20 KB tile cap and a marked full
+        # sticker inside the 60 KB one - both measured, not assumed.
+        image.save(buffer, "WEBP", quality=82, method=6)
+        return buffer.getvalue()
 
     def font(self, size):
         from PIL import ImageFont

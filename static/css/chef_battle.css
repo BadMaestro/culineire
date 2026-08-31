@@ -5037,3 +5037,104 @@ a.battle-home__pulse-msg:hover {
 .artifact-card__gift button { width: 100%; font-size: 0.74rem; }
 .battle-gifts__owned        { margin-top: 1.2rem; padding-top: 1rem;
                               border-top: 1px solid var(--line); }
+
+/* AC-STK - THE SHELF IS GREY UNTIL YOU POINT AT IT. Owner, 2026-08-31:
+   "стикеры в галерее серые, цветные при наведении". The shop shows what it
+   is selling in the plainest possible terms - the goods are there, and the
+   colour arrives when the reader reaches for one.
+
+   NOT the treatment that was deleted from the CHAT PICKER on 2026-08-28.
+   That one was grey PLUS a bronze badge over his artwork, marking a sticker
+   as locked in the place people expect to click and send; he called it
+   rubbish and he was right. This is the shop, where a shelf that reads as a
+   catalogue rather than as an inventory is the point.
+
+   The picture itself is a button, so the browser offers no `save image as`
+   and no `open in new tab` on it, and sticker_viewer.js refuses the context
+   menu and the drag on top of that. */
+.sticker-card__open {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+.sticker-card__art {
+  filter: grayscale(1);
+  transition: filter 0.18s ease, transform 0.18s ease;
+  /* The picture is not text and not a file to be dragged out of the page. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+.sticker-card__open:hover .sticker-card__art,
+.sticker-card__open:focus-visible .sticker-card__art {
+  filter: grayscale(0);
+  transform: scale(1.04);
+}
+/* A pointer is what makes hover a gesture. On a touch screen there is none,
+   so the shelf is simply in colour - a phone reader cannot hover, and grey
+   goods he can never light up are not a catalogue, they are a fault. */
+@media (hover: none) {
+  .sticker-card__art { filter: grayscale(0); }
+}
+
+/* THE VIEWER, the same shape as the sponsors puzzle's cell panel - the Owner
+   pointed at it by name. Its own rules rather than a link to
+   sponsors_modal.css: one stylesheet reaching into another app's for a
+   dimmed background and a round button is a dependency nobody would expect
+   to find when they change the sponsors page. */
+.sticker-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(31, 44, 37, 0.72);
+}
+.sticker-viewer[hidden] { display: none; }
+.sticker-viewer__panel {
+  position: relative;
+  max-width: min(30rem, 92vw);
+  padding: 1.4rem 1.4rem 1rem;
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface, #fffdf9);
+  box-shadow: 0 1.2rem 3rem rgba(31, 44, 37, 0.35);
+  text-align: center;
+}
+.sticker-viewer__art {
+  display: block;
+  width: 100%;
+  height: auto;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+.sticker-viewer__label {
+  margin: 0.7rem 0 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.sticker-viewer__close {
+  position: absolute;
+  top: -0.9rem;
+  right: -0.9rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface, #fffdf9);
+  color: var(--ink);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.sticker-viewer__close:hover,
+.sticker-viewer__close:focus-visible { background: var(--surface-soft); }

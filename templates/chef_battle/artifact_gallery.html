@@ -116,7 +116,26 @@
             <article class="artifact-card sticker-card{% if tile.item.pk in owned_ids %} sticker-card--owned{% endif %}">
               <div class="artifact-card__image-wrap">
                 {% if tile.tile_url %}
-                <img alt="{{ tile.item.label }}" class="artifact-card__image" loading="lazy" src="{{ tile.tile_url }}">
+                {% comment %}
+                A BUTTON, NOT A LINK, AND THE OWNER CHOSE THE BEHAVIOUR:
+                "такой же способ как при нажатии на ячейку в спонсорах -
+                только там открывается форма для заполнения, а у нас стикер
+                в полный рост и цвет, но с ватермаркой". So this opens the
+                same shape of panel the sponsors puzzle opens on a cell.
+
+                A link would offer "open in new tab" and "save as" in the
+                context menu, which is the opposite of what this is for. A
+                button offers neither, works from the keyboard, and needs no
+                href to disable.
+                {% endcomment %}
+                <button class="sticker-card__open" type="button"
+                        data-sticker-open
+                        data-full="{{ tile.full_url|default:tile.tile_url }}"
+                        data-label="{{ tile.item.label }}"
+                        aria-label="Show {{ tile.item.label }} in colour">
+                  <img alt="{{ tile.item.label }}" class="artifact-card__image sticker-card__art"
+                       draggable="false" loading="lazy" src="{{ tile.tile_url }}">
+                </button>
                 {% endif %}
               </div>
               <div class="artifact-card__header">
@@ -153,7 +172,26 @@
             <article class="artifact-card sticker-card{% if tile.item.pk in owned_ids %} sticker-card--owned{% endif %}">
               <div class="artifact-card__image-wrap">
                 {% if tile.tile_url %}
-                <img alt="{{ tile.item.label }}" class="artifact-card__image" loading="lazy" src="{{ tile.tile_url }}">
+                {% comment %}
+                A BUTTON, NOT A LINK, AND THE OWNER CHOSE THE BEHAVIOUR:
+                "такой же способ как при нажатии на ячейку в спонсорах -
+                только там открывается форма для заполнения, а у нас стикер
+                в полный рост и цвет, но с ватермаркой". So this opens the
+                same shape of panel the sponsors puzzle opens on a cell.
+
+                A link would offer "open in new tab" and "save as" in the
+                context menu, which is the opposite of what this is for. A
+                button offers neither, works from the keyboard, and needs no
+                href to disable.
+                {% endcomment %}
+                <button class="sticker-card__open" type="button"
+                        data-sticker-open
+                        data-full="{{ tile.full_url|default:tile.tile_url }}"
+                        data-label="{{ tile.item.label }}"
+                        aria-label="Show {{ tile.item.label }} in colour">
+                  <img alt="{{ tile.item.label }}" class="artifact-card__image sticker-card__art"
+                       draggable="false" loading="lazy" src="{{ tile.tile_url }}">
+                </button>
                 {% endif %}
               </div>
               <div class="artifact-card__header">
@@ -430,4 +468,24 @@
 })();
 </script>
 {% endif %}
+{% comment %}
+THE STICKER VIEWER. One panel for the whole shelf, the same shape as the
+sponsors puzzle's cell panel the Owner pointed at: a dimmed page, a centred
+card, a round close button, Escape closes it.
+
+It shows the MARKED full-size sticker, in colour. Marked, because a viewer
+that hands over the clean file is a download button with extra steps; in
+colour, because that is the reward for opening it - the shelf itself is
+grey until the pointer lands on a tile.
+{% endcomment %}
+<div class="sticker-viewer" data-sticker-viewer hidden
+     role="dialog" aria-modal="true" aria-label="Sticker">
+  <div class="sticker-viewer__panel">
+    <button class="sticker-viewer__close" type="button" data-sticker-close
+            aria-label="Close">&times;</button>
+    <img alt="" class="sticker-viewer__art" data-sticker-art draggable="false" src="">
+    <p class="sticker-viewer__label" data-sticker-label></p>
+  </div>
+</div>
+<script src="{% static 'js/sticker_viewer.js' %}?v=20260831-shelf"></script>
 {% endblock %}

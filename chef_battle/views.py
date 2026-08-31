@@ -653,6 +653,15 @@ def token_shop(request):
 #: nobody reads twice.
 STICKER_TILE_DIR = "images/chef_battle/arena/stickers/tile/"
 
+#: THE SHOP SHELF SHOWS MARKED COPIES, NOT THE FILES THE CHAT SENDS.
+#: Owner, 2026-08-31: the gallery stickers carry a watermark.
+#: `stickers/shop/` holds the marked pair - tile and full size - written
+#: by manage.py watermark_shop_window from the chat's own artwork, which
+#: it never touches. Marking the file the CHAT sends would put the
+#: watermark inside every message a buyer paid to send.
+STICKER_SHELF_TILE_DIR = "images/chef_battle/arena/stickers/shop/tile/"
+STICKER_SHELF_FULL_DIR = "images/chef_battle/arena/stickers/shop/"
+
 
 def _sticker_tile(item):
     """A sticker plus the URL of its picker tile.
@@ -671,11 +680,18 @@ def _sticker_tile(item):
     """
     from django.contrib.staticfiles.storage import staticfiles_storage
 
-    try:
-        url = staticfiles_storage.url(f"{STICKER_TILE_DIR}{item.token}.webp")
-    except Exception:
-        url = None
-    return {"item": item, "tile_url": url}
+    def _resolve(folder):
+        try:
+            return staticfiles_storage.url(f"{folder}{item.token}.webp")
+        except Exception:
+            return None
+
+    # The shelf's own marked copies. The chat's tile is kept as a
+    # fallback so a shop nobody has marked yet still shows its goods
+    # rather than thirteen empty boxes.
+    tile = _resolve(STICKER_SHELF_TILE_DIR) or _resolve(STICKER_TILE_DIR)
+    full = _resolve(STICKER_SHELF_FULL_DIR)
+    return {"item": item, "tile_url": tile, "full_url": full}
 
 
 def _sticker_shelf(viewer_author):

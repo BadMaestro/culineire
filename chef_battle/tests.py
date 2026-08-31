@@ -28899,3 +28899,159 @@ class TheShopWindowCarriesTheHouseMarkTests(TestCase):
         self.client.force_login(user)
         page = self.client.get(reverse("chef_battle:artifact_gallery"))
         self.assertContains(page, "sticker_pack_arena_2026")
+
+
+class TheShelfIsGreyMarkedAndOpensInColourTests(TestCase):
+    """Owner, 2026-08-31, four instructions on one shelf:
+
+      "стикеры в галерее серые, цветные при наведении - и водяной знак на них"
+      "ссылка на каждом стикере - при нажатии на которую открывается цветной
+       стикер"
+      "такой же способ как при нажатии на ячейку в спонсорах - только там
+       открывается форма для заполнения, а у нас стикер в полный рост и цвет,
+       но с ватермаркой"
+      "и без возможности правого клика"
+
+    THE ONE THING THAT MUST NOT BREAK is the difference between the shop and
+    the product. The gallery sells; the chat delivers. Marking the file the
+    chat SENDS would put a watermark inside every message a buyer paid for -
+    so the shelf reads its own marked copies from `stickers/shop/` and the
+    chat's own files stay untouched. That is the first test here and it is the
+    one worth keeping if the rest are ever thrown away."""
+
+    ROOT = Path(settings.BASE_DIR)
+    CHAT = ROOT / "static" / "images" / "chef_battle" / "arena" / "stickers"
+    SHOP = CHAT / "shop"
+
+    def test_the_chat_artwork_is_not_watermarked(self):
+        """The product is not the shop window. If this ever fails, buyers are
+        sending watermarked stickers to each other."""
+        from django.core.management import call_command
+        from io import StringIO
+
+        before = {p.name: p.read_bytes() for p in self.CHAT.glob("*.webp")}
+        tiles_before = {p.name: p.read_bytes() for p in (self.CHAT / "tile").glob("*.webp")}
+        self.assertTrue(before and tiles_before)
+
+        call_command("watermark_shop_window", stdout=StringIO())
+
+        for name, data in before.items():
+            self.assertEqual(
+                (self.CHAT / name).read_bytes(), data,
+                f"{name} - the chat's own sticker was rewritten",
+            )
+        for name, data in tiles_before.items():
+            self.assertEqual(
+                (self.CHAT / "tile" / name).read_bytes(), data,
+                f"tile/{name} - the chat's own tile was rewritten",
+            )
+
+    def test_the_shelf_has_a_marked_copy_of_every_sticker_in_both_sizes(self):
+        chat = {p.name for p in self.CHAT.glob("*.webp")}
+        self.assertEqual(
+            {p.name for p in self.SHOP.glob("*.webp")}, chat,
+            "the shelf and the chat disagree about which stickers exist",
+        )
+        self.assertEqual(
+            {p.name for p in (self.SHOP / "tile").glob("*.webp")}, chat,
+            "a shelf sticker has no tile, or a tile has no sticker",
+        )
+        for name in chat:
+            self.assertNotEqual(
+                (self.SHOP / name).read_bytes(), (self.CHAT / name).read_bytes(),
+                f"{name} is on the shelf unmarked",
+            )
+
+    def test_the_marked_copies_are_current(self):
+        from django.core.management import call_command
+        from io import StringIO
+
+        call_command("watermark_shop_window", "--check", stdout=StringIO())
+
+    def test_the_mark_does_not_leak_outside_the_artwork(self):
+        """A sticker is a cut-out shape. If the lattice were painted over the
+        whole rectangle it would draw the mark across the transparent corners,
+        which both looks wrong and traces the outline of the cut-out onto every
+        background it is ever placed on."""
+        from PIL import Image
+
+        with Image.open(self.SHOP / "yes_chef.webp") as marked:
+            marked.load()
+            alpha = marked.convert("RGBA").split()[3]
+        with Image.open(self.CHAT / "yes_chef.webp") as clean:
+            clean.load()
+            original = clean.convert("RGBA").split()[3]
+
+        # WHERE THE ARTWORK IS FULLY TRANSPARENT, THE MARKED COPY MUST BE TOO,
+        # and that is the whole requirement stated exactly.
+        #
+        # The first draft of this test compared EVERY pixel and demanded the
+        # marked alpha never exceed the original by more than one. It failed at
+        # 65 against 36 - not because the mark had leaked, but because the shelf
+        # copies are saved as lossy WebP and a lossy encoder moves values along
+        # a soft edge. Measured on this file: of the 34,363 fully transparent
+        # pixels, every single one is still exactly 0 in the marked copy; the
+        # drift lives only where the artwork was already semi-transparent.
+        leaked = []
+        for x in range(alpha.width):
+            for y in range(alpha.height):
+                if original.getpixel((x, y)) == 0 and alpha.getpixel((x, y)) > 8:
+                    leaked.append((x, y))
+        self.assertEqual(
+            leaked[:5], [],
+            f"the mark is painted on {len(leaked)} pixels the sticker does not "
+            f"cover - it would trace the cut-out onto every background",
+        )
+
+    def test_the_shelf_stays_inside_the_byte_caps(self):
+        """The mark adds high-frequency edges, so a marked copy encodes larger
+        than the artwork it came from. ArenaChatStickerTests caps a sticker at
+        60 KB and a tile at 20 KB; the shelf lives under the same roof."""
+        for path in self.SHOP.glob("*.webp"):
+            self.assertLess(path.stat().st_size, 60_000, path.name)
+        for path in (self.SHOP / "tile").glob("*.webp"):
+            self.assertLess(path.stat().st_size, 20_000, f"tile/{path.name}")
+
+    def test_the_gallery_serves_the_marked_tiles(self):
+        user, author = _make_chef("shelfreader", balance=500)
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
+        profile.age_verified = True
+        profile.save()
+        self.client.force_login(user)
+        page = self.client.get(reverse("chef_battle:artifact_gallery"))
+        body = page.content.decode()
+        self.assertIn("stickers/shop/tile/", body)
+        self.assertIn("data-sticker-open", body)
+        self.assertIn("data-sticker-viewer", body)
+
+    def test_the_tile_is_a_button_and_carries_the_full_size_to_open(self):
+        markup = (self.ROOT / "templates" / "chef_battle"
+                  / "artifact_gallery.html").read_text(encoding="utf-8")
+        card = markup.split("data-sticker-open", 1)[0][-400:]
+        self.assertIn("<button", card, "the sticker is a link again, which "
+                                       "brings back save-as and open-in-new-tab")
+        self.assertIn('data-full="', markup)
+
+    def test_grey_until_pointed_at(self):
+        css = (self.ROOT / "static" / "css"
+               / "chef_battle.css").read_text(encoding="utf-8")
+        rest = css.split(".sticker-card__art {", 1)[1].split("}", 1)[0]
+        self.assertIn("grayscale(1)", rest)
+        hover = css.split(".sticker-card__open:hover .sticker-card__art", 1)[1]
+        self.assertIn("grayscale(0)", hover.split("}", 1)[0])
+
+    def test_the_context_menu_and_the_drag_are_refused(self):
+        """He asked for this and for the swapped-buttons case with it. The
+        context menu is opened by the OS GESTURE rather than by a particular
+        physical button, so one handler covers both - which is why nothing here
+        looks at `event.button`."""
+        source = (self.ROOT / "static" / "js"
+                  / "sticker_viewer.js").read_text(encoding="utf-8")
+        self.assertIn("'contextmenu'", source)
+        self.assertIn("'dragstart'", source)
+        self.assertIn("preventDefault", source)
+        self.assertNotIn(
+            "event.button ===", source,
+            "the refusal is keyed to a physical button, so a reader with "
+            "swapped mouse buttons walks past it",
+        )
