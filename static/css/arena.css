@@ -1607,9 +1607,23 @@
        the gaps), so 1440 does not move; below it the composition shrinks
        instead of snapping, and the two rails are equal, which the old
        260/400 pair was not - it stood the octagon 70px left of centre. */
+    /* AND THE RATIO IS A CEILING, NOT A WIDTH, 2026-08-31. The ratio alone
+       hands the centre column every pixel the two rails do not need, and on a
+       real screen the octagon is bound by HEIGHT - the floor's own max-height
+       is 78vh - so the column stays wide while the shape stops growing, and
+       the difference shows as air at the sides. Measured on the deployed page
+       in a 1920x900 window: a 969px frame around an 863px shape, 53px each
+       side, while top and bottom were 5 and 9.
+
+       --arena-floor-target-width is the octagon's own rendered shape plus half
+       a centimetre each way, published by placeOctagon() after it has actually
+       placed the shape. The fallback is the ratio, so the first paint - before
+       any script has run - is exactly what it was. This is the mechanism the
+       2026-08-26 note above describes; the ratio replaced it and the air came
+       back with it. */
     grid-template-columns:
       minmax(0, 1fr)
-      minmax(0, 2.214fr)
+      minmax(0, var(--arena-floor-target-width, 2.214fr))
       minmax(0, 1fr);
     align-items: start;
     gap: clamp(0.5rem, 1.1vw, 1.1rem);
