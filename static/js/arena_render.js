@@ -3628,7 +3628,19 @@
     var targetY = region.top + region.height * centreY;
     writePlacement(camera, scale, targetX - sized.cx, targetY - sized.cy);
 
-    publishFloorTargetWidth(sized.width);
+    // THE HEIGHT-BOUND WIDTH, NOT THE PLACED ONE, and this is a feedback loop
+    // rather than a preference. The column is published as the shape plus its
+    // margin; if the shape is itself bound by the COLUMN - which it is now
+    // that the share fills it - then each pass narrows the column, which
+    // narrows the shape, which narrows the column. Measured after the first
+    // attempt at 1920: it converged at 660px of octagon where 926 fits.
+    //
+    // The width the octagon would take if only its HEIGHT constrained it
+    // depends on region.height alone, and the deck's rows do not change when a
+    // column narrows, so publishing that is stable in one pass.
+    publishFloorTargetWidth(
+      natural.width * (region.height * heightShare / natural.height)
+    );
   }
 
   /**
