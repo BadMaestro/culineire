@@ -2015,18 +2015,6 @@
     max-width: calc(min(78vh, 820px) * 1.2422);
     margin-inline: auto;
   }
-  /* 641-767 SEATS IT HIGHER, and only that sliver. Everything from 800 up
-     lands within 4 to 19px of the frame on all four sides after the cap; at
-     700 the shape sat 14px low - 27px above it and 1px THROUGH the frame
-     below - because the max-width:767px composition adds height above the
-     floor that the wider ones do not. 14px of a 288px region is 0.0486, so
-     0.5008 becomes 0.452 here and nowhere else. (0,2,0) because the value it
-     overrides is a class rule further down. */
-  @media (max-width: 767px) {
-    .page--arena .arena-floor-stage {
-      --arena-octagon-centre-y: 0.452;
-    }
-  }
 }
 
 
