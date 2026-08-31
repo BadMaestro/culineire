@@ -1,5 +1,58 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1522",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The rank migration of 2026-08-24 is finished in the 641-900px band",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner narrowed his window to about 800px, photographed the "
+            "arena and said the old CSS is still surfacing between the desktop "
+            "and the phone: his rank strip gone, an older chevron ladder "
+            "standing beside a shrunken octagon. He is right, and it was not a "
+            "third design nor a broken band - it was a migration stopped half "
+            "way, which both halves of the codebase admitted in writing. "
+            "arena.css said `the 641-900px band keeps the overlay ladder it "
+            "has today. Only the desktop turns this on`, and arena_render.js "
+            "said `the band between them, 768 to 900, still wants the overlay "
+            "and still gets measured: that range is deliberately not part of "
+            "this change`. On 2026-08-24 he moved the ranks off the floor into "
+            "a strip beneath the arena; the desktop was migrated, the phone "
+            "already carried its own ranks in .arena-mobile-scene, and the "
+            "band was knowingly left behind. MEASURED FIRST, on his own "
+            "authenticated page, before anything was touched: at 1440 the "
+            "strip is 1428x206 and the spine is display:none; at 900 the strip "
+            "is gone and the spine stands 184x220; at 640 neither shows and "
+            "the mobile scene carries the ranks. The cause is one uncovered "
+            "range - the off-switch `.arena-floor-stage > .arena-rank-spine "
+            "{display:none}` is written twice, once under max-width:640px and "
+            "once under min-width:901px, so 641-900 was the only range where "
+            "the overlay was on, and it was on by omission rather than by "
+            "choice. THREE EDITS, ALL BELOW 901px SO THE DESKTOP CANNOT MOVE: "
+            "the band's grid gains a `ranks` row directly UNDER the floor - "
+            "under rather than over, because he asked for a strip `под "
+            "ареной` and because nothing above the arena may grow; the band "
+            "switches the overlay ladder off; and the strip's gate widens from "
+            "min-width:901px to min-width:641px, which is safe because every "
+            "rule in that block names .arena-rank-strip and nothing else. The "
+            "phone's own off-switch is left exactly where it is, because a "
+            "test reads that block by name. TWO CLAIMS OF MINE WERE WRONG "
+            "ALONG THE WAY AND ARE RETRACTED HERE RATHER THAN QUIETLY DROPPED: "
+            "that the band was an unmaintained orphan, and that 88 rules sat "
+            "on the wrong side of the boundary because the sheet ran two "
+            "breakpoint ladders. The tests caught both - the band holds the "
+            "chat's ceiling, without which 800px measured 113576px of page at "
+            "five thousand messages, and min-width:768px is a deliberate gate "
+            "chosen to include 800. A first attempt that unified everything to "
+            "one 900/901 boundary was reverted whole before any of this. "
+            "VERIFIED ON PRODUCTION, by cloning the strip block into the band "
+            "through the CSSOM on the live page before deploying: at 641 the "
+            "strip is 639x221 and the spine gone, at 900 it is 888x206 and the "
+            "spine gone, at 640 the phone is untouched with its mobile scene "
+            "at 638x439 and the deck still 3933."
+        ),
+    },
+    {
         "version": "2.5.1519",
         "date": "2026-08-30",
         "commit": "2740e08f",

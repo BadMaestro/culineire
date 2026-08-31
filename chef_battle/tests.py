@@ -12638,7 +12638,21 @@ class ArenaHeaderMeasurementTests(TestCase):
         self.assertIn("{ box: 'border-box' }", self._layout())
 
     def test_there_is_a_late_pass_for_what_lands_silently(self):
-        self.assertIn("setTimeout(function () { remeasure(true); }", self._layout())
+        """THE LATE PASS ASKS, IT NO LONGER ORDERS - and this test was left red
+        when v2.5.1510 changed it, which is my own debt being paid here rather
+        than a contract being softened.
+
+        It read `remeasure(true)`. Profiled 2026-08-31, that fired a forced
+        re-fit 1.2 seconds after every load, and `force` means every subscriber
+        re-places the octagon even when not one measured number moved: a full
+        placement, on a timer, for nothing, on every single load.
+
+        The pass still exists and still runs at the same moment - it is here
+        for what the other three triggers cannot see, a lazy banner or a
+        consent strip - and every one of those CHANGES a number, so asking
+        catches them exactly as forcing did. What is gone is the re-fit that
+        happened when nothing had changed at all."""
+        self.assertIn("setTimeout(function () { remeasure(false); }", self._layout())
 
     def test_a_window_resize_always_refits_the_scene(self):
         """A change of window height does not touch the header, so a re-fit

@@ -7285,9 +7285,15 @@ button.arena-chat__poll-option { cursor: pointer; }
   .arena-command-deck {
     display: grid;
     grid-template-columns: 1fr;
+    /* `ranks` joins this list on 2026-08-31, DIRECTLY UNDER THE FLOOR. The
+       row did not exist here, so the strip the Owner approved on 2026-08-24
+       had nowhere to go and the band was left showing the overlay ladder it
+       replaced. Under rather than over, for two reasons that agree: he asked
+       for "полосой ПОД ареной", and nothing above the arena may grow. */
     grid-template-areas:
       "ribbon"
       "floor"
+      "ranks"
       "left"
       "right"
       "dock"
@@ -7304,6 +7310,13 @@ button.arena-chat__poll-option { cursor: pointer; }
     min-height: min(85vw, 620px);
   }
   .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; position: static; }
+  /* THE OVERLAY LADDER GOES OFF HERE, which is the whole of the Owner's
+     complaint of 2026-08-31. It was never switched on for this band on
+     purpose: the off-switch exists for the phone and for the desktop and
+     simply did not cover the range between them, so the band showed a
+     component neither of the other two shows. The phone's own copy of this
+     rule is left exactly where it is - a test reads that block by name. */
+  .arena-floor-stage > .arena-rank-spine { display: none; }
 }
 /* THE OCTAGON'S OWN BOX had a large dead zone below it on a tall, narrow
    screen: min-height was a flat min(70vh,760px) regardless of the column's
@@ -11926,12 +11939,17 @@ body.page--arena.is-zoom-locked {
  * that. Verified by measurement either side of this change, not assumed.
  * ========================================================================== */
 
-/* Off everywhere by default. The phone is GreenBear's and already carries the
-   ranks in .arena-mobile-scene; the 641-900px band keeps the overlay ladder
-   it has today. Only the desktop turns this on. */
+/* Off by default, for the phone alone. The phone is GreenBear's and already
+   carries the ranks in .arena-mobile-scene, so it keeps the strip off.
+   EVERYTHING ABOVE 640px NOW TURNS IT ON - amended 2026-08-31 on the Owner's
+   order. This said "only the desktop turns this on", and the sentence was the
+   defect: it left 641-900px with no rank strip and therefore still wearing the
+   overlay ladder the strip had replaced, which is the "old CSS" he photographed
+   at 800px. Every rule in this block names .arena-rank-strip and nothing else,
+   so widening the gate reaches no other component. */
 .arena-rank-strip { display: none; }
 
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   .arena-rank-strip {
     display: block;
     grid-area: ranks;
