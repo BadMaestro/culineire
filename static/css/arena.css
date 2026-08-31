@@ -12096,6 +12096,28 @@ body.page--arena.is-zoom-locked {
   .page--arena .arena-render-container {
     --arena-octagon-centre-y: 0.557;
   }
+  /* 641-767 SITS HIGHER, BY HIS PERMISSION, 2026-09-01. He was asked before
+     this was written, because 0.557 is one of the two numbers he froze on
+     2026-08-21, and he said yes.
+
+     THE PHONE KEEPS 0.557: this override starts at 641px, so nothing below it
+     moves and the frozen composition is untouched. What it fixes is the sliver
+     between the phone and the tablet, where the max-width:767px composition
+     applies but the layout is already the wider one - measured on the deployed
+     page, 700px wide: 27px of air above the octagon and the shape 1px THROUGH
+     the frame below, against a clean 4 to 9px everywhere from 800 up.
+
+     14px of a 288px region is 0.0486, so 0.557 becomes 0.508 here.
+
+     AND IT HAS TO BE ON THIS ELEMENT. The same value was tried on
+     .arena-floor-stage first and changed nothing: .arena-render-container is a
+     DESCENDANT of the stage, and a custom property declared on the descendant
+     wins over any ancestor whatever the ancestor's selector looks like. */
+  @media (min-width: 641px) {
+    .page--arena .arena-render-container {
+      --arena-octagon-centre-y: 0.508;
+    }
+  }
 }
 
 /* THE STAGE DESCRIPTION THE STRIP OPENS (Owner, 2026-08-21). Unconditional,
