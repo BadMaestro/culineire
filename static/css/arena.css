@@ -7895,7 +7895,11 @@ button.arena-chat__poll-option { cursor: pointer; }
      plain class rule lost to it - measured: 1618 shipped and the computed
      value stayed 100%. Naming the deck decides it by specificity. */
   .arena-command-deck > .arena-command-deck__floor {
-    max-width: calc(min(78vh, 820px) / 0.805);
+    /* MULTIPLIED, NOT DIVIDED: `calc(min(78vh, 820px) / 0.805)` shipped and
+       the browser dropped it - the declaration was in the served file, the
+       selector matched, and it was not in the CSSOM at all, so the computed
+       value stayed at the 100% it had before. 1.2422 is 1/0.805. */
+    max-width: calc(min(78vh, 820px) * 1.2422);
     margin-inline: auto;
   }
   /* HALF A CENTIMETRE ON EVERY SIDE, Owner 2026-08-31: too much air is left
