@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1516",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The deck reserves its rows, so the parser can no longer grow them",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The half of the load defect no JavaScript could reach, fixed with "
+            "the Owner's explicit permission to size the parent grid. MEASURED "
+            "CAUSE, not deduced: at the moment the deck grows 873 to 1247, "
+            "document.readyState is still `loading`, the deck's style attribute "
+            "is EMPTY - not one script has written anything - and the rows "
+            "ranks, dock and foot do not exist, reporting height -1. The HTML "
+            "parser then reaches them, +117, +198 and +55 nodes, and three rows "
+            "appear out of nothing. Reproduced twice with identical numbers. "
+            "Nothing in script can fix that because it happens before any "
+            "script runs; the only cure is for a row to hold its place before "
+            "its content arrives, and rows can only be reserved on the grid, "
+            "which is the element that already exists while its children are "
+            "still being read. IT CANNOT MOVE THE COMPOSITION, and that is "
+            "arithmetic rather than hope: minmax(X, auto) resolves to the "
+            "content's own height whenever that height is at least X, every X "
+            "was measured on production at five desktop widths where these four "
+            "rows came out IDENTICAL to the hundredth of a pixel - ranks "
+            "206.094, dock 312.859, ribbon 90.0938, foot 103.203 - and each X "
+            "is set deliberately BELOW its measured value so auto wins every "
+            "time. The floor row stays auto on purpose: it is the only row that "
+            "varies with the viewport, because it is the row the octagon's fit "
+            "sizes. The dock's reserve is the lower of its two observed values, "
+            "312.859 anonymous against 375 signed in."
+        ),
+    },
+    {
         "version": "2.5.1513",
         "date": "2026-08-31",
         "commit": "pending",

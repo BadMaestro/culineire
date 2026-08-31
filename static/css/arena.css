@@ -7528,6 +7528,51 @@ button.arena-chat__poll-option { cursor: pointer; }
       "left   dock   ."
       "ribbon ribbon ribbon"
       "foot   foot   foot";
+    /* THE ROWS ARE RESERVED, AND THIS IS THE FIX FOR A DEFECT NO JAVASCRIPT
+       COULD REACH. Owner, 2026-08-31, having ordered the load stabilised
+       properly rather than hidden.
+
+       MEASURED CAUSE. The deck grew 873 -> 1247 during load, and instrumenting
+       it named the culprit exactly: at the moment of the jump
+       `document.readyState` is still `loading`, the deck's `style` attribute
+       is EMPTY - not one script had written anything - and the rows `ranks`,
+       `dock` and `foot` do not exist at all, reporting height -1. The HTML
+       parser then reaches them (+117, +198 and +55 nodes) and three rows
+       appear out of nothing. Reproduced twice, identical numbers.
+
+       Nothing in JavaScript can fix that: it happens before any script runs.
+       The only cure is for the row to hold its place before its content
+       arrives, and rows can only be reserved on the grid, because the grid is
+       the element that already exists while its children are still being read.
+
+       WHY THIS CANNOT MOVE THE COMPOSITION. `minmax(X, auto)` resolves to the
+       content's own height whenever that height is at least X. Every X below
+       was measured on production at five desktop widths - 1920x1080,
+       1600x900, 1440x900, 1366x768 and 1280x720 - and each of these four rows
+       came out IDENTICAL at every one of them, to the hundredth of a pixel:
+
+           ranks 206.094   dock 312.859   ribbon 90.0938   foot 103.203
+
+       and each X is set deliberately BELOW its measured value, so `auto` wins
+       every time and the final layout is the one that shipped. What changes is
+       only WHEN the height is known: from the first paint instead of from
+       whenever the parser gets there.
+
+       THE FLOOR ROW IS DELIBERATELY LEFT `auto`. It is the one row that
+       varies with the viewport - 825.6, 772.4, 671.3, 610.6, 632.0 at those
+       five widths - because it is the row the octagon's fit sizes. Reserving
+       it would either pin it to one screen's number or fight the fit.
+
+       THE DOCK'S RESERVE IS THE LOWER OF TWO OBSERVED VALUES. It measures
+       312.859 on the anonymous preview and 375 on the Owner's own
+       authenticated page, which carries more cards. The reserve has to sit
+       under both or it would clip the smaller one. */
+    grid-template-rows:
+      minmax(12.87rem, auto)   /* ranks  - measured 206.094px at every width */
+      auto                     /* floor  - the octagon's own row, must vary */
+      minmax(19.54rem, auto)   /* dock   - 312.859 preview, 375 signed in */
+      minmax(5.62rem, auto)    /* ribbon - measured 90.0938px */
+      minmax(6.43rem, auto);   /* foot   - measured 103.203px */
   }
 }
 /* WHY THE LIFT IS BIGGER ON THE PHONE, and it is not taste. An absolutely
