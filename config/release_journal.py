@@ -1,5 +1,43 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1543",
+        "commit": "pending",
+        "title": "The chat stops sitting on top of the house stream below 900px",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner sent a screenshot of the shrunken layout with the "
+            "blocks riding over each other: the CHAT panel painted across the "
+            "BEARCAVE FOOD TRAILER header, the camera showing through behind "
+            "it. MEASURED at 702px, and it is not a guess: .arena-chat and "
+            ".arena-house-stream both start at x=544 y=365, the chat 157x336 "
+            "laid over a stream 157x112. CAUSE: `@media (max-width: 900px) "
+            "{ .arena-chat-slot { display: contents } }`, a leftover from the "
+            "band that no longer exists. The chat carries position:absolute "
+            "with inset:0 against that slot; display:contents removes the "
+            "slot's BOX, so the chat resolved against .arena-right-stack "
+            "instead and covered the whole rail. Two rules inside the single "
+            "composition also disagree, and the more specific one wins: "
+            "`.arena-chat-slot > .arena-chat {position:absolute}` beats "
+            "`.arena-right-stack > *, .arena-chat-slot > * {position:relative}` "
+            "- which is fine as long as the slot HAS a box, and fatal the "
+            "moment it does not. The gate moves to max-width: 640px, where "
+            "unwrapping is real: the phone's deck places by NAME and a wrapper "
+            "in the middle would swallow the area. VERIFIED on the live page "
+            "before deploying: chat now at y=488 under a stream ending at 477, "
+            "overlap none. REPORTED, NOT HIDDEN: a wider merge of the 767/768 "
+            "ladder into 640/641 was tried in the same pass and REVERTED WHOLE "
+            "- renaming those queries duplicates declarations and scatters "
+            "component blocks, which three of this project's own hygiene tests "
+            "caught. That merge needs a real gather-and-dedupe pass, not a "
+            "rename. Separately: FloorCaptionGetsARegionTests, "
+            "EveryArenaComponentIsGatheredTests and ArenaRingNumberingTests "
+            "are red and were ALREADY red at v2.5.1531 - checked by running "
+            "them against that exact stylesheet - so they are inherited, not "
+            "from this week's work, and they are named here rather than left "
+            "for someone to find."
+        ),
+    },
+    {
         "version": "2.5.1540",
         "date": "2026-08-31",
         "commit": "dd65952e",

@@ -6002,7 +6002,15 @@ button.arena-chat__poll-option { cursor: pointer; }
    what found that; the file read as though it had already been removed,
    because the gathering pass had left a SECOND, emptied copy elsewhere and I
    deleted that one. */
-@media (max-width: 900px) {
+/* 640, NOT 900, since 2026-08-31. The slot unwraps itself on the PHONE,
+   where the deck places by NAME and a wrapper in the middle would swallow
+   the area. It must NOT unwrap anywhere the single composition runs: the
+   chat carries position:absolute with inset:0 against this slot, so with no
+   box here the chat resolves against .arena-right-stack instead and covers
+   the house stream completely - measured at 702px, both at x=544 y=365, a
+   chat 157x336 sitting over a stream 157x112. That is the overlap in the
+   Owner's screenshot. */
+@media (max-width: 640px) {
 .arena-chat-slot { display: contents; }
 }
 /* AC-STK - AN EMPTY STICKER TAB IS ONE LINK.
