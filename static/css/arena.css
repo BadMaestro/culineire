@@ -1463,6 +1463,7 @@
   grid-template-areas:
     "header header header"
     "phase-rail phase-rail metrics"
+    "head head head"
     "phase floor gifts"
     "ladder floor gifts"
     "chat floor gifts"
@@ -1724,6 +1725,7 @@
        box. */
     grid-template-areas:
       "ladder"
+      "head"
       "floor"
       "stream"
       "chat"
@@ -1877,6 +1879,7 @@
   .arena-command-deck {
     grid-template-areas:
       "ranks  ranks  ranks"
+      "head   head   head"
       "left   floor  right"
       "left   dock   ."
       "ribbon ribbon ribbon"
@@ -7818,6 +7821,12 @@ button.arena-chat__poll-option { cursor: pointer; }
  * sit at the top of it, clear of the writing.
  * ------------------------------------------------------------------------- */
 .arena-floor-head {
+  /* THE ROW IS CLAIMED BY NAME, and the first attempt did not claim it. This
+     deck places every child by grid-area, and an unnamed child is auto-placed:
+     the row went into the one empty cell of "left dock ." - 154px wide, below
+     the octagon, with both pills overflowing off the right edge. A grid that
+     places by name has no room for a guest. */
+  grid-area: head;
   display: flex;
   align-items: center;
   justify-content: center;
