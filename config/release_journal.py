@@ -41,7 +41,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1549",
         "date": "2026-08-31",
-        "commit": "pending",
+        "commit": "a070b707",
         "title": "The empty sticker picker reads as an offer, and a new rule in the constitution",
         "section": "Chef Battles / Arena",
         "summary": (
