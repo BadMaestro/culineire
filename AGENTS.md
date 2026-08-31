@@ -976,9 +976,38 @@ to one of the active documents listed above.
 
 ## 12. Scope discipline
 
+### 12a. Leaving the task for a finding is forbidden (Owner, 2026-08-31)
+
+His order, given in these words after a two-line CSS fix he had asked for
+took twenty minutes because the agent kept stopping to repair things nobody
+had mentioned:
+
+> **ЗАПРЕЩЕНО УХОДИТЬ ОТ ПРЯМОГО ЗАДАНИЯ НА КОСВЕННЫЕ НАХОДКИ БЕЗ
+> РАЗРЕШЕНИЯ ВЛАДЕЛЬЦА!**
+
+> если ты что-то поймал, или динозавра живого увидел - ты должен создать
+> очередь и сообщить о находке ДО того как ты начинаешь её исправлять,
+> спросить разрешение на внос правок
+
+**The assigned task is the only work in progress.** Anything found on the
+way - a red test, scattered code, another agent's regression, a live
+dinosaur - is written into a queue and REPORTED. It is not fixed, not
+tidied, and not "just quickly" corrected. Permission to touch it is a
+separate question and the Owner decides when it is asked.
+
+The one exception is a finding that BLOCKS the assigned change from
+shipping at all. Say so in one line when reporting it, and do not use it as
+a door for tidying what merely stands nearby.
+
+**Why it is this strict.** Every finding an agent repairs uninvited is
+real, defensible, and paid for out of the Owner's clock while the thing he
+asked for does not move. That is what section 17.3 records about image
+weight, and this is the same failure at the scale of a single task. A
+defect is not more urgent because the agent is the one who noticed it.
+
 - Do exactly the assigned task.
 - Do not fix unrelated defects.
-- Record unrelated findings and continue only if safe.
+- Record unrelated findings, report them, and ask before touching them.
 - Do not start future phases because supporting models already exist.
 - Do not classify code as dead without evidence.
 - Do not delete suspected legacy code during the first 2D implementation.

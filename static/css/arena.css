@@ -1439,6 +1439,9 @@
 /* .arena-command-deck - rules for this component, kept together.
    Gathered by an15_gather.py: the applying declarations are
    byte-identical and no conflicting pair changed places. */
+/* .arena-command-deck - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
 .arena-command-deck__live-note, .arena-command-deck__floor-copy, .arena-command-deck__phase-copy, .arena-command-deck__gift-copy, .arena-command-deck__guide-copy { margin: .35rem 0 0; color: var(--arena-muted); font-size: .82rem; line-height: 1.5; }
 .arena-command-deck__guide-link {
   display: inline-flex;
@@ -1504,6 +1507,420 @@
     border-radius: 0.45rem;
     pointer-events: none;
   }
+@media (min-width: 641px) {
+  /* THE GRID ITSELF. Ribbon (phase steps + next battle) full width on top,
+     three columns below it, actions full width at the bottom.
+
+     OWNER'S DESKTOP CHAT REBUILD, 2026-08-25: the right column was
+     240-300px carrying three stacked utility cards; it is now the CHAT,
+     widened so it reads as a first-class panel rather than a sliver, and
+     the left column narrows slightly to make room without shrinking the
+     centre. clamp() rather than a flat width so the chat keeps growing a
+     little past 1670px without ever eating the octagon's share back down
+     toward the old ~65%-of-viewport problem this rebuild fixes. */
+  .arena-command-deck {
+    display: grid;
+    /* THE CENTRE COLUMN IS CAPPED TO THE OCTAGON'S OWN SIZE, not handed
+       every leftover pixel of width. Owner, 2026-08-26, on a screenshot:
+       the octagon's own margin was already close to his 1cm target
+       (measured ~1.2cm) but the region here is landscape - short and
+       wide - so the octagon is bound by HEIGHT while the grid still gave
+       the column every spare pixel of WIDTH, which is the "lishniy
+       vozdukh" (excess air) he was pointing at. --arena-floor-target-width
+       is published by arena_render.js's placeOctagon(), AFTER it has
+       actually placed the octagon, as that octagon's real rendered width
+       plus 1cm on each side; the var()'s fallback is the OLD `1fr`
+       behaviour, so the first paint (before that script has run) is not
+       broken.
+
+       "отрезай весь лишний воздух, давай место другим контейнерам и
+       виджетам" - and asked directly where: EQUALLY between the two
+       side columns, even though that grows the chat rail well past its
+       own 380-430px target from earlier the same day - his explicit
+       choice, not an oversight. Both side tracks are `1fr` here for
+       exactly that reason: equal weight makes CSS Grid split whatever the
+       centre track does not take EVENLY between them on its own, with no
+       measured bonus value to keep in step by hand. Their own floors
+       (260px / 400px) are what is left of their earlier rulings; the
+       ceilings (280px flat, clamp .. 480px) are gone on purpose, because a
+       ceiling is exactly what would stop the freed room from reaching
+       them.
+
+       LEFT UNTOUCHED: the `@media (max-width: 1280px)` override below
+       this block, which fixes 240/1fr/240 for 901-1280px and does not
+       read this variable at all - the Owner reaffirmed that ruling in the
+       same conversation as this one, before deciding this. */
+    /* A RATIO, NOT PIXELS - see the header of this change. 2.214 is read
+       off the accepted 1440 layout (centre 732.8 of the 1394.8 left after
+       the gaps), so 1440 does not move; below it the composition shrinks
+       instead of snapping, and the two rails are equal, which the old
+       260/400 pair was not - it stood the octagon 70px left of centre. */
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 2.214fr)
+      minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(0.5rem, 1.1vw, 1.1rem);
+    width: 100%;
+    max-width: none;
+    /* A07 (2026-08-05) asked the arena to fit one screen and never scroll.
+       That rule is what crushed the crown ladder to zero height yesterday:
+       a fixed viewport height cannot both fit a tall octagon AND a full
+       chat log AND a full command grid without squeezing something to
+       nothing. This rebuild's own acceptance list only asks for no
+       HORIZONTAL scroll at 1920x1080/1440x900 - it does not repeat "never
+       scrolls vertically". So the deck's height is now its own content,
+       min-height keeps it from collapsing shorter than one screen, and
+       nothing is forced into a box too small for it. Recorded here plainly
+       because silently dropping a direct prior rule is not something this
+       project does without saying so. */
+    min-height: calc(100svh - var(--arena-header-h, 146px));
+    height: auto;
+    padding-block: clamp(0.6rem, 1.1vw, 1.1rem);
+  }
+  /* Centre: the octagon's cell. position:relative so its own internal
+     absolutely-positioned children (.arena-floor-stage,
+     .arena-confrontation-band, .arena-floor-frame) anchor to THIS box, not to
+     the page - a grid item is not automatically a positioning context, it
+     needs position set explicitly, the one property this box must carry for
+     its children to keep working at all. Square-ish and generous rather than
+     a viewport-relative guess, so the octagon - which fits itself to
+     whatever box it is given, unchanged - gets real room on a wide screen
+     without the frame or the caption clipping it. */
+  .arena-command-deck__floor {
+    grid-area: floor;
+    position: relative;
+    inset: auto;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    min-height: min(70vh, 760px);
+    overflow: visible;
+    align-self: stretch;
+  }
+  /* Bottom bar: was left:0;right:0;bottom:0 with no explicit position
+     (inert without one - now given one, on purpose, and placed by the grid
+     instead). */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    grid-area: foot;
+    position: static;
+    inset: auto;
+    width: 100%;
+  }
+}
+/* THE 1280 OVERRIDE IS GONE. It pinned the rails to 240px below 1281 while
+   the rule above let them breathe above it, and the two met as a cliff: one
+   pixel narrower took the octagon from 527x363 to 700x482, a third bigger, on
+   a SMALLER screen. The ratio above covers the whole range and needs no
+   second opinion at any width. */
+/* THE 641-900px REARRANGEMENT IS GONE - it described a second composition,
+   and there is only one now. What it used to carry (a ranks row, the dock's
+   own cell, the ribbon's box, the octagon's share) all comes from the single
+   grid above, which now starts at 641px. */
+/* THE OCTAGON'S OWN BOX had a large dead zone below it on a tall, narrow
+   screen: min-height was a flat min(70vh,760px) regardless of the column's
+   actual WIDTH, so on a device taller (relative to its width) than a
+   1920x1080 desktop the box claimed far more height than a
+   roughly-square octagon - fitScene() is unchanged and correctly fits it to
+   the SMALLER of the two dimensions, leaving the rest of a too-tall box
+   empty. Driven by width via aspect-ratio instead of an independent
+   viewport-height guess, so the box follows what the octagon actually
+   needs; align-self:start rather than stretch, so it does not additionally
+   grow to match a taller neighbour column. */
+.arena-command-deck__floor {
+  align-self: start !important;
+  aspect-ratio: 1 / 0.82;
+  min-height: 0 !important;
+  max-height: min(78vh, 820px);
+}
+@media (max-width: 640px) {
+  /* THE PHONE'S OWN ORDER, from the Owner's brief, with the mobile scene
+     taking the place his list gives the ranks. The desktop grid does not
+     reach here (min-width:901px) and neither does the tablet one
+     (641-900px), so this is the only rule placing these areas. */
+  .arena-command-deck {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* THE CHAT SITS UNDER THE ARENA. Owner, 2026-08-24: "этот блок должен
+       идти сразу под ареной а не в самом низу - это же общение игроков
+       которые смотрят арену". It was last of eleven, four screens below the
+       thing being talked about - a spectator would have had to scroll past
+       the ranks, the ladder, the command grid and the gifts to say anything
+       about the fight they are watching. Now it follows the floor, which is
+       the only block it is about.
+
+       THE PHONE PLACES BY NAME, so this list is the running order and the
+       document order counts for nothing here - which is why the desktop
+       swaps of v2.5.1354 and v2.5.1366 did not reach it and had to be made
+       again, by hand, in the list. Owner, 2026-08-27, in one message:
+
+       - "обязательно в телефоне тоже сделать так же" - the camera goes above
+         the chat, as it now does in the rail. This is the same Owner
+         relaxing his own 2026-08-24 line above: the chat still follows the
+         arena, with the house camera between them, and he asked for that
+         explicitly after being shown the conflict.
+       - "ранги в телефоне все еще снизу а стадии сверху - тоже нужно все
+         поменять" - ladder and ribbon trade places, so the phone reads
+         the way the desktop has read since v2.5.1354: ranks above the
+         arena, phases below it.
+
+       NOTE WHICH ELEMENT IS THE PHONE'S RANKS. `.arena-rank-strip`, the
+       eight-ring band that carries `grid-area: ranks` on the desktop, is
+       `display: none` here - measured on the live page - and the compact
+       ladder of the 2026-08-21 kitchen-ranks redesign is what a phone
+       actually shows. So `ladder` is the row that moves, not `ranks`; there
+       is no `ranks` area in this list and adding one would place a hidden
+       box. */
+    grid-template-areas:
+      "ladder"
+      "floor"
+      "stream"
+      "chat"
+      "phase"
+      "foot"
+      "metrics"
+      "mobilescene"
+      "ribbon"
+      "command"
+      "gifts"
+      "guide";
+    gap: 0.7rem;
+    width: min(100% - 1rem, 640px);
+    margin-inline: auto;
+    height: auto;
+    min-height: 0;
+    padding-block: 0.8rem;
+  }
+  .arena-command-deck__phase-card { grid-area: phase; }
+  .arena-command-deck__ladder { grid-area: ladder; }
+  .arena-command-deck__guide { grid-area: guide; }
+  .arena-command-deck__metrics { grid-area: metrics; }
+  .arena-command-deck__command { grid-area: command; }
+  .arena-command-deck__gifts { grid-area: gifts; }
+  /* The progress strip itself is defined ONCE, in the max-width:767px
+     block above, which covers this range too. Only the ribbon that
+     carries it is shaped here. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; }
+  /* The floor keeps its own aspect on a phone but stops claiming desktop
+     height - it is the stage here, not the whole interface. */
+  .arena-command-deck__floor {
+    grid-area: floor;
+    aspect-ratio: 1 / 0.86;
+    min-height: 0;
+    max-height: 62vh;
+  }
+}
+@media (max-width: 767px) {
+  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    /* The gap is not empty space here - it is where the connecting line is
+       drawn, so it is sized to be seen: 0.45rem of hairline between one
+       marker and the next. */
+    gap: 0.45rem;
+    padding: 0;
+    min-height: 2.25rem;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+}
+/* ============================================================================
+ * ONE GOLDEN-RATIO RHYTHM FOR THE WHOLE PHONE DECK. Owner, 2026-08-21:
+ * "align all the content exactly by the golden ratio."
+ *
+ * WHAT WAS THERE INSTEAD. Every card on the phone had picked its own inset
+ * and none of them agreed - measured at 414px: the ribbon 9.888px, the floor
+ * 11.2px, the mobile scene 16px, and the lower dock 90.6px. Four cards, four
+ * left edges, and no two pieces of writing on the page starting on the same
+ * line.
+ *
+ * The 90.6px is the worst of them and is a bug rather than a taste: it comes
+ * from `padding-inline: 21.965%` on the lower dock, an unconditional rule
+ * whose number is (100% - 56.07%) / 2, the share the DESKTOP reference gives
+ * that band. On a 413px card it takes 44% of the width, which is why the
+ * Owner's screenshot shows "TOP SUPPORTER" clipped to "PPORTER" and the
+ * watching count fading off the edge. Fourth rule of that exact shape found
+ * this session - a desktop number without a media query, outliving the
+ * composition it was measured for.
+ *
+ * THE SCALE. Powers of phi, so every step is the previous one times 1.618:
+ * 0.382 / 0.618 / 1 / 1.618 / 2.618 rem. It is not a new invention here - the
+ * phase rail has been on this exact series since v2.5.1150
+ * (--arena-phase-gap 0.382rem, --arena-phase-pad 0.618rem, line ~970) - this
+ * names it once and lets the rest of the deck stand on it too, rather than
+ * each card keeping a number of its own.
+ *
+ * 1rem is the card inset because it is the series' own centre: the writing
+ * lands on one line at 16px from the card edge whatever card it is in, with
+ * the tighter steps left for what sits INSIDE a card and the wider ones for
+ * the air between them.
+ * ========================================================================= */
+.page--arena .arena-command-deck {
+  --phi-1: 0.382rem;   /* phi^-2 - inside a control */
+  --phi-2: 0.618rem;   /* phi^-1 - between related lines */
+  --phi-3: 1rem;       /* 1      - the card inset, the common left edge */
+  --phi-4: 1.618rem;   /* phi    - between cards */
+  --phi-5: 2.618rem;   /* phi^2  - a full break */
+}
+@media (max-width: 767px) {
+  /* The dock's desktop share, undone. Its content is bounded by the card it
+     sits in now, which is the phone's own answer to the same question. */
+  .page--arena .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    padding-inline: var(--phi-3);
+  }
+  /* The air between cards is one step up from the inset, so the page reads as
+     cards on a rhythm rather than blocks that happen to be near each other. */
+  .page--arena .arena-command-deck {
+    gap: var(--phi-4);
+  }
+  /* THE FOUR METRICS STAND ON THE SAME LINE AS EVERYTHING ELSE. Measured
+     before this at 414px, their labels began at 26, 32, 33 and 28 - four
+     numbers in one card, none of them agreeing with each other or with the
+     card they sit in. The cause is that the row is a centring flex line: once
+     it wraps into a column on a phone, each item is centred on its OWN width,
+     so the widest label starts furthest left and the raggedness is a
+     by-product of how long each word happens to be.
+
+     Stretched and left-read here instead, which is what a column of labelled
+     numbers wants: one left edge, and the eye runs down it.
+
+     ROUND 6, 2026-08-21: this premise is gone. The card is a real 4-column
+     grid again (round 5), not a wrapped single column - .page--arena's
+     extra class made this rule beat every later attempt at centring the
+     grid version by specificity alone, regardless of source order, which
+     is why the Owner's screenshots kept showing ACTIVE VIEWERS left-aligned
+     no matter what .arena-metric was told elsewhere. Each grid cell now
+     centres its own icon/label/value, same as its three siblings - the
+     ragged-left-edge problem this rule fixed cannot recur in a grid where
+     every column has its own fixed track width. */
+  .page--arena .arena-command-deck__metrics {
+    align-items: center;
+  }
+}
+@media (min-width: 641px) {
+  /* ---- 1. THE ROW ------------------------------------------------------
+     Between the arena and the lower dock, full width, exactly where he drew
+     it. The other four areas are copied verbatim from the block at :7572 so
+     that this is a row INSERTED, not a template rewritten. */
+  /* THE RINGS GO OVER THE ARENA AND THE LIFECYCLE RAIL GOES UNDER IT.
+     Owner, 2026-08-27: put that whole row up above the arena where the
+     stages are now, and move the stages down to where that row is.
+
+     A straight swap of two full-width areas - `ribbon` and `ranks` trade
+     rows and nothing else in the template moves. THE OCTAGON DOES NOT
+     CHANGE SIZE: its width comes from the middle COLUMN, and a row cannot
+     touch a column. It does change POSITION, and by a knowable amount -
+     the rings are 206px tall against the rail's 90, so everything below
+     row one starts 116px lower. That is the arithmetic of what he asked
+     for rather than a side effect, and it is the only thing that moves.
+
+     Source order is deliberately not touched. This grid places by NAME,
+     and it already did: .arena-mobile-scene sits between the ribbon and
+     the rails in the document and appears nowhere near them at this
+     width. Nothing in the rings is focusable - eight cards of images,
+     labels and counts - so tab order is unaffected either way. */
+  .arena-command-deck {
+    grid-template-areas:
+      "ranks  ranks  ranks"
+      "left   floor  right"
+      "left   dock   ."
+      "ribbon ribbon ribbon"
+      "foot   foot   foot";
+    /* THE ROWS ARE RESERVED, AND THIS IS THE FIX FOR A DEFECT NO JAVASCRIPT
+       COULD REACH. Owner, 2026-08-31, having ordered the load stabilised
+       properly rather than hidden.
+
+       MEASURED CAUSE. The deck grew 873 -> 1247 during load, and instrumenting
+       it named the culprit exactly: at the moment of the jump
+       `document.readyState` is still `loading`, the deck's `style` attribute
+       is EMPTY - not one script had written anything - and the rows `ranks`,
+       `dock` and `foot` do not exist at all, reporting height -1. The HTML
+       parser then reaches them (+117, +198 and +55 nodes) and three rows
+       appear out of nothing. Reproduced twice, identical numbers.
+
+       Nothing in JavaScript can fix that: it happens before any script runs.
+       The only cure is for the row to hold its place before its content
+       arrives, and rows can only be reserved on the grid, because the grid is
+       the element that already exists while its children are still being read.
+
+       WHY THIS CANNOT MOVE THE COMPOSITION. `minmax(X, auto)` resolves to the
+       content's own height whenever that height is at least X. Every X below
+       was measured on production at five desktop widths - 1920x1080,
+       1600x900, 1440x900, 1366x768 and 1280x720 - and each of these four rows
+       came out IDENTICAL at every one of them, to the hundredth of a pixel:
+
+           ranks 206.094   dock 312.859   ribbon 90.0938   foot 103.203
+
+       and each X is set deliberately BELOW its measured value, so `auto` wins
+       every time and the final layout is the one that shipped. What changes is
+       only WHEN the height is known: from the first paint instead of from
+       whenever the parser gets there.
+
+       THE FLOOR ROW IS DELIBERATELY LEFT `auto`. It is the one row that
+       varies with the viewport - 825.6, 772.4, 671.3, 610.6, 632.0 at those
+       five widths - because it is the row the octagon's fit sizes. Reserving
+       it would either pin it to one screen's number or fight the fit.
+
+       THE DOCK'S RESERVE IS THE LOWER OF TWO OBSERVED VALUES. It measures
+       312.859 on the anonymous preview and 375 on the Owner's own
+       authenticated page, which carries more cards. The reserve has to sit
+       under both or it would clip the smaller one. */
+    grid-template-rows:
+      minmax(12.87rem, auto)   /* ranks  - measured 206.094px at every width */
+      auto                     /* floor  - the octagon's own row, must vary */
+      minmax(19.54rem, auto)   /* dock   - 312.859 preview, 375 signed in */
+      minmax(5.62rem, auto)    /* ribbon - measured 90.0938px */
+      minmax(6.43rem, auto);   /* foot   - measured 103.203px */
+  }
+}
+/* WHY THE LIFT IS BIGGER ON THE PHONE, and it is not taste. An absolutely
+   positioned child of a GRID container that carries grid placement is
+   positioned against its GRID AREA, not against the container's padding box -
+   and this caption has carried `grid-area: 3 / 1` since it was written. On the
+   desktop that area starts where the scene starts, so lifting the caption by
+   its own height clears the frame; on the phone the same area starts lower
+   inside the floor's own padding, and the same lift left it nine pixels inside
+   the frame. Measured, both times. The phone therefore lifts by its height
+   plus 1.2rem and the desktop by its height plus 0.5rem, and the two are
+   stated separately rather than averaged into one number that is wrong twice.
+
+   The floor's band below is the room reserved above it. */
+/* This is measured from the floor's own box, so the caption
+   follows the frame wherever the column puts it rather than being pinned to
+   the page - and this is the room it needs. Two lines on a phone, three on a
+   desktop, measured: 31.63px and 53.06px. */
+.arena-command-deck__floor {
+  /* THE CAPTION IS POSITIONED AGAINST THIS BOX, so this box has to be one.
+     The desktop and tablet blocks each set position:relative of their own and
+     the phone's did not - measured, the caption resolved against a different
+     ancestor there and landed nine pixels INSIDE the floor instead of eight
+     above it. Stated once, here, rather than a third time per breakpoint. */
+  position: relative;
+  margin-top: var(--arena-caption-band, 2.5rem);
+}
+@media (min-width: 641px) {
+  /* Three lines, plus the extra fall he asked for on the desktop - measured,
+     about nine pixels beyond what the caption needs. */
+  .arena-command-deck__floor { --arena-caption-band: 4.4rem; }
+}
+@media (min-width: 768px) {
+  .arena-command-deck__phase-card {
+    text-align: center;
+  }
+  .arena-command-deck__phase-card .arena-command-deck__live-note {
+    grid-column: 3;
+    justify-self: end;
+  }
+}
+
+
 
 
 
@@ -1537,6 +1954,9 @@
     color: var(--ink);
   }
 
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
 /* .arena-chat - rules for this component, kept together.
    Gathered by an15_gather.py: the applying declarations are
    byte-identical and no conflicting pair changed places. */
@@ -1794,6 +2214,53 @@
   background: var(--chat-btn-fill-on);
   color: var(--chat-btn-ink-on);
 }
+/* THE EMPTY PICKER IS A SENTENCE AND A CONTROL, NOT AN UNDERLINED PHRASE.
+
+   Owner, 2026-08-31: "как-то уродливо выглядит эта надпись - по красивее
+   никак нельзя?". The old empty state was one link reading `Get stickers in
+   the artifact shop` - six words in a column about 9rem wide, so it wrapped
+   into four ragged underlined lines. Underlined broken text in the middle of
+   a panel reads as something failing, not as an offer to buy.
+
+   The control below takes the chat's own button tokens - the resting trio
+   from v2.5.1375 - rather than inventing a third look, so it belongs to the
+   panel it appears in and follows the scheme wherever that goes next. */
+.arena-chat .arena-chat__emoji-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+}
+.arena-chat .arena-chat__emoji-empty-note {
+  margin: 0;
+  color: var(--arena-muted);
+}
+.arena-chat .arena-chat__emoji-empty-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: .32rem .8rem;
+  border: 1px solid var(--chat-btn-edge);
+  border-radius: 999px;
+  background: var(--chat-btn-fill);
+  color: var(--chat-btn-ink);
+  font-size: .74rem;
+  font-weight: 700;
+  /* Two short words, and they stay on one line at every panel width the
+     chat has - which is the whole repair. */
+  white-space: nowrap;
+  text-decoration: none;
+}
+.arena-chat .arena-chat__emoji-empty-link:hover,
+.arena-chat .arena-chat__emoji-empty-link:focus-visible {
+  border-color: var(--chat-btn-edge-on);
+  background: var(--chat-btn-fill-on);
+  color: var(--chat-btn-ink-on);
+  text-decoration: none;
+}
+
+
 
 
 
@@ -7208,210 +7675,8 @@ button.arena-chat__poll-option { cursor: pointer; }
 }
 
 @media (min-width: 641px) {
-  /* THE GRID ITSELF. Ribbon (phase steps + next battle) full width on top,
-     three columns below it, actions full width at the bottom.
-
-     OWNER'S DESKTOP CHAT REBUILD, 2026-08-25: the right column was
-     240-300px carrying three stacked utility cards; it is now the CHAT,
-     widened so it reads as a first-class panel rather than a sliver, and
-     the left column narrows slightly to make room without shrinking the
-     centre. clamp() rather than a flat width so the chat keeps growing a
-     little past 1670px without ever eating the octagon's share back down
-     toward the old ~65%-of-viewport problem this rebuild fixes. */
-  .arena-command-deck {
-    display: grid;
-    /* THE CENTRE COLUMN IS CAPPED TO THE OCTAGON'S OWN SIZE, not handed
-       every leftover pixel of width. Owner, 2026-08-26, on a screenshot:
-       the octagon's own margin was already close to his 1cm target
-       (measured ~1.2cm) but the region here is landscape - short and
-       wide - so the octagon is bound by HEIGHT while the grid still gave
-       the column every spare pixel of WIDTH, which is the "lishniy
-       vozdukh" (excess air) he was pointing at. --arena-floor-target-width
-       is published by arena_render.js's placeOctagon(), AFTER it has
-       actually placed the octagon, as that octagon's real rendered width
-       plus 1cm on each side; the var()'s fallback is the OLD `1fr`
-       behaviour, so the first paint (before that script has run) is not
-       broken.
-
-       "отрезай весь лишний воздух, давай место другим контейнерам и
-       виджетам" - and asked directly where: EQUALLY between the two
-       side columns, even though that grows the chat rail well past its
-       own 380-430px target from earlier the same day - his explicit
-       choice, not an oversight. Both side tracks are `1fr` here for
-       exactly that reason: equal weight makes CSS Grid split whatever the
-       centre track does not take EVENLY between them on its own, with no
-       measured bonus value to keep in step by hand. Their own floors
-       (260px / 400px) are what is left of their earlier rulings; the
-       ceilings (280px flat, clamp .. 480px) are gone on purpose, because a
-       ceiling is exactly what would stop the freed room from reaching
-       them.
-
-       LEFT UNTOUCHED: the `@media (max-width: 1280px)` override below
-       this block, which fixes 240/1fr/240 for 901-1280px and does not
-       read this variable at all - the Owner reaffirmed that ruling in the
-       same conversation as this one, before deciding this. */
-    /* A RATIO, NOT PIXELS - see the header of this change. 2.214 is read
-       off the accepted 1440 layout (centre 732.8 of the 1394.8 left after
-       the gaps), so 1440 does not move; below it the composition shrinks
-       instead of snapping, and the two rails are equal, which the old
-       260/400 pair was not - it stood the octagon 70px left of centre. */
-    grid-template-columns:
-      minmax(0, 1fr)
-      minmax(0, 2.214fr)
-      minmax(0, 1fr);
-    align-items: start;
-    gap: clamp(0.5rem, 1.1vw, 1.1rem);
-    width: 100%;
-    max-width: none;
-    /* A07 (2026-08-05) asked the arena to fit one screen and never scroll.
-       That rule is what crushed the crown ladder to zero height yesterday:
-       a fixed viewport height cannot both fit a tall octagon AND a full
-       chat log AND a full command grid without squeezing something to
-       nothing. This rebuild's own acceptance list only asks for no
-       HORIZONTAL scroll at 1920x1080/1440x900 - it does not repeat "never
-       scrolls vertically". So the deck's height is now its own content,
-       min-height keeps it from collapsing shorter than one screen, and
-       nothing is forced into a box too small for it. Recorded here plainly
-       because silently dropping a direct prior rule is not something this
-       project does without saying so. */
-    min-height: calc(100svh - var(--arena-header-h, 146px));
-    height: auto;
-    padding-block: clamp(0.6rem, 1.1vw, 1.1rem);
-  }
-  /* Centre: the octagon's cell. position:relative so its own internal
-     absolutely-positioned children (.arena-floor-stage,
-     .arena-confrontation-band, .arena-floor-frame) anchor to THIS box, not to
-     the page - a grid item is not automatically a positioning context, it
-     needs position set explicitly, the one property this box must carry for
-     its children to keep working at all. Square-ish and generous rather than
-     a viewport-relative guess, so the octagon - which fits itself to
-     whatever box it is given, unchanged - gets real room on a wide screen
-     without the frame or the caption clipping it. */
-  .arena-command-deck__floor {
-    grid-area: floor;
-    position: relative;
-    inset: auto;
-    top: auto;
-    left: auto;
-    right: auto;
-    bottom: auto;
-    width: 100%;
-    height: auto;
-    min-height: min(70vh, 760px);
-    overflow: visible;
-    align-self: stretch;
-  }
-  /* Bottom bar: was left:0;right:0;bottom:0 with no explicit position
-     (inert without one - now given one, on purpose, and placed by the grid
-     instead). */
-  .arena-command-deck__crowd-rail.arena-lower-broadcast {
-    grid-area: foot;
-    position: static;
-    inset: auto;
-    width: 100%;
-  }
-}
-/* THE 1280 OVERRIDE IS GONE. It pinned the rails to 240px below 1281 while
-   the rule above let them breathe above it, and the two met as a cliff: one
-   pixel narrower took the octagon from 527x363 to 700x482, a third bigger, on
-   a SMALLER screen. The ratio above covers the whole range and needs no
-   second opinion at any width. */
-/* THE 641-900px REARRANGEMENT IS GONE - it described a second composition,
-   and there is only one now. What it used to carry (a ranks row, the dock's
-   own cell, the ribbon's box, the octagon's share) all comes from the single
-   grid above, which now starts at 641px. */
-/* THE OCTAGON'S OWN BOX had a large dead zone below it on a tall, narrow
-   screen: min-height was a flat min(70vh,760px) regardless of the column's
-   actual WIDTH, so on a device taller (relative to its width) than a
-   1920x1080 desktop the box claimed far more height than a
-   roughly-square octagon - fitScene() is unchanged and correctly fits it to
-   the SMALLER of the two dimensions, leaving the rest of a too-tall box
-   empty. Driven by width via aspect-ratio instead of an independent
-   viewport-height guess, so the box follows what the octagon actually
-   needs; align-self:start rather than stretch, so it does not additionally
-   grow to match a taller neighbour column. */
-.arena-command-deck__floor {
-  align-self: start !important;
-  aspect-ratio: 1 / 0.82;
-  min-height: 0 !important;
-  max-height: min(78vh, 820px);
 }
 @media (max-width: 640px) {
-  /* THE PHONE'S OWN ORDER, from the Owner's brief, with the mobile scene
-     taking the place his list gives the ranks. The desktop grid does not
-     reach here (min-width:901px) and neither does the tablet one
-     (641-900px), so this is the only rule placing these areas. */
-  .arena-command-deck {
-    display: grid;
-    grid-template-columns: 1fr;
-    /* THE CHAT SITS UNDER THE ARENA. Owner, 2026-08-24: "этот блок должен
-       идти сразу под ареной а не в самом низу - это же общение игроков
-       которые смотрят арену". It was last of eleven, four screens below the
-       thing being talked about - a spectator would have had to scroll past
-       the ranks, the ladder, the command grid and the gifts to say anything
-       about the fight they are watching. Now it follows the floor, which is
-       the only block it is about.
-
-       THE PHONE PLACES BY NAME, so this list is the running order and the
-       document order counts for nothing here - which is why the desktop
-       swaps of v2.5.1354 and v2.5.1366 did not reach it and had to be made
-       again, by hand, in the list. Owner, 2026-08-27, in one message:
-
-       - "обязательно в телефоне тоже сделать так же" - the camera goes above
-         the chat, as it now does in the rail. This is the same Owner
-         relaxing his own 2026-08-24 line above: the chat still follows the
-         arena, with the house camera between them, and he asked for that
-         explicitly after being shown the conflict.
-       - "ранги в телефоне все еще снизу а стадии сверху - тоже нужно все
-         поменять" - ladder and ribbon trade places, so the phone reads
-         the way the desktop has read since v2.5.1354: ranks above the
-         arena, phases below it.
-
-       NOTE WHICH ELEMENT IS THE PHONE'S RANKS. `.arena-rank-strip`, the
-       eight-ring band that carries `grid-area: ranks` on the desktop, is
-       `display: none` here - measured on the live page - and the compact
-       ladder of the 2026-08-21 kitchen-ranks redesign is what a phone
-       actually shows. So `ladder` is the row that moves, not `ranks`; there
-       is no `ranks` area in this list and adding one would place a hidden
-       box. */
-    grid-template-areas:
-      "ladder"
-      "floor"
-      "stream"
-      "chat"
-      "phase"
-      "foot"
-      "metrics"
-      "mobilescene"
-      "ribbon"
-      "command"
-      "gifts"
-      "guide";
-    gap: 0.7rem;
-    width: min(100% - 1rem, 640px);
-    margin-inline: auto;
-    height: auto;
-    min-height: 0;
-    padding-block: 0.8rem;
-  }
-  .arena-command-deck__phase-card { grid-area: phase; }
-  .arena-command-deck__ladder { grid-area: ladder; }
-  .arena-command-deck__guide { grid-area: guide; }
-  .arena-command-deck__metrics { grid-area: metrics; }
-  .arena-command-deck__command { grid-area: command; }
-  .arena-command-deck__gifts { grid-area: gifts; }
-  /* The progress strip itself is defined ONCE, in the max-width:767px
-     block above, which covers this range too. Only the ribbon that
-     carries it is shaped here. */
-  .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; }
-  /* The floor keeps its own aspect on a phone but stops claiming desktop
-     height - it is the stage here, not the whole interface. */
-  .arena-command-deck__floor {
-    grid-area: floor;
-    aspect-ratio: 1 / 0.86;
-    min-height: 0;
-    max-height: 62vh;
-  }
 }
 /* The hall's authorised name, restored to the status card after the
    introductory card that used to carry it was removed. Quiet by design - it
@@ -7424,95 +7689,8 @@ button.arena-chat__poll-option { cursor: pointer; }
   text-transform: uppercase;
 }
 @media (max-width: 767px) {
-  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: nowrap;
-    width: 100%;
-    /* The gap is not empty space here - it is where the connecting line is
-       drawn, so it is sized to be seen: 0.45rem of hairline between one
-       marker and the next. */
-    gap: 0.45rem;
-    padding: 0;
-    min-height: 2.25rem;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-  }
-}
-/* ============================================================================
- * ONE GOLDEN-RATIO RHYTHM FOR THE WHOLE PHONE DECK. Owner, 2026-08-21:
- * "align all the content exactly by the golden ratio."
- *
- * WHAT WAS THERE INSTEAD. Every card on the phone had picked its own inset
- * and none of them agreed - measured at 414px: the ribbon 9.888px, the floor
- * 11.2px, the mobile scene 16px, and the lower dock 90.6px. Four cards, four
- * left edges, and no two pieces of writing on the page starting on the same
- * line.
- *
- * The 90.6px is the worst of them and is a bug rather than a taste: it comes
- * from `padding-inline: 21.965%` on the lower dock, an unconditional rule
- * whose number is (100% - 56.07%) / 2, the share the DESKTOP reference gives
- * that band. On a 413px card it takes 44% of the width, which is why the
- * Owner's screenshot shows "TOP SUPPORTER" clipped to "PPORTER" and the
- * watching count fading off the edge. Fourth rule of that exact shape found
- * this session - a desktop number without a media query, outliving the
- * composition it was measured for.
- *
- * THE SCALE. Powers of phi, so every step is the previous one times 1.618:
- * 0.382 / 0.618 / 1 / 1.618 / 2.618 rem. It is not a new invention here - the
- * phase rail has been on this exact series since v2.5.1150
- * (--arena-phase-gap 0.382rem, --arena-phase-pad 0.618rem, line ~970) - this
- * names it once and lets the rest of the deck stand on it too, rather than
- * each card keeping a number of its own.
- *
- * 1rem is the card inset because it is the series' own centre: the writing
- * lands on one line at 16px from the card edge whatever card it is in, with
- * the tighter steps left for what sits INSIDE a card and the wider ones for
- * the air between them.
- * ========================================================================= */
-.page--arena .arena-command-deck {
-  --phi-1: 0.382rem;   /* phi^-2 - inside a control */
-  --phi-2: 0.618rem;   /* phi^-1 - between related lines */
-  --phi-3: 1rem;       /* 1      - the card inset, the common left edge */
-  --phi-4: 1.618rem;   /* phi    - between cards */
-  --phi-5: 2.618rem;   /* phi^2  - a full break */
 }
 @media (max-width: 767px) {
-  /* The dock's desktop share, undone. Its content is bounded by the card it
-     sits in now, which is the phone's own answer to the same question. */
-  .page--arena .arena-command-deck__crowd-rail.arena-lower-broadcast {
-    padding-inline: var(--phi-3);
-  }
-  /* The air between cards is one step up from the inset, so the page reads as
-     cards on a rhythm rather than blocks that happen to be near each other. */
-  .page--arena .arena-command-deck {
-    gap: var(--phi-4);
-  }
-  /* THE FOUR METRICS STAND ON THE SAME LINE AS EVERYTHING ELSE. Measured
-     before this at 414px, their labels began at 26, 32, 33 and 28 - four
-     numbers in one card, none of them agreeing with each other or with the
-     card they sit in. The cause is that the row is a centring flex line: once
-     it wraps into a column on a phone, each item is centred on its OWN width,
-     so the widest label starts furthest left and the raggedness is a
-     by-product of how long each word happens to be.
-
-     Stretched and left-read here instead, which is what a column of labelled
-     numbers wants: one left edge, and the eye runs down it.
-
-     ROUND 6, 2026-08-21: this premise is gone. The card is a real 4-column
-     grid again (round 5), not a wrapped single column - .page--arena's
-     extra class made this rule beat every later attempt at centring the
-     grid version by specificity alone, regardless of source order, which
-     is why the Owner's screenshots kept showing ACTIVE VIEWERS left-aligned
-     no matter what .arena-metric was told elsewhere. Each grid cell now
-     centres its own icon/label/value, same as its three siblings - the
-     ragged-left-edge problem this rule fixed cannot recur in a grid where
-     every column has its own fixed track width. */
-  .page--arena .arena-command-deck__metrics {
-    align-items: center;
-  }
 }
 /* 641, NOT 901, since 2026-08-31: the columns and the AREAS have to arrive
    together. They did not - the columns moved to the single composition and
@@ -7520,105 +7698,6 @@ button.arena-chat__poll-option { cursor: pointer; }
    took the new three-column track list and the OLD base area map, and came out
    as five tracks in one column. Measured that way before this line changed. */
 @media (min-width: 641px) {
-  /* ---- 1. THE ROW ------------------------------------------------------
-     Between the arena and the lower dock, full width, exactly where he drew
-     it. The other four areas are copied verbatim from the block at :7572 so
-     that this is a row INSERTED, not a template rewritten. */
-  /* THE RINGS GO OVER THE ARENA AND THE LIFECYCLE RAIL GOES UNDER IT.
-     Owner, 2026-08-27: put that whole row up above the arena where the
-     stages are now, and move the stages down to where that row is.
-
-     A straight swap of two full-width areas - `ribbon` and `ranks` trade
-     rows and nothing else in the template moves. THE OCTAGON DOES NOT
-     CHANGE SIZE: its width comes from the middle COLUMN, and a row cannot
-     touch a column. It does change POSITION, and by a knowable amount -
-     the rings are 206px tall against the rail's 90, so everything below
-     row one starts 116px lower. That is the arithmetic of what he asked
-     for rather than a side effect, and it is the only thing that moves.
-
-     Source order is deliberately not touched. This grid places by NAME,
-     and it already did: .arena-mobile-scene sits between the ribbon and
-     the rails in the document and appears nowhere near them at this
-     width. Nothing in the rings is focusable - eight cards of images,
-     labels and counts - so tab order is unaffected either way. */
-  .arena-command-deck {
-    grid-template-areas:
-      "ranks  ranks  ranks"
-      "left   floor  right"
-      "left   dock   ."
-      "ribbon ribbon ribbon"
-      "foot   foot   foot";
-    /* THE ROWS ARE RESERVED, AND THIS IS THE FIX FOR A DEFECT NO JAVASCRIPT
-       COULD REACH. Owner, 2026-08-31, having ordered the load stabilised
-       properly rather than hidden.
-
-       MEASURED CAUSE. The deck grew 873 -> 1247 during load, and instrumenting
-       it named the culprit exactly: at the moment of the jump
-       `document.readyState` is still `loading`, the deck's `style` attribute
-       is EMPTY - not one script had written anything - and the rows `ranks`,
-       `dock` and `foot` do not exist at all, reporting height -1. The HTML
-       parser then reaches them (+117, +198 and +55 nodes) and three rows
-       appear out of nothing. Reproduced twice, identical numbers.
-
-       Nothing in JavaScript can fix that: it happens before any script runs.
-       The only cure is for the row to hold its place before its content
-       arrives, and rows can only be reserved on the grid, because the grid is
-       the element that already exists while its children are still being read.
-
-       WHY THIS CANNOT MOVE THE COMPOSITION. `minmax(X, auto)` resolves to the
-       content's own height whenever that height is at least X. Every X below
-       was measured on production at five desktop widths - 1920x1080,
-       1600x900, 1440x900, 1366x768 and 1280x720 - and each of these four rows
-       came out IDENTICAL at every one of them, to the hundredth of a pixel:
-
-           ranks 206.094   dock 312.859   ribbon 90.0938   foot 103.203
-
-       and each X is set deliberately BELOW its measured value, so `auto` wins
-       every time and the final layout is the one that shipped. What changes is
-       only WHEN the height is known: from the first paint instead of from
-       whenever the parser gets there.
-
-       THE FLOOR ROW IS DELIBERATELY LEFT `auto`. It is the one row that
-       varies with the viewport - 825.6, 772.4, 671.3, 610.6, 632.0 at those
-       five widths - because it is the row the octagon's fit sizes. Reserving
-       it would either pin it to one screen's number or fight the fit.
-
-       THE DOCK'S RESERVE IS THE LOWER OF TWO OBSERVED VALUES. It measures
-       312.859 on the anonymous preview and 375 on the Owner's own
-       authenticated page, which carries more cards. The reserve has to sit
-       under both or it would clip the smaller one. */
-    grid-template-rows:
-      minmax(12.87rem, auto)   /* ranks  - measured 206.094px at every width */
-      auto                     /* floor  - the octagon's own row, must vary */
-      minmax(19.54rem, auto)   /* dock   - 312.859 preview, 375 signed in */
-      minmax(5.62rem, auto)    /* ribbon - measured 90.0938px */
-      minmax(6.43rem, auto);   /* foot   - measured 103.203px */
-  }
-}
-/* WHY THE LIFT IS BIGGER ON THE PHONE, and it is not taste. An absolutely
-   positioned child of a GRID container that carries grid placement is
-   positioned against its GRID AREA, not against the container's padding box -
-   and this caption has carried `grid-area: 3 / 1` since it was written. On the
-   desktop that area starts where the scene starts, so lifting the caption by
-   its own height clears the frame; on the phone the same area starts lower
-   inside the floor's own padding, and the same lift left it nine pixels inside
-   the frame. Measured, both times. The phone therefore lifts by its height
-   plus 1.2rem and the desktop by its height plus 0.5rem, and the two are
-   stated separately rather than averaged into one number that is wrong twice.
-
-   The floor's band below is the room reserved above it. */
-/* This is measured from the floor's own box, so the caption
-   follows the frame wherever the column puts it rather than being pinned to
-   the page - and this is the room it needs. Two lines on a phone, three on a
-   desktop, measured: 31.63px and 53.06px. */
-.arena-command-deck__floor {
-  /* THE CAPTION IS POSITIONED AGAINST THIS BOX, so this box has to be one.
-     The desktop and tablet blocks each set position:relative of their own and
-     the phone's did not - measured, the caption resolved against a different
-     ancestor there and landed nine pixels INSIDE the floor instead of eight
-     above it. Stated once, here, rather than a third time per breakpoint. */
-  position: relative;
-  margin-top: var(--arena-caption-band, 2.5rem);
 }
 /* Band block removed 2026-08-31: it described the old second
    composition for 641-900px, which no longer exists - one grid now
@@ -7626,18 +7705,8 @@ button.arena-chat__poll-option { cursor: pointer; }
    where it is, because it bounds a scroller rather than placing a
    layout, and a test reads it by name. */
 @media (min-width: 641px) {
-  /* Three lines, plus the extra fall he asked for on the desktop - measured,
-     about nine pixels beyond what the caption needs. */
-  .arena-command-deck__floor { --arena-caption-band: 4.4rem; }
 }
 @media (min-width: 768px) {
-  .arena-command-deck__phase-card {
-    text-align: center;
-  }
-  .arena-command-deck__phase-card .arena-command-deck__live-note {
-    grid-column: 3;
-    justify-self: end;
-  }
 }
 
 
@@ -12731,11 +12800,6 @@ button.arena-chat__poll-option:hover {
 }
 @media (max-width: 640px) {
   .arena-house-stream { grid-area: stream; }
-}
-.arena-chat .arena-chat__emoji-empty a {
-  color: var(--accent-bronze);
-  font-weight: 700;
-  text-decoration: underline;
 }
 
 /* ============================================================

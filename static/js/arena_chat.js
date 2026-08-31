@@ -1965,18 +1965,33 @@
           /* NOTHING OWNED: ONE LINK, NOT AN EMPTY GRID and not a placeholder
              with pictures in it. His words - "если стикеров нет то там должна
              быть просто ссылка на магазин артефактов в раздел стикеров". */
-          var empty = document.createElement('p');
+          var empty = document.createElement('div');
           empty.className = 'arena-chat__emoji-empty';
+
+          /* A SENTENCE AND A CONTROL, not one long underlined link.
+             Owner, 2026-08-31, looking at it: 'как-то уродливо выглядит эта
+             надпись'. He was right - 'Get stickers in the artifact shop' is
+             six words in a column about 9rem wide, so it broke into four
+             ragged underlined lines and read as damage rather than as an
+             offer. The line explains, the control is short enough not to
+             wrap, and it wears the chat's own button tokens so it belongs
+             to the panel it sits in. */
+          var note = document.createElement('p');
+          note.className = 'arena-chat__emoji-empty-note';
+          note.textContent = 'You have no stickers yet.';
+          empty.appendChild(note);
+
           if (SHOP_URL) {
             var link = document.createElement('a');
             /* The address is printed by Django into a data- attribute; a URL
                assembled here would be a second copy of the routing table that
                nothing keeps in step. */
             link.href = SHOP_URL;
-            link.textContent = 'Get stickers in the artifact shop';
+            link.className = 'arena-chat__emoji-empty-link';
+            link.textContent = 'Open the shop';
             empty.appendChild(link);
           } else {
-            empty.textContent = 'Stickers are sold in the artifact shop.';
+            note.textContent = 'Stickers are sold in the artifact shop.';
           }
           grid.appendChild(empty);
           return;

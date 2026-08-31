@@ -13115,7 +13115,16 @@ class ArenaRingNumberingTests(TestCase):
         step - so the rung takes whatever the ring COMPUTES to."""
         js = self._js()
         body = js.split("function paintRankLadder(", 1)[1].split("\n  }", 1)[0]
-        self.assertIn("getComputedStyle(cell).fill", body)
+        # ASSERTED AS THE REQUIREMENT, NOT AS A SPELLING. This read
+        # `getComputedStyle(cell).fill` until the local was renamed to
+        # `rcell` and prefixed with `global.` - the rung still takes
+        # whatever the floor computes to, and the guard failed on a
+        # variable's name. Same trap as the six false reds of
+        # 2026-08-27 and the two of 2026-08-29.
+        self.assertRegex(
+            body, r"getComputedStyle\(\w+\)\.fill",
+            "the ladder no longer reads the colour off the floor cell",
+        )
         self.assertIn('[data-ring-kind="rank"][data-ring="', body)
 
     def test_the_ink_flips_on_the_dark_half_of_the_ramp(self):
@@ -28096,7 +28105,12 @@ class EveryArenaComponentIsGatheredTests(TestCase):
     # quietly, because a ceiling nobody notices moving is not a ceiling.
     CEILINGS = {
         ".arena-chat": 7,
-        ".arena-command-deck": 4,
+        # 4 until 2026-08-31. Bolt's breakpoint work (v2.5.1531-1537)
+        # added deck rules at the end of the file, and `--tidy` folds
+        # what it can prove and stops at 5 - one group cannot be merged
+        # without reordering a conflicting pair. Raised on the record
+        # rather than quietly, same as .arena-chat went 5 -> 7.
+        ".arena-command-deck": 5,
         ".arena-broadcast-ribbon": 2,
         ".arena-rank-spine": 3,
     }
