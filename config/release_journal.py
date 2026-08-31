@@ -1,5 +1,42 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1561",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The empty sticker picker was one grid cell wide, and that was the whole fault",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "He looked at v2.5.1549 and said it was not much prettier, and that "
+            "if I had not been distracted I could have done better. Both true. "
+            "THE REASON IT LOOKED CHEAP WAS NOT THE COPY OR THE COLOUR. The "
+            "picker is `grid-template-columns: repeat(auto-fill, minmax(1.9rem, "
+            "1fr))` - a lattice of 30px cells built for sticker buttons - and "
+            "the empty state was dropped into it as an ordinary child. So it "
+            "occupied ONE of those columns and stretched to whatever the text "
+            "forced: a narrow ribbon down the left edge with the sentence "
+            "broken across it. No amount of centring, font-size or button "
+            "styling could fix that, because the box was never the width of the "
+            "panel. `grid-column: 1 / -1` is the fix, and it is one line. "
+            "With the box the right shape the rest follows: the block is "
+            "centred, `No stickers yet.` fits on one line, and the price sits "
+            "under it - `10T each - 100T the pack` - because an empty panel "
+            "that only reports emptiness tells the reader nothing he could not "
+            "already see, while the one thing he does not know is that they are "
+            "cheap. The pill takes the chat's ACCENT pair rather than the "
+            "resting neutral one: everywhere else a neutral outline is right "
+            "because it sits among other controls, and in an empty box it reads "
+            "as a disabled button instead of as the way out. "
+            "Checked before it shipped, not after: the block was rendered on "
+            "its own at the picker's real width with the real stylesheet, and "
+            "looked at. The arena itself is staff-gated and answers 404 to me, "
+            "which is why the first attempt went out unseen. "
+            "One duplicate cleaned in the same rule, because I created it: the "
+            "new block set `padding` and `text-align` that the old one already "
+            "set, which the superseded-declaration guard reads as debt "
+            "whichever copy wins."
+        ),
+    },
+    {
         "version": "2.5.1558",
         "date": "2026-08-31",
         "commit": "pending",

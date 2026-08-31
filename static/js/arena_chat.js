@@ -1978,8 +1978,16 @@
              to the panel it sits in. */
           var note = document.createElement('p');
           note.className = 'arena-chat__emoji-empty-note';
-          note.textContent = 'You have no stickers yet.';
+          note.textContent = 'No stickers yet.';
           empty.appendChild(note);
+
+          /* THE PRICE IS THE PITCH. An empty panel that only says the shelf
+             is empty has told the reader nothing he did not know from
+             looking at it. What he does not know is that they are cheap. */
+          var price = document.createElement('p');
+          price.className = 'arena-chat__emoji-empty-price';
+          price.textContent = '10T each · 100T the pack';
+          empty.appendChild(price);
 
           if (SHOP_URL) {
             var link = document.createElement('a');

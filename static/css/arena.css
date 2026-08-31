@@ -2269,37 +2269,63 @@
    from v2.5.1375 - rather than inventing a third look, so it belongs to the
    panel it appears in and follows the scheme wherever that goes next. */
 .arena-chat .arena-chat__emoji-empty {
+  /* IT IS A GRID ITEM, AND THAT WAS THE WHOLE FAULT.
+
+     The picker is `grid-template-columns: repeat(auto-fill, minmax(1.9rem,
+     1fr))` - a lattice of 30px cells for sticker buttons. The empty state
+     was dropped into it as an ordinary child, so it took ONE of those
+     columns and stretched to whatever the text forced: a 9rem ribbon down
+     the left edge with `You have no / stickers yet.` broken across it. No
+     amount of centring or font-size fixes that, because the box was never
+     the width of the panel. `1 / -1` makes it the whole row, which is what
+     it always meant to be. */
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .5rem;
+  gap: .45rem;
+  padding: 1.1rem .7rem 1.2rem;
+  text-align: center;
 }
 .arena-chat .arena-chat__emoji-empty-note {
   margin: 0;
+  font-size: .74rem;
+  line-height: 1.35;
   color: var(--arena-muted);
+}
+/* The price sells; the sentence above only explains. Kept to one line at
+   the narrowest panel the chat has by using the middle dot rather than a
+   second sentence. */
+.arena-chat .arena-chat__emoji-empty-price {
+  margin: 0;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: var(--arena-ink);
 }
 .arena-chat .arena-chat__emoji-empty-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  max-width: 100%;
-  padding: .32rem .8rem;
-  border: 1px solid var(--chat-btn-edge);
+  margin-top: .15rem;
+  padding: .38rem 1rem;
+  /* THE ONE ACTION IN AN EMPTY PANEL TAKES THE ACCENT PAIR. Everything
+     else in the chat rests neutral (v2.5.1375), and that is right where a
+     control sits among other controls. Here there is nothing else on the
+     screen to compete with, and a neutral outline in an empty box reads as
+     a disabled button rather than as the way out. */
+  border: 1px solid var(--chat-btn-edge-on);
   border-radius: 999px;
-  background: var(--chat-btn-fill);
-  color: var(--chat-btn-ink);
+  background: var(--chat-btn-fill-on);
+  color: var(--chat-btn-ink-on);
   font-size: .74rem;
   font-weight: 700;
-  /* Two short words, and they stay on one line at every panel width the
-     chat has - which is the whole repair. */
   white-space: nowrap;
   text-decoration: none;
 }
 .arena-chat .arena-chat__emoji-empty-link:hover,
 .arena-chat .arena-chat__emoji-empty-link:focus-visible {
-  border-color: var(--chat-btn-edge-on);
-  background: var(--chat-btn-fill-on);
-  color: var(--chat-btn-ink-on);
+  filter: brightness(1.08);
   text-decoration: none;
 }
 
@@ -6534,10 +6560,12 @@ button.arena-chat__poll-option { cursor: pointer; }
    So there is no "locked" state left to style. What is left is the one line
    shown to somebody who owns none of them, which is a LINK and deliberately
    not a grid of things they cannot have. */
+/* The padding and the centring moved to the gathered chat block with the
+   rest of this component's empty state - it is one rule now rather than a
+   pair setting the same two properties, which the superseded-declaration
+   guard reads as debt whichever one wins. */
 .arena-chat .arena-chat__emoji-empty {
   margin: 0;
-  padding: 0.9rem 0.6rem;
-  text-align: center;
   font-size: 0.78rem;
   line-height: 1.5;
   color: var(--arena-muted);
