@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1531",
+        "title": "The octagon gets its own size back between 641 and 900px",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner narrowed the window further and sent the picture: a "
+            "small octagon adrift in a large empty parchment. MEASURED at "
+            "760px: the octagon 382x263 inside a floor 758x622 - 50.4% of its "
+            "width, 42.3% of its height, 216px of empty floor above it - "
+            "against the desktop's 91.8% and 77%. THE SAME HOLE AS EVERY "
+            "OTHER DEFECT THIS WEEK, and the largest of them: "
+            "--arena-octagon-width-share is declared at min-width:901px "
+            "(0.918) and at max-width:640px (1.097, his frozen phone value), "
+            "and 641-900 has NO declaration at all, so the renderer fell back "
+            "to its own constant OCTAGON_VISUAL_WIDTH_SHARE = 659/1268 = "
+            "0.52. That is precisely the failure OctagonSizeAndSeatAreLocked"
+            "Tests describes in writing - `a third of its size` - happening in "
+            "the band instead of on the phone. --arena-octagon-centre-y has "
+            "the same hole with a smaller mouth: 0.503 at 901px, 0.557 at "
+            "max-width:767px, and 768-900 on the renderer's constant. Both are "
+            "now declared for the whole band. NEITHER FROZEN NUMBER IS "
+            "TOUCHED: 1.097 stays the phone's and 0.918 stays the desktop's, "
+            "and what this replaces is a renderer default, not a decision of "
+            "his - OctagonSizeAndSeatAreLockedTests is green. VERIFIED on the "
+            "live page before deploying, by injecting the two properties and "
+            "forcing a rebuild, because the scene's natural size is cached at "
+            "build time and a resize alone will not re-read the share: the "
+            "octagon went 382x263 -> 675x465, fill 50.4% -> 89.1% wide and "
+            "74.9% tall, empty parchment above it 216px -> 115px. Tests: 116 "
+            "focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1528",
         "date": "2026-08-31",
         "commit": "b955508c",

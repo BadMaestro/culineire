@@ -7358,6 +7358,34 @@ button.arena-chat__poll-option { cursor: pointer; }
   .arena-right-stack,
   .arena-left-stack { position: relative; }
 
+  /* ============================================================
+     THE OCTAGON'S OWN SIZE WAS THE LAST AND LARGEST HOLE OF THIS KIND.
+
+     `--arena-octagon-width-share` is declared at `min-width: 901px` (0.918)
+     and at `max-width: 640px` (1.097, the Owner's frozen phone value). Between
+     them: nothing. The renderer then falls back to its own constant,
+     OCTAGON_VISUAL_WIDTH_SHARE = 659/1268 = 0.52 - and that is exactly the
+     failure OctagonSizeAndSeatAreLockedTests warns about in writing, "a third
+     of its size", except it was happening here rather than on the phone.
+
+     MEASURED at 760px before this line existed: the octagon 382x263 inside a
+     floor 758x622 - 50.4% of its width, 42.3% of its height, with 216px of
+     empty parchment above it. The desktop fills 91.8% and 74.9%. After: the
+     octagon 675x465, 89.1% and 74.9%, and 115px above. Same picture as the
+     desktop, at a smaller size, which is the whole of the Owner's brief.
+
+     NEITHER FROZEN NUMBER IS TOUCHED. 1.097 stays the phone's and 0.918 stays
+     the desktop's; this fills a range that had no declaration at all, so what
+     it replaces is a renderer default, not a decision of his.
+
+     `--arena-octagon-centre-y` has the same hole with a smaller mouth: 0.503
+     at 901px and 0.557 at `max-width: 767px`, leaving 768-900 on the
+     renderer's constant. Setting it across the whole band is what makes the
+     band one range instead of two.
+     ============================================================ */
+  .arena-floor-stage { --arena-octagon-width-share: 0.918; }
+  .page--arena .arena-render-container { --arena-octagon-centre-y: 0.557; }
+
   /* THE OVERLAY LADDER GOES OFF HERE, which is the whole of the Owner's
      complaint of 2026-08-31. It was never switched on for this band on
      purpose: the off-switch exists for the phone and for the desktop and
