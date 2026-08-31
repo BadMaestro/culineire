@@ -528,6 +528,48 @@
     background: color-mix(in srgb, var(--surface-soft) 84%, var(--ink) 5%);
     box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 12%, transparent);
   }
+/* MOVED UP 2026-08-31, and it is a CASCADE fix, not a tidy-up.
+
+   This rule is the deck's BASE - no media query, so it applies at every
+   width - and it had come to sit BELOW the `@media (min-width: 641px)` block
+   that carries the desktop composition. Same selector, same specificity, so
+   the later one wins: the base area map was overriding the desktop's at
+   EVERY width. Measured on production at v2.5.1552, 1440px: the deck's
+   computed areas read `header header header / phase-rail phase-rail metrics
+   / phase floor gifts ...` and its columns `176px 0px 176px 0px 1012px`.
+   The arena had no composition left at all.
+
+   It arrived that way in v2.5.1549, a gathering pass that collected the
+   deck's rules together and in doing so lifted them above their own base -
+   checked commit by commit: at 56d2e4c8 the base sat at 6239 and the 641
+   blocks at 7377/7545, which is the right order; at a070b707 the 641 blocks
+   are at 1677/1830 and the base at 6706, which is not.
+
+   Gathering a component into one place is worth having. What it must not do
+   is reorder rules that decide each other, and a base that outranks its own
+   overrides is exactly that. */
+.arena-command-deck {
+  /* Every value below restated an existing global token byte-for-byte —
+     ink/ink-soft/muted/brand/brand-dark/surface/surface-soft. Pointed at the
+     real tokens instead of a second copy of each. */
+  --arena-ink: var(--ink);
+  --arena-forest: var(--ink-soft);
+  --arena-muted: var(--muted);
+  --arena-gold: var(--accent-bronze);
+  --arena-cappuccino: var(--brand-dark);
+  --arena-paper: var(--surface);
+  --arena-cream: var(--surface-soft);
+  grid-template-columns: minmax(11rem, .9fr) minmax(0, 3.3fr) minmax(11rem, .9fr);
+  grid-template-areas:
+    "header header header"
+    "phase-rail phase-rail metrics"
+    "phase floor gifts"
+    "ladder floor gifts"
+    "chat floor gifts"
+    "crowd crowd crowd";
+  gap: 1rem;
+}
+
 @media (min-width: 641px) {
 /* A11: the deadline is NO LONGER hidden here. It was the one authoritative,
      server-driven number in the panel, and hiding it on desktop is what left
@@ -1803,47 +1845,6 @@
   .page--arena .arena-command-deck__metrics {
     align-items: center;
   }
-}
-/* MOVED UP 2026-08-31, and it is a CASCADE fix, not a tidy-up.
-
-   This rule is the deck's BASE - no media query, so it applies at every
-   width - and it had come to sit BELOW the `@media (min-width: 641px)` block
-   that carries the desktop composition. Same selector, same specificity, so
-   the later one wins: the base area map was overriding the desktop's at
-   EVERY width. Measured on production at v2.5.1552, 1440px: the deck's
-   computed areas read `header header header / phase-rail phase-rail metrics
-   / phase floor gifts ...` and its columns `176px 0px 176px 0px 1012px`.
-   The arena had no composition left at all.
-
-   It arrived that way in v2.5.1549, a gathering pass that collected the
-   deck's rules together and in doing so lifted them above their own base -
-   checked commit by commit: at 56d2e4c8 the base sat at 6239 and the 641
-   blocks at 7377/7545, which is the right order; at a070b707 the 641 blocks
-   are at 1677/1830 and the base at 6706, which is not.
-
-   Gathering a component into one place is worth having. What it must not do
-   is reorder rules that decide each other, and a base that outranks its own
-   overrides is exactly that. */
-.arena-command-deck {
-  /* Every value below restated an existing global token byte-for-byte —
-     ink/ink-soft/muted/brand/brand-dark/surface/surface-soft. Pointed at the
-     real tokens instead of a second copy of each. */
-  --arena-ink: var(--ink);
-  --arena-forest: var(--ink-soft);
-  --arena-muted: var(--muted);
-  --arena-gold: var(--accent-bronze);
-  --arena-cappuccino: var(--brand-dark);
-  --arena-paper: var(--surface);
-  --arena-cream: var(--surface-soft);
-  grid-template-columns: minmax(11rem, .9fr) minmax(0, 3.3fr) minmax(11rem, .9fr);
-  grid-template-areas:
-    "header header header"
-    "phase-rail phase-rail metrics"
-    "phase floor gifts"
-    "ladder floor gifts"
-    "chat floor gifts"
-    "crowd crowd crowd";
-  gap: 1rem;
 }
 
 @media (min-width: 641px) {

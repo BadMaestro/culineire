@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1558",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The base rule goes above BOTH desktop blocks, not between them",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "v2.5.1555 moved the deck's unconditional base rule back above the "
+            "desktop block and restored the composition - but only half of it, "
+            "and the measurement said so immediately: at 1440 the areas were "
+            "right again while the columns read 246/903/246 instead of "
+            "331/734/331, and the octagon came out 829x571 against its 673x464. "
+            "The gathering pass had split the desktop deck into TWO "
+            "(min-width: 641px) blocks - one carrying grid-template-columns, "
+            "one carrying grid-template-areas - and 1555 dropped the base "
+            "between them, so it still outranked the columns while losing to "
+            "the areas. It is now above both. Order after: base at 551 with no "
+            "query, then 641 at 1563, 640 at 1686, 641 at 1872. Verified at "
+            "1440: columns 331/734/331, octagon 673x464 centred, ranks "
+            "1428x206, dock 734x375, deck 1512 - the numbers the desktop has "
+            "had all week. Still wrong and repeated here so it is not lost: "
+            "between 641 and 767 a one-line rule inside (max-width: 767px) "
+            "re-declares the whole deck grid and is the last rule standing. It "
+            "needs the two phone grids reconciled - re-gating it alone creates "
+            "a superseded declaration and the project's own test refuses it. "
+            "Tests: 78 focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1555",
         "date": "2026-08-31",
         "commit": "pending",
