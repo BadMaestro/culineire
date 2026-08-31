@@ -28777,3 +28777,93 @@ class AShopStickerCannotComeBackAsAnUploadTests(TestCase):
             "sticker button", block,
             "the refusal does not tell the reader how to send it properly",
         )
+
+
+class TheShopWindowCarriesTheHouseMarkTests(TestCase):
+    """Owner, 2026-08-30: "теперь водяной знак на витрину".
+
+    THE MARK IS IN THE PIXELS, NOT IN CSS, and that is the whole design. A CSS
+    overlay appears in a screenshot - half the job - and vanishes the moment
+    somebody opens the image in a new tab or fetches the URL, which is the
+    other half. The shop window is a public static file, so whatever protects
+    it has to be part of the file.
+
+    HIS ARTWORK IS NOT OVERWRITTEN. The sheet is his own, placed and never
+    redrawn (Carpet #3552). The pristine file moved to ops/reference/stickers/,
+    out of the served tree, and a management command writes the marked copy the
+    page serves - so the original survives in git, the mark is reproducible,
+    and changing it is one constant and one re-run rather than a lost file.
+
+    WHAT THIS DOES NOT CLAIM. Automated inpainting removes a visible mark, free
+    and fast. What the mark buys is that the UNPROCESSED copy - the one people
+    actually screenshot and post - carries the shop's name."""
+
+    ROOT = Path(settings.BASE_DIR)
+    SOURCE = ROOT / "ops" / "reference" / "stickers" / "sticker_pack_arena_2026.webp"
+    SERVED = ROOT / "static" / "images" / "chef_battle" / "sticker_pack_arena_2026.webp"
+
+    def test_the_pristine_sheet_is_kept_and_is_not_served(self):
+        self.assertTrue(
+            self.SOURCE.exists(),
+            "the Owner's original sheet is gone; it is his artwork and must be "
+            "kept, not regenerated",
+        )
+        self.assertFalse(
+            (self.ROOT / "static" / "images" / "chef_battle"
+             / "sticker_pack_arena_2026_original.webp").exists(),
+            "an unmarked copy is being served alongside the marked one",
+        )
+
+    def test_the_served_window_is_the_current_watermark_of_it(self):
+        """Runs the command's own --check, so the file cannot drift from the
+        source: re-mark the sheet and forget to commit it, and this fails."""
+        from django.core.management import call_command
+
+        call_command("watermark_shop_window", "--check")
+
+    def test_the_served_window_differs_from_the_original(self):
+        self.assertTrue(self.SERVED.exists())
+        self.assertNotEqual(
+            self.SERVED.read_bytes(), self.SOURCE.read_bytes(),
+            "the page is serving the unmarked artwork",
+        )
+
+    def test_a_single_sticker_crop_still_carries_a_mark(self):
+        """The crop worth taking is ONE CELL, about 200x190 on a 900x675 sheet.
+        A corner signature is defeated by that crop; a lattice tighter than the
+        cell is not. Asserted by measuring the pixel difference between the
+        marked and unmarked sheet inside each of the twelve cells - a cell the
+        lattice missed would be byte-identical to the original."""
+        from PIL import Image, ImageChops
+
+        with Image.open(self.SOURCE) as clean, Image.open(self.SERVED) as marked:
+            clean.load()
+            marked.load()
+            self.assertEqual(clean.size, marked.size, "the sheet was resized")
+            difference = ImageChops.difference(
+                clean.convert("RGB"), marked.convert("RGB")).convert("L")
+
+            width, height = clean.size
+            untouched = []
+            for row in range(3):
+                for column in range(4):
+                    cell = difference.crop((
+                        int(column * width / 4), int(row * height / 3) + int(height * 0.08),
+                        int((column + 1) * width / 4), int((row + 1) * height / 3),
+                    ))
+                    if max(cell.getextrema()) < 6:
+                        untouched.append(f"r{row}c{column}")
+            self.assertEqual(
+                untouched, [],
+                "these cells can be cropped out clean - the lattice is too "
+                "sparse for the crop that is actually worth taking",
+            )
+
+    def test_the_gallery_still_shows_it(self):
+        user, author = _make_chef("windowmark", balance=500)
+        profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
+        profile.age_verified = True
+        profile.save()
+        self.client.force_login(user)
+        page = self.client.get(reverse("chef_battle:artifact_gallery"))
+        self.assertContains(page, "sticker_pack_arena_2026")

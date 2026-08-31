@@ -1,5 +1,52 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1528",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The house mark burned into the sticker shop window",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner: теперь водяной знак на витрину. The contact sheet that "
+            "sells the pack now carries `culineire.ie` woven diagonally "
+            "through it. "
+            "IN THE PIXELS, NOT IN CSS, and that is the whole design. A CSS "
+            "overlay appears in a screenshot - half the job - and vanishes "
+            "the moment somebody opens the image in a new tab or fetches the "
+            "URL, which is the other half. The window is a public static "
+            "file, so the protection has to be part of the file. "
+            "HIS ARTWORK IS NOT OVERWRITTEN. The sheet is his own, placed and "
+            "never redrawn (Carpet #3552), so the pristine file moved to "
+            "ops/reference/stickers/ - out of the served tree, still in git - "
+            "and a management command writes the marked copy the page serves. "
+            "The original survives, the mark is reproducible, and changing it "
+            "is one constant and one re-run rather than a lost file. "
+            "SPACED TO THE CROP THAT IS WORTH TAKING. A corner signature is "
+            "defeated by a 5% crop, so the mark is a tiled diagonal lattice - "
+            "and the first attempt was too sparse: at width//8 the horizontal "
+            "gap was 224px against sticker cells about 200px wide, so a "
+            "single cell could be cut out clean. Tightened, and the test "
+            "measures it rather than trusting it: the marked and unmarked "
+            "sheets are compared inside each of the twelve cells, and a cell "
+            "the lattice missed would be byte-identical. "
+            "THE IMAGE-WEIGHT GATE PICKED THE QUALITY, not taste. The mark "
+            "adds high-frequency edges everywhere, so the marked sheet "
+            "encodes larger: q88 gave 172 KB against a 150 KB cap, q82 landed "
+            "at 149,984 bytes - sixteen bytes of headroom, which is not "
+            "headroom - and q78 gives 139 KB with room for the artwork to "
+            "change without turning the gate red on somebody else's deploy. "
+            "WHAT IT DOES NOT CLAIM. Automated inpainting removes a visible "
+            "mark, free and fast. What it buys is that the unprocessed copy - "
+            "the one people actually screenshot and post - carries the shop's "
+            "name. "
+            "The version number is 1528 and not 1522: Bolt took 1522 and 1525 "
+            "while this was being built. A taken number is my own unchecked "
+            "queue, and the lock claim that collided also swept a staged file "
+            "move into itself - caught by the push being rejected, undone, and "
+            "redone with the index read. 17.15.1, at the one moment nobody is "
+            "watching for it."
+        ),
+    },
+    {
         "version": "2.5.1525",
         "date": "2026-08-31",
         "commit": "pending",
