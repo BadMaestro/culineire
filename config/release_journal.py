@@ -1,6 +1,6 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.1609",
+        "version": "2.5.1612",
         "date": "2026-08-31",
         "commit": "pending",
         "title": "Half a centimetre from the octagon to the frame, on every side",

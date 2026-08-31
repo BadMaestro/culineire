@@ -7891,6 +7891,22 @@ button.arena-chat__poll-option { cursor: pointer; }
    thousands of pixels - and the same margin would be a gap for nothing. */
 @media (min-width: 901px) {
   .arena-command-deck__floor { margin-top: 0; }
+  /* HEIGHT FROM THE SCREEN, WIDTH FROM THE OCTAGON - and the pair has to be
+     that way round or the two feed each other. With aspect-ratio the floor's
+     HEIGHT came from its WIDTH, and since v2.5.1606 its width comes from the
+     octagon, which is sized by the height: a loop, and it settles small. Twice
+     measured at 1920, 660 then 681px of shape where 926 fits.
+
+     So the floor takes the height it always had here - min(78vh, 820px), the
+     same numbers as the max-height beside it - as an actual height, and the
+     column is the octagon's own width plus half a centimetre each way. Nothing
+     circular is left: the screen decides the height, the height decides the
+     octagon, the octagon decides the column. Below 901px the aspect still
+     rules, because there the floor is not competing with two rails. */
+  .arena-command-deck__floor {
+    aspect-ratio: auto;
+    height: min(78vh, 820px);
+  }
   /* HALF A CENTIMETRE ON EVERY SIDE, Owner 2026-08-31: too much air is left
      to the edges, stretch the octagon so no side keeps more than 0.5cm. The
      2026-08-25 pass was the same instruction at 1cm, and it ended with the
