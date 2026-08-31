@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1519",
         "date": "2026-08-30",
-        "commit": "pending",
+        "commit": "2740e08f",
         "title": "A shop sticker cannot come back as an ordinary chat upload",
         "section": "Chef Battles / Arena",
         "summary": (
