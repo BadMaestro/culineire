@@ -7911,6 +7911,14 @@ button.arena-chat__poll-option { cursor: pointer; }
   .arena-command-deck__floor .arena-floor-stage {
     --arena-octagon-width-share: 0.969;
     --arena-octagon-height-share: 0.99;
+    /* AND IT SITS 1.5px HIGHER THAN THE 1cm PASS LEFT IT. Measured on the
+       deployed result: 18px left, 18 right, 18 below and 21 above - 0.48cm
+       on three sides and 0.56 on the fourth, because 0.503 seats the shape a
+       little low and the frame no longer has the slack to hide it. Half of
+       the 3px difference is 1.5px, which is 0.0022 of the 690px region:
+       0.503 -> 0.5008. The reason 0.503 existed - buying the caption clear
+       air - is now held by the head row above the floor instead. */
+    --arena-octagon-centre-y: 0.5008;
   }
 }
 
