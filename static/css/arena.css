@@ -6978,7 +6978,24 @@ button.arena-chat__poll-option { cursor: pointer; }
     padding-block: 0.55rem;
   }
 @media (max-width: 767px) {
-  .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; grid-template-columns: 1fr; grid-template-areas: "header" "phase" "phase-rail" "metrics" "command" "floor" "crowd" "chat" "guide" "ladder" "gifts"; gap: .65rem; }
+  /* THE GRID CAME OUT OF THIS LINE 2026-08-31, and it had to. It declared a
+     WHOLE deck layout - eleven single-name rows - inside `max-width: 767px`,
+     which reaches the phone as well as the band above it. That was survivable
+     only while it sat ABOVE the phone's own map; v2.5.1549 gathered the
+     component and inverted them, so this eleven-row map started winning on the
+     PHONE too. Measured at 630px: computed areas `header phase phase-rail
+     metrics command floor crowd chat guide ladder gifts` and columns
+     `147.5px 0px 428.7px` - three implicit tracks, because the phone assigns
+     its children to names (ladder, stream, chat, mobilescene) this map does not
+     contain, so the browser invented lines for them. The caption came out one
+     letter per line down the left edge.
+
+     Deleting the two grid declarations - not re-gating them - is what fixes
+     BOTH ranges at once and adds no duplicate: below 641 the phone's own map
+     governs, and between 641 and 767 nothing here contradicts the single
+     composition any more. The width, margin and gap are phone styling and
+     stay. */
+  .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; gap: .65rem; }
   .arena-command-deck__guide { grid-area: guide; }
   .arena-command-deck__command { grid-area: command; }
 .arena-command-deck__floor-head,

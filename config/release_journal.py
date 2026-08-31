@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1564",
+        "commit": "pending",
+        "title": "URGENT: a stray deck grid inside max-width 767 was governing the phone",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner sent two shots of the page below 641px in ruins - the "
+            "caption running one letter per line down the left edge, the "
+            "octagon a sliver, the blocks scattered. Same root as the desktop "
+            "break of v2.5.1555: a gathering pass inverted two rules that "
+            "decide each other, this time on the PHONE. A one-line rule inside "
+            "`@media (max-width: 767px)` declares a WHOLE deck layout - eleven "
+            "single-name rows - and 767 reaches the phone as well as the band "
+            "above it. That was survivable only while it sat ABOVE the phone's "
+            "own map at (max-width: 640px); after v2.5.1549 it sits below, so "
+            "it wins. MEASURED at 630px: computed areas `header phase "
+            "phase-rail metrics command floor crowd chat guide ladder gifts`, "
+            "columns `147.5px 0px 428.7px` - three IMPLICIT tracks, because "
+            "the phone assigns its children to names this map does not contain "
+            "(ladder, stream, chat, mobilescene) and the browser invented "
+            "lines for them. Deck 3048 tall. THE FIX IS A DELETION, not a "
+            "re-gating: the two grid declarations come out of that line and its "
+            "width, margin and gap stay. Re-gating it to 640 was tried earlier "
+            "today and rejected by this project's own superseded-declaration "
+            "test, correctly - the phone already declares its grid, and a "
+            "second copy in the same context is dead code. Deleting fixes BOTH "
+            "ranges at once: below 641 the phone's own map governs again, and "
+            "between 641 and 767 nothing contradicts the single composition any "
+            "more, which is the band that has been showing a phone stack all "
+            "evening. Tests: 71 focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1561",
         "date": "2026-08-31",
         "commit": "ac37e591",
