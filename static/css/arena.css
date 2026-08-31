@@ -7174,7 +7174,30 @@ button.arena-chat__poll-option { cursor: pointer; }
   justify-content: space-between;
   gap: 0.75rem;
 }
-@media (min-width: 901px) {
+/* ============================================================
+   THE TYPE SHRINKS WITH THE LAYOUT, which is the half that makes the rest
+   look deliberate instead of broken.
+
+   The columns above are a ratio, so at 800px the side panels are 183px - the
+   same 23% of the page they occupy at 1440. But 16px text inside a 183px panel
+   is not a smaller copy of the 1440 design, it is a damaged one: the phase name
+   wraps, the status card's badge collides with its own heading.
+
+   Every size in this stylesheet is in rem, so ONE declaration scales all of
+   them together. The slope is set to land on exactly 16px at 1440, so nothing
+   at or above the design width changes by a hundredth of a pixel; below it the
+   page shrinks as a whole rather than keeping 1440's type inside 800's boxes.
+
+   Scoped with :has() to the arena page alone - the rest of the site keeps its
+   own root size, because this is the arena's brief and not a sitewide change.
+   ============================================================ */
+@media (min-width: 641px) and (max-width: 1439px) {
+  :root:has(.page--arena) {
+    font-size: clamp(11px, calc(0.625vw + 7px), 16px);
+  }
+}
+
+@media (min-width: 641px) {
   /* THE GRID ITSELF. Ribbon (phase steps + next battle) full width on top,
      three columns below it, actions full width at the bottom.
 
@@ -7217,12 +7240,17 @@ button.arena-chat__poll-option { cursor: pointer; }
        this block, which fixes 240/1fr/240 for 901-1280px and does not
        read this variable at all - the Owner reaffirmed that ruling in the
        same conversation as this one, before deciding this. */
+    /* A RATIO, NOT PIXELS - see the header of this change. 2.214 is read
+       off the accepted 1440 layout (centre 732.8 of the 1394.8 left after
+       the gaps), so 1440 does not move; below it the composition shrinks
+       instead of snapping, and the two rails are equal, which the old
+       260/400 pair was not - it stood the octagon 70px left of centre. */
     grid-template-columns:
-      minmax(260px, 1fr)
-      minmax(0, var(--arena-floor-target-width, 1fr))
-      minmax(400px, 1fr);
+      minmax(0, 1fr)
+      minmax(0, 2.214fr)
+      minmax(0, 1fr);
     align-items: start;
-    gap: 1.1rem;
+    gap: clamp(0.5rem, 1.1vw, 1.1rem);
     width: 100%;
     max-width: none;
     /* A07 (2026-08-05) asked the arena to fit one screen and never scroll.
@@ -7238,7 +7266,7 @@ button.arena-chat__poll-option { cursor: pointer; }
        project does without saying so. */
     min-height: calc(100svh - var(--arena-header-h, 146px));
     height: auto;
-    padding-block: 1.1rem;
+    padding-block: clamp(0.6rem, 1.1vw, 1.1rem);
   }
   /* Centre: the octagon's cell. position:relative so its own internal
      absolutely-positioned children (.arena-floor-stage,
@@ -7273,127 +7301,15 @@ button.arena-chat__poll-option { cursor: pointer; }
     width: 100%;
   }
 }
-@media (min-width: 901px) {
-  @media (max-width: 1280px) {
-    .arena-command-deck {
-      grid-template-columns: minmax(210px, 240px) minmax(0, 1fr) minmax(210px, 240px);
-      gap: 0.8rem;
-    }
-  }
-}
-@media (min-width: 641px) and (max-width: 900px) {
-  .arena-command-deck {
-    display: grid;
-    /* TWO COLUMNS, NOT ONE. One column is what made this band 3606px tall
-       against the desktop's 1518: the chat, the ladder and the house stream
-       are built around 240-400px and were being stretched to the full 788.
-       Two hands them 388px at 800 and 310px at 641, inside their design range
-       at both ends. The floor, ribbon, ranks and foot span both columns
-       because they span the full width on the desktop as well. */
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    /* `ranks` joins this list on 2026-08-31, DIRECTLY UNDER THE FLOOR. The
-       row did not exist here, so the strip the Owner approved on 2026-08-24
-       had nowhere to go and the band was left showing the overlay ladder it
-       replaced. Under rather than over, for two reasons that agree: he asked
-       for "полосой ПОД ареной", and nothing above the arena may grow. */
-    grid-template-areas:
-      "ribbon ribbon"
-      "floor  floor"
-      "ranks  ranks"
-      "left   right"
-      "dock   dock"
-      "foot   foot";
-    /* Between the desktop's 1.1rem and the phone's 0.8rem. Neither reached
-       this band, so it was taking an ungated value that answered to no
-       screen. */
-    padding-block: 0.95rem;
-    gap: 0.9rem;
-    width: min(100% - 1.2rem, 720px);
-    margin-inline: auto;
-    height: auto;
-    min-height: 0;
-  }
-  .arena-command-deck__floor {
-    grid-area: floor;
-    position: relative;
-    min-height: min(85vw, 620px);
-  }
-  .arena-command-deck__crowd-rail.arena-lower-broadcast { grid-area: foot; position: static; }
-
-  /* THE DOCK WAS NEVER IN ITS OWN CELL HERE, and this is the least visible
-     fault of the set. `grid-area` is `dock` at 901px and `command` on the
-     phone; the band matched neither, so the dock was AUTO-PLACED and spanned
-     the full width no matter how many columns the deck had. Naming the cell
-     is what lets the three cards go back into a row - about 250px each at
-     800, against the desktop's 235 - instead of a 771px-tall stack of three
-     cards 788 wide. */
-  .arena-command-dock {
-    grid-area: dock;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  /* THE RIBBON IS THE SAME BOX IT IS ON THE DESKTOP. Its `display` is `block`
-     at 901px and `flex` at 767px, and 768-900 had neither - so it kept the
-     BASE value, `grid`, whose second track is `minmax(0, 2.6fr)` and holds
-     .arena-phase-blurb. That blurb is `display: none` at every width, so the
-     track was 491px of nothing and the phase rail beside it was crushed to
-     224px inside a ribbon 788px wide. Taking the desktop's `block` is what
-     makes the rail full width here for the same reason it is full width at
-     1440: there is no track to be squeezed by. */
-  .arena-broadcast-ribbon { display: block; }
-  .arena-command-deck__phase-rail { width: 100%; }
-  .arena-broadcast-ribbon .arena-phase-step {
-    height: 1.4rem;
-    min-width: 1.4rem;
-    font-size: 0.6rem;
-    /* `relative` is what BOTH neighbours use - the chip was `static` here and
-       nowhere else. Found by reading the computed style of twenty components
-       at 1440, 800 and 390 and keeping only the ones where the band's answer
-       matched neither side. */
-    position: relative;
-  }
-  /* Same audit, same kind of leftover: the stack is `relative` on the desktop
-     and the band was the only width where it was not. Nothing is positioned
-     against it today, which is exactly why it went unnoticed. */
-  .arena-right-stack,
-  .arena-left-stack { position: relative; }
-
-  /* ============================================================
-     THE OCTAGON'S OWN SIZE WAS THE LAST AND LARGEST HOLE OF THIS KIND.
-
-     `--arena-octagon-width-share` is declared at `min-width: 901px` (0.918)
-     and at `max-width: 640px` (1.097, the Owner's frozen phone value). Between
-     them: nothing. The renderer then falls back to its own constant,
-     OCTAGON_VISUAL_WIDTH_SHARE = 659/1268 = 0.52 - and that is exactly the
-     failure OctagonSizeAndSeatAreLockedTests warns about in writing, "a third
-     of its size", except it was happening here rather than on the phone.
-
-     MEASURED at 760px before this line existed: the octagon 382x263 inside a
-     floor 758x622 - 50.4% of its width, 42.3% of its height, with 216px of
-     empty parchment above it. The desktop fills 91.8% and 74.9%. After: the
-     octagon 675x465, 89.1% and 74.9%, and 115px above. Same picture as the
-     desktop, at a smaller size, which is the whole of the Owner's brief.
-
-     NEITHER FROZEN NUMBER IS TOUCHED. 1.097 stays the phone's and 0.918 stays
-     the desktop's; this fills a range that had no declaration at all, so what
-     it replaces is a renderer default, not a decision of his.
-
-     `--arena-octagon-centre-y` has the same hole with a smaller mouth: 0.503
-     at 901px and 0.557 at `max-width: 767px`, leaving 768-900 on the
-     renderer's constant. Setting it across the whole band is what makes the
-     band one range instead of two.
-     ============================================================ */
-  .arena-floor-stage { --arena-octagon-width-share: 0.918; }
-  .page--arena .arena-render-container { --arena-octagon-centre-y: 0.557; }
-
-  /* THE OVERLAY LADDER GOES OFF HERE, which is the whole of the Owner's
-     complaint of 2026-08-31. It was never switched on for this band on
-     purpose: the off-switch exists for the phone and for the desktop and
-     simply did not cover the range between them, so the band showed a
-     component neither of the other two shows. The phone's own copy of this
-     rule is left exactly where it is - a test reads that block by name. */
-  .arena-floor-stage > .arena-rank-spine { display: none; }
-}
+/* THE 1280 OVERRIDE IS GONE. It pinned the rails to 240px below 1281 while
+   the rule above let them breathe above it, and the two met as a cliff: one
+   pixel narrower took the octagon from 527x363 to 700x482, a third bigger, on
+   a SMALLER screen. The ratio above covers the whole range and needs no
+   second opinion at any width. */
+/* THE 641-900px REARRANGEMENT IS GONE - it described a second composition,
+   and there is only one now. What it used to carry (a ranks row, the dock's
+   own cell, the ribbon's box, the octagon's share) all comes from the single
+   grid above, which now starts at 641px. */
 /* THE OCTAGON'S OWN BOX had a large dead zone below it on a tall, narrow
    screen: min-height was a flat min(70vh,760px) regardless of the column's
    actual WIDTH, so on a device taller (relative to its width) than a

@@ -25521,12 +25521,44 @@ class ArenaRingsSitAboveTheArenaTests(TestCase):
 
     def test_the_arena_row_itself_is_untouched(self):
         """The octagon's width comes from the middle COLUMN. A row swap must
-        not have gone near the columns."""
+        not have gone near the columns.
+
+        AMENDED 2026-08-31 on the Owner's order, and the reason is recorded
+        rather than the assertion quietly relaxed. This read
+        `var(--arena-floor-target-width, 1fr)` inside `@media (min-width:
+        901px)`, which pinned the centre column to the octagon's own rendered
+        width - his 2026-08-26 decision, taken to remove excess air at 1440.
+
+        He has now asked for something that mechanism cannot give: one
+        composition from the widest screen down to the phone, shrinking evenly
+        with no jumps. Pinning the centre to a published pixel width while the
+        rails are free does not shrink - measured at 800px, the centre took
+        770 of 790 and BOTH RAILS COLLAPSED TO ZERO. The columns are a ratio
+        now, 1 : 2.214 : 1, chosen so the centre reproduces 732.8px at 1440 to
+        the tenth of a pixel, so his 1440 composition is unchanged and every
+        width below it is that composition made smaller.
+
+        The air he was pointing at is still removed, by
+        --arena-octagon-width-share: 0.918, which is what actually decides how
+        much of the column the octagon fills.
+
+        The gate moved with it: the composition starts at 641px now, because a
+        second composition between 641 and 900 is exactly what he told us to
+        delete."""
         cols = [b for c, s, b in ArenaChatIsAFixedHeightPanelTests._blocks()
-                if c == self.DESKTOP and s == ".arena-command-deck"
+                if c == "@media (min-width: 641px)" and s == ".arena-command-deck"
                 and "grid-template-columns" in b]
-        self.assertTrue(cols)
-        self.assertIn("var(--arena-floor-target-width, 1fr)", cols[0])
+        self.assertTrue(cols, "the deck has no column rule for the single composition")
+        self.assertIn("minmax(0, 2.214fr)", cols[0])
+        # The rails are equal, which the 260/400 pair they replace was not.
+        self.assertEqual(cols[0].count("minmax(0, 1fr)"), 2)
+        # And nothing re-decides the columns at a narrower width any more.
+        self.assertFalse(
+            [b for c, s, b in ArenaChatIsAFixedHeightPanelTests._blocks()
+             if s == ".arena-command-deck" and "grid-template-columns" in b
+             and "max-width: 1280px" in c],
+            "the 1280px column cliff is back",
+        )
 class ArenaStatusCardReadsOnOneAxisTests(TestCase):
     """ARENA STATUS is centred on the card, v2.5.1357.
 

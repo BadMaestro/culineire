@@ -1,5 +1,51 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1534",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "One composition from 1920 down to 641, shrunk instead of rearranged",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner, angry and right: removing the old rank ladder was not "
+            "the task. Take the widest layout and shrink it evenly, keeping "
+            "the same arrangement at every step down to the phone. It was not "
+            "doing that - it broke twice on the way down. At 1281 -> 1280 the "
+            "rails snapped from 400/260 to 240/240 and the octagon jumped 33% "
+            "BIGGER as the window got one pixel NARROWER (measured 527x363 -> "
+            "700x482). At 901 -> 900 the three columns collapsed into a stack "
+            "and the deck went 1287 -> 3497. FIVE CHANGES, ONE COMPOSITION. "
+            "(1) The desktop grid's gate moves from min-width:901px to "
+            "min-width:641px, so there is a single arrangement above the phone "
+            "and nothing to jump between. (2) The columns become a ratio, "
+            "1fr : 2.214fr : 1fr, read off the accepted 1440 layout - the "
+            "centre is 732.8 of the 1394.8 left after the gaps, so 2.214/4.214 "
+            "reproduces 732.8 exactly and 1440's centre column does not move. "
+            "The rails are now EQUAL; the old minmax(260px,1fr) and "
+            "minmax(400px,1fr) pair stood the octagon 70px left of the deck's "
+            "centre at 1440, measured. The centre no longer reads "
+            "--arena-floor-target-width: pinning it to a published pixel width "
+            "while the rails are free does not shrink - tried at 800px, the "
+            "centre took 770 of 790 and both rails collapsed to zero. The air "
+            "that variable was added to remove is still removed, by "
+            "--arena-octagon-width-share: 0.918. (3) Gaps and padding scale "
+            "with clamp() so they stay the same proportion of the page. (4) "
+            "The type scales with the layout, which is the half without which "
+            "the rest only looks wrong differently: at 800px the side panels "
+            "are 183px - the correct 23% they occupy at 1440 - but 16px text "
+            "in a 183px panel is a damaged copy, not a smaller one. Every size "
+            "here is in rem, so one root declaration scales all of them, "
+            "pinned to land on exactly 16px at 1440 and scoped with :has() to "
+            "the arena page alone. (5) The 1280 override and the whole 641-900 "
+            "rearrangement are deleted - both described a second composition. "
+            "MEASURED at 800px after: three columns 183/405/183, deck 1170 "
+            "against the desktop's 1518, against 3606 before this week "
+            "started. ArenaRingsSitAboveTheArenaTests.test_the_arena_row_"
+            "itself_is_untouched was amended rather than softened - it pinned "
+            "the old mechanism by name, and its docstring now records why the "
+            "Owner's newer order replaces it. Tests: 121 focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1531",
         "title": "The octagon gets its own size back between 641 and 900px",
         "section": "Chef Battles / Arena",
