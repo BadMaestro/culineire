@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1579",
+        "date": "2026-08-31",
+        "commit": "pending",
+        "title": "The dock card redesign is reverted; the desktop comes first",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "v2.5.1570 and v2.5.1576 are reversed out of arena.css - my two "
+            "commits only, by reverse patch, so GreenBear's 1567 and 1573 "
+            "changes to the same file are untouched. REASON, measured on "
+            "production at 1440 rather than assumed: the dock came out 622 "
+            "tall against its 375 and the deck 1688 against 1441. That is "
+            "growth above the arena, and the desktop is the approved product - "
+            "it outranks an improvement at a width nobody has approved yet. "
+            "WHAT THE ATTEMPT TAUGHT, so the next pass does not start blind. "
+            "(1) A metric is a stacked TILE - icon over label over numeral - at "
+            "every width from 641 up, and not because of the (max-width: 767px) "
+            "rule I moved: two more rules set flex-direction: column, one "
+            "unconditional at line 2927 and one at (min-width: 641px) line "
+            "8640. Moving the 767 copy therefore changed nothing above the "
+            "phone, and the tile is the shape that needs width the narrow cards "
+            "do not have. (2) The pulse panel is 127px wide INSIDE a 235px "
+            "card, measured, which is why auto-fit at a 110px floor gives it "
+            "one column there and four tall rows instead of two by two. "
+            "Whatever constrains that panel has to be found before the panel's "
+            "own grid is touched again. (3) The container query that stacks the "
+            "cards is back with this revert, so the third card sits on its own "
+            "line again at narrow widths - the thing the Owner objected to. It "
+            "is the lesser fault of the two and it is his call which way to go "
+            "next. Tests: 22 focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1576",
         "title": "The dock cards stay in a row and the desktop keeps its height",
         "section": "Chef Battles / Arena",
