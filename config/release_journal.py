@@ -1,5 +1,32 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1570",
+        "title": "The three dock cards reflow instead of breaking, so they stay in a row",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner: redesign the three cards so they sit in the design "
+            "properly, then carry them the whole way from desktop to phone. "
+            "The stacking crutch of v2.5.1552 is removed with its reason - the "
+            "cards no longer need it. ARENA PULSE now has ONE shape at every "
+            "width above the phone: four rows, each `icon label ....... "
+            "number`, which is the component's own base shape and always was "
+            "the right one - it needs room for a label and a numeral and "
+            "nothing else, so it survives a 110px card and a 300px card alike. "
+            "It replaces a 2x2 grid that needed two labels side by side and "
+            "did not have the room: measured at 650px, 38px wide by 118 TALL "
+            "per metric, a label wrapped one letter per line. The rule that "
+            "made a metric a centred TILE - icon over label over numeral - is "
+            "moved from (max-width: 767px) to (max-width: 640px), because that "
+            "shape is right on the PHONE, where four of them share one "
+            "full-width row, and wrong in a card a third of a narrow centre "
+            "column wide. ARENA COMMAND's tiles now count themselves: "
+            "`repeat(auto-fit, minmax(min(100%, 4.6rem), 1fr))` puts three "
+            "across a wide card, two across a narrow one and one when there is "
+            "no room, with no breakpoint deciding it from outside. BATTLE "
+            "GIFTS was already simple and is untouched. Tests: 77 focused, OK."
+        ),
+    },
+    {
         "version": "2.5.1567",
         "date": "2026-08-31",
         "commit": "pending",

@@ -2709,8 +2709,18 @@
      sibling form only matches a .arena-metric that follows another
      .arena-metric, which is position-independent of whatever precedes the
      whole group. */
-  .arena-metric { display: flex; flex-direction: column; align-items: center; min-width: 0; padding: .1rem .2rem; text-align: center; border-top: 0; border-left: 0; gap: .2rem; }
+  /* NOT HERE ANY MORE - see the (max-width: 640px) copy below. This turns a
+     metric into a centred TILE, icon over label over numeral, which is right
+     on the phone where four of them share one full-width row. Between 641 and
+     767 the same four sit inside a card a third of the centre column wide,
+     and a tile needs width a card that narrow does not have: measured 38px
+     wide by 118 tall. Above the phone they keep the compact row instead. */
   .arena-metric + .arena-metric { border-left: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
+}
+@media (max-width: 640px) {
+  .arena-metric { display: flex; flex-direction: column; align-items: center; min-width: 0; padding: .1rem .2rem; text-align: center; border-top: 0; border-left: 0; gap: .2rem; }
+}
+@media (max-width: 767px) {
   /* Round 6: the unconditional base rule (.arena-metric span, line ~1119)
      sets white-space: nowrap - written for the old inline icon+label row,
      never revisited when round 5 stacked the label under the icon. Nowrap
@@ -12302,7 +12312,12 @@ body.page--arena.is-zoom-locked {
   /* ARENA COMMAND, in a third of the width instead of a whole column: two
      tiles per row rather than the four the full-width footer drawer used. */
   .arena-command-dock .arena-command-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* The tiles count themselves. A tile is an icon over a word, and 4.6rem
+       is what one needs; auto-fit then puts three across a wide card, two
+       across a narrow one, one when there is truly no room - without a
+       breakpoint deciding it from outside. `min(100%, ...)` keeps a tile from
+       overflowing a card narrower than the tile itself. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 4.6rem), 1fr));
     gap: 0.4rem;
   }
 
@@ -12313,11 +12328,18 @@ body.page--arena.is-zoom-locked {
      - the left rail suppressed it (it had the rail's heading above), and this
      card needs it because the heading carries the collapse control. */
   .arena-command-dock .arena-dock-card--pulse .arena-dock-card__panel {
-    display: grid;
-    /* Same reasoning one level down: two metrics side by side need room for
-       their labels. Below 110px of card the pair becomes a single column
-       instead of two 38px slivers. */
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr));
+    /* ARENA PULSE HAS ONE SHAPE, at every width above the phone: four rows,
+       each `icon label ......... number`. That is the component's own base
+       shape and it has always been the right one - it needs room for a label
+       and a numeral and nothing else, so it survives a 110px card and a 300px
+       card equally.
+
+       What it replaces is a 2x2 grid, which needed room for two labels side
+       by side and did not have it: measured at 650px each metric came out
+       38px wide by 118 TALL, a label wrapped one letter per line. Four short
+       rows are shorter than two rows of that, and they read. */
+    display: flex;
+    flex-direction: column;
     gap: 0;
   }
   .arena-command-dock .arena-command-deck__metrics .arena-metric {
