@@ -3670,7 +3670,18 @@
     // branch reads --arena-floor-target-width at all, so this number is the
     // desktop's and nothing else changes hands.
     var CM = 18.89;
-    var next = Math.round(octagonWidth + CM * 2) + 'px';
+    // THE SHAPE, NOT THE BOX, and this is the same mistake twice in one day.
+    // `octagonWidth` is the SVG's rendered box, and the octagon fills 0.8552
+    // of it - measured on production, 815 of cells inside a 953 box - because
+    // the box also holds the floor glow and the ring labels, which reach past
+    // the shape on both sides. Publishing box + 2*CM therefore asked for a
+    // column about 140px wider than the octagon needed, and the reader saw
+    // that difference as air: he photographed 84px of it at each side and
+    // then, after the share was raised, 54px more, because the octagon was
+    // bound by the height his window allows while the column kept every
+    // leftover pixel of width regardless.
+    var SHAPE_OF_BOX = 0.8552;
+    var next = Math.round(octagonWidth * SHAPE_OF_BOX + CM * 2) + 'px';
     if (deck.style.getPropertyValue('--arena-floor-target-width') === next) { return; }
     deck.style.setProperty('--arena-floor-target-width', next);
   }

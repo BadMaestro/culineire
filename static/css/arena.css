@@ -7902,7 +7902,12 @@ button.arena-chat__poll-option { cursor: pointer; }
      see the correction below - and a frame cut for a shape that is not there
      is simply the wrong height. 724 of octagon plus 0.5cm each way, plus the
      frame's own 7px inset top and bottom, is 776 over a 983 column. */
-  .arena-command-deck__floor { aspect-ratio: 1 / 0.79; }
+  /* 0.805. The column now hugs the SHAPE (see publishFloorTargetWidth), so
+     the frame that holds it is 0.7816 of the shape's width tall, plus half a
+     centimetre each way and the frame's own 7px inset: 0.7816*(W-38)+52 over
+     W, which is 0.805 at the width this settles to. 0.82 was the 1cm frame,
+     0.708 was cut against the painted union rather than the shape. */
+  .arena-command-deck__floor { aspect-ratio: 1 / 0.805; }
   /* WRITTEN AT (0,2,0), and that is not decoration. The 1cm pass declared
      `.arena-floor-stage { --arena-octagon-width-share: 0.918 }` inside the
      641px block, which sits LOWER IN THIS FILE than the desktop block. At
@@ -7929,7 +7934,10 @@ button.arena-chat__poll-option { cursor: pointer; }
        needs a box of 926 / 0.8552 = 1083, and 1083 / 983 = 1.101. Still under
        the renderer's 1.15 ceiling, and the resulting box height of 745 is
        under 0.99 of the 770px region, so neither guard clamps it. */
-    --arena-octagon-width-share: 1.101;
+    /* 1.12: with the column hugging the shape, the shape has to fill
+       column - 2*18.89, so the box wants (W-38)/0.8552 and the share is that
+       over W - 1.1207 at the settled width. Under the renderer's 1.15. */
+    --arena-octagon-width-share: 1.12;
     --arena-octagon-height-share: 0.99;
     /* AND IT SITS 1.5px HIGHER THAN THE 1cm PASS LEFT IT. Measured on the
        deployed result: 18px left, 18 right, 18 below and 21 above - 0.48cm
