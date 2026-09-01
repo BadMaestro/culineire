@@ -10,7 +10,7 @@ WHEN THE OWNER SAYS "ONBOARDING <NAME>"
 That is the whole trigger. It means: stop, load the project, and come back
 ready. The agent named goes to its own file and does what is written there.
 
-    "Onboarding GreenBear"   ->  ops/onboarding/greenbear.txt
+    "Onboarding GreenBear"   ->  ops/onboarding/greenbear.md
     "Onboarding Bolt"        ->  ops/onboarding/bolt.txt
     "Onboarding Ember"       ->  ops/onboarding/ember.txt
 
@@ -25,7 +25,7 @@ NOT from the working tree. NOT from memory. NOT from a copy on somebody's
 desktop. From origin/main, every time:
 
     git fetch origin
-    git show origin/main:ops/onboarding/greenbear.txt
+    git show origin/main:ops/onboarding/greenbear.md
 
 A local checkout can be behind, on another branch, or carrying an uncommitted
 edit. `git show origin/main:` cannot be any of those. The same rule governs the
@@ -117,7 +117,9 @@ faith and cite it afterwards.
 Package 1.5d contents:
     README.txt            this file — the entry point and the routing
     AGENT_PROFILES.txt    who the three agents are, and what is not known
-    greenbear.txt         cold-start runbook, v3.3
+    greenbear.md          operating profile, v2 (2026-09-01, the
+                          Owner's own document; it REPLACED the
+                          greenbear.txt runbook entirely)
     bolt.txt              cold-start runbook, v3.3
     ember.txt             active again 2026-08-10 — Ember cold-start runbook
 

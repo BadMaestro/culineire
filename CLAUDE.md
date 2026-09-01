@@ -32,7 +32,7 @@ announce it are `ops/bootstrap/session_start.py` and
 When the Owner says **"Onboarding GreenBear"** (or Bolt), that is the trigger for
 the same cold start plus one file:
 
-    git show origin/main:ops/onboarding/greenbear.txt
+    git show origin/main:ops/onboarding/greenbear.md
 
 The routing, the reading order and what a runbook may not do are in
 `ops/onboarding/README.txt`. Read every one of them from `origin/main`.
