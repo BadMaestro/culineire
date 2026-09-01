@@ -66,7 +66,7 @@
   same property in any two of these files and no repackaging can change a
   winner. Verified declaration by declaration, not by eye.
 {% endcomment %}
-<link href="{% static 'css/arena.css' %}?v=20260821-octagon-fit" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260901-arena-command-bar" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260816-t28-ambient" rel="stylesheet">
 {% endblock %}
 
@@ -910,54 +910,85 @@
     URLs, data-seat-url and the js-arena-join-crowd hook are untouched, so the
     backend and arena_deck.js see exactly what they saw before.
 
-    THE ROW IS THE CAPTION'S BAND. The caption is out of flow - absolute,
-    lifted above the floor by its own height - which is what let it land on the
-    rank strip earlier today, and v2.5.1567 bought it air with a margin. This
-    row now stands in that same band as REAL CONTENT, so the space is reserved
-    by something that is actually there and the margin is no longer needed.
+    AMENDED 2026-09-01: THE ROW IS NOW THE ARENA COMMAND BAR, and the band
+    it used to borrow is a real row of the deck (`cmdbar`). The caption is no
+    longer out of flow at all - it is the bar's centre node, an ordinary grid
+    item between the two actions, so it can no longer land on the rank strip
+    the way it did on 2026-08-31. What the two notes above still describe
+    correctly is the DOM move and the branches; what they described as a
+    "space-between flank" around an absolutely positioned caption is now a
+    three-column grid whose middle column IS that caption.
   {% endcomment %}
-  <div class="arena-floor-head">
-    <div class="arena-lower-actions arena-lower-actions--head">
+  <div class="arena-command-bar-shell">
+    <div class="arena-command-bar">
       {% if user_enrolled %}
-        <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
-          <span class="arena-lower-actions__medallion" aria-hidden="true">
+        <a class="arena-command-bar__action arena-command-bar__action--enter battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
+          <span class="arena-command-bar__medallion" aria-hidden="true">
             <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
           </span>
-          <span class="arena-lower-actions__text">
-            <span class="arena-lower-actions__title">Enter Arena</span>
-            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          <span class="arena-command-bar__text">
+            <span class="arena-command-bar__label">Enter Arena</span>
+            <span class="arena-command-bar__sub">Step onto the kitchen floor</span>
           </span>
         </a>
       {% elif request.user.is_authenticated %}
-        <button type="button" class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}">
-          <span class="arena-lower-actions__medallion" aria-hidden="true">
+        <button type="button" class="arena-command-bar__action arena-command-bar__action--enter battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}">
+          <span class="arena-command-bar__medallion" aria-hidden="true">
             <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
           </span>
-          <span class="arena-lower-actions__text">
-            <span class="arena-lower-actions__title">Enter Arena</span>
-            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          <span class="arena-command-bar__text">
+            <span class="arena-command-bar__label">Enter Arena</span>
+            <span class="arena-command-bar__sub">Step onto the kitchen floor</span>
           </span>
         </button>
       {% else %}
-        <a class="arena-lower-actions__primary battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
-          <span class="arena-lower-actions__medallion" aria-hidden="true">
+        <a class="arena-command-bar__action arena-command-bar__action--enter battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
+          <span class="arena-command-bar__medallion" aria-hidden="true">
             <svg class="arena-ico" aria-hidden="true"><use href="#ad-medallion"></use></svg>
           </span>
-          <span class="arena-lower-actions__text">
-            <span class="arena-lower-actions__title">Enter Arena</span>
-            <span class="arena-lower-actions__subtitle">Step onto the kitchen floor</span>
+          <span class="arena-command-bar__text">
+            <span class="arena-command-bar__label">Enter Arena</span>
+            <span class="arena-command-bar__sub">Step onto the kitchen floor</span>
           </span>
         </a>
       {% endif %}
+
+      {% comment %}
+        THE CENTRE NODE IS THE FLOOR'S OWN CAPTION, MOVED, NOT COPIED.
+        Owner, 2026-08-31: "one source of truth - no duplicated text - do not
+        create two separate caption components". It used to be an absolutely
+        positioned child of .arena-command-deck__floor, lifted above the frame
+        by its own height, which is how it came to overlap the rank strip.
+        Here it is an ordinary grid item of the command bar and the overlap
+        cannot recur. Its markup, its two ids and its branches are untouched,
+        so arena_deck.js still finds #arena-floor-caption-strong and
+        #arena-floor-caption-em exactly as it did before.
+      {% endcomment %}
+      <p class="arena-floor-caption">
+        <span>The kitchen floor</span>
+        <strong id="arena-floor-caption-strong">{% if active_battle %}Live cooking in progress{% elif arena_data.center.type == 'crown' %}Crown holds the centre{% else %}The floor holds the show{% endif %}</strong>
+        <em id="arena-floor-caption-em">{% if active_battle %}One scene · live hierarchy · real chefs{% else %}One scene · one hierarchy · neutral structure{% endif %}</em>
+      </p>
+
       {% if request.user.is_authenticated %}
-        <a class="arena-lower-actions__secondary" href="{% url 'chef_battle:challenge_create' %}">
-          <span class="arena-lower-actions__title">Issue a Challenge</span>
-          <span class="arena-lower-actions__subtitle">Challenge an opponent when you're ready.</span>
+        <a class="arena-command-bar__action arena-command-bar__action--challenge" href="{% url 'chef_battle:challenge_create' %}">
+          <span class="arena-command-bar__medallion" aria-hidden="true">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-swords"></use></svg>
+          </span>
+          <span class="arena-command-bar__text">
+            <span class="arena-command-bar__label">Issue a Challenge</span>
+            <span class="arena-command-bar__sub">Choose an opponent</span>
+          </span>
         </a>
       {% else %}
-        <a class="arena-lower-actions__secondary" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
-          <span class="arena-lower-actions__title">Issue a Challenge</span>
-          <span class="arena-lower-actions__subtitle">Challenge an opponent when you're ready.</span>
+        <a class="arena-command-bar__action arena-command-bar__action--challenge" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
+          <span class="arena-command-bar__medallion" aria-hidden="true">
+            <svg class="arena-ico" aria-hidden="true"><use href="#ad-swords"></use></svg>
+          </span>
+          <span class="arena-command-bar__text">
+            <span class="arena-command-bar__label">Issue a Challenge</span>
+            <span class="arena-command-bar__sub">Choose an opponent</span>
+          </span>
         </a>
       {% endif %}
     </div>
@@ -978,11 +1009,15 @@
       <span class="arena-floor-frame__corner arena-floor-frame__corner--sw"></span>
       <span class="arena-floor-frame__corner arena-floor-frame__corner--se"></span>
     </div>
-    <p class="arena-floor-caption">
-      <span>The kitchen floor</span>
-      <strong id="arena-floor-caption-strong">{% if active_battle %}Live cooking in progress{% elif arena_data.center.type == 'crown' %}Crown holds the centre{% else %}The floor holds the show{% endif %}</strong>
-      <em id="arena-floor-caption-em">{% if active_battle %}One scene · live hierarchy · real chefs{% else %}One scene · one hierarchy · neutral structure{% endif %}</em>
-    </p>
+    {% comment %}
+      THE CAPTION LEFT THIS BOX on 2026-08-31 and now stands in the command
+      bar above as its centre node. It is the same single element - moved,
+      not copied - so there is still exactly one .arena-floor-caption on the
+      page. Nothing is left behind in its place on purpose: the room it used
+      to reserve here was `margin-top: var(--arena-caption-band)` on this
+      element, and that margin already computed to 0px at every width
+      measured, so the octagon neither gains nor loses by its going.
+    {% endcomment %}
     <section id="arena-live-stage" class="arena-command-deck__live-stage arena-confrontation-band" aria-label="Arena centre" data-centre-key="{% if arena_data.center.type == 'active_battle' or arena_data.center.type == 'facing_pair' %}battle-{{ arena_data.center.battle_id }}{% elif active_battle %}battle-{{ active_battle.pk }}{% elif arena_data.center.type == 'crown' %}crown-{{ arena_data.center.name }}{% else %}empty{% endif %}">
     {% if arena_data.center.type == 'active_battle' or arena_data.center.type == 'facing_pair' %}
       {% with ch=arena_data.center.challenger op=arena_data.center.opponent %}

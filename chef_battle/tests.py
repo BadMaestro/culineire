@@ -25495,16 +25495,39 @@ class ArenaRingsSitAboveTheArenaTests(TestCase):
         return found[-1]
 
     def test_the_rings_are_the_first_row_and_the_rail_is_the_fourth(self):
+        """AMENDED 2026-09-01, and the reason is recorded rather than the
+        assertion quietly relaxed.
+
+        The deck had five rows and now has six. The new one is `cmdbar`, the
+        Arena Command Bar the Owner asked for on 2026-08-31: the two actions
+        and the floor's own caption became one composition standing directly
+        above the arena. It is a real row because both of the things it holds
+        used to be placed by accident - the actions were AUTO-PLACED into the
+        one free cell of `left dock .` and sat at the bottom right beside the
+        dock (measured at 1440: x=1098, y=840), and the caption was absolutely
+        positioned and lifted above the floor by its own height, which put it
+        at y=167.9, inside the rank strip's row and over the eight rings.
+
+        WHAT THIS TEST STILL GUARDS IS UNCHANGED. The rings are still the row
+        above everything, the arena's own row is still `left floor right`, and
+        the rail is still the row below the arena - all three are asserted by
+        NAME here now instead of by index, so the next row to be added cannot
+        make this test wrong again without also moving one of them."""
         import re
 
-        rows = re.findall(r'"([a-z. ]+)"', self._areas())
-        self.assertEqual(len(rows), 5, "the desktop deck has five rows")
-        self.assertEqual(rows[0].split()[0], "ranks",
-                         "the rings are not the row above the arena")
-        self.assertEqual(rows[3].split()[0], "ribbon",
-                         "the lifecycle rail is not the row below the arena")
-        self.assertEqual(rows[1].split(), ["left", "floor", "right"],
+        rows = [r.split() for r in re.findall(r'"([a-z. -]+)"', self._areas())]
+        self.assertEqual(len(rows), 6, "the desktop deck has six rows")
+        self.assertEqual(rows[0][0], "ranks",
+                         "the rings are not the first row of the deck")
+        self.assertEqual(rows[1][0], "cmdbar",
+                         "the command bar is not the row between the rings "
+                         "and the arena")
+        floor_row = next(i for i, r in enumerate(rows) if "floor" in r)
+        self.assertEqual(rows[floor_row], ["left", "floor", "right"],
                          "the arena's own row moved, and it must not")
+        ribbon_row = next(i for i, r in enumerate(rows) if r[0] == "ribbon")
+        self.assertGreater(ribbon_row, floor_row,
+                           "the lifecycle rail is not below the arena")
 
     def test_the_top_cap_belongs_to_whatever_is_at_the_top(self):
         """The deck is a bordered card at this width and the row flush with

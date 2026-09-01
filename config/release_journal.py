@@ -1,5 +1,40 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1642",
+        "date": "2026-09-01",
+        "commit": "pending",
+        "title": "The Arena Command Bar, and the floor caption stops overlapping the rings",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner: the two actions were to stop being random floating pills "
+            "and become one deliberate control bar above the octagon - "
+            "ENTER ARENA, THE KITCHEN FLOOR, ISSUE A CHALLENGE. Measuring "
+            "first found the arrangement was worse than it looked: at 1440 "
+            "the two buttons were AUTO-PLACED into the one free cell of "
+            "'left dock .' and stood at the bottom right beside the dock "
+            "(x=1098, y=840, 331x61), and the floor's caption was absolutely "
+            "positioned and lifted above the floor by its own height, which "
+            "put it at y=167.9 - inside the rank strip's row, over the eight "
+            "rings. THE CAPTION IS MOVED, NOT COPIED: it is the bar's centre "
+            "node now, one element, so there is still exactly one "
+            ".arena-floor-caption on the page and the overlap cannot recur. "
+            "ONE FLUID COMPONENT from 1920 to 360: plain minmax(px, fr) "
+            "columns, every length a clamp() on cqi, and the stack is a "
+            "CONTAINER QUERY on a shell wrapper at 760px of the bar's own "
+            "width - not a media query, because inside the deck the bar is "
+            "far narrower than the viewport. Measured at 20 widths: no "
+            "overflow, no wrapping, no overlap, 44px touch targets "
+            "throughout. THE OCTAGON KEEPS ITS SIZE EXACTLY - 673.5x464 at "
+            "1440, 418.7x288.5 at 900, 664.4x457.7 at 630 - and moves down "
+            "by the bar's height plus one gap, which is the honest cost of "
+            "the bar being real content: the caption's old reservation "
+            "(margin-top: var(--arena-caption-band)) already computed to 0px "
+            "at every width, because it floated over the rings rather than "
+            "occupying room, so there was nothing to give back and nothing "
+            "was taken from the octagon to pay for it."
+        ),
+    },
+    {
         "version": "2.5.1639",
         "date": "2026-08-31",
         "commit": "pending",

@@ -1468,8 +1468,8 @@
   grid-template-columns: minmax(11rem, .9fr) minmax(0, 3.3fr) minmax(11rem, .9fr);
   grid-template-areas:
     "header header header"
+    "cmdbar cmdbar cmdbar"
     "phase-rail phase-rail metrics"
-    "head head head"
     "phase floor gifts"
     "ladder floor gifts"
     "chat floor gifts"
@@ -1737,7 +1737,7 @@
        box. */
     grid-template-areas:
       "ladder"
-      "head"
+      "cmdbar"
       "floor"
       "stream"
       "chat"
@@ -1891,7 +1891,7 @@
   .arena-command-deck {
     grid-template-areas:
       "ranks  ranks  ranks"
-      "head   head   head"
+      "cmdbar cmdbar cmdbar"
       "left   floor  right"
       "left   dock   ."
       "ribbon ribbon ribbon"
@@ -1937,6 +1937,10 @@
        under both or it would clip the smaller one. */
     grid-template-rows:
       minmax(12.87rem, auto)   /* ranks  - measured 206.094px at every width */
+      auto                     /* cmdbar - the command bar, sized by its own
+                                  content like the floor below it; it is the
+                                  only other row that changes shape with the
+                                  width, because its three panels re-stack. */
       auto                     /* floor  - the octagon's own row, must vary */
       minmax(19.54rem, auto)   /* dock   - 312.859 preview, 375 signed in */
       minmax(5.62rem, auto)    /* ribbon - measured 90.0938px */
@@ -7986,72 +7990,294 @@ button.arena-chat__poll-option { cursor: pointer; }
  * the row keeps a padding-bottom the size of the caption's band and the pills
  * sit at the top of it, clear of the writing.
  * ------------------------------------------------------------------------- */
-.arena-floor-head {
-  /* THE ROW IS CLAIMED BY NAME, and the first attempt did not claim it. This
-     deck places every child by grid-area, and an unnamed child is auto-placed:
-     the row went into the one empty cell of "left dock ." - 154px wide, below
-     the octagon, with both pills overflowing off the right edge. A grid that
-     places by name has no room for a guest. */
-  grid-area: head;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* The caption's band on the phone: two lines, measured at 31.63px, plus the
-     1.2rem lift the caption takes there. */
-  padding-block-end: 3.2rem;
-}
-.arena-floor-head .arena-lower-actions--head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+/* ============================================================================
+ * THE ARENA COMMAND BAR. Owner, 2026-08-31: the two actions were to stop
+ * being random floating pills and become one deliberate control bar above
+ * the octagon - [ENTER ARENA] - [THE KITCHEN FLOOR] - [ISSUE A CHALLENGE].
+ *
+ * ONE COMPONENT, NOT THREE. It is fluid from 1920 down to the phone: the
+ * columns are plain fr tracks, and everything that is a LENGTH - the gaps,
+ * the padding, the type, the medallions, the connectors - is a clamp(), so
+ * the bar shrinks continuously instead of snapping at a breakpoint.
+ *
+ * THE TRANSITION IS A CONTAINER QUERY, NOT A MEDIA QUERY, and that is not a
+ * preference. The bar lives in the deck's centre span, so its own width is
+ * not the viewport's: at a 1366px window the bar is far narrower than 1366.
+ * A @media rule would therefore fire at the wrong moment on this page. The
+ * shell owns the containment - an element cannot query itself - and carries
+ * no visual styling of any kind.
+ * ========================================================================== */
+.arena-command-bar-shell {
+  grid-area: cmdbar;
+  container-type: inline-size;
+  container-name: arena-command-area;
+  /* Against intrinsic-width overflow inside the deck's grid: a grid item's
+     automatic minimum size is its CONTENT's, and three panels of text would
+     otherwise be allowed to push the column wider than its track. */
   width: 100%;
-  max-width: 72rem;
-  margin-inline: auto;
-  padding-inline: clamp(0.5rem, 2vw, 1.5rem);
-}
-/* 30% OFF, and it is every dimension rather than a transform. `scale(0.7)`
-   would shrink the pill and leave the space it used to take, which is the
-   opposite of what a smaller button is for; these are the same numbers the
-   pills already carried, each multiplied by 0.7 and rounded to the nearest
-   sensible step. Padding 0.5/0.7 -> 0.35/0.5, min-height 2.9 -> 2rem, title
-   0.78 -> 0.55, subtitle 0.66 -> 0.46, medallion 1.9 -> 1.35 with a 0.66 icon
-   inside it. Nothing about the colours, the ground or the border moves - the
-   Owner's "обе пилюли одинаковые, разным остаётся только цвет" still holds,
-   because both are addressed by the same selectors here. */
-.arena-floor-head .arena-lower-actions__primary,
-.arena-floor-head .arena-lower-actions__secondary {
-  flex: 0 0 auto;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.3rem;
   min-width: 0;
-  min-height: 2rem;
-  padding: 0.35rem 0.5rem;
 }
-.arena-floor-head .arena-lower-actions__title {
-  font-size: 0.55rem;
-  letter-spacing: 0.04em;
+
+.arena-command-bar {
+  min-width: 0;
+  display: grid;
+  /* Plain fr tracks. The floors are px rather than rem on purpose: the arena
+     scales its root font size with the layout, so a rem floor would shrink
+     with the thing it is meant to be a floor for and never trip. */
+  grid-template-columns:
+    minmax(180px, 1fr)
+    minmax(240px, 1.15fr)
+    minmax(180px, 1fr);
+  align-items: stretch;
+  grid-template-rows: auto;
+  gap: clamp(0.5rem, 2.2cqi, 2rem);
+  padding-inline: clamp(0.5rem, 2cqi, 1.5rem);
+  padding-block: clamp(0.3rem, 1cqi, 0.7rem);
 }
-.arena-floor-head .arena-lower-actions__subtitle {
-  font-size: 0.46rem;
+
+/* THE THREE ARE PLACED BY HAND, and this is not belt-and-braces. The caption
+   has carried `grid-area: 3 / 1` since it was written, from the years it was
+   a child of the floor, and it brought that placement with it: measured on
+   the first build of this bar, it landed in row 3 column 1 and stretched the
+   bar to 262px tall while the two actions shared row one. Naming all three
+   costs nothing and stops any inherited placement doing that again. */
+.arena-command-bar__action--enter { grid-column: 1; grid-row: 1; }
+.arena-command-bar .arena-floor-caption { grid-column: 2; grid-row: 1; }
+.arena-command-bar__action--challenge { grid-column: 3; grid-row: 1; }
+
+/* ---------------------------------------------------------------- the panels */
+.arena-command-bar__action {
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* CENTRED IN THE TRACK, not pushed to its left edge. At 1920 a panel is
+     570px wide and its content about 200, so flex-start left a third of the
+     bar as dead space on the inside edge and stood the connector far from
+     the writing it is supposed to join. */
+  justify-content: center;
+  gap: clamp(0.4rem, 1.2cqi, 0.85rem);
+  min-width: 0;
+  /* The Owner's touch floor, and it is the floor on every screen rather than
+     a phone-only rule - a 44px target is not worse on a desktop. */
+  min-height: 44px;
+  padding: clamp(0.5rem, 1.5cqi, 0.9rem) clamp(0.6rem, 2cqi, 1.25rem);
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
-.arena-floor-head .arena-lower-actions__medallion {
-  width: 1.35rem;
-  height: 1.35rem;
+
+/* LEFT: graphite and gold. */
+.arena-command-bar__action--enter {
+  background: var(--hall-dark-1, #1c1712);
+  border-color: color-mix(in srgb, var(--arena-gold) 55%, transparent);
+  color: var(--surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 18%, transparent);
 }
-.arena-floor-head .arena-lower-actions__medallion .arena-ico {
-  width: 0.66rem;
-  height: 0.66rem;
+
+/* RIGHT: ivory, with the stronger outline of the two. */
+.arena-command-bar__action--challenge {
+  background: color-mix(in srgb, var(--surface) 96%, var(--arena-gold));
+  border-color: color-mix(in srgb, var(--arena-gold) 70%, transparent);
+  color: var(--arena-ink);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 12%, transparent);
 }
-@media (min-width: 901px) {
-  /* Level with the writing, which is what he drew. The band here is the
-     three-line caption (53.06px measured) plus its desktop 0.5rem lift. */
-  .arena-floor-head {
-    min-height: 3.8rem;
-    padding-block-end: 0;
+
+/* The lift is deliberately small. The Owner asked for restraint - no glow,
+   no bounce - so this is 2px, a little more shadow and a firmer gold edge. */
+.arena-command-bar__action:hover,
+.arena-command-bar__action:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--arena-gold);
+}
+.arena-command-bar__action--enter:hover,
+.arena-command-bar__action--enter:focus-visible {
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ink) 28%, transparent);
+}
+.arena-command-bar__action--challenge:hover,
+.arena-command-bar__action--challenge:focus-visible {
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.arena-command-bar__action:focus-visible {
+  outline: 2px solid var(--arena-gold);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-command-bar__action { transition: none; }
+  .arena-command-bar__action:hover,
+  .arena-command-bar__action:focus-visible { transform: none; }
+}
+
+.arena-command-bar__medallion {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: clamp(1.6rem, 3.6cqi, 2.4rem);
+  height: clamp(1.6rem, 3.6cqi, 2.4rem);
+  border-radius: 50%;
+  background: var(--hall-dark-1, #1c1712);
+  box-shadow: 0 0 0 1px var(--arena-gold);
+  transition: box-shadow 160ms ease;
+}
+.arena-command-bar__action:hover .arena-command-bar__medallion,
+.arena-command-bar__action:focus-visible .arena-command-bar__medallion {
+  box-shadow: 0 0 0 2px var(--arena-gold);
+}
+.arena-command-bar__medallion .arena-ico {
+  width: clamp(0.75rem, 1.8cqi, 1.15rem);
+  height: clamp(0.75rem, 1.8cqi, 1.15rem);
+  color: var(--arena-gold);
+}
+
+.arena-command-bar__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.arena-command-bar__label {
+  font-weight: 800;
+  font-size: clamp(0.6rem, 1.5cqi, 0.82rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+.arena-command-bar__sub {
+  font-size: clamp(0.5rem, 1.15cqi, 0.68rem);
+  opacity: 0.78;
+  line-height: 1.2;
+}
+
+/* ------------------------------------------------------- the centre node */
+/* THE CAPTION IS THE CENTRE NODE. These rules undo the absolute placement it
+   carried as a child of the floor - see the note at its own block further
+   down, which is left standing for the record - and let it sit in the bar as
+   an ordinary grid item. It is the same element; there is no second copy. */
+.arena-command-bar .arena-floor-caption {
+  position: static;
+  translate: none;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: clamp(0.15rem, 0.6cqi, 0.35rem) clamp(0.4rem, 1.5cqi, 1rem);
+  text-align: center;
+  align-self: center;
+  pointer-events: auto;
+  z-index: auto;
+}
+.arena-command-bar .arena-floor-caption span {
+  display: block;
+  color: var(--accent-bronze-dark);
+  font-size: clamp(0.46rem, 1.05cqi, 0.62rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.arena-command-bar .arena-floor-caption strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: clamp(0.8rem, 2.1cqi, 1.2rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--arena-ink);
+  text-wrap: balance;
+}
+.arena-command-bar .arena-floor-caption em {
+  display: block;
+  margin-top: 0.22rem;
+  font-style: normal;
+  font-weight: 700;
+  font-size: clamp(0.42rem, 0.95cqi, 0.58rem);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--arena-muted);
+}
+/* The diamond under the writing, which is the ornament the Owner asked for
+   and the only decoration the centre carries. */
+.arena-command-bar .arena-floor-caption::after {
+  content: "";
+  display: block;
+  width: clamp(0.3rem, 0.8cqi, 0.42rem);
+  height: clamp(0.3rem, 0.8cqi, 0.42rem);
+  margin: clamp(0.18rem, 0.6cqi, 0.32rem) auto 0;
+  background: var(--arena-gold);
+  rotate: 45deg;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------- the connectors */
+/* Gold rules running from each panel towards the centre, with a small node
+   where they meet the writing. Pseudo-elements, so no markup carries them,
+   and pointer-events:none with no z-index of their own, so they can never
+   take a click or sit over a focus ring. */
+.arena-command-bar__action::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: clamp(0.4rem, 2.2cqi, 1.9rem);
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--arena-gold) 15%, transparent),
+    var(--arena-gold));
+  pointer-events: none;
+}
+.arena-command-bar__action--enter::after {
+  left: 100%;
+  margin-left: 1px;
+}
+.arena-command-bar__action--challenge::after {
+  right: 100%;
+  margin-right: 1px;
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--arena-gold) 15%, transparent),
+    var(--arena-gold));
+}
+
+/* ============================================================================
+ * THE STACK. One transition, and it is taken on the BAR's own width.
+ *
+ * The number is measured, not guessed, and it is set ABOVE the width where
+ * the three columns actually fail: at the floors (180 + 240 + 180 plus two
+ * gaps) they collide around 620px of shell, but the subtitles are already
+ * wrapping and the connectors already down to their clamp() floor well
+ * before that. 760px is where the composition stops looking deliberate,
+ * so that is where it changes rather than where it breaks.
+ * ========================================================================== */
+@container arena-command-area (max-width: 760px) {
+  .arena-command-bar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "caption"
+      "enter"
+      "challenge";
+    gap: clamp(0.4rem, 1.8cqi, 0.7rem);
   }
+  /* Named areas place by NAME, never by source order - stated for all three
+     rather than left to the auto-placement that put the old action row in
+     the bottom-right corner of the deck for months. */
+  .arena-command-bar__action--enter { grid-column: 1; grid-area: enter; }
+  .arena-command-bar .arena-floor-caption { grid-column: 1; grid-area: caption; }
+  .arena-command-bar__action--challenge { grid-column: 1; grid-area: challenge; }
+
+  /* Full width, and the writing leads: the caption is the title of the
+     section once the three are above one another. */
+  .arena-command-bar__action {
+    justify-content: center;
+    width: 100%;
+  }
+  /* THE CONNECTORS GO. They joined a row that no longer exists, and a
+     horizontal rule leaving the side of a stacked panel is just a stray
+     mark. The diamond under the caption stays - it reads as an ornament in
+     either arrangement. */
+  .arena-command-bar__action::after { content: none; }
 }
+
 /* ============================================================
    THE TYPE SHRINKS WITH THE LAYOUT, which is the half that makes the rest
    look deliberate instead of broken.
@@ -12964,7 +13190,12 @@ button.arena-chat__poll-option:hover {
    layout, and a test reads it by name. */
 @media (min-width: 641px) {
   /* The desktop's grid area starts where the scene starts, so the caption
-     clears the frame on its own height alone; see the note above. */
+     clears the frame on its own height alone; see the note above.
+     2026-09-01: the caption is a grid item of the command bar now and is no
+     longer placed against the floor at all, so this lift - and the absolute
+     placement above it - reach nothing. Both are left standing because the
+     note they carry is the record of why the caption used to overlap the
+     rank strip, and the command bar's own block overrides them by name. */
   .arena-floor-caption { --arena-caption-lift: 0.5rem; }
 }
 /* ============================================================================
