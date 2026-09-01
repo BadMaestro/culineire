@@ -974,6 +974,43 @@ to one of the active documents listed above.
 - Typography: existing Playfair Display and Inter usage.
 - Accessibility, responsive behaviour, keyboard operation, reduced motion, and readable contrast are acceptance requirements, not optional polish.
 
+### Visual approval comes before production code (Owner, 2026-09-01)
+
+For ANY task that changes design, in this order. The order is the rule.
+
+1. Study the existing UI and the Owner's references first.
+2. Use the `frontend-design` skill.
+3. Before changing any production code, build **2-3 visual options**.
+4. Show the Owner screenshots.
+5. He chooses an option, or amends one.
+6. Only after his visual approval, write the engineering plan.
+7. Then implement.
+8. After implementing, show a screenshot again.
+9. Only after his final visual approval: commit, push, deploy.
+
+**A design brief is not a checklist of CSS properties.** In his words: "Не
+превращай дизайн-бриф в чеклист CSS-свойств. Визуальный результат важнее
+формального наличия gold border / dark panel / connector." A satisfied
+checklist is not a design, and the visual result is what is being judged.
+
+WHY THIS EXISTS. The Arena Command Bar, 2026-09-01. A detailed brief -
+premium feel, gold connectors, a ceremonial centre node - was turned into
+ticks (dark fill, gold border, subtitle, connector) and the ticks were
+shipped. Worse, five of the Owner's six corrections to that plan were
+ENGINEERING errors (`fr` inside `clamp()`, an element querying itself as its
+own container, the vertical budget), so his whole review was spent on CSS and
+the design was never discussed at all: he first saw the component after it
+was built and deployed. Options are cheap - a standalone static HTML file in
+a scratchpad, minutes of work, no risk to production stylesheets. Spend them
+before the code, not after.
+
+Ask the Owner about TASTE, which is his. Decide MECHANICS yourself, which is
+the agent's. Adjectives ("premium", "ceremonial") specify nothing; ask for a
+reference instead - a screenshot, or an existing component to match. Hard
+design constraints must be established BEFORE the plan, because stated early
+they change the design rather than only the implementation.
+
+
 ## 12. Scope discipline
 
 ### 12a. Leaving the task for a finding is forbidden (Owner, 2026-08-31)
