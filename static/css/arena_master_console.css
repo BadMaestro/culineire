@@ -615,10 +615,32 @@ body.page--amc #site-battle-widget {
    card. In one column its deck can only stack. Two columns is the narrowest
    width at which the three cards stand side by side, and the other seven
    panels are untouched. */
-.amc-deck__grid > .amc-panel:first-child { grid-column: span 2; }
+/* WHAT MATTERS IS WIDE, what supports it is narrow - the Owner's rule for
+   this screen, 2026-09-02: the main things in front of him, the secondary
+   ones in the background. The deck is eight equal columns; these spans
+   redistribute that width without touching the grid, the order or the panel
+   numbers he reads them by.
+     1 Arena Control  - every control on the page          - 3
+     2 Live Monitor   - what the battle is doing right now - 3
+     4 Moderation     - the queue that needs him           - 2
+   and the readings that can wait take two apiece on the row below. */
+.amc-deck__grid > .amc-panel:nth-child(1) { grid-column: span 3; }
+.amc-deck__grid > .amc-panel:nth-child(2) { grid-column: span 3; }
+.amc-deck__grid > .amc-panel:nth-child(4) { grid-column: span 2; }
+.amc-deck__grid > .amc-panel:nth-child(3) { grid-column: span 2; }
+.amc-deck__grid > .amc-panel:nth-child(5) { grid-column: span 2; }
+.amc-deck__grid > .amc-panel:nth-child(6) { grid-column: span 2; }
+.amc-deck__grid > .amc-panel:nth-child(7) { grid-column: span 2; }
+.amc-deck__grid > .amc-panel:nth-child(8) { grid-column: span 2; }
+
+@media (max-width: 1500px) {
+  .amc-deck__grid > .amc-panel:nth-child(1),
+  .amc-deck__grid > .amc-panel:nth-child(2) { grid-column: span 2; }
+  .amc-deck__grid > .amc-panel:nth-child(n+3) { grid-column: span 1; }
+}
 
 @media (max-width: 700px) {
-  .amc-deck__grid > .amc-panel:first-child { grid-column: auto; }
+  .amc-deck__grid > .amc-panel { grid-column: auto; }
 }
 
 .amc-opdeck {

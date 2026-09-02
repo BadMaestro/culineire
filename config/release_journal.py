@@ -1,5 +1,28 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1654",
+        "date": "2026-09-02",
+        "commit": "pending",
+        "title": "The console deck is laid out by importance, not by equal shares",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The Owner, watching the live console: the main things in front "
+            "of him, the secondary ones in the background, and it has to look "
+            "right. Eight equal columns gave every panel 175px whether it "
+            "carried the page's entire control surface or a single count, and "
+            "the reading panels set five words to a line. The grid is "
+            "unchanged; the panels take spans instead. Arena Control and Live "
+            "Battle Monitor take three columns each - one holds every button, "
+            "switch and the purge card, the other holds what the battle is "
+            "doing right now - and the six reading panels take two apiece on "
+            "the rows below. Order and panel numbers are untouched, so the "
+            "numbering he reads them by still means the same thing. At 1500px "
+            "the two lead panels drop to two columns and the rest to one; "
+            "below 700 everything stacks as before. Panel 1's three cards now "
+            "stand side by side, which is the layout he chose."
+        ),
+    },
+    {
         "version": "2.5.1651",
         "date": "2026-09-02",
         "commit": "pending",
