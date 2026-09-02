@@ -1,5 +1,27 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1651",
+        "date": "2026-09-02",
+        "commit": "pending",
+        "title": "Panel 1 gets the width its controls need",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Seen on production with the Owner watching: the operator deck "
+            "puts eight panels in eight equal columns, which at 1568px is "
+            "176px each. Every panel but the first carries readings; the "
+            "first carries the controls - seven buttons, three switches and "
+            "the purge card - and in 176px its three cards could only stack. "
+            "The layout he chose was three side by side. Panel 1 now spans "
+            "two of the eight columns, which is the narrowest width where "
+            "they do, and drops back to one on mobile. The other seven "
+            "panels are not touched, and neither is the grid itself. "
+            "NOT ADDRESSED HERE, and reported rather than quietly fixed: at "
+            "eight columns the reading panels set their text five or six "
+            "words to a line. That is the console's existing layout, it "
+            "predates this work, and widening it is his call."
+        ),
+    },
+    {
         "version": "2.5.1648",
         "date": "2026-09-02",
         "commit": "44e2e9e6",

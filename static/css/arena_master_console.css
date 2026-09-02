@@ -609,9 +609,21 @@ body.page--amc #site-battle-widget {
    desktop console, stacking on anything narrow - the panel is one grid cell
    among eight and must not force the deck wider than the screen. */
 
+/* PANEL 1 TAKES TWO COLUMNS. The deck puts eight panels in eight columns, so
+   at 1568px each one is 176px wide - and panel 1 is the only one carrying
+   controls rather than readings: seven buttons, three switches and a purge
+   card. In one column its deck can only stack. Two columns is the narrowest
+   width at which the three cards stand side by side, and the other seven
+   panels are untouched. */
+.amc-deck__grid > .amc-panel:first-child { grid-column: span 2; }
+
+@media (max-width: 700px) {
+  .amc-deck__grid > .amc-panel:first-child { grid-column: auto; }
+}
+
 .amc-opdeck {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
   gap: 0.7rem;
   margin-top: 0.4rem;
 }
