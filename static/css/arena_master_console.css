@@ -722,12 +722,20 @@ body.page--amc #site-battle-widget {
   min-width: 0;
 }
 
-/* The emulation buttons sit on one row: three short words, and a card wide
-   enough for them only if they stop carrying button-sized padding. */
+/* Inside a deck card a button carries a tighter padding - full button
+   padding put three short words on two and a half lines in a 160px card. */
 .amc-deckcard .amc-btn {
   padding: 0.3rem 0.5rem;
   font-size: 0.7rem;
   cursor: pointer;
+}
+
+/* Run Full takes the whole row and the two manual steps share the one below.
+   Three equal buttons never fitted across the card, and of the three this is
+   the one he presses - the other two exist for when he wants to walk it. */
+.amc-deckcard #amc-run-emulation {
+  flex: 1 0 100%;
+  text-align: center;
 }
 
 .amc-switch__state {

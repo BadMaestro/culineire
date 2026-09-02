@@ -1,5 +1,18 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1666",
+        "date": "2026-09-02",
+        "commit": "pending",
+        "title": "Run Full takes its own row",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Three equal buttons never fitted across a 160px card, so they "
+            "sat two-and-one with Step orphaned underneath. Run Full - the "
+            "one actually pressed - takes the whole row and the two manual "
+            "steps share the line below it. Style only."
+        ),
+    },
+    {
         "version": "2.5.1663",
         "date": "2026-09-02",
         "commit": "pending",
