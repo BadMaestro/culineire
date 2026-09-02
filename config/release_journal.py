@@ -1,5 +1,28 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1648",
+        "date": "2026-09-02",
+        "commit": "pending",
+        "title": "The operator deck stops crushing the eight panels - a class name that was already taken",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "A regression from v2.5.1645, seen on production the moment the "
+            "Owner opened the console: the eight operator panels stood in "
+            "90px columns with their headings broken mid-word - ECONOM Y, "
+            "AUTHORI TY. THE CAUSE WAS A NAME, NOT A LAYOUT. The new "
+            "three-card deck was given the class .amc-deck, and .amc-deck was "
+            "already the class of the WHOLE operator section (the heading, "
+            "the panel grid, everything). Handing it display:grid with "
+            "auto-fit columns turned that outer section into a multi-column "
+            "grid, and the panels inherited a width nobody chose. Renamed to "
+            ".amc-opdeck; the cards keep their own already-unique names. "
+            "The project's own frontend rule says grep for the class before "
+            "you take it, and this is what skipping that costs. No behaviour, "
+            "no query, no service and no test changed - one class name in the "
+            "stylesheet and one in the template."
+        ),
+    },
+    {
         "version": "2.5.1645",
         "date": "2026-09-02",
         "commit": "3eb25ea6",

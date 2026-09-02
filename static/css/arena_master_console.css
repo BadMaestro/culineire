@@ -603,11 +603,13 @@ body.page--amc #site-battle-widget {
 }
 
 /* ── Operator deck: isolation / emulation / test data ────────────────
-   Added 2026-09-02 with the switches themselves. Three cards in a row on a
+   Added 2026-09-02 with the switches themselves. NOT .amc-deck - that name
+   is taken by the whole operator section above, and giving it a grid turned
+   the eight panels into eight 90px columns on production. Three cards in a row on a
    desktop console, stacking on anything narrow - the panel is one grid cell
    among eight and must not force the deck wider than the screen. */
 
-.amc-deck {
+.amc-opdeck {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   gap: 0.7rem;
