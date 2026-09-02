@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1645",
         "date": "2026-09-02",
-        "commit": "pending",
+        "commit": "3eb25ea6",
         "title": "The Master Console gets its switches: the bots, the runway, the chat, and a purge that can only reach test data",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
