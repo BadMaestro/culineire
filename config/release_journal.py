@@ -1,8 +1,23 @@
 RELEASE_JOURNAL = [
     {
-        "version": "2.5.1654",
+        "version": "2.5.1657",
         "date": "2026-09-02",
         "commit": "pending",
+        "title": "Three journal entries stop saying pending",
+        "section": "Housekeeping",
+        "summary": (
+            "v2.5.1654, v2.5.1651 and v2.5.1639 all shipped with "
+            "'commit': 'pending' in the release journal - the exact thing the "
+            "hash discipline exists to prevent, since a journal that cannot "
+            "name its own commit cannot be used to roll anything back. Real "
+            "hashes written: 17e4c74d, fb696e8f, b0a8b6d4. No code, no "
+            "template, no query changed."
+        ),
+    },
+    {
+        "version": "2.5.1654",
+        "date": "2026-09-02",
+        "commit": "17e4c74d",
         "title": "The console deck is laid out by importance, not by equal shares",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -25,7 +40,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1651",
         "date": "2026-09-02",
-        "commit": "pending",
+        "commit": "fb696e8f",
         "title": "Panel 1 gets the width its controls need",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
@@ -184,7 +199,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1639",
         "date": "2026-08-31",
-        "commit": "pending",
+        "commit": "b0a8b6d4",
         "title": "Half a centimetre from the octagon to the frame, on every side",
         "section": "Chef Battles / Arena",
         "summary": (
