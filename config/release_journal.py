@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1648",
         "date": "2026-09-02",
-        "commit": "pending",
+        "commit": "44e2e9e6",
         "title": "The operator deck stops crushing the eight panels - a class name that was already taken",
         "section": "Chef Battles / Arena Master Console",
         "summary": (
