@@ -294,6 +294,11 @@
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 0.75rem;
+  /* EACH PANEL IS AS TALL AS WHAT IT HOLDS. A grid row is as tall as its
+     tallest cell, and panel 1 carries the lamp map - so on a quiet arena the
+     panels beside it stretched to match and stood as several hundred pixels
+     of empty parchment. */
+  align-items: start;
 }
 
 .amc-panel {
@@ -682,7 +687,7 @@ body.page--amc #site-battle-widget {
   background: var(--amc-surface);
   color: var(--amc-muted);
   font-family: inherit;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   text-align: left;
   cursor: pointer;
 }
@@ -706,11 +711,22 @@ body.page--amc #site-battle-widget {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--amc-gold) 22%, transparent);
 }
 
-.amc-switch__name { letter-spacing: 0.05em; }
+/* The name keeps one line and the state sits at the end of it; at three
+   cards across, "Emulation bots" was breaking into two lines and taking
+   "OFF FLOOR" with it. */
+.amc-switch__name {
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
 
 .amc-switch__state {
   margin-left: auto;
-  font-size: 0.64rem;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 0.6rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.75;

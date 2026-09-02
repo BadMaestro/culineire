@@ -1,5 +1,26 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1660",
+        "date": "2026-09-02",
+        "commit": "pending",
+        "title": "Panels stop stretching to the tallest one, and a switch keeps its name on one line",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Looked at on the live console rather than inferred. Two faults, "
+            "both from the new widths. A GRID ROW IS AS TALL AS ITS TALLEST "
+            "CELL, and panel 1 carries the lamp map - so with the arena quiet, "
+            "Live Battle Monitor and Combat Engine held four words each and "
+            "stretched several hundred pixels to match it, which read as empty "
+            "parchment where the readings should be. align-items: start, and "
+            "every panel is now as tall as what it holds. AND THE SWITCH "
+            "LABEL BROKE IN TWO: at three cards across, 'Emulation bots' wrapped "
+            "and took 'OFF FLOOR' with it, so the row read as four lines of "
+            "fragments. The name is nowrap with an ellipsis, the state is "
+            "nowrap and does not shrink, and both drop a fraction in size. "
+            "Nothing else moved."
+        ),
+    },
+    {
         "version": "2.5.1657",
         "date": "2026-09-02",
         "commit": "31216372",
