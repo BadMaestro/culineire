@@ -601,3 +601,103 @@ body.page--amc #site-battle-widget {
     transition: none !important;
   }
 }
+
+/* ── Operator deck: isolation / emulation / test data ────────────────
+   Added 2026-09-02 with the switches themselves. Three cards in a row on a
+   desktop console, stacking on anything narrow - the panel is one grid cell
+   among eight and must not force the deck wider than the screen. */
+
+.amc-deck {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.4rem;
+}
+
+.amc-deckcard {
+  border: 1px solid var(--amc-line-soft);
+  border-radius: 8px;
+  padding: 0.6rem 0.65rem;
+  background: var(--amc-surface-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.amc-deckcard__h {
+  margin: 0;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amc-gold);
+}
+
+/* A switch reports its state in a word as well as a lamp: a coloured dot
+   alone is a guess, and this panel exists to stop guessing. */
+.amc-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.3rem 0.6rem 0.3rem 0.35rem;
+  border: 1px solid var(--amc-line-soft);
+  border-radius: 999px;
+  background: var(--amc-surface);
+  color: var(--amc-muted);
+  font-family: inherit;
+  font-size: 0.74rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.amc-switch__led {
+  width: 0.58rem;
+  height: 0.58rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--amc-muted) 45%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--amc-muted) 10%, transparent);
+  flex: 0 0 auto;
+}
+
+.amc-switch[aria-pressed="true"] {
+  color: var(--amc-ink);
+  border-color: var(--amc-line);
+}
+
+.amc-switch[aria-pressed="true"] .amc-switch__led {
+  background: var(--amc-gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--amc-gold) 22%, transparent);
+}
+
+.amc-switch__name { letter-spacing: 0.05em; }
+
+.amc-switch__state {
+  margin-left: auto;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.amc-switch:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.amc-page .amc-switch:focus-visible {
+  outline: 2px solid var(--amc-gold);
+  outline-offset: 2px;
+}
+
+.amc-purge__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.72rem;
+  color: var(--amc-muted);
+  line-height: 1.6;
+}
+
+.amc-purge__rows b {
+  color: var(--amc-ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

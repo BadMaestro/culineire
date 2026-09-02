@@ -1,8 +1,87 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1645",
+        "date": "2026-09-02",
+        "commit": "pending",
+        "title": "The Master Console gets its switches: the bots, the runway, the chat, and a purge that can only reach test data",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Owner: the console must control the arena, emulate it, isolate "
+            "parts of it and delete information from it - and it must earn "
+            "the name. He scoped it himself: the Master Console only, "
+            "deletion of TEST DATA only, and the emulation switch on the "
+            "screen rather than in a setting. An audit came first, twelve "
+            "defects with addresses; seven are closed here and the audit "
+            "file carries the rest. "
+            "THE SWITCH THAT WAS NEVER A SETTING. ARENA_SHOW_EMULATION_BOTS "
+            "had no line in settings.py and no key in any .env - it existed "
+            "only as a getattr default in two modules, so the switch the "
+            "Owner asked for on 2026-08-07 could be thrown only by editing "
+            "code and restarting. It is ArenaOperatorFlags now: one row, "
+            "read through a cached classmethod that the switch writes "
+            "through, thrown from the console. The setting is still read "
+            "FIRST and still wins where defined, so a deployment can pin the "
+            "answer and the three override_settings tests keep testing what "
+            "they were written to test. "
+            "THE BUG THIS TURNED UP, AND IT WAS LIVE. operator_cancel erased "
+            "an unscored battle outright whenever CHEF_BATTLE_ENABLED was "
+            "false - and production does not set that key, so production WAS "
+            "'test mode' by that definition. Cancel deleted a battle between "
+            "two real people, without a trace, on the live site. The gate is "
+            "ownership now, the same one the delete uses: only a battle that "
+            "belongs to the EMU bots is erased, everything else is marked "
+            "CANCELLED. A test pins it. The same measurement fixed the "
+            "delete button itself, whose fuse was on backwards - it refused "
+            "in exactly the environment where it is exercised. "
+            "THE PURGE COUNTS BEFORE IT DELETES. Two presses: the first "
+            "measures and removes nothing, the second acts on the number it "
+            "just showed. Selection is by an exact property and never a "
+            "substring - the emulation theme prefixes run_scenario_a already "
+            "matches, or both fighters in EMU_CHEFS, plus the emu-voter "
+            "accounts and emu-dish drafts those runs create. It cannot "
+            "express 'a battle a person was in', which is the safety "
+            "property, and a test proves a real pair's battle survives a "
+            "purge that ran. A scored battle or a gift refuses the whole "
+            "operation rather than applying half of it. The bot ACCOUNTS "
+            "survive: this clears what they did, not who they are. "
+            "THE RUNWAY, REACHABLE AT LAST. The console's emulation walked a "
+            "stage every five seconds while the public arena polled every "
+            "twenty, so more than half of it happened between two polls and "
+            "was never drawn. Run Full now arms the existing runway - same "
+            "module, same TTL, no second countdown - and stands it down when "
+            "the run ends or stops. "
+            "THE CHAT SWITCH, at his instruction: closing the hall stops NEW "
+            "lines and nothing else. The panel, the history and the private "
+            "threads stay exactly where they are, and the rule is enforced "
+            "where a line is written, beside the timeout check, because "
+            "hiding a composer is presentation and not a rule. It defaults "
+            "OPEN with no row and a cold cache, so the failure direction is "
+            "the harmless one. "
+            "ALSO: the console gained eyes on seats, chat, the house camera "
+            "and stickers, none of which it or the admin could see at all "
+            "(5 queries cold, 4 warm, measured on its own; the state budget "
+            "goes 50 to 60 over a measured 52). emulation_step answered 500 "
+            "on an empty battle_id because it was the one battle action "
+            "outside the parsed-id map - it answers 400 now, like every "
+            "sibling. The 180-second online window was written out three "
+            "times in three modules and is one constant. "
+            "NOT DONE, DELIBERATELY: nothing here reads or writes is_staff, "
+            "is_superuser, has_bearseeker_privileges or "
+            "has_arena_console_access - those are the Owner's, set in the "
+            "moderation panel and nowhere else (AGENTS.md 20), and a test "
+            "proves the dispatcher assigns none of them by enumerating every "
+            "verb rather than failing to find one. "
+            "EVIDENCE: 32 new tests. MIGRATION: 0118, one new table, no "
+            "existing column touched. ROLLBACK: revert this commit and "
+            "migrate chef_battle 0117 - the arena reads the flags through "
+            "helpers that default to today's behaviour, so the page is "
+            "unaffected either way."
+        ),
+    },
+    {
         "version": "2.5.1642",
         "date": "2026-09-01",
-        "commit": "pending",
+        "commit": "2ec089a7",
         "title": "The Arena Command Bar, and the floor caption stops overlapping the rings",
         "section": "Chef Battles / Arena",
         "summary": (

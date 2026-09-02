@@ -320,7 +320,7 @@ def get_champion_badge(author):
 # never fabricated numbers.
 # ═════════════════════════════════════════════════════════════════════════════
 
-ARENA_ONLINE_THRESHOLD_SECONDS = 180  # same as views._ARENA_ONLINE_THRESHOLD
+ARENA_ONLINE_THRESHOLD_SECONDS = 180  # seconds - a chef is online if seen within 3 min
 
 # Console phase rail steps (reference design): status -> 1..7.
 MASTER_PHASE_RAIL_STEP = {
@@ -589,6 +589,7 @@ def get_master_state() -> dict:
 
     monitor = get_master_monitor(battles=battles)
     governance = get_master_governance_detail()
+    operator = get_master_operator_surfaces()
 
     return {
         "monitor": monitor,
@@ -611,6 +612,62 @@ def get_master_state() -> dict:
         "viewers": viewers,
         "economy": economy,
         "system": system,
+        # Added last, on purpose: the frozen key-set tests assert the PUBLIC
+        # arena payload, not this one, but appending rather than reordering
+        # keeps a console reading an older cached JSON from losing a section
+        # it already knows.
+        "operator": operator,
+    }
+
+
+def get_master_operator_surfaces() -> dict:
+    """The arena surfaces the console could see nothing of until 2026-09-02.
+
+    Seats, chat, the house camera and the stickers are all things the arena
+    draws and the operator had no window onto - not in this state, not in the
+    admin, nowhere. Counts only, and cheap ones: this runs on every twenty-
+    second poll, so the expensive per-row purge report stays behind its own
+    button.
+    """
+    from django.conf import settings as django_settings
+
+    from . import arena_runway
+    from .models import (
+        ArenaChatMessage, ArenaHouseStream, ArenaOperatorFlags, ArenaSeat,
+        ChefSticker,
+    )
+
+    now = timezone.now()
+    day_ago = now - timezone.timedelta(hours=24)
+    house = ArenaHouseStream.for_display()
+    pinned = getattr(django_settings, "ARENA_SHOW_EMULATION_BOTS", None)
+    chat = ArenaChatMessage.objects.aggregate(
+        recent=Count("id", filter=Q(created_at__gte=day_ago)),
+        hidden=Count("id", filter=Q(is_hidden=True)),
+    )
+
+    return {
+        "emulation_bots_shown": (
+            bool(pinned) if pinned is not None
+            else ArenaOperatorFlags.bots_are_shown()
+        ),
+        # True means a deployment has taken the decision away from the screen,
+        # so the switch must render as locked rather than as simply off.
+        "emulation_bots_pinned": pinned is not None,
+        "chat_is_open": ArenaOperatorFlags.chat_is_open_now(),
+        "runway": arena_runway.current(),
+        "house_stream": {
+            "on_air": bool(house and house.on_air),
+            "has_url": bool(house and house.playback_url.strip()),
+            "title": (house.title if house else "") or "",
+        },
+        "seats_held": ArenaSeat.objects.filter(released_at__isnull=True).count(),
+        # One aggregate, not two counts: this runs on every poll and the
+        # console's query budget is asserted, so a second round trip for a
+        # number off the same table is a round trip nobody needed.
+        "chat_messages_24h": chat["recent"],
+        "chat_hidden": chat["hidden"],
+        "stickers_owned": ChefSticker.objects.count(),
     }
 
 
@@ -1233,8 +1290,14 @@ def _hidden_bot_slugs() -> set[str]:
     EMU_CHEFS); a second thin function, never a second list."""
     from django.conf import settings as django_settings
     from .emulation import EMU_CHEFS
+    from .models import ArenaOperatorFlags
 
-    if bool(getattr(django_settings, "ARENA_SHOW_EMULATION_BOTS", False)):
+    # Setting first, stored row second - the same order as views.py's own
+    # reader, so the two cannot answer differently. See that docstring for why
+    # the row exists at all.
+    pinned = getattr(django_settings, "ARENA_SHOW_EMULATION_BOTS", None)
+    shown = bool(pinned) if pinned is not None else ArenaOperatorFlags.bots_are_shown()
+    if shown:
         return set()
     return {slug for slug, _name in EMU_CHEFS}
 
@@ -1333,7 +1396,7 @@ def get_arena_metrics(battle=None) -> dict:
     if battle is None:
         return {"active_viewers": 0, "public_votes": 0, "battle_gifts": 0}
     from .models import BattleViewerPresence, ViewerBattleGift
-    cutoff = timezone.now() - timezone.timedelta(seconds=180)
+    cutoff = timezone.now() - timezone.timedelta(seconds=ARENA_ONLINE_THRESHOLD_SECONDS)
     viewers = (
         BattleViewerPresence.objects.filter(battle=battle, last_seen_at__gte=cutoff)
         .values("viewer_hash").distinct().count()

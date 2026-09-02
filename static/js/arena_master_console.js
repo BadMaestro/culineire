@@ -77,6 +77,7 @@
     }
 
     setText('amc-online', state.arena.online_count);
+    paintSwitches();
 
     /* DG-04: real viewer presence */
     if (state.viewers && state.viewers.available) {
@@ -499,6 +500,152 @@
   /* ── One-click full emulation: start (or pick up the running EMU
      battle) and step through every stage with a viewing pause. ──────── */
 
+  /* ── The operator deck: three switches, a count and a purge ────────
+     Each switch renders from state.operator on every poll rather than from
+     what it last did, so a second console - or a setting pinned in a
+     deployment - cannot leave this one showing a lie. */
+
+  var SWITCHES = [
+    { id: 'amc-switch-bots', action: 'set_emulation_bots', field: 'shown',
+      on: function (op) { return op.emulation_bots_shown; },
+      words: ['off floor', 'on floor'],
+      locked: function (op) { return op.emulation_bots_pinned; },
+      confirm: function (next) {
+        return next
+          ? 'Put the two EMU test chefs ON the public arena floor?'
+          : 'Take the two EMU test chefs off the arena floor?';
+      } },
+    { id: 'amc-switch-runway', action: 'set_runway', field: 'armed',
+      on: function (op) { return !!op.runway; },
+      words: ['idle', 'armed'],
+      confirm: function (next) {
+        return next
+          ? 'Arm the runway? The public arena polls every 2s instead of 20s ' +
+            'for the next few minutes, so an emulation can be watched live.'
+          : 'Stand the runway down?';
+      } },
+    { id: 'amc-switch-chat', action: 'set_chat_open', field: 'is_open',
+      on: function (op) { return op.chat_is_open !== false; },
+      words: ['closed', 'open'],
+      confirm: function (next) {
+        return next
+          ? 'Open the arena chat to new lines again?'
+          : 'Close the arena chat to NEW lines? Nothing is hidden and nothing ' +
+            'is deleted - the panel and the history stay exactly as they are.';
+      } }
+  ];
+
+  function paintSwitches() {
+    var op = state.operator || {};
+    SWITCHES.forEach(function (sw) {
+      var btn = document.getElementById(sw.id);
+      if (!btn) return;
+      var on = !!sw.on(op);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      setText(sw.id + '-state', sw.words[on ? 1 : 0]);
+      var locked = sw.locked ? !!sw.locked(op) : false;
+      btn.disabled = locked;
+      if (locked) btn.title = 'Pinned by a deployment setting; the console cannot override it.';
+    });
+    var note = document.getElementById('amc-switch-note');
+    if (note) {
+      note.textContent = op.emulation_bots_pinned
+        ? 'ARENA_SHOW_EMULATION_BOTS is pinned in settings.'
+        : '';
+    }
+  }
+
+  function handleSwitch(btn) {
+    var sw = SWITCHES.filter(function (s) { return s.id === btn.id; })[0];
+    if (!sw) return;
+    var next = btn.getAttribute('aria-pressed') !== 'true';
+    if (!window.confirm(sw.confirm(next))) return;
+    var fields = { action: sw.action };
+    fields[sw.field] = next ? '1' : '0';
+    btn.disabled = true;
+    showActionError('');
+    postAction(fields)
+      .then(function () { return poll(); })
+      .catch(function (err) { showActionError(err.message); })
+      .finally(function () { btn.disabled = false; paintSwitches(); });
+  }
+
+  /* THE PURGE IS TWO PRESSES, ALWAYS. Count first - the server measures and
+     removes nothing - and only then does the second button appear, carrying
+     the number it is about to act on. A confirmation that does not say how
+     much it is deleting is not a confirmation. */
+
+  var purgeTotal = null;
+
+  function renderPurge(report) {
+    var list = document.getElementById('amc-purge-rows');
+    var apply = document.getElementById('amc-purge-apply');
+    if (!list) return;
+    list.textContent = '';
+    if (!report) {
+      list.innerHTML = '<li><span class="amc-empty">Press Count to measure</span></li>';
+      if (apply) apply.classList.add('amc-hidden');
+      return;
+    }
+    [['Battles', 'battles'], ['Chat', 'chat'], ['Seats', 'seats'],
+     ['Votes', 'votes'], ['Entries', 'entries'], ['Gifts', 'gifts'],
+     ['Voters', 'voters'], ['Recipes', 'recipes']].forEach(function (pair) {
+      var row = report[pair[1]];
+      if (!row || !row.count) return;
+      var li = document.createElement('li');
+      li.textContent = pair[0] + ' ';
+      var b = document.createElement('b');
+      b.textContent = row.count;
+      li.appendChild(b);
+      if (row.examples && row.examples.length) {
+        var hint = document.createElement('span');
+        hint.textContent = ' — ' + row.examples.map(function (e) {
+          return typeof e === 'string' ? e : (e.theme || ('#' + e.id));
+        }).join(', ');
+        li.appendChild(hint);
+      }
+      list.appendChild(li);
+    });
+    purgeTotal = report.total;
+    if (!report.total) {
+      list.innerHTML = '<li><span class="amc-empty">No test data on the arena</span></li>';
+    }
+    if (apply) {
+      apply.classList.toggle('amc-hidden', !report.total);
+      apply.textContent = 'Purge ' + report.total + ' rows';
+    }
+  }
+
+  function handlePurge(btn) {
+    var kind = btn.getAttribute('data-amc-purge');
+    var fields = { action: 'purge_emulation_data' };
+    if (kind === 'count') {
+      fields.dry_run = '1';
+    } else {
+      if (!window.confirm('Permanently remove ' + purgeTotal + ' rows belonging to ' +
+          'the EMU test bots? The bot accounts themselves are kept. Nothing a ' +
+          'person made is in this set.')) return;
+    }
+    btn.disabled = true;
+    showActionError('');
+    postAction(fields)
+      .then(function (res) {
+        renderPurge(kind === 'count' ? res.report : res.remaining);
+        return poll();
+      })
+      .catch(function (err) { showActionError(err.message); })
+      .finally(function () { btn.disabled = false; });
+  }
+
+  if (window.AMC_OPERATOR && window.AMC_OPERATOR.isOwner) {
+    document.addEventListener('click', function (e) {
+      var sbtn = e.target.closest('[data-amc-switch]');
+      if (sbtn && !sbtn.disabled) handleSwitch(sbtn);
+      var pbtn = e.target.closest('[data-amc-purge]');
+      if (pbtn && !pbtn.disabled) handlePurge(pbtn);
+    });
+  }
+
   var runBtn = document.getElementById('amc-run-emulation');
   if (runBtn && window.AMC_OPERATOR && window.AMC_OPERATOR.isOwner) {
     var STAGE_PAUSE_MS = 5000;
@@ -530,6 +677,16 @@
           'about 5 seconds per stage). Watch the panels, the ring and the battle room.')) return;
       runBtn.disabled = true;
       showActionError('');
+      /* THE ARENA HAS TO BE LOOKING. Without this the emulation walks a stage
+         every five seconds while the public page polls every twenty, so more
+         than half of what it does happens between two polls and is never
+         drawn. Armed here, stood down when the run ends. */
+      postAction({ action: 'set_runway', armed: '1',
+                   label: 'Emulation run' }).catch(function () {});
+
+      var standDown = function () {
+        postAction({ action: 'set_runway', armed: '0' }).catch(function () {});
+      };
 
       var run = function (battleId) {
         postAction({ action: 'emulation_step', battle_id: battleId })
@@ -543,6 +700,7 @@
             if (res.after === 'completed') {
               emuProgress('Emulation complete — ' + (STAGE_LABELS.completed) +
                 (res.winner ? ' Winner: ' + res.winner : ''));
+              standDown();
               runBtn.disabled = false;
               return;
             }
@@ -551,6 +709,7 @@
           .catch(function (err) {
             showActionError(err.message);
             emuProgress('Stopped: ' + err.message);
+            standDown();
             runBtn.disabled = false;
           });
       };

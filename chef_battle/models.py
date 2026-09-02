@@ -3300,3 +3300,138 @@ class ArenaHouseStream(models.Model):
         until it is in the audit trail.
         """
         return cls.objects.order_by("pk").first()
+
+class ArenaOperatorFlags(models.Model):
+    """The switches the Master Console throws, and the only home they have.
+
+    ``ARENA_SHOW_EMULATION_BOTS`` was never a setting. It was a
+    ``getattr(settings, ..., False)`` in two modules and nothing else - no line
+    in settings.py, no key in .env - so the Owner's own switch, the one he
+    asked for on 2026-08-07 when he took the two test chefs off the floor,
+    could only be thrown by editing code and restarting the server. A switch
+    that needs a deploy is not a switch.
+
+    ONE ROW, read through ``current()``, exactly as ``ArenaHouseStream`` does
+    it - the same reasoning, not a second invention: a settings table with two
+    rows is a bug waiting for somebody to wonder which one is live.
+
+    THE SETTING STILL WINS. ``ARENA_SHOW_EMULATION_BOTS`` is read first and
+    this row second, so a deployment can still pin the answer and the existing
+    ``override_settings`` tests keep testing what they were written to test.
+    Absent a setting - which is every real environment today - the row decides.
+
+    NOT A PRIVILEGE STORE. Nothing here touches is_staff, is_superuser,
+    has_bearseeker_privileges or has_arena_console_access; those are the
+    Owner's, set in the moderation panel and nowhere else (AGENTS.md 20).
+    """
+
+    CACHE_KEY = "chef_battle:arena_flags:show_emulation_bots"
+    CHAT_CACHE_KEY = "chef_battle:arena_flags:chat_is_open"
+    CACHE_TTL_SECONDS = 300
+
+    show_emulation_bots = models.BooleanField(
+        default=False,
+        help_text="Whether the two EMU bot chefs stand on the arena floor.",
+    )
+    chat_is_open = models.BooleanField(
+        default=True,
+        help_text=(
+            "Off closes the arena chat TO NEW LINES. The panel, the history "
+            "and the private threads all stay exactly where they are."
+        ),
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="arena_flag_edits",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Arena operator flags"
+        verbose_name_plural = "Arena operator flags"
+
+    def __str__(self):
+        return "Arena flags (bots %s)" % ("on" if self.show_emulation_bots else "off")
+
+    def save(self, *args, **kwargs):
+        """Any write refreshes the cached answer. The service does it too, but
+        a cache that only some writers remember to clear is a stale switch
+        waiting to happen - and the switch is the whole point of this row."""
+        super().save(*args, **kwargs)
+        cls = type(self)
+        cls.forget_cached_answer(self.show_emulation_bots)
+        cls.forget_cached_chat_answer(self.chat_is_open)
+
+    @classmethod
+    def current(cls):
+        """The row, created if it is not there yet. Writers only."""
+        row = cls.objects.order_by("pk").first()
+        if row is None:
+            row = cls.objects.create()
+        return row
+
+    @classmethod
+    def bots_are_shown(cls):
+        """The stored answer, and NEVER a write.
+
+        Read on every arena payload build, including the token-gated preview
+        route whose whole contract is that it writes nothing - so this is
+        for_display()'s discipline, not current()'s. No row yet means the
+        default the Owner asked for: bots off.
+
+        CACHED, BECAUSE THE CALLERS ARE MANY. _hidden_bot_slugs() is asked the
+        same question half a dozen times while one console state is assembled,
+        and it used to cost nothing at all (a settings lookup). Measured, the
+        naive row read took the console from 41 queries to 54 against a budget
+        of 50. The cache is written through by the switch itself, so the toggle
+        is still instant - the TTL is a backstop for another process, not the
+        mechanism.
+        """
+        from django.core.cache import cache
+
+        cached = cache.get(cls.CACHE_KEY)
+        if cached is not None:
+            return bool(cached)
+        row = cls.objects.order_by("pk").values_list("show_emulation_bots", flat=True).first()
+        value = bool(row)
+        cache.set(cls.CACHE_KEY, int(value), cls.CACHE_TTL_SECONDS)
+        return value
+
+    @classmethod
+    def forget_cached_answer(cls, value=None):
+        """Called by the switch the moment it writes. Passing the new value
+        writes it through rather than leaving the next reader to go and look."""
+        from django.core.cache import cache
+
+        if value is None:
+            cache.delete(cls.CACHE_KEY)
+        else:
+            cache.set(cls.CACHE_KEY, int(bool(value)), cls.CACHE_TTL_SECONDS)
+
+    @classmethod
+    def chat_is_open_now(cls):
+        """Whether the arena hall accepts new lines. Never a write.
+
+        Read on every attempt to speak, so it is cached the same way the bot
+        switch is, and written through by the switch itself. DEFAULT OPEN: no
+        row, or a cold cache on a fresh deploy, must never silence the hall -
+        the failure has to be the harmless direction.
+        """
+        from django.core.cache import cache
+
+        cached = cache.get(cls.CHAT_CACHE_KEY)
+        if cached is not None:
+            return bool(cached)
+        row = cls.objects.order_by("pk").values_list("chat_is_open", flat=True).first()
+        value = True if row is None else bool(row)
+        cache.set(cls.CHAT_CACHE_KEY, int(value), cls.CACHE_TTL_SECONDS)
+        return value
+
+    @classmethod
+    def forget_cached_chat_answer(cls, value=None):
+        from django.core.cache import cache
+
+        if value is None:
+            cache.delete(cls.CHAT_CACHE_KEY)
+        else:
+            cache.set(cls.CHAT_CACHE_KEY, int(bool(value)), cls.CACHE_TTL_SECONDS)

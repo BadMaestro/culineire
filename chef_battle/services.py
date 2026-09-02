@@ -4860,20 +4860,29 @@ def _return_battle_artifacts_to_chest(battle):
 def operator_cancel(*, battle_id, operator_author, reason, correlation_id=""):
     """Cancel a battle (owner-only).
 
-    In test mode (Chef Battles not yet public) an unscored battle is erased
-    completely — the owner's 'Cancel Battle' leaves no trace of it anywhere and
-    returns any artifacts it held to their chests. A scored battle, or any
-    battle once Chef Battles is public, follows the safe mark-CANCELLED pattern
-    (CANCELLED + result_reason + audit event) instead.
+    An unscored EMULATION battle is erased completely - Cancel leaves no trace
+    of it and returns any artifacts it held to their chests. Everything else
+    follows the safe mark-CANCELLED pattern (CANCELLED + result_reason + audit
+    event).
+
+    WHAT THIS USED TO SAY, AND WHY IT CHANGED ON 2026-09-02. The erase branch
+    was gated on "test mode", meaning CHEF_BATTLE_ENABLED being false - and
+    production does not set that key, so production IS test mode by that
+    definition. Cancel therefore deleted an unscored battle between two real
+    people, outright and without a trace, on the live site. Nobody asked for
+    that; the Owner's ruling the same day was the opposite - only test data may
+    be deleted, real rows are hidden and never erased. The gate is now
+    ownership, the same one operator_delete_test_battle uses.
     """
     _require_owner(operator_author)
     if not (reason or "").strip():
         raise OperatorActionError("Cancellation requires a reason.")
 
-    test_mode = not getattr(settings, "CHEF_BATTLE_ENABLED", False)
-    if test_mode:
-        battle = Battle.objects.filter(pk=battle_id).first()
-        if battle and not (battle.winner_id or battle.loser_id or battle.crown_awarded):
+    candidate = Battle.objects.select_related("challenger", "opponent").filter(
+        pk=battle_id).first()
+    if candidate is not None and _battle_is_emulation(candidate):
+        battle = candidate
+        if not (battle.winner_id or battle.loser_id or battle.crown_awarded):
             return operator_delete_test_battle(
                 battle_id=battle_id,
                 operator_author=operator_author,
@@ -4909,22 +4918,60 @@ def operator_cancel(*, battle_id, operator_author, reason, correlation_id=""):
     return battle
 
 
+# ── Emulation test data: what belongs to the bots, and only that ───────────
+#
+# ONE ANSWER TO "IS THIS TEST DATA", used by the single-battle delete and by
+# the purge alike. Two ways in, because the emulator and the scenario command
+# each create battles their own way:
+#   - the theme prefix, exactly as run_scenario_a.py already matches it, and
+#   - both fighters being the EMU bots, which is emulation.py's own list.
+# Nothing here is a substring search over free text. A battle a person is in
+# cannot match either arm, which is the whole safety property.
+
+def _emulation_theme_prefixes():
+    from .emulation import EMU_THEME_PREFIX
+    return (EMU_THEME_PREFIX, "Scenario A")
+
+
+def _emulation_bot_slug_set():
+    from .emulation import EMU_CHEFS
+    return {slug for slug, _name in EMU_CHEFS}
+
+
+def _battle_is_emulation(battle):
+    """True only for a battle that belongs to the test bots."""
+    bots = _emulation_bot_slug_set()
+    if battle.challenger_id and battle.opponent_id:
+        if {battle.challenger.slug, battle.opponent.slug} <= bots:
+            return True
+    theme = battle.theme or ""
+    return any(theme.startswith(prefix) for prefix in _emulation_theme_prefixes())
+
+
 def operator_delete_test_battle(*, battle_id, operator_author, correlation_id=""):
     """Permanently remove unscored test data from the dark-launch console.
 
-    This is unavailable once Chef Battles is public. A scored result changes
-    chef profiles and move ledgers, so only battles without a winner or crown
-    can be erased safely. The linked challenge is removed as well, keeping the
-    test console and challenge inboxes clean.
+    A scored result changes chef profiles and move ledgers, so only battles
+    without a winner or crown can be erased safely. The linked challenge is
+    removed as well, keeping the test console and challenge inboxes clean.
+
+    THE FUSE CHANGED ON 2026-09-02, BY THE OWNER'S WORD. It used to refuse
+    whenever CHEF_BATTLE_ENABLED was true - "only in test mode". Measured, that
+    gate was on backwards: production has no such key and defaults to False, so
+    deletion worked there, while the development .env sets it True, so the one
+    machine where this is exercised was the one machine where the button was
+    dead. The fuse is now what it always meant: the rows have to BELONG to the
+    test bots. A battle between two people is refused wherever it is running,
+    and a bot battle can be cleaned up wherever it is running.
     """
     _require_owner(operator_author)
-    if getattr(settings, "CHEF_BATTLE_ENABLED", False):
-        raise OperatorActionError(
-            "Test battle deletion is only available while Chef Battles is in test mode."
-        )
 
     with transaction.atomic():
         battle = _locked_battle(battle_id, expected_status=None)
+        if not _battle_is_emulation(battle):
+            raise OperatorActionError(
+                "Only emulation battles between the test bots can be deleted."
+            )
         if battle.winner_id or battle.loser_id or battle.crown_awarded:
             raise OperatorActionError(
                 "This battle has a scored result and cannot be deleted safely."
@@ -4952,6 +4999,223 @@ def operator_delete_test_battle(*, battle_id, operator_author, correlation_id=""
         correlation_id,
     )
     return deleted
+
+
+def _emulation_data_sets():
+    """Every queryset the purge touches, named. Built once so the dry run and
+    the deletion cannot drift into counting one thing and removing another -
+    the classic way a confirmation screen starts lying."""
+    from django.contrib.auth import get_user_model
+    from recipes.models import Recipe
+    from .models import (
+        ArenaChatMessage, ArenaSeat, BattleEntry, BattleEvent, BattleVote,
+        ViewerBattleGift,
+    )
+
+    bots = _emulation_bot_slug_set()
+    theme_q = Q()
+    for prefix in _emulation_theme_prefixes():
+        theme_q |= Q(theme__startswith=prefix)
+    battles = Battle.objects.filter(
+        theme_q | (Q(challenger__slug__in=bots) & Q(opponent__slug__in=bots))
+    )
+    battle_ids = list(battles.values_list("pk", flat=True))
+
+    return {
+        "battles": battles,
+        "battle_ids": battle_ids,
+        "chat": ArenaChatMessage.objects.filter(
+            Q(battle_id__in=battle_ids) | Q(speaker__slug__in=bots)),
+        "votes": BattleVote.objects.filter(battle_id__in=battle_ids),
+        "entries": BattleEntry.objects.filter(battle_id__in=battle_ids),
+        "events": BattleEvent.objects.filter(battle_id__in=battle_ids),
+        "gifts": ViewerBattleGift.objects.filter(battle_id__in=battle_ids),
+        "seats": ArenaSeat.objects.filter(viewer__slug__in=bots),
+        "voters": get_user_model().objects.filter(username__startswith="emu-voter-"),
+        "recipes": Recipe.objects.filter(slug__startswith="emu-dish-"),
+    }
+
+
+def emulation_data_report():
+    """Counts and examples for every row the purge would remove. No writes.
+
+    The Owner's rule, and it is his for a reason: before a delete(), a count()
+    and some examples. A number with nothing behind it is not a confirmation.
+    """
+    sets = _emulation_data_sets()
+    battles = list(sets["battles"].values("pk", "theme", "status", "winner_id")[:12])
+    report = {
+        "battles": {
+            "count": sets["battles"].count(),
+            "examples": [
+                {"id": b["pk"], "theme": b["theme"], "status": b["status"],
+                 "scored": bool(b["winner_id"])}
+                for b in battles
+            ],
+        },
+        "scored_battles": sets["battles"].filter(
+            Q(winner__isnull=False) | Q(loser__isnull=False) | Q(crown_awarded=True)
+        ).count(),
+    }
+    for key in ("chat", "votes", "entries", "events", "gifts", "seats",
+                "voters", "recipes"):
+        report[key] = {"count": sets[key].count()}
+    report["voters"]["examples"] = list(
+        sets["voters"].values_list("username", flat=True)[:9])
+    report["recipes"]["examples"] = list(
+        sets["recipes"].values_list("slug", flat=True)[:6])
+    report["total"] = sum(
+        report[k]["count"] for k in
+        ("battles", "chat", "votes", "entries", "events", "gifts", "seats",
+         "voters", "recipes")
+    )
+    return report
+
+
+def operator_purge_emulation_data(*, operator_author, correlation_id=""):
+    """Owner-only. Remove every row that belongs to the emulation bots.
+
+    WHAT IT CAN REACH, and it is a short list on purpose: battles matched by
+    the emulation theme prefixes or by having BOTH fighters in EMU_CHEFS, the
+    rows hanging off those battles, the bots' own arena seats, the emu-voter
+    accounts the voting stage creates, and the emu-dish draft recipes. It
+    cannot express "a battle a person was in", so it cannot delete one.
+
+    IT REFUSES RATHER THAN IMPROVISES. A scored emulation battle (winner,
+    loser or crown) stops the whole purge - unwinding a rating and a crown is a
+    different operation and it is not this one. So does a gift, because
+    ViewerBattleGift protects its token transaction and half a deletion is
+    worse than none.
+
+    The bot ACCOUNTS themselves survive. They keep their profiles, their
+    history and their place in the Master Console; this clears what they did,
+    not who they are - the same distinction the Owner drew on 2026-08-07 when
+    he switched them off the floor instead of deleting them.
+    """
+    _require_owner(operator_author)
+
+    before = emulation_data_report()
+    if before["scored_battles"]:
+        raise OperatorActionError(
+            "%d emulation battle(s) carry a scored result. Purge refused - a "
+            "rating and a crown have to be unwound deliberately, not swept."
+            % before["scored_battles"]
+        )
+    if before["gifts"]["count"]:
+        raise OperatorActionError(
+            "%d gift(s) hang off these battles and hold token transactions. "
+            "Purge refused rather than half-applied." % before["gifts"]["count"]
+        )
+
+    with transaction.atomic():
+        sets = _emulation_data_sets()
+        # Children first: the battle row's own SET_NULL/CASCADE links would
+        # otherwise decide the order for us, and a stranded chat message is
+        # exactly the sort of leftover this action exists to stop leaving.
+        for key in ("chat", "votes", "entries", "events", "seats"):
+            sets[key].delete()
+        sets["battles"].delete()
+        sets["recipes"].delete()
+        sets["voters"].delete()
+
+    _operator_event(
+        battle=None, operator_author=operator_author,
+        action="purge_emulation_data", before="present", after="purged",
+        reason="", correlation_id=correlation_id, extra={"removed": before},
+    )
+    logger.warning(
+        "Owner %s purged %d emulation rows (correlation=%s).",
+        operator_author.slug, before["total"], correlation_id,
+    )
+    return {"removed": before, "remaining": emulation_data_report()}
+
+
+def operator_set_emulation_bots(*, operator_author, shown, correlation_id=""):
+    """Owner-only. Put the two test chefs on the arena floor, or take them off.
+
+    The switch the Owner asked for on 2026-08-07, thrown from a screen at last
+    instead of from settings.py. Refuses while a deployment pins the answer:
+    a toggle that silently does nothing is worse than no toggle.
+    """
+    from .models import ArenaOperatorFlags
+
+    _require_owner(operator_author)
+    if getattr(settings, "ARENA_SHOW_EMULATION_BOTS", None) is not None:
+        raise OperatorActionError(
+            "ARENA_SHOW_EMULATION_BOTS is pinned in settings; the console "
+            "cannot override a deployment. Remove the setting to use this switch."
+        )
+
+    row = ArenaOperatorFlags.current()
+    before = row.show_emulation_bots
+    row.show_emulation_bots = bool(shown)
+    row.updated_by = getattr(operator_author, "user", None)
+    row.save(update_fields=["show_emulation_bots", "updated_by", "updated_at"])
+    ArenaOperatorFlags.forget_cached_answer(row.show_emulation_bots)
+
+    _operator_event(
+        battle=None, operator_author=operator_author,
+        action="set_emulation_bots",
+        before="on floor" if before else "off floor",
+        after="on floor" if row.show_emulation_bots else "off floor",
+        reason="", correlation_id=correlation_id,
+    )
+    return {"show_emulation_bots": row.show_emulation_bots}
+
+
+def operator_set_chat_open(*, operator_author, is_open, correlation_id=""):
+    """Owner-only. Close the arena hall to new lines, or open it again.
+
+    A SWITCH, NOT A PURGE, and deliberately not a hiding either: existing
+    lines stay visible, private threads keep working, and the panel does not
+    move. It stops new speech and nothing else, which is the one isolation the
+    arena had no control for at all.
+    """
+    from .models import ArenaOperatorFlags
+
+    _require_owner(operator_author)
+    row = ArenaOperatorFlags.current()
+    before = row.chat_is_open
+    row.chat_is_open = bool(is_open)
+    row.updated_by = getattr(operator_author, "user", None)
+    row.save(update_fields=["chat_is_open", "updated_by", "updated_at"])
+
+    _operator_event(
+        battle=None, operator_author=operator_author, action="set_chat_open",
+        before="open" if before else "closed",
+        after="open" if row.chat_is_open else "closed",
+        reason="", correlation_id=correlation_id,
+    )
+    return {"chat_is_open": row.chat_is_open}
+
+
+def operator_set_runway(*, operator_author, armed, lead_seconds=12, label="",
+                        steps=0, correlation_id=""):
+    """Owner-only. Arm the arena's fast lane, or stand it down.
+
+    WHY THIS EXISTS. The console's emulation walks a battle a stage every five
+    seconds while the public arena polls every twenty, so more than half of
+    what it does happens between two polls and is never drawn. The runway is
+    the mechanism that already fixes this - it was simply unreachable from
+    anywhere but a shell, where run_scenario_a arms it. Same module, same TTL,
+    no second countdown.
+    """
+    from . import arena_runway
+
+    _require_owner(operator_author)
+    if armed:
+        arena_runway.start_countdown(
+            lead_seconds=lead_seconds, label=label, steps=steps)
+    else:
+        arena_runway.clear()
+
+    _operator_event(
+        battle=None, operator_author=operator_author, action="set_runway",
+        before="idle" if armed else "armed",
+        after="armed" if armed else "idle",
+        reason=label, correlation_id=correlation_id,
+    )
+    return arena_runway.current() or {"state": "idle"}
 
 
 def operator_broadcast(*, operator_author, message, battle_id=None, correlation_id=""):

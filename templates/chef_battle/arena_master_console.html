@@ -202,16 +202,74 @@
                   title="Permanently remove an unscored test battle and its linked challenge">Delete Test Battle</button>
           {% endif %}
         </div>
-        <h4 class="amc-panel__subtitle">Emulation</h4>
-        <div class="amc-panel__actions">
-          <button type="button" class="amc-btn" id="amc-run-emulation"
-                  title="One click: creates a bot battle and runs it through every stage to the crown, pausing a few seconds per stage so you can watch">&#9654; Run Full Emulation</button>
-          <button type="button" class="amc-btn" data-amc-action="start_emulation"
-                  title="Create a full test battle between the EMU bot chefs">Start Only</button>
-          <button type="button" class="amc-btn" data-amc-action="emulation_step"
-                  title="Advance the emulation battle by one lifecycle stage">Step Manually</button>
+        {% comment %}
+        THE DECK, 2026-09-02, to the Owner's chosen layout: isolation,
+        emulation and test data as three cards in one row. Every control here
+        already existed as an idea and had no screen - the bot switch lived in
+        a setting nobody had defined, the runway could only be armed from a
+        shell, and the test data had no way out of the database at all.
+
+        NOTHING HERE TOUCHES A PRIVILEGE. is_staff, is_superuser,
+        has_bearseeker_privileges and has_arena_console_access are the Owner's,
+        set in the moderation panel and nowhere else (AGENTS.md 20); panel 8
+        shows them and this deck does not go near them.
+        {% endcomment %}
+        <div class="amc-deck">
+
+          <section class="amc-deckcard" aria-label="Isolation">
+            <h4 class="amc-deckcard__h">Isolation</h4>
+            <button type="button" class="amc-switch" data-amc-switch="set_emulation_bots"
+                    id="amc-switch-bots" aria-pressed="false"
+                    title="Whether the two EMU bot chefs stand on the arena floor">
+              <span class="amc-switch__led" aria-hidden="true"></span>
+              <span class="amc-switch__name">Emulation bots</span>
+              <span class="amc-switch__state" id="amc-switch-bots-state">off</span>
+            </button>
+            <button type="button" class="amc-switch" data-amc-switch="set_runway"
+                    id="amc-switch-runway" aria-pressed="false"
+                    title="Arms the arena's fast lane: the public page polls every 2s instead of 20s">
+              <span class="amc-switch__led" aria-hidden="true"></span>
+              <span class="amc-switch__name">Runway</span>
+              <span class="amc-switch__state" id="amc-switch-runway-state">idle</span>
+            </button>
+            <button type="button" class="amc-switch" data-amc-switch="set_chat_open"
+                    id="amc-switch-chat" aria-pressed="true"
+                    title="Closes the arena hall to NEW lines. Nothing is hidden and nothing is deleted">
+              <span class="amc-switch__led" aria-hidden="true"></span>
+              <span class="amc-switch__name">Arena chat</span>
+              <span class="amc-switch__state" id="amc-switch-chat-state">open</span>
+            </button>
+            <p class="amc-panel__hint" id="amc-switch-note"></p>
+          </section>
+
+          <section class="amc-deckcard" aria-label="Emulation">
+            <h4 class="amc-deckcard__h">Emulation</h4>
+            <div class="amc-panel__actions">
+              <button type="button" class="amc-btn" id="amc-run-emulation"
+                      title="One click: creates a bot battle and runs it through every stage to the crown, pausing a few seconds per stage so you can watch">&#9654; Run Full</button>
+              <button type="button" class="amc-btn" data-amc-action="start_emulation"
+                      title="Create a full test battle between the EMU bot chefs">Start Only</button>
+              <button type="button" class="amc-btn" data-amc-action="emulation_step"
+                      title="Advance the emulation battle by one lifecycle stage">Step</button>
+            </div>
+            <p class="amc-panel__hint amc-hidden" id="amc-emu-progress" role="status" aria-live="polite"></p>
+          </section>
+
+          <section class="amc-deckcard" aria-label="Test data">
+            <h4 class="amc-deckcard__h">Test data</h4>
+            <ul class="amc-purge__rows" id="amc-purge-rows">
+              <li><span class="amc-empty">Press Count to measure</span></li>
+            </ul>
+            <div class="amc-panel__actions">
+              <button type="button" class="amc-btn" data-amc-purge="count"
+                      title="Count every row belonging to the emulation bots. Removes nothing">Count</button>
+              <button type="button" class="amc-btn amc-btn--danger amc-hidden"
+                      data-amc-purge="apply" id="amc-purge-apply">Purge</button>
+            </div>
+          </section>
+
         </div>
-        <p class="amc-panel__hint amc-hidden" id="amc-emu-progress" role="status" aria-live="polite"></p>
+        <p class="amc-panel__hint">Only rows belonging to the two EMU bots and the emulation themes. A scored battle refuses the purge outright. Nothing a person made can be reached from here.</p>
         <p class="amc-panel__hint amc-hidden" id="amc-action-error" role="alert"></p>
         {% comment %}
         THE LAMPS. Owner, 2026-08-29: move the lamp widget into the master
@@ -546,7 +604,7 @@
 
 {{ master_state|json_script:"amc-state-json" }}
 <script nonce="{{ request.csp_nonce }}">window.AMC_OPERATOR = { isOwner: {{ operator_is_owner|yesno:"true,false" }} };</script>
-<script src="{% static 'js/arena_master_console.js' %}?v=20260806-mc01-removed"></script>
+<script src="{% static 'js/arena_master_console.js' %}?v=20260902-operator-deck"></script>
 {% comment %}
 The lamp CONTROL, and only here. It mounts into the `data-lamp-mount` in the
 first operator panel above; on the public arena that mount does not exist and

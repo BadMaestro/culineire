@@ -3090,9 +3090,13 @@ class ArenaMasterConsoleAccessTests(TestCase):
             self.assertIn(panel, content)
         # P03: owner control buttons (8) + emulation pair; only Award Crown
         # stays disabled (crown is decided by audience voting only).
+        # 2026-09-02: the test-data card adds Count and Purge, so 13. The
+        # three isolation switches are NOT in this count - they carry
+        # .amc-switch, because a thing that reports a state and toggles it is
+        # not the same control as a button that fires once.
         import re
         amc_buttons = re.findall(r'<button[^>]*class="amc-btn[^"]*"[^>]*>', content)
-        self.assertEqual(len(amc_buttons), 11)
+        self.assertEqual(len(amc_buttons), 13)
         disabled = [b for b in amc_buttons if "disabled" in b]
         self.assertEqual(len(disabled), 1)
         self.assertIn("Award Crown", content)
@@ -3473,9 +3477,13 @@ class ArenaMasterStateTests(TestCase):
         # detail (~27 fixed); P06 voting analytics adds ~7/battle (votes,
         # UTC series, integrity x2, suspicious, chat x2, gift aggregate);
         # P07 economy detail adds ~6 fixed. Measured: 41 at 2 battles.
-        # Bound 50 = headroom for 3 battles; revisit only if battle
-        # concurrency grows beyond that.
-        self.assertLessEqual(len(ctx.captured_queries), 50,
+        # 2026-09-02: the operator section (seats, chat, house camera,
+        # stickers, the bot switch) costs 5 cold and 4 warm - measured on its
+        # own, not inferred - and the total at 2 battles is 52. The bound goes
+        # to 60 for the same reason it was 50: headroom for a third battle
+        # over a measured figure. The switch itself is cached and written
+        # through, which is why its readers cost nothing after the first.
+        self.assertLessEqual(len(ctx.captured_queries), 60,
                              f"master_state used {len(ctx.captured_queries)} queries")
 
     # ── public leak checks ──
@@ -3562,6 +3570,18 @@ class ArenaMasterActionTests(TestCase):
         self.chef_b = RecipeAuthor.objects.create(user=ub, name="Act Chef B", slug="act-chef-b")
         ChefBattleProfile.objects.create(author=self.chef_a, enrolled_at=timezone.now())
         ChefBattleProfile.objects.create(author=self.chef_b, enrolled_at=timezone.now())
+
+    def _emu_battle(self, status=Battle.Status.SCHEDULED):
+        """A battle the purge and the delete recognise as test data.
+
+        The theme prefix is emulation.py's own EMU_THEME_PREFIX, which is the
+        same thing run_scenario_a matches on - not a string invented here.
+        """
+        from chef_battle.emulation import EMU_THEME_PREFIX
+        battle = self._battle(status)
+        battle.theme = "%s test data" % EMU_THEME_PREFIX
+        battle.save(update_fields=["theme"])
+        return battle
 
     def _battle(self, status=Battle.Status.SCHEDULED):
         now = timezone.now()
@@ -3866,7 +3886,9 @@ class ArenaMasterActionTests(TestCase):
             expires_at=timezone.now() + timezone.timedelta(hours=48),
             status=BattleChallenge.Status.ACCEPTED,
         )
-        battle = self._battle(Battle.Status.CANCELLED)
+        # 2026-09-02: the fuse is ownership now, not the launch flag, so the
+        # battle being deleted has to be test data. See the service docstring.
+        battle = self._emu_battle(Battle.Status.CANCELLED)
         battle.challenge = challenge
         battle.save(update_fields=["challenge"])
         BattleEvent.objects.create(
@@ -3889,10 +3911,10 @@ class ArenaMasterActionTests(TestCase):
         self.assertFalse(BattleEvent.objects.filter(battle_id=battle.pk).exists())
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
-    def test_cancel_in_test_mode_deletes_battle_and_returns_artifacts(self):
+    def test_cancel_erases_an_emulation_battle_and_returns_artifacts(self):
         from chef_battle.models import Artifact, ChefArtifact
         from chef_battle.services import operator_cancel
-        battle = self._battle(Battle.Status.ACTIVE)
+        battle = self._emu_battle(Battle.Status.ACTIVE)
         art = Artifact.objects.create(name="Cancel Test Blade")
         held = ChefArtifact.objects.create(
             chef=self.chef_a, artifact=art,
@@ -3913,6 +3935,24 @@ class ArenaMasterActionTests(TestCase):
         held.refresh_from_db()
         self.assertEqual(held.status, ChefArtifact.Status.AVAILABLE)
         self.assertIsNone(held.reserved_in_battle_id)
+
+    def test_cancel_never_erases_a_battle_between_people(self):
+        """The bug this replaced, pinned so it cannot come back.
+
+        Cancel used to erase any unscored battle whenever CHEF_BATTLE_ENABLED
+        was false - and production never sets that key, so production was
+        exactly the environment where a real pair's battle vanished without a
+        trace. It is marked CANCELLED now, wherever it runs.
+        """
+        from chef_battle.services import operator_cancel
+        battle = self._battle(Battle.Status.ACTIVE)
+
+        operator_cancel(battle_id=battle.pk, operator_author=self.owner_author,
+                        reason="called off")
+
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.CANCELLED)
+        self.assertTrue(Battle.objects.filter(pk=battle.pk).exists())
 
     @override_settings(CHEF_BATTLE_ENABLED=False)
     def test_scored_test_battle_cannot_be_deleted(self):
@@ -29092,3 +29132,314 @@ class TheShelfIsGreyMarkedAndOpensInColourTests(TestCase):
             "the refusal is keyed to a physical button, so a reader with "
             "swapped mouse buttons walks past it",
         )
+
+class ArenaOperatorSwitchesTests(TestCase):
+    """The switches the Master Console gained on 2026-09-02: the emulation
+    bots, the runway, and the test-data purge. Owner-only, audited, and -
+    the point of the purge - incapable of reaching a row a person made."""
+
+    def setUp(self):
+        from django.conf import settings as django_settings
+        from django.core.cache import cache
+        User = get_user_model()
+        self.url = reverse("chef_battle:master_action")
+        # The switches are cached and the cache outlives a test transaction,
+        # so a stale answer would leak from one test into the next.
+        cache.clear()
+        self.addCleanup(cache.clear)
+
+        self.owner_user = User.objects.create_superuser("greenbear", password="pw")
+        self.owner_author, _ = RecipeAuthor.objects.update_or_create(
+            slug=django_settings.OWNER_SLUG,
+            defaults={"user": self.owner_user, "name": "GreenBear"},
+        )
+        self.operator_user = User.objects.create_superuser("switch-op", password="pw")
+        RecipeAuthor.objects.create(
+            user=self.operator_user, name="Switch Op", slug="switch-op",
+            has_arena_console_access=True,
+        )
+
+    def _post(self, user, **fields):
+        self.client.force_login(user)
+        return self.client.post(self.url, fields)
+
+    def _people_battle(self):
+        """A battle between two PEOPLE. The purge must not be able to see it."""
+        User = get_user_model()
+        ua = User.objects.create_user("real-chef-a", password="pw")
+        ub = User.objects.create_user("real-chef-b", password="pw")
+        a = RecipeAuthor.objects.create(user=ua, name="Real A", slug="real-chef-a")
+        b = RecipeAuthor.objects.create(user=ub, name="Real B", slug="real-chef-b")
+        now = timezone.now()
+        return Battle.objects.create(
+            challenger=a, opponent=b, theme="A real dinner",
+            status=Battle.Status.SCHEDULED, start_time=now,
+            submission_deadline=now + timezone.timedelta(days=2),
+            voting_deadline=now + timezone.timedelta(days=4),
+            end_time=now + timezone.timedelta(days=5),
+        )
+
+    # ── the emulation-bot switch ──
+
+    def test_only_the_owner_may_throw_the_bot_switch(self):
+        resp = self._post(self.operator_user, action="set_emulation_bots", shown="1")
+        self.assertEqual(resp.status_code, 403)
+        from chef_battle.models import ArenaOperatorFlags
+        self.assertFalse(ArenaOperatorFlags.bots_are_shown())
+
+    def test_the_switch_puts_the_bots_on_the_floor_and_takes_them_off(self):
+        from chef_battle.models import ArenaOperatorFlags
+        from chef_battle.views import _emulation_bots_are_shown
+
+        self.assertFalse(_emulation_bots_are_shown())
+        resp = self._post(self.owner_user, action="set_emulation_bots", shown="1")
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.json()["show_emulation_bots"])
+        self.assertTrue(ArenaOperatorFlags.bots_are_shown())
+        self.assertTrue(_emulation_bots_are_shown())
+
+        self._post(self.owner_user, action="set_emulation_bots", shown="0")
+        self.assertFalse(ArenaOperatorFlags.bots_are_shown())
+
+    def test_the_switch_moves_the_selectors_answer_too(self):
+        """views and selectors must never disagree about the same switch."""
+        from chef_battle.selectors import _hidden_bot_slugs
+        self.assertTrue(_hidden_bot_slugs())
+        self._post(self.owner_user, action="set_emulation_bots", shown="1")
+        self.assertEqual(_hidden_bot_slugs(), set())
+
+    @override_settings(ARENA_SHOW_EMULATION_BOTS=False)
+    def test_a_pinned_setting_beats_the_screen_and_says_so(self):
+        resp = self._post(self.owner_user, action="set_emulation_bots", shown="1")
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("pinned", resp.json()["error"])
+
+    def test_the_switch_is_audited(self):
+        self._post(self.owner_user, action="set_emulation_bots", shown="1")
+        event = BattleEvent.objects.filter(
+            event_type=BattleEvent.EventType.OPERATOR_ACTION).latest("created_at")
+        self.assertEqual(event.payload_json["action"], "set_emulation_bots")
+        self.assertEqual(event.payload_json["after_status"], "on floor")
+
+    # ── the runway ──
+
+    def test_the_owner_arms_and_stands_down_the_runway(self):
+        from chef_battle import arena_runway
+        arena_runway.clear()
+        resp = self._post(self.owner_user, action="set_runway", armed="1")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsNotNone(arena_runway.current())
+        self._post(self.owner_user, action="set_runway", armed="0")
+        self.assertIsNone(arena_runway.current())
+
+    def test_a_flagged_operator_cannot_arm_the_runway(self):
+        from chef_battle import arena_runway
+        arena_runway.clear()
+        self.assertEqual(
+            self._post(self.operator_user, action="set_runway", armed="1").status_code, 403)
+        self.assertIsNone(arena_runway.current())
+
+    # ── the purge ──
+
+    def test_dry_run_counts_and_removes_nothing(self):
+        from chef_battle.emulation import start_emulation
+        battle = start_emulation(operator_author=self.owner_author)
+        resp = self._post(self.owner_user, action="purge_emulation_data", dry_run="1")
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertTrue(body["dry_run"])
+        self.assertEqual(body["report"]["battles"]["count"], 1)
+        self.assertTrue(Battle.objects.filter(pk=battle.pk).exists())
+
+    def test_the_purge_clears_the_bots_battle(self):
+        from chef_battle.emulation import start_emulation
+        battle = start_emulation(operator_author=self.owner_author)
+        resp = self._post(self.owner_user, action="purge_emulation_data")
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Battle.objects.filter(pk=battle.pk).exists())
+        self.assertEqual(resp.json()["remaining"]["total"], 0)
+
+    def test_the_purge_cannot_reach_a_battle_between_people(self):
+        """The safety property, proved rather than asserted: a people's battle
+        and its chef accounts survive a purge that ran and did its work."""
+        from chef_battle.emulation import start_emulation
+        real = self._people_battle()
+        start_emulation(operator_author=self.owner_author)
+
+        self._post(self.owner_user, action="purge_emulation_data")
+
+        real.refresh_from_db()
+        self.assertEqual(real.status, Battle.Status.SCHEDULED)
+        self.assertTrue(RecipeAuthor.objects.filter(slug="real-chef-a").exists())
+        self.assertTrue(RecipeAuthor.objects.filter(slug="real-chef-b").exists())
+
+    def test_the_bot_accounts_survive_their_own_purge(self):
+        from chef_battle.emulation import EMU_CHEFS, start_emulation
+        start_emulation(operator_author=self.owner_author)
+        self._post(self.owner_user, action="purge_emulation_data")
+        for slug, _name in EMU_CHEFS:
+            self.assertTrue(
+                RecipeAuthor.objects.filter(slug=slug).exists(),
+                "the purge clears what the bots did, not who they are")
+
+    def test_a_scored_emulation_battle_refuses_the_whole_purge(self):
+        from chef_battle.emulation import start_emulation
+        battle = start_emulation(operator_author=self.owner_author)
+        battle.winner = battle.challenger
+        battle.save(update_fields=["winner"])
+
+        resp = self._post(self.owner_user, action="purge_emulation_data")
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("scored", resp.json()["error"])
+        self.assertTrue(Battle.objects.filter(pk=battle.pk).exists())
+
+    def test_only_the_owner_may_purge(self):
+        from chef_battle.emulation import start_emulation
+        battle = start_emulation(operator_author=self.owner_author)
+        self.assertEqual(
+            self._post(self.operator_user, action="purge_emulation_data").status_code, 403)
+        self.assertTrue(Battle.objects.filter(pk=battle.pk).exists())
+
+    # ── the single-battle delete, whose fuse changed ──
+
+    def test_delete_test_battle_refuses_a_battle_between_people(self):
+        real = self._people_battle()
+        resp = self._post(self.owner_user, action="delete_test_battle", battle_id=real.pk)
+        self.assertEqual(resp.status_code, 409)
+        self.assertTrue(Battle.objects.filter(pk=real.pk).exists())
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_delete_test_battle_no_longer_depends_on_the_launch_flag(self):
+        """The measured fault: the old gate refused exactly where this is
+        exercised. A bot battle is deletable whatever the launch flag says."""
+        from chef_battle.emulation import start_emulation
+        battle = start_emulation(operator_author=self.owner_author)
+        resp = self._post(self.owner_user, action="delete_test_battle", battle_id=battle.pk)
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Battle.objects.filter(pk=battle.pk).exists())
+
+    # ── the 500 that should have been a 400 ──
+
+    def test_emulation_step_with_an_empty_id_answers_400_not_500(self):
+        resp = self._post(self.owner_user, action="emulation_step", battle_id="")
+        self.assertEqual(resp.status_code, 400)
+
+    # ── the chat switch ──
+
+    def test_only_the_owner_may_close_the_hall(self):
+        from chef_battle.models import ArenaOperatorFlags
+        resp = self._post(self.operator_user, action="set_chat_open", is_open="0")
+        self.assertEqual(resp.status_code, 403)
+        self.assertTrue(ArenaOperatorFlags.chat_is_open_now())
+
+    def test_the_hall_closes_and_opens_again(self):
+        from chef_battle.models import ArenaOperatorFlags
+        self.assertTrue(ArenaOperatorFlags.chat_is_open_now())
+
+        resp = self._post(self.owner_user, action="set_chat_open", is_open="0")
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.json()["chat_is_open"])
+        self.assertFalse(ArenaOperatorFlags.chat_is_open_now())
+
+        self._post(self.owner_user, action="set_chat_open", is_open="1")
+        self.assertTrue(ArenaOperatorFlags.chat_is_open_now())
+
+    def test_a_closed_hall_refuses_a_new_line(self):
+        """The rule is enforced where the line is written, not by hiding a box."""
+        from chef_battle.models import ArenaOperatorFlags
+        self._post(self.owner_user, action="set_chat_open", is_open="0")
+
+        self.client.force_login(self.owner_user)
+        resp = self.client.post(reverse("chef_battle:arena_chat_send"),
+                                {"body": "anyone there?"})
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp.json()["error"], "chat_closed")
+        self.assertTrue(ArenaOperatorFlags.chat_is_open_now() is False)
+
+    def test_closing_the_hall_deletes_nothing(self):
+        """A switch, not a purge: what was said stays said."""
+        from chef_battle.models import ArenaChatMessage
+        line = ArenaChatMessage.objects.create(
+            speaker=self.owner_author, display_name="Someone",
+            body="already spoken", ring_index=1, seat_index=1)
+        self._post(self.owner_user, action="set_chat_open", is_open="0")
+        line.refresh_from_db()
+        self.assertFalse(line.is_hidden)
+        self.assertTrue(ArenaChatMessage.objects.filter(pk=line.pk).exists())
+
+    def test_the_hall_defaults_to_open_with_no_row_at_all(self):
+        """The failure direction has to be harmless: a fresh deploy, no row,
+        cold cache - the arena must not come up silenced."""
+        from django.core.cache import cache
+        from chef_battle.models import ArenaOperatorFlags
+        ArenaOperatorFlags.objects.all().delete()
+        cache.clear()
+        self.assertTrue(ArenaOperatorFlags.chat_is_open_now())
+
+    # ── the console still writes no privilege flag (AGENTS.md 20) ──
+
+    def test_no_console_action_can_write_a_privilege_flag(self):
+        """Proved by enumeration over every verb the dispatcher accepts, not
+        by failing to find one."""
+        import re
+        from pathlib import Path
+
+        source = Path(__file__).with_name("views.py").read_text(encoding="utf-8")
+        start = source.index("def master_action(")
+        end = source.index("def live_arena_progress(", start)
+        body = source[start:end]
+        for flag in ("is_staff", "is_superuser", "has_bearseeker_privileges",
+                     "has_arena_console_access"):
+            self.assertIsNone(
+                re.search(r"%s\s*=" % flag, body),
+                "master_action must never assign %s" % flag)
+
+
+class ArenaOperatorSurfacesTests(TestCase):
+    """The console's new window onto seats, chat, the house camera and the
+    stickers - the surfaces it could see nothing of before."""
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+        self.addCleanup(cache.clear)
+
+    def test_master_state_carries_the_operator_section(self):
+        from chef_battle.selectors import get_master_state
+        operator = get_master_state()["operator"]
+        for key in ("emulation_bots_shown", "emulation_bots_pinned", "runway",
+                    "house_stream", "seats_held", "chat_messages_24h",
+                    "chat_hidden", "stickers_owned"):
+            self.assertIn(key, operator)
+
+    def test_the_section_reports_the_switch_it_is_asked_about(self):
+        from chef_battle.models import ArenaOperatorFlags
+        from chef_battle.selectors import get_master_state
+        self.assertFalse(get_master_state()["operator"]["emulation_bots_shown"])
+        row = ArenaOperatorFlags.current()
+        row.show_emulation_bots = True
+        row.save(update_fields=["show_emulation_bots"])
+        self.assertTrue(get_master_state()["operator"]["emulation_bots_shown"])
+
+    @override_settings(ARENA_SHOW_EMULATION_BOTS=True)
+    def test_a_pinned_setting_is_reported_as_pinned(self):
+        from chef_battle.selectors import get_master_state
+        operator = get_master_state()["operator"]
+        self.assertTrue(operator["emulation_bots_shown"])
+        self.assertTrue(operator["emulation_bots_pinned"])
+
+
+class TheOnlineWindowIsOneNumberTests(TestCase):
+    """Three modules each carried their own 180 until 2026-09-02."""
+
+    def test_views_and_selectors_read_the_same_constant(self):
+        from chef_battle import selectors, views
+        self.assertIs(views._ARENA_ONLINE_THRESHOLD,
+                      selectors.ARENA_ONLINE_THRESHOLD_SECONDS)
+
+    def test_get_arena_metrics_no_longer_hardcodes_the_window(self):
+        import inspect
+        from chef_battle import selectors
+        source = inspect.getsource(selectors.get_arena_metrics)
+        self.assertIn("ARENA_ONLINE_THRESHOLD_SECONDS", source)
+        self.assertNotIn("seconds=180", source)

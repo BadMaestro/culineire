@@ -1217,7 +1217,11 @@ def battle_home(request):
     })
 
 
-_ARENA_ONLINE_THRESHOLD = 180  # seconds — chef counts as online if seen within 3 min
+# The online window, and there is only one of it. This module, get_master_state
+# and get_arena_metrics each carried their own 180 until 2026-09-02: three
+# numbers that mean one rule drift the moment somebody changes the rule and
+# finds two of them. The name stays because callers here read it.
+from .selectors import ARENA_ONLINE_THRESHOLD_SECONDS as _ARENA_ONLINE_THRESHOLD
 
 
 # ---------------------------------------------------------------------------
@@ -1308,12 +1312,24 @@ def _emulation_bots_are_shown() -> bool:
     OWNER, 2026-08-07: "убери с арены двух тестовых шефов - просто пока отключи
     их." A SWITCH, NOT A DELETION - the accounts, their profiles and their
     history are untouched, and the Master Console still drives them; they simply
-    do not appear on the floor. Off by default, which is the state he asked for;
-    ARENA_SHOW_EMULATION_BOTS = True in settings brings them back for a run.
+    do not appear on the floor. Off by default, which is the state he asked for.
+
+    WHERE THE ANSWER LIVES, 2026-09-02. ARENA_SHOW_EMULATION_BOTS was never
+    actually a setting: it had no line in settings.py and no key in any .env,
+    only this getattr's default, so the Owner's switch could only be thrown by
+    editing code and restarting. It is now ArenaOperatorFlags, one row, thrown
+    from the Master Console. The setting is still read FIRST and still wins
+    where it is defined - a deployment can pin the answer, and the three
+    override_settings tests keep testing what they were written to test.
     """
     from django.conf import settings as django_settings
 
-    return bool(getattr(django_settings, "ARENA_SHOW_EMULATION_BOTS", False))
+    from .models import ArenaOperatorFlags
+
+    pinned = getattr(django_settings, "ARENA_SHOW_EMULATION_BOTS", None)
+    if pinned is not None:
+        return bool(pinned)
+    return ArenaOperatorFlags.bots_are_shown()
 
 
 def _emulation_bot_slugs() -> set[str]:
@@ -4548,8 +4564,10 @@ def master_action(request):
         OperatorActionError, operator_broadcast, operator_cancel,
         operator_clear_fraud_flag, operator_delete_test_battle,
         operator_emergency_stop, operator_end_stream,
-        operator_force_status, operator_moderate_entry, operator_resume,
-        operator_review_payout, operator_review_report, operator_set_fraud_flag,
+        operator_force_status, operator_moderate_entry,
+        operator_purge_emulation_data, operator_resume,
+        operator_review_payout, operator_review_report, operator_set_chat_open,
+        operator_set_emulation_bots, operator_set_fraud_flag, operator_set_runway,
         operator_submit_battle_report, operator_suspend_chef, operator_unsuspend_chef,
         record_rejected_operator_action,
     )
@@ -4601,6 +4619,12 @@ def master_action(request):
         "resume": "battle_id", "cancel": "battle_id", "delete_test_battle": "battle_id",
         "moderate_entry": "entry_id", "review_report": "report_id",
         "end_stream": "session_id",
+        # 2026-09-02: emulation_step was the one battle action outside this
+        # map, so its battle_id reached the service as a raw string. Measured:
+        # Battle.objects.get(pk="") raises ValueError, not DoesNotExist, and
+        # this view catches DoesNotExist - an empty field answered 500 where
+        # every sibling answers 400.
+        "emulation_step": "battle_id",
     }
     if action == "broadcast" and battle_id:
         id_fields["broadcast"] = "battle_id"
@@ -4748,10 +4772,50 @@ def master_action(request):
                                             "status_display": battle.get_status_display()}})
         elif action == "emulation_step":
             from .emulation import emulation_step
-            result = emulation_step(battle_id=battle_id, operator_author=author,
+            result = emulation_step(battle_id=parsed_id, operator_author=author,
                                     correlation_id=correlation_id)
             return JsonResponse({"ok": True, "action": action,
                                  "correlation_id": correlation_id, **result})
+        elif action == "purge_emulation_data":
+            # Two steps, always. dry_run answers with the counts and examples
+            # and touches nothing; only a second call actually removes rows.
+            if request.POST.get("dry_run") == "1":
+                from .services import emulation_data_report
+                return JsonResponse({"ok": True, "action": action,
+                                     "correlation_id": correlation_id,
+                                     "dry_run": True,
+                                     "report": emulation_data_report()})
+            result = operator_purge_emulation_data(
+                operator_author=author, correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id, **result})
+        elif action == "set_emulation_bots":
+            result = operator_set_emulation_bots(
+                operator_author=author,
+                shown=request.POST.get("shown") == "1",
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id, **result})
+        elif action == "set_chat_open":
+            result = operator_set_chat_open(
+                operator_author=author,
+                is_open=request.POST.get("is_open") == "1",
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id, **result})
+        elif action == "set_runway":
+            runway = operator_set_runway(
+                operator_author=author,
+                armed=request.POST.get("armed") == "1",
+                label=request.POST.get("label", ""),
+                correlation_id=correlation_id,
+            )
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "runway": runway})
         elif action == "broadcast":
             operator_broadcast(
                 operator_author=author,
@@ -5183,6 +5247,18 @@ def arena_chat_send(request):
     author, seat = _arena_chat_speaker(request)
     if author is None:
         return JsonResponse({"ok": False, "error": "not_authenticated"}, status=403)
+
+    # THE HALL CAN BE CLOSED, and it is closed HERE - the same place a timeout
+    # is enforced, and for the same reason: hiding a composer is presentation,
+    # this is the rule. Nothing is hidden and nothing is deleted; the panel,
+    # the history and the private threads stay exactly where they were.
+    from .models import ArenaOperatorFlags
+    if not ArenaOperatorFlags.chat_is_open_now():
+        return JsonResponse({
+            "ok": False,
+            "error": "chat_closed",
+            "detail": "The arena chat is closed by the operator.",
+        }, status=403)
 
     # WHICH ROOM. A private thread is entered by membership, never by an id
     # alone; the hall additionally asks for a seat, because speaking there
