@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1657",
         "date": "2026-09-02",
-        "commit": "pending",
+        "commit": "31216372",
         "title": "Three journal entries stop saying pending",
         "section": "Housekeeping",
         "summary": (
