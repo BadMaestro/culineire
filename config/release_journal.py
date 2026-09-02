@@ -1,5 +1,23 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1663",
+        "date": "2026-09-02",
+        "commit": "pending",
+        "title": "The switch says its whole name, and the emulation buttons fit one row",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Two leftovers from the previous pass, both seen on the live "
+            "console. The bot switch rendered as 'Emulation bo...' - the "
+            "ellipsis I had added to stop it wrapping was doing its job on a "
+            "name too long for the card. A name that renders as a fragment "
+            "tells the operator less than a shorter one that renders whole, so "
+            "it is 'Test chefs' now and the ellipsis is gone. And the "
+            "emulation card's three buttons sat two-and-one because they "
+            "carried full button padding inside a 160px card; inside a deck "
+            "card they take a tighter one and stand in a row."
+        ),
+    },
+    {
         "version": "2.5.1660",
         "date": "2026-09-02",
         "commit": "pending",
