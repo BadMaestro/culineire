@@ -1,5 +1,25 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1675",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "The lamp map stops setting the height of the control panel",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Measured on the live console: panel 1 was 1250px tall and the "
+            "lamp widget inside it was 849 of them - a 546px square map plus "
+            "its legend, its reset and its JSON readout. So the panel "
+            "carrying every button on the page was two thirds lighting "
+            "setting, and it alone set the height of the whole deck. The "
+            "Owner put the lamps in this panel on 2026-08-29 and they stay "
+            "here - the mount point is also the access control and is not "
+            "moved. The map is capped at 23rem and centred, and the JSON "
+            "readout scrolls in 6rem instead of taking a column. Nothing in "
+            "the widget's own stylesheet is touched; these rules live in the "
+            "console sheet and apply only under its mount."
+        ),
+    },
+    {
         "version": "2.5.1672",
         "date": "2026-09-03",
         "commit": "pending",

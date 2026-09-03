@@ -756,3 +756,24 @@ body.page--amc #site-battle-widget {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+
+/* THE LAMP MAP IS A SETTING, NOT A CONTROL SURFACE - 2026-09-03, measured on
+   the live console. The widget was 849px tall inside a 603px panel (a 546px
+   square map, plus its legend, its reset and its JSON readout), so the panel
+   that carries every button on the page was 1250px of which two thirds was
+   lighting. The Owner put it in this panel on 2026-08-29 and it stays here;
+   it simply stops setting the height of the column. The map is capped and
+   centred, and its JSON readout gets a scrollbar instead of a full column. */
+
+#amc-lamp-console .arena-lampc {
+  max-width: 23rem;
+  margin-inline: auto;
+}
+
+#amc-lamp-console .arena-lampc__json,
+#amc-lamp-console .arena-lampc pre,
+#amc-lamp-console .arena-lampc textarea {
+  max-height: 6rem;
+  overflow: auto;
+}
+
