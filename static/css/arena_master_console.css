@@ -962,3 +962,30 @@ body.page--amc #site-battle-widget {
   padding: 0.4rem 0.5rem;
 }
 
+/* ── Panel 1 and panel 5, second pass ────────────────────────────────
+   Both from measurements taken on the live page.
+
+   PANEL 1 CARRIES SEVEN BUTTONS in a two-column grid, so the seventh stood
+   alone in a half-width cell and left a notch in the block. An odd last
+   button takes the whole row instead - the block ends on a straight edge
+   whatever the count. (:nth-child(odd):last-child is exactly "the last one,
+   when the count is odd".) */
+
+.amc-deck__grid .amc-panel__actions .amc-btn:nth-child(odd):last-child {
+  grid-column: 1 / -1;
+}
+
+/* PANEL 5 IS A THIRD EXPLANATORY PROSE. Its closing paragraph measured 114px
+   of a 304px panel - the DB-enforcement note, which is a standing caveat and
+   not a reading, so it must not sit between the operator and his numbers. A
+   panel's last paragraph is pushed to the foot of the panel and set a size
+   down; the readings keep the top of the column, where the eye lands. */
+
+.amc-deck__grid .amc-panel > .amc-panel__hint:last-child {
+  margin-top: auto;
+  padding-top: 0.35rem;
+  font-size: 0.6rem;
+  line-height: 1.4;
+  border-top: 1px solid var(--amc-line-soft);
+}
+

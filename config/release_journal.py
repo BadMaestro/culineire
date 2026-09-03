@@ -1,5 +1,28 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1687",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "Panel 1's button block ends straight, panel 5's caveat moves to the foot",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Two more from the column pass. PANEL 1 CARRIES SEVEN BUTTONS in "
+            "a two-column grid, so the seventh stood alone in a half-width "
+            "cell and notched the bottom of the block; an odd last button now "
+            "takes the whole row, so the block ends on a straight edge at any "
+            "count. PANEL 5 WAS A THIRD EXPLANATORY PROSE - its closing "
+            "DB-enforcement note measured 114px of a 304px panel, and it is a "
+            "standing caveat rather than a reading, so it had no business "
+            "sitting between the operator and his numbers. A panel's closing "
+            "paragraph is pushed to the foot, set a size down and separated "
+            "by a hairline; the readings keep the top of the column. "
+            "MEASURED, NOT SEEN: the Chrome extension dropped its connection "
+            "mid-pass, so these two follow from numbers already taken on the "
+            "live page and have NOT been looked at yet. Next session with the "
+            "browser confirms them."
+        ),
+    },
+    {
         "version": "2.5.1684",
         "date": "2026-09-03",
         "commit": "pending",
