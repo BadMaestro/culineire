@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ARENA COMMAND BAR - THE IVORY PLATE.
+
+  Same 9-slice construction and the same four nested octagons as
+  command-plate-graphite.svg; that file carries the reasoning for the box, the
+  chamfer, the 0.586*d rule and the paint order. Only the material differs, and
+  one contour: this plate's engraved line is a single row, not two.
+
+    c0  0,0 - 60,51   cut 13     the silhouette
+    c1  2,3 - 58,48   cut 11.5   moulding ends, seat begins
+    c2  4,4 - 56,47   cut 10.7   seat ends, engraved line begins
+    c3  5,5 - 55,45   cut 9.8    line ends, face begins
+                                 (the foot keeps two rows of line, as the
+                                  reference does: y65 light over y66)
+
+  Read across the LIT MIDDLE of overlay_mockup.png, x=915..934: y20 (233,218,196)
+  y21 (242,231,214) y22 (241,236,231) - moulding; y23 (238,224,201) - a WARM
+  seat, not a neutral one, and it is what makes this frame read as gold rather
+  than as a grey edge; y24 (219,193,154) - the engraved line; y25 on - the
+  cream face.
+
+  Not down one column: this plate is lit along its length, and every band peaks
+  near x=930 and falls away to both ends - the foot line runs (235,216,188)
+  there and (183,139,95) at the left end. A 9-slice middle column is stretched
+  and can hold only one value, so it holds the lit one, and the falloff is a
+  CSS layer over the whole box. That falloff and gi-ends are not the same
+  claim and both hold: the falloff is the light dying along the plate's TOP and
+  FOOT, gi-ends is the plate's SIDE, a face square to the light. Deleting the
+  second because the first arrived is what left the ends dull.
+
+  AND THERE IS NO CATCHLIGHT HERE. The graphite plate carries one along its
+  top-left chamfer; this plate's moulding is already the light value, so a white
+  band over it only erases its own engraved line - which is exactly what
+  happened while both plates shared a highlight layer.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="51" viewBox="0 0 60 51">
+  <defs>
+    <path id="c0" d="M13 0 H47 L60 13 V38 L47 51 H13 L0 38 V13 Z"/>
+    <path id="c1" d="M13.5 3 H46.5 L58 14.5 V36.5 L46.5 48 H13.5 L2 36.5 V14.5 Z"/>
+    <path id="c2" d="M14.7 4 H45.3 L56 14.7 V36.3 L45.3 47 H14.7 L4 36.3 V14.7 Z"/>
+    <path id="c3" d="M14.8 5 H45.2 L55 14.8 V35.2 L45.2 45 H14.8 L5 35.2 V14.8 Z"/>
+
+    <linearGradient id="gi-mould" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0"      stop-color="#ebdbc5"/>
+      <stop offset="0.0196" stop-color="#ebdbc5"/>
+      <stop offset="0.0197" stop-color="#f2e7d6"/>
+      <stop offset="0.0392" stop-color="#f2e7d6"/>
+      <stop offset="0.0393" stop-color="#f1ece7"/>
+      <stop offset="0.0588" stop-color="#f1ece7"/>
+      <stop offset="0.5"    stop-color="#e6cfa8"/>
+      <stop offset="0.9411" stop-color="#d7c7b0"/>
+      <stop offset="0.9607" stop-color="#d7c7b0"/>
+      <stop offset="0.9608" stop-color="#dec5a2"/>
+      <stop offset="0.9803" stop-color="#dec5a2"/>
+      <stop offset="0.9804" stop-color="#d9c5ae"/>
+      <stop offset="1"      stop-color="#d9c5ae"/>
+    </linearGradient>
+
+
+    <!-- Row for row: y24 (217,187,148) at the top; y65 (226,202,166) over
+         y66 (226,210,187) at the foot. -->
+    <!-- THE END WALL, which faces the light. Gentler than the graphite plate's:
+         this moulding is already a light value, so the reference's ends sit some
+         twenty units above what the top-to-foot ramp gives here, against fifty
+         on the dark plate. Measured at x=1014: (219,192,159) at y35 and
+         (227,213,195) at y55 - it barely falls down the height, where the ramp
+         alone would take it steadily down. Zero by x=18, the cap, so the
+         stretched middle column carries none of it. -->
+    <linearGradient id="gi-ends" x1="0" y1="0" x2="60" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#faf0dd" stop-opacity=".55"/>
+      <stop offset="0.10" stop-color="#f7ead2" stop-opacity=".45"/>
+      <stop offset="0.30" stop-color="#f2e2c6" stop-opacity="0"/>
+      <stop offset="0.70" stop-color="#f2e2c6" stop-opacity="0"/>
+      <stop offset="0.90" stop-color="#f7ead2" stop-opacity=".45"/>
+      <stop offset="1"    stop-color="#faf0dd" stop-opacity=".55"/>
+    </linearGradient>
+
+    <linearGradient id="gi-line" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0"      stop-color="#dbc19a"/>
+      <stop offset="0.0980" stop-color="#dbc19a"/>
+      <stop offset="0.8823" stop-color="#ebd8bc"/>
+      <stop offset="0.9019" stop-color="#ebd8bc"/>
+      <stop offset="0.9020" stop-color="#e7d6c1"/>
+      <stop offset="1"      stop-color="#e7d6c1"/>
+    </linearGradient>
+
+    <linearGradient id="gi-face" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0"   stop-color="#f0eae2"/>
+      <stop offset="0.6" stop-color="#eae2d6"/>
+      <stop offset="1"   stop-color="#ebe2d5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- THE CHAMFER'S CONTACT CONTOUR - two pixels of dark on the FLOOR side of
+       each cut, and the last thing separating this plate from the deck it sits
+       on. The reference carries it on every chamfer of both plates and nowhere
+       else: read across the top-left cut and it answers floor, then (169,155),
+       then the bright moulding, then the seat. On the straight ends there is no
+       such contour - they answer gold at (219,186,143) - because the end wall
+       faces the light and only the corner facet turns away from it.
+       Without it the corners dissolved into the floor and the silhouette read
+       as a clipped box rather than as a cut edge; it is the whole of the depth
+       at the corners.
+       It is 1.4px and straddles the cut rather than sitting wholly outside it:
+       a 2px band drawn from x+y=11 to 13 antialiases along a diagonal into three
+       or four, and the plate then reads two pixels larger at every corner than
+       it is - the verification saw the silhouette start at 231 where the
+       reference starts it at 234.
+       It is drawn OUTSIDE c0, in the four corner slices, so the stretched middle
+       column never sees it. Semi-transparent rather than a colour, because it
+       darkens whatever floor it lands on and the deck is graded. -->
+  <path fill="#3c2d1e" fill-opacity=".3"
+        d="M11.8 0 L13.2 0 L0 13.2 L0 11.8 Z
+           M46.8 0 L48.2 0 L60 11.8 L60 13.2 Z
+           M60 37.8 L60 39.2 L48.2 51 L46.8 51 Z
+           M13.2 51 L11.8 51 L0 39.2 L0 37.8 Z"/>
+  <use href="#c0" fill="url(#gi-mould)"/>
+  <use href="#c0" fill="url(#gi-ends)"/>
+  <use href="#c1" fill="#eee0c9"/>
+  <use href="#c2" fill="url(#gi-line)"/>
+  <use href="#c3" fill="url(#gi-face)"/>
+</svg>

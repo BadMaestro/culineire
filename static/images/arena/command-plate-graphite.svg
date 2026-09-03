@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ARENA COMMAND BAR - THE GRAPHITE PLATE.
+
+  A 9-SLICE SOURCE, 60x51.
+  Eighteen pixels of left cap, twenty-four of stretchable middle, eighteen of
+  right cap. The height is the plate's own 51 and is NEVER stretched:
+  border-image-slice takes 18 off the top and the foot and leaves a 15px middle
+  to meet a 15px gap, so the face's vertical ramp stays continuous across all
+  three bands. A slice stretched vertically breaks that gradient at both seams.
+
+  The 13px chamfer lives entirely inside the caps (x 0..13 and 47..60), so the
+  middle column carries horizontal bands only and stretches to any plate width
+  without ever touching a corner.
+
+  FOUR NESTED OCTAGONS, PAINTED LARGEST FIRST.
+  Each contour is declared once in <defs> and drawn with <use>; every later
+  layer covers the interior of the one before it, so no layer needs an
+  even-odd ring and no path data is written twice. The one exception is the
+  catchlight, which has to sit ON the seat and the engraved line but not on
+  the face, and is therefore the single two-subpath shape in the file.
+
+  THE INSETS ARE ANISOTROPIC, because the reference's are: 3px of moulding
+  along the top and the foot, 2px at the ends. An inward offset of d shortens
+  a 45-degree chamfer by d*(2 - sqrt2) = 0.586*d, so every inner cut is
+  computed rather than guessed - offsetting it by d instead is what makes four
+  contours converge at the corners and the frame come apart there.
+
+    c0  0,0 - 60,51   cut 13     the silhouette
+    c1  2,3 - 58,48   cut 11.5   moulding ends, seat begins
+    c2  4,4 - 56,47   cut 10.7   seat ends, engraved line begins
+    c3  5,6 - 55,45   cut 9.8    line ends, face begins
+
+  EVERY COLOUR IS A ROW OF overlay_mockup.png, READ IN THE LIT MIDDLE, x=330..349:
+  y20 (234,219,200) y21 (247,234,216) y22 (229,220,204) - three rows of lit
+  moulding; y23 (83,79,77) - one row of seat; y24 (86,77,62) y25 (115,100,79)
+  - the engraved line; y26 (53,54,53) - the face. At the foot the order
+  reverses: y65 (187,173,156) is the line's LIGHT row over y66 (123,117,106).
+
+  THEY WERE FIRST READ AT x=400 AND EVERY ONE OF THEM WAS TOO DARK, OR TOO
+  GOLD, BY TWENTY. That column is 32px from the end of the plate and sits in
+  the reference's own falloff: the engraved line runs (170,159,149) under the
+  corner light, (82,74,60) in the middle and (114,99,73) again near the end.
+  A 9-slice middle column cannot carry any of that - it is stretched, so
+  whatever it holds is constant across the plate. The bands here are therefore
+  the MIDDLE values only, and the light that varies along the plate is a CSS
+  layer over the whole box (.arena-command-bar__action::after), which is the
+  one place able to span a width the artwork never knows.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="51" viewBox="0 0 60 51">
+  <defs>
+    <path id="c0" d="M13 0 H47 L60 13 V38 L47 51 H13 L0 38 V13 Z"/>
+    <path id="c1" d="M13.5 3 H46.5 L58 14.5 V36.5 L46.5 48 H13.5 L2 36.5 V14.5 Z"/>
+    <path id="c2" d="M14.7 4 H45.3 L56 14.7 V36.3 L45.3 47 H14.7 L4 36.3 V14.7 Z"/>
+    <path id="c3" d="M15.2 6 H44.8 L55 16.2 V34.8 L44.8 45 H15.2 L5 34.8 V16.2 Z"/>
+
+    <!-- The moulding is a lit bevel, not a band of one colour: three rows at
+         the top going light, three at the foot turning away. Hard stops,
+         because these are distinct rows of a cast edge and not a blend. -->
+    <linearGradient id="g-mould" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0"      stop-color="#eadbc8"/>
+      <stop offset="0.0196" stop-color="#eadbc8"/>
+      <stop offset="0.0197" stop-color="#f7ead8"/>
+      <stop offset="0.0392" stop-color="#f7ead8"/>
+      <stop offset="0.0393" stop-color="#e5dccc"/>
+      <stop offset="0.0588" stop-color="#e5dccc"/>
+      <stop offset="0.5"    stop-color="#cfae80"/>
+      <stop offset="0.9411" stop-color="#928773"/>
+      <stop offset="0.9607" stop-color="#928773"/>
+      <stop offset="0.9608" stop-color="#ebd3ab"/>
+      <stop offset="0.9803" stop-color="#ebd3ab"/>
+      <stop offset="0.9804" stop-color="#d9c6ae"/>
+      <stop offset="1"      stop-color="#d9c6ae"/>
+    </linearGradient>
+
+
+    <!-- THE END WALLS ARE LIT, and this layer is the only thing that lights them.
+         It was deleted when the length-wise falloff moved to CSS, on the theory
+         that one of them had to be wrong. Both are right, and they are about
+         different surfaces: the falloff is the light dropping off along the
+         plate's TOP and FOOT, and this is the plate's SIDE, a vertical face
+         square to the light and the brightest gold on the whole object. Without
+         it the ends inherit the top-to-foot ramp instead, so the silhouette goes
+         dull from the middle down and the plate loses its rim.
+
+         Measured on the reference at x=221, clear of the medallion's glow:
+         (231,204,169) at y35, (219,186,143) at y45, (217,182,140) at y55 - it
+         barely falls at all down the height. It rendered (199,169,127),
+         (188,149,97), (164,134,93): thirty units out at the top and fifty at
+         the bottom, which is the ramp showing through.
+
+         It reaches zero by x=18, the cap, for the reason the catchlight does:
+         past that the middle column stretches and any value left in it is
+         smeared the full width of the plate. -->
+    <linearGradient id="g-ends" x1="0" y1="0" x2="60" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#f6e3c8" stop-opacity=".85"/>
+      <stop offset="0.10" stop-color="#f2ddc0" stop-opacity=".72"/>
+      <stop offset="0.30" stop-color="#e8d0ae" stop-opacity="0"/>
+      <stop offset="0.70" stop-color="#e8d0ae" stop-opacity="0"/>
+      <stop offset="0.90" stop-color="#f2ddc0" stop-opacity=".72"/>
+      <stop offset="1"    stop-color="#f6e3c8" stop-opacity=".85"/>
+    </linearGradient>
+
+    <!-- Not one ramp: dark over light at the top, light over dark at the foot. -->
+    <linearGradient id="g-line" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0"      stop-color="#564d3e"/>
+      <stop offset="0.0980" stop-color="#564d3e"/>
+      <stop offset="0.0981" stop-color="#736450"/>
+      <stop offset="0.1176" stop-color="#736450"/>
+      <stop offset="0.8819" stop-color="#8d7b62"/>
+      <stop offset="0.8820" stop-color="#bbad9c"/>
+      <stop offset="0.9019" stop-color="#bbad9c"/>
+      <stop offset="0.9020" stop-color="#7b756a"/>
+      <stop offset="1"      stop-color="#7b756a"/>
+    </linearGradient>
+
+    <!-- Neutral graphite, lightening downward: (54,53,53) to (62,61,58). -->
+    <linearGradient id="g-face" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#363535"/>
+      <stop offset="0.55" stop-color="#3a3938"/>
+      <stop offset="1"    stop-color="#3e3d3b"/>
+    </linearGradient>
+
+    <!-- The seat is not one value: (77,73,77) under the top moulding,
+         (55,58,61) above the foot one. -->
+    <linearGradient id="g-seat" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#534f4d"/><stop offset="1" stop-color="#373a3d"/>
+    </linearGradient>
+
+    <!-- The catchlight falls off with DISTANCE from the corner it comes from,
+         which is why this is radial. A linear ramp down the diagonal still
+         carries a quarter of its white to mid-height and turns the seat from
+         (82,72,61) into a pale grey band - measured, not supposed.
+
+         ITS RADIUS IS 18 BECAUSE THE CAP IS 18. A 9-slice stretches whatever
+         the middle column contains: a glint still carrying eighteen per cent of
+         its white at x=18 gets smeared across the whole face of the plate,
+         however wide that plate happens to be. Reaching zero at the cap's own
+         edge is what keeps it a corner glint instead of a wash. -->
+    <radialGradient id="g-lit" cx="0" cy="0" r="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#fffdf7" stop-opacity=".95"/>
+      <stop offset="0.55" stop-color="#fdfaf1" stop-opacity=".92"/>
+      <stop offset="0.78" stop-color="#f0ece2" stop-opacity=".5"/>
+      <stop offset="1"    stop-color="#e8e4da" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Past the chamfer the seat keeps a trace of the same light along the top
+         edge: (95,92,88) at x=300 against (77,73,77) at x=400. Low enough that
+         the middle slice may stretch it - a wash spreads proportionally and
+         still reads as light, where a hard edge would not. -->
+    <linearGradient id="g-seat-lit" x1="0" y1="0" x2="60" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#fff" stop-opacity=".12"/>
+      <stop offset="0.30" stop-color="#fff" stop-opacity=".10"/>
+      <stop offset="0.45" stop-color="#fff" stop-opacity=".06"/>
+      <stop offset="0.62" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- THE CHAMFER'S CONTACT CONTOUR - two pixels of dark on the FLOOR side of
+       each cut, and the last thing separating this plate from the deck it sits
+       on. The reference carries it on every chamfer of both plates and nowhere
+       else: read across the top-left cut and it answers floor, then (169,155),
+       then the bright moulding, then the seat. On the straight ends there is no
+       such contour - they answer gold at (219,186,143) - because the end wall
+       faces the light and only the corner facet turns away from it.
+       Without it the corners dissolved into the floor and the silhouette read
+       as a clipped box rather than as a cut edge; it is the whole of the depth
+       at the corners.
+       It is 1.4px and straddles the cut rather than sitting wholly outside it:
+       a 2px band drawn from x+y=11 to 13 antialiases along a diagonal into three
+       or four, and the plate then reads two pixels larger at every corner than
+       it is - the verification saw the silhouette start at 231 where the
+       reference starts it at 234.
+       It is drawn OUTSIDE c0, in the four corner slices, so the stretched middle
+       column never sees it. Semi-transparent rather than a colour, because it
+       darkens whatever floor it lands on and the deck is graded. -->
+  <path fill="#3c2d1e" fill-opacity=".3"
+        d="M11.8 0 L13.2 0 L0 13.2 L0 11.8 Z
+           M46.8 0 L48.2 0 L60 11.8 L60 13.2 Z
+           M60 37.8 L60 39.2 L48.2 51 L46.8 51 Z
+           M13.2 51 L11.8 51 L0 39.2 L0 37.8 Z"/>
+  <use href="#c0" fill="url(#g-mould)"/>   <!-- moulding: the silhouette itself -->
+  <use href="#c0" fill="url(#g-ends)"/>    <!-- and its end walls, which face the light -->
+  <use href="#c1" fill="url(#g-seat)"/>    <!-- the seat behind the moulding -->
+  <use href="#c1" fill="url(#g-seat-lit)"/> <!-- and the light that runs along it -->
+  <use href="#c2" fill="url(#g-line)"/>    <!-- the engraved line -->
+  <use href="#c3" fill="url(#g-face)"/>    <!-- the face -->
+
+  <!-- THE CATCHLIGHT RIDES THE SEAT AND STOPS THERE - c1 to c2, not c1 to c3.
+       Read a ray inward across the top-left chamfer on the reference and it
+       answers gold (194,156,103), then a bright ridge (241,236,225), then the
+       engraved line's own dark and light rows (124,119,116) and (175,171,166),
+       then the face. Letting the light cover the line as well washes those two
+       rows into one mid grey and the corner loses its second step. -->
+  <path fill="url(#g-lit)" fill-rule="evenodd"
+        d="M13.5 3 H46.5 L58 14.5 V36.5 L46.5 48 H13.5 L2 36.5 V14.5 Z
+           M14.7 4 H45.3 L56 14.7 V36.3 L45.3 47 H14.7 L4 36.3 V14.7 Z"/>
+</svg>

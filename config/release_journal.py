@@ -1,5 +1,43 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1699",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "The Arena Command Bar is rebuilt as artwork, not as a bordered box",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The bar under the ring deck was a generic card: rounded "
+            "rectangles, one 1px border, a plain connector, and two crossed "
+            "strokes where the Owner's mockup has a modelled emblem. It is now "
+            "reconstructed from that mockup. The two plates are 9-slice "
+            "sources - four nested octagons with a 13px chamfer, a lit "
+            "moulding, a seat, an engraved line and a face - so the corners "
+            "stay square-cut at any width, and the frame is vector rather "
+            "than a border. Every band's colour is a row of the mockup, read "
+            "in the lit middle of the plate. "
+            "MATERIAL AND LIGHT ARE SEPARATED, because a 9-slice cannot carry "
+            "the second: its middle column is stretched, so whatever it holds "
+            "is one value across the plate, while the reference's gold peaks "
+            "in the middle and turns down at both ends. The artwork holds the "
+            "middle value of every band; a CSS layer over the border box holds "
+            "the light, as a multiply - gold turning away from a light goes "
+            "darker and warmer, not grey - clipped to the frame ring so it "
+            "never touches the face. "
+            "The thread, its rivet and eyelet, the bracket's mitres and the "
+            "faceted gem are new sprite symbols. Hover no longer lifts the "
+            "plate two pixels: nothing else in the Arena moves on hover, and a "
+            "plate seated in a floor has nowhere to rise to, so it turns "
+            "toward the light instead. The invented drop shadow is gone - the "
+            "mockup has none. "
+            "THE OWNER HAS NOT APPROVED THIS VISUALLY. He reviewed it and "
+            "rejected it, and then ordered it deployed as it stands; it ships "
+            "on his instruction and not on a passed review. The measurement "
+            "says 30/30 named checks and 94.5% against the mockup, and his "
+            "verdict is that it is still not close - both are recorded here "
+            "because the second is the one that counts."
+        ),
+    },
+    {
         "version": "2.5.1696",
         "date": "2026-09-03",
         "commit": "pending",
