@@ -290,15 +290,28 @@
   margin-left: 0.5rem;
 }
 
+/* THE DECK IS COLUMNS, NOT A GRID OF ROWS - 2026-09-02, after looking at it.
+   Eight panels of wildly different heights (panel 1 carries the lamp map;
+   Voting Integrity carries four lines) cannot be laid out in rows without
+   holes: a grid row is as tall as its tallest cell, and the last panel sat
+   alone with six empty columns beside it. CSS columns pack them by height
+   instead, so the deck has no gaps at any width and no panel is padded out
+   to match a neighbour. Reading order becomes top-to-bottom per column,
+   which is what puts panel 1 - the only one with controls - at the top left,
+   first thing in front of him. */
 .amc-deck__grid {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 0.75rem;
-  /* EACH PANEL IS AS TALL AS WHAT IT HOLDS. A grid row is as tall as its
-     tallest cell, and panel 1 carries the lamp map - so on a quiet arena the
-     panels beside it stretched to match and stood as several hundred pixels
-     of empty parchment. */
-  align-items: start;
+  column-count: 4;
+  column-gap: 0.75rem;
+}
+
+.amc-deck__grid > .amc-panel {
+  /* A panel is never split across a column break. */
+  break-inside: avoid;
+  page-break-inside: avoid;
+  margin-bottom: 0.75rem;
+  /* Its own min-height was there to even out a grid row; the columns do not
+     need it and it only forces short panels to be taller than their text. */
+  min-height: 0;
 }
 
 .amc-panel {
@@ -400,9 +413,7 @@
 /* ── Responsive: narrow desktop ──────────────────────────────────── */
 
 @media (max-width: 1500px) {
-  .amc-deck__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+  .amc-deck__grid { column-count: 3; }
 }
 
 @media (max-width: 1300px) {
@@ -422,9 +433,7 @@
     min-height: 260px;
   }
 
-  .amc-deck__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .amc-deck__grid { column-count: 2; }
 }
 
 /* ── Deliberate mobile fallback: stacked, readable, not shrunken ── */
@@ -443,10 +452,11 @@
     gap: 1.25rem;
   }
 
-  .amc-overview,
-  .amc-deck__grid {
+  .amc-overview {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .amc-deck__grid { column-count: 1; }
 
   .amc-ring {
     min-height: 200px;
@@ -620,34 +630,6 @@ body.page--amc #site-battle-widget {
    card. In one column its deck can only stack. Two columns is the narrowest
    width at which the three cards stand side by side, and the other seven
    panels are untouched. */
-/* WHAT MATTERS IS WIDE, what supports it is narrow - the Owner's rule for
-   this screen, 2026-09-02: the main things in front of him, the secondary
-   ones in the background. The deck is eight equal columns; these spans
-   redistribute that width without touching the grid, the order or the panel
-   numbers he reads them by.
-     1 Arena Control  - every control on the page          - 3
-     2 Live Monitor   - what the battle is doing right now - 3
-     4 Moderation     - the queue that needs him           - 2
-   and the readings that can wait take two apiece on the row below. */
-.amc-deck__grid > .amc-panel:nth-child(1) { grid-column: span 3; }
-.amc-deck__grid > .amc-panel:nth-child(2) { grid-column: span 3; }
-.amc-deck__grid > .amc-panel:nth-child(4) { grid-column: span 2; }
-.amc-deck__grid > .amc-panel:nth-child(3) { grid-column: span 2; }
-.amc-deck__grid > .amc-panel:nth-child(5) { grid-column: span 2; }
-.amc-deck__grid > .amc-panel:nth-child(6) { grid-column: span 2; }
-.amc-deck__grid > .amc-panel:nth-child(7) { grid-column: span 2; }
-.amc-deck__grid > .amc-panel:nth-child(8) { grid-column: span 2; }
-
-@media (max-width: 1500px) {
-  .amc-deck__grid > .amc-panel:nth-child(1),
-  .amc-deck__grid > .amc-panel:nth-child(2) { grid-column: span 2; }
-  .amc-deck__grid > .amc-panel:nth-child(n+3) { grid-column: span 1; }
-}
-
-@media (max-width: 700px) {
-  .amc-deck__grid > .amc-panel { grid-column: auto; }
-}
-
 .amc-opdeck {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));

@@ -1,5 +1,32 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1669",
+        "date": "2026-09-02",
+        "commit": "pending",
+        "title": "The console deck packs by height instead of leaving holes",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Owner, looking at the live console: it is all scattered - make "
+            "the whole panel logical and comfortable. Measured on the page, "
+            "the scatter had one cause. Eight panels of wildly different "
+            "heights were being laid out in GRID ROWS, and a grid row is as "
+            "tall as its tallest cell: panel 1 carries the lamp map and "
+            "Voting Integrity carries four lines, so every row was padded to "
+            "the tallest thing in it and the eighth panel ended up alone with "
+            "six empty columns beside it. Widths had been redistributed by "
+            "importance the pass before, which made the holes worse rather "
+            "than better - the wider a lead panel got, the more of the row it "
+            "took and the more obviously the rest failed to fill it. The deck "
+            "is CSS columns now: panels pack by height, no gaps at any width, "
+            "nothing padded out to match a neighbour, and no panel split "
+            "across a break. Reading order becomes top-to-bottom per column, "
+            "which puts panel 1 - the only one carrying controls - top left, "
+            "first thing in front of him. Four columns wide, three under "
+            "1500, two under 1100, one under 700. Panel numbers, order and "
+            "content are untouched; this is layout only."
+        ),
+    },
+    {
         "version": "2.5.1666",
         "date": "2026-09-02",
         "commit": "pending",
