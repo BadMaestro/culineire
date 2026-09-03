@@ -300,7 +300,12 @@
    which is what puts panel 1 - the only one with controls - at the top left,
    first thing in front of him. */
 .amc-deck__grid {
-  column-count: 4;
+  /* THREE, NOT FOUR. Four columns at 1568px left the last one empty - eight
+     panels do not fill it - and an empty column at the edge of the deck is
+     the same hole this layout exists to remove. Three also gives each panel
+     ~490px, which is where the reading panels stop setting five words to a
+     line. */
+  column-count: 3;
   column-gap: 0.75rem;
 }
 
@@ -413,7 +418,7 @@
 /* ── Responsive: narrow desktop ──────────────────────────────────── */
 
 @media (max-width: 1500px) {
-  .amc-deck__grid { column-count: 3; }
+  .amc-deck__grid { column-count: 2; }
 }
 
 @media (max-width: 1300px) {
@@ -433,7 +438,7 @@
     min-height: 260px;
   }
 
-  .amc-deck__grid { column-count: 2; }
+  .amc-deck__grid { column-count: 1; }
 }
 
 /* ── Deliberate mobile fallback: stacked, readable, not shrunken ── */

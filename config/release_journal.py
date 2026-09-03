@@ -1,5 +1,20 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1672",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "Three columns, because four left one of them empty",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Four columns at 1568px left the fourth one empty - eight panels "
+            "do not fill it - and an empty column at the edge is the same "
+            "hole the column layout exists to remove. Three, which also gives "
+            "each panel about 490px, the width at which the reading panels "
+            "stop setting five words to a line. Two under 1500, one under "
+            "1100. Style only."
+        ),
+    },
+    {
         "version": "2.5.1669",
         "date": "2026-09-02",
         "commit": "pending",
