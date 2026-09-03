@@ -290,44 +290,93 @@
   margin-left: 0.5rem;
 }
 
-/* THE DECK IS COLUMNS, NOT A GRID OF ROWS - 2026-09-02, after looking at it.
-   Eight panels of wildly different heights (panel 1 carries the lamp map;
-   Voting Integrity carries four lines) cannot be laid out in rows without
-   holes: a grid row is as tall as its tallest cell, and the last panel sat
-   alone with six empty columns beside it. CSS columns pack them by height
-   instead, so the deck has no gaps at any width and no panel is padded out
-   to match a neighbour. Reading order becomes top-to-bottom per column,
-   which is what puts panel 1 - the only one with controls - at the top left,
-   first thing in front of him. */
+/* ONE ROW OF EIGHT - the Owner's own mockup, restored 2026-09-03.
+   He looked at the tidy three-column version and said it reads as a page of
+   rules rather than a control panel, and he is right: a console is a bank of
+   instruments you take in at a glance, not an article you scroll.
+
+   The narrow columns were never the fault. The panels' CONTENTS are set as
+   prose - a heading, a sentence, a value on its own line - so at 200px they
+   broke into five-word lines, and widening the panels treated that symptom.
+   The cause is treated below: every panel is a fixed height, scrolls its own
+   overflow rather than pushing the deck taller, and its typography is sized
+   to belong in a 200px column. */
 .amc-deck__grid {
-  /* THREE, NOT FOUR. Four columns at 1568px left the last one empty - eight
-     panels do not fill it - and an empty column at the edge of the deck is
-     the same hole this layout exists to remove. Three also gives each panel
-     ~490px, which is where the reading panels stop setting five words to a
-     line. */
-  column-count: 3;
-  column-gap: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: stretch;
 }
 
 .amc-deck__grid > .amc-panel {
-  /* A panel is never split across a column break. */
-  break-inside: avoid;
-  page-break-inside: avoid;
-  margin-bottom: 0.75rem;
-  /* Its own min-height was there to even out a grid row; the columns do not
-     need it and it only forces short panels to be taller than their text. */
+  /* THE INSTRUMENT BANK IS ONE HEIGHT. Every panel is the same size, so the
+     row reads as one object, and a panel with more to say scrolls inside its
+     own frame instead of setting the height of the whole deck - which is what
+     the lamp map was doing at 849px. */
+  height: clamp(19rem, 34vh, 23rem);
   min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .amc-panel {
   background: var(--amc-surface);
   border: 1px solid var(--amc-line-soft);
   border-radius: var(--amc-radius);
-  padding: 0.85rem;
+  padding: 0.55rem 0.6rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
   min-height: 190px;
+}
+
+/* ── Instrument typography ─────────────────────────────────────────
+   A 200px column is not a column for prose. These sizes are what let the
+   contents stay readable at the mockup's width instead of forcing the width
+   to grow to fit the contents. Scoped to the deck so the overview cards and
+   the phase rail above it keep their own scale. */
+
+.amc-deck__grid .amc-panel__title {
+  font-size: 0.74rem;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.15rem;
+}
+
+.amc-deck__grid .amc-panel__subtitle {
+  margin: 0.35rem 0 0.1rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+}
+
+.amc-deck__grid .amc-panel__hint {
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+
+.amc-deck__grid .amc-panel__list {
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.amc-deck__grid .amc-panel__kv dt {
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+}
+
+.amc-deck__grid .amc-panel__kv dd {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.amc-deck__grid .amc-btn {
+  padding: 0.22rem 0.42rem;
+  font-size: 0.63rem;
+  cursor: pointer;
+}
+
+.amc-deck__grid .amc-panel__actions {
+  gap: 0.25rem;
 }
 
 .amc-panel__hint {
@@ -418,7 +467,7 @@
 /* ── Responsive: narrow desktop ──────────────────────────────────── */
 
 @media (max-width: 1500px) {
-  .amc-deck__grid { column-count: 2; }
+  .amc-deck__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 @media (max-width: 1300px) {
@@ -438,7 +487,7 @@
     min-height: 260px;
   }
 
-  .amc-deck__grid { column-count: 1; }
+  .amc-deck__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ── Deliberate mobile fallback: stacked, readable, not shrunken ── */
@@ -461,7 +510,8 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .amc-deck__grid { column-count: 1; }
+  .amc-deck__grid { grid-template-columns: minmax(0, 1fr); }
+  .amc-deck__grid > .amc-panel { height: auto; overflow: visible; }
 
   .amc-ring {
     min-height: 200px;

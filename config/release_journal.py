@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1678",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "The deck goes back to one row of eight, the way his mockup has it",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The Owner, on the tidy three-column version: it is ordered, but "
+            "it reads as a page of rules, not a control panel - get back to "
+            "the original mockup. He is right, and my two previous passes "
+            "were treating a symptom. The panels at 200px broke their text "
+            "into five-word lines, so I widened the panels; the mockup keeps "
+            "them at 200px and makes the CONTENTS fit instead. One row of "
+            "eight again, every panel the same fixed height, each scrolling "
+            "its own overflow rather than setting the height of the deck - "
+            "which is what the lamp map was doing at 849px. Typography inside "
+            "the deck is sized for a 200px column: titles, subtitles, lists, "
+            "readings and buttons all step down, scoped to the deck so the "
+            "overview cards and the phase rail above keep their own scale. "
+            "Four across under 1500, two under 1100, one on a phone where the "
+            "page scrolls instead of the panel. Colour is untouched, by his "
+            "instruction; this is structure only."
+        ),
+    },
+    {
         "version": "2.5.1675",
         "date": "2026-09-03",
         "commit": "pending",
