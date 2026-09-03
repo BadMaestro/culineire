@@ -383,9 +383,13 @@
       .finally(function () { btn.disabled = false; });
   }
 
-  var controls = document.getElementById('amc-controls');
-  if (controls && window.AMC_OPERATOR && window.AMC_OPERATOR.isOwner) {
-    controls.addEventListener('click', function (e) {
+  /* DELEGATED ON THE DOCUMENT, not on the phase-button div. Bound to
+     #amc-controls, this handler only ever saw the phase buttons - so "Start
+     Only" and "Step", which carry data-amc-action but sit in their own card,
+     did nothing at all when clicked. Every other handler in this file is
+     already delegated this way. */
+  if (window.AMC_OPERATOR && window.AMC_OPERATOR.isOwner) {
+    document.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-amc-action]');
       if (btn && !btn.disabled) handleAction(btn);
     });

@@ -34,15 +34,66 @@
 
 /* ── Topbar ──────────────────────────────────────────────────────── */
 
+/* THREE ZONES, NOT TWO ENDS - 2026-09-03. As a flex row with the title at one
+   end and the readings at the other, everything between them was air: about
+   1200px of it on the Owner's screen, with the H1 adrift in it. The middle
+   now carries the standing controls - the switches that are true whether or
+   not a battle is running, and the emulation buttons - so the header is a
+   working part of the console rather than a masthead. */
 .amc-topbar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1.25rem;
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--amc-line-soft);
+}
+
+.amc-topbar__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+  justify-self: center;
+  width: 100%;
+  max-width: 34rem;
+}
+
+.amc-topbar__controls .amc-deckcard {
+  background: var(--amc-surface);
+}
+
+.amc-topbar__controls .amc-panel__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.amc-topbar__controls #amc-run-emulation {
+  grid-column: 1 / -1;
+}
+
+.amc-topbar__controls .amc-btn {
+  width: 100%;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  padding: 0.25rem 0.45rem;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .amc-topbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .amc-topbar__controls {
+    max-width: none;
+    justify-self: stretch;
+  }
 }
 
 .amc-kicker {

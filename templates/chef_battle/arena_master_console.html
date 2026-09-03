@@ -41,6 +41,47 @@
         <a href="{% url 'chef_battle:live_arena_preview' %}" style="display:inline-block;padding:.35rem .8rem;border:1px solid #67B74A;border-radius:8px;background:rgba(103,183,74,.12);color:#8fd873;text-decoration:none;font-size:.82rem;font-weight:600;">&#127909; Live Arena &mdash; watch it build &rarr;</a>
       </p>
     </div>
+    <div class="amc-topbar__controls" aria-label="Standing arena controls">
+      <section class="amc-deckcard" aria-label="Isolation">
+        <h4 class="amc-deckcard__h">Isolation</h4>
+        <button type="button" class="amc-switch" data-amc-switch="set_emulation_bots"
+            id="amc-switch-bots" aria-pressed="false"
+            title="Whether the two EMU bot chefs stand on the arena floor">
+      <span class="amc-switch__led" aria-hidden="true"></span>
+      <span class="amc-switch__name">Test chefs</span>
+      <span class="amc-switch__state" id="amc-switch-bots-state">off</span>
+        </button>
+        <button type="button" class="amc-switch" data-amc-switch="set_runway"
+            id="amc-switch-runway" aria-pressed="false"
+            title="Arms the arena's fast lane: the public page polls every 2s instead of 20s">
+      <span class="amc-switch__led" aria-hidden="true"></span>
+      <span class="amc-switch__name">Runway</span>
+      <span class="amc-switch__state" id="amc-switch-runway-state">idle</span>
+        </button>
+        <button type="button" class="amc-switch" data-amc-switch="set_chat_open"
+            id="amc-switch-chat" aria-pressed="true"
+            title="Closes the arena hall to NEW lines. Nothing is hidden and nothing is deleted">
+      <span class="amc-switch__led" aria-hidden="true"></span>
+      <span class="amc-switch__name">Arena chat</span>
+      <span class="amc-switch__state" id="amc-switch-chat-state">open</span>
+        </button>
+        <p class="amc-panel__hint" id="amc-switch-note"></p>
+      </section>
+
+      <section class="amc-deckcard" aria-label="Emulation">
+        <h4 class="amc-deckcard__h">Emulation</h4>
+        <div class="amc-panel__actions">
+      <button type="button" class="amc-btn" id="amc-run-emulation"
+              title="One click: creates a bot battle and runs it through every stage to the crown, pausing a few seconds per stage so you can watch">&#9654; Run Full</button>
+      <button type="button" class="amc-btn" data-amc-action="start_emulation"
+              title="Create a full test battle between the EMU bot chefs">Start Only</button>
+      <button type="button" class="amc-btn" data-amc-action="emulation_step"
+              title="Advance the emulation battle by one lifecycle stage">Step</button>
+        </div>
+        <p class="amc-panel__hint amc-hidden" id="amc-emu-progress" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+
     <dl class="amc-topbar__meta">
       <div class="amc-meta-item">
         <dt>Battle ID</dt>
@@ -214,45 +255,6 @@
         shows them and this deck does not go near them.
         {% endcomment %}
         <div class="amc-opdeck">
-
-          <section class="amc-deckcard" aria-label="Isolation">
-            <h4 class="amc-deckcard__h">Isolation</h4>
-            <button type="button" class="amc-switch" data-amc-switch="set_emulation_bots"
-                    id="amc-switch-bots" aria-pressed="false"
-                    title="Whether the two EMU bot chefs stand on the arena floor">
-              <span class="amc-switch__led" aria-hidden="true"></span>
-              <span class="amc-switch__name">Test chefs</span>
-              <span class="amc-switch__state" id="amc-switch-bots-state">off</span>
-            </button>
-            <button type="button" class="amc-switch" data-amc-switch="set_runway"
-                    id="amc-switch-runway" aria-pressed="false"
-                    title="Arms the arena's fast lane: the public page polls every 2s instead of 20s">
-              <span class="amc-switch__led" aria-hidden="true"></span>
-              <span class="amc-switch__name">Runway</span>
-              <span class="amc-switch__state" id="amc-switch-runway-state">idle</span>
-            </button>
-            <button type="button" class="amc-switch" data-amc-switch="set_chat_open"
-                    id="amc-switch-chat" aria-pressed="true"
-                    title="Closes the arena hall to NEW lines. Nothing is hidden and nothing is deleted">
-              <span class="amc-switch__led" aria-hidden="true"></span>
-              <span class="amc-switch__name">Arena chat</span>
-              <span class="amc-switch__state" id="amc-switch-chat-state">open</span>
-            </button>
-            <p class="amc-panel__hint" id="amc-switch-note"></p>
-          </section>
-
-          <section class="amc-deckcard" aria-label="Emulation">
-            <h4 class="amc-deckcard__h">Emulation</h4>
-            <div class="amc-panel__actions">
-              <button type="button" class="amc-btn" id="amc-run-emulation"
-                      title="One click: creates a bot battle and runs it through every stage to the crown, pausing a few seconds per stage so you can watch">&#9654; Run Full</button>
-              <button type="button" class="amc-btn" data-amc-action="start_emulation"
-                      title="Create a full test battle between the EMU bot chefs">Start Only</button>
-              <button type="button" class="amc-btn" data-amc-action="emulation_step"
-                      title="Advance the emulation battle by one lifecycle stage">Step</button>
-            </div>
-            <p class="amc-panel__hint amc-hidden" id="amc-emu-progress" role="status" aria-live="polite"></p>
-          </section>
 
           <section class="amc-deckcard" aria-label="Test data">
             <h4 class="amc-deckcard__h">Test data</h4>

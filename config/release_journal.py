@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1696",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "The header stops being an ocean, and two dead buttons start working",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The Owner on the console header: an ocean of empty space, why so "
+            "much air, why is the H1 not centred, half the switches could live "
+            "up there. Right on all three, and one fix answers them. The "
+            "header was a flex row with the title at one end and three "
+            "readings at the other, so everything between was air - about "
+            "1200px of it at his width - and the H1 read as adrift because "
+            "nothing balanced it. Three zones now: title left, the STANDING "
+            "controls in the middle where the air was, readings right. "
+            "Standing is the word that decides what moved: the isolation "
+            "switches and the emulation buttons are true whether or not a "
+            "battle is running, so they belong above the deck; panel 1 keeps "
+            "the phase actions, the test-data card and the lamps. "
+            "AND TWO BUTTONS WERE DEAD, found while moving them. 'Start Only' "
+            "and 'Step' carry data-amc-action, but that handler was bound to "
+            "#amc-controls - the phase-button div - and both sit outside it, "
+            "so clicking them did nothing whatsoever. Moving them up would "
+            "have carried the fault along. The handler is delegated on the "
+            "document now, as every other handler in the file already was, so "
+            "an action button works wherever it stands."
+        ),
+    },
+    {
         "version": "2.5.1693",
         "date": "2026-09-03",
         "commit": "pending",
