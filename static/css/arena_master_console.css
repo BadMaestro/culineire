@@ -975,6 +975,33 @@ body.page--amc #site-battle-widget {
   grid-column: 1 / -1;
 }
 
+/* THREE CORRECTIONS, ALL FOUND BY LOOKING RATHER THAN BY REASONING. The rule
+   above closed the nine-button block correctly, and got the two small blocks
+   in panel 1 wrong in two different ways.
+
+   A HIDDEN BUTTON STILL COUNTS. "Purge" only appears once the count has run,
+   but it is in the DOM the whole time, so Count was never :last-child and sat
+   in half a row with an empty cell beside it. :has() asks the real question -
+   is the block's last button the hidden one - and gives the first button the
+   row. */
+.amc-deck__grid .amc-panel__actions:has(> .amc-btn.amc-hidden:last-child) > .amc-btn:first-child {
+  grid-column: 1 / -1;
+}
+
+/* RUN FULL IS THE ONE HE PRESSES, so it keeps the whole row (this restates
+   what a flex rule used to do before the block became a grid, where
+   flex-basis means nothing). */
+.amc-deck__grid .amc-deckcard #amc-run-emulation {
+  grid-column: 1 / -1;
+}
+
+/* And where a first button already took the row, the odd-last rule must stand
+   down: with three buttons it gave Run Full the row, left Start Only alone in
+   half of the next, and stretched Step across the third. */
+.amc-deck__grid .amc-panel__actions:has(> #amc-run-emulation) > .amc-btn:nth-child(odd):last-child {
+  grid-column: auto;
+}
+
 /* PANEL 5 IS A THIRD EXPLANATORY PROSE. Its closing paragraph measured 114px
    of a 304px panel - the DB-enforcement note, which is a standing caveat and
    not a reading, so it must not sit between the operator and his numbers. A

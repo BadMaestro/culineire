@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1690",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "The two small button blocks in panel 1, corrected by looking",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The browser came back, so the two changes shipped unverified in "
+            "v2.5.1687 were finally looked at. PANEL 5 WAS RIGHT: its closing "
+            "caveat sits at the foot at 9.6px and the panel no longer "
+            "overflows (302 of 304). PANEL 1 WAS HALF RIGHT, and the half "
+            "that was wrong is exactly the kind of thing reasoning does not "
+            "catch. The nine-button block closed properly. The other two "
+            "blocks did not: 'Purge' is hidden until the count has run but is "
+            "in the DOM throughout, so 'Count' was never :last-child and sat "
+            "in half a row beside an empty cell; and in the emulation block "
+            "the odd-last rule gave Run Full the row, stranded Start Only in "
+            "half of the next and stretched Step across a third. Both are "
+            ":has() questions about what the block actually contains rather "
+            "than what its child count implies. Measured after: 9-button "
+            "block 4x2 with a full-width last, emulation Run Full full width "
+            "then two halves, test data one full-width Count."
+        ),
+    },
+    {
         "version": "2.5.1687",
         "date": "2026-09-03",
         "commit": "pending",
