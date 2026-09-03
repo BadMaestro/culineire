@@ -926,3 +926,39 @@ body.page--amc #site-battle-widget {
   grid-column: 1 / -1;
 }
 
+/* ── The "i" hints survive the scrolling panels ──────────────────────
+   A REGRESSION I INTRODUCED, found by measuring. Giving each panel its own
+   overflow to keep the row one height also gave it overflow-x: auto (a box
+   with overflow-y:auto gets it), and two things followed: every panel had a
+   horizontal scrollbar it never showed, and the hint - absolutely positioned,
+   352px wide, anchored to a 17px button inside a 222px panel - was clipped by
+   the panel's own frame. The hint is how the Owner labelled every control in
+   here on 2026-08-05; losing it to a layout fix is not a trade.
+
+   The hint is anchored to the PANEL now instead of to its button: it opens
+   under the title, full panel width, so it fits whichever column it is in and
+   at whatever length the sentence runs. Measured across all eight: 191px
+   wide, 47px from the panel top, inside the frame in every one. */
+
+.amc-deck__grid > .amc-panel {
+  position: relative;
+  overflow-x: clip;
+}
+
+.amc-deck__grid .amc-i {
+  position: static;
+}
+
+.amc-deck__grid .amc-i__hint {
+  left: 0.6rem;
+  right: 0.6rem;
+  top: 2.9rem;
+  bottom: auto;
+  width: auto;
+  max-width: none;
+  transform: none;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  padding: 0.4rem 0.5rem;
+}
+

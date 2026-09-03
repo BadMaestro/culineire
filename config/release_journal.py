@@ -1,5 +1,28 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1684",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "The i hints survive the scrolling panels - a regression of my own, found by measuring",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "Giving each panel its own overflow so the row could be one height "
+            "also gave it overflow-x: auto - a box with overflow-y:auto gets "
+            "it - and two things followed. Every panel carried a horizontal "
+            "scroll area it never showed, and the hint was clipped by the "
+            "panel frame: 352px wide, absolutely positioned against a 17px "
+            "button inside a 222px column. That hint is how the Owner "
+            "labelled every control in this console on 2026-08-05; losing it "
+            "to a layout fix is not a trade. It is anchored to the PANEL now "
+            "rather than to its button, opening under the title at full panel "
+            "width, so it fits whichever column it is in however long the "
+            "sentence runs. Measured across all eight afterwards: 191px wide, "
+            "47px from the panel top, inside the frame every time, and no "
+            "panel has a horizontal scroll area any more. Verified by "
+            "hovering it on the live page, not only by numbers."
+        ),
+    },
+    {
         "version": "2.5.1681",
         "date": "2026-09-03",
         "commit": "pending",
