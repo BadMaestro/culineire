@@ -827,3 +827,102 @@ body.page--amc #site-battle-widget {
   overflow: auto;
 }
 
+/* ══ Alignment inside the columns ═════════════════════════════════════
+   Measured in the live browser, one column at a time, and kept only where
+   the numbers moved. See the commit message for what each rule fixed. */
+
+/* The scrollbar track is reserved in every panel, overflowing or not, so the
+   right-hand edge of the contents is the same in all eight. */
+.amc-deck__grid > .amc-panel {
+  scrollbar-gutter: stable;
+}
+
+/* A two-line box, bottom-aligned: a one-line title and a two-line title both
+   put the first line of content on the same baseline. Measured: content now
+   starts at 49px in all eight columns. */
+.amc-deck__grid .amc-panel__title {
+  height: 2.5em;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  margin: 0 0 0.25rem;
+  text-align: left;
+}
+
+/* Section spacing belongs BETWEEN sections. The first block after the title
+   opens the panel and takes none - panel 7 starts with a subtitle and was
+   sitting 6px lower than its neighbours because of it. */
+.amc-deck__grid .amc-panel__title + * {
+  margin-top: 0;
+}
+
+.amc-deck__grid .amc-panel__subtitle {
+  text-align: left;
+}
+
+/* READINGS ARE A TABLE, NOT A SENTENCE. Label left, figure right, tabular
+   digits, fixed columns - so a glance down the deck compares numbers instead
+   of hunting them inside wrapped text. */
+.amc-deck__grid .amc-panel__kv,
+.amc-deck__grid .amc-panel__kv--row {
+  display: grid;
+  gap: 0.12rem 0.5rem;
+  margin: 0;
+  align-items: baseline;
+}
+
+.amc-deck__grid .amc-panel__kv {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.amc-deck__grid .amc-panel__kv > div {
+  display: contents;
+}
+
+.amc-deck__grid .amc-panel__kv--row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.amc-deck__grid .amc-panel__kv--row > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.3rem;
+}
+
+.amc-deck__grid .amc-panel__kv dd {
+  font-size: 0.8rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.amc-deck__grid .amc-panel__kv--row dd {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* One grid, two equal columns, one height. Every button in the deck measured
+   34px afterwards; a link spans the row rather than sitting in half of it. */
+.amc-deck__grid .amc-panel__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  margin-top: 0;
+}
+
+.amc-deck__grid .amc-panel__actions .amc-btn {
+  width: 100%;
+  min-height: 2.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.amc-deck__grid .amc-panel__actions .amc-link,
+.amc-deck__grid .amc-panel__actions > a {
+  grid-column: 1 / -1;
+}
+

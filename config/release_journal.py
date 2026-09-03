@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1681",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "Alignment inside every console column, measured one column at a time",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The Owner: work inside the columns, alignment as sharp as it "
+            "goes, look at each one in the browser and loop until it is "
+            "right. Done by injecting each candidate rule into the live page "
+            "and keeping only the ones whose measurement moved. FIVE THINGS "
+            "WERE OUT. (1) Right edges disagreed by 10px: four panels "
+            "overflow and lose that to a scrollbar, four do not - "
+            "scrollbar-gutter reserves the track in all eight and every "
+            "panel's contents now measure 191px. (2) Content began at "
+            "different heights, because five titles wrap to two lines and "
+            "three do not - the title is a fixed two-line box aligned to its "
+            "bottom, and content now starts at exactly 49px in all eight. "
+            "(3) Panel 7 opened with a subtitle, whose between-sections top "
+            "margin put it 6px below its neighbours. (4) Headings were "
+            "CENTRED over left-aligned data, which is most of what read as "
+            "scattered; the deck is flush left. (5) Readings were prose - "
+            "'ACTIVE 0 PENDING 0 ACCEPTED 3' wrapped 3+1 in one panel and 2+2 "
+            "in another - and are now a fixed grid with labels left, tabular "
+            "figures right, so a glance down the deck compares numbers "
+            "instead of hunting them. Buttons: one grid, two equal columns, "
+            "one measured height of 34px, links spanning the row. Colour "
+            "untouched, by his instruction."
+        ),
+    },
+    {
         "version": "2.5.1678",
         "date": "2026-09-03",
         "commit": "pending",
