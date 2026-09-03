@@ -7493,8 +7493,12 @@ class ArenaObserverTests(TestCase):
         self.assertEqual(get_observer_votes(rep)[0].recommendation, "withhold")
 
 
-class LiveArenaTrackerTests(TestCase):
-    """Owner-visible Live Arena build tracker: matrix render + live status update."""
+class LiveArenaPreviewTests(TestCase):
+    """Preview page renders the broadcast composition for the owner.
+
+    It used to inherit its setUp from the build tracker's test class;
+    that class went with the tracker on 2026-09-03, so the owner it needs
+    is created here."""
 
     def setUp(self):
         from django.conf import settings
@@ -7516,39 +7520,7 @@ class LiveArenaTrackerTests(TestCase):
         self.client = Client()
         self.client.force_login(self.owner)
 
-    def test_matrix_renders_16_stages(self):
-        r = self.client.get("/chef-battle/master/live-arena/")
-        self.assertEqual(r.status_code, 200)
-        h = r.content.decode()
-        self.assertEqual(h.count('data-key="'), 16)
-        self.assertIn("/chef-battle/master/live-arena/update/", h)
 
-    def test_stage_update_writes_only_its_column(self):
-        from .models import LiveArenaStage
-        r = self.client.post("/chef-battle/master/live-arena/update/", {
-            "key": "state_contract", "column": "backend",
-            "status": "present", "notes": "13 states in Battle.Status",
-        })
-        self.assertEqual(r.status_code, 200)
-        s = LiveArenaStage.objects.get(key="state_contract")
-        self.assertEqual(s.backend_status, "present")
-        self.assertEqual(s.frontend_status, "absent")  # untouched
-        self.assertEqual(s.backend_notes, "13 states in Battle.Status")
-
-    def test_bad_column_rejected(self):
-        r = self.client.post("/chef-battle/master/live-arena/update/", {
-            "key": "state_contract", "column": "hacker", "status": "present"})
-        self.assertEqual(r.status_code, 400)
-
-    def test_non_moderator_blocked(self):
-        from django.test import Client
-        U = get_user_model()
-        U.objects.create_user("la-nobody", "n@n.com", "pw")
-        c = Client(); c.login(username="la-nobody", password="pw")
-        self.assertEqual(c.get("/chef-battle/master/live-arena/").status_code, 404)
-
-
-class LiveArenaPreviewTests(LiveArenaTrackerTests):
     """Preview page renders the broadcast composition for the owner."""
 
     def test_preview_renders(self):

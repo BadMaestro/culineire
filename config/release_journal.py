@@ -1,5 +1,32 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1693",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "The Live Arena build tracker is deleted",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The Owner opened /chef-battle/master/live-arena/, asked what it "
+            "was still for, and on the facts said delete it. THE FACTS: all "
+            "sixteen stages were last touched on 14 July and never since; "
+            "their marks contradict the arena he accepted on 9 August (chat "
+            "frontend 'partial', reactions backend 'absent', mobile and QA "
+            "'absent/absent' while all of it shipped); and the mechanism was "
+            "built around 'each agent writes only its own column', a roster "
+            "retired on 29 July. A board nobody updates does not report "
+            "progress, it misreports it - which is exactly what it did to him "
+            "just now. GONE: the page, its update endpoint, the LiveArenaStage "
+            "model and its rows, the template, the Build tracker button in the "
+            "console header, and the tracker's tests. KEPT, deliberately: "
+            "live_arena_preview and live_arena_snapshot, which share the URL "
+            "prefix and nothing else - the preview reads no stage row, and a "
+            "shared prefix is not a reason to delete a page he did not name. "
+            "Its tests used to inherit their setUp from the tracker's test "
+            "class and now carry their own. MIGRATION 0119, one operation: "
+            "Delete model LiveArenaStage. 21 tests green."
+        ),
+    },
+    {
         "version": "2.5.1690",
         "date": "2026-09-03",
         "commit": "pending",

@@ -3050,40 +3050,6 @@ class ObserverDisputeVote(models.Model):
 
 
 # ── Live Arena build tracker (owner-visible progress matrix) ──────────────────
-class LiveArenaStage(models.Model):
-    """One stage of the Live Arena implementation, tracked on two axes
-    (backend presence + frontend presence) so the owner can watch progress in
-    the master console. Statuses are updated live from the console (no deploy),
-    each agent writing only its own column. See docs live-arena audit."""
-
-    class Status(models.TextChoices):
-        ABSENT = "absent", "Absent"
-        PARTIAL = "partial", "Partial"
-        PRESENT = "present", "Present"
-
-    class Group(models.TextChoices):
-        FOUNDATION = "foundation", "Foundation"
-        FRAME = "frame", "Frame"
-        LIVE = "live", "Live modules"
-        CROSSCUTTING = "crosscutting", "Cross-cutting"
-
-    order = models.PositiveIntegerField(default=0, db_index=True)
-    key = models.SlugField(max_length=60, unique=True)
-    title = models.CharField(max_length=160)
-    phase_group = models.CharField(max_length=16, choices=Group.choices)
-    backend_status = models.CharField(max_length=10, choices=Status.choices, default=Status.ABSENT)
-    frontend_status = models.CharField(max_length=10, choices=Status.choices, default=Status.ABSENT)
-    backend_notes = models.TextField(blank=True)
-    frontend_notes = models.TextField(blank=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["order"]
-
-    def __str__(self):
-        return f"{self.order:02d} {self.title}"
-
-
 class BattleReaction(models.Model):
     """One 'heart' reaction tap on a battle stream side. Append-only; the
     per-side count is a COUNT over rows (mirrors the like/reaction counter in
