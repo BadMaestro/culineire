@@ -1,5 +1,41 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1702",
+        "date": "2026-09-03",
+        "commit": "pending",
+        "title": "A test run is fully reversible now - the purge undoes what it scored",
+        "section": "Chef Battles / Arena Master Console",
+        "summary": (
+            "The Owner: take the results of every test run off. Measured on "
+            "production first: one emulated battle had left 52 rows AND a "
+            "mark on the bots - EMU Chef Beta carrying rating 25, a win, a "
+            "streak, seasonal points and the arena's 24-HOUR CROWN, which the "
+            "audience card was showing as the crown holder of the live arena. "
+            "THE OLD REFUSAL WAS RIGHT ABOUT THE DANGER AND WRONG ABOUT THE "
+            "SCOPE. The purge refused any scored emulation battle, on the "
+            "reasoning that a rating and a crown are unwound deliberately. But "
+            "the rows it can see are by construction bot rows only - it cannot "
+            "express a battle a person was in - and a bot's rating is not a "
+            "record, it is residue of a rehearsal. So it stops refusing and "
+            "starts UNDOING: rating, reputation, wins, losses, streaks, crown, "
+            "crown count, seasonal score, stars, rank and title all go back to "
+            "the model's own defaults, which is what they were before the run. "
+            "Identity is untouched - the accounts stay, enrolled, with their "
+            "place in the console. STILL REFUSED: a gift, because "
+            "ViewerBattleGift protects its token transaction. DELIBERATELY "
+            "KEPT, and the result says so rather than pretending the sweep was "
+            "total: the ledger, whose rows are chained by prev_hash/event_hash "
+            "and reported as intact by panel 7 - deleting from the middle of a "
+            "hash chain to tidy a rehearsal breaks the one structure whose "
+            "value is that it cannot be edited. The dry run now also reports "
+            "what the bots are carrying, not only how many rows exist. "
+            "ALSO FIXED: the section 20 guard test sliced views.py up to "
+            "`def live_arena_progress(`, deleted with the build tracker an hour "
+            "earlier; it ends the slice at the next top-level decorator and no "
+            "longer depends on an unrelated view's name."
+        ),
+    },
+    {
         "version": "2.5.1699",
         "date": "2026-09-03",
         "commit": "pending",

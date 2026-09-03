@@ -29254,16 +29254,58 @@ class ArenaOperatorSwitchesTests(TestCase):
                 RecipeAuthor.objects.filter(slug=slug).exists(),
                 "the purge clears what the bots did, not who they are")
 
-    def test_a_scored_emulation_battle_refuses_the_whole_purge(self):
+    def test_a_scored_emulation_battle_is_swept_and_undone(self):
+        """The refusal became an undo, 2026-09-03, on the Owner's instruction
+        to take the results of every test run off.
+
+        The purge used to refuse a scored emulation battle, on the reasoning
+        that a rating and a crown are unwound deliberately. Right about the
+        danger, wrong about the scope: these rows are by construction bot rows
+        only. A bot's rating is not a record, it is residue - and leaving it
+        put the arena's crown on EMU Chef Beta for 24 hours, where the
+        audience card displayed it as the crown holder of the live arena."""
         from chef_battle.emulation import start_emulation
         battle = start_emulation(operator_author=self.owner_author)
         battle.winner = battle.challenger
         battle.save(update_fields=["winner"])
+        winner = ChefBattleProfile.objects.get(author=battle.challenger)
+        winner.rating = 25
+        winner.wins = 1
+        winner.win_streak = 1
+        winner.crown_count = 1
+        winner.crown_until = timezone.now() + timezone.timedelta(hours=24)
+        winner.seasonal_score = 10
+        winner.save()
 
         resp = self._post(self.owner_user, action="purge_emulation_data")
-        self.assertEqual(resp.status_code, 409)
-        self.assertIn("scored", resp.json()["error"])
-        self.assertTrue(Battle.objects.filter(pk=battle.pk).exists())
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Battle.objects.filter(pk=battle.pk).exists())
+        winner.refresh_from_db()
+        self.assertEqual(winner.rating, 0)
+        self.assertEqual(winner.wins, 0)
+        self.assertEqual(winner.win_streak, 0)
+        self.assertEqual(winner.crown_count, 0)
+        self.assertIsNone(winner.crown_until, "the crown outlives the battle")
+        self.assertEqual(winner.seasonal_score, 0)
+
+    def test_the_purge_leaves_the_bots_enrolled_and_themselves(self):
+        """It clears a rehearsal's results, not the accounts that rehearsed."""
+        from chef_battle.emulation import start_emulation
+        battle = start_emulation(operator_author=self.owner_author)
+        self._post(self.owner_user, action="purge_emulation_data")
+        for profile in ChefBattleProfile.objects.filter(
+                author__slug__in=[s for s, _ in __import__(
+                    "chef_battle.emulation", fromlist=["EMU_CHEFS"]).EMU_CHEFS]):
+            self.assertIsNotNone(profile.enrolled_at, "the bots stay enrolled")
+
+    def test_the_purge_says_what_it_could_not_remove(self):
+        """The ledger is a hash chain; a sweep must not quietly break it."""
+        from chef_battle.emulation import start_emulation
+        start_emulation(operator_author=self.owner_author)
+        resp = self._post(self.owner_user, action="purge_emulation_data")
+        self.assertIn("kept", resp.json())
+        self.assertIn("ledger_events", resp.json()["kept"])
 
     def test_only_the_owner_may_purge(self):
         from chef_battle.emulation import start_emulation
@@ -29358,7 +29400,12 @@ class ArenaOperatorSwitchesTests(TestCase):
 
         source = Path(__file__).with_name("views.py").read_text(encoding="utf-8")
         start = source.index("def master_action(")
-        end = source.index("def live_arena_progress(", start)
+        # THE END OF THE FUNCTION, NOT THE NAME OF ITS NEIGHBOUR. This used to
+        # slice up to `def live_arena_progress(`, which was deleted with the
+        # build tracker on 2026-09-03 and took the test down with it. The next
+        # decorator at column zero is where master_action ends whoever follows
+        # it, so the guard stops depending on an unrelated view's name.
+        end = source.index(chr(10) + "@", start)
         body = source[start:end]
         for flag in ("is_staff", "is_superuser", "has_bearseeker_privileges",
                      "has_arena_console_access"):

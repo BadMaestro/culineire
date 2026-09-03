@@ -5069,6 +5069,16 @@ def emulation_data_report():
         ("battles", "chat", "votes", "entries", "events", "gifts", "seats",
          "voters", "recipes")
     )
+    # What a run left ON THE BOTS, which is not a row count but is exactly
+    # what the Owner sees: a rating, a win, and the arena's 24-hour crown.
+    report["bot_marks"] = [
+        {"slug": p.author.slug, "rating": p.rating, "wins": p.wins,
+         "losses": p.losses, "crowns": p.crown_count,
+         "crowned": bool(p.crown_until and p.crown_until > timezone.now()),
+         "seasonal_score": p.seasonal_score}
+        for p in ChefBattleProfile.objects.select_related("author").filter(
+            author__slug__in=_emulation_bot_slug_set())
+    ]
     return report
 
 
@@ -5095,12 +5105,6 @@ def operator_purge_emulation_data(*, operator_author, correlation_id=""):
     _require_owner(operator_author)
 
     before = emulation_data_report()
-    if before["scored_battles"]:
-        raise OperatorActionError(
-            "%d emulation battle(s) carry a scored result. Purge refused - a "
-            "rating and a crown have to be unwound deliberately, not swept."
-            % before["scored_battles"]
-        )
     if before["gifts"]["count"]:
         raise OperatorActionError(
             "%d gift(s) hang off these battles and hold token transactions. "
@@ -5118,6 +5122,25 @@ def operator_purge_emulation_data(*, operator_author, correlation_id=""):
         sets["recipes"].delete()
         sets["voters"].delete()
 
+        # THE BOTS GO BACK TO ZERO. Deleting the battle leaves its
+        # consequences behind - the rating it awarded, the win, the streak,
+        # the 24-hour crown the audience card then displays as the arena's
+        # crown holder. Every field here is set to the model's own default,
+        # so this is "as they were before the run" and not a number of mine.
+        # Their identity is untouched: enrolment, infinite_moves, the accounts
+        # themselves and their place in the console all stay.
+        ChefBattleProfile.objects.filter(
+            author__slug__in=_emulation_bot_slug_set()
+        ).update(
+            rating=0, reputation=0, wins=0, losses=0,
+            win_streak=0, best_win_streak=0,
+            crown_until=None, crown_count=0,
+            seasonal_score=0, michelin_stars=0,
+            rank=ChefBattleProfile.Rank.KITCHEN_PORTER,
+            prestige_title=ChefBattleProfile.PrestigeTitle.NONE,
+            is_executive=False,
+        )
+
     _operator_event(
         battle=None, operator_author=operator_author,
         action="purge_emulation_data", before="present", after="purged",
@@ -5127,7 +5150,19 @@ def operator_purge_emulation_data(*, operator_author, correlation_id=""):
         "Owner %s purged %d emulation rows (correlation=%s).",
         operator_author.slug, before["total"], correlation_id,
     )
-    return {"removed": before, "remaining": emulation_data_report()}
+    return {
+        "removed": before,
+        "remaining": emulation_data_report(),
+        # SAID OUT LOUD RATHER THAN HIDDEN. Ledger entries are chained by
+        # prev_hash/event_hash and panel 7 reports that chain as intact;
+        # removing one to tidy a rehearsal would break the single structure
+        # whose value is that it cannot be edited. They stay, and so does the
+        # operator-action audit of the run itself.
+        "kept": {
+            "ledger_events": "chained by hash - never deleted",
+            "operator_audit": "the run's own OPERATOR_ACTION trail stays",
+        },
+    }
 
 
 def operator_set_emulation_bots(*, operator_author, shown, correlation_id=""):
