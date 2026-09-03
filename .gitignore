@@ -1,6 +1,15 @@
 .env
 .env.local
-.claude/
+# Everything under .claude is local EXCEPT the skills, which are instructions TO
+# agents and are useless on one workstation. ops/onboarding/README.txt records
+# what that already cost here: runbooks that lived only on the Owner's desktop
+# could not be read by an agent on any other machine, and nothing could tell
+# whether two copies had drifted.
+# It has to be written as `.claude/*` rather than `.claude/`, because git will
+# not re-include anything inside an excluded DIRECTORY - the negation is never
+# reached. settings.local.json and launch.json stay ignored either way.
+.claude/*
+!.claude/skills/
 .venv/
 venv/
 __pycache__/
