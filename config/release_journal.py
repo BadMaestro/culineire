@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1753",
         "date": "2026-09-04",
-        "commit": "pending",
+        "commit": "094a0a0f",
         "title": "The author profile hero is back on the golden values",
         "section": "Site",
         "summary": (
