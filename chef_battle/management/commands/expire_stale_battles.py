@@ -7,6 +7,7 @@ from chef_battle.services import (
     calculate_battle_result,
     expire_stale_challenges,
     handle_no_show_battles,
+    open_voting_for_presented_battles,
     resolve_start_rituals,
     sweep_ingredient_penalty_deadlines,
     void_stalled_battles,
@@ -82,6 +83,24 @@ class Command(BaseCommand):
         else:
             closed = sweep_ingredient_penalty_deadlines()
             self.stdout.write(self.style.SUCCESS(f"Closed {closed} biathlon window(s)."))
+
+        # --- Open the vote on battles whose presentation window ran out ---
+        #
+        # 2026-09-04: this step did not exist, and neither did anything else
+        # that moved a battle out of PRESENTATION. A battle whose two dishes
+        # had been approved sat there until an operator forced it, because the
+        # only writer of Status.VOTING was the console emulator. It runs before
+        # the voting sweep below so a battle can be presented, opened and - if
+        # its own schedule already ran out - completed in one pass, rather than
+        # waiting a further fifteen minutes for the next cron.
+        due_presentations = Battle.objects.filter(
+            status=Battle.Status.PRESENTATION,
+        ).count()
+        if dry:
+            self.stdout.write(f"[dry-run] Would open {due_presentations} vote(s).")
+        else:
+            opened = open_voting_for_presented_battles()
+            self.stdout.write(self.style.SUCCESS(f"Opened {opened} vote(s)."))
 
         # --- Void battles stalled before they ever reached voting (F20) ---
         stalled = Battle.objects.filter(

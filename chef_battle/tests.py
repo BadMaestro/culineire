@@ -3094,9 +3094,12 @@ class ArenaMasterConsoleAccessTests(TestCase):
         # three isolation switches are NOT in this count - they carry
         # .amc-switch, because a thing that reports a state and toggles it is
         # not the same control as a button that fires once.
+        # 2026-09-04: the rehearsal card adds Start, Step, Run All and Abort,
+        # so 17. Counted rather than described because this assertion is what
+        # catches a control appearing on the owner's console by accident.
         import re
         amc_buttons = re.findall(r'<button[^>]*class="amc-btn[^"]*"[^>]*>', content)
-        self.assertEqual(len(amc_buttons), 13)
+        self.assertEqual(len(amc_buttons), 17)
         disabled = [b for b in amc_buttons if "disabled" in b]
         self.assertEqual(len(disabled), 1)
         self.assertIn("Award Crown", content)
@@ -4145,22 +4148,33 @@ class ArenaMasterMonitorTests(TestCase):
         messages = [e["message"] for e in data["monitor"]["events"]]
         self.assertEqual(messages[:3], ["event 2", "event 1", "event 0"])
 
-    def test_artifacts_in_use_lists_reserved_only(self):
+    def test_artifacts_in_use_lists_what_is_tied_to_a_running_battle(self):
+        """Rewritten 2026-09-04: this test encoded the bug it was guarding.
+
+        It created a ChefArtifact with status RESERVED by hand and asserted the
+        panel listed it - and passed, while the panel showed nothing on
+        production for every battle ever fought. Nothing writes that status:
+        an artifact goes AVAILABLE -> CONSUMED, and what marks it as committed
+        to a fight is the reserved_in_battle FOREIGN KEY. A test that has to
+        invent a state production never reaches is testing its own fixture.
+        """
         from .models import Artifact, ChefArtifact
-        self._battle(Battle.Status.ACTIVE)
+        battle = self._battle(Battle.Status.ACTIVE)
         artifact = Artifact.objects.create(
             name="Iron Pan", rarity=Artifact.Rarity.RARE,
             effect_type="defence", effect_value=2, token_cost=50,
         )
         ChefArtifact.objects.create(
-            chef=self.chef_a, artifact=artifact, status=ChefArtifact.Status.RESERVED)
+            chef=self.chef_a, artifact=artifact,
+            status=ChefArtifact.Status.AVAILABLE, reserved_in_battle=battle)
+        # Owned, and in no battle: not in play.
         ChefArtifact.objects.create(
             chef=self.chef_b, artifact=artifact, status=ChefArtifact.Status.AVAILABLE)
         data = self._state()
         in_use = data["monitor"]["artifacts_in_use"]
         self.assertEqual(len(in_use), 1)
         self.assertEqual(in_use[0]["chef"], "mon-chef-a")
-        self.assertEqual(in_use[0]["status"], "reserved")
+        self.assertEqual(in_use[0]["battle_id"], battle.pk)
 
     # ── side-effect-free polling ──
     def test_poll_creates_no_records(self):
@@ -29534,21 +29548,24 @@ class TheRehearsalIsAnInstrumentTests(TestCase):
         # The battle really happened, and it is a battle row like any other.
         self.assertIsNotNone(run.battle_id)
         run.battle.refresh_from_db()
-        self.assertEqual(run.battle.status, Battle.Status.PRESENTATION)
+        self.assertEqual(run.battle.status, Battle.Status.COMPLETED)
         self.assertTrue(run.battle.combat_rounds.exists())
         self.assertEqual(run.battle.entries.count(), 2)
+        self.assertTrue(run.battle.votes.exists())
 
-        # Findings, not a pass: the run knows the arena did not get to the vote.
+        # Findings, not a crash: two gaps remain and the run says so rather
+        # than reporting a clean pass.
         self.assertEqual(run.status, RehearsalRun.Status.BLOCKED)
         self.assertFalse(run.is_tainted)
 
-    def test_the_run_reports_the_missing_vote_instead_of_forcing_it(self):
-        """The one rule that makes the instrument worth having.
+    def test_a_presented_battle_reaches_the_vote_without_an_operator(self):
+        """The hole the instrument found on its first run, now filled.
 
-        Nothing in production carries PRESENTATION to VOTING. The rehearsal must
-        say that out loud and leave the battle where the arena left it - the day
-        it force-sets the status to look green is the day it stops finding
-        anything.
+        Nothing carried PRESENTATION to VOTING - not a service, not a sweep,
+        not a cron - so a battle whose dishes were approved stayed presented
+        until somebody forced it by hand. The rehearsal recorded that instead
+        of setting the field, and this is the answer: the window shuts and
+        open_voting_for_presented_battles opens the vote.
         """
         from .models import RehearsalStep
         from .rehearsal import start_rehearsal
@@ -29558,10 +29575,33 @@ class TheRehearsalIsAnInstrumentTests(TestCase):
         run.refresh_from_db()
 
         vote_step = run.steps.get(key="voting")
-        self.assertEqual(vote_step.outcome, RehearsalStep.Outcome.MISSING)
-        self.assertIn("PRESENTATION", vote_step.detail)
+        self.assertEqual(vote_step.outcome, RehearsalStep.Outcome.PASS)
         run.battle.refresh_from_db()
-        self.assertNotEqual(run.battle.status, Battle.Status.VOTING)
+        self.assertEqual(run.battle.status, Battle.Status.COMPLETED)
+
+    def test_a_presented_battle_with_no_deadline_is_not_stranded(self):
+        """Every battle already sitting in PRESENTATION predates the field.
+
+        A null presentation_deadline has to mean "overdue", not "wait
+        forever" - the rows that are presented right now have no deadline at
+        all, and the whole point of the sweep is that they stop being stuck.
+        """
+        from .services import open_voting_for_presented_battles
+
+        from .rehearsal import start_rehearsal
+        run = start_rehearsal(operator_author=self.owner, seed=11)
+        self._walk(limit=12)   # up to and including moderation
+        run.refresh_from_db()
+        battle = run.battle
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.PRESENTATION)
+        battle.presentation_deadline = None
+        battle.save(update_fields=["presentation_deadline"])
+
+        self.assertEqual(open_voting_for_presented_battles(), 1)
+        battle.refresh_from_db()
+        self.assertEqual(battle.status, Battle.Status.VOTING)
+        self.assertIsNotNone(battle.voting_deadline)
 
     def test_the_owner_is_never_a_rehearsal_chef(self):
         """AGENTS.md 18. The list is his two test accounts and nothing else."""
@@ -29593,3 +29633,543 @@ class TheRehearsalIsAnInstrumentTests(TestCase):
         # and must not trip this guard, "battle.status = " is an assignment.
         self.assertNotIn("battle.status = ", source)
         self.assertNotIn("battle.winner = ", source)
+
+
+class WhatTheBattleCannotLiveWithoutTests(TestCase):
+    """Stage 2 of the rehearsal plan: the four things a battle cannot live without.
+
+    Each of these was found by RUNNING scenario A rather than by reading the
+    code, and each had the same shape - the data existed and nothing asked for
+    it, or the transition existed and nobody could reach it.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.mod_user = User.objects.create_user(
+            username="dish-moderator", password="x", is_staff=True)
+        self.mod_author = RecipeAuthor.objects.create(
+            slug="dish-moderator", name="Dish Moderator", user=self.mod_user)
+
+        self.a_user = User.objects.create_user(username="fighter-a", password="x")
+        self.b_user = User.objects.create_user(username="fighter-b", password="x")
+        self.a = RecipeAuthor.objects.create(slug="fighter-a", name="Fighter A", user=self.a_user)
+        self.b = RecipeAuthor.objects.create(slug="fighter-b", name="Fighter B", user=self.b_user)
+        for author in (self.a, self.b):
+            ChefBattleProfile.objects.create(author=author, enrolled_at=timezone.now())
+
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Stage 2",
+            status=Battle.Status.COOKING, start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3),
+        )
+
+    def _entry(self, author):
+        from django.core.files.base import ContentFile
+        entry = BattleEntry.objects.create(
+            battle=self.battle, author=author,
+            battle_statement="%s cooks." % author.name,
+            real_photo_confirmed=True,
+        )
+        entry.cooked_photo.save("%s.jpg" % author.slug,
+                                ContentFile(b"not-a-real-jpeg"), save=True)
+        return entry
+
+    # -- the missing link --
+
+    def test_the_vote_opens_on_its_own_once_the_dishes_are_presented(self):
+        """Nothing carried PRESENTATION to VOTING before 2026-09-04."""
+        from .services import moderate_battle_entry, open_voting_for_presented_battles
+
+        for author in (self.a, self.b):
+            entry = self._entry(author)
+            moderate_battle_entry(
+                entry_id=entry.pk, moderator_user=self.mod_user,
+                new_status=BattleEntry.ModerationStatus.APPROVED,
+            )
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.PRESENTATION)
+        self.assertIsNotNone(
+            self.battle.presentation_deadline,
+            "presentation must carry the clock that ends it, or the sweep has "
+            "nothing to read and the battle is stranded again")
+
+        # Not yet: the window is still open.
+        self.assertEqual(open_voting_for_presented_battles(), 0)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.PRESENTATION)
+
+        # The window runs out and the vote opens with no operator involved.
+        self.battle.presentation_deadline = timezone.now() - datetime.timedelta(seconds=1)
+        self.battle.save(update_fields=["presentation_deadline"])
+        self.assertEqual(open_voting_for_presented_battles(), 1)
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.VOTING)
+
+    def test_a_vote_is_never_opened_already_closed(self):
+        """A battle that overran its own schedule still gets a vote to hold."""
+        from .services import VOTING_WINDOW, open_voting_for_presented_battles
+
+        self.battle.status = Battle.Status.PRESENTATION
+        self.battle.presentation_deadline = timezone.now() - datetime.timedelta(minutes=1)
+        self.battle.voting_deadline = timezone.now() - datetime.timedelta(days=1)
+        self.battle.save(update_fields=[
+            "status", "presentation_deadline", "voting_deadline"])
+
+        open_voting_for_presented_battles()
+        self.battle.refresh_from_db()
+        self.assertEqual(self.battle.status, Battle.Status.VOTING)
+        self.assertGreater(self.battle.voting_deadline, timezone.now())
+        self.assertLessEqual(
+            self.battle.voting_deadline,
+            timezone.now() + VOTING_WINDOW + datetime.timedelta(seconds=5))
+
+    def test_the_cron_runs_the_new_sweep(self):
+        """A sweep nobody calls is the hole it was written to fill."""
+        import inspect
+
+        from .management.commands import expire_stale_battles
+
+        source = inspect.getsource(expire_stale_battles)
+        self.assertIn("open_voting_for_presented_battles", source)
+
+    # -- the second door onto dish moderation --
+
+    def test_a_moderator_can_approve_a_dish(self):
+        """Before this, only the Owner's console could, on every battle."""
+        from .services import moderate_battle_entry
+
+        entry = self._entry(self.a)
+        moderate_battle_entry(
+            entry_id=entry.pk, moderator_user=self.mod_user,
+            new_status=BattleEntry.ModerationStatus.APPROVED,
+        )
+        entry.refresh_from_db()
+        self.assertEqual(entry.moderation_status, BattleEntry.ModerationStatus.APPROVED)
+        self.assertEqual(entry.reviewed_by, self.mod_user)
+
+    def test_rejecting_a_dish_requires_a_reason(self):
+        from .services import OperatorActionError, moderate_battle_entry
+
+        entry = self._entry(self.a)
+        with self.assertRaises(OperatorActionError):
+            moderate_battle_entry(
+                entry_id=entry.pk, moderator_user=self.mod_user,
+                new_status=BattleEntry.ModerationStatus.REJECTED, reason="  ",
+            )
+
+    def test_the_console_and_the_queue_share_one_rule(self):
+        """Two doors, one implementation - or they drift and only one is right."""
+        import inspect
+
+        from . import services
+
+        console = inspect.getsource(services.operator_moderate_entry)
+        queue = inspect.getsource(services.moderate_battle_entry)
+        for source in (console, queue):
+            self.assertIn("_apply_entry_moderation", source)
+        self.assertNotIn("PRESENTATION", console)
+        self.assertNotIn("PRESENTATION", queue)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_the_dish_queue_is_404_for_everyone_else(self):
+        client = Client()
+        self.assertEqual(client.get("/chef-battle/moderation/dishes/").status_code, 302)
+        client.force_login(self.a_user)
+        self.assertEqual(client.get("/chef-battle/moderation/dishes/").status_code, 404)
+        client.force_login(self.mod_user)
+        self.assertEqual(client.get("/chef-battle/moderation/dishes/").status_code, 200)
+
+    # -- the two pollers --
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_the_battle_room_can_ask_how_the_fight_is_going(self):
+        """The room had no poll at all: a chef saw his opponent's move on reload."""
+        # A fresh battle rather than a status write: the lifecycle trigger from
+        # migration 0094 refuses COOKING -> ACTIVE, and rightly.
+        now = timezone.now()
+        live = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Stage 2 live",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3),
+        )
+        client = Client()
+        client.force_login(self.a_user)
+        res = client.get("/chef-battle/battles/%d/combat/state/" % live.pk)
+        self.assertEqual(res.status_code, 200)
+        body = res.json()
+        self.assertTrue(body["ok"])
+        self.assertEqual(body["status"], Battle.Status.ACTIVE)
+        for key in ("current_round", "challenger_hits", "opponent_hits", "rounds"):
+            self.assertIn(key, body)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_a_spectator_can_poll_the_battle_he_is_watching(self):
+        """It used to poll the owner-only console endpoint, about another battle."""
+        client = Client()
+        res = client.post("/chef-battle/battles/%d/snapshot/" % self.battle.pk,
+                          {"sequence": "0"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["battle"]["id"], self.battle.pk)
+
+    def test_the_broadcast_page_no_longer_polls_the_console(self):
+        """The bug was invisible: a 404 every 2.5s and a page that never moved."""
+        source = (Path(__file__).resolve().parent.parent
+                  / "templates" / "chef_battle" / "live_arena_preview.html").read_text(
+                      encoding="utf-8")
+        self.assertNotIn("/chef-battle/master/live-arena/snapshot/", source)
+        self.assertIn("/snapshot/", source)
+
+
+class ArtifactsAreActuallyPartOfTheBattleTests(TestCase):
+    """Stage 3 of the rehearsal plan: the artifact path, audited and repaired.
+
+    Two of the findings this stage started from turned out to be wrong about
+    WHERE the fault was, and the tests say so, because a claim about production
+    that nobody can reproduce is worth less than no claim at all.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.a_user = User.objects.create_user(username="art-a", password="x")
+        self.b_user = User.objects.create_user(username="art-b", password="x")
+        self.a = RecipeAuthor.objects.create(slug="art-a", name="Art A", user=self.a_user)
+        self.b = RecipeAuthor.objects.create(slug="art-b", name="Art B", user=self.b_user)
+        for author in (self.a, self.b):
+            ChefBattleProfile.objects.create(
+                author=author, enrolled_at=timezone.now(), infinite_moves=True)
+
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Artifacts",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3),
+        )
+
+    def _artifact(self, effect_type, value=2, name=None):
+        from .models import Artifact
+
+        return Artifact.objects.create(
+            name=name or "%s charm %d #%d" % (
+                effect_type, value, Artifact.objects.count()),
+            effect_type=effect_type, effect_value=value,
+            token_cost=10, is_active=True,
+        )
+
+    def _owned(self, chef, artifact, **kwargs):
+        from .models import ChefArtifact
+
+        return ChefArtifact.objects.create(
+            chef=chef, artifact=artifact,
+            source=ChefArtifact.Source.PURCHASED,
+            status=ChefArtifact.Status.AVAILABLE, **kwargs)
+
+    # ── a boost artifact could never be played ──
+
+    def test_a_boost_artifact_can_be_played_with_either_move(self):
+        """It was refused on BOTH moves, so its own bonus branch was unreachable.
+
+        The check compared the artifact's effect type against the move, and the
+        move is only ever attack or defend - so "boost" matched neither and
+        there was no third move to make. The dead branch in _resolve_round was
+        the symptom; the refusal in submit_combat_action was the cause.
+        """
+        from .services import submit_combat_action
+
+        played = []
+        # Both moves in the same round: a round resolves - and artifacts are
+        # spent - only once BOTH chefs have submitted, so checking after the
+        # first submit would be checking before anything happened.
+        for chef, action in ((self.a, "attack"), (self.b, "defend")):
+            owned = self._owned(chef, self._artifact("boost", 3))
+            submit_combat_action(self.battle, chef, action, 1, artifact_id=owned.pk)
+            played.append((owned, action))
+        for owned, action in played:
+            owned.refresh_from_db()
+            self.assertEqual(
+                owned.status, ChefArtifact.Status.CONSUMED,
+                "a boost played with %s should be spent" % action)
+
+    def test_an_artifact_is_spent_even_when_its_bonus_is_zero(self):
+        """It was named in the move, locked to the battle - and silently survived."""
+        from .services import submit_combat_action
+
+        nothing = self._artifact("attack", 0, name="Blunt charm")
+        owned = self._owned(self.a, nothing)
+        submit_combat_action(self.battle, self.a, "attack", 1, artifact_id=owned.pk)
+        submit_combat_action(self.battle, self.b, "defend", 1)
+        owned.refresh_from_db()
+        self.assertEqual(owned.status, ChefArtifact.Status.CONSUMED)
+
+    def test_the_round_engine_does_reach_its_boost_branch(self):
+        """The audit blamed the calculation; the calculation was innocent."""
+        import inspect
+
+        from . import services
+
+        source = inspect.getsource(services._resolve_round)
+        self.assertIn('et == "boost"', source)
+        submit = inspect.getsource(services.submit_combat_action)
+        self.assertIn('effect_type not in ("boost", action_effect_type)', submit)
+
+    # ── the drop pool ──
+
+    def test_the_drop_pool_does_not_run_dry_on_spent_artifacts(self):
+        """Every artifact ever held was excluded, spent ones included."""
+        from .services import _pick_artifact, drop_weights_for_battle
+
+        artifact = self._artifact("attack", 1)
+        ChefArtifact.objects.create(
+            chef=self.a, artifact=artifact, source=ChefArtifact.Source.DROP,
+            status=ChefArtifact.Status.CONSUMED)
+        picked = _pick_artifact(self.a, drop_weights_for_battle(self.battle), guaranteed=True)
+        self.assertEqual(
+            picked, artifact,
+            "a burned artifact must be droppable again - otherwise the pool "
+            "narrows with every battle and eventually a winner gets nothing")
+
+    def test_a_drop_never_duplicates_what_the_chef_is_holding(self):
+        from .services import _pick_artifact, drop_weights_for_battle
+
+        artifact = self._artifact("attack", 1)
+        self._owned(self.a, artifact)
+        self.assertIsNone(
+            _pick_artifact(self.a, drop_weights_for_battle(self.battle), guaranteed=True))
+
+    # ── the delivery is announced ──
+
+    def test_a_delivered_artifact_is_announced_to_the_fight(self):
+        """The chef's only notice used to be an error refusing a different one."""
+        from .services import credit_tokens, send_battle_artifact
+        from .models import TokenTransaction
+
+        spectator = get_user_model().objects.create_user(username="viewer-1", password="x")
+        spectator_author = RecipeAuthor.objects.create(
+            slug="viewer-1", name="Viewer One", user=spectator)
+        credit_tokens(spectator_author, 500, tx_type=TokenTransaction.TxType.ADMIN_GRANT)
+
+        artifact = self._artifact("attack", 2)
+        send_battle_artifact(sender_user=spectator, recipient=self.a,
+                             battle=self.battle, artifact=artifact)
+
+        event = self.battle.events.filter(
+            event_type=BattleEvent.EventType.ARTIFACT_DELIVERED).first()
+        self.assertIsNotNone(event, "a delivery has to be visible in the fight")
+        self.assertTrue(event.is_public)
+        self.assertEqual(event.payload_json["recipient"], self.a.slug)
+        self.assertEqual(event.payload_json["artifact"], artifact.name)
+
+    # ── the picker offers only what the service accepts ──
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_the_combat_picker_hides_artifacts_locked_to_another_battle(self):
+        now = timezone.now()
+        other = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Elsewhere",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3),
+        )
+        mine = self._owned(self.a, self._artifact("attack", 2, name="Mine"))
+        elsewhere = self._owned(self.a, self._artifact("attack", 2, name="Elsewhere"),
+                                locked_to_battle=other)
+
+        client = Client()
+        client.force_login(self.a_user)
+        res = client.get(f"/chef-battle/battles/{self.battle.pk}/")
+        offered = {ca.pk for ca in res.context["user_available_artifacts"]}
+        self.assertIn(mine.pk, offered)
+        self.assertNotIn(
+            elsewhere.pk, offered,
+            "the form must not offer a choice submit_combat_action refuses")
+
+
+class TheResultScreenTellsTheTruthTests(TestCase):
+    """Stage 4 of the rehearsal plan: what a finished battle says it was.
+
+    The worst bug in the whole audit lived here, and it was invisible from the
+    view: `_snapshot_to_fx` sets champion to None for a draw, on purpose and
+    with a comment saying why - and the template then wrote
+    `{{ fx.champion.name|default:fx.left.name }}` under a WINNER banner. So a
+    draw was published as a victory for whichever chef was on the left.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.a_user = User.objects.create_user(username="res-a", password="x")
+        self.b_user = User.objects.create_user(username="res-b", password="x")
+        self.a = RecipeAuthor.objects.create(slug="res-a", name="Res A", user=self.a_user)
+        self.b = RecipeAuthor.objects.create(slug="res-b", name="Res B", user=self.b_user)
+        for author in (self.a, self.b):
+            ChefBattleProfile.objects.create(author=author, enrolled_at=timezone.now())
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Result",
+            status=Battle.Status.COMPLETED, start_time=now,
+            submission_deadline=now, voting_deadline=now, end_time=now,
+            result_reason="Both dishes drew level.",
+        )
+
+    def _fx(self):
+        from .arena_snapshot import build_arena_snapshot
+        from .views import _snapshot_to_fx
+
+        return _snapshot_to_fx(build_arena_snapshot(self.battle), self.battle)
+
+    def test_a_draw_has_no_champion_and_no_runner_up(self):
+        fx = self._fx()
+        self.assertTrue(fx["finished"])
+        self.assertIsNone(fx["champion"])
+        self.assertIsNone(fx["runner_up"])
+        self.assertTrue(fx["result"]["is_draw"])
+
+    def test_the_template_never_falls_back_to_the_left_chef(self):
+        """The fallback WAS the bug: it put a face where the view said None."""
+        source = (Path(__file__).resolve().parent.parent
+                  / "templates" / "chef_battle" / "live_arena_preview.html").read_text(
+                      encoding="utf-8")
+        winner_frame = source[source.index("{% if complete == 'complete' %}"):
+                              source.index("BATTLE FINISHED")]
+        for forbidden in ("fx.champion.name|default:", "fx.runner_up.name|default:",
+                          "champ=fx.champion|default:"):
+            self.assertNotIn(
+                forbidden, winner_frame,
+                "a battle with no winner must name nobody, not the left chef")
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_a_drawn_battle_page_does_not_congratulate_anybody(self):
+        client = Client()
+        res = client.get(f"/chef-battle/battles/{self.battle.pk}/broadcast/?state=complete")
+        self.assertEqual(res.status_code, 200)
+        body = res.content.decode()
+        self.assertIn("A draw", body)
+        self.assertNotIn("Congratulations,", body)
+        self.assertNotIn("Victory confirmed", body)
+        self.assertIn("Both dishes drew level.", body)
+
+    @override_settings(CHEF_BATTLE_ENABLED=True)
+    def test_a_won_battle_shows_what_was_won(self):
+        """Rank, streak, crown and drops - none of which appeared anywhere."""
+        profile = ChefBattleProfile.objects.get(author=self.a)
+        profile.wins = 4
+        profile.win_streak = 3
+        profile.save(update_fields=["wins", "win_streak"])
+        self.battle.winner = self.a
+        self.battle.loser = self.b
+        self.battle.crown_awarded = True
+        self.battle.save(update_fields=["winner", "loser", "crown_awarded"])
+        BattleEvent.objects.create(
+            battle=self.battle, actor=self.a,
+            event_type=BattleEvent.EventType.ARTIFACT_DROPPED,
+            message="Res A found a Copper Ladle.", is_public=True,
+        )
+
+        fx = self._fx()
+        self.assertEqual(fx["champion"]["name"], "Res A")
+        self.assertEqual(fx["result"]["win_streak"], 3)
+        self.assertTrue(fx["result"]["crown_awarded"])
+        self.assertEqual(len(fx["result"]["drops"]), 1)
+
+        client = Client()
+        res = client.get(f"/chef-battle/battles/{self.battle.pk}/broadcast/?state=complete")
+        body = res.content.decode()
+        self.assertIn("Win streak", body)
+        self.assertIn("Crown", body)
+        self.assertIn("Res A found a Copper Ladle.", body)
+
+
+class TheConsoleShowsWhatIsThereTests(TestCase):
+    """Stage 5 of the rehearsal plan: two panels that could not report.
+
+    Both had the same shape - a query against a column nobody writes, and an
+    empty list that read as "nothing is happening" rather than "this panel
+    cannot see".
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.a_user = User.objects.create_user(username="con-a", password="x")
+        self.b_user = User.objects.create_user(username="con-b", password="x")
+        self.a = RecipeAuthor.objects.create(slug="con-a", name="Con A", user=self.a_user)
+        self.b = RecipeAuthor.objects.create(slug="con-b", name="Con B", user=self.b_user)
+        for author in (self.a, self.b):
+            ChefBattleProfile.objects.create(
+                author=author, enrolled_at=timezone.now(), infinite_moves=True)
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.a, opponent=self.b, theme="Console",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3),
+        )
+
+    def test_artifacts_in_use_can_actually_report_an_artifact(self):
+        """It filtered on RESERVED, which nothing has ever written."""
+        from .models import Artifact
+        from .selectors import get_master_monitor
+
+        artifact = Artifact.objects.create(
+            name="Console Charm", effect_type="attack", effect_value=2,
+            token_cost=10, is_active=True)
+        ChefArtifact.objects.create(
+            chef=self.a, artifact=artifact,
+            source=ChefArtifact.Source.PURCHASED,
+            status=ChefArtifact.Status.AVAILABLE,
+            reserved_in_battle=self.battle)
+
+        rows = get_master_monitor()["artifacts_in_use"]
+        self.assertEqual(len(rows), 1, "the panel must see an artifact committed "
+                                       "to a running battle")
+        self.assertEqual(rows[0]["chef"], "con-a")
+        self.assertEqual(rows[0]["battle_id"], self.battle.pk)
+        self.assertFalse(rows[0]["is_gift"])
+
+    def test_the_panel_no_longer_asks_for_a_status_nobody_writes(self):
+        import inspect
+
+        from . import selectors, services
+
+        panel = inspect.getsource(selectors.get_master_monitor)
+        self.assertIn("reserved_in_battle_id__in", panel)
+        # Code only: the comment above the query explains the old filter and
+        # naming it there is the point, so the guard reads the statements.
+        code = chr(10).join(
+            line for line in panel.splitlines()
+            if not line.lstrip().startswith("#"))
+        self.assertNotIn("Status.RESERVED", code)
+        # And the premise still holds: if something starts writing RESERVED,
+        # this assertion is what tells us the panel should be revisited.
+        self.assertNotIn('status = "reserved"', inspect.getsource(services))
+
+    def test_the_console_says_that_no_cbr_can_exist(self):
+        """An empty panel that looks fine is worse than one that says why."""
+        from .models import RewardRecord
+        from .selectors import get_master_governance_detail
+
+        self.assertEqual(get_master_governance_detail()["cbr_count"], 0)
+        # The claim behind the message: nothing creates a CBR. Proven by
+        # walking the producers rather than by asserting the sentence.
+        import inspect
+
+        from . import services
+
+        source = inspect.getsource(services)
+        blocks = source.split("RewardRecord.objects.create(")[1:]
+        self.assertEqual(len(blocks), 2, "the number of reward producers changed - "
+                                         "recheck whether one now grants a CBR")
+        for block in blocks:
+            # Every producer names its type in its own call. Reading the call
+            # rather than the whole module matters: issue_reward READS
+            # RewardType.CBR to pick a ledger event, and a naive search for the
+            # name finds that reader and concludes a producer exists.
+            head = block[:block.index(")")]
+            self.assertIn("RewardType.LSR", head)
+            self.assertNotIn("RewardType.CBR", head)

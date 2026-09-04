@@ -425,7 +425,7 @@ def _step_combat(run, rng):
 
 def _step_biathlon(run, rng):
     from .models import IngredientShot
-    from .services import approve_cooking_phase, fire_ingredient_shot
+    from .services import fire_ingredient_shot, sweep_ingredient_penalty_deadlines
 
     battle = _battle_of(run)
     if battle.status != Battle.Status.INGREDIENT_PENALTY:
@@ -446,17 +446,23 @@ def _step_biathlon(run, rng):
             fired += 1
         except ValueError:
             pass
-    approve_cooking_phase(battle, run.started_by)
+    # THE WINDOW CLOSES ON THE CLOCK, and production does it - the first
+    # version of this step called approve_cooking_phase directly and then
+    # reported "nothing closes this window", which was the instrument
+    # describing itself. sweep_ingredient_penalty_deadlines() has closed it all
+    # along, on INGREDIENT_PENALTY_WINDOW, from the same cron as every other
+    # sweep. So the deadline is hurried and the sweeper is called, exactly as
+    # the start step does.
+    _hurry(battle, "ingredient_penalty_deadline")
+    closed = sweep_ingredient_penalty_deadlines()
     battle.refresh_from_db()
+    cooking = battle.status == Battle.Status.COOKING
     return {
-        "outcome": RehearsalStep.Outcome.MISSING,
-        "mechanism": "services.fire_ingredient_shot, services.approve_cooking_phase",
-        "detail": (
-            "%d shot(s) fired and cooking approved. Recorded as a gap because the "
-            "approval was made by the OPERATOR: nothing in production carries "
-            "INGREDIENT_PENALTY to COOKING on its own when the window closes."
-            % fired
-        ),
+        "outcome": RehearsalStep.Outcome.PASS if cooking else RehearsalStep.Outcome.FAIL,
+        "mechanism": "services.fire_ingredient_shot, "
+                     "services.sweep_ingredient_penalty_deadlines",
+        "detail": "%d shot(s) fired; the window was hurried and the sweeper closed "
+                  "%d battle(s). Now %s." % (fired, closed, battle.status),
     }
 
 
@@ -509,23 +515,85 @@ def _step_moderate(run, rng):
 
 
 def _step_voting(run, rng):
-    """The one place the rehearsal cannot move: nothing opens the vote."""
+    """The presentation window shuts and the real sweep opens the vote.
+
+    This step is why the instrument was built. On its first run it found that
+    NOTHING in production carried PRESENTATION to VOTING - no service, no
+    sweep, no cron - and it recorded that instead of setting the field itself.
+    open_voting_for_presented_battles() is the answer to that finding, and the
+    step now proves it the same way it proves every other transition: hurry the
+    clock, call the sweep, read the status back.
+    """
+    from .services import open_voting_for_presented_battles
+
     battle = _battle_of(run)
     if battle.status == Battle.Status.VOTING:
         return {"outcome": RehearsalStep.Outcome.PASS,
-                "mechanism": "-",
+                "mechanism": "services.open_voting_for_presented_battles",
                 "detail": "Voting is already open."}
+    if battle.status != Battle.Status.PRESENTATION:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.open_voting_for_presented_battles",
+                "detail": "The battle never reached presentation - it is %s."
+                          % battle.status}
+    _hurry(battle, "presentation_deadline")
+    opened = open_voting_for_presented_battles()
+    battle.refresh_from_db()
+    voting = battle.status == Battle.Status.VOTING
     return {
-        "outcome": RehearsalStep.Outcome.MISSING,
-        "mechanism": "NONE - searched services, state_machine, management commands",
-        "detail": (
-            "The battle is %s and it will stay there. NOTHING in production carries "
-            "PRESENTATION to VOTING: no service, no sweeper, no cron. The only "
-            "writer of Status.VOTING outside the vote itself is the console "
-            "emulator, which sets the field directly. The rehearsal stops here "
-            "rather than doing the same - stepping over it would hide the hole."
-            % battle.status
-        ),
+        "outcome": RehearsalStep.Outcome.PASS if voting else RehearsalStep.Outcome.FAIL,
+        "mechanism": "services.open_voting_for_presented_battles",
+        "detail": "The presentation window was hurried and the sweep opened %d "
+                  "vote(s). The battle is %s, closing %s."
+                  % (opened, battle.status, battle.voting_deadline),
+    }
+
+
+def _step_vote(run, rng):
+    """The audience votes, one row per person, through the real vote path."""
+    from django.contrib.auth import get_user_model
+    from .models import BattleVote
+
+    battle = _battle_of(run)
+    if battle.status != Battle.Status.VOTING:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "models.BattleVote",
+                "detail": "The vote is not open (%s)." % battle.status}
+    User = get_user_model()
+    favourite = rng.choice([battle.challenger, battle.opponent])
+    other = battle.opponent if favourite == battle.challenger else battle.challenger
+    cast = 0
+    for i in range(9):
+        voter, _ = User.objects.get_or_create(
+            username="rehearsal-voter-%d" % i, defaults={"is_active": True})
+        _, created = BattleVote.objects.get_or_create(
+            battle=battle, voter=voter,
+            defaults={"voted_for": favourite if rng.random() < 0.7 else other})
+        cast += int(created)
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "models.BattleVote",
+            "detail": "%d vote(s) cast by the audience." % cast}
+
+
+def _step_result(run, rng):
+    """The clock runs out and the engine - not the rehearsal - names a winner."""
+    from .services import calculate_battle_result
+
+    battle = _battle_of(run)
+    if battle.status != Battle.Status.VOTING:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.calculate_battle_result",
+                "detail": "Not voting (%s)." % battle.status}
+    _hurry(battle, "voting_deadline")
+    calculate_battle_result(battle)
+    battle.refresh_from_db()
+    done = battle.status == Battle.Status.COMPLETED
+    winner = battle.winner.name if battle.winner else "a draw"
+    return {
+        "outcome": RehearsalStep.Outcome.PASS if done else RehearsalStep.Outcome.FAIL,
+        "mechanism": "services.calculate_battle_result",
+        "detail": "The battle is %s and the engine returned %s. The rehearsal "
+                  "named nobody." % (battle.status, winner),
     }
 
 
@@ -543,6 +611,8 @@ SCENARIO_A = (
     ("cook", "Both dishes are cooked and photographed", _step_cook),
     ("moderate", "The photos are moderated", _step_moderate),
     ("voting", "The vote opens", _step_voting),
+    ("vote", "The audience votes", _step_vote),
+    ("result", "The engine names the winner", _step_result),
 )
 
 

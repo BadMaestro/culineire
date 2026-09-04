@@ -315,6 +315,18 @@ class Battle(models.Model):
     # advances the battle to COOKING whether or not the shots were fired, so a
     # winner who walks away cannot hold his opponent's battle open forever.
     ingredient_penalty_deadline = models.DateTimeField(null=True, blank=True, db_index=True)
+    # 2026-09-04: when the presentation window shuts and the vote opens.
+    #
+    # The rehearsal walked a whole battle through production code and stopped
+    # dead at PRESENTATION: nothing in the codebase carried it to VOTING - no
+    # service, no sweeper, no cron - and the only writer of Status.VOTING was
+    # the console emulator setting the field by hand. A battle that reached
+    # presentation without an operator watching simply stayed there.
+    #
+    # Set when both dish photos are approved and the dishes are revealed; swept
+    # by open_voting_for_presented_battles() from the same cron as every other
+    # deadline on this model.
+    presentation_deadline = models.DateTimeField(null=True, blank=True, db_index=True)
     proposed_combat_time = models.DateTimeField(null=True, blank=True)
     combat_time_confirmed = models.BooleanField(default=False)
     # Emergency Stop (DG-03): set when status -> PAUSED, cleared on resume.
@@ -1139,6 +1151,15 @@ class BattleEvent(models.Model):
         CROWN_AWARDED = "crown_awarded", "Crown Awarded"
         RANK_PROMOTED = "rank_promoted", "Rank Promoted"
         ARTIFACT_DROPPED = "artifact_dropped", "Artifact Dropped"
+        # THE STAGE NOBODY COULD SEE - 2026-09-04. A spectator's artifact
+        # delivery wrote four rows (a token transaction, a lot, a
+        # ViewerBattleGift and a ChefArtifact) and not one public event, so the
+        # chef it was sent TO was never told: the only way he found out was an
+        # error message refusing a different artifact because the rules make
+        # him spend the gift first. A delivery is the most visible thing a
+        # spectator can do in a fight and it was the one thing the fight did
+        # not announce.
+        ARTIFACT_DELIVERED = "artifact_delivered", "Artifact Delivered"
         OPERATOR_ACTION = "operator_action", "Operator Action"
 
     battle = models.ForeignKey(Battle, null=True, blank=True, on_delete=models.CASCADE, related_name="events")

@@ -261,6 +261,19 @@ UNGUARDED_BY_DESIGN = {
         "a Chef Battle one."
     ),
     "cooking_moderation_approve": "Same is_moderator AND is_battle_visible check as cooking_moderation (F8).",
+    "dish_moderation": (
+        "Moderator-only, the same is_moderator AND is_battle_visible check as "
+        "cooking_moderation, 404 otherwise. 2026-09-04: added because a cooked "
+        "dish could previously only be approved through the owner-only console "
+        "action, so the step that carries a battle out of COOKING had nobody "
+        "to perform it but the Owner. Listed rather than decorated for the same "
+        "reason as its siblings - it is reached from the moderation panel, not "
+        "from an arena page."
+    ),
+    "dish_moderation_review": (
+        "Same is_moderator AND is_battle_visible check as dish_moderation, "
+        "plus login_required and require_POST."
+    ),
     "vote_review": (
         "Moderator-only, the same is_moderator AND is_battle_visible check as "
         "cooking_moderation, 404 otherwise. G13, 2026-08-11: listed rather than "

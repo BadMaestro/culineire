@@ -2906,8 +2906,19 @@ def battle_detail(request, pk):
         # UnboundLocalError and 500ed the battle page. Nothing but the name was
         # wrong, which is why it took a full-suite run to see it.
         from .models import BattleIngredient
+        # THE PICKER OFFERED WHAT THE SERVICE REFUSES - 2026-09-04. This listed
+        # every available artifact the chef owns, including ones locked or
+        # reserved to a DIFFERENT battle; submit_combat_action then answered
+        # "this artifact is already assigned to another battle" for a choice
+        # the page had just presented as valid. Both conditions are now the
+        # same on the form as in the service: an artifact belongs in this list
+        # if it is free, or already tied to THIS battle.
+        from django.db.models import Q as _Q
         user_available_artifacts = list(
-            ChefArtifact.objects.filter(chef=viewer_author, status=ChefArtifact.Status.AVAILABLE)
+            ChefArtifact.objects
+            .filter(chef=viewer_author, status=ChefArtifact.Status.AVAILABLE)
+            .filter(_Q(locked_to_battle__isnull=True) | _Q(locked_to_battle=battle))
+            .filter(_Q(reserved_in_battle__isnull=True) | _Q(reserved_in_battle=battle))
             .select_related("artifact")
             .order_by("artifact__name")
         )
@@ -3469,6 +3480,56 @@ def cooking_moderation_approve(request, pk):
     except ValueError as e:
         messages.error(request, str(e))
     return redirect("chef_battle:cooking_moderation")
+
+
+@login_required
+def dish_moderation(request):
+    """The moderators' queue of cooked dishes waiting to be looked at.
+
+    2026-09-04, found by the rehearsal. A dish photo could only be approved
+    through the owner-only console action, so the step that carries a battle
+    from COOKING to PRESENTATION had nobody to perform it but the Owner - on
+    every battle, every evening. Same gate as the cooking-phase queue next
+    door, and the same 404-not-403 failure mode as every page in this app.
+    """
+    from .services import get_entries_awaiting_dish_moderation
+
+    if not (is_moderator(request.user) and is_battle_visible(request)):
+        raise Http404
+    return render(request, "chef_battle/dish_moderation.html", {
+        "entries": get_entries_awaiting_dish_moderation(),
+    })
+
+
+@login_required
+@require_POST
+def dish_moderation_review(request, pk):
+    from .services import OperatorActionError, moderate_battle_entry
+
+    if not (is_moderator(request.user) and is_battle_visible(request)):
+        raise Http404
+    decision = request.POST.get("decision", "")
+    status_for = {
+        "approve": BattleEntry.ModerationStatus.APPROVED,
+        "reject": BattleEntry.ModerationStatus.REJECTED,
+    }
+    if decision not in status_for:
+        messages.error(request, "Choose approve or reject.")
+        return redirect("chef_battle:dish_moderation")
+    try:
+        entry = moderate_battle_entry(
+            entry_id=pk, moderator_user=request.user,
+            new_status=status_for[decision],
+            reason=request.POST.get("reason", ""),
+        )
+        messages.success(
+            request,
+            f"{entry.author.name}'s dish is now "
+            f"'{entry.get_moderation_status_display()}'.",
+        )
+    except OperatorActionError as exc:
+        messages.error(request, str(exc))
+    return redirect("chef_battle:dish_moderation")
 
 
 @chef_battle_guard
@@ -4981,7 +5042,102 @@ def _snapshot_to_fx(snap: dict, battle=None) -> dict:
         # would be the fake data the arena plan forbids.
         fx["champion"] = None
         fx["runner_up"] = None
+
+    # WHAT THE RESULT ACTUALLY WAS - 2026-09-04. The finished frame showed
+    # likes, comments, viewers and supports: engagement, not outcome. None of
+    # the things a chef fought FOR - the rank he climbed to, the crown, the
+    # streak, the artifact the battle dropped him - appeared on any screen at
+    # all. All four are already recorded; nothing was asking for them.
+    if finished:
+        winner_profile = None
+        if battle.winner_id:
+            winner_profile = ChefBattleProfile.objects.filter(
+                author_id=battle.winner_id).select_related("author").first()
+        drops = list(
+            battle.events
+            .filter(event_type=BattleEvent.EventType.ARTIFACT_DROPPED)
+            .select_related("actor")
+            .order_by("created_at")
+        )
+        fx["result"] = {
+            "is_draw": bool(not battle.winner_id
+                            and battle.status == Battle.Status.COMPLETED),
+            "reason": battle.result_reason or "",
+            "crown_awarded": bool(battle.crown_awarded),
+            "rank": winner_profile.get_rank_display() if winner_profile else "",
+            "win_streak": winner_profile.win_streak if winner_profile else 0,
+            "wins": winner_profile.wins if winner_profile else 0,
+            "drops": [
+                {"chef": d.actor.name if d.actor else "", "message": d.message}
+                for d in drops
+            ],
+        }
     return fx
+
+
+@chef_battle_guard
+def battle_combat_state(request, pk):
+    """What the fight looks like right now, for the battle room to poll.
+
+    2026-09-04, found by the rehearsal. The battle room had NO poll of any
+    kind: the hit counts and the round log were updated only by the response to
+    your own move, so a chef sat looking at a stale screen until he reloaded,
+    with no way to know his opponent had answered. The data was never the
+    problem - get_combat_state has always existed and the combat POST already
+    returns exactly this shape - there was simply nothing asking for it.
+
+    Read-only, and deliberately the SAME read model the page was rendered from,
+    so the poll cannot drift from the server-rendered first paint.
+    """
+    from .services import get_combat_state
+
+    battle = get_object_or_404(
+        Battle.objects.select_related("challenger", "opponent"), pk=pk)
+    state = get_combat_state(battle)
+    return JsonResponse({
+        "ok": True,
+        "status": battle.status,
+        "status_display": battle.get_status_display(),
+        "current_round": state["current_round"],
+        "challenger_hits": state["challenger_hits"],
+        "opponent_hits": state["opponent_hits"],
+        "hits_to_win": state["hits_to_win"],
+        "rounds": [
+            {"round_number": r.round_number, "log_message": r.log_message,
+             "challenger_hits": r.challenger_hits, "opponent_hits": r.opponent_hits}
+            for r in state["rounds"]
+        ],
+    })
+
+
+@chef_battle_guard
+@require_POST
+def battle_snapshot(request, pk):
+    """The polling snapshot for the battle page a SPECTATOR is looking at.
+
+    2026-09-04, found by the rehearsal. The broadcast page polled
+    live_arena_snapshot, and that endpoint is wrong for it twice over: it is
+    behind arena_console_guard, so every spectator got a 404 and the page never
+    updated after its first render; and it calls get_current_arena_battle(),
+    which answers with whatever battle the arena considers current - so on the
+    rare occasion it did answer, a viewer watching battle #12 could be shown
+    the numbers of battle #15.
+
+    This one is gated the same way the broadcast page itself is and takes the
+    battle from the URL, so what the poll returns is what the page is showing.
+    The snapshot builder is unchanged and shared: no second read model.
+    """
+    from .arena_snapshot import build_arena_snapshot
+
+    battle = get_object_or_404(
+        Battle.objects.select_related("challenger", "opponent", "winner", "loser"),
+        pk=pk,
+    )
+    try:
+        seq = int(request.POST.get("sequence") or 0) + 1
+    except (TypeError, ValueError):
+        seq = 0
+    return JsonResponse(build_arena_snapshot(battle, sequence=seq))
 
 
 @arena_console_guard

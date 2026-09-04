@@ -836,6 +836,16 @@ def get_master_monitor(battles=None) -> dict:
         elif b.status == Battle.Status.INGREDIENT_PENALTY:
             detail.append(_monitor_biathlon_detail(b))
 
+    # "ARTIFACTS IN USE" SHOWED NOTHING, ALWAYS - fixed 2026-09-04. It filtered
+    # on ChefArtifact.Status.RESERVED, and nothing in the codebase has ever
+    # written that status: an artifact goes AVAILABLE -> CONSUMED, and what
+    # marks it as committed to a fight is the reserved_in_battle FOREIGN KEY,
+    # which submit_combat_action does set. So the panel asked the wrong column
+    # and answered "None reserved" through every battle ever fought.
+    #
+    # In use now means what an operator would mean by it: tied to one of these
+    # running battles, either still to be played or already spent in it.
+    battle_ids = [b.pk for b in battles]
     artifacts_in_use = [
         {
             "chef": ca.chef.slug,
@@ -843,11 +853,15 @@ def get_master_monitor(battles=None) -> dict:
             "effect_type": ca.artifact.effect_type,
             "effect_value": ca.artifact.effect_value,
             "status": ca.status,
+            "battle_id": ca.reserved_in_battle_id or ca.consumed_in_battle_id
+            or ca.locked_to_battle_id,
+            "is_gift": ca.source == ChefArtifact.Source.BATTLE_GIFT,
         }
         for ca in ChefArtifact.objects.filter(
-            chef_id__in={b.challenger_id for b in battles} | {b.opponent_id for b in battles},
-            status=ChefArtifact.Status.RESERVED,
-        ).select_related("chef", "artifact")
+            Q(reserved_in_battle_id__in=battle_ids)
+            | Q(consumed_in_battle_id__in=battle_ids)
+            | Q(locked_to_battle_id__in=battle_ids)
+        ).select_related("chef", "artifact").order_by("chef__slug", "artifact__name")
     ] if battles else []
 
     return {
@@ -1206,6 +1220,15 @@ def get_master_governance_detail() -> dict:
     for row in RewardRecord.objects.values("reward_type", "status").annotate(n=_Count("id")):
         rewards_matrix.setdefault(row["reward_type"], {})[row["status"]] = row["n"]
 
+    # AN EMPTY PANEL THAT LOOKS FINE IS WORSE THAN ONE THAT SAYS WHY - 2026-09-04.
+    # Panel 7 has shown nothing for CBR since it was built, and read as "no
+    # rewards yet". The truth is that NOTHING creates a Chef Battle Reward:
+    # RewardRecord has exactly two producers, both in send_appreciation_gift,
+    # and both write LSR. Winning a battle grants no CBR because no code path
+    # grants one. Reported as a fact about the data rather than a hardcoded
+    # sentence, so the day a producer appears the panel stops saying it.
+    cbr_count = sum(rewards_matrix.get(RewardRecord.RewardType.CBR, {}).values())
+
     recent_rewards = [
         {
             "id": r.pk, "type": r.reward_type, "status": r.status,
@@ -1244,6 +1267,7 @@ def get_master_governance_detail() -> dict:
 
     return {
         "rewards_matrix": rewards_matrix,
+        "cbr_count": cbr_count,
         "recent_rewards": recent_rewards,
         "payouts": payouts,
         "reports": reports,

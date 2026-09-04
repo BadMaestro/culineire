@@ -80,6 +80,7 @@ urlpatterns = [
     path("battles/<int:pk>/vote/", views.battle_vote, name="battle_vote"),
     # The fight has its own page - ARENA_BATTLE_PLAN section 2c.
     path("battles/<int:pk>/broadcast/", views.battle_broadcast, name="battle_broadcast"),
+    path("battles/<int:pk>/snapshot/", views.battle_snapshot, name="battle_snapshot"),
     # Withdrawing from an accepted battle — Owner's rule, 2026-08-05
     path("battles/<int:pk>/withdraw/", views.battle_withdraw, name="battle_withdraw"),
     path("withdrawals/<int:pk>/decide/", views.battle_withdraw_decide, name="battle_withdraw_decide"),
@@ -88,6 +89,7 @@ urlpatterns = [
     path("poll/", views.notifications_poll, name="notifications_poll"),
     path("notifications/", views.notifications_inbox, name="notifications_inbox"),
     path("battles/<int:pk>/combat/", views.battle_combat_action, name="battle_combat_action"),
+    path("battles/<int:pk>/combat/state/", views.battle_combat_state, name="battle_combat_state"),
     path("battles/<int:pk>/state/", views.battle_state_poll, name="battle_state_poll"),
     path("battles/<int:pk>/changing-room/", views.battle_changing_room, name="battle_changing_room"),
     path("battles/<int:pk>/recipe/", views.battle_recipe_attach, name="battle_recipe_attach"),
@@ -98,6 +100,8 @@ urlpatterns = [
     # Stage 1, so there is nothing to POST here any more.
     path("battles/<int:pk>/biathlon/shoot/", views.biathlon_shoot, name="biathlon_shoot"),
     path("moderation/cooking/", views.cooking_moderation, name="cooking_moderation"),
+    path("moderation/dishes/", views.dish_moderation, name="dish_moderation"),
+    path("moderation/dishes/<int:pk>/review/", views.dish_moderation_review, name="dish_moderation_review"),
     path("battles/<int:pk>/moderation/cooking/approve/", views.cooking_moderation_approve, name="cooking_moderation_approve"),
     path("battles/<int:pk>/cooking/submit/", views.cooking_submit, name="cooking_submit"),
     path("hall-of-fame/", views.hall_of_fame, name="hall_of_fame"),

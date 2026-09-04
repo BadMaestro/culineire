@@ -867,6 +867,14 @@ body.page--amc #site-battle-widget {
   grid-column: 1 / -1;
 }
 
+/* A PANEL SAYING WHAT IS MISSING, not what is absent. Same weight as the
+   hints around it, marked with the danger colour because an unimplemented
+   mechanism is a finding rather than a note. */
+.amc-panel__hint--gap {
+  border-left: 2px solid var(--amc-danger);
+  padding-left: 0.5rem;
+}
+
 /* THE REHEARSAL TRACE - 2026-09-04. The instrument's own readout: one line per
    step, the verdict first because that is what he scans for, the sentence after
    it because a verdict with no reason is not a finding. It scrolls inside the

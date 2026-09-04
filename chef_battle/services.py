@@ -484,6 +484,7 @@ def create_battle_event(
     target=None,
     is_public=True,
     publish_to_news=False,
+    payload_json=None,
 ):
     event = BattleEvent.objects.create(
         battle=battle,
@@ -493,6 +494,7 @@ def create_battle_event(
         target=target,
         message=message,
         is_public=is_public,
+        payload_json=payload_json,
     )
 
     # THE HALL SEES THE FIGHT'S OWN MOMENTS. P3, Owner 2026-08-26: the arena's
@@ -978,6 +980,31 @@ INGREDIENT_PENALTY_WINDOW = timezone.timedelta(minutes=15)
 #: has always said this in its own docstring ("pressing Ready only lets them
 #: start sooner"); until now nothing implemented it.
 READY_HEAD_START = timezone.timedelta(minutes=30)
+
+#: How long the two dishes stand on the table before the vote opens.
+#:
+#: 2026-09-04. The rehearsal walked a whole battle through production code and
+#: stopped at PRESENTATION with nowhere to go: NOTHING carried that status to
+#: VOTING - not a service, not a sweep, not a cron - and the only writer of
+#: Status.VOTING in the codebase was the console emulator assigning the field.
+#: A battle nobody was operating stayed presented forever.
+#:
+#: THE NUMBER IS THE ONE THING THE RULES DO NOT STATE. battle_lifecycle.md
+#: describes phase 7 as the reveal ("both entries revealed simultaneously, the
+#: audience sees the dishes") and phase 8 as the vote, and puts no clock on the
+#: gap. Ten minutes is chosen to sit with the other live-session timers -
+#: START_RITUAL_GRACE's ten and INGREDIENT_PENALTY_WINDOW's fifteen - rather
+#: than with the 48-hour deadlines, because everyone involved is still at the
+#: screen. It lives in one constant so the Owner's word changes one line.
+PRESENTATION_WINDOW = timezone.timedelta(minutes=10)
+
+#: How long the audience has to vote, when a vote has to be given a fresh
+#: deadline. Two days, the same span accept_challenge has always put between
+#: submission_deadline and voting_deadline; named here because
+#: open_voting_for_presented_battles needs it for a battle that overran its
+#: own schedule, and an unnamed timedelta(days=2) in two places is how the two
+#: drift apart.
+VOTING_WINDOW = timezone.timedelta(days=2)
 
 
 def pull_start_forward_when_both_ready(battle) -> bool:
@@ -1978,7 +2005,16 @@ def submit_combat_action(
 
         effect_type = (chef_artifact.artifact.effect_type or "").lower().replace("defence", "defense")
         action_effect_type = "attack" if action_type == BattleCombatAction.ActionType.ATTACK else "defense"
-        if effect_type != action_effect_type:
+        # A BOOST ARTIFACT COULD NEVER BE PLAYED - 2026-09-04. This check
+        # compares the artifact's effect type against the move, and the move is
+        # only ever "attack" or "defense", so an artifact whose effect is
+        # "boost" failed it on BOTH moves and there was no third move to make.
+        # _resolve_round has a boost branch that awards the bonus "regardless
+        # of action type"; nothing could ever reach it, because the artifact
+        # was refused here first. Boost is what it says it is: it plays with
+        # either move, which is the whole difference between it and the other
+        # two.
+        if effect_type not in ("boost", action_effect_type):
             raise ValueError("Choose an attack artifact for an attack or a defence artifact for a defence.")
 
         if chef_artifact.reserved_in_battle_id not in (None, battle.pk):
@@ -2102,9 +2138,13 @@ def _unused_battle_gift_artifacts(chef, battle, action_type) -> list:
     """
     from .models import BattleCombatAction as _BCA
 
+    # Boost belongs in both lists: it plays with either move (see the check in
+    # submit_combat_action, fixed 2026-09-04), so a boost gift is spendable on
+    # this action whichever action it is, and leaving it out would let a chef
+    # sidestep the must-spend rule by choosing the other move.
     effect_types = (
-        ("attack",) if action_type == _BCA.ActionType.ATTACK
-        else ("defense", "defence")
+        ("attack", "boost") if action_type == _BCA.ActionType.ATTACK
+        else ("defense", "defence", "boost")
     )
     return list(
         ChefArtifact.objects
@@ -2275,8 +2315,14 @@ def _resolve_round(battle: Battle, round_number: int) -> BattleRound | None:
         # submitting and resolving — the round rolled back and the artifact
         # stayed consumed. The chef lost an earned item to a round that never
         # happened.
+        # SPENT BY PLAYING IT, NOT BY IT WORKING - 2026-09-04. This loop was
+        # `if _bonus and ...`, so an artifact that came out to a zero bonus was
+        # left AVAILABLE: it had been named in the move, reserved to the
+        # battle and shown to the chef as played, and it silently survived.
+        # Whether the effect landed is the round's business; the artifact was
+        # used the moment it was put on the table.
         for _action, _bonus in ((challenger_action, c_bonus), (opponent_action, o_bonus)):
-            if _bonus and _action.artifact_used and _action.artifact_used.status == "available":
+            if _action.artifact_used and _action.artifact_used.status == "available":
                 ca = _action.artifact_used
                 ca.status = "consumed"
                 ca.consumed_at = timezone.now()
@@ -2697,6 +2743,55 @@ def sweep_ingredient_penalty_deadlines() -> int:
     return count
 
 
+def open_voting_for_presented_battles() -> int:
+    """Open the vote on battles whose presentation window has run out.
+
+    The missing link in the lifecycle. Same shape as
+    sweep_ingredient_penalty_deadlines and resolve_start_rituals: collect ids
+    unlocked, then lock and re-verify each one before acting.
+
+    A battle that reached PRESENTATION before this existed has no deadline on
+    it at all, so those rows are swept too - a null deadline on a presented
+    battle means "already overdue", not "wait forever", which is the only
+    reading that does not strand the battles that are sitting there now.
+    """
+    now = timezone.now()
+    battle_ids = list(
+        Battle.objects
+        .filter(status=Battle.Status.PRESENTATION)
+        .filter(Q(presentation_deadline__lte=now) | Q(presentation_deadline__isnull=True))
+        .values_list("pk", flat=True)
+    )
+    count = 0
+    for battle_id in battle_ids:
+        with transaction.atomic():
+            battle = _locked_battle(battle_id, expected_status=None)
+            if battle.status != Battle.Status.PRESENTATION:
+                continue
+            if battle.presentation_deadline and battle.presentation_deadline > now:
+                continue
+            # The vote needs somewhere to end. A battle that took longer than
+            # its own schedule allowed would otherwise open a vote that was
+            # already closed, and the audience would never get to vote at all.
+            fields = ["status", "updated_at"]
+            if not battle.voting_deadline or battle.voting_deadline <= now:
+                battle.voting_deadline = now + VOTING_WINDOW
+                fields.insert(1, "voting_deadline")
+            battle.status = Battle.Status.VOTING
+            battle.save(update_fields=fields)
+            create_battle_event(
+                battle=battle,
+                event_type=BattleEvent.EventType.BATTLE_STARTED,
+                message=(
+                    f"Both dishes have been presented. Voting for "
+                    f"'{battle.theme}' is open."
+                ),
+                is_public=True,
+            )
+            count += 1
+    return count
+
+
 # ── Cooking phase moderation ──────────────────────────────────────────────────
 
 def get_surviving_ingredients(battle: Battle, chef) -> list:
@@ -3099,6 +3194,29 @@ def send_battle_artifact(*, sender_user, recipient, battle: Battle, artifact: Ar
             source=ChefArtifact.Source.BATTLE_GIFT,
             status=ChefArtifact.Status.AVAILABLE,
             locked_to_battle=locked_battle,
+        )
+        # AND THE FIGHT SAYS SO. Inside the same transaction as the rows above,
+        # so a delivery that rolled back never announced itself. Public,
+        # because a gift is a thing the hall did and the hall should see it -
+        # and the chef reads the same feed, which is how he finally learns he
+        # has been given something.
+        create_battle_event(
+            event_type=BattleEvent.EventType.ARTIFACT_DELIVERED,
+            battle=locked_battle,
+            actor=recipient,
+            message=(
+                f"{getattr(sender_author, 'name', 'A spectator')} sent "
+                f"{artifact.name} to {recipient.name}."
+            ),
+            is_public=True,
+            payload_json={
+                "artifact": artifact.name,
+                "artifact_id": artifact.pk,
+                "effect_type": artifact.effect_type,
+                "effect_value": artifact.effect_value,
+                "recipient": recipient.slug,
+                "gift_id": gift.pk,
+            },
         )
     return gift
 
@@ -3548,8 +3666,19 @@ def _pick_artifact(chef, weights: dict, guaranteed: bool = False):
     import random
     rarities = list(weights.keys())
     rarity_weights = list(weights.values())
+    # THE POOL USED TO RUN DRY AND STAY DRY - 2026-09-04. This excluded every
+    # artifact the chef had EVER held, spent ones included, so each battle
+    # narrowed the pool permanently: a chef who fought enough battles could no
+    # longer be dropped anything at all, and the guaranteed winner's drop
+    # quietly returned nothing. A consumed artifact is gone - he burned it in a
+    # fight - and there is no reason he cannot be given another. Only what he
+    # actually HOLDS is excluded, so a drop never duplicates something already
+    # in his chest.
+    held = (ChefArtifact.Status.AVAILABLE, ChefArtifact.Status.RESERVED)
     owned_ids = set(
-        ChefArtifact.objects.filter(chef=chef).values_list("artifact_id", flat=True)
+        ChefArtifact.objects
+        .filter(chef=chef, status__in=held)
+        .values_list("artifact_id", flat=True)
     )
     for _ in range(10):
         rarity = random.choices(rarities, weights=rarity_weights, k=1)[0]
@@ -5009,15 +5138,30 @@ def _emulation_data_sets():
     from recipes.models import Recipe
     from .models import (
         ArenaChatMessage, ArenaSeat, BattleEntry, BattleEvent, BattleVote,
-        ViewerBattleGift,
+        RehearsalRun, ViewerBattleGift,
     )
+
+    from .rehearsal import REHEARSAL_CHEFS, REHEARSAL_MARK
 
     bots = _emulation_bot_slug_set()
     theme_q = Q()
     for prefix in _emulation_theme_prefixes():
         theme_q |= Q(theme__startswith=prefix)
+    # THE REHEARSAL'S OWN LITTER, 2026-09-04. A rehearsal battle holds the two
+    # test chefs' battle slots exactly as a real one does - which is correct,
+    # and it means the NEXT rehearsal cannot start until the last one's battle
+    # is gone. Matched on BOTH conditions at once, never either alone: the
+    # theme carries the REHEARSAL mark AND both fighters are the two test
+    # accounts. A real battle of theirs, whatever it were called, is not in
+    # this set, and neither is anyone else's battle with a borrowed theme.
+    rehearsal_q = (
+        Q(theme__startswith=REHEARSAL_MARK)
+        & Q(challenger__slug__in=REHEARSAL_CHEFS)
+        & Q(opponent__slug__in=REHEARSAL_CHEFS)
+    )
     battles = Battle.objects.filter(
         theme_q | (Q(challenger__slug__in=bots) & Q(opponent__slug__in=bots))
+        | rehearsal_q
     )
     battle_ids = list(battles.values_list("pk", flat=True))
 
@@ -5031,8 +5175,17 @@ def _emulation_data_sets():
         "events": BattleEvent.objects.filter(battle_id__in=battle_ids),
         "gifts": ViewerBattleGift.objects.filter(battle_id__in=battle_ids),
         "seats": ArenaSeat.objects.filter(viewer__slug__in=bots),
-        "voters": get_user_model().objects.filter(username__startswith="emu-voter-"),
-        "recipes": Recipe.objects.filter(slug__startswith="emu-dish-"),
+        "voters": get_user_model().objects.filter(
+            Q(username__startswith="emu-voter-")
+            | Q(username__startswith="rehearsal-voter-")),
+        "recipes": Recipe.objects.filter(
+            Q(slug__startswith="emu-dish-")
+            | Q(author__slug__in=REHEARSAL_CHEFS,
+                source_note__startswith=REHEARSAL_MARK)),
+        # The challenges too: a rehearsal battle has one, and deleting the
+        # battle without it leaves an accepted challenge pointing at nothing.
+        "challenges": BattleChallenge.objects.filter(battle__in=battle_ids),
+        "runs": RehearsalRun.objects.all(),
     }
 
 
@@ -5058,7 +5211,7 @@ def emulation_data_report():
         ).count(),
     }
     for key in ("chat", "votes", "entries", "events", "gifts", "seats",
-                "voters", "recipes"):
+                "voters", "recipes", "challenges", "runs"):
         report[key] = {"count": sets[key].count()}
     report["voters"]["examples"] = list(
         sets["voters"].values_list("username", flat=True)[:9])
@@ -5067,7 +5220,7 @@ def emulation_data_report():
     report["total"] = sum(
         report[k]["count"] for k in
         ("battles", "chat", "votes", "entries", "events", "gifts", "seats",
-         "voters", "recipes")
+         "voters", "recipes", "challenges", "runs")
     )
     # What a run left ON THE BOTS, which is not a row count but is exactly
     # what the Owner sees: a rating, a win, and the arena's 24-hour crown.
@@ -5118,7 +5271,12 @@ def operator_purge_emulation_data(*, operator_author, correlation_id=""):
         # exactly the sort of leftover this action exists to stop leaving.
         for key in ("chat", "votes", "entries", "events", "seats"):
             sets[key].delete()
+        # Runs and challenges first: a run points at its battle and a
+        # challenge is pointed at BY one, so removing the battle underneath
+        # either of them is how a purge leaves a dangling row behind.
+        sets["runs"].delete()
         sets["battles"].delete()
+        sets["challenges"].delete()
         sets["recipes"].delete()
         sets["voters"].delete()
 
@@ -5308,6 +5466,141 @@ _ENTRY_ADVERSE = {
 _ENTRY_ALLOWED = _ENTRY_ADVERSE | {BattleEntry.ModerationStatus.APPROVED}
 
 
+def get_entries_awaiting_dish_moderation():
+    """The cooked dishes waiting for somebody to look at them.
+
+    Companion to get_battles_awaiting_cooking_approval, for the phase after it:
+    a photo is submitted, and until it is approved the battle cannot leave
+    COOKING. Until 2026-09-04 the only surface that could approve one was the
+    owner-only console.
+    """
+    return list(
+        BattleEntry.objects
+        .filter(
+            battle__status=Battle.Status.COOKING,
+            moderation_status=BattleEntry.ModerationStatus.PENDING,
+            real_photo_confirmed=True,
+        )
+        .exclude(cooked_photo="")
+        .exclude(cooked_photo__isnull=True)
+        .select_related("battle", "author", "battle__challenger", "battle__opponent")
+        .order_by("battle_id", "pk")
+    )
+
+
+def moderate_battle_entry(*, entry_id, moderator_user, new_status, reason=""):
+    """A moderator rules on a cooked dish photo.
+
+    The same rule the console runs, reached from the moderators' own queue
+    instead of the Owner's panel. The console keeps its operator audit entry;
+    this door records the reviewer on the entry itself, which is what
+    BattleEntry.reviewed_by has always been for.
+    """
+    if new_status not in _ENTRY_ALLOWED:
+        raise OperatorActionError(f"'{new_status}' is not a settable entry status.")
+    if new_status in _ENTRY_ADVERSE and not (reason or "").strip():
+        raise OperatorActionError("Rejecting a dish requires a reason for the chef.")
+    with transaction.atomic():
+        entry, battle, before = _apply_entry_moderation(
+            entry_id=entry_id, reviewer_user=moderator_user,
+            new_status=new_status, reason=reason,
+        )
+        logger.info(
+            "Moderator %s set entry %s from %s to %s.",
+            getattr(moderator_user, "username", "?"), entry_id, before, new_status,
+        )
+        if new_status in _ENTRY_ADVERSE:
+            reviewer_author = getattr(moderator_user, "recipe_author_profile", None)
+            if reviewer_author is not None:
+                _notify_chef(
+                    reviewer_author, entry.author,
+                    subject=f"Your battle entry needs attention (battle #{entry.battle_id})",
+                    body=(
+                        f"Your dish for '{battle.theme}' was marked "
+                        f"'{entry.get_moderation_status_display()}' by a moderator. "
+                        f"Reason: {reason}."
+                    ),
+                )
+    return entry
+
+
+def _apply_entry_moderation(*, entry_id, reviewer_user, new_status, reason):
+    """The battle-entry moderation rule itself, with no opinion on WHO ran it.
+
+    2026-09-04. This was the body of operator_moderate_entry, which is
+    owner-only - so the only way to approve a cooked dish anywhere on the site
+    was the Owner opening the console. The rehearsal recorded that as a gap:
+    on a real evening the phase that carries a battle from COOKING to
+    PRESENTATION had nobody to perform it but him.
+
+    The rule is unchanged and now has two doors: the console action above,
+    which adds its operator audit entry, and the moderators' dish queue. One
+    implementation, so the two can never drift.
+
+    Returns (entry, battle, previous_status). Must be called inside a
+    transaction - it takes both row locks itself.
+    """
+    try:
+        entry_ref = BattleEntry.objects.only("battle_id").get(pk=entry_id)
+        battle = Battle.objects.select_for_update().get(pk=entry_ref.battle_id)
+        entry = (BattleEntry.objects.select_for_update()
+                 .select_related("author").get(pk=entry_id))
+    except BattleEntry.DoesNotExist:
+        raise OperatorActionError("Entry not found.")
+    before = entry.moderation_status
+
+    if before == new_status:
+        raise OperatorActionError(f"Entry is already '{new_status}'.")
+    if new_status == BattleEntry.ModerationStatus.APPROVED:
+        if not entry.cooked_photo or not entry.real_photo_confirmed:
+            raise OperatorActionError(
+                "Cannot approve an entry without a cooked photo and real-photo confirmation."
+            )
+    entry.moderation_status = new_status
+    if reason:
+        entry.moderation_note = reason
+    entry.reviewed_by = reviewer_user
+    entry.reviewed_at = timezone.now()
+    entry.save(update_fields=[
+        "moderation_status", "moderation_note", "reviewed_by", "reviewed_at", "updated_at",
+    ])
+    if new_status == BattleEntry.ModerationStatus.APPROVED:
+        eligible_entries = (
+            BattleEntry.objects.filter(
+                battle=battle,
+                author_id__in=[battle.challenger_id, battle.opponent_id],
+                moderation_status=BattleEntry.ModerationStatus.APPROVED,
+                real_photo_confirmed=True,
+                cooked_photo__isnull=False,
+            )
+            .exclude(cooked_photo="")
+            .count()
+        )
+        if battle.status == Battle.Status.COOKING and eligible_entries == 2:
+            battle.status = Battle.Status.PRESENTATION
+            # The window that ends this phase. Without it the battle stops
+            # here for good: open_voting_for_presented_battles is what
+            # carries it to the vote, and it needs a clock to read.
+            battle.presentation_deadline = timezone.now() + PRESENTATION_WINDOW
+            battle.save(update_fields=[
+                "status", "presentation_deadline", "updated_at"])
+            # F14, 2026-08-11: PRESENTATION is one of _REVEAL_IMPLIED_TARGETS -
+            # the template shows a dish once is_revealed OR the battle is in
+            # that set. operator_force_status's direct-assign branch reveals
+            # for exactly this reason (F10); this transition reaches the same
+            # target status through the moderation path instead, and missed
+            # the same update.
+            battle.entries.filter(is_revealed=False).update(is_revealed=True)
+            create_battle_event(
+                event_type=BattleEvent.EventType.BATTLE_STARTED,
+                battle=battle,
+                message=("Both cooked dish photos were approved. "
+                         "Presentation phase begins."),
+                is_public=True,
+            )
+    return entry, battle, before
+
+
 def operator_moderate_entry(*, entry_id, operator_author, new_status, reason="",
                             correlation_id=""):
     """Owner-only battle-entry moderation from the console. Reuses the
@@ -5319,58 +5612,10 @@ def operator_moderate_entry(*, entry_id, operator_author, new_status, reason="",
         raise OperatorActionError("Adverse moderation actions require a reason.")
 
     with transaction.atomic():
-        try:
-            entry_ref = BattleEntry.objects.only("battle_id").get(pk=entry_id)
-            battle = Battle.objects.select_for_update().get(pk=entry_ref.battle_id)
-            entry = (BattleEntry.objects.select_for_update()
-                     .select_related("author").get(pk=entry_id))
-        except BattleEntry.DoesNotExist:
-            raise OperatorActionError("Entry not found.")
-        before = entry.moderation_status
-        if before == new_status:
-            raise OperatorActionError(f"Entry is already '{new_status}'.")
-        if new_status == BattleEntry.ModerationStatus.APPROVED:
-            if not entry.cooked_photo or not entry.real_photo_confirmed:
-                raise OperatorActionError(
-                    "Cannot approve an entry without a cooked photo and real-photo confirmation."
-                )
-        entry.moderation_status = new_status
-        if reason:
-            entry.moderation_note = reason
-        entry.reviewed_by = operator_author.user
-        entry.reviewed_at = timezone.now()
-        entry.save(update_fields=[
-            "moderation_status", "moderation_note", "reviewed_by", "reviewed_at", "updated_at",
-        ])
-        if new_status == BattleEntry.ModerationStatus.APPROVED:
-            eligible_entries = (
-                BattleEntry.objects.filter(
-                    battle=battle,
-                    author_id__in=[battle.challenger_id, battle.opponent_id],
-                    moderation_status=BattleEntry.ModerationStatus.APPROVED,
-                    real_photo_confirmed=True,
-                    cooked_photo__isnull=False,
-                )
-                .exclude(cooked_photo="")
-                .count()
-            )
-            if battle.status == Battle.Status.COOKING and eligible_entries == 2:
-                battle.status = Battle.Status.PRESENTATION
-                battle.save(update_fields=["status", "updated_at"])
-                # F14, 2026-08-11: PRESENTATION is one of _REVEAL_IMPLIED_TARGETS -
-                # the template shows a dish once is_revealed OR the battle is in
-                # that set. operator_force_status's direct-assign branch reveals
-                # for exactly this reason (F10); this transition reaches the same
-                # target status through the moderation path instead, and missed
-                # the same update.
-                battle.entries.filter(is_revealed=False).update(is_revealed=True)
-                create_battle_event(
-                    event_type=BattleEvent.EventType.BATTLE_STARTED,
-                    battle=battle,
-                    message=("Both cooked dish photos were approved. "
-                             "Presentation phase begins."),
-                    is_public=True,
-                )
+        entry, battle, before = _apply_entry_moderation(
+            entry_id=entry_id, reviewer_user=operator_author.user,
+            new_status=new_status, reason=reason,
+        )
         _operator_event(
             battle=battle, operator_author=operator_author,
             action="moderate_entry", before=before, after=new_status,

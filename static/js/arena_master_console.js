@@ -220,11 +220,12 @@
         artifacts.textContent = '';
         (mon.artifacts_in_use || []).forEach(function (a) {
           var li = document.createElement('li');
-          li.textContent = a.chef + ': ' + a.artifact + ' (' + a.effect_type + ' +' + a.effect_value + ')';
+          li.textContent = a.chef + ': ' + a.artifact + ' (' + a.effect_type +
+            ' +' + a.effect_value + ') · ' + a.status + (a.is_gift ? ' · gift' : '');
           artifacts.appendChild(li);
         });
         if (!(mon.artifacts_in_use || []).length) {
-          artifacts.innerHTML = '<li><span class="amc-empty">None reserved</span></li>';
+          artifacts.innerHTML = '<li><span class="amc-empty">None in play</span></li>';
         }
       }
     }

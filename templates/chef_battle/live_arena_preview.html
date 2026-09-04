@@ -29,7 +29,7 @@
 {% block og_description %}{% if is_broadcast %}{% if fx.theme %}{{ fx.theme }}. {% endif %}{{ fx.status_display }} in the CulinEire arena.{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block extra_head %}
-<link href="{% static 'css/live_arena.css' %}?v=20260807-b01-shell" rel="stylesheet">
+<link href="{% static 'css/live_arena.css' %}?v=20260904-result-frame" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -57,53 +57,79 @@
   <h1 class="lap__doc-title">
     {% if is_broadcast %}{{ fx.left.name }} versus {{ fx.right.name }}{% if fx.theme %}, cooking {{ fx.theme }}{% endif %}{% else %}Live Arena build preview{% endif %}
   </h1>
-  {% if complete == 'complete' %}<div class="lap__confetti" id="lap-confetti"></div>{% endif %}
-
-  <div class="lap__ribbon">
-    {% if is_broadcast %}
-    <span>&#9679; {{ fx.status_display }}{% if fx.theme %} &middot; {{ fx.theme }}{% endif %}</span>
-    <span class="lap__state-toggle">
-      <a href="{% url 'chef_battle:arena' %}">&#8592; Arena</a>
-      <a href="{% url 'chef_battle:battle_detail' fx.battle_id %}">Battle room</a>
-    </span>
-    {% else %}
-    <span>&#9679; Live Arena — build preview{% if fx.is_fixture %} · DEV FIXTURE data{% endif %}</span>
-    <span class="lap__state-toggle">
-      <a href="?" class="{% if complete != 'complete' %}is-on{% endif %}">Live</a>
-      <a href="?state=complete" class="{% if complete == 'complete' %}is-on{% endif %}">Winner</a>
-    </span>
-    {% endif %}
-  </div>
-
   {% if complete == 'complete' %}
-  {# ── Battle Complete / Winner (reference frame 2) ── #}
+  {% comment %}
+  THE RESULT FRAME, REWRITTEN 2026-09-04.
+
+  Every value in here used to end in `|default:fx.left`, so a battle with no
+  champion - a draw, a void, a withdrawal - was drawn as a win for whichever
+  chef happened to be on the left: his portrait under a shield, his name after
+  "Congratulations", a WINNER banner and a tick reading "Victory confirmed".
+  The view had it right all along and set champion to None on purpose; the
+  template put a face there anyway. That is a fabricated result on a public
+  page, and it is the one thing the arena plan forbids outright.
+
+  It also showed likes, comments, viewers and supports and called them the
+  final metrics. Those are engagement. What a chef fights for is the rank, the
+  crown, the streak and the drop, and not one of them appeared on any screen -
+  they are all recorded, and nothing was asking for them.
+  {% endcomment %}
+  {% if fx.champion %}
+  {# ── A battle with a winner ── #}
   <div class="lap__winner">
     <div class="lap__winner-hero">
-      {% with champ=fx.champion|default:fx.left %}{% if champ.avatar_url %}<img class="lap__winner-portrait" src="{{ champ.avatar_url }}" alt="{{ champ.name }}">{% else %}<div class="lap__winner-portrait"></div>{% endif %}{% endwith %}
+      {% if fx.champion.avatar_url %}<img class="lap__winner-portrait" src="{{ fx.champion.avatar_url }}" alt="{{ fx.champion.name }}">{% else %}<div class="lap__winner-portrait"></div>{% endif %}
       <div>
         <svg class="lap__shield" viewBox="0 0 120 140" aria-label="Champion"><use href="#la-shield"></use></svg>
         <div class="lap__congrats">Congratulations,</div>
-        <div class="lap__champ-name">{{ fx.champion.name|default:fx.left.name }}</div>
-        <div class="lap__champ-meta">&#127859; <b>{{ fx.champion.rank|default:fx.left.rank }}</b><br>&#127807; <b>{{ fx.champion.clan|default:fx.left.clan }}</b><br>&#127482;&#127480; <b>{{ fx.champion.country|default:fx.left.country }}</b></div>
+        <div class="lap__champ-name">{{ fx.champion.name }}</div>
+        <div class="lap__champ-meta">&#127859; <b>{{ fx.result.rank|default:fx.champion.rank }}</b><br>&#127807; <b>{{ fx.champion.clan }}</b><br>&#127482;&#127480; <b>{{ fx.champion.country }}</b></div>
       </div>
     </div>
     <div class="lap__runner">
       <small>Runner-up</small>
-      <div class="lap__runner-name">{{ fx.runner_up.name|default:fx.right.name }}</div>
-      <div class="lap__runner-meta">{{ fx.runner_up.rank|default:fx.right.rank }} &middot; {{ fx.runner_up.clan|default:fx.right.clan }} &middot; {{ fx.runner_up.country|default:fx.right.country }}</div>
+      <div class="lap__runner-name">{{ fx.runner_up.name }}</div>
+      <div class="lap__runner-meta">{{ fx.runner_up.rank }} &middot; {{ fx.runner_up.clan }} &middot; {{ fx.runner_up.country }}</div>
     </div>
   </div>
 
   <div class="lap__winner-banner">WINNER</div>
 
   <div class="lap__finalmetrics">
-    <div class="lap__fm lap__fm--win"><b>{% if fx.champion %}{{ fx.champion.name|truncatewords:1 }} wins{% else %}{{ fx.result_reason|default:"No winner" }}{% endif %}</b><small>Final result</small></div>
-    <div class="lap__fm"><b>{{ fx.champion.likes|default:fx.left.likes }}</b><small>Likes</small></div>
-    <div class="lap__fm"><b>{{ fx.champion.comments|default:fx.left.comments }}</b><small>Comments</small></div>
-    <div class="lap__fm"><b>{{ fx.champion.viewers|default:fx.left.viewers }}</b><small>Viewers</small></div>
-    <div class="lap__fm"><b>+{{ fx.champion.supporters|default:fx.left.supporters }}</b><small>Supports</small></div>
-    <div class="lap__fm lap__fm--win"><b>&#10003;</b><small>Victory confirmed</small></div>
+    <div class="lap__fm lap__fm--win"><b>{{ fx.champion.name }} wins</b><small>Final result</small></div>
+    <div class="lap__fm"><b>{{ fx.result.rank|default:"&mdash;" }}</b><small>Rank</small></div>
+    <div class="lap__fm"><b>{{ fx.result.win_streak }}</b><small>Win streak</small></div>
+    <div class="lap__fm"><b>{% if fx.result.crown_awarded %}&#128081;{% else %}&mdash;{% endif %}</b><small>Crown</small></div>
+    <div class="lap__fm"><b>{{ fx.result.drops|length }}</b><small>Artifacts dropped</small></div>
+    <div class="lap__fm lap__fm--win"><b>&#10003;</b><small>Result recorded</small></div>
   </div>
+
+  {% if fx.result.drops %}
+  <ul class="lap__drops">
+    {% for drop in fx.result.drops %}<li>{{ drop.message }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  {% else %}
+  {# ── A battle with NO winner: say so, and name nobody ── #}
+  <div class="lap__winner lap__winner--nochamp">
+    <div class="lap__winner-hero">
+      <div>
+        <div class="lap__congrats">{% if fx.result.is_draw %}A draw{% else %}No result{% endif %}</div>
+        <div class="lap__champ-name">{{ fx.left.name }} &amp; {{ fx.right.name }}</div>
+        <div class="lap__champ-meta">{{ fx.result.reason|default:fx.status_display }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lap__finalmetrics">
+    <div class="lap__fm"><b>{% if fx.result.is_draw %}Draw{% else %}{{ fx.status_display }}{% endif %}</b><small>Final result</small></div>
+    <div class="lap__fm"><b>&mdash;</b><small>Rank</small></div>
+    <div class="lap__fm"><b>&mdash;</b><small>Win streak</small></div>
+    <div class="lap__fm"><b>&mdash;</b><small>Crown</small></div>
+    <div class="lap__fm"><b>{{ fx.result.drops|length }}</b><small>Artifacts dropped</small></div>
+  </div>
+  {% endif %}
 
   <span class="lap__finished">&#9679; BATTLE FINISHED</span>
 
@@ -351,8 +377,14 @@
         if (timerEl) timerEl.textContent = fmt(remaining);
       }
     };
+    /* THE POLL ASKS ABOUT THIS BATTLE, and it is allowed to ask.
+       Until 2026-09-04 it called the console's own snapshot endpoint, which is
+       owner-gated - so for every spectator this fetch was a 404 and the page
+       froze on whatever the first render said - and that endpoint answers about
+       "the current arena battle" rather than the one in the URL. Both are fixed
+       by asking the battle's own endpoint. */
     var poll = function () {
-      fetch('/chef-battle/master/live-arena/snapshot/', {
+      fetch('/chef-battle/battles/' + battleId + '/snapshot/', {
         method: 'POST', credentials: 'same-origin',
         headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'sequence=' + seq
