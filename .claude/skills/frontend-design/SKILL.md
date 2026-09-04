@@ -1,128 +1,169 @@
 ---
 name: frontend-design
-description: Implementing Arena UI in this codebase — Django templates, vanilla JS, two stylesheets, tokens, container queries, responsive rules, and the CSS mechanisms that carry vector artwork. Use when writing or changing arena.css, arena.html or the deck templates.
+description: Turning finished visual artwork into a real production interface — component structure, asset boundaries, live typography, layout, responsive behaviour that preserves visual character, interaction states, accessibility and rendering behaviour. Use when building or changing UI in this codebase. Correct CSS is the floor, not the deliverable.
 ---
 
-# Implementing Arena UI here
+# Building the interface
 
-`/AGENTS.md` is canonical and wins over this file; `docs/TECHNICAL_STANDARDS.md`
-is the standard. This file records the mechanisms and traps specific to this
-codebase. It is project-scoped and does not replace the general frontend-design
-plugin skill.
+The Owner's operating profile (`ops/onboarding/greenbear.md`, from
+`origin/main`), `/AGENTS.md` and `docs/TECHNICAL_STANDARDS.md` outrank this file.
 
-## The stack, and what is not in it
+## Shared rules for all six design skills
 
-Django templates, existing HTML/CSS and vanilla JavaScript. No React, no SCSS,
-no build step, no new stylesheet — two is the number. `ManifestStaticFilesStorage`
-serves static files. CSP `style-src` is `'self'` plus fonts.googleapis.com, so no
-`style=""` anywhere in shipped markup.
+- **A tool is evidence, not competence.** Passing tests, valid CSS, a clean
+  diff and a successful deploy prove the code works. They prove nothing about
+  whether the interface looks designed.
+- **A crop of a reference is never presented as artwork you created.**
+- **No skill overrides another automatically.**
+- These files are not activated automatically. Open and read the one that
+  matches the task.
 
-Fonts actually loaded: Playfair Display 400/600/700, Inter 400/500/600, Libre
-Bodoni 400, Dancing Script 600/700. Asking for Inter 800 or Playfair 500 gets a
-synthesised or snapped weight — it will look almost right and measure wrong.
+## Frontend design is not CSS correctness
 
-## Division of labour
+The deliverable is an interface that carries the design at every size, in every
+state, for every user. Code that validates, matches the numbers and ships is the
+minimum condition, not the goal. When the two conflict — a rule that is elegant
+against a rule that preserves the design — the design wins and the reason is
+written down.
 
-- **SVG** — complex decorative geometry.
-- **HTML** — semantic text and content, so it stays selectable and readable by
-  a screen reader.
-- **CSS** — layout, state, responsive behaviour, and any lighting that has to
-  know how wide the element is.
+## Component structure
 
-Do not rebuild SVG geometry out of dozens of HTML elements, and do not replace
-reconstructed artwork with a CSS approximation.
+- Decide the component's **parts** before its styles: the container, the
+  decorative shell, the semantic content, the ornaments, the states.
+- One element, one job. An element that is simultaneously the touch target, the
+  artwork, the layout container and the text block cannot be changed later
+  without breaking one of the four.
+- **Separate decorative artwork from semantic content**, always:
+  - artwork goes on the shell — a background, a border-image, an SVG, a
+    pseudo-element — and is `aria-hidden` or has no text at all;
+  - text stays real HTML so it is selectable, translatable and readable by a
+    screen reader;
+  - never rebuild artwork out of dozens of HTML elements, and never replace
+    artwork with a CSS approximation because it is quicker.
+- Keep a component's CSS gathered in one place. Do not relocate a gathered block
+  as a side effect of another change.
 
-## Mechanisms worth knowing
+## Asset boundaries
 
-**9-slice frame.** `border-image-source: url(...)` +
-`border-image-slice: N fill` + `border-image-width` over a real `border-width`.
-Its limits are in `graphic-reconstruction`; the short version is that the middle
-column is stretched and carries one value.
+Decide, per element, what carries it, and write the reason down:
 
-**A layer over the border box.** An absolutely positioned child is bounded by
-the *padding* box, so it cannot reach the border — where a moulding and an
-engraved line live. Negative insets put a pseudo-element on the border box:
+| carried by | when |
+|---|---|
+| **SVG** | defined edges, facets, emblems, anything recoloured or scaled |
+| **Raster asset** | genuinely photographic or gradient-dense surfaces |
+| **CSS** | layout, state, and any effect that must know the element's size |
+| **HTML** | every piece of text |
 
-    inset: calc(-1 * var(--cmd-frame-y)) calc(-1 * var(--cmd-frame-x));
+Boundary rules that have cost time here:
 
-**Clip a pseudo-element, never the element.** `clip-path` on the element itself
-cuts its border-image and its label with it, and clips the focus outline. Hold
-the shape in a custom property and apply it to `::before`/`::after`:
+- An SVG loaded through `border-image: url()` is a separate document; CSS custom
+  properties do not reach inside it.
+- A 9-slice's middle column is **stretched**, so whatever it holds is one value
+  across the element. Anything that varies along the length must be a CSS layer.
+- `border-image-slice: … fill` paints the middle over the **padding** box, which
+  starts at `border-width`. A border narrower than the slice lets the fill cover
+  the frame art at the ends.
+- Static files go through `ManifestStaticFilesStorage`; the served name is
+  hashed. Verify the live file, not the source file.
 
-    .thing { --ring: polygon(evenodd, <outer>, <inner>); }
-    .thing::after { clip-path: var(--ring); }
+## Live typography
 
-Derive the inner contour from the same numbers the artwork draws, so the two
-cannot drift apart.
+- The type in the page is not the type in the mockup: it is subject to the real
+  font files, the real weights, hinting and subpixel rendering.
+- **Use only weights the project actually loads.** Requesting one that is not
+  loaded yields a synthesised or snapped weight that looks nearly right and
+  measures wrong. Loaded here: Playfair Display 400/600/700, Inter 400/500/600,
+  Libre Bodoni 400, Dancing Script 600/700.
+- Set tracking and word spacing as design values and then **look at the rendered
+  words**: letters must not touch, and the word space must stay visibly wider
+  than the letter space at every size the component reaches.
+- Type that scales with the viewport changes its own metrics; check the smallest
+  and largest sizes it will actually reach, not one.
 
-**`mix-blend-mode` needs containment.** Give the parent `isolation: isolate` (or
-a `filter`, which does it as a side effect) or the blend reaches the page behind
-it. If you remove a `filter`, add the isolation explicitly.
+## Layout
 
-**Animating a custom property** requires `@property` with a `syntax`; an
-unregistered property is a token to the animation engine and the transition
-snaps instead of easing.
+- Grid and flex for structure; explicit placement when an element inherits a
+  `grid-area` from an earlier layout.
+- Size a component from its own content where the design says it should follow
+  its text, and cap it where the design says it should not stretch.
+- Keep artwork geometry in units that land on whole device pixels at the
+  delivery size. A one-pixel band on a `rem` that resolves to 50.9 at one width
+  and 51.2 at another blurs at both.
 
-**Painting order.** A positioned pseudo-element paints above inline content. If
-a lighting layer should not tint the label and the icon, give those
-`position: relative; z-index: 1` — deliberately, with the reason written down.
+## Responsive behaviour that preserves visual character
 
-## Tokens
+Responsive is not proportional shrinking. Decide, per property, whether it
+**scales, stays fixed, reflows, repositions, simplifies or disappears** — and
+record the decision:
 
-Colours derived from the approved mockup are **named tokens**, not literals in a
-gradient (`TECHNICAL_STANDARDS` §7). Component tokens live on the component's
-own root element. Put the measurement in the comment — the coordinate it was
-read from — so a later pass can check it rather than re-guess it.
+- **Fixed** — one- and two-pixel artwork bands, and frame thicknesses.
+- **Scales** — type, icons, inner spacing, so an element follows its content.
+- **Capped** — an element that fills a 1920px screen is stretched, not
+  responsive. Cap the inline size and centre it; check the proportions against
+  the design at that width.
+- **Reflows / simplifies / disappears** — below the breakpoint, columns
+  collapse, connectors and their nodes are removed rather than shrunk, and type
+  goes to a pixel floor.
 
-Note that a custom property declared on an element is **not** overridable from
-an ancestor. Setting it on a wrapper to sweep values silently does nothing.
+**The character must survive.** If the object reads as a cast plate at 1440 and
+as a grey rounded box at 390, the responsive work failed even with no overflow.
+Check the small sizes by looking, not only by measuring.
 
-## Responsive is not proportional shrinking
+Set the breakpoint by measurement: add up what the layout actually needs at the
+smallest root size it will see, and re-derive it when element widths change.
+Test at 1920, 1440, 1280, 1024, tablet and 390, and check each for overflow,
+collisions and broken connectors.
 
-Decide, per property, whether it scales, stays fixed, reflows, repositions or
-disappears:
+## Interaction states
 
-- **Fixed** — one- and two-pixel artwork bands. A plate height on a rem that
-  resolves to 50.9 at one width and 51.2 at another puts a moulding edge on a
-  half pixel and blurs it.
-- **Scales** — type, icons, inner padding, so an element follows its own text.
-- **Capped** — a bar that fills 1920px is not responsive, it is stretched. Cap
-  the inline size and centre it; measure the result against the reference's own
-  proportions (a connector 73px in the mockup was 489px before the cap).
-- **Reflows / disappears** — at the stack breakpoint, columns collapse,
-  connectors and their nodes go, and type switches to a **pixel floor** rather
-  than continuing to shrink.
+- Every interactive element needs rest, hover, focus-visible, active and
+  disabled, and each must be visible on its own background.
+- Match the system's gesture. In this project, state changes **material**, not
+  position; a two-pixel lift with a deeper shadow is the web's default and
+  belongs to nothing here.
+- A state change must be loud enough to read. A gesture confined to one corner
+  is true to the model and useless as feedback.
+- Honour `prefers-reduced-motion`.
 
-Set the breakpoint by measurement, not by convention: add up what the three
-columns actually need at the smallest root size they will see. Use the Arena's
-container query (`@container arena-command-area`), and re-derive the number when
-element widths change.
+## Accessibility
 
-Test at 1920, 1440, 1280, 1024, tablet and 390, and check for overflow,
-collisions and broken connectors at each — not one screenshot size
-(`TECHNICAL_STANDARDS` §6).
+- 44px minimum touch target on every screen.
+- A visible `:focus-visible` indicator that nothing clips — note that
+  `clip-path` on the element clips its outline; put clipping on a pseudo-element
+  instead.
+- Full keyboard operation, and focus order that follows the visual order.
+- Decorative artwork is `aria-hidden`; meaning never lives only in an ornament.
+- Contrast checked against the artwork behind the text, not against a flat
+  colour.
 
-## Accessibility is not negotiable
+## Rendering behaviour
 
-44px minimum target on every screen, visible `:focus-visible` ring that nothing
-clips, keyboard operation, `prefers-reduced-motion` honoured. A hover gesture
-that changes only material still needs its focus ring.
+- **Painting order.** A positioned pseudo-element paints above inline content.
+  If a lighting layer must not tint the label, give the label its own layer
+  deliberately.
+- **`mix-blend-mode` needs containment**: `isolation: isolate` on the parent, or
+  a `filter`, which does it as a side effect. Removing the filter removes the
+  containment.
+- **Animating a custom property** requires `@property` with a `syntax`;
+  unregistered, the transition snaps.
+- A custom property declared on an element is not overridable from an ancestor.
+- Verify in the real renderer at the real size; a viewer is not the browser.
 
 ## Traps that have cost real time here
 
 - Blanket `color: inherit`.
-- Multi-line `{# #}` comments in templates.
-- Custom properties resolved where they are declared, not where they are used.
+- Multi-line `{# #}` comments in Django templates.
 - Container queries adding no specificity.
-- A caption carrying `grid-area` from an earlier layout, landing in row 2.
+- An element carrying `grid-area` from an earlier layout.
 - `position: relative` reviving a base `left: 50%`.
-- Dropping `text-transform: uppercase` and reading the markup's own case.
-- `arena_render.js`'s `?v=` cache-buster is hardcoded — bump the string;
-  clearing caches will not do it.
+- Dropping `text-transform` and reading the markup's own case.
+- A hardcoded `?v=` cache-buster that clearing the cache will not bypass.
 - A service worker serving yesterday's file.
+- A stale inline override in a test page serving a superseded asset.
 - CRLF files and regexes written with `\n`.
 
-## Related
+## Combine with
 
-`svg-design` for the asset, `visual-qa` for the review, `graphic-design` for
-whether the result reads as designed.
+`graphic-design` for whether the built result reads as designed.
+`svg-design` or `pixel-perfect-graphic-reconstruction` for where the assets came
+from. `visual-qa` for the review at every viewport.
