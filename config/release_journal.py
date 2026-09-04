@@ -1,5 +1,29 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1711",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The service worker stops serving a cached Arena",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner reported the Arena down immediately after a correct "
+            "deploy. It was not down: the view returned 200 with the full "
+            "markup, the stylesheet and both plate assets answered 200, and no "
+            "file in the code, static or cache trees was owned by root. What he "
+            "was being served was his own browser's copy. "
+            "/chef-battle/ was missing from the service worker's no-cache "
+            "prefixes, so the Arena's HTML was cached like any public page. The "
+            "stylesheet carries a cache-buster and had moved on; the HTML had "
+            "not. The result is the old command bar's markup - the fragments "
+            "that were deleted - painted by a stylesheet that no longer has "
+            "rules for any of them, which reads as a broken page. "
+            "Two changes: /chef-battle/ joins the no-cache prefixes, and "
+            "PWA_CACHE_VERSION goes v7 to v8 so every existing service worker "
+            "drops what it already holds. The Arena is superuser-gated and "
+            "changes with every release; it should never have been cacheable."
+        ),
+    },
+    {
         "version": "2.5.1708",
         "date": "2026-09-04",
         "commit": "pending",

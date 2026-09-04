@@ -33,6 +33,11 @@ _NO_CACHE_PREFIXES = [
     "/recipes/edit/",
     "/articles/create",
     "/articles/edit/",
+    # Chef Battles is superuser-gated and changes with every Arena release. A
+    # cached copy of its HTML is served back to the one person allowed to see
+    # it, paired with a stylesheet that has already moved on - which is how the
+    # Arena came to look broken after a deploy that was itself correct.
+    "/chef-battle/",
 ]
 
 
