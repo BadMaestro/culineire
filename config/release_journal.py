@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1735",
         "date": "2026-09-04",
-        "commit": "pending",
+        "commit": "62e73937",
         "title": "Stages 2 to 5 of the rehearsal: the battle finishes, and a draw stops being a win",
         "section": "Chef Battles / Arena",
         "summary": (
