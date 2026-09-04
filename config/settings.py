@@ -137,6 +137,7 @@ INSTALLED_APPS = [
     "sandbox",
     "sponsors",
     "coworking",
+    "ledo.apps.LedoConfig",
 
     "agent_discovery",
 ]
@@ -182,6 +183,7 @@ MONITORING_EXCLUDED_PATH_PREFIXES = [
 ]
 
 PINCH_PUBLIC = env_bool("PINCH_PUBLIC", default=True)
+LEDO_ENABLED = env_bool("LEDO_ENABLED", default=False)
 
 ROOT_URLCONF = "config.urls"
 

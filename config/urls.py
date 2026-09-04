@@ -68,6 +68,9 @@ urlpatterns = [
     # Sponsors puzzle
     path("sponsors/", include("sponsors.urls", namespace="sponsors")),
 
+    # LEDO (isolated temporary application, hosted by the CulinEire stack)
+    path("ledo/", include("ledo.urls", namespace="ledo")),
+
     # Coworking (moderator-only AI agent handoff dashboard)
     path("coworking/", include("coworking.urls", namespace="coworking")),
 
