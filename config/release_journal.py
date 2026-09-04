@@ -1,5 +1,36 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1732",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "Join Us, Become a Chef, Issue a Challenge - and the sign-up form stops greeting people who are already in",
+        "section": "Accounts / Chef Battles",
+        "summary": (
+            "THE HAT PLATE'S THREE BRANCHES ARE NOW THE OWNER'S OWN WORDS. Not "
+            "signed in goes to Join Us, the signup page, rather than to a login "
+            "screen. Signed in but not yet a chef goes to Become a Chef, "
+            "chef_enroll. An enrolled chef goes to Issue a Challenge, which is "
+            "where that branch already went. "
+            "A BUG HE FOUND ON THE WAY. He filled in Join Us, confirmed his "
+            "email, was logged in by the activation link, followed a next that "
+            "still pointed at the sign-up form, and was shown Create Your Free "
+            "Account while the header said WELCOME BACK. SignUpView had no "
+            "guard against an authenticated visitor, and any route can put one "
+            "there - a back button, a bookmark, a stale next - so the guard "
+            "belongs on the view. It now redirects a signed-in visitor home. "
+            "AND THE FORM EXPLAINS ITSELF. A visitor arriving from the Arena's "
+            "plate is told, above the fields, that joining is not the same as "
+            "becoming a Chef: the account comes first, the Chef step is taken "
+            "later inside Chef Battles behind an 18+ confirmation and the "
+            "battle rules, and nothing on the page commits him to it. Built "
+            "from the page's own legal-* classes, so no new stylesheet. "
+            "Two of my own documented traps caught me writing it: a multi-line "
+            "{# #} is not a Django comment and printed itself onto the live "
+            "page, and .legal-summary-item strong is display:block, which broke "
+            "the sentence in half. Both fixed before this shipped."
+        ),
+    },
+    {
         "version": "2.5.1729",
         "date": "2026-09-04",
         "commit": "pending",

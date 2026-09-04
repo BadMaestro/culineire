@@ -156,6 +156,15 @@ class SignUpView(CreateView):
     @method_decorator(sensitive_post_parameters("password1", "password2"))
     @method_decorator(ratelimit(key="ip", rate="3/h", method="POST", block=False))
     def dispatch(self, request, *args, **kwargs):
+        # A SIGNED-IN VISITOR HAS NO BUSINESS ON THE SIGN-UP FORM. Reported by
+        # the Owner, 2026-09-04: he confirmed his email, was logged in by the
+        # activation link, then followed a `next` that still pointed here and
+        # was shown "Create Your Free Account" while the header said WELCOME
+        # BACK. Any route can land an authenticated user here - a back button, a
+        # bookmark, a stale `next` - so the guard belongs on the view rather
+        # than on whatever sent them.
+        if request.user.is_authenticated:
+            return redirect("home")
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

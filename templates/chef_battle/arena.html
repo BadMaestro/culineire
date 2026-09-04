@@ -66,7 +66,7 @@
   same property in any two of these files and no repackaging can change a
   winner. Verified declaration by declaration, not by eye.
 {% endcomment %}
-<link href="{% static 'css/arena.css' %}?v=20260904-command-bar-final" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260904-command-bar-final2" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260816-t28-ambient" rel="stylesheet">
 {% endblock %}
 
@@ -907,14 +907,19 @@
     A GENUINE DOM MOVE, not a copy: the three-branch action and the Issue a
     Challenge link were cut from the footer and pasted here.
 
-    AMENDED 2026-09-04, on the Owner's instruction: the hat plate now leads to
-    the form where a chef registers as a chef. An author who is not yet enrolled
-    goes to chef_enroll instead of silently taking a spectator's seat, and an
-    anonymous visitor logs in with that same form as the destination. The
-    enrolled branch is unchanged. That retires the js-arena-join-crowd button
-    from this bar - bindJoinCrowd below returns when it finds no button, so it
-    is a clean no-op rather than an error. Its success handler wrote to
-    .arena-lower-actions__title, a class this bar has never had.
+    AMENDED 2026-09-04, on the Owner's instruction. The hat plate asks the
+    visitor for the one thing he has not done yet, and its three branches are
+    his own words:
+
+      not signed in        -> Join Us          (signup)
+      signed in, not a chef -> Become a Chef   (chef_enroll)
+      already a chef        -> Issue a Challenge (challenge_create)
+
+    That retires the js-arena-join-crowd button from this bar, which used to
+    seat a signed-in visitor in the crowd without asking. bindJoinCrowd below
+    returns when it finds no button, so it is a clean no-op rather than an
+    error; its success handler wrote to .arena-lower-actions__title, a class
+    this bar has never had.
 
     AMENDED 2026-09-01: THE ROW IS NOW THE ARENA COMMAND BAR, and the band
     it used to borrow is a real row of the deck (`cmdbar`). The caption is no
@@ -1012,7 +1017,7 @@
           </span>
         </a>
       {% else %}
-        <a class="arena-command-bar__action arena-command-bar__action--enter" href="{% url 'login' %}?next={% url 'chef_battle:chef_enroll' %}">
+        <a class="arena-command-bar__action arena-command-bar__action--enter" href="{% url 'signup' %}">
           <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use><image href="{% static 'images/arena/emblem-hat.png' %}" x="5" y="5" width="26" height="26" preserveAspectRatio="xMidYMid meet"></image></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Enter Arena</span>
