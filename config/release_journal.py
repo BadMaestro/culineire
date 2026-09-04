@@ -1,5 +1,28 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1723",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The Owner's own emblems go on the two command-bar plates",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "He supplied two: a chef's hat and a domed cloche, 128 square with "
+            "alpha. His placement - the hat on ENTER ARENA, because that is the "
+            "one you step onto the floor as, and the cloche on ISSUE A "
+            "CHALLENGE, because that is the one you send out. "
+            "The crossed spears they replace were drawn here; they are gone "
+            "from both medal symbols. The dome and its rim stay: he supplied "
+            "emblems, not medallions, and each plate keeps its own material - "
+            "dark glass on the graphite, cream on the ivory - with only the "
+            "emblem changing. The images are placed by arena.html as an SVG "
+            "<image> over the dome rather than baked into the sprite, so a "
+            "future swap is one attribute. "
+            "img-src is 'self' so a same-origin static file needs no CSP "
+            "change, and #ad-spear with its two gradients is left in the sprite "
+            "rather than deleted, being outside this task."
+        ),
+    },
+    {
         "version": "2.5.1720",
         "date": "2026-09-04",
         "commit": "pending",
