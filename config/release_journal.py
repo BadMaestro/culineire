@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1771",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "1973f3f5",
         "title": "Looking at the kit screen found black text on a black row, and it was never the kit screen's fault",
         "section": "Chef Battles / Arena",
         "summary": (
