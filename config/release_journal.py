@@ -1,5 +1,55 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1765",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The other seven: a guard reading a comment, a console switch left off, and a card that broke the transaction it rode in",
+        "section": "Chef Battles / Site",
+        "summary": (
+            "v2.5.1762 fixed the four failures that were mine and reported the "
+            "seven that were not. The Owner said take them too. Three causes, "
+            "all found by reading rather than guessing. "
+            "FOUR - ArenaOperatorSwitchesTests. The class never turned on "
+            "ARENA_MASTER_CONSOLE_ENABLED, so has_arena_console_access refused "
+            "every non-Owner outright and arena_console_guard answered 404 "
+            "before master_action could reach its own owner-only 403. The four "
+            "tests that act as a FLAGGED OPERATOR were therefore asserting "
+            "'the console is switched off' while their names promised 'this "
+            "operator is refused this switch'. The Owner-path tests passed "
+            "throughout because the Owner bypasses the kill switch by "
+            "definition, which is why the omission survived since v2.5.1645. "
+            "The class now carries the same override every other console class "
+            "in the file carries. THE GATE ITSELF IS UNTOUCHED - this is the "
+            "rig, not the rule (AGENTS.md 8 and 20). "
+            "FIVE - FloorCaptionGetsARegionTests read a COMMENT. It forbids "
+            "--arena-deck-top-h anywhere in arena_render.js, and v2.5.1504 "
+            "added a comment explaining the very bug the variable was moved to "
+            "fix. Its own sibling, the z-index guard, strips comments first and "
+            "writes down why: a guard that reads prose finds every ghost it was "
+            "written to bury. This one now strips them too. What it enforces is "
+            "unchanged - arena_render.js may not READ OR WRITE that variable. "
+            "SIX AND SEVEN - the two newsfeed errors were a real defect in the "
+            "code, not in the tests, and a second one behind it. "
+            "post_card_for_event passed speaker=event.actor into a NOT NULL "
+            "column, and the hall's own events - a battle finishing, a crown "
+            "moving - have no actor, so every one of them raised "
+            "IntegrityError. The function catches and logs, which was supposed "
+            "to keep a cosmetic fault from losing a battle transition. It could "
+            "not: it runs inside the caller's atomic block, where catching a "
+            "database error does not undo it - the connection stays poisoned "
+            "and the NEXT query raises TransactionManagementError. That is how "
+            "the newsfeed tests failed, on the query after the card. Both are "
+            "fixed: an actor-less event returns before the write, and the write "
+            "now sits in its own atomic() savepoint, so the docstring's promise "
+            "is true instead of aspirational. "
+            "Showing hall events as spoken by the Arena itself is a real "
+            "feature - display_name already falls back to 'The Arena' for it - "
+            "but it needs speaker to become nullable, a schema change on a "
+            "chat the Owner has accepted. Left for his word, not taken as a "
+            "side effect."
+        ),
+    },
+    {
         "version": "2.5.1762",
         "date": "2026-09-04",
         "commit": "pending",

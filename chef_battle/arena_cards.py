@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import logging
 
+from django.db import transaction
 from django.utils import timezone
 
 from .models import ArenaChatMessage, ArenaSeat, BattleEvent
@@ -112,18 +113,40 @@ def post_card_for_event(event: BattleEvent) -> ArenaChatMessage | None:
         return None
 
     actor = event.actor
+    # A CARD NEEDS SOMEONE TO HAVE SAID IT. ArenaChatMessage.speaker is NOT
+    # NULL, and the hall's own events - a battle finishing, a crown moving -
+    # carry no actor at all, so this used to hand None to a non-null column and
+    # raise IntegrityError on every one of them. Nothing reached the hall
+    # either way; the difference is between a card that is not written and a
+    # transaction that is broken.
+    #
+    # Showing these as spoken by the Arena itself is a real feature, and the
+    # display_name fallback below was written for it - but it needs speaker to
+    # become nullable, a schema change on a chat the Owner has already
+    # accepted. That is his call, not a side effect of this fix.
+    if actor is None:
+        return None
+
     ring, cell = _seat_of(actor)
+    # THE SAVEPOINT IS WHAT MAKES THE PROMISE IN THE DOCSTRING TRUE. This runs
+    # inside the caller's atomic block, and catching a database error there
+    # does not undo it: the connection stays poisoned and the very next query
+    # raises TransactionManagementError, so the "cosmetic fault" took the whole
+    # battle transition down with it. That is how the two newsfeed tests failed
+    # - not on the card, but on the query after it. An inner atomic() gives
+    # this write its own savepoint, which rolls back alone.
     try:
-        return ArenaChatMessage.objects.create(
-            battle=event.battle,
-            speaker=actor,
-            display_name=(getattr(actor, "name", "") or "The Arena")[:60],
-            body=event.message[:300],
-            ring_index=ring,
-            seat_index=cell,
-            kind=kind,
-            event=event,
-        )
+        with transaction.atomic():
+            return ArenaChatMessage.objects.create(
+                battle=event.battle,
+                speaker=actor,
+                display_name=(getattr(actor, "name", "") or "The Arena")[:60],
+                body=event.message[:300],
+                ring_index=ring,
+                seat_index=cell,
+                kind=kind,
+                event=event,
+            )
     except Exception:
         logger.exception("arena card failed for BattleEvent %s", event.pk)
         return None

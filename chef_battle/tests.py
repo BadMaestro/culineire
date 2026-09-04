@@ -13514,12 +13514,24 @@ class FloorCaptionGetsARegionTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
+        import re
+
         layout = (
             Path(django_settings.BASE_DIR) / "static" / "js" / "arena_page_layout.js"
         ).read_text(encoding="utf-8")
         self.assertIn("--arena-deck-top-h", layout)
         self.assertIn("arena-broadcast-ribbon", layout)
-        self.assertNotIn("--arena-deck-top-h", self._js())
+        # COMMENTS ARE STRIPPED FIRST, for the reason the z-index guard in
+        # ArenaReadinessLifecycleTests writes out at length: a guard that reads
+        # prose finds every ghost it was written to bury. This one went red on
+        # v2.5.1504's comment EXPLAINING the fix - "--arena-deck-top-h stayed at
+        # 0 the whole time and the header stayed" - which is the sentence a
+        # reader of that code needs, and is not a second owner of the variable.
+        # What must stay true is that arena_render.js never READS OR WRITES it.
+        js = self._js()
+        js = re.sub(r"/\*.*?\*/", "", js, flags=re.S)
+        js = re.sub(r"(?m)^\s*//.*$", "", js)
+        self.assertNotIn("--arena-deck-top-h", js)
 
     def test_the_octagon_has_one_authoritative_vertical_input(self):
         css = self._css()
@@ -29178,10 +29190,22 @@ class TheShelfIsGreyMarkedAndOpensInColourTests(TestCase):
             "swapped mouse buttons walks past it",
         )
 
+
+@override_settings(ARENA_MASTER_CONSOLE_ENABLED=True, CHEF_BATTLE_ENABLED=True)
 class ArenaOperatorSwitchesTests(TestCase):
     """The switches the Master Console gained on 2026-09-02: the emulation
     bots, the runway, and the test-data purge. Owner-only, audited, and -
-    the point of the purge - incapable of reaching a row a person made."""
+    the point of the purge - incapable of reaching a row a person made.
+
+    THE OVERRIDE ABOVE IS THE POINT OF THE CLASS, not decoration. Without it
+    ARENA_MASTER_CONSOLE_ENABLED is False, has_arena_console_access refuses
+    every non-Owner outright, and arena_console_guard answers 404 before
+    master_action can reach its own owner-only check - so the four tests that
+    act as a FLAGGED OPERATOR were asserting "the console is switched off"
+    while their names promised "this operator is refused this switch". The
+    Owner-path tests passed throughout because the Owner bypasses the kill
+    switch by definition, which is exactly why the omission survived. Every
+    other console class in this file carries the same override."""
 
     def setUp(self):
         from django.conf import settings as django_settings
