@@ -1,0 +1,40 @@
+{% load static %}
+<!doctype html>
+<html lang="nb">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="description" content="LEDO Drive – forespør flyplasstransfer mellom Kongsberg og Gardermoen.">
+    <meta name="theme-color" content="#070b12">
+    <title>{% block title %}LEDO Drive{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'ledo/css/ledo.css' %}">
+    <script src="{% static 'ledo/js/ledo.js' %}" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#main">Hopp til innhold</a>
+    <header class="site-header">
+        <a class="brand" href="{% url 'ledo:home' %}" aria-label="LEDO Drive forside">
+            <span class="brand-mark">LD</span>
+            <span>LEDO <b>DRIVE</b></span>
+        </a>
+        <nav aria-label="Hovedmeny">
+            <a href="{% url 'ledo:home' %}#slik">Slik fungerer det</a>
+            <a href="{% url 'ledo:home' %}#pris">Pris</a>
+            <a href="{% url 'ledo:home' %}#faq">FAQ</a>
+            <a class="nav-cta" href="{% url 'ledo:home' %}#bestill">Bestill tur</a>
+        </nav>
+    </header>
+    <main id="main">{% block content %}{% endblock %}</main>
+    <footer class="site-footer">
+        <div>
+            <span class="footer-brand">LEDO DRIVE</span>
+            <p>Flyplasstransfer mellom Kongsberg og Gardermoen.</p>
+        </div>
+        <div class="footer-links">
+            <span>Kontaktinformasjon og organisasjonsnummer publiseres etter verifisering.</span>
+            <a href="#bestill">Send forespørsel</a>
+        </div>
+    </footer>
+</body>
+</html>

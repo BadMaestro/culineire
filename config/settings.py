@@ -184,6 +184,7 @@ MONITORING_EXCLUDED_PATH_PREFIXES = [
 
 PINCH_PUBLIC = env_bool("PINCH_PUBLIC", default=True)
 LEDO_ENABLED = env_bool("LEDO_ENABLED", default=False)
+LEDO_PREVIEW_STAFF_ONLY = env_bool("LEDO_PREVIEW_STAFF_ONLY", default=True)
 
 ROOT_URLCONF = "config.urls"
 

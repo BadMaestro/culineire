@@ -1,0 +1,19 @@
+{% extends "ledo/base.html" %}
+
+{% block title %}Forespørsel mottatt · LEDO Drive{% endblock %}
+
+{% block content %}
+<section class="confirmation">
+    <p class="eyebrow"><span></span> Forespørsel mottatt</p>
+    <h1>Takk. Vi har registrert turen.</h1>
+    <p>Dette er ikke en endelig bestillingsbekreftelse. Operatøren kontrollerer tilgjengeligheten før turen bekreftes.</p>
+    <dl>
+        <div><dt>Referanse</dt><dd>{{ booking.public_id }}</dd></div>
+        <div><dt>Rute</dt><dd>{{ booking.route.name }}</dd></div>
+        <div><dt>Henting</dt><dd>{{ pickup_at_oslo|date:"d.m.Y H:i" }} (Europe/Oslo)</dd></div>
+        <div><dt>Pris</dt><dd>{{ booking.quoted_price|floatformat:0 }} {{ booking.currency }}</dd></div>
+        <div><dt>Status</dt><dd>{{ booking.get_status_display }}</dd></div>
+    </dl>
+    <a class="button button-primary" href="{% url 'ledo:home' %}">Til forsiden</a>
+</section>
+{% endblock %}

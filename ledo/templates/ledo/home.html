@@ -1,21 +1,129 @@
-{% load static %}
-<!doctype html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex, nofollow, noarchive">
-    <title>LEDO</title>
-    <link rel="stylesheet" href="{% static 'ledo/css/ledo.css' %}">
-</head>
-<body>
-    <main class="ledo-shell">
-        <section class="ledo-card" aria-labelledby="ledo-title">
-            <p class="ledo-eyebrow">Временное приложение</p>
-            <h1 id="ledo-title">LEDO</h1>
-            <p>Изолированная рабочая область запущена на инфраструктуре CulinEire.</p>
-            <span class="ledo-status">Готово к разработке</span>
-        </section>
-    </main>
-</body>
-</html>
+{% extends "ledo/base.html" %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow"><span></span> Kongsberg · Oslo lufthavn</p>
+        <h1>Flyplass<wbr>transfer<br><em>uten stress.</em></h1>
+        <p class="hero-lead">Send en forespørsel om privat transport mellom Kongsberg og Gardermoen. Du ser prisen før du sender, og turen blir bekreftet av operatøren.</p>
+        <div class="hero-actions">
+            <a class="button button-primary" href="#bestill">Bestill tur <span aria-hidden="true">↗</span></a>
+            <a class="button button-quiet" href="#slik">Se hvordan det virker</a>
+        </div>
+        <p class="hero-note">Dette er en forespørsel, ikke en automatisk bekreftet bestilling.</p>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+        <div class="route-card">
+            <div class="route-line"><i></i><span></span><i></i></div>
+            <div class="route-cities"><strong>Kongsberg</strong><strong>Gardermoen</strong></div>
+            <p>Direkte. Privat. Forutsigbart.</p>
+        </div>
+        <div class="monogram">LD</div>
+    </div>
+</section>
+
+<section class="trust-strip" aria-label="Viktige fordeler">
+    <article><span>01</span><div><strong>Direkte rute</strong><small>Fra dør til terminal</small></div></article>
+    <article><span>02</span><div><strong>Pris på forhånd</strong><small>Ingen skjult beregning i skjemaet</small></div></article>
+    <article><span>03</span><div><strong>Personlig svar</strong><small>Operatøren bekrefter tilgjengelighet</small></div></article>
+</section>
+
+<section class="section process" id="slik">
+    <div class="section-heading">
+        <p class="eyebrow"><span></span> En enkel reise</p>
+        <h2>Tre steg.<br>Så er du på vei.</h2>
+    </div>
+    <div class="steps">
+        <article><b>01</b><h3>Velg turen</h3><p>Velg retning, tidspunkt, passasjerer og eventuell retur.</p></article>
+        <article><b>02</b><h3>Se prisen</h3><p>Gjeldende pris og hva forespørselen gjelder vises før innsending.</p></article>
+        <article><b>03</b><h3>Få bekreftelse</h3><p>Du får et referansenummer. Operatøren kontrollerer kapasitet og bekrefter turen.</p></article>
+    </div>
+</section>
+
+<section class="section price-section" id="pris">
+    <div>
+        <p class="eyebrow"><span></span> Forutsigbar pris</p>
+        <h2>Avklart før du bestiller.</h2>
+        <p>Aktive priser styres på serveren og lagres sammen med forespørselen. En endring i prislisten endrer aldri tilbudet som allerede ble vist deg.</p>
+    </div>
+    <div class="fare-list">
+        {% for fare in fares %}
+            <article>
+                <div><span>{{ fare.route.name }}</span><small>{{ fare.vehicle_class }}</small></div>
+                <strong>{{ fare.one_way_price|floatformat:0 }} {{ fare.currency }}</strong>
+            </article>
+        {% empty %}
+            <article class="fare-pending">
+                <div><span>Prislisten verifiseres</span><small>Bestilling åpnes når gjeldende tariffer er godkjent.</small></div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section booking-section" id="bestill">
+    <div class="booking-intro">
+        <p class="eyebrow"><span></span> Send forespørsel</p>
+        <h2>Hvor skal vi hente deg?</h2>
+        <p>Fyll ut det vi trenger for å vurdere turen. Ingen betaling skjer på denne siden.</p>
+        <div class="privacy-note"><b>Kun nødvendige opplysninger</b><span>Kontakt- og reisedata brukes for å behandle forespørselen.</span></div>
+    </div>
+    <div class="booking-panel">
+        {% if booking_available %}
+        <form action="{% url 'ledo:booking_create' %}" method="post" novalidate data-booking-form>
+            {% csrf_token %}
+            {{ form.idempotency_key }}{{ form.website }}
+            {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+            <fieldset>
+                <legend>Reisen</legend>
+                <div class="field full">{{ form.route.label_tag }}{{ form.route }}{{ form.route.errors }}</div>
+                <div class="field">{{ form.pickup_at.label_tag }}{{ form.pickup_at }}{{ form.pickup_at.errors }}</div>
+                <div class="field return-toggle">{{ form.return_trip }}{{ form.return_trip.label_tag }}</div>
+                <div class="field full return-field" hidden>{{ form.return_at.label_tag }}{{ form.return_at }}{{ form.return_at.errors }}</div>
+                <div class="field">{{ form.adults.label_tag }}{{ form.adults }}{{ form.adults.errors }}</div>
+                <div class="field">{{ form.children.label_tag }}{{ form.children }}{{ form.children.errors }}</div>
+                <div class="field">{{ form.luggage.label_tag }}{{ form.luggage }}{{ form.luggage.errors }}</div>
+                <div class="field">{{ form.flight_number.label_tag }}{{ form.flight_number }}{{ form.flight_number.errors }}</div>
+                <div class="field full">{{ form.notes.label_tag }}{{ form.notes }}{{ form.notes.errors }}</div>
+            </fieldset>
+            <fieldset>
+                <legend>Kontakt</legend>
+                <div class="field full">{{ form.name.label_tag }}{{ form.name }}{{ form.name.errors }}</div>
+                <div class="field">{{ form.email.label_tag }}{{ form.email }}{{ form.email.errors }}</div>
+                <div class="field">{{ form.phone.label_tag }}{{ form.phone }}{{ form.phone.errors }}</div>
+            </fieldset>
+            <div class="quote" aria-live="polite">
+                <span>Pris for forespørselen</span><strong data-quote>Velg en rute</strong><small data-vat></small>
+            </div>
+            <div class="terms">{{ form.accept_terms }}{{ form.accept_terms.label_tag }}{{ form.accept_terms.errors }}</div>
+            <button class="button button-primary submit" type="submit">Send forespørsel <span aria-hidden="true">→</span></button>
+        </form>
+        {{ price_map|json_script:"ledo-price-map" }}
+        {% else %}
+        <div class="booking-closed">
+            <span>Forhåndsvisning</span>
+            <h3>Bestillingen er ikke åpnet ennå.</h3>
+            <p>Aktuelle priser og vilkår må godkjennes før skjemaet kan ta imot forespørsler.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section faq" id="faq">
+    <div class="section-heading">
+        <p class="eyebrow"><span></span> Greit å vite</p>
+        <h2>Ofte stilte spørsmål.</h2>
+    </div>
+    <div class="faq-list">
+        <details><summary>Er turen bekreftet når jeg sender skjemaet?<span>+</span></summary><p>Nei. Du sender en forespørsel. Turen er først avtalt når LEDO Drive har bekreftet tilgjengeligheten.</p></details>
+        <details><summary>Når ser jeg prisen?<span>+</span></summary><p>Gjeldende pris vises i skjemaet før du sender forespørselen og lagres med referansen din.</p></details>
+        <details><summary>Kan jeg bestille tur-retur?<span>+</span></summary><p>Ja, når en godkjent tur-retur-pris finnes for valgt rute. Velg retur og oppgi tidspunktet.</p></details>
+        <details><summary>Betaler jeg på nettsiden?<span>+</span></summary><p>Nei. Denne forhåndsvisningen tar ikke imot betaling. Betalingsmåte publiseres først etter at den er avtalt.</p></details>
+    </div>
+</section>
+
+<section class="closing">
+    <p class="eyebrow"><span></span> LEDO Drive</p>
+    <h2>Veien til flyet<br><em>starter her.</em></h2>
+    <a class="button button-primary" href="#bestill">Bestill tur <span aria-hidden="true">↗</span></a>
+</section>
+{% endblock %}
