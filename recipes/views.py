@@ -1469,6 +1469,17 @@ def author_detail(request, slug):
         except Exception:
             logger.exception("Chef Battle profile data is unavailable for author %s.", author.pk)
 
+    # ENROLMENT IS NOT VISIBILITY. battle_profile above is only loaded when the
+    # Owner's 2026-08-04 gate lets this viewer see Chef Battles at all, so for an
+    # ordinary author it is None whether or not they enrolled - and the hero
+    # offered an already-registered chef "Become a Chef" a second time. The
+    # header (recipes/context_processors.py) reads enrolment straight off the
+    # author for exactly this reason; this is the same read.
+    try:
+        is_enrolled_chef = bool(author.battle_profile.enrolled_at)
+    except Exception:
+        is_enrolled_chef = False
+
     recipes_for_count = Recipe.objects.filter(author=author, is_deleted=False)
     articles_for_count = Article.objects.filter(author=author, is_deleted=False)
     if not (can_manage or moderator):
@@ -1662,6 +1673,7 @@ def author_detail(request, slug):
         "content_filter_label": content_filter_label,
         "collection_count": collection_count,
         "battle_profile": battle_profile,
+        "is_enrolled_chef": is_enrolled_chef,
         "recent_battles": recent_battles,
         "arena_battles": arena_battles,
         "arena_gift_display": arena_gift_display,

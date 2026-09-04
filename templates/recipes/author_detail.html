@@ -43,9 +43,9 @@
                 <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create Recipe</a>
                 <a class="btn-secondary" href="{% url 'articles:article_create' %}">Create Article</a>
                 <a class="btn-secondary" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
-                {% if battle_profile and battle_profile.enrolled_at %}
+                {% if is_enrolled_chef %}{% if chef_battle_enabled %}
                 <a class="btn-secondary" href="{% url 'chef_battle:chef_profile' slug=author.slug %}">Chef Arena</a>
-                {% else %}
+                {% endif %}{% else %}
                 <a class="btn-secondary" href="{% url 'chef_battle:chef_enroll' %}">Become a Chef</a>
                 {% endif %}
             </div>

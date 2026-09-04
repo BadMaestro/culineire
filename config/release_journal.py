@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1750",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "An enrolled chef stops being asked to become one on his own dashboard",
+        "section": "Accounts / Chef Battles",
+        "summary": (
+            "The Owner sent a screenshot of the Author Dashboard of an account "
+            "that had already completed chef enrolment, with Become a Chef "
+            "still in the hero row. "
+            "THE CAUSE WAS THE GATE, NOT THE ENROLMENT. author_detail loads "
+            "battle_profile only inside `if chef_battle_enabled`, which is the "
+            "visibility rule of 2026-08-04 - staff and superusers only. For an "
+            "ordinary author that variable is therefore None whether or not he "
+            "enrolled, and the template chose its button on it: "
+            "`{% if battle_profile and battle_profile.enrolled_at %}`. Every "
+            "non-staff chef fell through to the else branch. "
+            "ENROLMENT IS NOT VISIBILITY, and the header has read them apart "
+            "for a month - recipes/context_processors.py takes enrolment "
+            "straight off the author. The view now does the same, in a new "
+            "is_enrolled_chef, computed outside the gate; battle_profile keeps "
+            "its gate untouched, so nothing about who may SEE Chef Battles "
+            "changes. The hero shows Chef Arena only when enrolled AND the "
+            "battle area is visible - an enrolled non-staff author now sees "
+            "neither button rather than a link to a 404, which is exactly what "
+            "his header menu already does. "
+            "The identical prompt in authoring/profile_form.html was already "
+            "correct: it reads author.battle_profile directly (F75)."
+        ),
+    },
+    {
         "version": "2.5.1747",
         "date": "2026-09-04",
         "commit": "14e05c41",

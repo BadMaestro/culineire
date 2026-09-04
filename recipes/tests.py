@@ -4347,6 +4347,55 @@ class AuthorDetailBattleVisibilityParityTests(TestCase):
         self.assertIsNotNone(resp.context["battle_profile"])
 
 
+@override_settings(CHEF_BATTLE_ENABLED=False)
+class AuthorDashboardEnrolledChefButtonTests(TestCase):
+    """2026-09-04, the Owner's screenshot: an account that had completed chef
+    enrolment was still offered "Become a Chef" on its own Author Dashboard.
+
+    author_detail loads battle_profile only inside the visibility gate, so for
+    an ordinary author it is None whether or not he enrolled, and the template
+    chose its button on it. Enrolment is not visibility."""
+
+    def setUp(self):
+        User = get_user_model()
+        from chef_battle.models import ChefBattleProfile
+
+        user = User.objects.create_user("cb-enrolled", password="pw")
+        self.author = RecipeAuthor.objects.create(
+            user=user, name="CB Enrolled", slug="cb-enrolled",
+        )
+        ChefBattleProfile.objects.create(author=self.author, enrolled_at=timezone.now())
+        self.client.login(username="cb-enrolled", password="pw")
+
+    def _get(self):
+        return self.client.get(
+            reverse("recipes:author_detail", kwargs={"slug": self.author.slug})
+        )
+
+    def test_enrolled_author_is_not_asked_to_enrol_again(self):
+        resp = self._get()
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.context["is_enrolled_chef"])
+        # the gate is closed for him, so battle_profile stays None - that is the
+        # bug's own condition and it must remain true
+        self.assertIsNone(resp.context["battle_profile"])
+        self.assertNotContains(resp, "Become a Chef")
+        # and no Chef Arena link either: it would answer 404 behind the gate
+        self.assertNotContains(resp, "Chef Arena")
+
+    def test_author_who_never_enrolled_still_sees_the_offer(self):
+        User = get_user_model()
+        user = User.objects.create_user("cb-plain", password="pw")
+        RecipeAuthor.objects.create(user=user, name="CB Plain", slug="cb-plain")
+        self.client.login(username="cb-plain", password="pw")
+        resp = self.client.get(
+            reverse("recipes:author_detail", kwargs={"slug": "cb-plain"})
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.context["is_enrolled_chef"])
+        self.assertContains(resp, "Become a Chef")
+
+
 class ModerationPanelRequiresBattleVisibilityTests(TestCase):
     """F16, 2026-08-11: moderation_panel gated only on is_moderator(), the same
     class of gap F8 closed for cooking_moderation/cooking_moderation_approve/
