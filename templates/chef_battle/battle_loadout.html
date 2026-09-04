@@ -46,16 +46,17 @@
     </h2>
 
     {% if group.carried %}
-    <ul class="cr-ingredient-list cr-ingredient-list--readonly">
+    <ul class="kit-list">
       {% for ca in group.carried %}
-      <li class="cr-ingredient-item">
-        {{ ca.artifact.name }} (+{{ ca.artifact.effect_value }})
+      <li class="kit-item">
+        <span class="kit-item__name">{{ ca.artifact.name }}</span>
+        <span class="kit-item__effect">+{{ ca.artifact.effect_value }}</span>
         {% if ca.locked_to_battle_id == battle.pk %}
-        <span class="cr-key-badge">&#x1F381; Gift &middot; must be used here</span>
+        <span class="kit-flag kit-flag--gift">&#x1F381; Gift &middot; must be used here</span>
         {% elif ca.status != "available" %}
-        <span class="cr-key-badge">Spent</span>
+        <span class="kit-flag kit-flag--spent">Spent</span>
         {% elif loadout.is_open %}
-        <form method="post" style="display:inline">
+        <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="unequip">
           <input type="hidden" name="chef_artifact" value="{{ ca.pk }}">
@@ -66,25 +67,27 @@
       {% endfor %}
     </ul>
     {% else %}
-    <p class="battle-muted">Nothing of this type in the kit yet.</p>
+    <p class="kit-empty">Nothing of this type in the kit yet.</p>
     {% endif %}
 
     {% if loadout.is_open and group.available and group.slots_left %}
-    <form method="post" class="battle-form">
+    <form method="post" class="kit-add">
       {% csrf_token %}
       <input type="hidden" name="action" value="equip">
-      <label class="battle-muted" for="kit-add-{{ group.effect_type }}">
-        Add to the kit ({{ group.slots_left }} slot{{ group.slots_left|pluralize }} left)
-      </label>
-      <select name="chef_artifact" id="kit-add-{{ group.effect_type }}" class="battle-form__input" required>
-        {% for ca in group.available %}
-        <option value="{{ ca.pk }}">{{ ca.artifact.name }} (+{{ ca.artifact.effect_value }})</option>
-        {% endfor %}
-      </select>
+      <div class="kit-add__field">
+        <label class="battle-muted" for="kit-add-{{ group.effect_type }}">
+          Add to the kit &mdash; {{ group.slots_left }} slot{{ group.slots_left|pluralize }} left
+        </label>
+        <select name="chef_artifact" id="kit-add-{{ group.effect_type }}" class="battle-form__input" required>
+          {% for ca in group.available %}
+          <option value="{{ ca.pk }}">{{ ca.artifact.name }} (+{{ ca.artifact.effect_value }})</option>
+          {% endfor %}
+        </select>
+      </div>
       <button type="submit" class="btn-primary">Take it in</button>
     </form>
     {% elif loadout.is_open and not group.slots_left %}
-    <p class="battle-muted">All {{ group.limit }} slots of this type are full.</p>
+    <p class="kit-empty">All {{ group.limit }} slots of this type are full.</p>
     {% endif %}
   </section>
   {% empty %}

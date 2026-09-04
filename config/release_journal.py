@@ -1,5 +1,40 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1771",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "Looking at the kit screen found black text on a black row, and it was never the kit screen's fault",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner asked to SEE the kit screen shipped an hour earlier. "
+            "Rendering it is what found this, and a test could not have: every "
+            "assertion about that page passed, because a page can return 200 "
+            "with perfectly correct markup and still be unreadable. "
+            "THE BUG WAS NOT MINE AND IT IS NOT NEW. chef_battle.css carries a "
+            "prefers-color-scheme: dark block, and inside it "
+            ".cr-ingredient-item is given background #2a2a2a and NO colour - "
+            "so its text stays --ink, #292929. Measured in the browser: 41,41,41 "
+            "on 42,42,42, a contrast ratio of 1.0. The sibling rule four lines "
+            "above sets a colour for exactly this reason; this one forgot. "
+            "Anyone whose system is in dark mode has been reading the Changing "
+            "Room's declared ingredients as black on black, and the kit screen "
+            "only inherited it by reusing the class. Fixed where it lives, so "
+            "both pages recover. "
+            "AND THE KIT NOW HAS ITS OWN CLASSES rather than borrowing that "
+            "list, because the same dark row took the .btn-secondary inside it "
+            "down as well - the hardcoded dark brown from base.css, 58/44/30, "
+            "sitting on near-black. The kit's rows stay on the site's own cream "
+            "in either scheme. Measured after: the artifact name 13.3 against "
+            "its row, the Take out button 12.4, the gift flag 5.8 - that last "
+            "one was 2.98 with the raw accent, too light for 12px bold, so it "
+            "is mixed toward the ink and keeps its gold. "
+            "WHAT HE WILL SEE: attack 2 of 3 with two artifacts and a slot "
+            "left, boost holding a spectator's gift marked as one and not "
+            "removable, defence 1 of 3 with two waiting in the chest. Nothing "
+            "about the rule changed - only whether a chef can read it."
+        ),
+    },
+    {
         "version": "2.5.1768",
         "date": "2026-09-05",
         "commit": "70670a90",
