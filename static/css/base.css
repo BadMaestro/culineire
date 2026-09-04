@@ -1998,14 +1998,6 @@
       margin-inline: auto;
     }
 
-    /* THE OWNER'S OWN PAGE KEEPS THE WIDER MEASURE (AGENTS.md 18) - it was
-       .hero--author-profile until 2026-09-04 and is pinned here rather than
-       changed. Every other author profile now takes the golden 18rem inset
-       above, like every other page on the site. */
-    .hero--greenbear .hero-copy {
-      max-width: min(100%, calc(var(--container) - 11rem));
-    }
-
     .hero-title {
       max-width: none;
     }
@@ -2049,17 +2041,10 @@
      .hero--home:not():not() .hero__actions carries one more class and has won
      the cascade with the LOCKED 0.65rem since it was written. Deleted rather
      than pinned, because pinning it would have CHANGED the rendered page. */
-  .hero--greenbear .hero-copy .hero__actions {
-    margin-block-start: 1rem;
-  }
-
-  .hero--greenbear .hero__actions .btn-primary,
-  .hero--greenbear .hero__actions .btn-secondary {
-    padding-inline: 0.45rem;
-    font-size: 0.78rem;
-    letter-spacing: 0.01em;
-    min-height: 36px;
-  }
+  /* Nothing is pinned back for the Owner's page any more. On 2026-09-04 he
+     ruled on the asymmetry directly - a change may not be shipped as a break
+     and then withheld as a fix - and authorised the whole family, his page
+     included. One golden path, no special case. */
 
   /* ==== Generic cards / surfaces ==== */
 

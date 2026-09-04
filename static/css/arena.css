@@ -19,6 +19,9 @@
   --arena-z-base: 0;   /* the deck's own background */
   --arena-z-floor: 1;   /* the floor plate */
   --arena-z-stage: 2;   /* the stage and the render container */
+  --arena-z-command-bar: 3;   /* the command bar, over the floor stage so its two links take the click */
+  --arena-z-command-bar-art: 0;   /* inside the bar: the ornament, behind everything written */
+  --arena-z-command-bar-face: 1;   /* inside the bar: plates, writing and medallions, over the ornament */
   --arena-z-cells: 3;   /* cells and seating drawn on the floor */
   --arena-z-sparks: 4;   /* lit cells and their sparks */
   --arena-z-occupants: 5;   /* chefs standing on the floor */
@@ -8220,7 +8223,7 @@ button.arena-chat__poll-option { cursor: pointer; }
      elementFromPoint at either plate's centre returned .arena-render-container
      until this line existed. */
   position: relative;
-  z-index: 3;
+  z-index: var(--arena-z-command-bar);
   container-type: inline-size;
   container-name: arena-command-area;
   /* Against intrinsic-width overflow inside the deck's grid: a grid item's
@@ -8254,14 +8257,14 @@ button.arena-chat__poll-option { cursor: pointer; }
   padding-inline: 0;
 }
 .arena-command-bar__side { display: flex; align-items: center; min-width: 0;
-                           position: relative; z-index: 1; }
+                           position: relative; z-index: var(--arena-z-command-bar-face); }
 .arena-command-bar__side--l { justify-content: flex-start; }
 .arena-command-bar__side--r { justify-content: flex-end; }
 
 /* THE ORNAMENT IS ONE SVG BEHIND THE ROW. It spans the bar's own box, so every
    junction in it is a shared coordinate rather than two DOM elements meeting by
-   arithmetic. It sits at z-index 0 and everything written sits above it. */
-.arena-command-bar { position: relative; }
+   arithmetic. It sits at z-index 0 and everything written sits above it. The
+   bar is already positioned where it is declared, above. */
 .arena-command-bar__ornament {
   position: absolute;
   left: 0;
@@ -8271,7 +8274,7 @@ button.arena-chat__poll-option { cursor: pointer; }
   width: 798px;
   overflow: visible;
   pointer-events: none;
-  z-index: 0;
+  z-index: var(--arena-z-command-bar-art);
 }
 
 /* THE THREE ARE PLACED BY HAND, and this is not belt-and-braces. The caption
@@ -8392,7 +8395,7 @@ button.arena-chat__poll-option { cursor: pointer; }
    are positioned, so without a layer of their own the ::after would paint over
    them and shade the medallion along with the moulding it sits next to. */
 .arena-command-bar__medallion,
-.arena-command-bar__text { z-index: 1; }
+.arena-command-bar__text { z-index: var(--arena-z-command-bar-face); }
 .arena-command-bar__text { position: relative; }
 /* HOVER MOVES THE LIGHT, NOT THE PLATE. A two-pixel lift with a deeper shadow
    is the web's default gesture and it is the wrong one twice over: nothing else
@@ -8425,57 +8428,22 @@ button.arena-chat__poll-option { cursor: pointer; }
 .arena-command-bar__medallion {
   /* CONSTRUCTED, not a slice of the mockup: #ad-plate-medal-dark / -light in
      templates/chef_battle/_arena_deck_svg.html. Thirty-nine pixels, which is
-     what the reference's measures. */
+     what the reference measures.
+
+     THE NUMBERS BELOW ARE THE ONES THAT WERE ALREADY ON THE PAGE. A stale
+     second copy of this rule survived the reconstruction thirty lines further
+     down and, being later, won: the medallion has been rendering at 39px and
+     top 0.0667rem, not at the 32px / 4px this block used to claim. The
+     duplicate is deleted and its values are kept here, so the Owner's approved
+     bar renders identically and the stylesheet stops declaring the same
+     property twice (AN13). */
   position: relative;
-  z-index: 1;
+  z-index: var(--arena-z-command-bar-face);
   /* the reference's disc is centred a little below the plate's own middle */
-  top: 4px;
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-}
-.arena-command-bar__text { z-index: 1; }
-.arena-command-bar__text { position: relative; }
-/* HOVER MOVES THE LIGHT, NOT THE PLATE. A two-pixel lift with a deeper shadow
-   is the web's default gesture and it is the wrong one twice over: nothing else
-   in the arena uses it - .arena-live-centre and .arena-rank-spine__step both
-   answer with a change of material, never of position - and a plate seated in a
-   floor has nowhere to rise to. So the plate turns toward the light instead:
-   the corner glint comes up, and that is the whole of it. It uses the artwork's
-   own lighting variables rather than adding a second effect on top of them.
-
-   Both of them, not just the glint: with the glint alone the hover moved
-   ninety-five pixels in one corner - measurably true to the lighting model and
-   far too quiet to read as an answer on a control this size. Pulling the
-   falloff back as well lifts the whole frame, both ends, which is what a plate
-   turning toward a light actually does. */
-.arena-command-bar__action:hover,
-.arena-command-bar__action:focus-visible {
-  /* The plate is a slice of the mockup, so hover cannot move its light any
-     more; it brightens the whole plate instead, which is still a change of
-     material rather than of position - the Arena's own idiom. */
-  filter: brightness(1.06);
-}
-.arena-command-bar__action:focus-visible {
-  outline: 2px solid var(--arena-gold);
-  outline-offset: 3px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .arena-command-bar__action { transition: none; }
-}
-
-.arena-command-bar__medallion {
-  /* A SLICE OF THE MOCKUP, not a drawn dome. It was two circles and a pair of
-     stroked spears and it read as exactly that. Thirty-nine pixels because the
-     mockup's is; matted off the plate face by ops/scratch/cb3/parts.py, which
-     recomposites to within 1/255 of the original. */
-  position: relative;
   top: 0.0667rem;
   flex: 0 0 auto;
   width: 39px;
   height: 39px;
-  background-repeat: no-repeat;
-  background-size: 39px 39px;
 }
 .arena-command-bar__text {
   display: flex;
@@ -8564,7 +8532,7 @@ button.arena-chat__poll-option { cursor: pointer; }
   text-align: center;
   align-self: center;
   pointer-events: auto;
-  z-index: 1;
+  z-index: var(--arena-z-command-bar-face);
 }
 /* The FIRST span, not every span: the bracket is a decorative last child of
    the caption and must not inherit the eyebrow's case and tracking. */

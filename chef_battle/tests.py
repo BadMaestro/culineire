@@ -14955,9 +14955,20 @@ class OnboardingAndBattleFlowGuardTests(TestCase):
     hide entirely before release. All ten now carry @chef_battle_guard,
     outermost, same convention as DarkLaunchInvisibilityTests."""
 
-    NO_PK_ENDPOINTS = (
+    # THE ENROLMENT DOOR IS OPEN BY THE OWNER'S ORDER, 2026-09-04, and it is
+    # the only one that is. He asked for "Become a Chef" in a newly registered
+    # user's menu and, asked how far to open the gate, scoped it himself: THE
+    # ENROLMENT PATH ONLY. chef_enroll and enroll_success left this tuple then
+    # (v2.5.1738) and carry enrolment_guard instead of chef_battle_guard; the
+    # other eight endpoints below are untouched and still answer 404 to
+    # everyone but staff. Their own expectations are pinned separately, in
+    # test_the_enrolment_door_is_open_and_only_it_is, so that reopening any
+    # other endpoint by accident still fails here.
+    ENROLMENT_ENDPOINTS = (
         "chef_battle:chef_enroll",
         "chef_battle:enroll_success",
+    )
+    NO_PK_ENDPOINTS = (
         "chef_battle:age_verification",
         "chef_battle:reward_agreement",
         "chef_battle:payout_statement",
@@ -15001,6 +15012,31 @@ class OnboardingAndBattleFlowGuardTests(TestCase):
             self.assertEqual(client.get(reverse(name)).status_code, 404)
         for name in self.PK_ENDPOINTS:
             self.assertEqual(client.get(reverse(name, kwargs={"pk": 1})).status_code, 404)
+
+    def test_the_enrolment_door_is_open_and_only_it_is(self):
+        """The Owner's 2026-09-04 scope, pinned as its own rule.
+
+        An anonymous visitor is sent to sign in rather than shown a 404 - the
+        page has to be reachable for someone who has just registered - and a
+        signed-in ordinary member reaches the form itself. Everything else in
+        this class stays 404, which the two tests above prove."""
+        client = Client()
+        for name in self.ENROLMENT_ENDPOINTS:
+            response = client.get(reverse(name))
+            self.assertEqual(
+                response.status_code, 302,
+                f"{name} must send an anonymous visitor to sign in, not 404",
+            )
+            self.assertIn("/accounts/login/", response["Location"])
+
+        member = Client()
+        member.login(username="f6f7-plain", password="pw")
+        for name in self.ENROLMENT_ENDPOINTS:
+            self.assertEqual(
+                member.get(reverse(name)).status_code, 200,
+                f"{name} must be reachable by a signed-in member - the Owner "
+                f"opened the enrolment path on 2026-09-04",
+            )
 
     @override_settings(CHEF_BATTLE_ENABLED=True)
     def test_staff_still_reaches_enroll(self):
