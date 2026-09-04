@@ -1,5 +1,31 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1720",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "Both command-bar plates are links again, and were being covered by the floor",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner: both buttons are links and neither works. They were never "
+            "broken as markup - the anchors, the three enter branches and the "
+            "two challenge branches are exactly what they have always been. "
+            "They were unreachable. "
+            "The floor's .arena-floor-stage sits at z-index 2 and holds "
+            ".arena-render-container, which is absolutely positioned inside it "
+            "with a 1.46 scale. That transform lifts the top of its box to "
+            "y401, five pixels above the command bar's own top, so it lay over "
+            "thirty-four of the bar's fifty-one pixels. It paints nothing "
+            "there, which is why the bar still LOOKED correct while every "
+            "click landed on the render container: elementFromPoint at either "
+            "plate's centre returned .arena-render-container. "
+            "The shell was position:static with z-index auto and therefore "
+            "could not win. It is now position:relative at z-index 3. Verified "
+            "on the real page at 1273 and at the stacked 390: every probe "
+            "point on both plates - centre, label, medallion and corner - "
+            "returns the anchor, and clicking each one navigates."
+        ),
+    },
+    {
         "version": "2.5.1717",
         "date": "2026-09-04",
         "commit": "pending",

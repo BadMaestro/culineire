@@ -8079,6 +8079,16 @@ button.arena-chat__poll-option { cursor: pointer; }
      moulding between its middle and its left end. */     /* measured (205,178,145) */
 
   grid-area: cmdbar;
+  /* THE BAR HAS TO OUTRANK THE FLOOR, or its two links cannot be clicked. The
+     floor's .arena-floor-stage is z-index 2, and its .arena-render-container is
+     absolutely positioned inside it with a 1.46 scale that lifts the top of
+     that box to y401 - five pixels above the bar's own top - so it lies over
+     both plates. It paints nothing there, so the bar still LOOKED right while
+     every click landed on the render container instead of the anchor.
+     elementFromPoint at either plate's centre returned .arena-render-container
+     until this line existed. */
+  position: relative;
+  z-index: 3;
   container-type: inline-size;
   container-name: arena-command-area;
   /* Against intrinsic-width overflow inside the deck's grid: a grid item's
