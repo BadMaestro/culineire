@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1765",
         "date": "2026-09-04",
-        "commit": "pending",
+        "commit": "f7ab0fb8",
         "title": "The other seven: a guard reading a comment, a console switch left off, and a card that broke the transaction it rode in",
         "section": "Chef Battles / Site",
         "summary": (
