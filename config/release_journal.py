@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1750",
         "date": "2026-09-04",
-        "commit": "pending",
+        "commit": "24642f9f",
         "title": "An enrolled chef stops being asked to become one on his own dashboard",
         "section": "Accounts / Chef Battles",
         "summary": (
