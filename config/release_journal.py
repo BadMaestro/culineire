@@ -1,5 +1,35 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1708",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The command bar stops drifting: a fixed composition, and rings that are circles",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The reconstruction was right in the isolated harness and wrong on "
+            "the page, and the cause was one decision: the bar was capped in "
+            "REM while the plate's artwork is pinned in pixels. The writing, "
+            "the plates' widths and the connector all moved with the root font "
+            "while the 51px frame could not, so the text drifted against the "
+            "artwork at every width but the one it was measured at - and the "
+            "connector had to be stretched non-uniformly to keep up, which "
+            "turned its two junction rings into ellipses. "
+            "The bar is now the mockup's own 798px, the plates its 212 and 214, "
+            "and every length in the component is in pixels. The ornament "
+            "renders 1:1 with a uniform aspect ratio: both rings measure 6.00 "
+            "by 6.00 on the live page, from one definition, and the horizontal "
+            "and diagonal paths terminate on the ring boundary rather than "
+            "crossing it. Below the container's 680px the bar stacks as before "
+            "and the ornament is removed whole. "
+            "AND THE PAGE WAS SERVING YESTERDAY'S STYLESHEET. arena.html "
+            "carries a hand-written cache-buster on arena.css that had not been "
+            "touched since the previous build, so every measurement taken "
+            "against the real page was taken against the old CSS. It is bumped, "
+            "and that is the second time in this task that a stale asset was "
+            "mistaken for a defect in the artwork."
+        ),
+    },
+    {
         "version": "2.5.1705",
         "date": "2026-09-04",
         "commit": "pending",
