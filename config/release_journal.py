@@ -1,5 +1,25 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1744",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The knife cursor's third file, found by checking the collected tree",
+        "section": "Site",
+        "summary": (
+            "v2.5.1741 deleted battle_cursor.js and battle_cursor.css. "
+            "Verifying it on the server showed one entry still carrying the "
+            "name in the static manifest, and it turned out to be a THIRD file "
+            "nobody had mentioned: static/images/battle_cursor.svg, the artwork "
+            "the stylesheet used to point at, added in 88715791 for the "
+            "original nav-button cursor. Nothing references it now - the "
+            "grep across templates, CSS, JS and Python is empty - so it goes "
+            "with the other two. "
+            "Worth recording how it surfaced: the checkout looked clean and the "
+            "old URLs answered 404, but the collected tree still knew the name. "
+            "collectstatic 917 files to 916."
+        ),
+    },
+    {
         "version": "2.5.1741",
         "date": "2026-09-04",
         "commit": "pending",
