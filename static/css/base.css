@@ -1998,7 +1998,11 @@
       margin-inline: auto;
     }
 
-    .hero--author-profile .hero-copy {
+    /* THE OWNER'S OWN PAGE KEEPS THE WIDER MEASURE (AGENTS.md 18) - it was
+       .hero--author-profile until 2026-09-04 and is pinned here rather than
+       changed. Every other author profile now takes the golden 18rem inset
+       above, like every other page on the site. */
+    .hero--greenbear .hero-copy {
       max-width: min(100%, calc(var(--container) - 11rem));
     }
 
@@ -2022,16 +2026,35 @@
     justify-content: center;
   }
 
-  .hero--author-profile .hero-copy .hero__actions {
+  /* THE AUTHOR PROFILE HERO IS BACK ON THE GOLDEN VALUES.
+     Three overrides used to sit here and all three came from one commit of
+     2026-06-22, 173150ed, "compact author profile hero buttons to fit 5 in one
+     row on mobile" - a mobile fitting problem solved with rules that carried no
+     media query and therefore shrank the row on every screen:
+
+       font-size 0.78rem  against the golden 0.88rem
+       padding-inline 0.45rem against the golden 0.82rem
+       min-height 36px    against the golden 44px, which is also the minimum
+                          touch target this project requires everywhere
+       margin-block-start 1rem on the row, which added 16px to the LOCKED
+                          28.8px gap the subtitle already reserves below itself
+                          (golden hero group, "gap sizes are pill-height-relative")
+
+     Removed, so this hero takes .hero__actions and the golden rhythm like every
+     other page. The fifth button is gone (v2.5.1750), and the row it was
+     crowding no longer needs compacting on mobile either - it wraps, which is
+     what .hero__actions is built to do.
+
+     A fourth rule, gap: 0.3rem, was already dead: Group 1.4's
+     .hero--home:not():not() .hero__actions carries one more class and has won
+     the cascade with the LOCKED 0.65rem since it was written. Deleted rather
+     than pinned, because pinning it would have CHANGED the rendered page. */
+  .hero--greenbear .hero-copy .hero__actions {
     margin-block-start: 1rem;
   }
 
-  .hero--author-profile .hero__actions {
-    gap: 0.3rem;
-  }
-
-  .hero--author-profile .hero__actions .btn-primary,
-  .hero--author-profile .hero__actions .btn-secondary {
+  .hero--greenbear .hero__actions .btn-primary,
+  .hero--greenbear .hero__actions .btn-secondary {
     padding-inline: 0.45rem;
     font-size: 0.78rem;
     letter-spacing: 0.01em;

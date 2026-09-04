@@ -1,5 +1,44 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1753",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The author profile hero is back on the golden values",
+        "section": "Site",
+        "summary": (
+            "The Owner looked at the author profile page after v2.5.1750 and "
+            "said its hero no longer matches the golden standard - the size of "
+            "the header, the styles, the font sizes and the alignment inside "
+            "it. He is right about the page, and the cause is older than "
+            "v2.5.1750: commit 173150ed of 2026-06-22, 'compact author profile "
+            "hero buttons to fit 5 in one row on mobile', solved a MOBILE "
+            "fitting problem with rules that carried no media query, so they "
+            "shrank that row on every screen from that day on. Removing the "
+            "fifth button is what made the shortfall plain. "
+            "MEASURED AGAINST THE GOLDEN GROUP IN base.css: the row ran at "
+            "font-size 0.78rem against the golden 0.88rem, padding-inline "
+            "0.45rem against 0.82rem, min-height 36px against 44px - which is "
+            "also the project's minimum touch target - and it carried an extra "
+            "margin-block-start of 1rem that added 16px to the LOCKED 28.8px "
+            "gap the subtitle already reserves below itself. A fourth rule, "
+            "gap 0.3rem, had been dead since Group 1.4 was written: that rule "
+            "carries one class more and has won the cascade with the LOCKED "
+            "0.65rem ever since. It is deleted rather than pinned, because "
+            "pinning it would have changed the rendered page. "
+            "All four are gone. The author hero now measures identically to "
+            "/legal/company-information/, the reference page: hero 503px, "
+            "hero-copy 832px, buttons 14.08px / 6.72px 13.12px / 44px, row at "
+            "y=582. Mobile 390 stacks into one column of 44px buttons with no "
+            "overflow, the same as the reference page does. "
+            "THE OWNER'S OWN PAGE IS NOT CHANGED (AGENTS.md 18). The three "
+            "live rules are re-scoped to .hero--greenbear and his page "
+            "measures exactly what it measured before: 12.48px / 6.72px "
+            "7.2px / 36px, copy 944px, row margin 16px. Whether to lift his "
+            "page to the golden values too is his call and is asked, not "
+            "assumed."
+        ),
+    },
+    {
         "version": "2.5.1750",
         "date": "2026-09-04",
         "commit": "24642f9f",
