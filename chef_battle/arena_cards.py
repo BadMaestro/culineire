@@ -113,20 +113,12 @@ def post_card_for_event(event: BattleEvent) -> ArenaChatMessage | None:
         return None
 
     actor = event.actor
-    # A CARD NEEDS SOMEONE TO HAVE SAID IT. ArenaChatMessage.speaker is NOT
-    # NULL, and the hall's own events - a battle finishing, a crown moving -
-    # carry no actor at all, so this used to hand None to a non-null column and
-    # raise IntegrityError on every one of them. Nothing reached the hall
-    # either way; the difference is between a card that is not written and a
-    # transaction that is broken.
-    #
-    # Showing these as spoken by the Arena itself is a real feature, and the
-    # display_name fallback below was written for it - but it needs speaker to
-    # become nullable, a schema change on a chat the Owner has already
-    # accepted. That is his call, not a side effect of this fix.
-    if actor is None:
-        return None
-
+    # AN ACTOR-LESS EVENT IS THE ARENA SPEAKING, and since 2026-09-05 it gets a
+    # card like any other. The hall's own moments - a battle finishing, a crown
+    # moving - carry no actor, and while speaker was NOT NULL this write raised
+    # IntegrityError on every one of them, so none of them ever reached the
+    # hall. The Owner asked for them. speaker is nullable now and display_name
+    # falls back to "The Arena", which is what the fallback was written for.
     ring, cell = _seat_of(actor)
     # THE SAVEPOINT IS WHAT MAKES THE PROMISE IN THE DOCSTRING TRUE. This runs
     # inside the caller's atomic block, and catching a database error there

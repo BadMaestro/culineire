@@ -23861,6 +23861,64 @@ class ArenaEventCardTests(TestCase):
         self.assertIsNotNone(event.pk)
         self.assertEqual(self.ArenaChatMessage.objects.count(), 0)
 
+    def test_the_arena_speaks_for_the_events_that_have_no_actor(self):
+        """Owner, 2026-09-05: the hall's own moments get cards too.
+
+        A battle finishing has no actor - nobody DID it - and while
+        ArenaChatMessage.speaker was NOT NULL, post_card_for_event handed None
+        to a non-null column and every one of these raised IntegrityError
+        inside the caller's transaction. Not one of them ever reached the hall.
+        The row is written now, spoken by the Arena, and the feed serialises it
+        with an empty slug so the client offers no profile and no reply for a
+        line nobody said."""
+        from .arena_chat import audible_lines
+        from .models import Battle
+        from .services import create_battle_event
+
+        battle = self._battle("The Arena speaks", Battle.Status.COMPLETED)
+        create_battle_event(
+            event_type=self.BattleEvent.EventType.BATTLE_COMPLETED,
+            battle=battle, message="Battle finished",
+        )
+        card = self.ArenaChatMessage.objects.get(
+            kind=self.ArenaChatMessage.Kind.BATTLE_RESULT)
+        self.assertIsNone(card.speaker)
+        self.assertEqual(card.display_name, "The Arena")
+        self.assertEqual(card.body, "Battle finished")
+
+        served = audible_lines((9, 40), list(self.ArenaChatMessage.objects.all()),
+                               viewer=self.b)
+        mine = [r for r in served if r["id"] == card.pk]
+        self.assertEqual(len(mine), 1, "the hall never received the card")
+        self.assertEqual(mine[0]["slug"], "")
+        self.assertEqual(mine[0]["name"], "The Arena")
+        self.assertTrue(mine[0]["heard"], "a card is heard from every seat")
+
+    def test_a_speakerless_card_can_still_be_hidden_by_a_moderator(self):
+        """The moderation trail records who was silenced, and for a card that
+        is nobody. ChatModerationAction.target_author is already nullable, so
+        this must not be the thing that breaks."""
+        from .models import Battle, ChatModerationAction
+        from .services import create_battle_event
+
+        battle = self._battle("Moderating the Arena", Battle.Status.COMPLETED)
+        create_battle_event(
+            event_type=self.BattleEvent.EventType.BATTLE_COMPLETED,
+            battle=battle, message="Battle finished",
+        )
+        card = self.ArenaChatMessage.objects.get(
+            kind=self.ArenaChatMessage.Kind.BATTLE_RESULT)
+
+        action = ChatModerationAction.objects.create(
+            moderator=self.a.user,
+            action=ChatModerationAction.Action.HIDE,
+            target_message=card,
+            target_author=card.speaker,
+            reason="checked",
+            previous_state="visible",
+        )
+        self.assertIsNone(action.target_author)
+
     def test_the_biathlon_writes_an_attack_card_and_a_defence_card(self):
         """Every shot fired since the biathlon shipped was recorded as
         BATTLE_STARTED - a battle starting, three times per biathlon. The two

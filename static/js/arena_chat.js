@@ -1757,10 +1757,21 @@
     head.textContent = line.name;
     sheet.appendChild(head);
 
-    sheet.appendChild(menuButton('View profile', '', function () {
-      openChefCard(line.slug, trigger);
-    }));
-    sheet.appendChild(menuButton('Reply', '', function () { startReply(line); }));
+    /* NOBODY SAID IT, SO THERE IS NOBODY TO ACT ON. Since 2026-09-05 the hall's
+     * own moments - a battle finishing, a crown moving - are cards spoken by
+     * the Arena itself, and they arrive with an empty slug because there is no
+     * chef behind them. Everything below that needs a person - the profile,
+     * the reply, a private message, mute, block, a timeout - is left out for
+     * those lines rather than drawn and left to fail on an empty slug.
+     * Reacting, reporting and moderating stay: they key off the message. */
+    var said = !!line.slug;
+
+    if (said) {
+      sheet.appendChild(menuButton('View profile', '', function () {
+        openChefCard(line.slug, trigger);
+      }));
+      sheet.appendChild(menuButton('Reply', '', function () { startReply(line); }));
+    }
     // Reacting lives HERE now rather than as three permanent buttons under
     // every message. One row of glyphs inside the menu, not a panel.
     var reactRow = document.createElement('div');
@@ -1778,24 +1789,26 @@
       reactRow.appendChild(b);
     });
     sheet.appendChild(reactRow);
-    sheet.appendChild(menuButton('Message privately', '', function () {
-      openDm(line.slug, line.name);
-    }));
-    sheet.appendChild(menuButton(
-      line.muted ? 'Unmute' : 'Mute', '',
-      function () { relation(line.muted ? 'unmute' : 'mute', line.slug); }
-    ));
-    // Blocking is the destructive one of the pair, so it asks first.
-    sheet.appendChild(menuButton(
-      line.blocked ? 'Unblock' : 'Block', 'danger',
-      function () {
-        if (line.blocked) { relation('unblock', line.slug); return; }
-        if (window.confirm('Block ' + line.name + '? They will not be able to '
-                           + 'message you privately.')) {
-          relation('block', line.slug);
+    if (said) {
+      sheet.appendChild(menuButton('Message privately', '', function () {
+        openDm(line.slug, line.name);
+      }));
+      sheet.appendChild(menuButton(
+        line.muted ? 'Unmute' : 'Mute', '',
+        function () { relation(line.muted ? 'unmute' : 'mute', line.slug); }
+      ));
+      // Blocking is the destructive one of the pair, so it asks first.
+      sheet.appendChild(menuButton(
+        line.blocked ? 'Unblock' : 'Block', 'danger',
+        function () {
+          if (line.blocked) { relation('unblock', line.slug); return; }
+          if (window.confirm('Block ' + line.name + '? They will not be able to '
+                             + 'message you privately.')) {
+            relation('block', line.slug);
+          }
         }
-      }
-    ));
+      ));
+    }
     sheet.appendChild(menuButton('Report', 'danger', function () { openReport(line); }));
 
     /* MODERATOR ACTIONS, WHEN THE SERVER SAYS SO.
@@ -1812,7 +1825,7 @@
                                  message_id: line.id }); }
       ));
     }
-    if (canTimeout) {
+    if (canTimeout && said) {
       [['10 minutes', 10], ['1 hour', 60], ['24 hours', 1440]].forEach(function (pair) {
         sheet.appendChild(menuButton('Timeout ' + pair[0], 'danger', function () {
           if (window.confirm('Silence ' + line.name + ' for ' + pair[0] + '?')) {

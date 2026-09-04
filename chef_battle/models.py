@@ -660,8 +660,19 @@ class ArenaChatMessage(models.Model):
         Battle, null=True, blank=True, on_delete=models.CASCADE,
         related_name="arena_chat_messages",
     )
+    # NULL WHEN THE ARENA ITSELF SPEAKS. Owner, 2026-09-05. The hall's own
+    # moments - a battle finishing, a crown moving - are BattleEvents with no
+    # actor, and until this field allowed null they could not become cards at
+    # all: post_card_for_event handed None to a non-null column and the write
+    # raised IntegrityError every time. display_name has carried the fallback
+    # "The Arena" since the cards were written, which is what these rows use.
+    # Every reader is None-safe: _seat_of returns (0, 0), team_tags_for and
+    # tiers_for drop falsy ids, ChatModerationAction.target_author is already
+    # nullable, and the two serialisers send an empty slug so the client offers
+    # no profile, no reply and no mute for a line nobody said.
     speaker = models.ForeignKey(
-        RecipeAuthor, on_delete=models.CASCADE, related_name="arena_chat_messages",
+        RecipeAuthor, null=True, blank=True,
+        on_delete=models.CASCADE, related_name="arena_chat_messages",
     )
     display_name = models.CharField(max_length=60)
     body = models.CharField(max_length=300)

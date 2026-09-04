@@ -1,5 +1,55 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1774",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "The six tails: the chat is one block again, the Arena gets a voice, and the knife cursor's last markup goes",
+        "section": "Chef Battles / Site",
+        "summary": (
+            "The Owner asked what was still open and then said take all of it. "
+            "Six items, two of them his decisions, and he made both. "
+            "ONE - THE TWO RED GUARDS. .arena-chat was in 8 islands against a "
+            "ceiling of 7, and its largest run was 159 where the test asks for "
+            "250. Two separate breakages, both from v2.5.1759: three "
+            "`.page--arena .arena-chat .btn-secondary` rules had been written "
+            "into the MIDDLE of the gathered block, splitting one 266-rule "
+            "island into 107 and 159. Their subject is .btn-secondary, so they "
+            "belong to the button and an15_gather --tidy will never move them "
+            "for the chat. They are moved below the block, with their own "
+            "reasoning travelling with them, and the move is PROVEN: "
+            "an15_gather.transpositions reports zero conflicting pairs "
+            "transposed. The island is 266 again and the count is 7. The "
+            "ceiling was NOT raised, and --tidy was not needed. "
+            "TWO - THE MEDALLION COMMENT. Asked whether to keep the 39px the "
+            "bar actually renders or the 32px the reconstruction derived, the "
+            "Owner kept 39px: it is the bar he accepted. No value changes; the "
+            "comment stops presenting 32px as a target. "
+            "THREE - THE ARENA GETS A VOICE. ArenaChatMessage.speaker is "
+            "nullable now (migration 0125). The hall's own moments - a battle "
+            "finishing, a crown moving - are events with no actor, and while "
+            "the column was NOT NULL not one of them ever became a card. They "
+            "do now, spoken by 'The Arena', which is the fallback display_name "
+            "has carried since the cards were written. Every reader was "
+            "already None-safe except two serialisers, which now send an empty "
+            "slug, and arena_chat.js leaves out profile, reply, private "
+            "message, mute, block and timeout for a line nobody said - "
+            "reacting, reporting and moderating stay, because those key off "
+            "the message. "
+            "FOUR - the knife cursor's last markup. battle-cursor-target and "
+            "js-battle-cursor-target are gone from six templates and from "
+            "arena_deck.js. The overlay went in v2.5.1729, the script and "
+            "stylesheet in v2.5.1741, the artwork in v2.5.1744; this is the "
+            "end of it. "
+            "FIVE - the deploy record of AGENTS.md 17.15 is written and given "
+            "to the Owner with this release. It was not written once in the "
+            "session before it, which is the omission that hid three of "
+            "yesterday's defects. No board card is invented: this work came "
+            "from his direct requests, not from ARENA_BATTLE_PLAN.md. "
+            "SIX - the local dev account used to reproduce his dashboard has "
+            "had its password made unusable again. Local database only."
+        ),
+    },
+    {
         "version": "2.5.1771",
         "date": "2026-09-05",
         "commit": "1973f3f5",

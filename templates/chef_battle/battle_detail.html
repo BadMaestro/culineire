@@ -246,7 +246,7 @@
         <h2 class="bd-phase-panel__title" id="bd-phase-title">Biathlon Phase</h2>
         {% if is_participant %}
         <p class="bd-phase-panel__body">Biathlon time: the combat <strong>winner fires shots</strong> at the loser's ingredients, and the <strong>loser locks 2</strong> to protect them. Head to the Biathlon Arena to take your move.</p>
-        <a class="btn-primary bd-phase-panel__cta battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:biathlon' battle.pk %}">Go to Biathlon &rarr;</a>
+        <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:biathlon' battle.pk %}">Go to Biathlon &rarr;</a>
         {% else %}
         <p class="bd-phase-panel__body">The combat winner is firing shots at the loser's ingredients.</p>
         {% endif %}
@@ -573,7 +573,7 @@
             </select>
           </div>
           {% endif %}
-          <button class="btn-primary battle-combat__submit battle-cursor-target js-battle-cursor-target" type="submit" id="combat-submit-btn">Make Move</button>
+          <button class="btn-primary battle-combat__submit" type="submit" id="combat-submit-btn">Make Move</button>
           <p class="battle-form__error" id="combat-error" role="alert" hidden></p>
           <p class="battle-combat__success" id="combat-success" role="status" hidden></p>
         </form>
