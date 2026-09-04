@@ -1,5 +1,34 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1726",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The two emblems are sharp, and the cloche sits in the middle of its disc",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner: why are the pictures so blurred, and the lid is not centred "
+            "on the button. Both had the same root: the files were being used "
+            "raw. "
+            "BLUR. They arrive 128 square and the medallion draws them at about "
+            "23 pixels - a five-to-one reduction of a detailed illustration, "
+            "done by the browser at paint time. About a third of each frame is "
+            "empty margin too, so the emblem itself was only some 21 pixels "
+            "inside a 32-pixel disc. They are now trimmed to their own opaque "
+            "bounds and resized ONCE, with LANCZOS, to 46 square - twice the "
+            "size they are drawn at. The browser reduces two-to-one on a 1x "
+            "screen and draws them one-to-one on a 2x one. "
+            "CENTRING. The cloche's image carries a wisp of steam above the "
+            "lid. Centring on the bounding box counted that steam as content "
+            "and pushed the heavy lid below the middle of the disc, which is "
+            "what read as off-centre. The emblems are now placed by their "
+            "ALPHA-WEIGHTED CENTROID, which the faint steam barely moves, and "
+            "clamped so centring can never push artwork off its canvas. "
+            "The prepared files are static/images/arena/emblem-hat.png and "
+            "emblem-cloche.png, derived by ops/scratch/cb7_emblem_assets.py. "
+            "The Owner's originals in static/images/ are untouched."
+        ),
+    },
+    {
         "version": "2.5.1723",
         "date": "2026-09-04",
         "commit": "pending",

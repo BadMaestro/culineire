@@ -66,7 +66,7 @@
   same property in any two of these files and no repackaging can change a
   winner. Verified declaration by declaration, not by eye.
 {% endcomment %}
-<link href="{% static 'css/arena.css' %}?v=20260904-command-bar-emblems" rel="stylesheet">
+<link href="{% static 'css/arena.css' %}?v=20260904-command-bar-emblems-trimmed" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260816-t28-ambient" rel="stylesheet">
 {% endblock %}
 
@@ -991,7 +991,7 @@
       <span class="arena-command-bar__side arena-command-bar__side--l">
       {% if user_enrolled %}
         <a class="arena-command-bar__action arena-command-bar__action--enter battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
-          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use><image href="{% static 'images/hat.png' %}" x="3.2" y="3.2" width="29.6" height="29.6" preserveAspectRatio="xMidYMid meet"></image></svg>
+          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use><image href="{% static 'images/arena/emblem-hat.png' %}" x="5" y="5" width="26" height="26" preserveAspectRatio="xMidYMid meet"></image></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Enter Arena</span>
             <span class="arena-command-bar__sub">Step onto the kitchen floor</span>
@@ -999,7 +999,7 @@
         </a>
       {% elif request.user.is_authenticated %}
         <button type="button" class="arena-command-bar__action arena-command-bar__action--enter battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}">
-          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use><image href="{% static 'images/hat.png' %}" x="3.2" y="3.2" width="29.6" height="29.6" preserveAspectRatio="xMidYMid meet"></image></svg>
+          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use><image href="{% static 'images/arena/emblem-hat.png' %}" x="5" y="5" width="26" height="26" preserveAspectRatio="xMidYMid meet"></image></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Enter Arena</span>
             <span class="arena-command-bar__sub">Step onto the kitchen floor</span>
@@ -1007,7 +1007,7 @@
         </button>
       {% else %}
         <a class="arena-command-bar__action arena-command-bar__action--enter battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
-          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use><image href="{% static 'images/hat.png' %}" x="3.2" y="3.2" width="29.6" height="29.6" preserveAspectRatio="xMidYMid meet"></image></svg>
+          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use><image href="{% static 'images/arena/emblem-hat.png' %}" x="5" y="5" width="26" height="26" preserveAspectRatio="xMidYMid meet"></image></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Enter Arena</span>
             <span class="arena-command-bar__sub">Step onto the kitchen floor</span>
@@ -1038,7 +1038,7 @@
       <span class="arena-command-bar__side arena-command-bar__side--r">
       {% if request.user.is_authenticated %}
         <a class="arena-command-bar__action arena-command-bar__action--challenge" href="{% url 'chef_battle:challenge_create' %}">
-          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-light"></use><image href="{% static 'images/servicepot.png' %}" x="3.2" y="3.2" width="29.6" height="29.6" preserveAspectRatio="xMidYMid meet"></image></svg>
+          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-light"></use><image href="{% static 'images/arena/emblem-cloche.png' %}" x="5" y="5" width="26" height="26" preserveAspectRatio="xMidYMid meet"></image></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Issue a Challenge</span>
             <span class="arena-command-bar__sub">Choose an opponent</span>
@@ -1046,7 +1046,7 @@
         </a>
       {% else %}
         <a class="arena-command-bar__action arena-command-bar__action--challenge" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
-          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-light"></use><image href="{% static 'images/servicepot.png' %}" x="3.2" y="3.2" width="29.6" height="29.6" preserveAspectRatio="xMidYMid meet"></image></svg>
+          <svg class="arena-command-bar__medallion" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-light"></use><image href="{% static 'images/arena/emblem-cloche.png' %}" x="5" y="5" width="26" height="26" preserveAspectRatio="xMidYMid meet"></image></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Issue a Challenge</span>
             <span class="arena-command-bar__sub">Choose an opponent</span>
