@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1768",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "70670a90",
         "title": "A chef can pack his kit before the fight, and the purge now clears his two rehearsal chefs",
         "section": "Chef Battles / Arena",
         "summary": (
