@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Kit: {{ battle.theme }} | Chef Battles{% endblock %}
+
+{% block content %}
+<section class="battle-room-hero">
+  <div class="container">
+    {% include '_enter_arena_btn.html' %}
+    <p class="battle-kicker battle-kicker--active">&#x2694;&#xFE0F; Changing Room &middot; Your Kit</p>
+    <h1 class="battle-room-title">{{ battle.theme }}</h1>
+    <p class="battle-room-meta">What you carry into this fight</p>
+  </div>
+</section>
+
+<div class="container battle-room-body">
+
+  {% if messages %}
+  <div class="battle-messages">
+    {% for msg in messages %}
+    <div class="battle-message battle-message--{{ msg.tags }}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="bd-phase-panel bd-phase-panel--changing-room">
+    <p class="bd-phase-panel__icon">&#x1F9F0;</p>
+    <h2 class="bd-phase-panel__title">Your Kit</h2>
+    <p class="bd-phase-panel__body">
+      You may carry at most <strong>{{ loadout.limit }}</strong> artifacts of each type into
+      one battle. An artifact you take is held for this fight and comes back to your chest
+      unused if you never play it. A spectator&rsquo;s gift is already in the kit, has to be
+      used here, and cannot be taken out.
+    </p>
+  </div>
+
+  {% if not loadout.is_open %}
+  <div class="bd-phase-panel">
+    <p class="bd-phase-panel__body">This battle is past the point where the kit can change.</p>
+  </div>
+  {% endif %}
+
+  {% for group in loadout.groups %}
+  <section class="battle-panel" aria-labelledby="kit-{{ group.effect_type }}">
+    <h2 class="battle-panel__title" id="kit-{{ group.effect_type }}">
+      {{ group.label }} &middot; {{ group.used }} of {{ group.limit }}
+    </h2>
+
+    {% if group.carried %}
+    <ul class="cr-ingredient-list cr-ingredient-list--readonly">
+      {% for ca in group.carried %}
+      <li class="cr-ingredient-item">
+        {{ ca.artifact.name }} (+{{ ca.artifact.effect_value }})
+        {% if ca.locked_to_battle_id == battle.pk %}
+        <span class="cr-key-badge">&#x1F381; Gift &middot; must be used here</span>
+        {% elif ca.status != "available" %}
+        <span class="cr-key-badge">Spent</span>
+        {% elif loadout.is_open %}
+        <form method="post" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="unequip">
+          <input type="hidden" name="chef_artifact" value="{{ ca.pk }}">
+          <button type="submit" class="btn-secondary">Take out</button>
+        </form>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="battle-muted">Nothing of this type in the kit yet.</p>
+    {% endif %}
+
+    {% if loadout.is_open and group.available and group.slots_left %}
+    <form method="post" class="battle-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="equip">
+      <label class="battle-muted" for="kit-add-{{ group.effect_type }}">
+        Add to the kit ({{ group.slots_left }} slot{{ group.slots_left|pluralize }} left)
+      </label>
+      <select name="chef_artifact" id="kit-add-{{ group.effect_type }}" class="battle-form__input" required>
+        {% for ca in group.available %}
+        <option value="{{ ca.pk }}">{{ ca.artifact.name }} (+{{ ca.artifact.effect_value }})</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-primary">Take it in</button>
+    </form>
+    {% elif loadout.is_open and not group.slots_left %}
+    <p class="battle-muted">All {{ group.limit }} slots of this type are full.</p>
+    {% endif %}
+  </section>
+  {% empty %}
+  <div class="bd-phase-panel">
+    <p class="bd-phase-panel__body">
+      Your chest holds nothing you can take into this battle.
+      <a href="{% url 'chef_battle:artifact_gallery' %}">Visit the artifact shop</a>.
+    </p>
+  </div>
+  {% endfor %}
+
+  <p><a class="btn-secondary" href="{% url 'chef_battle:battle_detail' battle.pk %}">Back to Battle Room</a></p>
+</div>
+{% endblock %}

@@ -206,6 +206,7 @@
         <p class="bd-phase-panel__icon" aria-hidden="true">&#x23F3;</p>
         <h2 class="bd-phase-panel__title" id="bd-phase-title">Waiting for Both Chefs</h2>
         <p class="bd-phase-panel__body">Once both chefs press <strong>I'm Ready</strong>, the battle moves to the ingredient declaration phase.</p>
+        {% if is_participant %}<a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_loadout' battle.pk %}">&#x1F9F0; Your kit &rarr;</a>{% endif %}
       </section>
 
       {% elif battle.status == "menu_locked" %}
@@ -216,9 +217,11 @@
           {% if viewer_entry %}
           <p class="bd-phase-panel__body">&#x2705; Recipe submitted. Waiting for your opponent.</p>
           <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_changing_room' battle.pk %}">Review your menu &rarr;</a>
+          <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_loadout' battle.pk %}">&#x1F9F0; Your kit &rarr;</a>
           {% else %}
           <p class="bd-phase-panel__body">&#x1F9E5; Declare your secret ingredient list in the Changing Room before combat begins.</p>
           <a class="btn-primary bd-phase-panel__cta" href="{% url 'chef_battle:battle_changing_room' battle.pk %}">Go to Changing Room &rarr;</a>
+          <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_loadout' battle.pk %}">&#x1F9F0; Your kit &rarr;</a>
           {% endif %}
         {% else %}
         <p class="bd-phase-panel__body">The chefs are declaring their recipes. The battle begins soon.</p>
@@ -556,6 +559,7 @@
               <option value="{{ ca.pk }}">{{ ca.artifact.name }} (+{{ ca.artifact.effect_value }} {{ ca.artifact.get_effect_type_display|default:ca.artifact.effect_type }}){% if ca.locked_to_battle_id == battle.pk %} &middot; gift, this battle only{% endif %}</option>
               {% endfor %}
             </select>
+            <p class="battle-muted"><a href="{% url 'chef_battle:battle_loadout' battle.pk %}">Manage your kit</a> &middot; at most three of each type per battle.</p>
           </div>
           {% endif %}
           {% if opponent_active_ingredients %}

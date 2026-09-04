@@ -30425,6 +30425,43 @@ class TheRehearsalCleansUpAfterItselfTests(TestCase):
         # own ledger apart is the half-deletion the refusal exists to prevent.
         self.assertTrue(TokenTransaction.objects.exists())
 
+    def test_the_purge_wipes_what_a_rehearsal_left_on_his_two_chefs(self):
+        """The Owner's decision, 2026-09-04, asked and answered.
+
+        Until then the marks were reported and KEPT: a rehearsal really does
+        move Jam O'Liver's and CrestedTen's rating, wins and streak, and
+        undoing that on his own accounts was not an agent's call. He made the
+        call. Their identity is untouched - the accounts, the enrolment and
+        their place in the console all stay; only the numbers a run put there
+        go back to the model's defaults.
+        """
+        from .services import emulation_data_report, operator_purge_emulation_data
+
+        jam = RecipeAuthor.objects.create(slug="jam-oliver", name="Jam O'Liver")
+        crested = RecipeAuthor.objects.create(slug="crestedten", name="CrestedTen")
+        for author in (jam, crested):
+            ChefBattleProfile.objects.create(
+                author=author, enrolled_at=timezone.now(),
+                rating=120, wins=3, losses=1, win_streak=3, crown_count=1,
+                crown_until=timezone.now() + datetime.timedelta(hours=24),
+            )
+
+        marks = emulation_data_report()["rehearsal_chef_marks"]
+        self.assertEqual(sorted(m["rating"] for m in marks), [120, 120])
+
+        operator_purge_emulation_data(operator_author=self.owner)
+
+        for author in (jam, crested):
+            profile = ChefBattleProfile.objects.get(author=author)
+            self.assertEqual(profile.rating, 0)
+            self.assertEqual(profile.wins, 0)
+            self.assertEqual(profile.win_streak, 0)
+            self.assertEqual(profile.crown_count, 0)
+            self.assertIsNone(profile.crown_until)
+            # Identity, not residue: the account and its enrolment survive.
+            self.assertIsNotNone(profile.enrolled_at)
+        self.assertTrue(RecipeAuthor.objects.filter(slug="jam-oliver").exists())
+
     def test_a_gift_from_a_real_person_still_refuses_the_purge(self):
         """The narrowing must not have opened the door it was guarding."""
         from .models import Artifact, TokenTransaction
@@ -30461,12 +30498,15 @@ class TheRehearsalCleansUpAfterItselfTests(TestCase):
         self.assertTrue(Battle.objects.filter(pk=battle.pk).exists())
 
     def test_the_purge_reports_what_it_left_on_the_owners_test_chefs(self):
-        """It reports, and it does NOT reset - those are his accounts.
+        """It reports the marks, and since 2026-09-04 it resets them too.
 
-        The EMU bots are the console's own creatures and the purge puts them
-        back to the model's defaults. Jam O'Liver and CrestedTen are his, a
-        rehearsal really does move their rating and their crown, and wiping
-        that is his call and not an agent's.
+        This test used to assert the opposite, and it was right to: Jam
+        O'Liver and CrestedTen are the OWNER's accounts, a rehearsal really
+        does move their rating and their crown, and undoing that was his call
+        and not an agent's. He was asked and he answered - wipe them - so the
+        assertion that froze the old behaviour is replaced by the one that
+        holds the new. The REPORT is what this test still guards: a number
+        that vanishes without being shown first is not a report.
         """
         import inspect
 
@@ -30481,11 +30521,10 @@ class TheRehearsalCleansUpAfterItselfTests(TestCase):
         self.assertEqual(marks["jam-oliver"]["wins"], 3)
         self.assertEqual(marks["jam-oliver"]["rating"], 70)
 
-        # And nothing resets them: the only profile reset in the purge names
-        # the emulation bot set.
+        # And the reset reaches both sets, his two chefs included.
         purge = inspect.getsource(services.operator_purge_emulation_data)
         self.assertIn("_emulation_bot_slug_set()", purge)
-        self.assertNotIn("REHEARSAL_CHEFS", purge)
+        self.assertIn("REHEARSAL_CHEFS", purge)
 
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
@@ -30710,3 +30749,224 @@ class TheColourOfANameTests(TestCase):
         )
         line = audible_lines((7, 1), [message])[0]
         self.assertEqual(line["tier"], "purple")
+
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class TheKitAChefCarriesTests(TestCase):
+    """The equipping screen, built on the Owner's decision of 2026-09-04.
+
+    `ChefArtifact.equipped` had been on the model since 0001_initial, in the
+    admin's list_display and list_filter, and written by nothing. Asked whether
+    to build the screen behind it or delete the field, he chose to build it.
+
+    The screen invents no rule: the loadout is the one the rulebook already
+    describes - COMBAT_ARTIFACTS_PER_TYPE_LIMIT of each type, held on
+    ChefArtifact.reserved_in_battle. What it adds is that a chef can pack
+    BEFORE the round instead of discovering the cap by being refused mid-fight.
+    """
+
+    def setUp(self):
+        from .models import ChefArtifact
+
+        self.ChefArtifact = ChefArtifact
+        self.user, self.chef = _make_chef("kit-owner")
+        self.other_user, self.other = _make_chef("kit-opponent")
+        now = timezone.now()
+        self.battle = Battle.objects.create(
+            challenger=self.chef, opponent=self.other,
+            theme="Kit test", status=Battle.Status.SCHEDULED,
+            start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3),
+        )
+
+    def _own(self, name, effect_type="attack"):
+        from .models import Artifact, ChefArtifact
+
+        art = Artifact.objects.create(
+            name=name, rarity="common", effect_type=effect_type, effect_value=1)
+        return ChefArtifact.objects.create(chef=self.chef, artifact=art)
+
+    # -- the field finally has a writer --
+
+    def test_taking_an_artifact_in_marks_it_equipped(self):
+        from .services import equip_artifact_for_battle
+
+        row = self._own("Kit Blade")
+        self.assertFalse(row.equipped)
+        equip_artifact_for_battle(
+            battle=self.battle, chef=self.chef, chef_artifact_id=row.pk)
+        row.refresh_from_db()
+        self.assertTrue(row.equipped)
+        self.assertEqual(row.reserved_in_battle_id, self.battle.pk)
+
+    def test_taking_it_out_clears_both(self):
+        from .services import equip_artifact_for_battle, unequip_artifact_for_battle
+
+        row = self._own("Kit Ladle")
+        equip_artifact_for_battle(
+            battle=self.battle, chef=self.chef, chef_artifact_id=row.pk)
+        unequip_artifact_for_battle(
+            battle=self.battle, chef=self.chef, chef_artifact_id=row.pk)
+        row.refresh_from_db()
+        self.assertFalse(row.equipped)
+        self.assertIsNone(row.reserved_in_battle_id)
+
+    def test_the_battle_ending_empties_the_kit(self):
+        """An unplayed artifact returns to the chest, and stops saying it is
+        being carried - the flag and the reservation are cleared together or
+        the flag is a lie the moment the fight is over."""
+        from .services import _release_battle_artifacts_on_finish, equip_artifact_for_battle
+
+        row = self._own("Kit Whisk")
+        equip_artifact_for_battle(
+            battle=self.battle, chef=self.chef, chef_artifact_id=row.pk)
+        _release_battle_artifacts_on_finish(self.battle)
+        row.refresh_from_db()
+        self.assertFalse(row.equipped)
+        self.assertIsNone(row.reserved_in_battle_id)
+
+    # -- the cap, which is the rule and not a new one --
+
+    def test_three_of_a_type_and_no_more(self):
+        from .services import COMBAT_ARTIFACTS_PER_TYPE_LIMIT, equip_artifact_for_battle
+
+        rows = [self._own("Blade %d" % i) for i in range(4)]
+        for row in rows[:COMBAT_ARTIFACTS_PER_TYPE_LIMIT]:
+            equip_artifact_for_battle(
+                battle=self.battle, chef=self.chef, chef_artifact_id=row.pk)
+        with self.assertRaises(ValueError):
+            equip_artifact_for_battle(
+                battle=self.battle, chef=self.chef, chef_artifact_id=rows[-1].pk)
+
+    def test_the_cap_is_per_type(self):
+        """Three attack artifacts do not stop a defence one going in."""
+        from .services import equip_artifact_for_battle
+
+        for i in range(3):
+            equip_artifact_for_battle(
+                battle=self.battle, chef=self.chef,
+                chef_artifact_id=self._own("Att %d" % i).pk)
+        shield = self._own("Shield", effect_type="defence")
+        equip_artifact_for_battle(
+            battle=self.battle, chef=self.chef, chef_artifact_id=shield.pk)
+        shield.refresh_from_db()
+        self.assertTrue(shield.equipped)
+
+    def test_both_spellings_of_defence_count_as_one_type(self):
+        """Older catalogue rows carry the British spelling. Counting them
+        separately would quietly allow six defensive artifacts."""
+        from .services import equip_artifact_for_battle
+
+        for i, spelling in enumerate(("defence", "defense", "defence")):
+            equip_artifact_for_battle(
+                battle=self.battle, chef=self.chef,
+                chef_artifact_id=self._own("Def %d" % i, effect_type=spelling).pk)
+        with self.assertRaises(ValueError):
+            equip_artifact_for_battle(
+                battle=self.battle, chef=self.chef,
+                chef_artifact_id=self._own("Def 4", effect_type="defense").pk)
+
+    # -- what the kit refuses --
+
+    def test_a_spectators_gift_cannot_be_taken_out(self):
+        """E1: it was somebody else's tokens spent on THIS fight. The chef must
+        use it, and the screen must not offer a way around a rule the combat
+        service enforces."""
+        from .services import unequip_artifact_for_battle
+
+        row = self._own("Gifted Blade")
+        row.locked_to_battle = self.battle
+        row.reserved_in_battle = self.battle
+        row.save(update_fields=["locked_to_battle", "reserved_in_battle"])
+        with self.assertRaises(ValueError):
+            unequip_artifact_for_battle(
+                battle=self.battle, chef=self.chef, chef_artifact_id=row.pk)
+
+    def test_an_artifact_held_by_another_battle_is_refused(self):
+        from .services import equip_artifact_for_battle
+
+        now = timezone.now()
+        elsewhere = Battle.objects.create(
+            challenger=self.chef, opponent=self.other, theme="Other",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3))
+        row = self._own("Busy Blade")
+        row.reserved_in_battle = elsewhere
+        row.save(update_fields=["reserved_in_battle"])
+        with self.assertRaises(ValueError):
+            equip_artifact_for_battle(
+                battle=self.battle, chef=self.chef, chef_artifact_id=row.pk)
+
+    def test_a_stranger_cannot_pack_a_chefs_kit(self):
+        from .services import equip_artifact_for_battle
+
+        _, stranger = _make_chef("kit-stranger")
+        row = self._own("Not Yours")
+        with self.assertRaises(ValueError):
+            equip_artifact_for_battle(
+                battle=self.battle, chef=stranger, chef_artifact_id=row.pk)
+
+    def test_the_kit_closes_once_the_fight_is_past_combat(self):
+        from .services import equip_artifact_for_battle
+
+        now = timezone.now()
+        # Created straight into COOKING: the status trigger guards TRANSITIONS,
+        # and scheduled -> cooking is not one the game allows.
+        cooking = Battle.objects.create(
+            challenger=self.chef, opponent=self.other, theme="Late",
+            status=Battle.Status.COOKING, start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3))
+        row = self._own("Too Late")
+        with self.assertRaises(ValueError):
+            equip_artifact_for_battle(
+                battle=cooking, chef=self.chef, chef_artifact_id=row.pk)
+
+    # -- what the screen shows --
+
+    def test_the_screen_reports_the_slots_left(self):
+        from .services import equip_artifact_for_battle, get_battle_loadout
+
+        equip_artifact_for_battle(
+            battle=self.battle, chef=self.chef, chef_artifact_id=self._own("A").pk)
+        self._own("B")
+        view = get_battle_loadout(self.battle, self.chef)
+        group = [g for g in view["groups"] if g["effect_type"] == "attack"][0]
+        self.assertEqual(group["used"], 1)
+        self.assertEqual(group["slots_left"], 2)
+        self.assertEqual(len(group["available"]), 1)
+        self.assertTrue(view["is_open"])
+
+    def test_the_page_answers_a_participant_and_refuses_everyone_else(self):
+        self.client.force_login(self.user)
+        url = reverse("chef_battle:battle_loadout", args=[self.battle.pk])
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.client.force_login(_make_chef("kit-outsider")[0])
+        self.assertEqual(self.client.get(url).status_code, 403)
+
+    def test_the_form_puts_an_artifact_in_the_kit(self):
+        row = self._own("Form Blade")
+        self.client.force_login(self.user)
+        self.client.post(
+            reverse("chef_battle:battle_loadout", args=[self.battle.pk]),
+            {"action": "equip", "chef_artifact": row.pk}, follow=True)
+        row.refresh_from_db()
+        self.assertTrue(row.equipped)
+
+    def test_the_cap_lives_in_one_place(self):
+        """submit_combat_action used to carry its own copy of the limit, the
+        battle-row mutex and the two spellings. A second writer with a second
+        copy is a limit that drifts."""
+        import inspect
+
+        from . import services
+
+        source = inspect.getsource(services.submit_combat_action)
+        self.assertIn("_reserve_artifact_into_battle", source)
+        self.assertNotIn("COMBAT_ARTIFACTS_PER_TYPE_LIMIT", source)

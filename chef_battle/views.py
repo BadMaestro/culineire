@@ -4545,6 +4545,63 @@ def battle_changing_room(request, pk):
 
 @chef_battle_guard
 @login_required
+def battle_loadout(request, pk):
+    """The kit a chef carries into ONE battle - the equipping screen.
+
+    The Owner asked for it on 2026-09-04, after an audit found
+    `ChefArtifact.equipped` on the model since 0001_initial with no writer
+    anywhere and no screen behind it. Asked whether to build the screen or
+    delete the field, he chose to build it.
+
+    It invents no rule. The loadout is the one the rulebook already
+    describes - COMBAT_ARTIFACTS_PER_TYPE_LIMIT = 3 of each type, held on
+    ChefArtifact.reserved_in_battle - and until now the only way to fill it
+    was to play an artifact mid-round and discover the cap by being refused.
+    """
+    from .services import (
+        equip_artifact_for_battle, get_battle_loadout, unequip_artifact_for_battle,
+    )
+
+    battle = get_object_or_404(Battle, pk=pk)
+    viewer_author = get_author_for_user(request.user)
+    if not viewer_author or not battle.author_is_participant(viewer_author):
+        raise PermissionDenied
+
+    if request.method == "POST":
+        action = (request.POST.get("action") or "").strip()
+        raw_id = (request.POST.get("chef_artifact") or "").strip()
+        try:
+            chef_artifact_id = int(raw_id)
+        except (TypeError, ValueError):
+            messages.error(request, "Choose an artifact first.")
+            return redirect("chef_battle:battle_loadout", pk=pk)
+        handler = {
+            "equip": equip_artifact_for_battle,
+            "unequip": unequip_artifact_for_battle,
+        }.get(action)
+        if handler is None:
+            messages.error(request, "Unknown action.")
+            return redirect("chef_battle:battle_loadout", pk=pk)
+        try:
+            row = handler(battle=battle, chef=viewer_author,
+                          chef_artifact_id=chef_artifact_id)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, "%s %s your kit." % (
+                row.artifact.name,
+                "is in" if action == "equip" else "is out of",
+            ))
+        return redirect("chef_battle:battle_loadout", pk=pk)
+
+    return render(request, "chef_battle/battle_loadout.html", {
+        "battle": battle,
+        "loadout": get_battle_loadout(battle, viewer_author),
+    })
+
+
+@chef_battle_guard
+@login_required
 def battle_recipe_attach(request, pk):
     battle = get_object_or_404(Battle, pk=pk)
     author = get_author_for_user(request.user)

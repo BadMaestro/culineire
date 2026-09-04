@@ -1,5 +1,58 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1768",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "A chef can pack his kit before the fight, and the purge now clears his two rehearsal chefs",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "THE EQUIPPING SCREEN, built rather than deleted. An audit found "
+            "ChefArtifact.equipped on the model since 0001_initial, in the "
+            "admin's list_display and list_filter, and written by NOTHING - a "
+            "field the site had carried for its whole life without a single "
+            "line setting it True. Asked whether to build the screen behind it "
+            "or take the field out, the Owner chose to build it. "
+            "IT INVENTS NO RULE, and that is the point. The loadout is the one "
+            "the rulebook already describes - three artifacts of each type per "
+            "battle, held on ChefArtifact.reserved_in_battle - and until now "
+            "the only way to fill it was to play an artifact mid-round and "
+            "learn the cap by being refused. A chef opens his kit from the "
+            "battle room or the changing room, sees each type as used-of-three, "
+            "takes one in, takes one back out. A spectator's gift is already in "
+            "the kit, is marked as a gift, and cannot be taken out: it was "
+            "somebody else's tokens spent on THIS fight and the rule has always "
+            "been that it must be used here. "
+            "ONE CAP, ONE PLACE. submit_combat_action carried its own copy of "
+            "the limit, the battle-row mutex and the two spellings of "
+            "'defence'; a second writer with a second copy is a limit that "
+            "drifts, so all three moved into _reserve_artifact_into_battle and "
+            "both writers call it. A test pins that the service no longer "
+            "mentions the constant at all. And the flag is cleared wherever the "
+            "reservation is cleared - when a battle ends, an artifact that was "
+            "never played goes back to the chest and stops claiming it is being "
+            "carried. "
+            "AND THE PURGE REACHES HIS TWO REHEARSAL CHEFS. It already put the "
+            "emulation bots back to the model's defaults and already REPORTED "
+            "what a run had left on Jam O'Liver and CrestedTen - the rating, "
+            "the wins, the streak, the 24-hour crown - while deliberately not "
+            "touching them, because those are the Owner's own accounts and "
+            "undoing a real account's numbers is his call. He was asked and he "
+            "answered: wipe them. So the same reset now covers both sets, and "
+            "the report still shows the marks before they go, because a number "
+            "that vanishes without being seen first is not a report. Identity "
+            "is untouched either way: the accounts, the enrolment and their "
+            "place in the console all stay. The test that had frozen the old "
+            "behaviour is rewritten to hold the new one instead of being "
+            "deleted. "
+            "NOT CHANGED ON PURPOSE: ChefArtifact.Status.RESERVED still has no "
+            "writer. Every path in the game requires an artifact to be "
+            "AVAILABLE before it can be played, so setting that status would "
+            "make an equipped artifact unplayable - the state is unfinished, "
+            "not wrong, and the loadout it looks like it describes is the "
+            "foreign key, which does have a writer and now has a screen."
+        ),
+    },
+    {
         "version": "2.5.1765",
         "date": "2026-09-04",
         "commit": "f7ab0fb8",

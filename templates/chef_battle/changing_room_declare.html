@@ -44,6 +44,7 @@
       </li>
       {% endfor %}
     </ul>
+    <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_loadout' battle.pk %}">&#x1F9F0; Your kit &rarr;</a>
     <a class="btn-secondary bd-phase-panel__cta" href="{% url 'chef_battle:battle_detail' battle.pk %}">Back to Battle Room</a>
   </div>
 
