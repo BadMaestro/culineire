@@ -1,5 +1,26 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1741",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The knife cursor's two files go too",
+        "section": "Site",
+        "summary": (
+            "v2.5.1729 took the crossed knife-and-fork hover cursor out of "
+            "base.html - the overlay, the stylesheet link and the script tag - "
+            "and left its two assets in the repository unreferenced, pending "
+            "the Owner's word. He gave it: delete them. "
+            "static/js/battle_cursor.js and static/css/battle_cursor.css are "
+            "removed. Nothing loaded them: the only two mentions left in the "
+            "codebase are prose - a completed entry on the build board and the "
+            "journal entry that retired the feature. The battle-cursor-target "
+            "classes still carried by six templates were already inert once the "
+            "overlay went, and they stay inert now; sweeping them out of "
+            "unrelated templates is not this task. "
+            "collectstatic re-run clean at 917 files."
+        ),
+    },
+    {
         "version": "2.5.1738",
         "date": "2026-09-04",
         "commit": "pending",
