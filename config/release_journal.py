@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1738",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "Become a Chef is back in the header menu, and the enrolment door is the only one opened",
+        "section": "Accounts / Chef Battles",
+        "summary": (
+            "THE OWNER ASKED FOR IT AND SCOPED IT HIMSELF. A newly registered "
+            "user must have Become a Chef in his header menu. The link already "
+            "existed but sat behind the visibility rule of 2026-08-04, under "
+            "which an Author sees nothing of Chef Battles but the rules and the "
+            "news - so it was hidden, and the form behind it answered 404. "
+            "Changing that gate needs his explicit word every time (AGENTS.md "
+            "section 8); he was asked how far to open it and chose THE "
+            "ENROLMENT PATH ONLY. "
+            "chef_enroll and enroll_success now carry a new enrolment_guard "
+            "instead of chef_battle_guard. It lets any signed-in visitor "
+            "through and keeps the suspension check on POST, because a "
+            "suspended account must not enrol its way back in through the one "
+            "door left open. Everything else is untouched: measured with the "
+            "production gate closed, an ordinary author gets 200 on "
+            "/chef-battle/enroll/ and on enroll/success/, and 404 on the arena, "
+            "the Chef Battles home and the token shop, exactly as before. "
+            "Two supporting fixes. The menu entry is no longer gated on "
+            "chef_battle_enabled, only on not being enrolled - the separate "
+            "Chef Battles entry below it still is. And chef_enroll's three "
+            "fallbacks redirected to chef_battle:home, which is behind the "
+            "gate: for an ordinary author that turned a tidy redirect into the "
+            "very 404 this was opened to avoid, so they now resolve to the "
+            "site's own home unless the visitor can actually see Chef Battles."
+        ),
+    },
+    {
         "version": "2.5.1735",
         "date": "2026-09-04",
         "commit": "62e73937",

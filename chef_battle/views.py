@@ -35,6 +35,7 @@ from .access import (
     arena_console_guard,
     chef_battle_guard,
     has_arena_console_access,
+    enrolment_guard,
     is_battle_visible,
     valid_share_token,
 )
@@ -509,20 +510,31 @@ def season_leaderboard(request):
     })
 
 
-@chef_battle_guard
+def _enrolment_exit(request):
+    """Where the enrolment path sends someone who has nothing to do here.
+
+    chef_battle:home is behind the visibility gate, so bouncing an ordinary
+    author onto it turns a tidy redirect into a 404 - which is exactly what the
+    enrolment door was opened to avoid. Send him to the site's own home instead,
+    and keep the Chef Battles home for anyone who can actually see it.
+    """
+    return "chef_battle:home" if is_battle_visible(request) else "home"
+
+
+@enrolment_guard
 @login_required
 def chef_enroll(request):
     """Author → Chef onboarding. Requires 18+ confirmation and battle rules acceptance."""
     author = get_author_for_user(request.user)
     if author is None:
         messages.error(request, "You need a recipe author profile to join Chef Battles.")
-        return redirect("chef_battle:home")
+        return redirect(_enrolment_exit(request))
 
     # Already enrolled — go straight to arena
     try:
         profile = author.battle_profile
         if profile.enrolled_at:
-            return redirect("chef_battle:home")
+            return redirect(_enrolment_exit(request))
     except ChefBattleProfile.DoesNotExist:
         profile = None
 
@@ -544,7 +556,7 @@ def chef_enroll(request):
                     profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
                 profile = ChefBattleProfile.objects.select_for_update().get(pk=profile.pk)
                 if profile.enrolled_at:
-                    return redirect("chef_battle:home")
+                    return redirect(_enrolment_exit(request))
                 profile.enrolled_at = now
                 if not profile.age_verified:
                     profile.age_verified = True
@@ -569,7 +581,7 @@ def chef_enroll(request):
     return render(request, "chef_battle/enroll.html", {"error": error})
 
 
-@chef_battle_guard
+@enrolment_guard
 @login_required
 def enroll_success(request):
     """Confirmation page shown immediately after successful Chef enrollment."""
