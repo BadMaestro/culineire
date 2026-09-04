@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1747",
         "date": "2026-09-04",
-        "commit": "pending",
+        "commit": "14e05c41",
         "title": "Stage 6: the rehearsal grows seven more scenarios, and learns to clear up after itself",
         "section": "Chef Battles / Arena",
         "summary": (
