@@ -875,6 +875,33 @@ body.page--amc #site-battle-widget {
   padding-left: 0.5rem;
 }
 
+/* The scenario picker sits above the buttons and reads like the readings
+   beside it: a small uppercase label, the control taking the rest of the row. */
+.amc-reh__pick {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amc-muted);
+}
+
+.amc-reh__select {
+  width: 100%;
+  min-height: 2rem;
+  font: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--amc-ink);
+  background: var(--amc-surface);
+  border: 1px solid var(--amc-line);
+  border-radius: 6px;
+  padding: 0.2rem 0.35rem;
+}
+
 /* THE REHEARSAL TRACE - 2026-09-04. The instrument's own readout: one line per
    step, the verdict first because that is what he scans for, the sentence after
    it because a verdict with no reason is not a finding. It scrolls inside the

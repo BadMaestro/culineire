@@ -3441,7 +3441,16 @@ class RehearsalRun(models.Model):
     """One rehearsal of the arena, identified and repeatable."""
 
     class Scenario(models.TextChoices):
+        # The titles live in rehearsal.SCENARIO_TITLES, next to the step lists
+        # they describe; these are the stored values and the admin's labels.
         A = "A", "A - battle lifecycle"
+        B = "B", "B - battle with artifacts"
+        C = "C", "C - the stands: delivery, gifts, chat"
+        D = "D", "D - shop, chest and drops"
+        E = "E", "E - a full hall"
+        F = "F", "F - the spectator's window"
+        G = "G", "G - the result frame"
+        H = "H", "H - what the battle leaves behind"
 
     class Status(models.TextChoices):
         RUNNING = "running", "Running"

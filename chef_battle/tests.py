@@ -29590,7 +29590,18 @@ class TheRehearsalIsAnInstrumentTests(TestCase):
 
         from .rehearsal import start_rehearsal
         run = start_rehearsal(operator_author=self.owner, seed=11)
-        self._walk(limit=12)   # up to and including moderation
+        # Walk until the dishes are presented rather than counting steps: the
+        # scenario grew a step at the front when the registry was introduced,
+        # and a fixed count silently stopped one phase short.
+        from .rehearsal import SCENARIOS, rehearsal_step
+
+        for _ in range(len(SCENARIOS["A"])):
+            rehearsal_step(operator_author=self.owner)
+            run.refresh_from_db()
+            if run.battle_id:
+                run.battle.refresh_from_db()
+                if run.battle.status == Battle.Status.PRESENTATION:
+                    break
         run.refresh_from_db()
         battle = run.battle
         battle.refresh_from_db()
@@ -30173,3 +30184,213 @@ class TheConsoleShowsWhatIsThereTests(TestCase):
             head = block[:block.index(")")]
             self.assertIn("RewardType.LSR", head)
             self.assertNotIn("RewardType.CBR", head)
+
+
+class TheRehearsalHasEightScenariosTests(TestCase):
+    """Stage 6: the rest of the arena, composed from one registry of steps.
+
+    These do not re-run the scenarios - each one takes minutes and is exercised
+    on the live database by the operator. They guard the properties that make
+    the composition trustworthy: one step is one implementation, every scenario
+    is reachable, and the cleanup can undo what the runs create.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.owner_user = User.objects.create_user(
+            username="owner-stage6", password="x")
+        self.owner, _ = RecipeAuthor.objects.get_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"name": "GreenBear", "user": self.owner_user})
+
+    def test_every_scenario_is_made_of_registered_steps(self):
+        """A scenario naming a step that does not exist fails at RUN time.
+
+        The registry is a dict of names and the scenarios are lists of names,
+        which is what makes them composable - and also what lets a typo sit
+        there until somebody presses the button. This is the check that moves
+        that failure from the operator's screen to the suite.
+        """
+        from .rehearsal import SCENARIOS, SCENARIO_TITLES, STEPS
+
+        for key, steps in SCENARIOS.items():
+            self.assertTrue(steps, f"scenario {key} has no steps")
+            for name in steps:
+                self.assertIn(name, STEPS, f"scenario {key} names step '{name}'")
+            self.assertIn(key, SCENARIO_TITLES, f"scenario {key} has no title")
+
+    def test_every_scenario_is_offerable_and_startable(self):
+        from .models import RehearsalRun
+        from .rehearsal import SCENARIOS, abort_rehearsal, start_rehearsal
+
+        for key in sorted(SCENARIOS):
+            run = start_rehearsal(operator_author=self.owner, scenario=key, seed=1)
+            self.assertEqual(run.scenario, key)
+            self.assertIn(key, dict(RehearsalRun.Scenario.choices),
+                          f"scenario {key} is not a stored choice")
+            abort_rehearsal(operator_author=self.owner)
+
+    def test_an_unknown_scenario_is_refused_by_name(self):
+        from .rehearsal import RehearsalError, start_rehearsal
+
+        with self.assertRaises(RehearsalError):
+            start_rehearsal(operator_author=self.owner, scenario="Z")
+
+    def test_the_console_menu_comes_from_the_scenarios_themselves(self):
+        """A list in the template would drift the day a scenario is added."""
+        from .rehearsal import SCENARIOS, rehearsal_state
+
+        menu = rehearsal_state()["scenarios"]
+        self.assertEqual({row["key"] for row in menu}, set(SCENARIOS))
+        for row in menu:
+            self.assertEqual(row["steps"], len(SCENARIOS[row["key"]]))
+
+    def test_every_scenario_that_scores_a_battle_also_finishes_it(self):
+        """A scenario that stops mid-fight leaves the chefs' slots occupied.
+
+        Any scenario reaching a step that needs a COMPLETED battle has to walk
+        the whole lifecycle to get there - so the closing steps travel together
+        or the run reports a failure that is its own fault.
+        """
+        from .rehearsal import SCENARIOS
+
+        needs_a_result = {"drop", "winner", "profiles"}
+        for key, steps in SCENARIOS.items():
+            if needs_a_result & set(steps):
+                self.assertIn("result", steps,
+                              f"scenario {key} reads a result it never produces")
+
+    def test_the_rehearsal_still_forces_nothing(self):
+        """The guard from stage 1, re-checked now that there are eight paths."""
+        import inspect
+
+        from . import rehearsal
+
+        source = inspect.getsource(rehearsal)
+        self.assertNotIn("operator_force_status", source)
+        self.assertNotIn("battle.status = ", source)
+        self.assertNotIn("battle.winner = ", source)
+
+
+class TheRehearsalCleansUpAfterItselfTests(TestCase):
+    """The purge has to be able to undo a run, or the next one cannot start.
+
+    A rehearsal battle holds the two test chefs' slots exactly as a real one
+    does - correctly - so litter it cannot clear is litter that blocks every
+    later run.
+    """
+
+    def setUp(self):
+        User = get_user_model()
+        self.owner_user = User.objects.create_user(
+            username="owner-cleanup", password="x")
+        self.owner, _ = RecipeAuthor.objects.get_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"name": "GreenBear", "user": self.owner_user})
+
+    def test_a_delivery_from_the_rehearsals_own_stands_can_be_purged(self):
+        """It could not be, and that stopped scenario C dead on its second run.
+
+        The refusal was right in general - a gift holds a token transaction
+        somebody paid for - and wrong for a gift the rehearsal sent itself with
+        tokens it granted. Both halves belong to it.
+        """
+        from .models import Artifact, TokenTransaction, ViewerBattleGift
+        from .rehearsal import _rehearsal_viewer
+        from .services import (
+            credit_tokens, emulation_data_report, operator_purge_emulation_data,
+            send_battle_artifact,
+        )
+
+        jam = RecipeAuthor.objects.create(slug="jam-oliver", name="Jam O'Liver")
+        crested = RecipeAuthor.objects.create(slug="crestedten", name="CrestedTen")
+        for author in (jam, crested):
+            ChefBattleProfile.objects.create(author=author, enrolled_at=timezone.now())
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=crested, opponent=jam, theme="REHEARSAL: cleanup",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3),
+        )
+        artifact = Artifact.objects.create(
+            name="REHEARSAL charm", effect_type="attack", effect_value=2,
+            token_cost=10, is_active=True)
+        user, author = _rehearsal_viewer(0)
+        credit_tokens(author, 500, tx_type=TokenTransaction.TxType.ADMIN_GRANT)
+        send_battle_artifact(sender_user=user, recipient=crested,
+                             battle=battle, artifact=artifact)
+
+        report = emulation_data_report()
+        self.assertEqual(report["gifts"]["count"], 1)
+        self.assertEqual(report["own_gifts"]["count"], 1)
+
+        operator_purge_emulation_data(operator_author=self.owner)
+        self.assertFalse(Battle.objects.filter(pk=battle.pk).exists())
+        self.assertFalse(ViewerBattleGift.objects.exists())
+        # The transaction stays, and the result says so - pulling the wallet's
+        # own ledger apart is the half-deletion the refusal exists to prevent.
+        self.assertTrue(TokenTransaction.objects.exists())
+
+    def test_a_gift_from_a_real_person_still_refuses_the_purge(self):
+        """The narrowing must not have opened the door it was guarding."""
+        from .models import Artifact, TokenTransaction
+        from .services import (
+            OperatorActionError, credit_tokens, operator_purge_emulation_data,
+            send_battle_artifact,
+        )
+
+        User = get_user_model()
+        jam = RecipeAuthor.objects.create(slug="jam-oliver", name="Jam O'Liver")
+        crested = RecipeAuthor.objects.create(slug="crestedten", name="CrestedTen")
+        for author in (jam, crested):
+            ChefBattleProfile.objects.create(author=author, enrolled_at=timezone.now())
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=crested, opponent=jam, theme="REHEARSAL: stranger",
+            status=Battle.Status.ACTIVE, start_time=now,
+            submission_deadline=now + datetime.timedelta(hours=1),
+            voting_deadline=now + datetime.timedelta(days=2),
+            end_time=now + datetime.timedelta(days=3),
+        )
+        artifact = Artifact.objects.create(
+            name="REHEARSAL charm", effect_type="attack", effect_value=2,
+            token_cost=10, is_active=True)
+        person = User.objects.create_user(username="a-real-person", password="x")
+        person_author = RecipeAuthor.objects.create(
+            slug="a-real-person", name="A Real Person", user=person)
+        credit_tokens(person_author, 500, tx_type=TokenTransaction.TxType.ADMIN_GRANT)
+        send_battle_artifact(sender_user=person, recipient=crested,
+                             battle=battle, artifact=artifact)
+
+        with self.assertRaises(OperatorActionError):
+            operator_purge_emulation_data(operator_author=self.owner)
+        self.assertTrue(Battle.objects.filter(pk=battle.pk).exists())
+
+    def test_the_purge_reports_what_it_left_on_the_owners_test_chefs(self):
+        """It reports, and it does NOT reset - those are his accounts.
+
+        The EMU bots are the console's own creatures and the purge puts them
+        back to the model's defaults. Jam O'Liver and CrestedTen are his, a
+        rehearsal really does move their rating and their crown, and wiping
+        that is his call and not an agent's.
+        """
+        import inspect
+
+        from . import services
+
+        jam = RecipeAuthor.objects.create(slug="jam-oliver", name="Jam O'Liver")
+        ChefBattleProfile.objects.create(
+            author=jam, enrolled_at=timezone.now(), wins=3, rating=70)
+
+        report = services.emulation_data_report()
+        marks = {row["slug"]: row for row in report["rehearsal_chef_marks"]}
+        self.assertEqual(marks["jam-oliver"]["wins"], 3)
+        self.assertEqual(marks["jam-oliver"]["rating"], 70)
+
+        # And nothing resets them: the only profile reset in the purge names
+        # the emulation bot set.
+        purge = inspect.getsource(services.operator_purge_emulation_data)
+        self.assertIn("_emulation_bot_slug_set()", purge)
+        self.assertNotIn("REHEARSAL_CHEFS", purge)

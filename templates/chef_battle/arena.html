@@ -960,13 +960,15 @@
       <svg class="arena-command-bar__ornament" viewBox="0 0 798 60"
            preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
         <g fill="none" stroke-linecap="round">
-          {# EVERY LINE RUNS TO THE CENTRE OF THE NODE IT JOINS, not to its edge.
-             Stopping at the edge leaves the far side of the ring with nothing
-             attached to it and a sliver of line showing past the near side, so
-             the junction reads as a blob with a tail. Terminating at the centre
-             and painting the bead and the ring over the top puts the meeting
-             point exactly at the middle of the white circle and hides
-             everything inside it. #}
+          {% comment %}
+          EVERY LINE RUNS TO THE CENTRE OF THE NODE IT JOINS, not to its edge.
+          Stopping at the edge leaves the far side of the ring with nothing
+          attached to it and a sliver of line showing past the near side, so
+          the junction reads as a blob with a tail. Terminating at the centre
+          and painting the bead and the ring over the top puts the meeting
+          point exactly at the middle of the white circle and hides
+          everything inside it.
+          {% endcomment %}
           {# the two upper rules, bead centre to ring centre #}
           <path d="M225.5 26 H282 M516 26 H572.5" stroke="#cdb291" stroke-width="1.1"/>
           {# the two diagonals, ring centre to the lower rule #}
@@ -978,9 +980,11 @@
         {# the two endpoint beads #}
         <circle cx="225.5" cy="26" r="3" fill="#cda161"/>
         <circle cx="572.5" cy="26" r="3" fill="#cda161"/>
-        {# The two hollow junction rings. Seven across the outside and four across
-   the hollow, which is what the reference measures: the ring is a band, not
-   a hairline round a large white disc. #}
+        {% comment %}
+        The two hollow junction rings. Seven across the outside and four across
+        the hollow, which is what the reference measures: the ring is a band,
+        not a hairline round a large white disc.
+        {% endcomment %}
         <circle cx="282" cy="26" r="2.75" fill="#fcfcfa" stroke="#bf9d79" stroke-width="1.5"/>
         <circle cx="516" cy="26" r="2.75" fill="#fcfcfa" stroke="#bf9d79" stroke-width="1.5"/>
         {# the central diamond, sitting ON the rule, with no rule beneath it #}

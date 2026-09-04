@@ -5173,8 +5173,33 @@ def _emulation_data_sets():
         "votes": BattleVote.objects.filter(battle_id__in=battle_ids),
         "entries": BattleEntry.objects.filter(battle_id__in=battle_ids),
         "events": BattleEvent.objects.filter(battle_id__in=battle_ids),
+        # A gift is only ever in this set if its BATTLE is, and it is only
+        # removable if its sender is one of the rehearsal's own spectators
+        # too - see the refusal in operator_purge_emulation_data.
         "gifts": ViewerBattleGift.objects.filter(battle_id__in=battle_ids),
-        "seats": ArenaSeat.objects.filter(viewer__slug__in=bots),
+        "own_gifts": ViewerBattleGift.objects.filter(
+            battle_id__in=battle_ids,
+            sender__username__startswith="rehearsal-viewer-"),
+        # Appreciation gifts hang off no battle at all, so the battle sweep
+        # never sees them; matched by sender, which is the only thing that
+        # makes one the rehearsal's.
+        "appreciation": AppreciationGift.objects.filter(
+            sender__username__startswith="rehearsal-viewer-"),
+        # THE CHESTS. Nothing removed a single ChefArtifact before 2026-09-04,
+        # so every rehearsal left its charms in the two test chefs' chests for
+        # good. Jam O'Liver and CrestedTen are the OWNER'S OWN accounts, so the
+        # filter is exact and narrow: a row is the rehearsal's only if it is
+        # tied to one of the battles in this set, or if the artifact behind it
+        # is one the rehearsal invented. An artifact he bought them himself is
+        # in neither case and is not touched.
+        "artifacts": ChefArtifact.objects.filter(
+            Q(locked_to_battle_id__in=battle_ids)
+            | Q(reserved_in_battle_id__in=battle_ids)
+            | Q(consumed_in_battle_id__in=battle_ids)
+            | Q(artifact__name__startswith="REHEARSAL")),
+        "seats": ArenaSeat.objects.filter(
+            Q(viewer__slug__in=bots)
+            | Q(viewer__slug__startswith="rehearsal-viewer-")),
         "voters": get_user_model().objects.filter(
             Q(username__startswith="emu-voter-")
             | Q(username__startswith="rehearsal-voter-")),
@@ -5210,8 +5235,9 @@ def emulation_data_report():
             Q(winner__isnull=False) | Q(loser__isnull=False) | Q(crown_awarded=True)
         ).count(),
     }
-    for key in ("chat", "votes", "entries", "events", "gifts", "seats",
-                "voters", "recipes", "challenges", "runs"):
+    for key in ("chat", "votes", "entries", "events", "gifts", "own_gifts",
+                "appreciation", "artifacts", "seats", "voters", "recipes",
+                "challenges", "runs"):
         report[key] = {"count": sets[key].count()}
     report["voters"]["examples"] = list(
         sets["voters"].values_list("username", flat=True)[:9])
@@ -5224,14 +5250,26 @@ def emulation_data_report():
     )
     # What a run left ON THE BOTS, which is not a row count but is exactly
     # what the Owner sees: a rating, a win, and the arena's 24-hour crown.
-    report["bot_marks"] = [
-        {"slug": p.author.slug, "rating": p.rating, "wins": p.wins,
-         "losses": p.losses, "crowns": p.crown_count,
-         "crowned": bool(p.crown_until and p.crown_until > timezone.now()),
-         "seasonal_score": p.seasonal_score}
-        for p in ChefBattleProfile.objects.select_related("author").filter(
-            author__slug__in=_emulation_bot_slug_set())
-    ]
+    from .rehearsal import REHEARSAL_CHEFS
+
+    def _marks(slugs):
+        return [
+            {"slug": p.author.slug, "rating": p.rating, "wins": p.wins,
+             "losses": p.losses, "crowns": p.crown_count,
+             "crowned": bool(p.crown_until and p.crown_until > timezone.now()),
+             "seasonal_score": p.seasonal_score}
+            for p in ChefBattleProfile.objects.select_related("author")
+            .filter(author__slug__in=slugs)
+        ]
+
+    report["bot_marks"] = _marks(_emulation_bot_slug_set())
+    # AND WHAT IT LEFT ON HIS OWN TEST CHEFS, reported and NOT reset. The EMU
+    # bots above are the console's own creatures and their numbers are residue,
+    # so the purge puts them back to the model's defaults. Jam O'Liver and
+    # CrestedTen are the OWNER'S accounts: a rehearsal really does move their
+    # rating, their wins and their streak, and whether that is wiped is his
+    # call and not an agent's. So it is shown, plainly, every time he counts.
+    report["rehearsal_chef_marks"] = _marks(REHEARSAL_CHEFS)
     return report
 
 
@@ -5258,10 +5296,22 @@ def operator_purge_emulation_data(*, operator_author, correlation_id=""):
     _require_owner(operator_author)
 
     before = emulation_data_report()
-    if before["gifts"]["count"]:
+    # A GIFT FROM A REAL PERSON STILL REFUSES THE PURGE. It holds a token
+    # transaction somebody actually paid for, and half a deletion is worse than
+    # none - that reasoning has not changed.
+    #
+    # What changed on 2026-09-04 is that the rehearsal now sends gifts of its
+    # own, from its own spectators, with tokens the rehearsal granted them and
+    # nobody bought. Those it may remove, with their transactions, because both
+    # halves belong to it. Matched on BOTH conditions: the battle is in the set
+    # AND the sender is a rehearsal viewer. Anything else and the purge still
+    # stops dead.
+    stranger_gifts = before["gifts"]["count"] - before["own_gifts"]["count"]
+    if stranger_gifts > 0:
         raise OperatorActionError(
-            "%d gift(s) hang off these battles and hold token transactions. "
-            "Purge refused rather than half-applied." % before["gifts"]["count"]
+            "%d gift(s) hang off these battles and hold token transactions "
+            "that a person paid for. Purge refused rather than half-applied."
+            % stranger_gifts
         )
 
     with transaction.atomic():
@@ -5271,6 +5321,22 @@ def operator_purge_emulation_data(*, operator_author, correlation_id=""):
         # exactly the sort of leftover this action exists to stop leaving.
         for key in ("chat", "votes", "entries", "events", "seats"):
             sets[key].delete()
+        # The rehearsal's own deliveries, with the transactions that paid for
+        # them - the pair is what makes this a whole deletion rather than a
+        # half one. The lots and allocations behind the transaction cascade
+        # from it; the ChefArtifact the delivery created is caught by the
+        # artifact sweep below, because it is locked to one of these battles.
+        # THE GIFT ROW GOES; THE TRANSACTION STAYS, and that is not a
+        # compromise, it is the original rule read properly. What blocks the
+        # next run is the gift hanging off the battle. The transaction behind
+        # it is protected by TokenLot and TokenSpendAllocation - the wallet's
+        # own ledger - and tearing those out to tidy a rehearsal is exactly the
+        # half-deletion the refusal above was written to prevent. A spent
+        # transaction in a test viewer's wallet history harms nothing, and the
+        # result says out loud that it stayed.
+        sets["own_gifts"].delete()
+        sets["appreciation"].delete()
+        sets["artifacts"].delete()
         # Runs and challenges first: a run points at its battle and a
         # challenge is pointed at BY one, so removing the battle underneath
         # either of them is how a purge leaves a dangling row behind.
@@ -5317,6 +5383,10 @@ def operator_purge_emulation_data(*, operator_author, correlation_id=""):
         # whose value is that it cannot be edited. They stay, and so does the
         # operator-action audit of the run itself.
         "kept": {
+            "token_transactions": (
+                "a gift's transaction stays: TokenLot and TokenSpendAllocation "
+                "protect it, and pulling those out to tidy a rehearsal is the "
+                "half-deletion this action refuses on principle"),
             "ledger_events": "chained by hash - never deleted",
             "operator_audit": "the run's own OPERATOR_ACTION trail stays",
         },

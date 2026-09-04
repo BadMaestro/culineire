@@ -1,5 +1,65 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1747",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "Stage 6: the rehearsal grows seven more scenarios, and learns to clear up after itself",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The rehearsal was one linear walk through a battle. It is eight "
+            "walks now, composed rather than copied: every step is registered "
+            "once by name and a scenario is an ORDER OF NAMES, so the opening "
+            "nine steps that put two chefs into a live fight are the same nine "
+            "steps whether we are then watching artifacts, the stands, the "
+            "shop or the result. A - the lifecycle. B - the fight with "
+            "artifacts. C - the stands: delivery, gifts and chat. D - shop, "
+            "chest and drops. E - a full hall. F - the spectator's window. "
+            "G - the result frame. H - what the battle leaves behind. The "
+            "console picks one from a menu built out of the scenarios "
+            "themselves, so a list in a template cannot drift from the code. "
+            "ALL EIGHT WERE RUN, and four things they found were the "
+            "rehearsal's own fault rather than production's, which is the "
+            "point of running them: a spectator who never polls loses his seat "
+            "before he can speak (correct - a seat lapses with its holder's "
+            "online window - so the rehearsal keeps its spectators present the "
+            "way a real viewer's poll does); a chef must spend a spectator's "
+            "gift before his own, and the run was playing his own first and "
+            "being refused; the hall was measured by counting rows instead of "
+            "against the seat map, so one stale off-map seat read as an "
+            "overflow; and the window step knocked with Django's test client, "
+            "whose Host header production rejects, then reported that 400 as a "
+            "broken endpoint. "
+            "THE CLEAN-UP WAS THE REAL BLOCKER. A rehearsal battle holds the "
+            "two test chefs' slots exactly as a real battle does - which is the "
+            "rule working - so anything the purge could not clear stopped every "
+            "later run. It could not clear a delivery: the refusal on gifts was "
+            "written for a gift a PERSON paid for, and it caught the rehearsal's "
+            "own gifts too. It now removes a gift only when the battle is in the "
+            "set AND the sender is a rehearsal spectator, both conditions "
+            "together; a stranger's gift still stops the purge dead. The token "
+            "transaction behind it stays - TokenLot and TokenSpendAllocation "
+            "protect it, and tearing those out to tidy a rehearsal is exactly "
+            "the half-deletion the refusal exists to prevent - and the result "
+            "says so out loud. The purge also sweeps what it had never touched: "
+            "chef artifacts tied to these battles or made by the rehearsal, "
+            "appreciation gifts from its own stands, and its spectators' seats. "
+            "WHAT IT LEAVES ON HIS OWN CHEFS IS REPORTED, NOT RESET. The EMU "
+            "bots are the console's creatures and the purge puts them back to "
+            "the model's defaults. Jam O'Liver and CrestedTen are the Owner's "
+            "accounts, and a rehearsal really does move their rating, their "
+            "wins and the arena's 24-hour crown - after these runs CrestedTen "
+            "was carrying three wins and the crown. Whether that is wiped is "
+            "his decision, so the count shows it every time he presses it and "
+            "changes nothing. "
+            "ALSO FIXED IN PASSING: three multi-line {# #} comments in "
+            "arena.html - two at the top of the file and one in the command "
+            "bar's connector - which had been failing "
+            "NoTemplateCommentCanPrintItselfOnThePageTests on main. Django's "
+            "hash comment is single-line and a multi-line one prints itself "
+            "onto the page, which is exactly what that test exists to catch."
+        ),
+    },
+    {
         "version": "2.5.1744",
         "date": "2026-09-04",
         "commit": "pending",

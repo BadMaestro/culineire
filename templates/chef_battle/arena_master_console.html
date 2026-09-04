@@ -26,7 +26,7 @@
   arena_console_mirror.css flattens the camera last.
 {% endcomment %}
 <link href="{% static 'css/arena.css' %}?v=20260808-an12-two-sheets" rel="stylesheet">
-<link href="{% static 'css/arena_master_console.css' %}?v=20260904-stage5" rel="stylesheet">
+<link href="{% static 'css/arena_master_console.css' %}?v=20260904-stage6" rel="stylesheet">
 <link href="{% static 'css/arena_console_mirror.css' %}?v=20260806-hint-fit" rel="stylesheet">
 {% endblock %}
 
@@ -279,6 +279,12 @@
             <ol class="amc-reh__trace" id="amc-reh-trace">
               <li><span class="amc-empty">No run yet</span></li>
             </ol>
+            <label class="amc-reh__pick" for="amc-reh-scenario">
+              <span>Scenario</span>
+              <select id="amc-reh-scenario" class="amc-reh__select">
+                <option value="A">A &middot; Battle lifecycle</option>
+              </select>
+            </label>
             <div class="amc-panel__actions">
               <button type="button" class="amc-btn" data-amc-reh="rehearsal_start"
                       title="Start scenario A: Jam O&#39;Liver and CrestedTen live a whole battle on the main Arena">Start</button>
@@ -644,7 +650,7 @@
 
 {{ master_state|json_script:"amc-state-json" }}
 <script nonce="{{ request.csp_nonce }}">window.AMC_OPERATOR = { isOwner: {{ operator_is_owner|yesno:"true,false" }} };</script>
-<script src="{% static 'js/arena_master_console.js' %}?v=20260904-stage5"></script>
+<script src="{% static 'js/arena_master_console.js' %}?v=20260904-stage6"></script>
 {% comment %}
 The lamp CONTROL, and only here. It mounts into the `data-lamp-mount` in the
 first operator panel above; on the public arena that mount does not exist and

@@ -659,6 +659,25 @@
     var trace = document.getElementById('amc-reh-trace');
     if (!trace) return;
 
+    /* THE MENU COMES FROM THE CODE. The scenarios and their step counts are
+       declared in rehearsal.SCENARIOS, so the picker is filled from the state
+       rather than from a list in this file that would drift the day a
+       scenario is added. Filled once - rewriting it on every poll would throw
+       away whatever the operator had selected. */
+    var picker = document.getElementById('amc-reh-scenario');
+    if (picker && !picker.dataset.filled && (reh.scenarios || []).length) {
+      var chosen = picker.value;
+      picker.textContent = '';
+      reh.scenarios.forEach(function (s) {
+        var option = document.createElement('option');
+        option.value = s.key;
+        option.textContent = s.key + ' · ' + s.title + ' (' + s.steps + ')';
+        picker.appendChild(option);
+      });
+      picker.value = chosen || 'A';
+      picker.dataset.filled = '1';
+    }
+
     if (!run) {
       setEmpty('amc-reh-run', 'None yet');
       setEmpty('amc-reh-seed', '—');
@@ -669,7 +688,8 @@
       return;
     }
 
-    setText('amc-reh-run', run.run_id + ' · ' + run.status_display);
+    setText('amc-reh-run', run.run_id + ' · ' + run.scenario +
+      ' · ' + run.status_display);
     setText('amc-reh-seed', String(run.seed));
     setText('amc-reh-step', reh.done_steps + ' / ' + reh.total_steps);
     setText('amc-reh-next', reh.next_step || 'finished');
@@ -700,8 +720,10 @@
     }
   }
 
-  function rehPost(action) {
-    return postAction({ action: action }).then(function (res) {
+  function rehPost(action, extra) {
+    var fields = { action: action };
+    if (extra) Object.keys(extra).forEach(function (k) { fields[k] = extra[k]; });
+    return postAction(fields).then(function (res) {
       if (res.rehearsal) { state.rehearsal = res.rehearsal; paintRehearsal(); }
       return res;
     });
@@ -709,6 +731,8 @@
 
   function handleRehearsal(btn) {
     var kind = btn.getAttribute('data-amc-reh');
+    var picker = document.getElementById('amc-reh-scenario');
+    var scenario = picker ? picker.value : 'A';
     if (kind === 'rehearsal_start' &&
         !window.confirm("Start scenario A? Jam O'Liver and CrestedTen live a whole " +
           'battle on the MAIN arena, through the real forms and services. It leaves ' +
@@ -731,7 +755,7 @@
             return res;
           });
         })()
-      : rehPost(kind);
+      : rehPost(kind, kind === 'rehearsal_start' ? { scenario: scenario } : null);
 
     chain
       .then(function () { return poll(); })

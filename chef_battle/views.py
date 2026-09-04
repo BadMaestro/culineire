@@ -4860,6 +4860,7 @@ def master_action(request):
             if action == "rehearsal_start":
                 run = start_rehearsal(
                     operator_author=author,
+                    scenario=request.POST.get("scenario") or "A",
                     seed=request.POST.get("seed") or None,
                     correlation_id=correlation_id,
                 )
