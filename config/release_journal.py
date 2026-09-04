@@ -1,5 +1,32 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1717",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The connector's lines meet in the middle of the white rings",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Owner: the white circles stick out at the sides and the joins do "
+            "not look true; the lines should meet exactly at their centres. "
+            "They were terminating at the ring's EDGE, which leaves the far "
+            "half of the ring with nothing attached to it and a sliver of rule "
+            "showing past the near half - the node reads as a blob with a tail "
+            "rather than as a junction. Every line now runs to the centre of "
+            "the node it joins, and the bead and the ring are painted over the "
+            "top, so the meeting point is exactly in the middle of the white "
+            "circle and everything inside it is hidden. "
+            "The ring itself was also the wrong proportion: a hairline round a "
+            "large white disc, where the reference has a BAND - seven pixels "
+            "across the outside and four across the hollow. Radius 2.75 with a "
+            "1.5 stroke reproduces both. The beads come down from 6.6 to the "
+            "reference's 6. "
+            "The number is 1717 and not 1714: another agent took 1714 while "
+            "this was in flight, which is exactly what the three-agent rotation "
+            "exists to make impossible and did not, because the bump happened "
+            "before the push rather than after the fetch."
+        ),
+    },
+    {
         "version": "2.5.1714",
         "date": "2026-09-04",
         "commit": "86b87601",

@@ -949,20 +949,29 @@
       <svg class="arena-command-bar__ornament" viewBox="0 0 798 60"
            preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
         <g fill="none" stroke-linecap="round">
-          {# the two upper rules, bead to ring #}
-          <path d="M228.7 26 H278.5 M519.5 26 H569.3" stroke="#cdb291" stroke-width="1.1"/>
-          {# the two diagonals, ring foot to the lower rule #}
-          <path d="M282 29.6 L301 50 M516 29.6 L497 50" stroke="#c9af92" stroke-width="1.1"/>
+          {# EVERY LINE RUNS TO THE CENTRE OF THE NODE IT JOINS, not to its edge.
+             Stopping at the edge leaves the far side of the ring with nothing
+             attached to it and a sliver of line showing past the near side, so
+             the junction reads as a blob with a tail. Terminating at the centre
+             and painting the bead and the ring over the top puts the meeting
+             point exactly at the middle of the white circle and hides
+             everything inside it. #}
+          {# the two upper rules, bead centre to ring centre #}
+          <path d="M225.5 26 H282 M516 26 H572.5" stroke="#cdb291" stroke-width="1.1"/>
+          {# the two diagonals, ring centre to the lower rule #}
+          <path d="M282 26 L301 50 M516 26 L497 50" stroke="#c9af92" stroke-width="1.1"/>
           {# the two lower rules, fading out into the central gaps #}
           <path d="M301 50 H389" stroke="url(#cb-fade-l)" stroke-width="1.1"/>
           <path d="M497 50 H409" stroke="url(#cb-fade-r)" stroke-width="1.1"/>
         </g>
         {# the two endpoint beads #}
-        <circle cx="225.5" cy="26" r="3.3" fill="#cda161"/>
-        <circle cx="572.5" cy="26" r="3.3" fill="#cda161"/>
-        {# the two hollow junction rings #}
-        <circle cx="282" cy="26" r="3" fill="#fcfcfa" stroke="#bf9d79" stroke-width="1.1"/>
-        <circle cx="516" cy="26" r="3" fill="#fcfcfa" stroke="#bf9d79" stroke-width="1.1"/>
+        <circle cx="225.5" cy="26" r="3" fill="#cda161"/>
+        <circle cx="572.5" cy="26" r="3" fill="#cda161"/>
+        {# The two hollow junction rings. Seven across the outside and four across
+   the hollow, which is what the reference measures: the ring is a band, not
+   a hairline round a large white disc. #}
+        <circle cx="282" cy="26" r="2.75" fill="#fcfcfa" stroke="#bf9d79" stroke-width="1.5"/>
+        <circle cx="516" cy="26" r="2.75" fill="#fcfcfa" stroke="#bf9d79" stroke-width="1.5"/>
         {# the central diamond, sitting ON the rule, with no rule beneath it #}
         <path d="M399 43.5 L405.5 50.2 L399 56.8 L392.5 50.2 Z" fill="#a77a47"/>
         <path d="M399 46.6 L402.9 50 L399 53.4 L395.1 50 Z" fill="#f6f1de"/>
