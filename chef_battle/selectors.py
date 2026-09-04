@@ -590,6 +590,7 @@ def get_master_state() -> dict:
     monitor = get_master_monitor(battles=battles)
     governance = get_master_governance_detail()
     operator = get_master_operator_surfaces()
+    from .rehearsal import rehearsal_state
 
     return {
         "monitor": monitor,
@@ -617,6 +618,8 @@ def get_master_state() -> dict:
         # keeps a console reading an older cached JSON from losing a section
         # it already knows.
         "operator": operator,
+        # The rehearsal trace. Read-only and appended for the same reason.
+        "rehearsal": rehearsal_state(),
     }
 
 

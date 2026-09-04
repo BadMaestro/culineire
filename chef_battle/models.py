@@ -3401,3 +3401,94 @@ class ArenaOperatorFlags(models.Model):
             cache.delete(cls.CHAT_CACHE_KEY)
         else:
             cache.set(cls.CHAT_CACHE_KEY, int(bool(value)), cls.CACHE_TTL_SECONDS)
+
+
+# ── The rehearsal instrument ────────────────────────────────────────────────
+#
+# The Owner, 2026-09-04: a REAL battle in the format of a test. Two test chefs
+# live a whole battle on the main Arena through the same forms and services a
+# person uses, and we sit and record what is broken.
+#
+# These two models are the record, and nothing else. They hold no rule and
+# decide no outcome: a run writes what it observed, step by step, so the
+# console can show the trace while it happens and so a failure survives the
+# page being closed. The battle itself is an ordinary Battle row, scored by
+# the ordinary engine.
+
+
+class RehearsalRun(models.Model):
+    """One rehearsal of the arena, identified and repeatable."""
+
+    class Scenario(models.TextChoices):
+        A = "A", "A - battle lifecycle"
+
+    class Status(models.TextChoices):
+        RUNNING = "running", "Running"
+        BLOCKED = "blocked", "Blocked on a missing mechanism"
+        PASSED = "passed", "Passed"
+        FAILED = "failed", "Failed"
+        ABORTED = "aborted", "Aborted"
+
+    run_id = models.CharField(max_length=32, unique=True, db_index=True)
+    scenario = models.CharField(
+        max_length=2, choices=Scenario.choices, default=Scenario.A)
+    # The seed makes a run repeatable: every random choice the rehearsal makes
+    # comes out of a Random(seed), so the same seed replays the same battle.
+    seed = models.BigIntegerField()
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.RUNNING)
+    battle = models.ForeignKey(
+        "Battle", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="rehearsal_runs")
+    started_by = models.ForeignKey(
+        "recipes.RecipeAuthor", null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="rehearsal_runs")
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    # Set the moment a step is stepped over rather than performed. A tainted
+    # run can never report PASSED, however many green steps follow it.
+    is_tainted = models.BooleanField(default=False)
+    note = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+
+    def __str__(self):
+        return f"Rehearsal {self.run_id} ({self.scenario}) {self.status}"
+
+    @classmethod
+    def current(cls):
+        """The run in flight, if there is one. There is at most one."""
+        return cls.objects.filter(
+            status__in=[cls.Status.RUNNING, cls.Status.BLOCKED]
+        ).select_related("battle").order_by("-started_at").first()
+
+
+class RehearsalStep(models.Model):
+    """What one step of a rehearsal did, and what it proved."""
+
+    class Outcome(models.TextChoices):
+        PASS = "pass", "Pass"
+        FAIL = "fail", "Fail"
+        MISSING = "missing_mechanism", "Missing mechanism"
+        UI_MISMATCH = "ui_mismatch", "UI mismatch"
+        FORCED = "forced", "Stepped over by the operator"
+
+    run = models.ForeignKey(
+        RehearsalRun, on_delete=models.CASCADE, related_name="steps")
+    position = models.PositiveIntegerField()
+    key = models.CharField(max_length=64)
+    title = models.CharField(max_length=200)
+    outcome = models.CharField(max_length=20, choices=Outcome.choices)
+    # The production path this step actually exercised, named so the trace can
+    # be checked against the code rather than believed.
+    mechanism = models.CharField(max_length=200, blank=True)
+    detail = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["position", "pk"]
+        unique_together = [("run", "position")]
+
+    def __str__(self):
+        return f"{self.run.run_id} #{self.position} {self.key}: {self.outcome}"

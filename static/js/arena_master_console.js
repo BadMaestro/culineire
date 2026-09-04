@@ -78,6 +78,7 @@
 
     setText('amc-online', state.arena.online_count);
     paintSwitches();
+    paintRehearsal();
 
     /* DG-04: real viewer presence */
     if (state.viewers && state.viewers.available) {
@@ -641,12 +642,110 @@
       .finally(function () { btn.disabled = false; });
   }
 
+  /* THE REHEARSAL DIAL. It renders from state.rehearsal on every poll, the
+     way the switches do, so the trace survives a reload and two consoles
+     never disagree about which step the run is on. The buttons only ask the
+     server to do something; what happened is read back, never assumed. */
+
+  var REH_WORDS = {
+    pass: 'PASS', fail: 'FAIL', missing_mechanism: 'MISSING',
+    ui_mismatch: 'UI', forced: 'FORCED'
+  };
+
+  function paintRehearsal() {
+    var reh = state.rehearsal || {};
+    var run = reh.run;
+    var trace = document.getElementById('amc-reh-trace');
+    if (!trace) return;
+
+    if (!run) {
+      setEmpty('amc-reh-run', 'None yet');
+      setEmpty('amc-reh-seed', '—');
+      setEmpty('amc-reh-step', '—');
+      setText('amc-reh-next', reh.next_step || '—');
+      setEmpty('amc-reh-counts', '—');
+      trace.innerHTML = '<li><span class="amc-empty">No run yet</span></li>';
+      return;
+    }
+
+    setText('amc-reh-run', run.run_id + ' · ' + run.status_display);
+    setText('amc-reh-seed', String(run.seed));
+    setText('amc-reh-step', reh.done_steps + ' / ' + reh.total_steps);
+    setText('amc-reh-next', reh.next_step || 'finished');
+    var c = reh.counts || {};
+    setText('amc-reh-counts',
+      (c.pass || 0) + ' pass · ' + (c.missing || 0) + ' missing · ' +
+      (c.fail || 0) + ' fail');
+
+    trace.textContent = '';
+    (reh.steps || []).forEach(function (s) {
+      var li = document.createElement('li');
+      li.className = 'amc-reh__step amc-reh__step--' + s.outcome;
+      var tag = document.createElement('b');
+      tag.className = 'amc-reh__tag';
+      tag.textContent = REH_WORDS[s.outcome] || s.outcome;
+      li.appendChild(tag);
+      li.appendChild(document.createTextNode(' ' + s.title));
+      if (s.detail) {
+        var d = document.createElement('span');
+        d.className = 'amc-reh__detail';
+        d.textContent = s.detail;
+        li.appendChild(d);
+      }
+      trace.appendChild(li);
+    });
+    if (!trace.children.length) {
+      trace.innerHTML = '<li><span class="amc-empty">Started; no step run yet</span></li>';
+    }
+  }
+
+  function rehPost(action) {
+    return postAction({ action: action }).then(function (res) {
+      if (res.rehearsal) { state.rehearsal = res.rehearsal; paintRehearsal(); }
+      return res;
+    });
+  }
+
+  function handleRehearsal(btn) {
+    var kind = btn.getAttribute('data-amc-reh');
+    if (kind === 'rehearsal_start' &&
+        !window.confirm("Start scenario A? Jam O'Liver and CrestedTen live a whole " +
+          'battle on the MAIN arena, through the real forms and services. It leaves ' +
+          'a real battle row behind.')) return;
+    if (kind === 'rehearsal_abort' &&
+        !window.confirm('End the run in flight? The battle it created is left exactly ' +
+          'where it stands - nothing is deleted.')) return;
+
+    btn.disabled = true;
+    showActionError('');
+
+    /* RUN ALL IS THE SAME STEP, PRESSED UNTIL IT STOPS. There is no second
+       server path for it: one endpoint, one step at a time, so a run he
+       stepped through by hand and a run he let go are the same run. */
+    var chain = kind === 'run_all'
+      ? (function step() {
+          return rehPost('rehearsal_step').then(function (res) {
+            var reh = res.rehearsal || {};
+            if (reh.running && reh.done_steps < reh.total_steps) return step();
+            return res;
+          });
+        })()
+      : rehPost(kind);
+
+    chain
+      .then(function () { return poll(); })
+      .catch(function (err) { showActionError(err.message); })
+      .finally(function () { btn.disabled = false; });
+  }
+
   if (window.AMC_OPERATOR && window.AMC_OPERATOR.isOwner) {
     document.addEventListener('click', function (e) {
       var sbtn = e.target.closest('[data-amc-switch]');
       if (sbtn && !sbtn.disabled) handleSwitch(sbtn);
       var pbtn = e.target.closest('[data-amc-purge]');
       if (pbtn && !pbtn.disabled) handlePurge(pbtn);
+      var rbtn = e.target.closest('[data-amc-reh]');
+      if (rbtn && !rbtn.disabled) handleRehearsal(rbtn);
     });
   }
 

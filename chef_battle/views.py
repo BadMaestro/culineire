@@ -4776,6 +4776,30 @@ def master_action(request):
                                     correlation_id=correlation_id)
             return JsonResponse({"ok": True, "action": action,
                                  "correlation_id": correlation_id, **result})
+        elif action in ("rehearsal_start", "rehearsal_step", "rehearsal_abort"):
+            # THE INSTRUMENT, not a second battle engine. Every one of these
+            # performs its move through the production form or service a chef
+            # uses; where production has no mechanism the step records
+            # MISSING_MECHANISM and the run refuses to step over it.
+            from .rehearsal import (
+                abort_rehearsal, rehearsal_state, rehearsal_step, start_rehearsal,
+            )
+            if action == "rehearsal_start":
+                run = start_rehearsal(
+                    operator_author=author,
+                    seed=request.POST.get("seed") or None,
+                    correlation_id=correlation_id,
+                )
+                result = {"run_id": run.run_id, "seed": run.seed}
+            elif action == "rehearsal_step":
+                result = rehearsal_step(operator_author=author,
+                                        correlation_id=correlation_id)
+            else:
+                result = abort_rehearsal(operator_author=author,
+                                         correlation_id=correlation_id)
+            return JsonResponse({"ok": True, "action": action,
+                                 "correlation_id": correlation_id,
+                                 "rehearsal": rehearsal_state(), **result})
         elif action == "purge_emulation_data":
             # Two steps, always. dry_run answers with the counts and examples
             # and touches nothing; only a second call actually removes rows.

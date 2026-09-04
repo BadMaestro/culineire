@@ -1,5 +1,54 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1714",
+        "date": "2026-09-04",
+        "commit": "e0a25055",
+        "title": "The rehearsal runs a real battle on the main Arena and reports what production cannot do",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner, 2026-09-04: a REAL BATTLE, BUT IN TEST FORMAT. Two of "
+            "his own test accounts - Jam O'Liver and CrestedTen - live a whole "
+            "battle from the recipe to the vote, ON THE MAIN ARENA and not in "
+            "the console, and we sit and record what is broken. "
+            "STAGE 1 IS THE INSTRUMENT, NOT THE FIX. Scenario A performs each "
+            "of its thirteen steps through the SAME form, view or service a "
+            "chef uses: the authoring form writes the dish, the challenge form "
+            "sends the challenge, accept_challenge makes the battle, "
+            "battle_set_ready is the readiness gate, resolve_start_rituals - "
+            "the real fifteen-minute sweeper - begins it, declare_menu locks "
+            "the menus, submit_combat_action lets the combat ENGINE settle "
+            "Stage 1, fire_ingredient_shot plays the biathlon, "
+            "submit_cooked_photo cooks. Nothing here forces a status, names a "
+            "winner or fabricates a combat result, and a source-level test "
+            "guards all three so it stays that way. "
+            "TIME IS HURRIED, NOT SKIPPED. The rules put twelve hours on a "
+            "challenge and forty-eight on preparation. The run does not jump "
+            "the transition - it makes the deadline DUE and calls the sweeper "
+            "cron already calls every fifteen minutes, so production performs "
+            "the move on production rules. "
+            "WHAT THE FIRST RUN FOUND, and it found it by running rather than "
+            "by reading: FOUR gaps recorded as MISSING_MECHANISM. Nothing in "
+            "production carries PRESENTATION to VOTING - no service, no "
+            "sweeper, no cron, and the only writer of that status is the "
+            "console emulator setting the field directly, which is exactly "
+            "what the rehearsal refuses to do. Nothing carries "
+            "INGREDIENT_PENALTY to COOKING when the window shuts; the operator "
+            "does it by hand. A dish photo can only be approved by an "
+            "OWNER-only console action, so on a real evening that step has "
+            "nobody to perform it but him. And a recipe cannot be approved for "
+            "a battle yet kept off the site: status carries both meanings and "
+            "there is no hide-from-the-site field. "
+            "THE DIAL is a card in panel 1 of the console: run id, seed, step "
+            "n of thirteen, the expected next step, a pass/missing/fail count "
+            "and the chronological trace, each line carrying the sentence that "
+            "says WHY. It renders from the polled state the way the switches "
+            "do, so the trace survives a reload. Run All is the same one-step "
+            "endpoint pressed until it stops - there is no second server path, "
+            "so a run he stepped through by hand and a run he let go are the "
+            "same run."
+        ),
+    },
+    {
         "version": "2.5.1711",
         "date": "2026-09-04",
         "commit": "pending",

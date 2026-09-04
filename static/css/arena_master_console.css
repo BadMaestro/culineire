@@ -858,6 +858,66 @@ body.page--amc #site-battle-widget {
   font-variant-numeric: tabular-nums;
 }
 
+/* THE TRACE NEEDS THE WHOLE ROW. Measured at 1440: the operator deck packs
+   its cards two to a row at 152px each, which is a fine width for a count of
+   deleted rows and a useless one for a sentence saying WHY a step failed. The
+   rehearsal card spans both columns so the trace gets the panel's full 290px;
+   Test data keeps the row below it. */
+.amc-deckcard--wide {
+  grid-column: 1 / -1;
+}
+
+/* THE REHEARSAL TRACE - 2026-09-04. The instrument's own readout: one line per
+   step, the verdict first because that is what he scans for, the sentence after
+   it because a verdict with no reason is not a finding. It scrolls inside the
+   card the way every panel in this deck does; the deck's row height is set by
+   the tallest cell, and a trace that grew the card would push the octagon down
+   on the arena page it shares tokens with. */
+.amc-reh__trace {
+  margin: 0.45rem 0 0.55rem;
+  padding: 0;
+  list-style: none;
+  max-height: 11rem;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--amc-muted);
+}
+
+.amc-reh__step {
+  padding: 0.3rem 0 0.3rem 0.5rem;
+  border-left: 2px solid var(--amc-line);
+  margin-bottom: 0.3rem;
+  color: var(--amc-ink);
+}
+
+.amc-reh__tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--amc-muted);
+}
+
+.amc-reh__step--pass { border-left-color: var(--amc-gold); }
+.amc-reh__step--pass .amc-reh__tag { color: var(--amc-gold); }
+
+.amc-reh__step--missing_mechanism,
+.amc-reh__step--ui_mismatch,
+.amc-reh__step--forced,
+.amc-reh__step--fail { border-left-color: var(--amc-danger); }
+
+.amc-reh__step--missing_mechanism .amc-reh__tag,
+.amc-reh__step--ui_mismatch .amc-reh__tag,
+.amc-reh__step--forced .amc-reh__tag,
+.amc-reh__step--fail .amc-reh__tag { color: var(--amc-danger); }
+
+.amc-reh__detail {
+  display: block;
+  color: var(--amc-muted);
+  font-size: 0.66rem;
+}
+
 /* THE LAMP MAP IS A SETTING, NOT A CONTROL SURFACE - 2026-09-03, measured on
    the live console. The widget was 849px tall inside a 603px panel (a 546px
    square map, plus its legend, its reset and its JSON readout), so the panel

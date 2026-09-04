@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
 
-{# `is-zoom-locked` carries the same server-side iOS decision as the viewport
+{% comment %} `is-zoom-locked` carries the same server-side iOS decision as the viewport
    tag and the script, so the CSS half of the lock is scoped to exactly the
    devices the other two halves are - the Owner asked for iOS, and Android
-   keeps the pinch-zoom it never had a problem with. #}
+   keeps the pinch-zoom it never had a problem with. {% endcomment %}
 {% block body_attrs %} class="page--arena{% if arena_native_zoom_off %} is-zoom-locked{% endif %}"{% endblock %}
 
-{# ZOOM IS LOCKED ON THIS PAGE, ON iOS ONLY. Owner, 2026-08-21.
+{% comment %} ZOOM IS LOCKED ON THIS PAGE, ON iOS ONLY. Owner, 2026-08-21.
 
    WKWebView has a documented, Apple-unfixed IOSurface leak in the pinch
    gesture itself (WebKit bug 172206; reported independently on an EMPTY
@@ -39,7 +39,7 @@
    _is_ios_webkit in chef_battle/views.py) so the two can never disagree
    about who is being locked. Scoped to this page alone through the viewport
    block base.html exposes - every other page keeps the unrestricted
-   viewport it always had. #}
+   viewport it always had. {% endcomment %}
 {% block viewport_content %}width=device-width, initial-scale=1{% if arena_native_zoom_off %}, maximum-scale=1, user-scalable=no{% endif %}, viewport-fit=cover{% endblock %}
 
 {% block title %}The Arena | Chef Battles | CulinEire{% endblock %}

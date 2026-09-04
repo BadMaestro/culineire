@@ -29462,3 +29462,134 @@ class TheOnlineWindowIsOneNumberTests(TestCase):
         source = inspect.getsource(selectors.get_arena_metrics)
         self.assertIn("ARENA_ONLINE_THRESHOLD_SECONDS", source)
         self.assertNotIn("seconds=180", source)
+
+
+class TheRehearsalIsAnInstrumentTests(TestCase):
+    """Scenario A: a real battle in the format of a test.
+
+    The Owner, 2026-09-04: a REAL BATTLE, BUT IN TEST FORMAT. These tests hold
+    the two properties that make the run worth trusting - it walks the whole
+    lifecycle through production code, and where production has no mechanism it
+    SAYS SO instead of stepping over it.
+    """
+
+    def setUp(self):
+        from recipes.models import Recipe
+
+        User = get_user_model()
+        self.owner_user = User.objects.create_user(
+            username="owner-rehearsal", password="x")
+        # A migration already seeds the Owner's author row on a fresh database.
+        self.owner, _ = RecipeAuthor.objects.get_or_create(
+            slug=settings.OWNER_SLUG,
+            defaults={"name": "GreenBear", "user": self.owner_user})
+
+        self.chefs = {}
+        for slug, name in (("jam-oliver", "Jam O'Liver"), ("crestedten", "CrestedTen")):
+            user = User.objects.create_user(username=slug, password="x")
+            author = RecipeAuthor.objects.create(slug=slug, name=name, user=user)
+            ChefBattleProfile.objects.create(
+                author=author, enrolled_at=timezone.now(), infinite_moves=True)
+            self.chefs[slug] = author
+
+        # CrestedTen brings an approved recipe of his own - the challenge form
+        # requires one, and that requirement is the product rule.
+        Recipe.objects.create(
+            slug="crestedten-house-dish", title="CrestedTen House Dish",
+            author=self.chefs["crestedten"], short_description="His own.",
+            ingredients="a\nb", method="cook", status=Recipe.Status.APPROVED,
+            source_type=Recipe.SourceType.OTHER,
+        )
+
+    def _walk(self, limit=None):
+        from .rehearsal import SCENARIO_A, rehearsal_step
+
+        results = []
+        for _ in range(limit or len(SCENARIO_A)):
+            results.append(rehearsal_step(operator_author=self.owner))
+            if results[-1].get("finished"):
+                break
+        return results
+
+    def test_scenario_a_lives_the_whole_battle_through_production_code(self):
+        from .models import RehearsalRun, RehearsalStep
+        from .rehearsal import SCENARIO_A, start_rehearsal
+
+        run = start_rehearsal(operator_author=self.owner, seed=4242)
+        self.assertEqual(run.seed, 4242)
+        self._walk()
+        run.refresh_from_db()
+
+        steps = list(run.steps.all())
+        self.assertEqual(
+            len(steps), len(SCENARIO_A),
+            "the run stopped early: " + "; ".join(
+                "%s=%s (%s)" % (s.key, s.outcome, s.detail[:120]) for s in steps))
+        failures = [s for s in steps if s.outcome == RehearsalStep.Outcome.FAIL]
+        self.assertEqual(
+            failures, [],
+            "a production path refused the rehearsal: " + "; ".join(
+                "%s: %s" % (s.key, s.detail) for s in failures))
+
+        # The battle really happened, and it is a battle row like any other.
+        self.assertIsNotNone(run.battle_id)
+        run.battle.refresh_from_db()
+        self.assertEqual(run.battle.status, Battle.Status.PRESENTATION)
+        self.assertTrue(run.battle.combat_rounds.exists())
+        self.assertEqual(run.battle.entries.count(), 2)
+
+        # Findings, not a pass: the run knows the arena did not get to the vote.
+        self.assertEqual(run.status, RehearsalRun.Status.BLOCKED)
+        self.assertFalse(run.is_tainted)
+
+    def test_the_run_reports_the_missing_vote_instead_of_forcing_it(self):
+        """The one rule that makes the instrument worth having.
+
+        Nothing in production carries PRESENTATION to VOTING. The rehearsal must
+        say that out loud and leave the battle where the arena left it - the day
+        it force-sets the status to look green is the day it stops finding
+        anything.
+        """
+        from .models import RehearsalStep
+        from .rehearsal import start_rehearsal
+
+        run = start_rehearsal(operator_author=self.owner, seed=7)
+        self._walk()
+        run.refresh_from_db()
+
+        vote_step = run.steps.get(key="voting")
+        self.assertEqual(vote_step.outcome, RehearsalStep.Outcome.MISSING)
+        self.assertIn("PRESENTATION", vote_step.detail)
+        run.battle.refresh_from_db()
+        self.assertNotEqual(run.battle.status, Battle.Status.VOTING)
+
+    def test_the_owner_is_never_a_rehearsal_chef(self):
+        """AGENTS.md 18. The list is his two test accounts and nothing else."""
+        from .rehearsal import REHEARSAL_CHEFS
+
+        self.assertNotIn(settings.OWNER_SLUG, REHEARSAL_CHEFS)
+
+    def test_only_one_rehearsal_runs_at_a_time(self):
+        from .rehearsal import RehearsalError, start_rehearsal
+
+        start_rehearsal(operator_author=self.owner, seed=1)
+        with self.assertRaises(RehearsalError):
+            start_rehearsal(operator_author=self.owner, seed=2)
+
+    def test_the_rehearsal_never_forces_a_status(self):
+        """A source guard, because this is the property that decays quietly.
+
+        operator_force_status exists and is one import away. If a step ever
+        reaches for it - or writes battle.status itself - the run stops being
+        evidence about production and becomes a description of itself.
+        """
+        import inspect
+
+        from . import rehearsal
+
+        source = inspect.getsource(rehearsal)
+        self.assertNotIn("operator_force_status", source)
+        # The trailing space is the point: "battle.status ==" is a comparison
+        # and must not trip this guard, "battle.status = " is an assignment.
+        self.assertNotIn("battle.status = ", source)
+        self.assertNotIn("battle.winner = ", source)

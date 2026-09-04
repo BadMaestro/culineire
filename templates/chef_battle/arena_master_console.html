@@ -26,7 +26,7 @@
   arena_console_mirror.css flattens the camera last.
 {% endcomment %}
 <link href="{% static 'css/arena.css' %}?v=20260808-an12-two-sheets" rel="stylesheet">
-<link href="{% static 'css/arena_master_console.css' %}?v=20260806-mc01-removed" rel="stylesheet">
+<link href="{% static 'css/arena_master_console.css' %}?v=20260904-rehearsal-b" rel="stylesheet">
 <link href="{% static 'css/arena_console_mirror.css' %}?v=20260806-hint-fit" rel="stylesheet">
 {% endblock %}
 
@@ -42,44 +42,44 @@
       </p>
     </div>
     <div class="amc-topbar__controls" aria-label="Standing arena controls">
-      <section class="amc-deckcard" aria-label="Isolation">
-        <h4 class="amc-deckcard__h">Isolation</h4>
-        <button type="button" class="amc-switch" data-amc-switch="set_emulation_bots"
-            id="amc-switch-bots" aria-pressed="false"
-            title="Whether the two EMU bot chefs stand on the arena floor">
-      <span class="amc-switch__led" aria-hidden="true"></span>
-      <span class="amc-switch__name">Test chefs</span>
-      <span class="amc-switch__state" id="amc-switch-bots-state">off</span>
-        </button>
-        <button type="button" class="amc-switch" data-amc-switch="set_runway"
-            id="amc-switch-runway" aria-pressed="false"
-            title="Arms the arena's fast lane: the public page polls every 2s instead of 20s">
-      <span class="amc-switch__led" aria-hidden="true"></span>
-      <span class="amc-switch__name">Runway</span>
-      <span class="amc-switch__state" id="amc-switch-runway-state">idle</span>
-        </button>
-        <button type="button" class="amc-switch" data-amc-switch="set_chat_open"
-            id="amc-switch-chat" aria-pressed="true"
-            title="Closes the arena hall to NEW lines. Nothing is hidden and nothing is deleted">
-      <span class="amc-switch__led" aria-hidden="true"></span>
-      <span class="amc-switch__name">Arena chat</span>
-      <span class="amc-switch__state" id="amc-switch-chat-state">open</span>
-        </button>
-        <p class="amc-panel__hint" id="amc-switch-note"></p>
-      </section>
-
-      <section class="amc-deckcard" aria-label="Emulation">
-        <h4 class="amc-deckcard__h">Emulation</h4>
-        <div class="amc-panel__actions">
-      <button type="button" class="amc-btn" id="amc-run-emulation"
-              title="One click: creates a bot battle and runs it through every stage to the crown, pausing a few seconds per stage so you can watch">&#9654; Run Full</button>
-      <button type="button" class="amc-btn" data-amc-action="start_emulation"
-              title="Create a full test battle between the EMU bot chefs">Start Only</button>
-      <button type="button" class="amc-btn" data-amc-action="emulation_step"
-              title="Advance the emulation battle by one lifecycle stage">Step</button>
-        </div>
-        <p class="amc-panel__hint amc-hidden" id="amc-emu-progress" role="status" aria-live="polite"></p>
-      </section>
+      <section class="amc-deckcard" aria-label="Isolation">
+        <h4 class="amc-deckcard__h">Isolation</h4>
+        <button type="button" class="amc-switch" data-amc-switch="set_emulation_bots"
+            id="amc-switch-bots" aria-pressed="false"
+            title="Whether the two EMU bot chefs stand on the arena floor">
+      <span class="amc-switch__led" aria-hidden="true"></span>
+      <span class="amc-switch__name">Test chefs</span>
+      <span class="amc-switch__state" id="amc-switch-bots-state">off</span>
+        </button>
+        <button type="button" class="amc-switch" data-amc-switch="set_runway"
+            id="amc-switch-runway" aria-pressed="false"
+            title="Arms the arena's fast lane: the public page polls every 2s instead of 20s">
+      <span class="amc-switch__led" aria-hidden="true"></span>
+      <span class="amc-switch__name">Runway</span>
+      <span class="amc-switch__state" id="amc-switch-runway-state">idle</span>
+        </button>
+        <button type="button" class="amc-switch" data-amc-switch="set_chat_open"
+            id="amc-switch-chat" aria-pressed="true"
+            title="Closes the arena hall to NEW lines. Nothing is hidden and nothing is deleted">
+      <span class="amc-switch__led" aria-hidden="true"></span>
+      <span class="amc-switch__name">Arena chat</span>
+      <span class="amc-switch__state" id="amc-switch-chat-state">open</span>
+        </button>
+        <p class="amc-panel__hint" id="amc-switch-note"></p>
+      </section>
+
+      <section class="amc-deckcard" aria-label="Emulation">
+        <h4 class="amc-deckcard__h">Emulation</h4>
+        <div class="amc-panel__actions">
+      <button type="button" class="amc-btn" id="amc-run-emulation"
+              title="One click: creates a bot battle and runs it through every stage to the crown, pausing a few seconds per stage so you can watch">&#9654; Run Full</button>
+      <button type="button" class="amc-btn" data-amc-action="start_emulation"
+              title="Create a full test battle between the EMU bot chefs">Start Only</button>
+      <button type="button" class="amc-btn" data-amc-action="emulation_step"
+              title="Advance the emulation battle by one lifecycle stage">Step</button>
+        </div>
+        <p class="amc-panel__hint amc-hidden" id="amc-emu-progress" role="status" aria-live="polite"></p>
+      </section>
     </div>
 
     <dl class="amc-topbar__meta">
@@ -255,6 +255,41 @@
         shows them and this deck does not go near them.
         {% endcomment %}
         <div class="amc-opdeck">
+
+          {% comment %}
+          THE REHEARSAL, 2026-09-04. The Owner: a REAL BATTLE, BUT IN TEST
+          FORMAT - two test chefs live the whole scenario on the main Arena,
+          and we sit and record what is broken.
+
+          This card is the instrument's dial and nothing more. Every step it
+          runs goes through the same form or service a chef uses; where
+          production has no mechanism the step is recorded as MISSING and the
+          run refuses to step over it, which is the only reason the trace is
+          worth reading.
+          {% endcomment %}
+          <section class="amc-deckcard amc-deckcard--wide" aria-label="Rehearsal">
+            <h4 class="amc-deckcard__h">Rehearsal</h4>
+            <dl class="amc-panel__kv" id="amc-reh-meta">
+              <dt>Run</dt><dd id="amc-reh-run"><span class="amc-empty">None yet</span></dd>
+              <dt>Seed</dt><dd id="amc-reh-seed"><span class="amc-empty">&mdash;</span></dd>
+              <dt>Step</dt><dd id="amc-reh-step"><span class="amc-empty">&mdash;</span></dd>
+              <dt>Next</dt><dd id="amc-reh-next"><span class="amc-empty">&mdash;</span></dd>
+              <dt>Found</dt><dd id="amc-reh-counts"><span class="amc-empty">&mdash;</span></dd>
+            </dl>
+            <ol class="amc-reh__trace" id="amc-reh-trace">
+              <li><span class="amc-empty">No run yet</span></li>
+            </ol>
+            <div class="amc-panel__actions">
+              <button type="button" class="amc-btn" data-amc-reh="rehearsal_start"
+                      title="Start scenario A: Jam O&#39;Liver and CrestedTen live a whole battle on the main Arena">Start</button>
+              <button type="button" class="amc-btn" data-amc-reh="rehearsal_step"
+                      title="Perform the next step and record what it proved">Step</button>
+              <button type="button" class="amc-btn" data-amc-reh="run_all"
+                      title="Perform every remaining step without stopping">Run All</button>
+              <button type="button" class="amc-btn amc-btn--danger" data-amc-reh="rehearsal_abort"
+                      title="End the run in flight. The battle it made is left exactly where it stands">Abort</button>
+            </div>
+          </section>
 
           <section class="amc-deckcard" aria-label="Test data">
             <h4 class="amc-deckcard__h">Test data</h4>
@@ -605,7 +640,7 @@
 
 {{ master_state|json_script:"amc-state-json" }}
 <script nonce="{{ request.csp_nonce }}">window.AMC_OPERATOR = { isOwner: {{ operator_is_owner|yesno:"true,false" }} };</script>
-<script src="{% static 'js/arena_master_console.js' %}?v=20260902-operator-deck"></script>
+<script src="{% static 'js/arena_master_console.js' %}?v=20260904-rehearsal-b"></script>
 {% comment %}
 The lamp CONTROL, and only here. It mounts into the `data-lamp-mount` in the
 first operator panel above; on the public arena that mount does not exist and
