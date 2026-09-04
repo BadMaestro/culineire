@@ -884,6 +884,32 @@
      (DM purple), it is somebody being called by name. */
   --chat-mention-text: #4d6fa8;
 
+  /* THE COLOUR OF A NAME - Owner, 2026-09-04. Grey with nothing, then three
+     steps of blue into purple as tokens are bought, green for a chef's fan
+     club, red for an admin. Cosmetic and free: it costs the viewer nothing
+     and it is still something to have.
+
+     Chosen against THIS panel's cream, not picked off a wheel: the three
+     purchase steps walk one hue family from a soft slate-blue to the private
+     channel's own violet, so they read as one ladder rather than three
+     unrelated colours. Green is deliberately outside that family - it is not
+     a rung on the ladder, it is a different thing entirely - and it is a deep
+     bottle green rather than a signal green, which on cream would shout over
+     the admin red it must never outrank. */
+  --chat-nick-grey: #8d8477;
+  --chat-nick-sky: #5b86b8;
+  --chat-nick-blue: #3a5fa8;
+  --chat-nick-purple: #7652c8;
+  --chat-nick-fan: #2f7d4f;
+  /* GOLD IS ONE NAME'S ONLY - Owner, 2026-09-04: "цвет ника GreenBear - всегда
+     золотой и переливается". Three stops rather than one colour, because the
+     shimmer is a gradient travelling across the letters: a deep bronze, the
+     spec's own #A87424 gold the rest of this panel already uses, and a pale
+     highlight for the glint to pass through. */
+  --chat-nick-owner-deep: #8a5a12;
+  --chat-nick-owner-gold: #a87424;
+  --chat-nick-owner-lit: #f0d08a;
+
   grid-area: chat;
   display: flex;
   min-height: 0;                 /* or the log cannot scroll inside the panel */
@@ -4724,6 +4750,68 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* One rule per tier, and nothing else changes: a name is coloured, not made
+   bigger or bolder, because thirty of them stacked in a log have to stay a
+   conversation rather than a leaderboard. */
+.arena-chat__name--grey   { color: var(--chat-nick-grey); }
+.arena-chat__name--sky    { color: var(--chat-nick-sky); }
+.arena-chat__name--blue   { color: var(--chat-nick-blue); }
+.arena-chat__name--purple { color: var(--chat-nick-purple); }
+.arena-chat__name--fan    { color: var(--chat-nick-fan); }
+
+/* RED OUTRANKS THE FIVE. The site speaking officially is not a tier a person
+   can reach by buying tokens or joining a club, so an admin's name is red
+   whatever else it would have been. Written as one rule after the five so it
+   wins on order rather than on !important. */
+.arena-chat__line--admin .arena-chat__name { color: var(--chat-admin-text); }
+
+/* AND GOLD OUTRANKS THE RED. There is exactly one of these on the site.
+   Two selectors deep so it beats the admin rule above on specificity rather
+   than by luck of ordering - he is an admin too, and without this his name
+   would simply be red like any other.
+
+   The shimmer is a gradient clipped to the letters and slid across them, not
+   a glow or a shadow: it has to read as gold LEAF catching the light, and a
+   name in a chat log is small enough that anything blurred just turns muddy.
+   The fallback colour is set first, so a browser without background-clip:text
+   gets a solid gold name rather than an invisible one. */
+.arena-chat .arena-chat__name--owner {
+  color: var(--chat-nick-owner-gold);
+  font-weight: 800;
+  background-image: linear-gradient(
+    100deg,
+    var(--chat-nick-owner-deep) 0%,
+    var(--chat-nick-owner-gold) 38%,
+    var(--chat-nick-owner-lit) 50%,
+    var(--chat-nick-owner-gold) 62%,
+    var(--chat-nick-owner-deep) 100%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .arena-chat .arena-chat__name--owner {
+    -webkit-text-fill-color: transparent;
+    animation: arena-nick-shimmer 4.5s linear infinite;
+  }
+}
+
+@keyframes arena-nick-shimmer {
+  to { background-position: -200% 0; }
+}
+
+/* Contract section 12: the arena is reduced-motion aware. The gold stays; only
+   the travelling glint stops, parked at the position where the name reads
+   brightest rather than at a dark end of the gradient. */
+@media (prefers-reduced-motion: reduce) {
+  .arena-chat .arena-chat__name--owner {
+    animation: none;
+    background-position: 50% 0;
+  }
+}
 /* The time sits at the FRONT of the row now (Owner's visual brief,
    2026-08-25: "TIME [TAGS] NAME ROLE MESSAGE"), not tucked into a meta
    column at the end - that column is gone; the action trigger is simply the
@@ -5343,6 +5431,50 @@
    text against a dark panel came out at contrast 1.15, which is invisible,
    while the timestamp read 3.41 only because --arena-muted happens to be a
    mid grey. Both lists are set now, and the test below asserts it stays so. */
+/* THE SAVE BUTTON WAS ONLY VISIBLE IN IVORY - Owner, 2026-09-04: "в чате вот
+   эта кнопка видна только в режиме Ivory, если я меняю цветовую гамму она по
+   факту почти пропадает."
+
+   The cause is not in this file. base.css paints .btn-secondary with a
+   HARDCODED brown - rgb(58 44 30 / .18) behind rgb(58 44 30 / .9) text - which
+   is a dark tint on the site's cream and reads perfectly there. The three chat
+   themes below then replace the ground underneath it with #221d18, #2a1f18 or
+   #16181d, and dark brown on dark brown is nothing at all. The button never
+   changed; the floor under it did.
+
+   Fixed by giving it the chat's OWN tokens instead of a fixed colour, so it
+   follows every theme that exists and every theme added later - the same
+   reason the semantic three above are redefined per theme rather than tinted.
+   Written against .arena-chat so it reaches Ivory too: there the tokens
+   resolve to the arena's own ink and bronze, which is what the button was
+   approximating with that brown in the first place. */
+/* --arena-ink AND --arena-gold, NOT --ink AND --accent-bronze, and the
+   difference is measured rather than stylistic. The themes below set both
+   lists, but --ink reaches this button already resolved to the site's #292929
+   - the substitution trap this file documents at the top of the theme block -
+   so a rule written against it paints the same dark grey in all four themes.
+   Measured before the fix: contrast 1.43 in Ivory and 1.10 in Copper, which is
+   the button he could not see. --arena-ink is what the rest of the chat's own
+   text uses and it flips correctly. */
+.page--arena .arena-chat .btn-secondary {
+  background: color-mix(in srgb, var(--arena-ink) 12%, transparent);
+  color: var(--arena-ink);
+  border: 1px solid color-mix(in srgb, var(--arena-gold) 45%, transparent);
+}
+
+.page--arena .arena-chat .btn-secondary:hover {
+  background: color-mix(in srgb, var(--arena-ink) 20%, transparent);
+  color: var(--arena-ink);
+  border-color: var(--arena-gold);
+}
+
+.page--arena .arena-chat .btn-secondary:focus-visible {
+  background: color-mix(in srgb, var(--arena-ink) 20%, transparent);
+  color: var(--arena-ink);
+  outline: 2px solid var(--arena-gold);
+  outline-offset: 2px;
+}
+
 .arena-chat[data-theme="dark"] {
   --surface: #221d18;
   --surface-soft: #2b2621;

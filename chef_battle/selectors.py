@@ -1220,13 +1220,12 @@ def get_master_governance_detail() -> dict:
     for row in RewardRecord.objects.values("reward_type", "status").annotate(n=_Count("id")):
         rewards_matrix.setdefault(row["reward_type"], {})[row["status"]] = row["n"]
 
-    # AN EMPTY PANEL THAT LOOKS FINE IS WORSE THAN ONE THAT SAYS WHY - 2026-09-04.
-    # Panel 7 has shown nothing for CBR since it was built, and read as "no
-    # rewards yet". The truth is that NOTHING creates a Chef Battle Reward:
-    # RewardRecord has exactly two producers, both in send_appreciation_gift,
-    # and both write LSR. Winning a battle grants no CBR because no code path
-    # grants one. Reported as a fact about the data rather than a hardcoded
-    # sentence, so the day a producer appears the panel stops saying it.
+    # WHY PANEL 7 IS EMPTY, and why that is right - 2026-09-04. Nothing creates
+    # a Chef Battle Reward, and the Owner ruled the same day that nothing
+    # should: a battle result grants no tokens at all, only rating, rank,
+    # artifact prizes and cosmetic titles. A CBR is a discretionary
+    # recognition he issues by hand. The count is reported so the panel can say
+    # that plainly instead of looking like an unfinished feature.
     cbr_count = sum(rewards_matrix.get(RewardRecord.RewardType.CBR, {}).values())
 
     recent_rewards = [

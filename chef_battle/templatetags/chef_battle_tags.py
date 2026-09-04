@@ -38,3 +38,31 @@ def arena_observer_badge(author):
 
     active = bool(author) and is_active_arena_observer(author)
     return {"is_observer": active}
+
+
+@register.inclusion_tag("chef_battle/_fan_club_button.html", takes_context=True)
+def fan_club_button(context, author):
+    """Stand with this chef, or step away, and see how many others do.
+
+    Self-contained in the same way its two neighbours are: the recipes app
+    renders the chef's page and does not need to know a fan club exists.
+
+    The button is not offered to a signed-out visitor, to the chef himself, or
+    to somebody with no author record - there is nobody for the membership to
+    belong to in any of those cases.
+    """
+    from chef_battle.nick_colour import fan_club_of, fan_count
+
+    request = context.get("request")
+    viewer = None
+    user = getattr(request, "user", None)
+    if user is not None and user.is_authenticated:
+        viewer = getattr(user, "recipe_author_profile", None)
+
+    can_join = bool(viewer and author and viewer.pk != author.pk)
+    return {
+        "chef": author,
+        "can_join": can_join,
+        "is_member": bool(can_join and fan_club_of(viewer, author)),
+        "fans": fan_count(author) if author else 0,
+    }

@@ -100,6 +100,7 @@ urlpatterns = [
     # Stage 1, so there is nothing to POST here any more.
     path("battles/<int:pk>/biathlon/shoot/", views.biathlon_shoot, name="biathlon_shoot"),
     path("moderation/cooking/", views.cooking_moderation, name="cooking_moderation"),
+    path("fan-club/<slug:slug>/", views.fan_club_toggle, name="fan_club_toggle"),
     path("moderation/dishes/", views.dish_moderation, name="dish_moderation"),
     path("moderation/dishes/<int:pk>/review/", views.dish_moderation_review, name="dish_moderation_review"),
     path("battles/<int:pk>/moderation/cooking/approve/", views.cooking_moderation_approve, name="cooking_moderation_approve"),

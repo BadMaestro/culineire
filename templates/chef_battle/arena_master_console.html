@@ -603,7 +603,7 @@
           {% if master_state.governance.ledger.chain_intact %}hash chain intact{% else %}<span class="amc-badge amc-badge--danger">CHAIN BROKEN at #{{ master_state.governance.ledger.first_broken_pk }}</span>{% endif %}
         </p>
         {% if not master_state.governance.cbr_count %}
-        <p class="amc-panel__hint amc-panel__hint--gap">No Chef Battle Reward exists, and none can: nothing in the code creates one. RewardRecord has two producers and both write LSR, so winning a battle grants no CBR. This line disappears the day a CBR is granted.</p>
+        <p class="amc-panel__hint">No Chef Battle Reward has been issued. That is correct rather than missing: the Owner ruled on 2026-09-04 that a battle result grants no tokens - a win pays in rating, rank, prizes and titles - so nothing creates a CBR automatically and nothing should. A CBR is yours to issue by hand, as recognition.</p>
         {% endif %}
         <p class="amc-panel__hint">CBR/LSR are discretionary platform rewards, not funds or earnings. Payout decisions are owner-only; operators submit reports (DG-06).</p>
       </article>

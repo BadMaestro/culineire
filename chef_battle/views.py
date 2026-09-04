@@ -281,7 +281,7 @@ def _build_battlefield_progress():
             "title": "Phase 8 - Economy Protection (CBR / LSR / Ledger)",
             "items": [
                 {"label": "RewardRecord model (CBR and LSR)", "detail": "11-status lifecycle: PENDING→QUEUED→APPROVED→ISSUED→ACKNOWLEDGED→USED→EXPIRED→REVERSED→DISPUTED→VOIDED→ARCHIVED. issue_reward(), expire_rewards(), reverse_reward() services. expire_rewards cron every 30 min.", "status": "done", "completed_at": "2026-06-14"},
-                {"label": "LSR creation on appreciation gift", "detail": "send_appreciation_gift(): sender gets 10% back as issued LSR; recipient chef gets pending LSR equal to full gift cost (APPRECIATION_GIFT_REWARD_BASIS). LedgerEvent written for both.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "LSR creation on appreciation gift", "detail": "send_appreciation_gift(): the recipient CHEF gets a pending LSR equal to the full gift cost (APPRECIATION_GIFT_REWARD_BASIS), with a LedgerEvent. CORRECTED 2026-09-04: this line used to say the sender got a share back as an issued LSR. He did, and no rule ever said so - it was invented in the service, paid straight into his wallet with none of the checks section 9.4 requires, and removed on the Owner's word.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Immutable event ledger with hash chain", "detail": "LedgerEvent with 20 event types. SHA-256 hash chain: each row hashes its own content + prev_hash. verify_chain() classmethod detects tampered rows. Append-only; signals block silent update/delete.", "status": "done", "completed_at": "2026-06-14"},
                 {"label": "Fraud and compliance flags", "detail": "ChefBattleProfile: fraud_flag, fraud_flag_note, is_suspended, suspended_at, suspension_reason, dsa_reported_count. Admin actions: suspend/unsuspend, set/clear fraud flag. 15-gate fraud pipeline (run_fraud_gates).", "status": "done", "completed_at": "2026-06-14"},
                 {"label": "18+ technical gate", "detail": "gate_age_verified() in fraud pipeline. Blocks token purchase, appreciation gift send, and challenge create when ChefBattleProfile.age_verified=False.", "status": "done", "completed_at": "2026-06-15"},
@@ -3492,6 +3492,41 @@ def cooking_moderation_approve(request, pk):
     except ValueError as e:
         messages.error(request, str(e))
     return redirect("chef_battle:cooking_moderation")
+
+
+@chef_battle_guard
+@login_required
+@require_POST
+def fan_club_toggle(request, slug):
+    """Join a chef's fan club, or leave it.
+
+    The Owner, 2026-09-04: a fan club member's name is green in the hall. It
+    costs nothing and buys nothing - it is the one colour that says a person
+    picked a side rather than paid - so this endpoint takes no tokens and
+    touches no wallet.
+    """
+    from recipes.models import RecipeAuthor
+
+    from .nick_colour import join_fan_club, leave_fan_club
+
+    chef = get_object_or_404(RecipeAuthor, slug=slug)
+    viewer = get_author_for_user(request.user)
+    if viewer is None:
+        raise PermissionDenied
+
+    action = request.POST.get("action", "")
+    try:
+        if action == "join":
+            join_fan_club(viewer=viewer, chef=chef)
+            messages.success(request, f"You are in {chef.name}'s fan club.")
+        elif action == "leave":
+            leave_fan_club(viewer=viewer, chef=chef)
+            messages.info(request, f"You left {chef.name}'s fan club.")
+        else:
+            messages.error(request, "Choose join or leave.")
+    except ValueError as exc:
+        messages.error(request, str(exc))
+    return redirect(chef.get_absolute_url() + "#chef-arena")
 
 
 @login_required

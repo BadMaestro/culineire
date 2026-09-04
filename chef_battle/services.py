@@ -3379,9 +3379,14 @@ def send_owned_artifact_to_battle(*, sender_author, recipient, battle: Battle,
 def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: str = "") -> AppreciationGift:
     """Viewer spends tokens to send an appreciation gift to a chef. All gifts are digital items only.
 
-    Creates two LSR records:
-    - Sender gets 10% of cost back immediately (issued to wallet).
-    - Recipient chef gets a pending LSR equal to full gift cost (not credited until approved + Next Battle Unlock).
+    Creates ONE LSR record, and it belongs to the CHEF: a pending reward equal
+    to the full gift cost, not credited until it is approved and the Next
+    Battle Unlock condition is met.
+
+    The person who SENDS a gift gets nothing back. He spent his tokens on a
+    gift; that is the whole transaction. Until 2026-09-04 this function also
+    paid him a share of his own spend straight into his wallet - an invention that
+    no rule ever described, removed on the Owner's word.
     """
     from .models import APPRECIATION_GIFT_REWARD_ELIGIBLE, APPRECIATION_GIFT_REWARD_BASIS
     cost = APPRECIATION_GIFT_COST.get(gift_type)
@@ -3425,26 +3430,25 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
             payload={"gift_type": gift_type, "tokens_spent": cost},
         )
 
-        # LSR: sender earns 10% of the gift cost back as a Live Support Reward
-        lsr_amount = max(1, cost // 10)
-        reward = RewardRecord.objects.create(
-            recipient=sender_author,
-            reward_type=RewardRecord.RewardType.LSR,
-            tokens_granted=lsr_amount,
-            reason=f"LSR for sending {gift_type} to {recipient.name}",
-            related_gift=gift,
-        )
-        credit_tokens(
-            sender_author, lsr_amount,
-            tx_type=TokenTransaction.TxType.ADMIN_GRANT,
-            description=f"LSR reward for gift to {recipient.name}",
-        )
-        LedgerEvent.objects.create(
-            event_type=LedgerEvent.EventType.LSR_GRANTED,
-            actor=sender_author,
-            payload={"tokens_granted": lsr_amount, "reward_id": reward.pk, "gift_type": gift_type},
-        )
-
+        # THE SENDER GETS NOTHING BACK - Owner, 2026-09-04: the reward he was
+        # being paid for sending a gift was never a rule, and it is gone from
+        # the code and from every page that promised it.
+        #
+        # It was never a rule. No document in the repository has ever described
+        # it: not token_economy.md, not audience_gifts.md, not tz_main.md, not
+        # the product contract. It was invented here, and it was the worst kind
+        # of invention - it paid the sender a share of his own spend straight into
+        # his wallet with credit_tokens(), immediately, with none of the checks
+        # the contract requires of a reward (unlock, fraud, compliance,
+        # verification, admin approval), and it called the grant ADMIN_GRANT
+        # while no admin had granted anything.
+        #
+        # LSR IS THE CHEF'S, and only the chef's. tz_main.md: an appreciation
+        # gift lands on the chef, persists after the battle and converts to
+        # real money at a rate. The block below is that record, and it is
+        # PENDING - nothing reaches a wallet until it is approved, which is
+        # what the contract's section 9.4 requires.
+        #
         # LSR for recipient chef: pending reward record (not credited until approved + Next Battle Unlock)
         if APPRECIATION_GIFT_REWARD_ELIGIBLE.get(gift_type, False):
             chef_lsr_amount = APPRECIATION_GIFT_REWARD_BASIS.get(gift_type, cost)

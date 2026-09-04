@@ -1866,7 +1866,19 @@ class AppreciationGiftCatalogueTests(TestCase):
 
 @override_settings(CHEF_BATTLE_ENABLED=True)
 class LSRRewardTests(TestCase):
-    """CB-1801 – CB-1804: sending appreciation gift creates LSR and LedgerEvents."""
+    """Sending an appreciation gift creates the CHEF's pending LSR.
+
+    REWRITTEN 2026-09-04. These tests used to assert that the SENDER got a share of
+    his own spend back, immediately, in his wallet. No rule ever said that: not
+    token_economy.md, not audience_gifts.md, not tz_main.md, not the product
+    contract. It was invented in the service and these tests froze the
+    invention in place - which is why it survived every audit.
+
+    What the rules actually say (tz_main.md): an appreciation gift lands on the
+    CHEF, persists after the battle and converts to real money at a rate. The
+    Owner, 2026-09-04: the sender is paid nothing, in the code and on every
+    page that promised it.
+    """
 
     def setUp(self):
         User = get_user_model()
@@ -1895,7 +1907,6 @@ class LSRRewardTests(TestCase):
         self.assertEqual(gift.gift_type, AppreciationGiftType.COFFEE)
 
     def test_sender_wallet_debited(self):
-        # Debit 20T for gift, credit 2T LSR — net 482. Verify debit transaction exists.
         from .models import TokenTransaction
         self._send_coffee()
         debit_tx = TokenTransaction.objects.filter(
@@ -1905,24 +1916,30 @@ class LSRRewardTests(TestCase):
         )
         self.assertTrue(debit_tx.exists())
 
-    def test_lsr_reward_record_created(self):
+    def test_the_sender_gets_nothing_back(self):
+        """He spent his tokens on a gift. That is the whole transaction."""
         self._send_coffee()
-        records = RewardRecord.objects.filter(
-            recipient=self.sender,
-            reward_type=RewardRecord.RewardType.LSR,
-        )
-        self.assertEqual(records.count(), 1)
-
-    def test_lsr_amount_is_10_percent_of_gift_cost(self):
-        self._send_coffee()
-        reward = RewardRecord.objects.get(recipient=self.sender, reward_type=RewardRecord.RewardType.LSR)
-        self.assertEqual(reward.tokens_granted, 2)
-
-    def test_lsr_credited_to_sender_wallet(self):
-        self._send_coffee()
+        self.assertEqual(
+            RewardRecord.objects.filter(recipient=self.sender).count(), 0,
+            "the sender must earn no reward for sending a gift")
         wallet = TokenWallet.objects.get(chef=self.sender)
-        # debit 20, credit 2 LSR → net 482
-        self.assertEqual(wallet.balance, 482)
+        self.assertEqual(wallet.balance, 480, "20 out, nothing back")
+
+    def test_the_chef_gets_a_pending_lsr_for_the_full_gift(self):
+        """The chef's, not the sender's - and pending, not paid.
+
+        Section 9.4 of the product contract: a reward becomes payout-eligible
+        only after unlock, fraud checks, compliance review, verification and
+        admin approval. Nothing may reach a wallet on its own.
+        """
+        self._send_coffee()
+        reward = RewardRecord.objects.get(
+            recipient=self.recipient, reward_type=RewardRecord.RewardType.LSR)
+        self.assertEqual(reward.tokens_granted, 20)
+        self.assertEqual(reward.status, RewardRecord.Status.PENDING)
+        self.assertEqual(
+            TokenWallet.objects.get(chef=self.recipient).balance, 0,
+            "a pending reward is not money and must not touch the wallet")
 
     def test_ledger_event_gift_sent_created(self):
         self._send_coffee()
@@ -1934,14 +1951,20 @@ class LSRRewardTests(TestCase):
             ).exists()
         )
 
-    def test_ledger_event_lsr_granted_created(self):
+    def test_ledger_event_lsr_granted_names_the_chef(self):
         self._send_coffee()
         self.assertTrue(
             LedgerEvent.objects.filter(
                 event_type=LedgerEvent.EventType.LSR_GRANTED,
-                actor=self.sender,
+                actor=self.recipient,
             ).exists()
         )
+        self.assertFalse(
+            LedgerEvent.objects.filter(
+                event_type=LedgerEvent.EventType.LSR_GRANTED,
+                actor=self.sender,
+            ).exists(),
+            "the sender earns no LSR, so the ledger must not say he did")
 
     def test_unknown_gift_type_raises_value_error(self):
         from .services import send_appreciation_gift
@@ -30160,8 +30183,14 @@ class TheConsoleShowsWhatIsThereTests(TestCase):
         # this assertion is what tells us the panel should be revisited.
         self.assertNotIn('status = "reserved"', inspect.getsource(services))
 
-    def test_the_console_says_that_no_cbr_can_exist(self):
-        """An empty panel that looks fine is worse than one that says why."""
+    def test_the_console_says_why_no_cbr_exists(self):
+        """An empty panel that looks fine is worse than one that says why.
+
+        And on 2026-09-04 the why changed: the Owner ruled that a battle result
+        grants no tokens at all - a win pays in rating, rank, artifact prizes
+        and cosmetic titles - so nothing creates a CBR because nothing should.
+        The panel reports a deliberate state, not an unfinished feature.
+        """
         from .models import RewardRecord
         from .selectors import get_master_governance_detail
 
@@ -30174,7 +30203,10 @@ class TheConsoleShowsWhatIsThereTests(TestCase):
 
         source = inspect.getsource(services)
         blocks = source.split("RewardRecord.objects.create(")[1:]
-        self.assertEqual(len(blocks), 2, "the number of reward producers changed - "
+        # ONE producer since 2026-09-04. There were two: the second paid the
+        # sender of a gift a share of his own spend, which no rule described,
+        # and it is gone. What remains writes the CHEF's pending LSR.
+        self.assertEqual(len(blocks), 1, "the number of reward producers changed - "
                                          "recheck whether one now grants a CBR")
         for block in blocks:
             # Every producer names its type in its own call. Reading the call
@@ -30394,3 +30426,227 @@ class TheRehearsalCleansUpAfterItselfTests(TestCase):
         purge = inspect.getsource(services.operator_purge_emulation_data)
         self.assertIn("_emulation_bot_slug_set()", purge)
         self.assertNotIn("REHEARSAL_CHEFS", purge)
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class TheColourOfANameTests(TestCase):
+    """Owner, 2026-09-04: grey with nothing, three steps of blue into purple as
+    tokens are bought, green for a fan club, red for an admin, gold for him.
+
+    "Мы считаем всё купленное в течении 1 месяца. По истечению месяца - если в
+    течении 30 дней новых покупок не было и на счету 0 - цвет снова становится
+    серый. Если на счету есть токены, то цвет ника держится таким, сколько
+    токенов на аккаунте."
+
+    Which is one rule: the tier is the BETTER of what he bought this month and
+    what he is holding. Spending on the arena must not cost a viewer his colour.
+    """
+
+    def setUp(self):
+        from .models import TokenPackage
+
+        User = get_user_model()
+        self.User = User
+        self.package = TokenPackage.objects.first()
+
+    def _viewer(self, slug, balance=0):
+        from .models import TokenWallet
+
+        # get_or_create: a migration already seeds the Owner's author row, and
+        # two of these tests are about him.
+        user, _ = self.User.objects.get_or_create(username=slug)
+        author, _ = RecipeAuthor.objects.get_or_create(
+            slug=slug, defaults={"name": slug, "user": user})
+        if author.user_id is None:
+            author.user = user
+            author.save(update_fields=["user"])
+        wallet, _ = TokenWallet.objects.get_or_create(chef=author)
+        wallet.balance = balance
+        wallet.save(update_fields=["balance"])
+        return author
+
+    def _bought(self, author, tokens, days_ago):
+        from .models import TokenOrder, TokenWallet
+
+        TokenOrder.objects.create(
+            wallet=TokenWallet.objects.get(chef=author), package=self.package,
+            tokens=tokens, amount_eur_cents=1, amount_net_cents=1,
+            vat_amount_cents=0, vat_rate=0, status="paid",
+            credited_at=timezone.now() - datetime.timedelta(days=days_ago),
+        )
+
+    # ── the four bands ──
+
+    def test_the_bands_are_the_ones_he_named(self):
+        from .nick_colour import tier_for
+
+        cases = [(0, "grey"), (1, "sky"), (99, "sky"),
+                 (100, "blue"), (499, "blue"),
+                 (500, "purple"), (5000, "purple")]
+        for balance, expected in cases:
+            author = self._viewer("band-%d" % balance, balance=balance)
+            self.assertEqual(
+                tier_for(author), expected,
+                "%d tokens should read as %s" % (balance, expected))
+
+    # ── the month, and what happens when it runs out ──
+
+    def test_spending_everything_this_month_does_not_cost_the_colour(self):
+        """He bought 600 and gave it all to the chefs. He is still purple."""
+        from .nick_colour import tier_for
+
+        author = self._viewer("spender", balance=0)
+        self._bought(author, 600, days_ago=3)
+        self.assertEqual(tier_for(author), "purple")
+
+    def test_the_colour_goes_grey_when_the_month_runs_out_and_nothing_is_left(self):
+        from .nick_colour import tier_for
+
+        author = self._viewer("stale", balance=0)
+        self._bought(author, 600, days_ago=60)
+        self.assertEqual(tier_for(author), "grey")
+
+    def test_a_balance_holds_the_colour_after_the_month_runs_out(self):
+        """No purchase in thirty days, but 250 still on the account: blue."""
+        from .nick_colour import tier_for
+
+        author = self._viewer("holder", balance=250)
+        self._bought(author, 600, days_ago=60)
+        self.assertEqual(tier_for(author), "blue")
+
+    def test_a_refunded_purchase_does_not_buy_a_colour(self):
+        from .models import TokenOrder
+        from .nick_colour import tier_for
+
+        author = self._viewer("refunded", balance=0)
+        self._bought(author, 600, days_ago=2)
+        TokenOrder.objects.filter(wallet__chef=author).update(clawed_tokens=600)
+        self.assertEqual(tier_for(author), "grey")
+
+    def test_an_abandoned_checkout_does_not_buy_a_colour(self):
+        """A session nobody paid for has no credited_at, and is not a purchase."""
+        from .models import TokenOrder, TokenWallet
+        from .nick_colour import tier_for
+
+        author = self._viewer("abandoned", balance=0)
+        TokenOrder.objects.create(
+            wallet=TokenWallet.objects.get(chef=author), package=self.package,
+            tokens=900, amount_eur_cents=1, amount_net_cents=1,
+            vat_amount_cents=0, vat_rate=0, status="pending", credited_at=None,
+        )
+        self.assertEqual(tier_for(author), "grey")
+
+    # ── green ──
+
+    def test_a_fan_club_member_is_green_whatever_he_has_spent(self):
+        from .nick_colour import join_fan_club, tier_for
+
+        chef = self._viewer("a-chef")
+        fan = self._viewer("a-fan", balance=5000)
+        join_fan_club(viewer=fan, chef=chef)
+        self.assertEqual(tier_for(fan), "fan")
+
+    def test_leaving_gives_the_purchased_colour_back(self):
+        from .nick_colour import join_fan_club, leave_fan_club, tier_for
+
+        chef = self._viewer("chef-two")
+        fan = self._viewer("fan-two", balance=250)
+        join_fan_club(viewer=fan, chef=chef)
+        leave_fan_club(viewer=fan, chef=chef)
+        self.assertEqual(tier_for(fan), "blue")
+
+    def test_a_chef_cannot_join_his_own_fan_club(self):
+        from .nick_colour import join_fan_club
+
+        chef = self._viewer("narcissus")
+        with self.assertRaises(ValueError):
+            join_fan_club(viewer=chef, chef=chef)
+
+    def test_joining_twice_is_one_membership(self):
+        from .nick_colour import fan_count, join_fan_club
+
+        chef = self._viewer("chef-three")
+        fan = self._viewer("fan-three")
+        join_fan_club(viewer=fan, chef=chef)
+        join_fan_club(viewer=fan, chef=chef)
+        self.assertEqual(fan_count(chef), 1)
+
+    def test_leaving_keeps_the_row_and_stamps_it(self):
+        """A chef should be able to see who stood with him, and when."""
+        from .models import ChefFanClub
+        from .nick_colour import join_fan_club, leave_fan_club
+
+        chef = self._viewer("chef-four")
+        fan = self._viewer("fan-four")
+        join_fan_club(viewer=fan, chef=chef)
+        leave_fan_club(viewer=fan, chef=chef)
+        row = ChefFanClub.objects.get(viewer=fan, chef=chef)
+        self.assertIsNotNone(row.left_at)
+
+    # ── gold ──
+
+    def test_the_owner_is_gold_with_an_empty_account(self):
+        """Owner, 2026-09-04: "цвет ника GreenBear - всегда золотой"."""
+        from .nick_colour import tier_for
+
+        owner = self._viewer(settings.OWNER_SLUG, balance=0)
+        self.assertEqual(tier_for(owner), "owner")
+
+    def test_gold_beats_the_fan_club_and_every_purchase(self):
+        from .nick_colour import join_fan_club, tier_for
+
+        chef = self._viewer("chef-five")
+        owner = self._viewer(settings.OWNER_SLUG, balance=5000)
+        join_fan_club(viewer=owner, chef=chef)
+        self.assertEqual(tier_for(owner), "owner")
+
+    def test_gold_beats_the_admin_red_in_the_stylesheet(self):
+        """He is an admin too, so without this his name would just be red.
+
+        The admin rule is two selectors deep, so the gold has to be as well -
+        source order alone would not carry it.
+        """
+        css = (Path(__file__).resolve().parent.parent
+               / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        admin_at = css.index(".arena-chat__line--admin .arena-chat__name")
+        owner_at = css.index(".arena-chat .arena-chat__name--owner")
+        self.assertGreater(owner_at, admin_at, "gold must be written after red")
+        self.assertIn("arena-nick-shimmer", css)
+        self.assertIn("prefers-reduced-motion", css[owner_at:owner_at + 2500])
+
+    # ── the wire ──
+
+    def test_the_tier_is_decided_on_the_server_and_sent_by_name(self):
+        """A browser posting its own tier changes nothing: nothing reads one."""
+        import inspect
+
+        from . import arena_chat, views
+
+        for module in (arena_chat, views):
+            source = inspect.getsource(module)
+            self.assertNotIn('POST.get("tier"', source)
+            self.assertNotIn('POST.get("nick_tier"', source)
+
+    def test_every_tier_the_server_can_send_has_a_rule_in_the_stylesheet(self):
+        from .nick_colour import ADMIN, ALL_TIERS
+
+        css = (Path(__file__).resolve().parent.parent
+               / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        for tier in ALL_TIERS:
+            if tier == ADMIN:
+                continue   # carried by the line class, not by a name class
+            self.assertIn(
+                ".arena-chat__name--%s" % tier, css,
+                "tier '%s' can reach the page with no colour to render in" % tier)
+
+    def test_a_chat_line_carries_the_speakers_tier(self):
+        from .arena_chat import audible_lines
+        from .models import ArenaChatMessage
+
+        speaker = self._viewer("talker", balance=900)
+        message = ArenaChatMessage.objects.create(
+            speaker=speaker, display_name="Talker", body="Well cooked.",
+            ring_index=7, seat_index=1,
+        )
+        line = audible_lines((7, 1), [message])[0]
+        self.assertEqual(line["tier"], "purple")

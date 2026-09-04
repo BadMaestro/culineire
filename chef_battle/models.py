@@ -3522,3 +3522,57 @@ class RehearsalStep(models.Model):
 
     def __str__(self):
         return f"{self.run.run_id} #{self.position} {self.key}: {self.outcome}"
+
+
+# -- The colour of a name in the hall ----------------------------------------
+#
+# The Owner, 2026-09-04: a viewer with no tokens has a grey name; one who has
+# bought up to 100 goes light blue; 100 to 500 blue; 500 and above purple; a
+# member of a chef's fan club is green; admins are red. "It is cosmetic, it
+# costs nothing, but it is still nice for the viewer."
+#
+# WHAT COUNTS, in his own words: everything bought within one month. When the
+# month runs out - no purchase in thirty days AND nothing left on the account -
+# the name goes grey again. If there are tokens on the account, the colour is
+# held at whatever that balance is worth. So the tier is read from the LARGER
+# of the two: what he spent lately, and what he is still holding.
+
+
+class ChefFanClub(models.Model):
+    """A viewer's membership of one chef's fan club.
+
+    Green is not bought. It is the one colour in the hall that says a person
+    picked a side rather than paid, which is why it outranks every purchase
+    tier below it and is outranked only by the red of the site speaking.
+
+    A membership is never deleted, it is LEFT: left_at is set and the row stays,
+    so a chef can see who stood with him and when, and rejoining does not
+    quietly rewrite that history.
+    """
+
+    viewer = models.ForeignKey(
+        "recipes.RecipeAuthor", on_delete=models.CASCADE, related_name="fan_club_memberships")
+    chef = models.ForeignKey(
+        "recipes.RecipeAuthor", on_delete=models.CASCADE, related_name="fan_club_members")
+    joined_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    left_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        ordering = ["-joined_at"]
+        constraints = [
+            # One LIVE membership per pair. A left one may sit beside it, which
+            # is why the constraint is partial rather than a plain unique pair.
+            models.UniqueConstraint(
+                fields=["viewer", "chef"], condition=models.Q(left_at__isnull=True),
+                name="one_live_fan_club_membership_per_pair",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(viewer=models.F("chef")),
+                name="a_chef_is_not_his_own_fan",
+            ),
+        ]
+        indexes = [models.Index(fields=["chef", "left_at"])]
+
+    def __str__(self):
+        state = "left" if self.left_at else "member"
+        return f"{self.viewer} in {self.chef}'s fan club ({state})"

@@ -1,5 +1,69 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1759",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "A name has a colour now, the Owner's is gold, and the rewards pages stop promising what he never agreed to",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "THE COLOUR OF A NAME. The Owner, 2026-09-04: a viewer with no "
+            "tokens is grey, one who has bought up to 100 is light blue, 100 "
+            "to 500 blue, 500 and above purple; a member of a chef's fan club "
+            "is green; every admin is red. \"It is cosmetic, it costs nothing, "
+            "but it is still nice for the viewer.\" And his own name is gold, "
+            "and it shimmers. "
+            "THE RULE IS THE BETTER OF TWO NUMBERS, which is his own wording "
+            "read carefully: everything bought inside thirty days, and whatever "
+            "is on the account. A viewer who bought six hundred this week and "
+            "gave every token to the chefs keeps his purple - a colour that "
+            "punished spending would be telling people to sit on their tokens. "
+            "One who bought nothing this month but holds two hundred keeps his "
+            "blue. One with neither goes grey. Decided on the server and sent "
+            "as a NAME, never a colour: a browser posting its own tier changes "
+            "nothing, the same way the chat's admin role already works, and "
+            "three queries answer a whole page of chat however long it is. "
+            "GOLD OUTRANKS RED. He is an admin too, so without a rule written "
+            "one selector deeper his name would simply have been red like any "
+            "other. The shimmer is a gradient clipped to the letters and slid "
+            "across them - gold leaf catching the light rather than a glow, "
+            "because a name in a chat log is too small for anything blurred - "
+            "and it stops for a reader who asked for less motion, keeping the "
+            "gold. It colours a NAME and touches nothing else: no field, no "
+            "flag, no row on his account. "
+            "THE FAN CLUB, which did not exist anywhere - no model, no button, "
+            "no mention. A viewer stands with a chef from the chef's own page; "
+            "leaving does not delete the membership but stamps it, so a chef "
+            "can see who stood with him and when. Green is the one colour "
+            "nobody can buy, so it beats every purchase tier and is beaten only "
+            "by the site speaking. "
+            "THE SAVE BUTTON HE COULD NOT SEE. In the chat's settings, "
+            ".btn-secondary carries a hardcoded dark brown from base.css - "
+            "right on the site's cream, invisible once a chat theme puts "
+            "#221d18, #2a1f18 or #16181d underneath it. The button never "
+            "changed; the floor under it did. It now takes the chat's own "
+            "themed tokens, so it follows every theme and any theme added "
+            "later. Contrast against the panel: Dark Kitchen 1.24 to 13.3, "
+            "Copper 1.19 to 13.0, Midnight 1.32 to 14.5, Ivory 13.3 to 14.3. "
+            "NOT SEEN WITH MY OWN EYES: those four figures are computed from "
+            "the theme palettes, not read off a live page. The preview harness "
+            "stopped applying styles altogether - an injected !important rule "
+            "could not change a colour in it, which is not something a browser "
+            "does - so the numbers are arithmetic on the right values rather "
+            "than a measurement of the rendered button. "
+            "AND THE REWARDS PAGES NOW SAY WHAT HE ACTUALLY DECIDED. Two "
+            "public pages, both live, promised that Chef Battle Rewards are "
+            "granted to chefs who win battles. His ruling: a battle result "
+            "grants no tokens at all - rating, rank, artifact prizes and "
+            "cosmetic titles, and a chef who wants tokens offers his prizes "
+            "back to the shop himself. The legal purchases page also promised "
+            "the SENDER of an appreciation gift a grant reflecting part of its "
+            "cost; the service paid it too, straight into his wallet with none "
+            "of the checks section 9.4 requires. No document in the repository "
+            "ever described it. It is gone from the code, from both pages and "
+            "from the tests that had frozen it in place."
+        ),
+    },
+    {
         "version": "2.5.1753",
         "date": "2026-09-04",
         "commit": "094a0a0f",
