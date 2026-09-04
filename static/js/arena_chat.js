@@ -753,8 +753,17 @@
     var clan = tagBadge(line.clan_tag, 'clan');
     if (clan) { who.appendChild(clan); }
 
+    /* THE NAME'S COLOUR, said by the server and never chosen here. The tier is
+       a NAME - grey, sky, blue, purple, fan - and the stylesheet owns the hue,
+       so a line that arrives without one (an older cached payload) simply
+       renders in the ordinary colour instead of throwing.
+
+       An admin's red is applied by the line class above and wins on
+       specificity: red is the site speaking officially and outranks anything a
+       person bought or joined. */
     var name = document.createElement('span');
     name.className = 'arena-chat__name';
+    if (line.tier) { name.className += ' arena-chat__name--' + line.tier; }
     name.textContent = line.name;
     who.appendChild(name);
 

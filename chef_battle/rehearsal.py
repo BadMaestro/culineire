@@ -33,6 +33,7 @@ import random
 import uuid
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from .models import Battle, BattleIngredient, RehearsalRun, RehearsalStep
@@ -208,6 +209,11 @@ def _step_challenge(run, rng):
     from .forms import BattleChallengeForm
     from .models import BattleChallenge
 
+    if run.battle_id:
+        return {"outcome": RehearsalStep.Outcome.PASS,
+                "mechanism": "chef_battle.forms.BattleChallengeForm",
+                "detail": "This run already has battle #%d - no new challenge."
+                          % run.battle_id}
     jam, crested = _chefs()
     open_challenge = BattleChallenge.objects.filter(
         challenger=crested, opponent=jam, status=BattleChallenge.Status.PENDING,
@@ -258,6 +264,10 @@ def _step_accept(run, rng):
     from .models import BattleChallenge
     from .services import accept_challenge
 
+    if run.battle_id:
+        return {"outcome": RehearsalStep.Outcome.PASS,
+                "mechanism": "services.accept_challenge",
+                "detail": "Battle #%d is already this run's." % run.battle_id}
     jam, crested = _chefs()
     challenge = BattleChallenge.objects.filter(
         challenger=crested, opponent=jam, status=BattleChallenge.Status.PENDING,
@@ -425,7 +435,7 @@ def _step_combat(run, rng):
 
 def _step_biathlon(run, rng):
     from .models import IngredientShot
-    from .services import approve_cooking_phase, fire_ingredient_shot
+    from .services import fire_ingredient_shot, sweep_ingredient_penalty_deadlines
 
     battle = _battle_of(run)
     if battle.status != Battle.Status.INGREDIENT_PENALTY:
@@ -446,17 +456,23 @@ def _step_biathlon(run, rng):
             fired += 1
         except ValueError:
             pass
-    approve_cooking_phase(battle, run.started_by)
+    # THE WINDOW CLOSES ON THE CLOCK, and production does it - the first
+    # version of this step called approve_cooking_phase directly and then
+    # reported "nothing closes this window", which was the instrument
+    # describing itself. sweep_ingredient_penalty_deadlines() has closed it all
+    # along, on INGREDIENT_PENALTY_WINDOW, from the same cron as every other
+    # sweep. So the deadline is hurried and the sweeper is called, exactly as
+    # the start step does.
+    _hurry(battle, "ingredient_penalty_deadline")
+    closed = sweep_ingredient_penalty_deadlines()
     battle.refresh_from_db()
+    cooking = battle.status == Battle.Status.COOKING
     return {
-        "outcome": RehearsalStep.Outcome.MISSING,
-        "mechanism": "services.fire_ingredient_shot, services.approve_cooking_phase",
-        "detail": (
-            "%d shot(s) fired and cooking approved. Recorded as a gap because the "
-            "approval was made by the OPERATOR: nothing in production carries "
-            "INGREDIENT_PENALTY to COOKING on its own when the window closes."
-            % fired
-        ),
+        "outcome": RehearsalStep.Outcome.PASS if cooking else RehearsalStep.Outcome.FAIL,
+        "mechanism": "services.fire_ingredient_shot, "
+                     "services.sweep_ingredient_penalty_deadlines",
+        "detail": "%d shot(s) fired; the window was hurried and the sweeper closed "
+                  "%d battle(s). Now %s." % (fired, closed, battle.status),
     }
 
 
@@ -509,41 +525,734 @@ def _step_moderate(run, rng):
 
 
 def _step_voting(run, rng):
-    """The one place the rehearsal cannot move: nothing opens the vote."""
+    """The presentation window shuts and the real sweep opens the vote.
+
+    This step is why the instrument was built. On its first run it found that
+    NOTHING in production carried PRESENTATION to VOTING - no service, no
+    sweep, no cron - and it recorded that instead of setting the field itself.
+    open_voting_for_presented_battles() is the answer to that finding, and the
+    step now proves it the same way it proves every other transition: hurry the
+    clock, call the sweep, read the status back.
+    """
+    from .services import open_voting_for_presented_battles
+
     battle = _battle_of(run)
     if battle.status == Battle.Status.VOTING:
         return {"outcome": RehearsalStep.Outcome.PASS,
-                "mechanism": "-",
+                "mechanism": "services.open_voting_for_presented_battles",
                 "detail": "Voting is already open."}
+    if battle.status != Battle.Status.PRESENTATION:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.open_voting_for_presented_battles",
+                "detail": "The battle never reached presentation - it is %s."
+                          % battle.status}
+    _hurry(battle, "presentation_deadline")
+    opened = open_voting_for_presented_battles()
+    battle.refresh_from_db()
+    voting = battle.status == Battle.Status.VOTING
     return {
-        "outcome": RehearsalStep.Outcome.MISSING,
-        "mechanism": "NONE - searched services, state_machine, management commands",
-        "detail": (
-            "The battle is %s and it will stay there. NOTHING in production carries "
-            "PRESENTATION to VOTING: no service, no sweeper, no cron. The only "
-            "writer of Status.VOTING outside the vote itself is the console "
-            "emulator, which sets the field directly. The rehearsal stops here "
-            "rather than doing the same - stepping over it would hide the hole."
-            % battle.status
-        ),
+        "outcome": RehearsalStep.Outcome.PASS if voting else RehearsalStep.Outcome.FAIL,
+        "mechanism": "services.open_voting_for_presented_battles",
+        "detail": "The presentation window was hurried and the sweep opened %d "
+                  "vote(s). The battle is %s, closing %s."
+                  % (opened, battle.status, battle.voting_deadline),
     }
 
 
-SCENARIO_A = (
-    ("cast", "The two chefs take the floor", _step_cast),
-    ("recipe", "Jam O'Liver writes the dish", _step_recipe),
-    ("challenge", "CrestedTen issues the challenge", _step_challenge),
-    ("accept", "The challenge is accepted", _step_accept),
-    ("entry", "Jam O'Liver attaches his dish", _step_entry),
-    ("ready", "Both chefs press Ready", _step_ready),
-    ("start", "The clock runs out and the battle begins", _step_start),
-    ("menu", "Both menus are declared", _step_menu),
-    ("combat", "The combat engine settles Stage 1", _step_combat),
-    ("biathlon", "The ingredient biathlon is played", _step_biathlon),
-    ("cook", "Both dishes are cooked and photographed", _step_cook),
-    ("moderate", "The photos are moderated", _step_moderate),
-    ("voting", "The vote opens", _step_voting),
-)
+def _step_vote(run, rng):
+    """The audience votes, one row per person, through the real vote path."""
+    from django.contrib.auth import get_user_model
+    from .models import BattleVote
+
+    battle = _battle_of(run)
+    if battle.status != Battle.Status.VOTING:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "models.BattleVote",
+                "detail": "The vote is not open (%s)." % battle.status}
+    User = get_user_model()
+    favourite = rng.choice([battle.challenger, battle.opponent])
+    other = battle.opponent if favourite == battle.challenger else battle.challenger
+    cast = 0
+    for i in range(9):
+        voter, _ = User.objects.get_or_create(
+            username="rehearsal-voter-%d" % i, defaults={"is_active": True})
+        _, created = BattleVote.objects.get_or_create(
+            battle=battle, voter=voter,
+            defaults={"voted_for": favourite if rng.random() < 0.7 else other})
+        cast += int(created)
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "models.BattleVote",
+            "detail": "%d vote(s) cast by the audience." % cast}
+
+
+def _step_result(run, rng):
+    """The clock runs out and the engine - not the rehearsal - names a winner."""
+    from .services import calculate_battle_result
+
+    battle = _battle_of(run)
+    if battle.status != Battle.Status.VOTING:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.calculate_battle_result",
+                "detail": "Not voting (%s)." % battle.status}
+    _hurry(battle, "voting_deadline")
+    calculate_battle_result(battle)
+    battle.refresh_from_db()
+    done = battle.status == Battle.Status.COMPLETED
+    winner = battle.winner.name if battle.winner else "a draw"
+    return {
+        "outcome": RehearsalStep.Outcome.PASS if done else RehearsalStep.Outcome.FAIL,
+        "mechanism": "services.calculate_battle_result",
+        "detail": "The battle is %s and the engine returned %s. The rehearsal "
+                  "named nobody." % (battle.status, winner),
+    }
+
+
+def _step_stage(run, rng):
+    """Adopt the rehearsal battle already standing, or report a clear floor.
+
+    A rehearsal battle holds the two test chefs' slots exactly as a real one
+    does - which is correct, and it means a second scenario cannot issue a
+    fresh challenge while the first one's battle is open. Rather than failing
+    on a rule that is working, a run adopts what is there.
+    """
+    if run.battle_id:
+        return {"outcome": RehearsalStep.Outcome.PASS,
+                "mechanism": "-",
+                "detail": "This run already owns battle #%d." % run.battle_id}
+    jam, crested = _chefs()
+    standing = Battle.objects.filter(
+        theme__startswith=REHEARSAL_MARK,
+        challenger__slug__in=REHEARSAL_CHEFS,
+        opponent__slug__in=REHEARSAL_CHEFS,
+    ).order_by("-created_at").first()
+    if standing is None:
+        return {"outcome": RehearsalStep.Outcome.PASS,
+                "mechanism": "-",
+                "detail": "The floor is clear - this run will make its own battle."}
+    run.battle = standing
+    run.save(update_fields=["battle"])
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "-",
+            "detail": "Adopted battle #%d (%s) from an earlier run."
+                      % (standing.pk, standing.status)}
+
+
+def _rehearsal_artifact(effect_type, value, rng):
+    """An artifact from the real catalogue, or one made for the rehearsal."""
+    from .models import Artifact
+
+    existing = (Artifact.objects
+                .filter(is_active=True, effect_type__iexact=effect_type,
+                        effect_value__gt=0)
+                .order_by("token_cost").first())
+    if existing:
+        return existing, False
+    artifact = Artifact.objects.create(
+        name="%s %s charm" % (REHEARSAL_MARK, effect_type),
+        rarity=Artifact.Rarity.COMMON, effect_type=effect_type,
+        effect_value=value, token_cost=10, is_active=True,
+    )
+    return artifact, True
+
+
+def _step_arm(run, rng):
+    """Both chefs buy an artifact, with their own tokens, from the real shop."""
+    from .models import ChefArtifact, TokenTransaction
+    from .services import buy_artifact, credit_tokens, get_or_create_wallet
+
+    battle = _battle_of(run)
+    made = []
+    bought = []
+    for chef, effect in ((battle.challenger, "attack"), (battle.opponent, "defence")):
+        artifact, invented = _rehearsal_artifact(effect, 2, rng)
+        if invented:
+            made.append(artifact.name)
+        held = ChefArtifact.objects.filter(
+            chef=chef, artifact=artifact, status=ChefArtifact.Status.AVAILABLE)
+        if held.exists():
+            bought.append("%s already holds %s" % (chef.name, artifact.name))
+            continue
+        wallet = get_or_create_wallet(chef)
+        if wallet.balance < artifact.token_cost:
+            credit_tokens(chef, artifact.token_cost * 2,
+                          tx_type=TokenTransaction.TxType.ADMIN_GRANT,
+                          description="%s: stake for the shop" % REHEARSAL_MARK)
+        owned = buy_artifact(chef=chef, artifact=artifact)
+        bought.append("%s bought %s (#%d)" % (chef.name, artifact.name, owned.pk))
+    outcome = RehearsalStep.Outcome.PASS
+    detail = "; ".join(bought)
+    if made:
+        outcome = RehearsalStep.Outcome.MISSING
+        detail += (". The catalogue had no usable %s artifact, so the rehearsal "
+                   "had to invent one: %s." % ("/".join(sorted(set(made))), ", ".join(made)))
+    return {"outcome": outcome, "mechanism": "services.buy_artifact", "detail": detail}
+
+
+def _step_combat_artifacts(run, rng):
+    """The fight, with an artifact played on every move it can be played on."""
+    from .models import ChefArtifact
+    from .services import submit_combat_action
+
+    battle = _battle_of(run)
+    if battle.status != Battle.Status.ACTIVE:
+        return {"outcome": RehearsalStep.Outcome.PASS,
+                "mechanism": "services.submit_combat_action",
+                "detail": "Combat is not open (%s)." % battle.status}
+
+    spent = []
+    rounds = 0
+    while battle.status == Battle.Status.ACTIVE and rounds < MAX_COMBAT_ROUNDS:
+        for chef in (battle.challenger, battle.opponent):
+            action = "attack" if chef == battle.challenger else "defend"
+            wanted = ("attack",) if action == "attack" else ("defense", "defence")
+            playable = (ChefArtifact.objects
+                        .filter(chef=chef, status=ChefArtifact.Status.AVAILABLE)
+                        .filter(Q(artifact__effect_type__in=wanted)
+                                | Q(artifact__effect_type__iexact="boost"))
+                        .filter(Q(locked_to_battle__isnull=True) | Q(locked_to_battle=battle))
+                        .filter(Q(reserved_in_battle__isnull=True) | Q(reserved_in_battle=battle))
+                        .select_related("artifact"))
+            # A SPECTATOR'S GIFT COMES FIRST, because the rules say so: a
+            # delivery locked to this battle must be spent before the chef's
+            # own, or it lapses when the battle ends. Playing his own first is
+            # refused by submit_combat_action, and the first run of scenario C
+            # was refused exactly that way - the rule working, the rehearsal
+            # not obeying it.
+            owned = (playable.filter(locked_to_battle=battle).first()
+                     or playable.first())
+            submit_combat_action(battle, chef, action, rng.randint(1, 3),
+                                 artifact_id=owned.pk if owned else None)
+            if owned:
+                spent.append((owned.pk, owned.artifact.name, chef.name))
+        battle.refresh_from_db()
+        rounds += 1
+
+    burned = ChefArtifact.objects.filter(
+        pk__in=[pk for pk, _n, _c in spent],
+        status=ChefArtifact.Status.CONSUMED).count()
+    if spent and burned != len(spent):
+        return {
+            "outcome": RehearsalStep.Outcome.FAIL,
+            "mechanism": "services.submit_combat_action -> services._resolve_round",
+            "detail": "%d artifact(s) were played and only %d were spent - a played "
+                      "artifact that survives is the bug this scenario exists to "
+                      "catch." % (len(spent), burned),
+        }
+    named = ", ".join("%s by %s" % (n, c) for _pk, n, c in spent) or "none"
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "services.submit_combat_action -> services._resolve_round",
+            "detail": "%d round(s); artifacts played and spent: %s. Now %s."
+                      % (rounds, named, battle.status)}
+
+
+def _step_chest(run, rng):
+    """What each chef is holding, and whether a gift is distinguishable."""
+    from .models import ChefArtifact
+
+    battle = _battle_of(run)
+    lines = []
+    unmarked_gift = False
+    for chef in (battle.challenger, battle.opponent):
+        rows = list(ChefArtifact.objects.filter(chef=chef)
+                    .select_related("artifact").order_by("status", "pk"))
+        by_status = {}
+        for row in rows:
+            by_status.setdefault(row.status, []).append(row)
+            # Only a gift the chef can still PLAY has to say it is a gift. A
+            # spent one is history: its lock has done its work and the row is
+            # a record of what was used, not an item that can be mistaken for
+            # property.
+            if (row.source == ChefArtifact.Source.BATTLE_GIFT
+                    and row.status == ChefArtifact.Status.AVAILABLE
+                    and row.locked_to_battle_id is None):
+                unmarked_gift = True
+        lines.append("%s: %s" % (
+            chef.name,
+            ", ".join("%d %s" % (len(v), k) for k, v in sorted(by_status.items())) or "empty"))
+    if unmarked_gift:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "models.ChefArtifact",
+                "detail": "A battle gift is sitting in a chest with no battle on it, "
+                          "so nothing can tell it from bought property. " + "; ".join(lines)}
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "models.ChefArtifact",
+            "detail": "; ".join(lines)}
+
+
+def _rehearsal_viewer(index):
+    """One of the rehearsal's own spectators: an account, a purse and a pulse.
+
+    THE PULSE IS NOT A CONVENIENCE. A seat lapses the moment its holder falls
+    out of the arena's online window - ChefBattleProfile.last_seen_at, the same
+    window that decides whether a person is drawn in the hall - and the next
+    claim_seat() releases it. That is exactly right for a viewer who closed the
+    tab, and it means a rehearsal spectator who never polls is released before
+    he can say a word: the first run of scenario C seated twelve people and
+    then found every one of them refused by the chat with "not_in_the_hall".
+    So the rehearsal keeps its spectators present, through the same field a
+    real viewer's poll writes.
+    """
+    from django.contrib.auth import get_user_model
+    from recipes.models import RecipeAuthor
+
+    from .services import get_or_create_battle_profile
+
+    User = get_user_model()
+    slug = "rehearsal-viewer-%d" % index
+    user, _ = User.objects.get_or_create(username=slug, defaults={"is_active": True})
+    author, _ = RecipeAuthor.objects.get_or_create(
+        slug=slug, defaults={"user": user, "name": "Rehearsal Viewer %d" % index})
+    if author.user_id is None:
+        author.user = user
+        author.save(update_fields=["user"])
+    profile = get_or_create_battle_profile(author)
+    profile.last_seen_at = timezone.now()
+    profile.save(update_fields=["last_seen_at"])
+    return user, author
+
+
+def _step_spectators(run, rng):
+    """The hall fills: real accounts, real seats, real wallets."""
+    from .arena_seating import claim_seat
+    from .models import ArenaSeat, TokenTransaction
+    from .services import credit_tokens
+
+    seated, failed = 0, []
+    for i in range(12):
+        _user, author = _rehearsal_viewer(i)
+        try:
+            claim_seat(author)
+            seated += 1
+        except Exception as exc:  # noqa: BLE001 - the run records what refused it
+            failed.append("%s: %s" % (author.slug, exc))
+        credit_tokens(author, 500, tx_type=TokenTransaction.TxType.ADMIN_GRANT,
+                      description="%s: spectator purse" % REHEARSAL_MARK)
+    total = ArenaSeat.objects.count()
+    if failed:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "arena_seating.claim_seat",
+                "detail": "%d seated, %d refused: %s" % (seated, len(failed), "; ".join(failed[:3]))}
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "arena_seating.claim_seat",
+            "detail": "%d spectators seated; %d seats taken in the hall." % (seated, total)}
+
+
+def _step_stands(run, rng):
+    """Every seat in the hall, to see what the arena does when it is full."""
+    from .arena_seating import claim_seat, seat_map
+    from .models import ArenaSeat
+
+    cells = {(ring, cell) for ring, cell, _row in seat_map()}
+    capacity = len(cells)
+    held = lambda: list(  # noqa: E731 - one expression, read twice
+        ArenaSeat.objects.filter(released_at__isnull=True)
+        .values_list("ring_index", "seat_index"))
+    before = len(held())
+    refused = 0
+    for i in range(capacity + 4):
+        _user, author = _rehearsal_viewer(i)
+        try:
+            claim_seat(author)
+        except Exception:  # noqa: BLE001
+            refused += 1
+
+    # MEASURED AGAINST THE MAP, not against a row count. A held seat that the
+    # geometry no longer declares is a leftover, not an overflow, and the two
+    # read identically in a bare count - the first run of this step reported
+    # "the hall seats 114 and it took 115" when the extra row was a single
+    # off-map seat from an older layout.
+    rows = held()
+    on_map = [s for s in rows if s in cells]
+    off_map = [s for s in rows if s not in cells]
+    if len(on_map) > capacity:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "arena_seating.claim_seat",
+                "detail": "The hall declares %d seats and %d are held on the map."
+                          % (capacity, len(on_map))}
+    if len(set(on_map)) != len(on_map):
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "arena_seating.claim_seat",
+                "detail": "Two people are holding the same seat."}
+    outcome = (RehearsalStep.Outcome.MISSING if off_map
+               else RehearsalStep.Outcome.PASS)
+    return {"outcome": outcome,
+            "mechanism": "arena_seating.claim_seat, arena_seating.seat_map",
+            "detail": "Capacity %d; held seats went %d to %d, none doubled, %d "
+                      "claims refused at the door.%s"
+                      % (capacity, before, len(on_map), refused,
+                         " %d seat(s) are held OFF the map: %s."
+                         % (len(off_map), off_map[:3]) if off_map else "")}
+
+
+def _step_deliver(run, rng):
+    """A spectator sends an artifact into the fight, and the fight says so."""
+    from .models import BattleEvent, ChefArtifact, ViewerBattleGift
+    from .services import send_battle_artifact
+
+    battle = _battle_of(run)
+    if battle.status not in Battle.ACTIVE_STATUSES:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.send_battle_artifact",
+                "detail": "The battle is %s - a delivery needs a live fight." % battle.status}
+    artifact, _made = _rehearsal_artifact("attack", 2, rng)
+    user, author = _rehearsal_viewer(0)
+    before = battle.events.filter(
+        event_type=BattleEvent.EventType.ARTIFACT_DELIVERED).count()
+    gift = send_battle_artifact(sender_user=user, recipient=battle.challenger,
+                                battle=battle, artifact=artifact)
+    delivered = ChefArtifact.objects.filter(
+        chef=battle.challenger, artifact=artifact,
+        source=ChefArtifact.Source.BATTLE_GIFT, locked_to_battle=battle).first()
+    announced = battle.events.filter(
+        event_type=BattleEvent.EventType.ARTIFACT_DELIVERED).count() - before
+
+    stages = {
+        "paid": bool(gift.token_transaction_id),
+        "delivery recorded": ViewerBattleGift.objects.filter(pk=gift.pk).exists(),
+        "handed to the chef": delivered is not None,
+        "locked to this battle": bool(delivered and delivered.locked_to_battle_id == battle.pk),
+        "announced to the fight": announced == 1,
+    }
+    missing = [name for name, ok in stages.items() if not ok]
+    if missing:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.send_battle_artifact",
+                "detail": "The delivery stopped at: %s." % ", ".join(missing)}
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "services.send_battle_artifact",
+            "detail": "%s reached %s and every stage left its mark: %s."
+                      % (artifact.name, battle.challenger.name,
+                         ", ".join(stages))}
+
+
+def _step_gifts(run, rng):
+    """Appreciation gifts from the stands, through the real service."""
+    from .models import AppreciationGiftType
+    from .services import send_appreciation_gift
+
+    battle = _battle_of(run)
+    kinds = [c[0] for c in AppreciationGiftType.choices] if hasattr(
+        AppreciationGiftType, "choices") else []
+    sent, refused = [], []
+    for i in range(4):
+        user, _author = _rehearsal_viewer(i)
+        target = battle.challenger if i % 2 == 0 else battle.opponent
+        kind = rng.choice(kinds) if kinds else ""
+        try:
+            gift = send_appreciation_gift(sender_user=user, recipient=target,
+                                          gift_type=kind, message="Well cooked.")
+            sent.append("%s to %s" % (gift.gift_type, target.name))
+        except Exception as exc:  # noqa: BLE001
+            refused.append(str(exc))
+    if not sent:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.send_appreciation_gift",
+                "detail": "Every gift was refused: %s" % "; ".join(refused[:3])}
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "services.send_appreciation_gift",
+            "detail": "%d gift(s) sent: %s.%s" % (
+                len(sent), ", ".join(sent),
+                " %d refused: %s" % (len(refused), refused[0]) if refused else "")}
+
+
+def _step_chat(run, rng):
+    """The hall talks, through the view that owns the rule about who hears whom."""
+    from django.contrib.messages.storage.fallback import FallbackStorage
+    from django.contrib.sessions.backends.db import SessionStore
+    from django.test import RequestFactory
+
+    from .models import ArenaChatMessage
+    from .views import arena_chat_send
+
+    before = ArenaChatMessage.objects.count()
+    factory = RequestFactory()
+    said, refused = 0, []
+    for i in range(6):
+        user, _author = _rehearsal_viewer(i)
+        request = factory.post("/chef-battle/arena/chat/send/",
+                               {"body": "%s line %d from the stands." % (REHEARSAL_MARK, i)})
+        request.user = user
+        request.session = SessionStore()
+        request._messages = FallbackStorage(request)
+        try:
+            response = arena_chat_send(request)
+            if getattr(response, "status_code", 500) == 200:
+                said += 1
+            else:
+                refused.append("HTTP %s" % response.status_code)
+        except Exception as exc:  # noqa: BLE001
+            refused.append("%s: %s" % (type(exc).__name__, exc))
+    written = ArenaChatMessage.objects.count() - before
+    if written == 0:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "views.arena_chat_send",
+                "detail": "Nobody could speak: %s" % "; ".join(refused[:3] or ["no reason given"])}
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "views.arena_chat_send",
+            "detail": "%d line(s) spoken, %d row(s) written.%s" % (
+                said, written,
+                " Refused: %s" % refused[0] if refused else "")}
+
+
+def _step_shop(run, rng):
+    """The shop and the chest: buy one, give one away before the fight."""
+    from .models import ChefArtifact, TokenTransaction
+    from .services import (
+        buy_artifact, credit_tokens, gift_artifact_before_battle,
+    )
+
+    battle = _battle_of(run)
+    artifact, _made = _rehearsal_artifact("attack", 2, rng)
+    buyer, receiver = battle.challenger, battle.opponent
+    credit_tokens(buyer, artifact.token_cost * 4,
+                  tx_type=TokenTransaction.TxType.ADMIN_GRANT,
+                  description="%s: shop stake" % REHEARSAL_MARK)
+    bought = buy_artifact(chef=buyer, artifact=artifact)
+    try:
+        given = gift_artifact_before_battle(
+            sender_author=buyer, recipient=receiver, artifact=artifact)
+    except Exception as exc:  # noqa: BLE001
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.gift_artifact_before_battle",
+                "detail": "Buying worked (#%d) and gifting did not: %s" % (bought.pk, exc)}
+    moved = ChefArtifact.objects.filter(pk=given.pk, chef=receiver).exists()
+    return {"outcome": RehearsalStep.Outcome.PASS if moved else RehearsalStep.Outcome.FAIL,
+            "mechanism": "services.buy_artifact, services.gift_artifact_before_battle",
+            "detail": "%s bought %s (#%d) and gave one to %s (#%d, source=%s)."
+                      % (buyer.name, artifact.name, bought.pk, receiver.name,
+                         given.pk, given.source)}
+
+
+def _step_drop(run, rng):
+    """What the finished battle handed out, read from its own events."""
+    from .models import BattleEvent, ChefArtifact
+
+    battle = _battle_of(run)
+    if battle.status != Battle.Status.COMPLETED:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.drop_battle_artifacts",
+                "detail": "The battle is %s - nothing has been dropped yet." % battle.status}
+    events = list(battle.events.filter(
+        event_type=BattleEvent.EventType.ARTIFACT_DROPPED).select_related("actor"))
+    dropped = ChefArtifact.objects.filter(
+        chef__in=[battle.challenger, battle.opponent],
+        source=ChefArtifact.Source.DROP).count()
+    if battle.winner_id and not events:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services.drop_battle_artifacts",
+                "detail": "The winner's drop is guaranteed and nothing was dropped. "
+                          "The pool is empty for this chef."}
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "services.drop_battle_artifacts",
+            "detail": "%d drop event(s), %d dropped artifact(s) in the two chests: %s"
+                      % (len(events), dropped,
+                         "; ".join(e.message for e in events) or "none")}
+
+
+def _step_window(run, rng):
+    """What the spectator's page can actually see, asked the way the page asks."""
+    import json
+
+    from django.contrib.auth.models import AnonymousUser
+    from django.test import RequestFactory
+
+    from .views import battle_snapshot
+
+    battle = _battle_of(run)
+    # The VIEW, called the way the page calls it. Django's test Client sends
+    # Host: testserver, which production's ALLOWED_HOSTS rejects with a 400 -
+    # the first run of this step reported that 400 as if the endpoint were
+    # broken, when the only thing broken was the way the rehearsal knocked.
+    factory = RequestFactory()
+    url = "/chef-battle/battles/%d/snapshot/" % battle.pk
+
+    def poll(sequence):
+        request = factory.post(url, {"sequence": str(sequence)})
+        request.user = AnonymousUser()
+        return battle_snapshot(request, pk=battle.pk)
+
+    first = poll(0)
+    if first.status_code != 200:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "views.battle_snapshot",
+                "detail": "A spectator's poll answered HTTP %d." % first.status_code}
+    body = json.loads(first.content)
+    if not body.get("battle") or body["battle"].get("id") != battle.pk:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "views.battle_snapshot",
+                "detail": "The poll answered about battle %s, not %d."
+                          % (body.get("battle", {}).get("id"), battle.pk)}
+    second = json.loads(poll(body.get("sequence", 0)).content)
+    moved = second.get("sequence") != body.get("sequence")
+
+    # What the window CANNOT show, checked against the battle's real state
+    # rather than asserted from memory.
+    absent = [name for name, present in (
+        ("ingredients", "ingredients" in body),
+        ("rounds", "rounds" in body or "combat" in body),
+        ("artifacts", "artifacts" in body),
+        ("votes", "votes" in body),
+    ) if not present]
+    return {
+        "outcome": RehearsalStep.Outcome.MISSING if absent else RehearsalStep.Outcome.PASS,
+        "mechanism": "views.battle_snapshot -> arena_snapshot.build_arena_snapshot",
+        "detail": "The poll answers about this battle and its sequence %s. The "
+                  "snapshot still carries nothing about: %s - a spectator watching "
+                  "the window sees names and counters, not the fight."
+                  % ("advances" if moved else "does not advance",
+                     ", ".join(absent) or "nothing"),
+    }
+
+
+def _step_winner(run, rng):
+    """The result frame, built the way the page builds it."""
+    from .arena_snapshot import build_arena_snapshot
+    from .views import _snapshot_to_fx
+
+    battle = _battle_of(run)
+    fx = _snapshot_to_fx(build_arena_snapshot(battle), battle)
+    if not fx.get("finished"):
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "views._snapshot_to_fx",
+                "detail": "The battle is %s, so there is no result to show." % battle.status}
+    result = fx.get("result") or {}
+    if battle.winner_id:
+        if not fx.get("champion") or fx["champion"].get("name") != battle.winner.name:
+            return {"outcome": RehearsalStep.Outcome.FAIL,
+                    "mechanism": "views._snapshot_to_fx",
+                    "detail": "The engine named %s and the frame shows %s."
+                              % (battle.winner.name, (fx.get("champion") or {}).get("name"))}
+        return {"outcome": RehearsalStep.Outcome.PASS,
+                "mechanism": "views._snapshot_to_fx",
+                "detail": "Champion %s, runner-up %s, rank %s, streak %s, crown %s, "
+                          "%d drop(s) listed."
+                          % (fx["champion"]["name"], (fx.get("runner_up") or {}).get("name"),
+                             result.get("rank") or "-", result.get("win_streak"),
+                             "yes" if result.get("crown_awarded") else "no",
+                             len(result.get("drops") or []))}
+    if fx.get("champion") is not None:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "views._snapshot_to_fx",
+                "detail": "The battle has no winner and the frame named one anyway."}
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "views._snapshot_to_fx",
+            "detail": "No winner, and the frame names nobody. Reason: %s"
+                      % (result.get("reason") or fx.get("status_display"))}
+
+
+def _step_profiles(run, rng):
+    """The lasting state of both chefs, against what the battle actually did."""
+    from .services import get_or_create_battle_profile, get_or_create_wallet
+
+    battle = _battle_of(run)
+    if battle.status != Battle.Status.COMPLETED:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "models.ChefBattleProfile",
+                "detail": "The battle is %s - nothing has been scored." % battle.status}
+    lines, wrong = [], []
+    for chef in (battle.challenger, battle.opponent):
+        profile = get_or_create_battle_profile(chef)
+        wallet = get_or_create_wallet(chef)
+        lines.append("%s: rating %d, %dW/%dL, streak %d, rank %s, %d tokens"
+                     % (chef.name, profile.rating, profile.wins, profile.losses,
+                        profile.win_streak, profile.rank, wallet.balance))
+        if battle.winner_id == chef.pk and profile.wins < 1:
+            wrong.append("%s won and carries no win" % chef.name)
+        if battle.loser_id == chef.pk and profile.losses < 1:
+            wrong.append("%s lost and carries no loss" % chef.name)
+    if wrong:
+        return {"outcome": RehearsalStep.Outcome.FAIL,
+                "mechanism": "services._score_battle",
+                "detail": "%s. %s" % ("; ".join(wrong), " | ".join(lines))}
+    return {"outcome": RehearsalStep.Outcome.PASS,
+            "mechanism": "services._score_battle",
+            "detail": " | ".join(lines)}
+
+
+# -- one registry, several scenarios -----------------------------------------
+#
+# The Owner asked for composable scenarios rather than one linear test, and a
+# step belongs to the arena rather than to a scenario: the fight is set up the
+# same way whether we are watching combat, the stands or the shop. So the steps
+# are named once here and every scenario is an ORDER OF NAMES. A scenario that
+# needs a live battle simply starts with the same opening as the others.
+
+STEPS = {
+    "stage": ("The floor is prepared", _step_stage),
+    "cast": ("The two chefs take the floor", _step_cast),
+    "recipe": ("Jam O'Liver writes the dish", _step_recipe),
+    "challenge": ("CrestedTen issues the challenge", _step_challenge),
+    "accept": ("The challenge is accepted", _step_accept),
+    "entry": ("Jam O'Liver attaches his dish", _step_entry),
+    "ready": ("Both chefs press Ready", _step_ready),
+    "start": ("The clock runs out and the battle begins", _step_start),
+    "menu": ("Both menus are declared", _step_menu),
+    "combat": ("The combat engine settles Stage 1", _step_combat),
+    "biathlon": ("The ingredient biathlon is played", _step_biathlon),
+    "cook": ("Both dishes are cooked and photographed", _step_cook),
+    "moderate": ("The photos are moderated", _step_moderate),
+    "voting": ("The vote opens", _step_voting),
+    "vote": ("The audience votes", _step_vote),
+    "result": ("The engine names the winner", _step_result),
+    # B - artifacts
+    "arm": ("Both chefs buy an artifact", _step_arm),
+    "combat_artifacts": ("The fight is fought with artifacts", _step_combat_artifacts),
+    "chest": ("Both chests are counted", _step_chest),
+    # C - the stands
+    "spectators": ("The hall fills", _step_spectators),
+    "deliver": ("A spectator delivers an artifact", _step_deliver),
+    "gifts": ("The stands send gifts", _step_gifts),
+    "chat": ("The hall talks", _step_chat),
+    # D - shop and chest
+    "shop": ("The shop and the chest", _step_shop),
+    "drop": ("The battle hands out its drops", _step_drop),
+    # E - load
+    "stands": ("Every seat in the hall", _step_stands),
+    # F, G, H
+    "window": ("The spectator's window", _step_window),
+    "winner": ("The result frame", _step_winner),
+    "profiles": ("Both chefs' lasting state", _step_profiles),
+}
+
+# The opening every scenario shares: two chefs, a dish, a challenge, a battle
+# that has actually begun.
+_OPENING = ("stage", "cast", "recipe", "challenge", "accept", "entry",
+            "ready", "start", "menu")
+# ...and the closing, for the scenarios that need a finished battle.
+_CLOSING = ("biathlon", "cook", "moderate", "voting", "vote", "result")
+
+SCENARIOS = {
+    "A": _OPENING + ("combat",) + _CLOSING,
+    "B": _OPENING + ("arm", "combat_artifacts", "chest"),
+    "C": _OPENING + ("spectators", "deliver", "gifts", "chat", "combat_artifacts", "chest"),
+    "D": _OPENING + ("shop", "chest", "combat") + _CLOSING + ("drop", "chest"),
+    "E": _OPENING + ("stands", "chat"),
+    "F": _OPENING + ("combat", "window"),
+    "G": _OPENING + ("combat",) + _CLOSING + ("winner",),
+    "H": _OPENING + ("combat",) + _CLOSING + ("profiles", "chest"),
+}
+
+SCENARIO_TITLES = {
+    "A": "Battle lifecycle",
+    "B": "Battle with artifacts",
+    "C": "The stands: delivery, gifts, chat",
+    "D": "Shop, chest and drops",
+    "E": "A full hall",
+    "F": "The spectator's window",
+    "G": "The result frame",
+    "H": "What the battle leaves behind",
+}
+
+# Kept so nothing that imported the old name breaks; A is still A.
+SCENARIO_A = tuple((key,) + STEPS[key] for key in SCENARIOS["A"])
+
+
+def scenario_steps(scenario):
+    """(key, title, fn) for each step of a scenario, in order."""
+    keys = SCENARIOS.get(scenario)
+    if keys is None:
+        raise RehearsalError("There is no scenario '%s'." % scenario)
+    return [(key,) + STEPS[key] for key in keys]
 
 
 # -- the operator surface ----------------------------------------------------
@@ -551,8 +1260,10 @@ SCENARIO_A = (
 def start_rehearsal(*, operator_author, scenario="A", seed=None,
                     correlation_id="") -> RehearsalRun:
     _require_owner(operator_author)
-    if scenario != RehearsalRun.Scenario.A:
-        raise RehearsalError("Only scenario A exists so far.")
+    if scenario not in SCENARIOS:
+        raise RehearsalError(
+            "There is no scenario '%s'. Choose one of %s."
+            % (scenario, ", ".join(sorted(SCENARIOS))))
     with transaction.atomic():
         if RehearsalRun.current() is not None:
             raise RehearsalError(
@@ -572,12 +1283,13 @@ def rehearsal_step(*, operator_author, correlation_id="") -> dict:
     run = RehearsalRun.current()
     if run is None:
         raise RehearsalError("No rehearsal is running.")
+    steps = scenario_steps(run.scenario)
     done = run.steps.count()
-    if done >= len(SCENARIO_A):
+    if done >= len(steps):
         finish_rehearsal(run)
         return {"run_id": run.run_id, "finished": True, "status": run.status}
 
-    key, title, fn = SCENARIO_A[done]
+    key, title, fn = steps[done]
     # The seed plus the step's own name: the same seed replays the same battle,
     # and one step's randomness does not shift because another step ran twice.
     rng = random.Random("%s:%s" % (run.seed, key))
@@ -592,7 +1304,7 @@ def rehearsal_step(*, operator_author, correlation_id="") -> dict:
         run.status = RehearsalRun.Status.FAILED
         run.finished_at = timezone.now()
         run.save(update_fields=["status", "finished_at"])
-    elif done + 1 >= len(SCENARIO_A):
+    elif done + 1 >= len(steps):
         finish_rehearsal(run)
     return {"run_id": run.run_id, "step": _step_payload(step),
             "status": run.status, "finished": run.finished_at is not None}
@@ -625,6 +1337,15 @@ def abort_rehearsal(*, operator_author, correlation_id="") -> dict:
     return {"run_id": run.run_id, "status": run.status}
 
 
+def _scenario_menu():
+    """What the console offers, built from the scenarios themselves."""
+    return [
+        {"key": key, "title": SCENARIO_TITLES.get(key, key),
+         "steps": len(SCENARIOS[key])}
+        for key in sorted(SCENARIOS)
+    ]
+
+
 def _step_payload(step):
     return {
         "position": step.position, "key": step.key, "title": step.title,
@@ -639,24 +1360,30 @@ def rehearsal_state() -> dict:
     run = RehearsalRun.current() or RehearsalRun.objects.select_related(
         "battle").order_by("-started_at").first()
     if run is None:
+        plan = scenario_steps("A")
         return {"running": False, "run": None, "steps": [], "done_steps": 0,
-                "next_step": SCENARIO_A[0][1], "total_steps": len(SCENARIO_A),
+                "next_step": plan[0][1], "total_steps": len(plan),
+                "scenarios": _scenario_menu(),
                 "counts": {"pass": 0, "fail": 0, "missing": 0}}
+    plan = scenario_steps(run.scenario)
     steps = list(run.steps.all())
     done = len(steps)
     return {
         "running": run.status in (RehearsalRun.Status.RUNNING,
                                   RehearsalRun.Status.BLOCKED),
         "run": {
-            "run_id": run.run_id, "scenario": run.scenario, "seed": run.seed,
+            "run_id": run.run_id, "scenario": run.scenario,
+            "scenario_title": SCENARIO_TITLES.get(run.scenario, run.scenario),
+            "seed": run.seed,
             "status": run.status, "status_display": run.get_status_display(),
             "battle_id": run.battle_id, "tainted": run.is_tainted,
             "started_at": timezone.localtime(run.started_at).strftime("%Y-%m-%d %H:%M"),
         },
         "steps": [_step_payload(s) for s in steps],
         "done_steps": done,
-        "total_steps": len(SCENARIO_A),
-        "next_step": SCENARIO_A[done][1] if done < len(SCENARIO_A) else None,
+        "total_steps": len(plan),
+        "next_step": plan[done][1] if done < len(plan) else None,
+        "scenarios": _scenario_menu(),
         "counts": {
             "pass": sum(1 for s in steps if s.outcome == RehearsalStep.Outcome.PASS),
             "fail": sum(1 for s in steps if s.outcome == RehearsalStep.Outcome.FAIL),

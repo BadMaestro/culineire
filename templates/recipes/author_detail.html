@@ -13,7 +13,7 @@
 {% block twitter_image %}{% if author.avatar %}{{ SITE_URL }}{{ author.avatar.url }}{% else %}{{ SITE_URL }}{% static 'images/hero-profile.png' %}{% endif %}{% endblock %}
 
 {% block content %}
-<section class="hero hero--home hero--author-profile {% if is_god_author %}hero--greenbear{% endif %}">
+<section class="hero hero--home hero--author-profile hero--has-battle {% if is_god_author %}hero--greenbear{% endif %}">
     <div aria-hidden="true" class="hero__background">
         <picture><source srcset="{% static 'images/hero-profile.webp' %}" type="image/webp"><img alt="" width="1672" height="941" src="{% static 'images/hero-profile.png' %}"></picture>
     </div>
@@ -43,21 +43,14 @@
                 <a class="btn-primary" href="{% url 'recipes:recipe_create' %}">Create Recipe</a>
                 <a class="btn-secondary" href="{% url 'articles:article_create' %}">Create Article</a>
                 <a class="btn-secondary" href="{% url 'recipes:author_edit' %}">Edit Profile</a>
-                {% if battle_profile and battle_profile.enrolled_at %}
+                {% if is_enrolled_chef %}{% if chef_battle_enabled %}
                 <a class="btn-secondary" href="{% url 'chef_battle:chef_profile' slug=author.slug %}">Chef Arena</a>
-                {% else %}
+                {% endif %}{% else %}
                 <a class="btn-secondary" href="{% url 'chef_battle:chef_enroll' %}">Become a Chef</a>
                 {% endif %}
             </div>
             {% else %}
-            <div class="hero__actions">
-                {% if can_view_pinch_public_area %}
-                <a class="btn-primary" href="{% url 'pinch:feed' %}">Pinch</a>
-                {% endif %}
-                <a class="btn-secondary" href="{% url 'recipes:recipe_list' %}#all-recipes">Explore Recipes</a>
-                <a class="btn-secondary" href="{% url 'articles:article_list' %}">Read Articles</a>
-                <a class="btn-secondary" href="{% url 'sponsors:puzzle' %}">Sponsors</a>
-            </div>
+            {% include 'includes/hero_actions.html' %}
             {% endif %}
         </div>
     </div>

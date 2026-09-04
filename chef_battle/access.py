@@ -261,6 +261,19 @@ UNGUARDED_BY_DESIGN = {
         "a Chef Battle one."
     ),
     "cooking_moderation_approve": "Same is_moderator AND is_battle_visible check as cooking_moderation (F8).",
+    "dish_moderation": (
+        "Moderator-only, the same is_moderator AND is_battle_visible check as "
+        "cooking_moderation, 404 otherwise. 2026-09-04: added because a cooked "
+        "dish could previously only be approved through the owner-only console "
+        "action, so the step that carries a battle out of COOKING had nobody "
+        "to perform it but the Owner. Listed rather than decorated for the same "
+        "reason as its siblings - it is reached from the moderation panel, not "
+        "from an arena page."
+    ),
+    "dish_moderation_review": (
+        "Same is_moderator AND is_battle_visible check as dish_moderation, "
+        "plus login_required and require_POST."
+    ),
     "vote_review": (
         "Moderator-only, the same is_moderator AND is_battle_visible check as "
         "cooking_moderation, 404 otherwise. G13, 2026-08-11: listed rather than "
@@ -294,6 +307,41 @@ def _suspended_redirect_target(request) -> str:
     ):
         return referer
     return reverse("chef_battle:arena")
+
+
+def enrolment_guard(view_func):
+    """The one door through the gate, and the Owner opened it by name.
+
+    HIS INSTRUCTION, 2026-09-04: a newly registered user must have Become a
+    Chef in his header menu. That is a change to the visibility rule of
+    2026-08-04, which AGENTS.md section 8 says may only be changed on his
+    explicit word - he gave it, and he scoped it himself when asked: THE
+    ENROLMENT PATH ONLY. The arena, the shop, the profiles, the rankings and
+    everything else stay behind chef_battle_guard exactly as they were.
+
+    So this lets any signed-in visitor reach the enrolment form and its
+    confirmation page, and nothing else. It keeps the suspension check that
+    chef_battle_guard performs on POST, because a suspended account must not be
+    able to enrol its way back in through the one door left open.
+    """
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated and request.method == "POST":
+            try:
+                profile = user.recipe_author_profile.battle_profile
+            except Exception:
+                profile = None
+            if profile is not None and profile.is_suspended:
+                messages.error(
+                    request,
+                    "Your arena account is currently suspended. "
+                    "Please contact us if you believe this is an error.",
+                )
+                return redirect(_suspended_redirect_target(request))
+        return view_func(request, *args, **kwargs)
+    wrapper.chef_battle_access_checked = True
+    return wrapper
 
 
 def chef_battle_guard(view_func):

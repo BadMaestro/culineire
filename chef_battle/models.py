@@ -315,6 +315,18 @@ class Battle(models.Model):
     # advances the battle to COOKING whether or not the shots were fired, so a
     # winner who walks away cannot hold his opponent's battle open forever.
     ingredient_penalty_deadline = models.DateTimeField(null=True, blank=True, db_index=True)
+    # 2026-09-04: when the presentation window shuts and the vote opens.
+    #
+    # The rehearsal walked a whole battle through production code and stopped
+    # dead at PRESENTATION: nothing in the codebase carried it to VOTING - no
+    # service, no sweeper, no cron - and the only writer of Status.VOTING was
+    # the console emulator setting the field by hand. A battle that reached
+    # presentation without an operator watching simply stayed there.
+    #
+    # Set when both dish photos are approved and the dishes are revealed; swept
+    # by open_voting_for_presented_battles() from the same cron as every other
+    # deadline on this model.
+    presentation_deadline = models.DateTimeField(null=True, blank=True, db_index=True)
     proposed_combat_time = models.DateTimeField(null=True, blank=True)
     combat_time_confirmed = models.BooleanField(default=False)
     # Emergency Stop (DG-03): set when status -> PAUSED, cleared on resume.
@@ -1139,6 +1151,15 @@ class BattleEvent(models.Model):
         CROWN_AWARDED = "crown_awarded", "Crown Awarded"
         RANK_PROMOTED = "rank_promoted", "Rank Promoted"
         ARTIFACT_DROPPED = "artifact_dropped", "Artifact Dropped"
+        # THE STAGE NOBODY COULD SEE - 2026-09-04. A spectator's artifact
+        # delivery wrote four rows (a token transaction, a lot, a
+        # ViewerBattleGift and a ChefArtifact) and not one public event, so the
+        # chef it was sent TO was never told: the only way he found out was an
+        # error message refusing a different artifact because the rules make
+        # him spend the gift first. A delivery is the most visible thing a
+        # spectator can do in a fight and it was the one thing the fight did
+        # not announce.
+        ARTIFACT_DELIVERED = "artifact_delivered", "Artifact Delivered"
         OPERATOR_ACTION = "operator_action", "Operator Action"
 
     battle = models.ForeignKey(Battle, null=True, blank=True, on_delete=models.CASCADE, related_name="events")
@@ -3420,7 +3441,16 @@ class RehearsalRun(models.Model):
     """One rehearsal of the arena, identified and repeatable."""
 
     class Scenario(models.TextChoices):
+        # The titles live in rehearsal.SCENARIO_TITLES, next to the step lists
+        # they describe; these are the stored values and the admin's labels.
         A = "A", "A - battle lifecycle"
+        B = "B", "B - battle with artifacts"
+        C = "C", "C - the stands: delivery, gifts, chat"
+        D = "D", "D - shop, chest and drops"
+        E = "E", "E - a full hall"
+        F = "F", "F - the spectator's window"
+        G = "G", "G - the result frame"
+        H = "H", "H - what the battle leaves behind"
 
     class Status(models.TextChoices):
         RUNNING = "running", "Running"
@@ -3492,3 +3522,57 @@ class RehearsalStep(models.Model):
 
     def __str__(self):
         return f"{self.run.run_id} #{self.position} {self.key}: {self.outcome}"
+
+
+# -- The colour of a name in the hall ----------------------------------------
+#
+# The Owner, 2026-09-04: a viewer with no tokens has a grey name; one who has
+# bought up to 100 goes light blue; 100 to 500 blue; 500 and above purple; a
+# member of a chef's fan club is green; admins are red. "It is cosmetic, it
+# costs nothing, but it is still nice for the viewer."
+#
+# WHAT COUNTS, in his own words: everything bought within one month. When the
+# month runs out - no purchase in thirty days AND nothing left on the account -
+# the name goes grey again. If there are tokens on the account, the colour is
+# held at whatever that balance is worth. So the tier is read from the LARGER
+# of the two: what he spent lately, and what he is still holding.
+
+
+class ChefFanClub(models.Model):
+    """A viewer's membership of one chef's fan club.
+
+    Green is not bought. It is the one colour in the hall that says a person
+    picked a side rather than paid, which is why it outranks every purchase
+    tier below it and is outranked only by the red of the site speaking.
+
+    A membership is never deleted, it is LEFT: left_at is set and the row stays,
+    so a chef can see who stood with him and when, and rejoining does not
+    quietly rewrite that history.
+    """
+
+    viewer = models.ForeignKey(
+        "recipes.RecipeAuthor", on_delete=models.CASCADE, related_name="fan_club_memberships")
+    chef = models.ForeignKey(
+        "recipes.RecipeAuthor", on_delete=models.CASCADE, related_name="fan_club_members")
+    joined_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    left_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        ordering = ["-joined_at"]
+        constraints = [
+            # One LIVE membership per pair. A left one may sit beside it, which
+            # is why the constraint is partial rather than a plain unique pair.
+            models.UniqueConstraint(
+                fields=["viewer", "chef"], condition=models.Q(left_at__isnull=True),
+                name="one_live_fan_club_membership_per_pair",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(viewer=models.F("chef")),
+                name="a_chef_is_not_his_own_fan",
+            ),
+        ]
+        indexes = [models.Index(fields=["chef", "left_at"])]
+
+    def __str__(self):
+        state = "left" if self.left_at else "member"
+        return f"{self.viewer} in {self.chef}'s fan club ({state})"

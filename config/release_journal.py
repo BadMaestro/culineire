@@ -1,5 +1,481 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1762",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The author profile hero takes the canonical layout and the canonical action row",
+        "section": "Site",
+        "summary": (
+            "v2.5.1753 fixed the button typography and stopped there, and the "
+            "Owner asked whether that was really everything. Measured at his "
+            "own window width, 950, against /recipes/ - a page carrying the "
+            "same golden classes - it was not: "
+            "hero-copy 832px centred against the LOCKED 700px left-anchored, "
+            "H1 top 384 against 280, button row 508 against 532, hero 418 "
+            "against 442. "
+            "ONE CAUSE, IN THE TEMPLATE: author_detail.html carried no "
+            "hero--has-battle. That is the LOCKED two-column left-aligned "
+            "block whose own comment reads 'matches golden homepage hero-copy "
+            "width. DO NOT CHANGE', and 34 templates carry it, home.html "
+            "among them - which under the Owner's ruling of 2026-07-07 ('every "
+            "page but the battle pages uses ALL the classes of the main page') "
+            "is the reference. The class is added. "
+            "The public branch's action row was also a hand-written fork of "
+            "includes/hero_actions.html - identical links, but no burger, so "
+            "on a phone this one hero behaved unlike the nineteen that include "
+            "the canonical block. It now includes it. The signed-in branch "
+            "keeps its own row: those are actions on the author's own content, "
+            "not site navigation, and hiding them behind the nav burger would "
+            "lose them on mobile. "
+            "THE OWNER RULED ON THE ASYMMETRY. v2.5.1753 pinned his own page "
+            "to the old values under AGENTS.md 18 and asked whether to lift it "
+            "too; he answered that a change may not be shipped as a break and "
+            "then withheld as a fix. The pins are gone - one golden path, no "
+            "special case. His page is verified rendered: 700px left copy, "
+            "44px buttons, hero 537px, and his own marks untouched - the gold "
+            "ring on the avatar, the IDDQD kicker, the executive badge and the "
+            "gold name all render as before. "
+            "Measured after the change: public author page at 1273 - hero "
+            "503px, copy 700px at x=72, pill top 221, buttons 44px, and at 390 "
+            "the row folds behind the burger exactly as every other page does. "
+            "The dashboard at 390 stacks into 44px buttons with no overflow."
+            " "
+            "AND THE FULL SUITE WAS RUN, WHICH IS WHY THREE OLDER DEFECTS OF "
+            "MINE ARE IN THIS RELEASE. The Owner asked whether the run was the "
+            "whole suite; it was not, and the whole suite - 2722 tests, "
+            "--parallel 8 on PostgreSQL - found eleven red. Four were mine and "
+            "are fixed here. "
+            "ONE: arena.css carried five bare z-index numbers in the command "
+            "bar, against a guard that requires every layer to come from the "
+            "documented ladder. The guard reports only the first match, so it "
+            "had been reading as a single stray. Two tokens are added to the "
+            "ladder - --arena-z-command-bar-art and -face, plus "
+            "--arena-z-command-bar for the shell - and all five sites use them. "
+            "TWO: eleven declarations in the command-bar block were written "
+            "twice for the same selector. A whole stale copy of the hover, "
+            "focus, reduced-motion and medallion rules had survived the "
+            "reconstruction thirty lines below the new one and, being later, "
+            "WON: the medallion has been rendering at 39px / top 0.0667rem, "
+            "not the 32px / 4px the surviving comment claimed. The duplicate is "
+            "deleted and the values that were actually on the page are kept, so "
+            "the bar the Owner approved renders identically. "
+            "THREE: OnboardingAndBattleFlowGuardTests still demanded 404 from "
+            "chef_enroll and enroll_success, the two endpoints he opened by "
+            "name on 2026-09-04 (v2.5.1738). The code is right and the test was "
+            "stale; it now pins the new rule explicitly - anonymous is sent to "
+            "sign in, a signed-in member reaches the form, and the other eight "
+            "endpoints stay 404, so reopening any of those by accident still "
+            "fails. "
+            "SEVEN REMAIN RED AND ARE NOT THIS TASK'S: "
+            "FloorCaptionGetsARegionTests, which trips on the string "
+            "--arena-deck-top-h inside a COMMENT added by v2.5.1504; "
+            "ArenaOperatorSwitchesTests, four tests expecting 403 and getting "
+            "404 since the console switches of v2.5.1645; and two newsfeed "
+            "BattleEventFeedTest errors - a battle_result event with no actor "
+            "reaches post_card_for_event, which writes speaker=None into a NOT "
+            "NULL column. They are reported, not touched."
+        ),
+    },
+    {
+        "version": "2.5.1759",
+        "date": "2026-09-04",
+        "commit": "c980feb9",
+        "title": "A name has a colour now, the Owner's is gold, and the rewards pages stop promising what he never agreed to",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "THE COLOUR OF A NAME. The Owner, 2026-09-04: a viewer with no "
+            "tokens is grey, one who has bought up to 100 is light blue, 100 "
+            "to 500 blue, 500 and above purple; a member of a chef's fan club "
+            "is green; every admin is red. \"It is cosmetic, it costs nothing, "
+            "but it is still nice for the viewer.\" And his own name is gold, "
+            "and it shimmers. "
+            "THE RULE IS THE BETTER OF TWO NUMBERS, which is his own wording "
+            "read carefully: everything bought inside thirty days, and whatever "
+            "is on the account. A viewer who bought six hundred this week and "
+            "gave every token to the chefs keeps his purple - a colour that "
+            "punished spending would be telling people to sit on their tokens. "
+            "One who bought nothing this month but holds two hundred keeps his "
+            "blue. One with neither goes grey. Decided on the server and sent "
+            "as a NAME, never a colour: a browser posting its own tier changes "
+            "nothing, the same way the chat's admin role already works, and "
+            "three queries answer a whole page of chat however long it is. "
+            "GOLD OUTRANKS RED. He is an admin too, so without a rule written "
+            "one selector deeper his name would simply have been red like any "
+            "other. The shimmer is a gradient clipped to the letters and slid "
+            "across them - gold leaf catching the light rather than a glow, "
+            "because a name in a chat log is too small for anything blurred - "
+            "and it stops for a reader who asked for less motion, keeping the "
+            "gold. It colours a NAME and touches nothing else: no field, no "
+            "flag, no row on his account. "
+            "THE FAN CLUB, which did not exist anywhere - no model, no button, "
+            "no mention. A viewer stands with a chef from the chef's own page; "
+            "leaving does not delete the membership but stamps it, so a chef "
+            "can see who stood with him and when. Green is the one colour "
+            "nobody can buy, so it beats every purchase tier and is beaten only "
+            "by the site speaking. "
+            "THE SAVE BUTTON HE COULD NOT SEE. In the chat's settings, "
+            ".btn-secondary carries a hardcoded dark brown from base.css - "
+            "right on the site's cream, invisible once a chat theme puts "
+            "#221d18, #2a1f18 or #16181d underneath it. The button never "
+            "changed; the floor under it did. It now takes the chat's own "
+            "themed tokens, so it follows every theme and any theme added "
+            "later. Contrast against the panel: Dark Kitchen 1.24 to 13.3, "
+            "Copper 1.19 to 13.0, Midnight 1.32 to 14.5, Ivory 13.3 to 14.3. "
+            "NOT SEEN WITH MY OWN EYES: those four figures are computed from "
+            "the theme palettes, not read off a live page. The preview harness "
+            "stopped applying styles altogether - an injected !important rule "
+            "could not change a colour in it, which is not something a browser "
+            "does - so the numbers are arithmetic on the right values rather "
+            "than a measurement of the rendered button. "
+            "AND THE REWARDS PAGES NOW SAY WHAT HE ACTUALLY DECIDED. Two "
+            "public pages, both live, promised that Chef Battle Rewards are "
+            "granted to chefs who win battles. His ruling: a battle result "
+            "grants no tokens at all - rating, rank, artifact prizes and "
+            "cosmetic titles, and a chef who wants tokens offers his prizes "
+            "back to the shop himself. The legal purchases page also promised "
+            "the SENDER of an appreciation gift a grant reflecting part of its "
+            "cost; the service paid it too, straight into his wallet with none "
+            "of the checks section 9.4 requires. No document in the repository "
+            "ever described it. It is gone from the code, from both pages and "
+            "from the tests that had frozen it in place."
+        ),
+    },
+    {
+        "version": "2.5.1753",
+        "date": "2026-09-04",
+        "commit": "094a0a0f",
+        "title": "The author profile hero is back on the golden values",
+        "section": "Site",
+        "summary": (
+            "The Owner looked at the author profile page after v2.5.1750 and "
+            "said its hero no longer matches the golden standard - the size of "
+            "the header, the styles, the font sizes and the alignment inside "
+            "it. He is right about the page, and the cause is older than "
+            "v2.5.1750: commit 173150ed of 2026-06-22, 'compact author profile "
+            "hero buttons to fit 5 in one row on mobile', solved a MOBILE "
+            "fitting problem with rules that carried no media query, so they "
+            "shrank that row on every screen from that day on. Removing the "
+            "fifth button is what made the shortfall plain. "
+            "MEASURED AGAINST THE GOLDEN GROUP IN base.css: the row ran at "
+            "font-size 0.78rem against the golden 0.88rem, padding-inline "
+            "0.45rem against 0.82rem, min-height 36px against 44px - which is "
+            "also the project's minimum touch target - and it carried an extra "
+            "margin-block-start of 1rem that added 16px to the LOCKED 28.8px "
+            "gap the subtitle already reserves below itself. A fourth rule, "
+            "gap 0.3rem, had been dead since Group 1.4 was written: that rule "
+            "carries one class more and has won the cascade with the LOCKED "
+            "0.65rem ever since. It is deleted rather than pinned, because "
+            "pinning it would have changed the rendered page. "
+            "All four are gone. The author hero now measures identically to "
+            "/legal/company-information/, the reference page: hero 503px, "
+            "hero-copy 832px, buttons 14.08px / 6.72px 13.12px / 44px, row at "
+            "y=582. Mobile 390 stacks into one column of 44px buttons with no "
+            "overflow, the same as the reference page does. "
+            "THE OWNER'S OWN PAGE IS NOT CHANGED (AGENTS.md 18). The three "
+            "live rules are re-scoped to .hero--greenbear and his page "
+            "measures exactly what it measured before: 12.48px / 6.72px "
+            "7.2px / 36px, copy 944px, row margin 16px. Whether to lift his "
+            "page to the golden values too is his call and is asked, not "
+            "assumed."
+        ),
+    },
+    {
+        "version": "2.5.1750",
+        "date": "2026-09-04",
+        "commit": "24642f9f",
+        "title": "An enrolled chef stops being asked to become one on his own dashboard",
+        "section": "Accounts / Chef Battles",
+        "summary": (
+            "The Owner sent a screenshot of the Author Dashboard of an account "
+            "that had already completed chef enrolment, with Become a Chef "
+            "still in the hero row. "
+            "THE CAUSE WAS THE GATE, NOT THE ENROLMENT. author_detail loads "
+            "battle_profile only inside `if chef_battle_enabled`, which is the "
+            "visibility rule of 2026-08-04 - staff and superusers only. For an "
+            "ordinary author that variable is therefore None whether or not he "
+            "enrolled, and the template chose its button on it: "
+            "`{% if battle_profile and battle_profile.enrolled_at %}`. Every "
+            "non-staff chef fell through to the else branch. "
+            "ENROLMENT IS NOT VISIBILITY, and the header has read them apart "
+            "for a month - recipes/context_processors.py takes enrolment "
+            "straight off the author. The view now does the same, in a new "
+            "is_enrolled_chef, computed outside the gate; battle_profile keeps "
+            "its gate untouched, so nothing about who may SEE Chef Battles "
+            "changes. The hero shows Chef Arena only when enrolled AND the "
+            "battle area is visible - an enrolled non-staff author now sees "
+            "neither button rather than a link to a 404, which is exactly what "
+            "his header menu already does. "
+            "The identical prompt in authoring/profile_form.html was already "
+            "correct: it reads author.battle_profile directly (F75)."
+        ),
+    },
+    {
+        "version": "2.5.1747",
+        "date": "2026-09-04",
+        "commit": "14e05c41",
+        "title": "Stage 6: the rehearsal grows seven more scenarios, and learns to clear up after itself",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The rehearsal was one linear walk through a battle. It is eight "
+            "walks now, composed rather than copied: every step is registered "
+            "once by name and a scenario is an ORDER OF NAMES, so the opening "
+            "nine steps that put two chefs into a live fight are the same nine "
+            "steps whether we are then watching artifacts, the stands, the "
+            "shop or the result. A - the lifecycle. B - the fight with "
+            "artifacts. C - the stands: delivery, gifts and chat. D - shop, "
+            "chest and drops. E - a full hall. F - the spectator's window. "
+            "G - the result frame. H - what the battle leaves behind. The "
+            "console picks one from a menu built out of the scenarios "
+            "themselves, so a list in a template cannot drift from the code. "
+            "ALL EIGHT WERE RUN, and four things they found were the "
+            "rehearsal's own fault rather than production's, which is the "
+            "point of running them: a spectator who never polls loses his seat "
+            "before he can speak (correct - a seat lapses with its holder's "
+            "online window - so the rehearsal keeps its spectators present the "
+            "way a real viewer's poll does); a chef must spend a spectator's "
+            "gift before his own, and the run was playing his own first and "
+            "being refused; the hall was measured by counting rows instead of "
+            "against the seat map, so one stale off-map seat read as an "
+            "overflow; and the window step knocked with Django's test client, "
+            "whose Host header production rejects, then reported that 400 as a "
+            "broken endpoint. "
+            "THE CLEAN-UP WAS THE REAL BLOCKER. A rehearsal battle holds the "
+            "two test chefs' slots exactly as a real battle does - which is the "
+            "rule working - so anything the purge could not clear stopped every "
+            "later run. It could not clear a delivery: the refusal on gifts was "
+            "written for a gift a PERSON paid for, and it caught the rehearsal's "
+            "own gifts too. It now removes a gift only when the battle is in the "
+            "set AND the sender is a rehearsal spectator, both conditions "
+            "together; a stranger's gift still stops the purge dead. The token "
+            "transaction behind it stays - TokenLot and TokenSpendAllocation "
+            "protect it, and tearing those out to tidy a rehearsal is exactly "
+            "the half-deletion the refusal exists to prevent - and the result "
+            "says so out loud. The purge also sweeps what it had never touched: "
+            "chef artifacts tied to these battles or made by the rehearsal, "
+            "appreciation gifts from its own stands, and its spectators' seats. "
+            "WHAT IT LEAVES ON HIS OWN CHEFS IS REPORTED, NOT RESET. The EMU "
+            "bots are the console's creatures and the purge puts them back to "
+            "the model's defaults. Jam O'Liver and CrestedTen are the Owner's "
+            "accounts, and a rehearsal really does move their rating, their "
+            "wins and the arena's 24-hour crown - after these runs CrestedTen "
+            "was carrying three wins and the crown. Whether that is wiped is "
+            "his decision, so the count shows it every time he presses it and "
+            "changes nothing. "
+            "ALSO FIXED IN PASSING: three multi-line {# #} comments in "
+            "arena.html - two at the top of the file and one in the command "
+            "bar's connector - which had been failing "
+            "NoTemplateCommentCanPrintItselfOnThePageTests on main. Django's "
+            "hash comment is single-line and a multi-line one prints itself "
+            "onto the page, which is exactly what that test exists to catch."
+        ),
+    },
+    {
+        "version": "2.5.1744",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The knife cursor's third file, found by checking the collected tree",
+        "section": "Site",
+        "summary": (
+            "v2.5.1741 deleted battle_cursor.js and battle_cursor.css. "
+            "Verifying it on the server showed one entry still carrying the "
+            "name in the static manifest, and it turned out to be a THIRD file "
+            "nobody had mentioned: static/images/battle_cursor.svg, the artwork "
+            "the stylesheet used to point at, added in 88715791 for the "
+            "original nav-button cursor. Nothing references it now - the "
+            "grep across templates, CSS, JS and Python is empty - so it goes "
+            "with the other two. "
+            "Worth recording how it surfaced: the checkout looked clean and the "
+            "old URLs answered 404, but the collected tree still knew the name. "
+            "collectstatic 917 files to 916."
+        ),
+    },
+    {
+        "version": "2.5.1741",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The knife cursor's two files go too",
+        "section": "Site",
+        "summary": (
+            "v2.5.1729 took the crossed knife-and-fork hover cursor out of "
+            "base.html - the overlay, the stylesheet link and the script tag - "
+            "and left its two assets in the repository unreferenced, pending "
+            "the Owner's word. He gave it: delete them. "
+            "static/js/battle_cursor.js and static/css/battle_cursor.css are "
+            "removed. Nothing loaded them: the only two mentions left in the "
+            "codebase are prose - a completed entry on the build board and the "
+            "journal entry that retired the feature. The battle-cursor-target "
+            "classes still carried by six templates were already inert once the "
+            "overlay went, and they stay inert now; sweeping them out of "
+            "unrelated templates is not this task. "
+            "collectstatic re-run clean at 917 files."
+        ),
+    },
+    {
+        "version": "2.5.1738",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "Become a Chef is back in the header menu, and the enrolment door is the only one opened",
+        "section": "Accounts / Chef Battles",
+        "summary": (
+            "THE OWNER ASKED FOR IT AND SCOPED IT HIMSELF. A newly registered "
+            "user must have Become a Chef in his header menu. The link already "
+            "existed but sat behind the visibility rule of 2026-08-04, under "
+            "which an Author sees nothing of Chef Battles but the rules and the "
+            "news - so it was hidden, and the form behind it answered 404. "
+            "Changing that gate needs his explicit word every time (AGENTS.md "
+            "section 8); he was asked how far to open it and chose THE "
+            "ENROLMENT PATH ONLY. "
+            "chef_enroll and enroll_success now carry a new enrolment_guard "
+            "instead of chef_battle_guard. It lets any signed-in visitor "
+            "through and keeps the suspension check on POST, because a "
+            "suspended account must not enrol its way back in through the one "
+            "door left open. Everything else is untouched: measured with the "
+            "production gate closed, an ordinary author gets 200 on "
+            "/chef-battle/enroll/ and on enroll/success/, and 404 on the arena, "
+            "the Chef Battles home and the token shop, exactly as before. "
+            "Two supporting fixes. The menu entry is no longer gated on "
+            "chef_battle_enabled, only on not being enrolled - the separate "
+            "Chef Battles entry below it still is. And chef_enroll's three "
+            "fallbacks redirected to chef_battle:home, which is behind the "
+            "gate: for an ordinary author that turned a tidy redirect into the "
+            "very 404 this was opened to avoid, so they now resolve to the "
+            "site's own home unless the visitor can actually see Chef Battles."
+        ),
+    },
+    {
+        "version": "2.5.1735",
+        "date": "2026-09-04",
+        "commit": "62e73937",
+        "title": "Stages 2 to 5 of the rehearsal: the battle finishes, and a draw stops being a win",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Everything here was found by RUNNING scenario A rather than by "
+            "reading the code, and every one of them had the same shape: the "
+            "data existed and nothing asked for it, or the transition existed "
+            "and nobody could reach it. "
+            "THE BATTLE CAN NOW FINISH BY ITSELF. Nothing carried PRESENTATION "
+            "to VOTING - no service, no sweep, no cron - so a battle whose two "
+            "dishes had been approved sat there until an operator forced it, "
+            "and the only writer of Status.VOTING was the console emulator "
+            "assigning the field. open_voting_for_presented_battles() closes "
+            "that gap from the same cron as every other deadline; entering "
+            "presentation now sets the clock that ends it, and a battle that "
+            "was already sitting in PRESENTATION with no deadline is swept "
+            "rather than stranded. Scenario A runs all the way to COMPLETED "
+            "with the engine naming the winner. "
+            "A DRAW WAS PUBLISHED AS A VICTORY. The result frame ended every "
+            "value in `|default:fx.left`, so a battle with no champion - a "
+            "draw, a void, a withdrawal - was drawn as a win for whichever "
+            "chef happened to be on the left: his portrait under a shield, his "
+            "name after 'Congratulations', a WINNER banner and a tick reading "
+            "'Victory confirmed'. The view had it right and set champion to "
+            "None on purpose; the template put a face there anyway. It now "
+            "names nobody, and the frame carries what a chef actually fought "
+            "for - rank, win streak, crown, and the artifacts the battle "
+            "dropped, listed by name - instead of likes and comments. "
+            "TWO PAGES THAT NEVER UPDATED. The battle room had no poll at all: "
+            "hits and the round log were painted only by the answer to your "
+            "OWN move, so a chef watched a frozen screen while his opponent "
+            "played. The spectator's page polled the console's owner-only "
+            "endpoint, which answered 404 to everyone and, when it did answer, "
+            "described whatever battle the arena considered current rather "
+            "than the one in the URL. Both now poll their own battle, and the "
+            "battle room paints from one function whether the update came from "
+            "a move or the poll. "
+            "A DISH HAD ONE MODERATOR: HIM. A cooked photo could only be "
+            "approved through the owner-only console action, so the step that "
+            "carries a battle from COOKING to PRESENTATION had nobody else to "
+            "perform it. The rule is lifted into one function with two doors - "
+            "the console keeps its operator audit, moderators get a queue at "
+            "/chef-battle/moderation/dishes/ beside the cooking one. "
+            "ARTIFACTS. A boost artifact could never be played: the check "
+            "compared its effect type against the move, and a move is only "
+            "attack or defend, so it was refused on both - which is why the "
+            "boost branch in the round calculation had never run. An artifact "
+            "whose bonus came out zero was NOT consumed: it had been named in "
+            "the move, locked to the battle and shown as played, and it "
+            "silently survived; spending is now what playing means. The drop "
+            "pool excluded every artifact a chef had EVER held, spent ones "
+            "included, so it narrowed with every battle until a guaranteed "
+            "winner's drop returned nothing. The combat picker offered "
+            "artifacts locked to a DIFFERENT battle, which the service then "
+            "refused. And a spectator's delivery wrote four rows and not one "
+            "public event, so the chef it was sent to was never told - "
+            "ARTIFACT_DELIVERED is that missing announcement. "
+            "TWO CONSOLE PANELS COULD NOT REPORT. 'Artifacts in use' filtered "
+            "on ChefArtifact.Status.RESERVED, which nothing has ever written, "
+            "so it answered 'None reserved' through every battle ever fought; "
+            "it reads reserved_in_battle now, which is the column that is "
+            "actually set. Panel 7 showed an empty CBR list that read as 'no "
+            "rewards yet' - the truth is that NOTHING creates a Chef Battle "
+            "Reward, RewardRecord has exactly two producers and both write "
+            "LSR, and the panel says so until the day one is granted. "
+            "TWO AUDIT CLAIMS WITHDRAWN, both mine. The boost fault was in the "
+            "submit check, not in the round calculation the audit blamed; and "
+            "sweep_ingredient_penalty_deadlines() has always closed the "
+            "biathlon window, so the rehearsal step that reported that gap was "
+            "describing itself rather than production. Both are corrected in "
+            "the code and in the run."
+        ),
+    },
+    {
+        "version": "2.5.1732",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "Join Us, Become a Chef, Issue a Challenge - and the sign-up form stops greeting people who are already in",
+        "section": "Accounts / Chef Battles",
+        "summary": (
+            "THE HAT PLATE'S THREE BRANCHES ARE NOW THE OWNER'S OWN WORDS. Not "
+            "signed in goes to Join Us, the signup page, rather than to a login "
+            "screen. Signed in but not yet a chef goes to Become a Chef, "
+            "chef_enroll. An enrolled chef goes to Issue a Challenge, which is "
+            "where that branch already went. "
+            "A BUG HE FOUND ON THE WAY. He filled in Join Us, confirmed his "
+            "email, was logged in by the activation link, followed a next that "
+            "still pointed at the sign-up form, and was shown Create Your Free "
+            "Account while the header said WELCOME BACK. SignUpView had no "
+            "guard against an authenticated visitor, and any route can put one "
+            "there - a back button, a bookmark, a stale next - so the guard "
+            "belongs on the view. It now redirects a signed-in visitor home. "
+            "AND THE FORM EXPLAINS ITSELF. A visitor arriving from the Arena's "
+            "plate is told, above the fields, that joining is not the same as "
+            "becoming a Chef: the account comes first, the Chef step is taken "
+            "later inside Chef Battles behind an 18+ confirmation and the "
+            "battle rules, and nothing on the page commits him to it. Built "
+            "from the page's own legal-* classes, so no new stylesheet. "
+            "Two of my own documented traps caught me writing it: a multi-line "
+            "{# #} is not a Django comment and printed itself onto the live "
+            "page, and .legal-summary-item strong is display:block, which broke "
+            "the sentence in half. Both fixed before this shipped."
+        ),
+    },
+    {
+        "version": "2.5.1729",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The hat plate leads to chef enrolment, and the knife cursor is gone",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Two on the Owner's instruction. "
+            "THE HAT PLATE NOW LEADS TO THE FORM WHERE A CHEF REGISTERS AS A "
+            "CHEF. An author who is not yet enrolled went to arena_take_seat, "
+            "which quietly seated them in the crowd; that branch is now a link "
+            "to chef_enroll. An anonymous visitor logs in with the same form as "
+            "the destination instead of the arena. The enrolled branch is "
+            "unchanged. This retires the js-arena-join-crowd button from the "
+            "bar - bindJoinCrowd returns when it finds no button, so it is a "
+            "clean no-op, and its success handler had been writing to "
+            ".arena-lower-actions__title, a class this bar has never had. "
+            "THE CROSSED KNIFE-AND-FORK HOVER CURSOR IS REMOVED. Its overlay, "
+            "its stylesheet link and its script tag are out of base.html, which "
+            "kills it everywhere at once. battle_cursor.js bails when the "
+            "overlay is absent, so the battle-cursor-target classes still on "
+            "six other templates are inert rather than broken; the two asset "
+            "files are left in place, unreferenced, for the Owner to say "
+            "whether they go."
+        ),
+    },
+    {
         "version": "2.5.1726",
         "date": "2026-09-04",
         "commit": "pending",

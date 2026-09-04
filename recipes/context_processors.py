@@ -135,12 +135,16 @@ def header_author(request):
             _enrolled = bool(author.battle_profile.enrolled_at)
         except Exception:
             _enrolled = False
-        # "Become a Chef" is a Chef Battles entrance and was offered to EVERY
-        # author, gated only on not being enrolled already. The Owner's rule of
-        # 2026-08-04 is that an Author sees nothing of this application but the
-        # rules and the news, so the invitation goes behind the same gate as the
-        # thing it invites you into. It also led straight to a 404 for them.
-        if not _enrolled and chef_battle_enabled:
+        # "BECOME A CHEF" IS OFFERED TO EVERY AUTHOR AGAIN, and this time the
+        # door behind it is open. It was put behind the visibility gate because
+        # the Owner's rule of 2026-08-04 keeps an Author out of Chef Battles and
+        # the link led them straight to a 404. On 2026-09-04 he asked for it to
+        # be in a newly registered user's menu and, asked how far to open the
+        # gate, scoped it himself: THE ENROLMENT PATH ONLY. chef_enroll and
+        # enroll_success now carry enrolment_guard rather than
+        # chef_battle_guard; everything else stays as it was, and the separate
+        # "Chef Battles" entry below is still gated.
+        if not _enrolled:
             actions.append({
                 "label": "Become a Chef",
                 "url": _reverse_or_empty("chef_battle:chef_enroll"),

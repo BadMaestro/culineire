@@ -19,6 +19,9 @@
   --arena-z-base: 0;   /* the deck's own background */
   --arena-z-floor: 1;   /* the floor plate */
   --arena-z-stage: 2;   /* the stage and the render container */
+  --arena-z-command-bar: 3;   /* the command bar, over the floor stage so its two links take the click */
+  --arena-z-command-bar-art: 0;   /* inside the bar: the ornament, behind everything written */
+  --arena-z-command-bar-face: 1;   /* inside the bar: plates, writing and medallions, over the ornament */
   --arena-z-cells: 3;   /* cells and seating drawn on the floor */
   --arena-z-sparks: 4;   /* lit cells and their sparks */
   --arena-z-occupants: 5;   /* chefs standing on the floor */
@@ -883,6 +886,32 @@
      above: it is neither the site speaking (admin red) nor a private channel
      (DM purple), it is somebody being called by name. */
   --chat-mention-text: #4d6fa8;
+
+  /* THE COLOUR OF A NAME - Owner, 2026-09-04. Grey with nothing, then three
+     steps of blue into purple as tokens are bought, green for a chef's fan
+     club, red for an admin. Cosmetic and free: it costs the viewer nothing
+     and it is still something to have.
+
+     Chosen against THIS panel's cream, not picked off a wheel: the three
+     purchase steps walk one hue family from a soft slate-blue to the private
+     channel's own violet, so they read as one ladder rather than three
+     unrelated colours. Green is deliberately outside that family - it is not
+     a rung on the ladder, it is a different thing entirely - and it is a deep
+     bottle green rather than a signal green, which on cream would shout over
+     the admin red it must never outrank. */
+  --chat-nick-grey: #8d8477;
+  --chat-nick-sky: #5b86b8;
+  --chat-nick-blue: #3a5fa8;
+  --chat-nick-purple: #7652c8;
+  --chat-nick-fan: #2f7d4f;
+  /* GOLD IS ONE NAME'S ONLY - Owner, 2026-09-04: "цвет ника GreenBear - всегда
+     золотой и переливается". Three stops rather than one colour, because the
+     shimmer is a gradient travelling across the letters: a deep bronze, the
+     spec's own #A87424 gold the rest of this panel already uses, and a pale
+     highlight for the glint to pass through. */
+  --chat-nick-owner-deep: #8a5a12;
+  --chat-nick-owner-gold: #a87424;
+  --chat-nick-owner-lit: #f0d08a;
 
   grid-area: chat;
   display: flex;
@@ -4724,6 +4753,68 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* One rule per tier, and nothing else changes: a name is coloured, not made
+   bigger or bolder, because thirty of them stacked in a log have to stay a
+   conversation rather than a leaderboard. */
+.arena-chat__name--grey   { color: var(--chat-nick-grey); }
+.arena-chat__name--sky    { color: var(--chat-nick-sky); }
+.arena-chat__name--blue   { color: var(--chat-nick-blue); }
+.arena-chat__name--purple { color: var(--chat-nick-purple); }
+.arena-chat__name--fan    { color: var(--chat-nick-fan); }
+
+/* RED OUTRANKS THE FIVE. The site speaking officially is not a tier a person
+   can reach by buying tokens or joining a club, so an admin's name is red
+   whatever else it would have been. Written as one rule after the five so it
+   wins on order rather than on !important. */
+.arena-chat__line--admin .arena-chat__name { color: var(--chat-admin-text); }
+
+/* AND GOLD OUTRANKS THE RED. There is exactly one of these on the site.
+   Two selectors deep so it beats the admin rule above on specificity rather
+   than by luck of ordering - he is an admin too, and without this his name
+   would simply be red like any other.
+
+   The shimmer is a gradient clipped to the letters and slid across them, not
+   a glow or a shadow: it has to read as gold LEAF catching the light, and a
+   name in a chat log is small enough that anything blurred just turns muddy.
+   The fallback colour is set first, so a browser without background-clip:text
+   gets a solid gold name rather than an invisible one. */
+.arena-chat .arena-chat__name--owner {
+  color: var(--chat-nick-owner-gold);
+  font-weight: 800;
+  background-image: linear-gradient(
+    100deg,
+    var(--chat-nick-owner-deep) 0%,
+    var(--chat-nick-owner-gold) 38%,
+    var(--chat-nick-owner-lit) 50%,
+    var(--chat-nick-owner-gold) 62%,
+    var(--chat-nick-owner-deep) 100%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .arena-chat .arena-chat__name--owner {
+    -webkit-text-fill-color: transparent;
+    animation: arena-nick-shimmer 4.5s linear infinite;
+  }
+}
+
+@keyframes arena-nick-shimmer {
+  to { background-position: -200% 0; }
+}
+
+/* Contract section 12: the arena is reduced-motion aware. The gold stays; only
+   the travelling glint stops, parked at the position where the name reads
+   brightest rather than at a dark end of the gradient. */
+@media (prefers-reduced-motion: reduce) {
+  .arena-chat .arena-chat__name--owner {
+    animation: none;
+    background-position: 50% 0;
+  }
+}
 /* The time sits at the FRONT of the row now (Owner's visual brief,
    2026-08-25: "TIME [TAGS] NAME ROLE MESSAGE"), not tucked into a meta
    column at the end - that column is gone; the action trigger is simply the
@@ -5343,6 +5434,50 @@
    text against a dark panel came out at contrast 1.15, which is invisible,
    while the timestamp read 3.41 only because --arena-muted happens to be a
    mid grey. Both lists are set now, and the test below asserts it stays so. */
+/* THE SAVE BUTTON WAS ONLY VISIBLE IN IVORY - Owner, 2026-09-04: "в чате вот
+   эта кнопка видна только в режиме Ivory, если я меняю цветовую гамму она по
+   факту почти пропадает."
+
+   The cause is not in this file. base.css paints .btn-secondary with a
+   HARDCODED brown - rgb(58 44 30 / .18) behind rgb(58 44 30 / .9) text - which
+   is a dark tint on the site's cream and reads perfectly there. The three chat
+   themes below then replace the ground underneath it with #221d18, #2a1f18 or
+   #16181d, and dark brown on dark brown is nothing at all. The button never
+   changed; the floor under it did.
+
+   Fixed by giving it the chat's OWN tokens instead of a fixed colour, so it
+   follows every theme that exists and every theme added later - the same
+   reason the semantic three above are redefined per theme rather than tinted.
+   Written against .arena-chat so it reaches Ivory too: there the tokens
+   resolve to the arena's own ink and bronze, which is what the button was
+   approximating with that brown in the first place. */
+/* --arena-ink AND --arena-gold, NOT --ink AND --accent-bronze, and the
+   difference is measured rather than stylistic. The themes below set both
+   lists, but --ink reaches this button already resolved to the site's #292929
+   - the substitution trap this file documents at the top of the theme block -
+   so a rule written against it paints the same dark grey in all four themes.
+   Measured before the fix: contrast 1.43 in Ivory and 1.10 in Copper, which is
+   the button he could not see. --arena-ink is what the rest of the chat's own
+   text uses and it flips correctly. */
+.page--arena .arena-chat .btn-secondary {
+  background: color-mix(in srgb, var(--arena-ink) 12%, transparent);
+  color: var(--arena-ink);
+  border: 1px solid color-mix(in srgb, var(--arena-gold) 45%, transparent);
+}
+
+.page--arena .arena-chat .btn-secondary:hover {
+  background: color-mix(in srgb, var(--arena-ink) 20%, transparent);
+  color: var(--arena-ink);
+  border-color: var(--arena-gold);
+}
+
+.page--arena .arena-chat .btn-secondary:focus-visible {
+  background: color-mix(in srgb, var(--arena-ink) 20%, transparent);
+  color: var(--arena-ink);
+  outline: 2px solid var(--arena-gold);
+  outline-offset: 2px;
+}
+
 .arena-chat[data-theme="dark"] {
   --surface: #221d18;
   --surface-soft: #2b2621;
@@ -8088,7 +8223,7 @@ button.arena-chat__poll-option { cursor: pointer; }
      elementFromPoint at either plate's centre returned .arena-render-container
      until this line existed. */
   position: relative;
-  z-index: 3;
+  z-index: var(--arena-z-command-bar);
   container-type: inline-size;
   container-name: arena-command-area;
   /* Against intrinsic-width overflow inside the deck's grid: a grid item's
@@ -8122,14 +8257,14 @@ button.arena-chat__poll-option { cursor: pointer; }
   padding-inline: 0;
 }
 .arena-command-bar__side { display: flex; align-items: center; min-width: 0;
-                           position: relative; z-index: 1; }
+                           position: relative; z-index: var(--arena-z-command-bar-face); }
 .arena-command-bar__side--l { justify-content: flex-start; }
 .arena-command-bar__side--r { justify-content: flex-end; }
 
 /* THE ORNAMENT IS ONE SVG BEHIND THE ROW. It spans the bar's own box, so every
    junction in it is a shared coordinate rather than two DOM elements meeting by
-   arithmetic. It sits at z-index 0 and everything written sits above it. */
-.arena-command-bar { position: relative; }
+   arithmetic. It sits at z-index 0 and everything written sits above it. The
+   bar is already positioned where it is declared, above. */
 .arena-command-bar__ornament {
   position: absolute;
   left: 0;
@@ -8139,7 +8274,7 @@ button.arena-chat__poll-option { cursor: pointer; }
   width: 798px;
   overflow: visible;
   pointer-events: none;
-  z-index: 0;
+  z-index: var(--arena-z-command-bar-art);
 }
 
 /* THE THREE ARE PLACED BY HAND, and this is not belt-and-braces. The caption
@@ -8260,7 +8395,7 @@ button.arena-chat__poll-option { cursor: pointer; }
    are positioned, so without a layer of their own the ::after would paint over
    them and shade the medallion along with the moulding it sits next to. */
 .arena-command-bar__medallion,
-.arena-command-bar__text { z-index: 1; }
+.arena-command-bar__text { z-index: var(--arena-z-command-bar-face); }
 .arena-command-bar__text { position: relative; }
 /* HOVER MOVES THE LIGHT, NOT THE PLATE. A two-pixel lift with a deeper shadow
    is the web's default gesture and it is the wrong one twice over: nothing else
@@ -8293,57 +8428,22 @@ button.arena-chat__poll-option { cursor: pointer; }
 .arena-command-bar__medallion {
   /* CONSTRUCTED, not a slice of the mockup: #ad-plate-medal-dark / -light in
      templates/chef_battle/_arena_deck_svg.html. Thirty-nine pixels, which is
-     what the reference's measures. */
+     what the reference measures.
+
+     THE NUMBERS BELOW ARE THE ONES THAT WERE ALREADY ON THE PAGE. A stale
+     second copy of this rule survived the reconstruction thirty lines further
+     down and, being later, won: the medallion has been rendering at 39px and
+     top 0.0667rem, not at the 32px / 4px this block used to claim. The
+     duplicate is deleted and its values are kept here, so the Owner's approved
+     bar renders identically and the stylesheet stops declaring the same
+     property twice (AN13). */
   position: relative;
-  z-index: 1;
+  z-index: var(--arena-z-command-bar-face);
   /* the reference's disc is centred a little below the plate's own middle */
-  top: 4px;
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-}
-.arena-command-bar__text { z-index: 1; }
-.arena-command-bar__text { position: relative; }
-/* HOVER MOVES THE LIGHT, NOT THE PLATE. A two-pixel lift with a deeper shadow
-   is the web's default gesture and it is the wrong one twice over: nothing else
-   in the arena uses it - .arena-live-centre and .arena-rank-spine__step both
-   answer with a change of material, never of position - and a plate seated in a
-   floor has nowhere to rise to. So the plate turns toward the light instead:
-   the corner glint comes up, and that is the whole of it. It uses the artwork's
-   own lighting variables rather than adding a second effect on top of them.
-
-   Both of them, not just the glint: with the glint alone the hover moved
-   ninety-five pixels in one corner - measurably true to the lighting model and
-   far too quiet to read as an answer on a control this size. Pulling the
-   falloff back as well lifts the whole frame, both ends, which is what a plate
-   turning toward a light actually does. */
-.arena-command-bar__action:hover,
-.arena-command-bar__action:focus-visible {
-  /* The plate is a slice of the mockup, so hover cannot move its light any
-     more; it brightens the whole plate instead, which is still a change of
-     material rather than of position - the Arena's own idiom. */
-  filter: brightness(1.06);
-}
-.arena-command-bar__action:focus-visible {
-  outline: 2px solid var(--arena-gold);
-  outline-offset: 3px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .arena-command-bar__action { transition: none; }
-}
-
-.arena-command-bar__medallion {
-  /* A SLICE OF THE MOCKUP, not a drawn dome. It was two circles and a pair of
-     stroked spears and it read as exactly that. Thirty-nine pixels because the
-     mockup's is; matted off the plate face by ops/scratch/cb3/parts.py, which
-     recomposites to within 1/255 of the original. */
-  position: relative;
   top: 0.0667rem;
   flex: 0 0 auto;
   width: 39px;
   height: 39px;
-  background-repeat: no-repeat;
-  background-size: 39px 39px;
 }
 .arena-command-bar__text {
   display: flex;
@@ -8432,7 +8532,7 @@ button.arena-chat__poll-option { cursor: pointer; }
   text-align: center;
   align-self: center;
   pointer-events: auto;
-  z-index: 1;
+  z-index: var(--arena-z-command-bar-face);
 }
 /* The FIRST span, not every span: the bracket is a decorative last child of
    the caption and must not inherit the eyebrow's case and tracking. */

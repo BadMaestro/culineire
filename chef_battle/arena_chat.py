@@ -440,6 +440,8 @@ def private_lines(messages, viewer=None) -> list[dict]:
     muted_ids, blocked_ids = personal_hidden(viewer)
     reactions = reaction_summary([m.pk for m in messages], viewer)
     tags_by_author = team_tags_for({m.speaker_id for m in messages})
+    from .nick_colour import tiers_for
+    tier_by_author = tiers_for({m.speaker_id for m in messages})
     out = []
     for message in messages:
         speaker_user = getattr(message.speaker, "user", None)
@@ -454,8 +456,10 @@ def private_lines(messages, viewer=None) -> list[dict]:
             "slug": message.speaker.slug,
             "clan_tag": tags.get("clan_tag", ""),
             "alliance_tag": tags.get("alliance_tag", ""),
+            "tier": tier_by_author.get(message.speaker_id, "grey"),
             # ADMIN still outranks the channel: an Admin writing privately is
-            # red, not purple. The precedence is the same everywhere.
+            # red, not purple. The precedence is the same everywhere - and it
+            # outranks the name's own tier too, for the same reason.
             "role": role,
             "channel": "private",
             "heard": True,
@@ -507,6 +511,11 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
     polls = poll_summary([m.pk for m in messages if m.kind], viewer)
     if tags_by_author is None:
         tags_by_author = team_tags_for({m.speaker_id for m in messages})
+    # THE NAME'S COLOUR, batched the same way and for the same reason: this
+    # runs on every poll, so it gets one set of queries for the whole page
+    # rather than one per line.
+    from .nick_colour import tiers_for
+    tier_by_author = tiers_for({m.speaker_id for m in messages})
     out = []
     for message in messages:
         # THE ROLE IS DECIDED HERE, ON THE SERVER. The client is told what a
@@ -542,6 +551,10 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
             # print as "[]".
             "clan_tag": tags.get("clan_tag", ""),
             "alliance_tag": tags.get("alliance_tag", ""),
+            # WHAT COLOUR THIS NAME IS. Decided on the server (nick_colour) and
+            # sent as a name, never as a colour: the stylesheet owns the hue,
+            # and a browser that posts its own tier changes nothing.
+            "tier": tier_by_author.get(message.speaker_id, "grey"),
             # ADMIN > PRIVATE > PUBLIC. Only the first and last exist yet;
             # "private" arrives with direct messages and slots in between
             # without the renderer changing shape.

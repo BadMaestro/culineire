@@ -512,6 +512,7 @@
       <section class="battle-panel battle-combat" id="battle-combat-panel"
                aria-labelledby="combat-round-heading"
                data-combat-url="{% url 'chef_battle:battle_combat_action' battle.pk %}"
+               data-combat-state-url="{% url 'chef_battle:battle_combat_state' battle.pk %}"
                data-moves="{{ user_battle_moves }}">
 
         <div class="battle-combat__header">
@@ -545,7 +546,14 @@
             <select name="artifact_id" id="combat-artifact-select" class="battle-form__input">
               <option value="">&#x2014; None &#x2014;</option>
               {% for ca in user_available_artifacts %}
-              <option value="{{ ca.pk }}">{{ ca.artifact.name }} (+{{ ca.artifact.effect_value }} {{ ca.artifact.get_effect_type_display|default:ca.artifact.effect_type }})</option>
+              {% comment %}
+              A GIFT LOOKS LIKE PROPERTY UNTIL IT EXPIRES - 2026-09-04. A
+              spectator's delivery is locked to this battle and lapses when it
+              ends, and the chef must spend it before his own; nothing on the
+              page said so, so it sat in the list looking exactly like an
+              artifact he had bought.
+              {% endcomment %}
+              <option value="{{ ca.pk }}">{{ ca.artifact.name }} (+{{ ca.artifact.effect_value }} {{ ca.artifact.get_effect_type_display|default:ca.artifact.effect_type }}){% if ca.locked_to_battle_id == battle.pk %} &middot; gift, this battle only{% endif %}</option>
               {% endfor %}
             </select>
           </div>
@@ -722,6 +730,58 @@
   });
   updateTargetRow();
 
+  /* ONE PAINTER, TWO CALLERS - 2026-09-04. The hit counts and the log were
+     painted only by the answer to your OWN move, so a chef watched a frozen
+     screen while his opponent played and only found out by reloading. The
+     painting is lifted out here and the poll below calls the same function, so
+     what a move shows and what the poll shows can never disagree. */
+  function paintCombat(res) {
+    if (hitsChallenger && res.challenger_hits != null) hitsChallenger.textContent = res.challenger_hits;
+    if (hitsOpponent && res.opponent_hits != null) hitsOpponent.textContent = res.opponent_hits;
+    if (roundNum && res.current_round != null) roundNum.textContent = res.current_round;
+    if (combatLog && res.rounds && res.rounds.length) {
+      // T04, 2026-08-13: nodes and textContent, never innerHTML - log_message
+      // is built from both chefs' own names.
+      combatLog.textContent = '';
+      res.rounds.forEach(function (r) { combatLog.appendChild(buildCombatLogRow(r)); });
+    }
+  }
+
+  /* THE POLL. Five seconds, paused while the tab is hidden, and it stops for
+     good the moment the fight leaves ACTIVE - a finished battle has nothing
+     more to say and the page reloads itself once to show the next phase. */
+  var stateUrl = panel.dataset.combatStateUrl;
+  var lastRound = null;
+  var combatTimer = null;
+  if (stateUrl) {
+    var pollCombat = function () {
+      if (document.visibilityState !== 'visible') return;
+      fetch(stateUrl, {credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (res) {
+          if (!res || !res.ok) return;
+          if (res.status !== 'active') { clearInterval(combatTimer); window.location.reload(); return; }
+          paintCombat(res);
+          // The opponent answered: the round moved on, so this chef can play
+          // again. The form hides itself on submit and had no way back.
+          if (lastRound !== null && res.current_round !== lastRound) {
+            form.hidden = false;
+            submitBtn.disabled = false;
+            successEl.hidden = true;
+            if (turnEl) {
+              turnEl.classList.remove('battle-combat__turn--waiting');
+              turnEl.classList.add('battle-combat__turn--yours');
+              turnEl.textContent = 'Your move';
+            }
+          }
+          lastRound = res.current_round;
+        })
+        .catch(function () {});
+    };
+    combatTimer = setInterval(pollCombat, 5000);
+    pollCombat();
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     errorEl.hidden = true;
@@ -752,21 +812,8 @@
         turnEl.innerHTML = '⏳ Waiting for opponent…';
       }
 
-      if (hitsChallenger) hitsChallenger.textContent = res.challenger_hits;
-      if (hitsOpponent) hitsOpponent.textContent = res.opponent_hits;
-      if (roundNum) roundNum.textContent = res.current_round;
-
-      if (combatLog && res.rounds && res.rounds.length) {
-        // T04, 2026-08-13: this line used to be innerHTML, and r.log_message
-        // is built from both chefs' own names - so a chef who called himself
-        // an <img onerror> tag ran script in every spectator's browser, once
-        // per round, for as long as the log was on screen. Nodes and
-        // textContent: the payload is a name, and a name is text.
-        combatLog.textContent = '';
-        res.rounds.forEach(function (r) {
-          combatLog.appendChild(buildCombatLogRow(r));
-        });
-      }
+      paintCombat(res);
+      lastRound = res.current_round;
 
       const energyVal = parseInt(movesLeft.textContent, 10) - parseInt(data.get('moves_invested'), 10);
       if (movesLeft) movesLeft.textContent = Math.max(0, energyVal);

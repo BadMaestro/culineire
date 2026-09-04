@@ -74,6 +74,31 @@
                 </div>
                 <p class="legal-hub-section__intro" style="text-align: center; margin-inline: auto; margin-block: 1.5rem;">Fill in the form below to create your free CulinEire account.</p>
 
+                {% comment %}
+                  Owner, 2026-09-04: a new visitor arrives here from the Arena's
+                  ENTER ARENA plate and has to be told that Join Us is not yet
+                  Become a Chef - the account comes first, the Chef step is a
+                  separate one taken later. Built from the page's own legal-*
+                  vocabulary so it needs no new stylesheet.
+                  A multi-line {# #} is NOT a comment in Django and prints
+                  itself onto the page, which is how this block first shipped.
+                {% endcomment %}
+                <div class="legal-summary-item" style="max-width: 46rem; margin: 0 auto 1.75rem; text-align: start;">
+                    <span>First things first</span>
+                    <p style="margin: 0.35rem 0 0; line-height: 1.55;">
+                        Joining is not the same as becoming a Chef. This form creates your free
+                        CulinEire account &mdash; enough to save recipes, publish your own, follow
+                        authors and take part in the community.
+                    </p>
+                    <p style="margin: 0.55rem 0 0; line-height: 1.55;">
+                        <b style="font-weight: 700;">Becoming a Chef is a separate step</b>, taken later inside
+                        Chef Battles: you confirm you are 18 or over and accept the battle rules.
+                        Nothing on this page commits you to it. You can
+                        <a href="{% url 'chef_battle:rules' %}">read the battle rules</a> first if
+                        you would rather know what you are stepping into.
+                    </p>
+                </div>
+
                 <div class="auth-card" style="margin-inline: auto;">
                     <form class="auth-form" data-validate method="post">
                         {% csrf_token %}

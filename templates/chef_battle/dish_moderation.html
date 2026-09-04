@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dish Moderation | Chef Battles{% endblock %}
+
+{% block content %}
+{% comment %}
+The moderators' queue for cooked dishes, 2026-09-04.
+
+The rehearsal walked a whole battle through production code and found that a
+dish photo could only ever be approved through the OWNER-only console action -
+so the step that carries a battle from COOKING to PRESENTATION had nobody to
+perform it but him, on every battle, every evening.
+
+Deliberately built like its neighbour cooking_moderation.html rather than like
+the console: same hero, same messages block, same panel class, same inline
+style vocabulary. A moderator opening one and then the other should not have to
+learn a second page.
+{% endcomment %}
+<section class="battle-room-hero">
+  <div class="container">
+    <p class="battle-kicker">Moderation</p>
+    <h1>Dish Photo Review</h1>
+    <p class="battle-room-hero__sub">Cooked dishes waiting to be approved before the battle can be presented</p>
+  </div>
+</section>
+
+<div class="container" style="padding-block: 2rem; max-width: 800px;">
+
+  {% if messages %}
+  <div style="margin-block-end: 1.5rem;">
+    {% for msg in messages %}
+    <p style="padding: .6rem 1rem; border-radius: 6px; margin-block-end: .5rem;
+              background: {% if 'error' in msg.tags %}#fde8e8{% elif 'warning' in msg.tags %}#fff3cd{% else %}#e8f5e9{% endif %};">
+      {{ msg }}
+    </p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <p style="margin-block-end: 1.5rem; font-size: .9rem;">
+    <a class="text-link" href="{% url 'chef_battle:cooking_moderation' %}">&#8592; Cooking phase approval</a>
+  </p>
+
+  {% if not entries %}
+  <p style="color: var(--color-muted);">No dishes are waiting for review.</p>
+  {% else %}
+  {% for entry in entries %}
+  <div class="biathlon-panel" style="margin-block-end: 2rem;">
+    <h2 class="biathlon-panel__title" style="font-size: 1.2rem;">{{ entry.battle.theme }}</h2>
+    <p class="biathlon-panel__sub">
+      {{ entry.battle.challenger.name }} vs {{ entry.battle.opponent.name }}
+      &nbsp;&mdash;&nbsp; this dish is <strong>{{ entry.author.name }}</strong>&#8217;s
+    </p>
+
+    <div style="margin-block: 1rem; font-size: 0.9rem; color: var(--color-muted);">
+      Submitted: {{ entry.updated_at|date:"d M Y H:i" }}
+      &nbsp;|&nbsp; Confirmed a real photograph:
+      <strong>{% if entry.real_photo_confirmed %}yes{% else %}no{% endif %}</strong>
+    </div>
+
+    {% if entry.cooked_photo %}
+    <a href="{{ entry.cooked_photo.url }}" target="_blank" rel="noopener">
+      <img src="{{ entry.cooked_photo.url }}" alt="{{ entry.author.name }}&#8217;s cooked dish"
+           style="width: 100%; max-height: 26rem; object-fit: cover; border-radius: 8px;">
+    </a>
+    {% endif %}
+
+    {% if entry.battle_statement %}
+    <p style="margin-block: .9rem 0; font-size: .95rem;">&#8220;{{ entry.battle_statement }}&#8221;</p>
+    {% endif %}
+
+    <form method="post" action="{% url 'chef_battle:dish_moderation_review' entry.pk %}"
+          style="margin-block-start: 1.25rem;">
+      {% csrf_token %}
+      <label for="reason-{{ entry.pk }}" style="display:block; font-size:.85rem; margin-block-end:.35rem;">
+        Reason &mdash; required to reject, and sent to the chef
+      </label>
+      <input type="text" id="reason-{{ entry.pk }}" name="reason" maxlength="300"
+             class="authoring-control" style="width:100%; margin-block-end:.75rem;">
+      <button type="submit" name="decision" value="approve" class="btn btn-primary">Approve dish</button>
+      <button type="submit" name="decision" value="reject" class="btn btn-secondary">Reject</button>
+    </form>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+</div>
+{% endblock %}

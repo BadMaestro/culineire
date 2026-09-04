@@ -35,6 +35,7 @@ from .access import (
     arena_console_guard,
     chef_battle_guard,
     has_arena_console_access,
+    enrolment_guard,
     is_battle_visible,
     valid_share_token,
 )
@@ -280,7 +281,7 @@ def _build_battlefield_progress():
             "title": "Phase 8 - Economy Protection (CBR / LSR / Ledger)",
             "items": [
                 {"label": "RewardRecord model (CBR and LSR)", "detail": "11-status lifecycle: PENDING→QUEUED→APPROVED→ISSUED→ACKNOWLEDGED→USED→EXPIRED→REVERSED→DISPUTED→VOIDED→ARCHIVED. issue_reward(), expire_rewards(), reverse_reward() services. expire_rewards cron every 30 min.", "status": "done", "completed_at": "2026-06-14"},
-                {"label": "LSR creation on appreciation gift", "detail": "send_appreciation_gift(): sender gets 10% back as issued LSR; recipient chef gets pending LSR equal to full gift cost (APPRECIATION_GIFT_REWARD_BASIS). LedgerEvent written for both.", "status": "done", "completed_at": "2026-06-15"},
+                {"label": "LSR creation on appreciation gift", "detail": "send_appreciation_gift(): the recipient CHEF gets a pending LSR equal to the full gift cost (APPRECIATION_GIFT_REWARD_BASIS), with a LedgerEvent. CORRECTED 2026-09-04: this line used to say the sender got a share back as an issued LSR. He did, and no rule ever said so - it was invented in the service, paid straight into his wallet with none of the checks section 9.4 requires, and removed on the Owner's word.", "status": "done", "completed_at": "2026-06-15"},
                 {"label": "Immutable event ledger with hash chain", "detail": "LedgerEvent with 20 event types. SHA-256 hash chain: each row hashes its own content + prev_hash. verify_chain() classmethod detects tampered rows. Append-only; signals block silent update/delete.", "status": "done", "completed_at": "2026-06-14"},
                 {"label": "Fraud and compliance flags", "detail": "ChefBattleProfile: fraud_flag, fraud_flag_note, is_suspended, suspended_at, suspension_reason, dsa_reported_count. Admin actions: suspend/unsuspend, set/clear fraud flag. 15-gate fraud pipeline (run_fraud_gates).", "status": "done", "completed_at": "2026-06-14"},
                 {"label": "18+ technical gate", "detail": "gate_age_verified() in fraud pipeline. Blocks token purchase, appreciation gift send, and challenge create when ChefBattleProfile.age_verified=False.", "status": "done", "completed_at": "2026-06-15"},
@@ -509,20 +510,31 @@ def season_leaderboard(request):
     })
 
 
-@chef_battle_guard
+def _enrolment_exit(request):
+    """Where the enrolment path sends someone who has nothing to do here.
+
+    chef_battle:home is behind the visibility gate, so bouncing an ordinary
+    author onto it turns a tidy redirect into a 404 - which is exactly what the
+    enrolment door was opened to avoid. Send him to the site's own home instead,
+    and keep the Chef Battles home for anyone who can actually see it.
+    """
+    return "chef_battle:home" if is_battle_visible(request) else "home"
+
+
+@enrolment_guard
 @login_required
 def chef_enroll(request):
     """Author → Chef onboarding. Requires 18+ confirmation and battle rules acceptance."""
     author = get_author_for_user(request.user)
     if author is None:
         messages.error(request, "You need a recipe author profile to join Chef Battles.")
-        return redirect("chef_battle:home")
+        return redirect(_enrolment_exit(request))
 
     # Already enrolled — go straight to arena
     try:
         profile = author.battle_profile
         if profile.enrolled_at:
-            return redirect("chef_battle:home")
+            return redirect(_enrolment_exit(request))
     except ChefBattleProfile.DoesNotExist:
         profile = None
 
@@ -544,7 +556,7 @@ def chef_enroll(request):
                     profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
                 profile = ChefBattleProfile.objects.select_for_update().get(pk=profile.pk)
                 if profile.enrolled_at:
-                    return redirect("chef_battle:home")
+                    return redirect(_enrolment_exit(request))
                 profile.enrolled_at = now
                 if not profile.age_verified:
                     profile.age_verified = True
@@ -569,7 +581,7 @@ def chef_enroll(request):
     return render(request, "chef_battle/enroll.html", {"error": error})
 
 
-@chef_battle_guard
+@enrolment_guard
 @login_required
 def enroll_success(request):
     """Confirmation page shown immediately after successful Chef enrollment."""
@@ -2906,8 +2918,19 @@ def battle_detail(request, pk):
         # UnboundLocalError and 500ed the battle page. Nothing but the name was
         # wrong, which is why it took a full-suite run to see it.
         from .models import BattleIngredient
+        # THE PICKER OFFERED WHAT THE SERVICE REFUSES - 2026-09-04. This listed
+        # every available artifact the chef owns, including ones locked or
+        # reserved to a DIFFERENT battle; submit_combat_action then answered
+        # "this artifact is already assigned to another battle" for a choice
+        # the page had just presented as valid. Both conditions are now the
+        # same on the form as in the service: an artifact belongs in this list
+        # if it is free, or already tied to THIS battle.
+        from django.db.models import Q as _Q
         user_available_artifacts = list(
-            ChefArtifact.objects.filter(chef=viewer_author, status=ChefArtifact.Status.AVAILABLE)
+            ChefArtifact.objects
+            .filter(chef=viewer_author, status=ChefArtifact.Status.AVAILABLE)
+            .filter(_Q(locked_to_battle__isnull=True) | _Q(locked_to_battle=battle))
+            .filter(_Q(reserved_in_battle__isnull=True) | _Q(reserved_in_battle=battle))
             .select_related("artifact")
             .order_by("artifact__name")
         )
@@ -3469,6 +3492,91 @@ def cooking_moderation_approve(request, pk):
     except ValueError as e:
         messages.error(request, str(e))
     return redirect("chef_battle:cooking_moderation")
+
+
+@chef_battle_guard
+@login_required
+@require_POST
+def fan_club_toggle(request, slug):
+    """Join a chef's fan club, or leave it.
+
+    The Owner, 2026-09-04: a fan club member's name is green in the hall. It
+    costs nothing and buys nothing - it is the one colour that says a person
+    picked a side rather than paid - so this endpoint takes no tokens and
+    touches no wallet.
+    """
+    from recipes.models import RecipeAuthor
+
+    from .nick_colour import join_fan_club, leave_fan_club
+
+    chef = get_object_or_404(RecipeAuthor, slug=slug)
+    viewer = get_author_for_user(request.user)
+    if viewer is None:
+        raise PermissionDenied
+
+    action = request.POST.get("action", "")
+    try:
+        if action == "join":
+            join_fan_club(viewer=viewer, chef=chef)
+            messages.success(request, f"You are in {chef.name}'s fan club.")
+        elif action == "leave":
+            leave_fan_club(viewer=viewer, chef=chef)
+            messages.info(request, f"You left {chef.name}'s fan club.")
+        else:
+            messages.error(request, "Choose join or leave.")
+    except ValueError as exc:
+        messages.error(request, str(exc))
+    return redirect(chef.get_absolute_url() + "#chef-arena")
+
+
+@login_required
+def dish_moderation(request):
+    """The moderators' queue of cooked dishes waiting to be looked at.
+
+    2026-09-04, found by the rehearsal. A dish photo could only be approved
+    through the owner-only console action, so the step that carries a battle
+    from COOKING to PRESENTATION had nobody to perform it but the Owner - on
+    every battle, every evening. Same gate as the cooking-phase queue next
+    door, and the same 404-not-403 failure mode as every page in this app.
+    """
+    from .services import get_entries_awaiting_dish_moderation
+
+    if not (is_moderator(request.user) and is_battle_visible(request)):
+        raise Http404
+    return render(request, "chef_battle/dish_moderation.html", {
+        "entries": get_entries_awaiting_dish_moderation(),
+    })
+
+
+@login_required
+@require_POST
+def dish_moderation_review(request, pk):
+    from .services import OperatorActionError, moderate_battle_entry
+
+    if not (is_moderator(request.user) and is_battle_visible(request)):
+        raise Http404
+    decision = request.POST.get("decision", "")
+    status_for = {
+        "approve": BattleEntry.ModerationStatus.APPROVED,
+        "reject": BattleEntry.ModerationStatus.REJECTED,
+    }
+    if decision not in status_for:
+        messages.error(request, "Choose approve or reject.")
+        return redirect("chef_battle:dish_moderation")
+    try:
+        entry = moderate_battle_entry(
+            entry_id=pk, moderator_user=request.user,
+            new_status=status_for[decision],
+            reason=request.POST.get("reason", ""),
+        )
+        messages.success(
+            request,
+            f"{entry.author.name}'s dish is now "
+            f"'{entry.get_moderation_status_display()}'.",
+        )
+    except OperatorActionError as exc:
+        messages.error(request, str(exc))
+    return redirect("chef_battle:dish_moderation")
 
 
 @chef_battle_guard
@@ -4787,6 +4895,7 @@ def master_action(request):
             if action == "rehearsal_start":
                 run = start_rehearsal(
                     operator_author=author,
+                    scenario=request.POST.get("scenario") or "A",
                     seed=request.POST.get("seed") or None,
                     correlation_id=correlation_id,
                 )
@@ -4981,7 +5090,102 @@ def _snapshot_to_fx(snap: dict, battle=None) -> dict:
         # would be the fake data the arena plan forbids.
         fx["champion"] = None
         fx["runner_up"] = None
+
+    # WHAT THE RESULT ACTUALLY WAS - 2026-09-04. The finished frame showed
+    # likes, comments, viewers and supports: engagement, not outcome. None of
+    # the things a chef fought FOR - the rank he climbed to, the crown, the
+    # streak, the artifact the battle dropped him - appeared on any screen at
+    # all. All four are already recorded; nothing was asking for them.
+    if finished:
+        winner_profile = None
+        if battle.winner_id:
+            winner_profile = ChefBattleProfile.objects.filter(
+                author_id=battle.winner_id).select_related("author").first()
+        drops = list(
+            battle.events
+            .filter(event_type=BattleEvent.EventType.ARTIFACT_DROPPED)
+            .select_related("actor")
+            .order_by("created_at")
+        )
+        fx["result"] = {
+            "is_draw": bool(not battle.winner_id
+                            and battle.status == Battle.Status.COMPLETED),
+            "reason": battle.result_reason or "",
+            "crown_awarded": bool(battle.crown_awarded),
+            "rank": winner_profile.get_rank_display() if winner_profile else "",
+            "win_streak": winner_profile.win_streak if winner_profile else 0,
+            "wins": winner_profile.wins if winner_profile else 0,
+            "drops": [
+                {"chef": d.actor.name if d.actor else "", "message": d.message}
+                for d in drops
+            ],
+        }
     return fx
+
+
+@chef_battle_guard
+def battle_combat_state(request, pk):
+    """What the fight looks like right now, for the battle room to poll.
+
+    2026-09-04, found by the rehearsal. The battle room had NO poll of any
+    kind: the hit counts and the round log were updated only by the response to
+    your own move, so a chef sat looking at a stale screen until he reloaded,
+    with no way to know his opponent had answered. The data was never the
+    problem - get_combat_state has always existed and the combat POST already
+    returns exactly this shape - there was simply nothing asking for it.
+
+    Read-only, and deliberately the SAME read model the page was rendered from,
+    so the poll cannot drift from the server-rendered first paint.
+    """
+    from .services import get_combat_state
+
+    battle = get_object_or_404(
+        Battle.objects.select_related("challenger", "opponent"), pk=pk)
+    state = get_combat_state(battle)
+    return JsonResponse({
+        "ok": True,
+        "status": battle.status,
+        "status_display": battle.get_status_display(),
+        "current_round": state["current_round"],
+        "challenger_hits": state["challenger_hits"],
+        "opponent_hits": state["opponent_hits"],
+        "hits_to_win": state["hits_to_win"],
+        "rounds": [
+            {"round_number": r.round_number, "log_message": r.log_message,
+             "challenger_hits": r.challenger_hits, "opponent_hits": r.opponent_hits}
+            for r in state["rounds"]
+        ],
+    })
+
+
+@chef_battle_guard
+@require_POST
+def battle_snapshot(request, pk):
+    """The polling snapshot for the battle page a SPECTATOR is looking at.
+
+    2026-09-04, found by the rehearsal. The broadcast page polled
+    live_arena_snapshot, and that endpoint is wrong for it twice over: it is
+    behind arena_console_guard, so every spectator got a 404 and the page never
+    updated after its first render; and it calls get_current_arena_battle(),
+    which answers with whatever battle the arena considers current - so on the
+    rare occasion it did answer, a viewer watching battle #12 could be shown
+    the numbers of battle #15.
+
+    This one is gated the same way the broadcast page itself is and takes the
+    battle from the URL, so what the poll returns is what the page is showing.
+    The snapshot builder is unchanged and shared: no second read model.
+    """
+    from .arena_snapshot import build_arena_snapshot
+
+    battle = get_object_or_404(
+        Battle.objects.select_related("challenger", "opponent", "winner", "loser"),
+        pk=pk,
+    )
+    try:
+        seq = int(request.POST.get("sequence") or 0) + 1
+    except (TypeError, ValueError):
+        seq = 0
+    return JsonResponse(build_arena_snapshot(battle, sequence=seq))
 
 
 @arena_console_guard

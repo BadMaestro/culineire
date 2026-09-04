@@ -1,0 +1,26 @@
+{% comment %}
+The fan club, Owner 2026-09-04: "если зритель вступает в Фан клуб шефа - его
+ник = Зеленый".
+
+Green is the one colour in the hall nobody can buy - it says a person picked a
+side. So the control that grants it is a plain, quiet button rather than a
+purchase: no price, no ceremony, and leaving is offered as calmly as joining.
+
+The count is shown whether or not the viewer can join, because "412 people
+stand with this chef" is worth reading on its own.
+{% endcomment %}
+<div class="chef-fanclub">
+  <span class="chef-fanclub__count">
+    <strong>{{ fans }}</strong> {% if fans == 1 %}fan{% else %}fans{% endif %}
+  </span>
+  {% if can_join %}
+  <form method="post" action="{% url 'chef_battle:fan_club_toggle' chef.slug %}">
+    {% csrf_token %}
+    {% if is_member %}
+    <button type="submit" name="action" value="leave" class="btn-secondary chef-fanclub__btn">Leave fan club</button>
+    {% else %}
+    <button type="submit" name="action" value="join" class="btn-primary chef-fanclub__btn">Join fan club</button>
+    {% endif %}
+  </form>
+  {% endif %}
+</div>
