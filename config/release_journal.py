@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1714",
         "date": "2026-09-04",
-        "commit": "e0a25055",
+        "commit": "86b87601",
         "title": "The rehearsal runs a real battle on the main Arena and reports what production cannot do",
         "section": "Chef Battles / Arena",
         "summary": (
