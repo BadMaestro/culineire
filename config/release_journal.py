@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1759",
         "date": "2026-09-04",
-        "commit": "pending",
+        "commit": "c980feb9",
         "title": "A name has a colour now, the Owner's is gold, and the rewards pages stop promising what he never agreed to",
         "section": "Chef Battles / Arena",
         "summary": (
