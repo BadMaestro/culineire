@@ -1,5 +1,31 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1729",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The hat plate leads to chef enrolment, and the knife cursor is gone",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "Two on the Owner's instruction. "
+            "THE HAT PLATE NOW LEADS TO THE FORM WHERE A CHEF REGISTERS AS A "
+            "CHEF. An author who is not yet enrolled went to arena_take_seat, "
+            "which quietly seated them in the crowd; that branch is now a link "
+            "to chef_enroll. An anonymous visitor logs in with the same form as "
+            "the destination instead of the arena. The enrolled branch is "
+            "unchanged. This retires the js-arena-join-crowd button from the "
+            "bar - bindJoinCrowd returns when it finds no button, so it is a "
+            "clean no-op, and its success handler had been writing to "
+            ".arena-lower-actions__title, a class this bar has never had. "
+            "THE CROSSED KNIFE-AND-FORK HOVER CURSOR IS REMOVED. Its overlay, "
+            "its stylesheet link and its script tag are out of base.html, which "
+            "kills it everywhere at once. battle_cursor.js bails when the "
+            "overlay is absent, so the battle-cursor-target classes still on "
+            "six other templates are inert rather than broken; the two asset "
+            "files are left in place, unreferenced, for the Owner to say "
+            "whether they go."
+        ),
+    },
+    {
         "version": "2.5.1726",
         "date": "2026-09-04",
         "commit": "pending",
