@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ARENA COMMAND BAR - THE IVORY PLATE. INDEPENDENTLY CONSTRUCTED.
+
+  No pixel of overlay_mockup.png is in this file. Same construction as
+  plate-graphite.svg - that file carries the reasoning for the box, the chamfer,
+  the 0.586 rule and the paint order. Two things differ: the material, and the
+  fact that this frame is a fine DOUBLE RULE with a light gap between, which is
+  what makes it read as an inset panel rather than a gold tray.
+
+  Its frame is one row thinner than the graphite plate's, and that is the
+  reference's, not a simplification:
+
+    c0  inset 0   cut 13.000   moulding, rows 0..2 and 48..50
+    c1  inset 3.5 cut 10.950   light gap,  STROKED width 1 -> row 3 and 47
+    c2  inset 4.5 cut 10.364   inner rule, STROKED width 1 -> row 4 and 46
+    c3  inset 5   cut 10.071   face, rows 5..44
+
+  MEASURED VALUES (the plate's own rows, y20 = row 0):
+    row 0..2   moulding    (233,219,197) (243,230,214) (241,237,231)
+    row 3      light gap    (237,223,202) - warm, not neutral, and it is what
+                            makes this frame read as gold rather than grey
+    row 4      inner rule   (219,194,157)
+    row 5..44  face        (238,232,224) to (234,226,214)
+    row 45..46 rule, lit   (234,214,184) (230,213,189)
+    row 47     light gap   (225,222,215)
+    row 48..50 moulding    (214,199,176) (218,190,155) (213,194,170)
+
+  AND NO CORNER GLINT. The graphite plate carries one; this moulding is already
+  the light value, so a white band over it only erases its own rule.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="51" viewBox="0 0 60 51">
+  <defs>
+    <path id="i0" d="M13 0 H47 L60 13 V38 L47 51 H13 L0 38 V13 Z"/>
+    <path id="i1" d="M14.45 3.5 H45.55 L56.5 14.45 V36.55 L45.55 47.5 H14.45 L3.5 36.55 V14.45 Z"/>
+    <path id="i2" d="M14.86 4.5 H45.14 L55.5 14.86 V36.14 L45.14 46.5 H14.86 L4.5 36.14 V14.86 Z"/>
+    <path id="i3" d="M15.07 5 H44.93 L55 15.07 V35.93 L44.93 46 H15.07 L5 35.93 V15.07 Z"/>
+
+    <linearGradient id="im" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0.0000" stop-color="#e9dbc5"/><stop offset="0.0196" stop-color="#e9dbc5"/>
+      <stop offset="0.0196" stop-color="#f3e6d6"/><stop offset="0.0392" stop-color="#f3e6d6"/>
+      <stop offset="0.0392" stop-color="#f1ede7"/><stop offset="0.0588" stop-color="#f1ede7"/>
+      <stop offset="0.5000" stop-color="#e0c8a1"/>
+      <stop offset="0.9412" stop-color="#d6c7b0"/><stop offset="0.9608" stop-color="#d6c7b0"/>
+      <stop offset="0.9608" stop-color="#dabe9b"/><stop offset="0.9804" stop-color="#dabe9b"/>
+      <stop offset="0.9804" stop-color="#d5c2aa"/><stop offset="1.0000" stop-color="#d5c2aa"/>
+    </linearGradient>
+
+    <linearGradient id="ie" x1="0" y1="0" x2="60" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#cda875" stop-opacity=".8"/>
+      <stop offset="0.10" stop-color="#cfad7e" stop-opacity=".52"/>
+      <stop offset="0.30" stop-color="#d2b287" stop-opacity="0"/>
+      <stop offset="0.70" stop-color="#d2b287" stop-opacity="0"/>
+      <stop offset="0.90" stop-color="#cfad7e" stop-opacity=".52"/>
+      <stop offset="1"    stop-color="#cda875" stop-opacity=".8"/>
+    </linearGradient>
+
+    <!-- The light gap is a band of its own, not the absence of one. -->
+    <linearGradient id="ig" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0.0000" stop-color="#eddfca"/><stop offset="0.0784" stop-color="#eddfca"/>
+      <stop offset="0.9216" stop-color="#e1ded7"/><stop offset="1.0000" stop-color="#e1ded7"/>
+    </linearGradient>
+
+    <linearGradient id="il" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0.0000" stop-color="#dbc29d"/><stop offset="0.0980" stop-color="#dbc29d"/>
+      <stop offset="0.8824" stop-color="#ead6b8"/><stop offset="0.9020" stop-color="#ead6b8"/>
+      <stop offset="0.9020" stop-color="#e6d5bd"/><stop offset="1.0000" stop-color="#e6d5bd"/>
+    </linearGradient>
+
+    <linearGradient id="if" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0"   stop-color="#eee8e0"/>
+      <stop offset="0.6" stop-color="#ebe4da"/>
+      <stop offset="1"   stop-color="#eae2d6"/>
+    </linearGradient>
+  </defs>
+
+  <path fill="#3c2d1e" fill-opacity=".22"
+        d="M11.8 0 L13.2 0 L0 13.2 L0 11.8 Z
+           M46.8 0 L48.2 0 L60 11.8 L60 13.2 Z
+           M60 37.8 L60 39.2 L48.2 51 L46.8 51 Z
+           M13.2 51 L11.8 51 L0 39.2 L0 37.8 Z"/>
+
+  <!-- Stroked, for the reason given in plate-graphite.svg: a one-unit band
+       between two antialiased fills blends away, and this plate's whole
+       character is a fine double rule with a light gap between. -->
+  <use href="#i0" fill="url(#im)"/>
+  <use href="#i0" fill="url(#ie)"/>
+  <use href="#i1" fill="none" stroke="url(#ig)" stroke-width="1"/>
+  <use href="#i2" fill="none" stroke="url(#il)" stroke-width="1"/>
+  <use href="#i3" fill="url(#if)"/>
+</svg>

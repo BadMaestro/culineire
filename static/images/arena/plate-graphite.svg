@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ARENA COMMAND BAR - THE GRAPHITE PLATE. INDEPENDENTLY CONSTRUCTED.
+
+  No pixel of overlay_mockup.png is in this file. Its geometry was derived from
+  the reference by edge detection and its colours were named from measurements;
+  every contour, band and stop here is drawn. It is not a trace, not a resampled
+  row table and not a crop.
+
+  A 9-SLICE SOURCE, 60 x 51. Eighteen of left cap, twenty-four of stretchable
+  middle, eighteen of right cap; the height is the plate's own 51 and is never
+  stretched. The 13px chamfer lives entirely inside the caps, so the middle
+  column carries horizontal bands only.
+
+  FOUR NESTED OCTAGONS, drawn largest first, each covering the interior of the
+  one before it. An inward offset of d shortens a 45-degree cut by
+  d*(2 - sqrt2) = 0.586*d, so every inner cut is computed:
+
+    c0  inset 0   cut 13.000   moulding, rows 0..2 and 48..50
+    c1  inset 3.5 cut 10.950   seat,  STROKED width 1 -> row 3 and 47
+    c2  inset 5   cut 10.071   line,  STROKED width 2 -> rows 4..5 and 45..46
+    c3  inset 6   cut  9.485   face,     rows 6..44
+
+  THE BAND WIDTHS ARE THE REFERENCE'S OWN, read down a column in the lit middle
+  of the plate (its rows, y20 = row 0):
+
+    row 0..2   moulding    (235,222,203) (247,235,218) (230,221,205)
+    row 3      seat         (80,77,76)
+    row 4..5   line         (83,75,60) (111,97,75)
+    row 6..44  face         (53,53,52) rising to (58,58,56)
+    row 45..46 line, lit   (182,169,155) (118,113,103)
+    row 47     seat, dark   (45,47,51)
+    row 48..50 moulding    (132,121,103) (224,193,151) (210,190,164)
+
+  Hard stops one row apart, because these are the rows of a cast edge and not a
+  blend. An earlier build gave the moulding two rows instead of three and put
+  every band after it one row early.
+
+  THE END WALLS ARE LIT SEPARATELY. They face the light square on and are the
+  brightest gold on the object; a single top-to-foot ramp would give them the
+  foot's value instead.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="51" viewBox="0 0 60 51">
+  <defs>
+    <path id="g0" d="M13 0 H47 L60 13 V38 L47 51 H13 L0 38 V13 Z"/>
+    <path id="g1" d="M14.45 3.5 H45.55 L56.5 14.45 V36.55 L45.55 47.5 H14.45 L3.5 36.55 V14.45 Z"/>
+    <path id="g2" d="M15.07 5 H44.93 L55 15.07 V35.93 L44.93 46 H15.07 L5 35.93 V15.07 Z"/>
+    <path id="g3" d="M15.49 6 H44.51 L54 15.49 V35.51 L44.51 45 H15.49 L6 35.51 V15.49 Z"/>
+
+    <linearGradient id="gm" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0.0000" stop-color="#ebdecb"/><stop offset="0.0196" stop-color="#ebdecb"/>
+      <stop offset="0.0196" stop-color="#f7ebda"/><stop offset="0.0392" stop-color="#f7ebda"/>
+      <stop offset="0.0392" stop-color="#e6ddcd"/><stop offset="0.0588" stop-color="#e6ddcd"/>
+      <stop offset="0.5000" stop-color="#c9a87c"/>
+      <stop offset="0.9412" stop-color="#847967"/><stop offset="0.9608" stop-color="#847967"/>
+      <stop offset="0.9608" stop-color="#e0c197"/><stop offset="0.9804" stop-color="#e0c197"/>
+      <stop offset="0.9804" stop-color="#d2bea4"/><stop offset="1.0000" stop-color="#d2bea4"/>
+    </linearGradient>
+
+    <linearGradient id="ge" x1="0" y1="0" x2="60" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#dbb894" stop-opacity=".92"/>
+      <stop offset="0.10" stop-color="#d7b48c" stop-opacity=".64"/>
+      <stop offset="0.30" stop-color="#d3ae86" stop-opacity="0"/>
+      <stop offset="0.70" stop-color="#d3ae86" stop-opacity="0"/>
+      <stop offset="0.90" stop-color="#d7b48c" stop-opacity=".64"/>
+      <stop offset="1"    stop-color="#dbb894" stop-opacity=".92"/>
+    </linearGradient>
+
+    <linearGradient id="gs" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0.0000" stop-color="#504d4c"/><stop offset="0.0784" stop-color="#504d4c"/>
+      <stop offset="0.9216" stop-color="#2d2f33"/><stop offset="1.0000" stop-color="#2d2f33"/>
+    </linearGradient>
+
+    <!-- Dark over light at the top, light over dark at the foot: an engraved
+         groove reverses where the object turns away from the light. -->
+    <linearGradient id="gl" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0.0000" stop-color="#534b3c"/><stop offset="0.0980" stop-color="#534b3c"/>
+      <stop offset="0.0980" stop-color="#6f614b"/><stop offset="0.1176" stop-color="#6f614b"/>
+      <stop offset="0.8824" stop-color="#b6a99b"/><stop offset="0.9020" stop-color="#b6a99b"/>
+      <stop offset="0.9020" stop-color="#767167"/><stop offset="1.0000" stop-color="#767167"/>
+    </linearGradient>
+
+    <linearGradient id="gf" x1="0" y1="0" x2="0" y2="51" gradientUnits="userSpaceOnUse">
+      <stop offset="0"   stop-color="#353534"/>
+      <stop offset="0.6" stop-color="#393937"/>
+      <stop offset="1"   stop-color="#3a3a38"/>
+    </linearGradient>
+
+    <!-- A corner glint falls off with DISTANCE, so it is radial; its radius is
+         the cap's, because a 9-slice stretches whatever the middle column
+         still holds across the whole plate. -->
+    <radialGradient id="gg" cx="0" cy="0" r="17" gradientUnits="userSpaceOnUse">
+      <stop offset="0"    stop-color="#fffdf6" stop-opacity=".8"/>
+      <stop offset="0.55" stop-color="#fbf6ea" stop-opacity=".5"/>
+      <stop offset="1"    stop-color="#f0ece2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- The contact contour: dark on the FLOOR side of each cut, and only on the
+       cuts. It is what separates the corners from the deck; semi-transparent,
+       so it darkens whatever ground it lands on. -->
+  <path fill="#3c2d1e" fill-opacity=".28"
+        d="M11.8 0 L13.2 0 L0 13.2 L0 11.8 Z
+           M46.8 0 L48.2 0 L60 11.8 L60 13.2 Z
+           M60 37.8 L60 39.2 L48.2 51 L46.8 51 Z
+           M13.2 51 L11.8 51 L0 39.2 L0 37.8 Z"/>
+
+  <!-- THE INNER BANDS ARE STROKED, NOT FILLED, and that is not a style choice.
+       Two abutting antialiased fills blend along their shared edge, so a band
+       one unit wide loses itself in the two seams: the seat came out as a grey
+       blur between the moulding and the line. A stroke of width 1 centred on
+       its own contour is one crisp unit. -->
+  <use href="#g0" fill="url(#gm)"/>
+  <use href="#g0" fill="url(#ge)"/>
+  <use href="#g1" fill="none" stroke="url(#gs)" stroke-width="1"/>
+  <use href="#g2" fill="none" stroke="url(#gl)" stroke-width="2"/>
+  <use href="#g3" fill="url(#gf)"/>
+
+  <!-- The glint rides the moulding and the seat and stops at the engraved line:
+       letting it cover the line as well washes its two rows into one grey and
+       the corner loses its second step. -->
+  <path fill="url(#gg)" fill-rule="evenodd"
+        d="M13 0 H47 L60 13 V38 L47 51 H13 L0 38 V13 Z
+           M15.07 5 H44.93 L55 15.07 V35.93 L44.93 46 H15.07 L5 35.93 V15.07 Z"/>
+</svg>

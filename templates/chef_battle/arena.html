@@ -929,10 +929,61 @@
         _arena_deck_svg.html. The three branches below, their URLs, the crowd
         hook and its data-seat-url are exactly what they were.
       {% endcomment %}
+      {% comment %}
+        THE CONNECTOR AND THE CAPTION ORNAMENT ARE ONE SVG, in one coordinate
+        system, and every junction in it is a shared coordinate rather than two
+        DOM elements that happened to line up. It replaces eight fragments -
+        two studs, two tiled rules, two eyelets, two bracket rules, two mitres
+        and a raster gem - which were positioned independently and met only by
+        arithmetic that broke at every width.
+
+        The viewBox is the bar's own reference box: 798 x 60 units, the span
+        the mockup gives between the plates' outer edges, with y=0 at the top of
+        the plates. preserveAspectRatio is none because the bar's height is
+        pinned at 51px while its width follows the root scale: y is therefore
+        1:1 and only x stretches, by at most seven per cent over the range this
+        bar is allowed.
+
+        Independently constructed. Nothing here is traced or copied from
+        overlay_mockup.png; the geometry was measured off it and drawn.
+      {% endcomment %}
+      <svg class="arena-command-bar__ornament" viewBox="0 0 798 60"
+           preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <g fill="none" stroke-linecap="round">
+          {# the two upper rules, bead to ring #}
+          <path d="M228.7 26 H278.5 M519.5 26 H569.3" stroke="#cdb291" stroke-width="1.1"/>
+          {# the two diagonals, ring foot to the lower rule #}
+          <path d="M282 29.6 L301 50 M516 29.6 L497 50" stroke="#c9af92" stroke-width="1.1"/>
+          {# the two lower rules, fading out into the central gaps #}
+          <path d="M301 50 H389" stroke="url(#cb-fade-l)" stroke-width="1.1"/>
+          <path d="M497 50 H409" stroke="url(#cb-fade-r)" stroke-width="1.1"/>
+        </g>
+        {# the two endpoint beads #}
+        <circle cx="225.5" cy="26" r="3.3" fill="#cda161"/>
+        <circle cx="572.5" cy="26" r="3.3" fill="#cda161"/>
+        {# the two hollow junction rings #}
+        <circle cx="282" cy="26" r="3" fill="#fcfcfa" stroke="#bf9d79" stroke-width="1.1"/>
+        <circle cx="516" cy="26" r="3" fill="#fcfcfa" stroke="#bf9d79" stroke-width="1.1"/>
+        {# the central diamond, sitting ON the rule, with no rule beneath it #}
+        <path d="M399 43.5 L405.5 50.2 L399 56.8 L392.5 50.2 Z" fill="#a77a47"/>
+        <path d="M399 46.6 L402.9 50 L399 53.4 L395.1 50 Z" fill="#f6f1de"/>
+        <defs>
+          <linearGradient id="cb-fade-l" x1="301" y1="0" x2="389" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#d5c0a7"/>
+            <stop offset="0.78" stop-color="#d5c0a7"/>
+            <stop offset="1" stop-color="#d5c0a7" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="cb-fade-r" x1="497" y1="0" x2="409" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#d5c0a7"/>
+            <stop offset="0.78" stop-color="#d5c0a7"/>
+            <stop offset="1" stop-color="#d5c0a7" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+      </svg>
       <span class="arena-command-bar__side arena-command-bar__side--l">
       {% if user_enrolled %}
         <a class="arena-command-bar__action arena-command-bar__action--enter battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}">
-          <svg class="arena-command-bar__medallion" aria-hidden="true"><use href="#ad-plate-medal-dark"></use></svg>
+          <svg class="arena-command-bar__medallion" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Enter Arena</span>
             <span class="arena-command-bar__sub">Step onto the kitchen floor</span>
@@ -940,7 +991,7 @@
         </a>
       {% elif request.user.is_authenticated %}
         <button type="button" class="arena-command-bar__action arena-command-bar__action--enter battle-cursor-target js-battle-cursor-target js-arena-join-crowd" data-seat-url="{% url 'chef_battle:arena_take_seat' %}">
-          <svg class="arena-command-bar__medallion" aria-hidden="true"><use href="#ad-plate-medal-dark"></use></svg>
+          <svg class="arena-command-bar__medallion" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Enter Arena</span>
             <span class="arena-command-bar__sub">Step onto the kitchen floor</span>
@@ -948,18 +999,13 @@
         </button>
       {% else %}
         <a class="arena-command-bar__action arena-command-bar__action--enter battle-cursor-target js-battle-cursor-target" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
-          <svg class="arena-command-bar__medallion" aria-hidden="true"><use href="#ad-plate-medal-dark"></use></svg>
+          <svg class="arena-command-bar__medallion" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-dark"></use></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Enter Arena</span>
             <span class="arena-command-bar__sub">Step onto the kitchen floor</span>
           </span>
         </a>
       {% endif %}
-        <span class="arena-command-bar__thread" aria-hidden="true">
-          <svg class="arena-command-bar__stud"><use href="#ad-thread-stud"></use></svg>
-          <span class="arena-command-bar__rule"></span>
-          <svg class="arena-command-bar__eye"><use href="#ad-thread-eyelet"></use></svg>
-        </span>
       </span>
 
       {% comment %}
@@ -979,24 +1025,12 @@
         <span>The kitchen floor</span>
         <strong id="arena-floor-caption-strong">{% if active_battle %}Live cooking in progress{% elif arena_data.center.type == 'crown' %}Crown holds the centre{% else %}The floor holds the show{% endif %}</strong>
         <em id="arena-floor-caption-em">{% if active_battle %}One scene · live hierarchy · real chefs{% else %}One scene · one hierarchy · neutral structure{% endif %}</em>
-        <span class="arena-command-bar__bracket" aria-hidden="true">
-          <i class="arena-command-bar__brk arena-command-bar__brk--l"></i>
-          <i class="arena-command-bar__brk arena-command-bar__brk--r"></i>
-          <svg class="arena-command-bar__mitre arena-command-bar__mitre--l"><use href="#ad-bracket-mitre"></use></svg>
-          <svg class="arena-command-bar__mitre arena-command-bar__mitre--r"><use href="#ad-bracket-mitre"></use></svg>
-          <svg class="arena-command-bar__gem"><use href="#ad-bracket-gem"></use></svg>
-        </span>
       </p>
 
       <span class="arena-command-bar__side arena-command-bar__side--r">
-        <span class="arena-command-bar__thread arena-command-bar__thread--r" aria-hidden="true">
-          <svg class="arena-command-bar__stud"><use href="#ad-thread-stud"></use></svg>
-          <span class="arena-command-bar__rule"></span>
-          <svg class="arena-command-bar__eye"><use href="#ad-thread-eyelet"></use></svg>
-        </span>
       {% if request.user.is_authenticated %}
         <a class="arena-command-bar__action arena-command-bar__action--challenge" href="{% url 'chef_battle:challenge_create' %}">
-          <svg class="arena-command-bar__medallion" aria-hidden="true"><use href="#ad-plate-medal-light"></use></svg>
+          <svg class="arena-command-bar__medallion" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-light"></use></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Issue a Challenge</span>
             <span class="arena-command-bar__sub">Choose an opponent</span>
@@ -1004,7 +1038,7 @@
         </a>
       {% else %}
         <a class="arena-command-bar__action arena-command-bar__action--challenge" href="{% url 'login' %}?next={% url 'chef_battle:arena' %}">
-          <svg class="arena-command-bar__medallion" aria-hidden="true"><use href="#ad-plate-medal-light"></use></svg>
+          <svg class="arena-command-bar__medallion" aria-hidden="true" focusable="false"><use href="#ad-plate-medal-light"></use></svg>
           <span class="arena-command-bar__text">
             <span class="arena-command-bar__label">Issue a Challenge</span>
             <span class="arena-command-bar__sub">Choose an opponent</span>

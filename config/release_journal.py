@@ -1,5 +1,44 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1705",
+        "date": "2026-09-04",
+        "commit": "pending",
+        "title": "The Arena command bar is reconstructed, and nothing in it is a crop of the mockup",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The bar had been assembled from ten PNG fragments cut out of the "
+            "Owner's mockup - two plates, two medallions, a stud, an eyelet, a "
+            "gem, a mitre and two tiled rules. That is extraction, not "
+            "reconstruction: the fragments carried background and neighbouring "
+            "artwork with them, the connector was split between independent "
+            "flex and absolutely positioned pieces, and the markup claimed the "
+            "artwork was vector while the stylesheet loaded rasters. All ten "
+            "are deleted and nothing in the component references them. "
+            "BOTH PLATES ARE CONSTRUCTED SVG. Four nested octagons on a 60x51 "
+            "nine-slice source, a 13px chamfer whose every inner cut is "
+            "computed by d*(2-sqrt2), a lit end wall of its own, and a contact "
+            "contour on the four cuts. The inner bands are STROKED rather than "
+            "filled: two abutting antialiased fills blend along their shared "
+            "edge, so the one-unit seat came out as a grey smear between the "
+            "moulding and the engraved line. Stroked, the graphite plate now "
+            "reproduces the reference's frame rows exactly - y22 to y25 and "
+            "y65 to y70 match to the byte. "
+            "THE CONNECTOR IS ONE SVG in one coordinate system: both beads, "
+            "both upper rules, both hollow rings, both diagonals, both lower "
+            "rules, the two central gaps and the diamond. Every junction is a "
+            "shared coordinate rather than two DOM elements meeting by "
+            "arithmetic that broke at every width. "
+            "The medallions are constructed symbols again, at the reference's "
+            "own 35px with the emblem taking two thirds of the disc. The "
+            "labels are Playfair 400 at 10.4px with 0.05em of tracking and "
+            "0.06em of word space, chosen by counting the INK GAPS: the "
+            "reference's ENTER ARENA has seven gaps between letters and a "
+            "four-pixel word space, and every setting picked by matching the "
+            "width alone had two - the letters touching, which is what read as "
+            "ENTERARENA."
+        ),
+    },
+    {
         "version": "2.5.1702",
         "date": "2026-09-03",
         "commit": "pending",

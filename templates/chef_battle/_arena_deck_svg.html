@@ -188,8 +188,8 @@ Metric map: Active viewers -> #ad-eye · Public votes -> #ad-vote · Battle gift
          loudest thing left on the ivory plate.
   {% endcomment %}
   <radialGradient id="ad-dome-light" cx=".36" cy=".28" r=".8">
-    <stop offset="0" stop-color="#f0e8d9"/><stop offset=".45" stop-color="#e4d8c4"/>
-    <stop offset="1" stop-color="#d6c7ad"/>
+    <stop offset="0" stop-color="#f7f2e9"/><stop offset=".45" stop-color="#eee6d8"/>
+    <stop offset="1" stop-color="#e2d6c1"/>
   </radialGradient>
   {% comment %}
     What a box-shadow would have called inset: the dome turning away from
@@ -227,11 +227,20 @@ Metric map: Active viewers -> #ad-eye · Public votes -> #ad-vote · Battle gift
     THE GRAPHITE PLATE'S MEDALLION: a glass dome carrying two gold spears.
          The ring is the icon's container; the dome is its glass.
   {% endcomment %}
-  <symbol id="ad-plate-medal-dark" viewBox="0 0 30 30">
-    <circle cx="15" cy="15" r="14.2" fill="url(#ad-dome-dark)"/>
-    <circle cx="15" cy="15" r="14.2" fill="url(#ad-dome-turn)"/>
-    <circle cx="15" cy="15" r="14.2" fill="none" stroke="#6a563c" stroke-width="1"/>
-    <g fill="url(#ad-spear-gold)" transform="translate(2 2) scale(1.083)">
+  <symbol id="ad-plate-medal-dark" viewBox="0 0 36 36">
+    {% comment %}
+      THE MEDALLION IS THIRTY-FIVE ACROSS, not thirty-nine, and its emblem
+           takes a little over half of that. Drawn at thirty-nine with an emblem
+           that reached the rim, it read as a badge stuck on the plate; the
+           reference's is a small quiet dome with air around the spears.
+           Measured: the rim runs y32..y65 on the reference, so the disc is 34,
+           and its centre sits a little below the plate's own middle.
+    {% endcomment %}
+    <circle cx="18" cy="18" r="16.6" fill="url(#ad-dome-dark)"/>
+    <circle cx="18" cy="18" r="16.6" fill="url(#ad-dome-turn)"/>
+    <circle cx="18" cy="18" r="16.6" fill="none" stroke="#8a7150" stroke-width=".8" opacity=".55"/>
+    <circle cx="18" cy="18" r="15.4" fill="none" stroke="#d7b98a" stroke-width=".55" opacity=".22"/>
+    <g fill="url(#ad-spear-gold)" transform="translate(18 18) scale(1.02) translate(-12 -12)">
       <use href="#ad-spear" transform="rotate(50 12 12)"/>
       <use href="#ad-spear" transform="rotate(-50 12 12)"/>
     </g>
@@ -239,20 +248,19 @@ Metric map: Active viewers -> #ad-eye · Public votes -> #ad-vote · Battle gift
 
   {% comment %}
     THE IVORY PLATE'S MEDALLION: the same dome in cream, and the reference's
-         own pairing - one steel spear, one gold.
+         own pairing - one steel spear, one gold. Its rim is a hairline: on a
+         cream field a heavy ring reads as a drawn circle rather than an edge.
   {% endcomment %}
-  <symbol id="ad-plate-medal-light" viewBox="0 0 30 30">
-    <circle cx="15" cy="15" r="14.2" fill="url(#ad-dome-light)"/>
-    {# the same turn the dark plate's dome has, at half strength: cream shows it #}
-    <circle cx="15" cy="15" r="14.2" fill="url(#ad-dome-turn)" opacity=".5"/>
-    <circle cx="15" cy="15" r="14.2" fill="none" stroke="#8f7448" stroke-width="1"/>
-    <g transform="translate(2 2) scale(1.083)">
-      <use href="#ad-spear" transform="rotate(50 12 12)" fill="url(#ad-spear-gold)"/>
-      <use href="#ad-spear" transform="rotate(-50 12 12)" fill="url(#ad-spear-steel)"/>
+  <symbol id="ad-plate-medal-light" viewBox="0 0 36 36">
+    <circle cx="18" cy="18" r="16.6" fill="url(#ad-dome-light)"/>
+    <circle cx="18" cy="18" r="16.6" fill="url(#ad-dome-turn)" opacity=".26"/>
+    <circle cx="18" cy="18" r="16.6" fill="none" stroke="#b5934f" stroke-width=".7" opacity=".55"/>
+    <g transform="translate(18 18) scale(1.02) translate(-12 -12)">
+      <use href="#ad-spear" transform="rotate(50 12 12)" fill="url(#ad-spear-steel)"/>
+      <use href="#ad-spear" transform="rotate(-50 12 12)" fill="url(#ad-spear-gold)"/>
     </g>
   </symbol>
 
-  {# THE THREAD'S RIVET HEAD - lit on top, its own shadow beneath it. #}
   <symbol id="ad-thread-stud" viewBox="0 0 8 9">
     <ellipse cx="4" cy="7.6" rx="2.6" ry="1" fill="#7d6242" opacity=".35"/>
     <circle cx="4" cy="4" r="3" fill="url(#ad-stud-g)"/>
