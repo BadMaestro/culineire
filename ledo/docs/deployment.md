@@ -35,3 +35,32 @@ verified fleet/rate data and business/legal approvals remain open.
 Local supplied files have been preserved under `E:\LEDO DRIVE\LEDO Project`,
 with planning, content, fleet, pricing, reference website and brand stages.
 Original files are untouched; copied documents/images passed SHA-256 checks.
+
+## Production evidence - 2026-09-05
+
+Release commit: `29a2e7e74f793eba1e20f60938683254087c796a`.
+Standard deploy completed at 06:41:06 UTC; `ledo.0001_initial` applied,
+3 static files copied, 173 post-processed, both CulinEire health checks passed.
+Private preview flags enabled with an environment backup outside the repo.
+Production template and staff gate checked independently, without real-user
+impersonation. No production bookings or fares exist. Browser verification
+reached the sign-in page with `/ledo/` as return target; authenticated browser
+review is for the owner, not claimed as completed by the agent.
+
+```yaml
+pre_deploy_reread:
+  constitution_version: "2.12.0"
+  sections_reread: ["8", "17"]
+  rules_that_apply_here: ["single deploy lock", "current main", "PostgreSQL tests", "no real-user impersonation", "collectstatic", "reversible feature flag"]
+  signed_as: "Bolt"
+  index_read: true
+  files_in_commit: 3
+  release_diff_files: 27
+  base_verified: "0eed11c2efbeec00b32abf90a242a32c403aade7"
+  already_exists_checked: true
+  gates: ["22 PostgreSQL tests PASS --parallel 8 including image weight", "migration drift PASS", "diff --check PASS"]
+  version_bumped: true
+  collectstatic_run: true
+  rollback_command: "/srv/culineire/venv/bin/python /tmp/ledo-preview-flags.py rollback && sudo /bin/systemctl restart unit"
+  screen_change_in_one_line: "Staff can view the separate Norwegian LEDO landing page with the supplied logo."
+```

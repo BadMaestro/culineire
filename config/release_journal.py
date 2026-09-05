@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1777",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "29a2e7e7",
         "title": "LEDO Drive isolated staff preview",
         "section": "Site",
         "summary": (
