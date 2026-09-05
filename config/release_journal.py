@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1816",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "4f929919",
         "title": "The payout now records what Stripe actually charged, and sends the receipt to the chef and to the Owner",
         "section": "Chef Battles / Arena",
         "summary": (
