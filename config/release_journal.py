@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1810",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "7309d911",
         "title": "Every button on three Arena pages threw you back to the top, and a refresh repeated what you had just done",
         "section": "Chef Battles / Arena",
         "summary": (
