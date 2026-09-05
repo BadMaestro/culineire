@@ -146,7 +146,7 @@
     "viewers can send you this, and here is what it is worth" is exactly what
     an empty one should be saying.
     {% endcomment %}
-    <div class="cr-gifts">
+    <div class="cr-gifts" id="gifts">
       <h2 class="chest-section__title">Gifts From The Stands</h2>
       <p class="cr-gifts__note">
         A gift is yours to keep. If you would rather have tokens for one, sell it back
@@ -154,10 +154,9 @@
         stay pending until you finish an eligible battle and the reward is released.
       </p>
 
-      {% if gift_error %}<p class="cr-gifts__msg cr-gifts__msg--err">{{ gift_error }}</p>{% endif %}
-      {% if gift_sold %}
+      {% if gift_sold_tokens %}
       <p class="cr-gifts__msg cr-gifts__msg--ok">
-        Sold back for {{ gift_sold.tokens_granted }} token{{ gift_sold.tokens_granted|pluralize }}, pending release.
+        Sold back for {{ gift_sold_tokens }} token{{ gift_sold_tokens|pluralize }}, pending release.
       </p>
       {% endif %}
 

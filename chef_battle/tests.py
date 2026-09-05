@@ -31414,6 +31414,36 @@ class SellingAGiftBackFromTheChefsRoomTests(TestCase):
             tokens_spent=paid,
         )
 
+    def test_selling_redirects_back_to_the_shelf_not_the_top_of_the_page(self):
+        """The Owner, 2026-09-05: "каждое нажатие на кнопку продать подарок
+        перегружает страницу и отправляет меня на верх". It rendered the whole
+        room again in place, so every sale threw him to the top and he had to
+        scroll back down. Post/Redirect/Get with the #gifts anchor - which also
+        stops a refresh re-submitting the sale."""
+        gift = self._gift()
+        self.client.force_login(self.user)
+        response = self.client.post(
+            self.url, {"action": "sell_gift", "gift": gift.pk})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].endswith("#gifts"),
+                        response["Location"])
+        self.assertIn("sold=20", response["Location"])
+
+    def test_the_shelf_carries_the_anchor_it_is_sent_to(self):
+        self._gift()
+        self.client.force_login(self.user)
+        body = self.client.get(self.url).content.decode("utf-8")
+        self.assertIn('id="gifts"', body)
+
+    def test_a_refused_sale_also_comes_back_to_the_shelf(self):
+        gift = self._gift()
+        self.client.force_login(self.user)
+        self.client.post(self.url, {"action": "sell_gift", "gift": gift.pk})
+        again = self.client.post(
+            self.url, {"action": "sell_gift", "gift": gift.pk})
+        self.assertEqual(again.status_code, 302)
+        self.assertTrue(again["Location"].endswith("#gifts"))
+
     def test_the_section_is_there_for_a_chef_with_no_gifts(self):
         """It was hidden behind {% if my_gifts %} and the Owner, holding none,
         opened his own Changing Room on production and found the feature
@@ -31450,7 +31480,8 @@ class SellingAGiftBackFromTheChefsRoomTests(TestCase):
     def test_a_sold_gift_stops_offering_the_button(self):
         gift = self._gift()
         self.client.force_login(self.user)
-        self.client.post(self.url, {"action": "sell_gift", "gift": gift.pk})
+        self.client.post(self.url, {"action": "sell_gift", "gift": gift.pk},
+                         follow=True)
         body = self.client.get(self.url).content.decode("utf-8")
         self.assertIn("Sold back", body)
         self.assertNotIn("Sell back for 20T", body)

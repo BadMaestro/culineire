@@ -50,18 +50,15 @@
     </p>
   </header>
 
-  <div class="arq-card">
-    {% if error %}<p class="arq-msg arq-msg--err">{{ error }}</p>{% endif %}
-    {% if issued %}
+  <div class="arq-card" id="queue">
+    {% if issued_tokens %}
     <p class="arq-msg arq-msg--ok">
-      Issued {{ issued.tokens_granted }} token{{ issued.tokens_granted|pluralize }}
-      to {{ issued.recipient.name }}.
+      Issued {{ issued_tokens }} token{{ issued_tokens|pluralize }} to the recipient&rsquo;s wallet.
     </p>
     {% endif %}
-    {% if approved %}
+    {% if approved_tokens_done %}
     <p class="arq-msg arq-msg--ok">
-      {{ approved.tokens_granted }} token{{ approved.tokens_granted|pluralize }}
-      for {{ approved.recipient.name }} approved for payout. No money has moved.
+      {{ approved_tokens_done }} token{{ approved_tokens_done|pluralize }} approved for payout. No money has moved.
     </p>
     {% endif %}
 

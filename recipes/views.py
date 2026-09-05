@@ -5952,6 +5952,12 @@ def arena_reward_queue(request):
         RewardRecord.Status.QUEUED,
     )
 
+    # POST, REDIRECT, GET - the same fix the chef's gift shelf needed on
+    # 2026-09-05, and it matters more here: rendering a POST in place means a
+    # refresh repeats it, and repeating THIS one means issuing a reward or
+    # approving one for payout a second time. The services refuse the repeat
+    # today; a page that keeps offering the click will eventually meet a state
+    # where the refusal is not there.
     error = ""
     issued = None
     approved = None
@@ -5988,6 +5994,25 @@ def arena_reward_queue(request):
         else:
             error = "Unknown action."
 
+        if error:
+            messages.error(request, error)
+            return redirect(reverse("recipes:arena_reward_queue") + "#queue")
+        done = issued or approved
+        return redirect("%s?%s=%d#queue" % (
+            reverse("recipes:arena_reward_queue"),
+            "issued" if issued else "approved",
+            done.tokens_granted,
+        ))
+
+    def _tokens(key):
+        try:
+            return int(request.GET.get(key) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    issued_tokens = _tokens("issued")
+    approved_tokens_done = _tokens("approved")
+
     waiting = list(
         RewardRecord.objects
         .filter(status__in=UNDECIDED)
@@ -6011,10 +6036,9 @@ def arena_reward_queue(request):
         "waiting": waiting,
         "waiting_tokens": sum(r.tokens_granted for r in waiting),
         "recent": recent,
-        "issued": issued,
-        "approved": approved,
+        "issued_tokens": issued_tokens,
+        "approved_tokens_done": approved_tokens_done,
         "awaiting_payout": awaiting_payout,
         "awaiting_payout_tokens": awaiting_payout_tokens,
         "payout_minimum": 2000,
-        "error": error,
     })

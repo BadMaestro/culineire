@@ -4379,20 +4379,33 @@ def changing_room(request):
     # his wallet and his kit in it.
     from .services import appreciation_gifts_for_chef, sell_appreciation_gift_back
 
-    gift_error = ""
-    gift_sold = None
     if request.method == "POST" and request.POST.get("action") == "sell_gift":
         from .models import AppreciationGift
 
+        # POST, REDIRECT, GET - and land back on the shelf, not at the top of
+        # the page. The Owner, 2026-09-05: "каждое нажатие на кнопку продать
+        # подарок перегружает страницу и отправляет меня на верх". It did:
+        # this rendered the whole room again in place, so the browser went to
+        # the top and he had to scroll down for every single gift. Redirecting
+        # to the #gifts anchor also fixes the other half of the same mistake -
+        # rendering a POST in place means a refresh re-submits it.
         gift = AppreciationGift.objects.filter(
             pk=(request.POST.get("gift") or "").strip() or 0).first()
+        back = reverse("chef_battle:changing_room")
         if gift is None:
-            gift_error = "No such gift."
-        else:
-            try:
-                gift_sold = sell_appreciation_gift_back(gift=gift, chef=author)
-            except ValueError as exc:
-                gift_error = str(exc)
+            messages.error(request, "No such gift.")
+            return redirect(back + "#gifts")
+        try:
+            sold = sell_appreciation_gift_back(gift=gift, chef=author)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return redirect(back + "#gifts")
+        return redirect("%s?sold=%d#gifts" % (back, sold.tokens_granted))
+
+    try:
+        gift_sold_tokens = int(request.GET.get("sold") or 0)
+    except (TypeError, ValueError):
+        gift_sold_tokens = 0
 
     my_gifts = appreciation_gifts_for_chef(author)
 
@@ -4426,8 +4439,7 @@ def changing_room(request):
     return render(request, "chef_battle/changing_room.html", {
         "profile": profile,
         "my_gifts": my_gifts,
-        "gift_error": gift_error,
-        "gift_sold": gift_sold,
+        "gift_sold_tokens": gift_sold_tokens,
         "available_artifacts": available_artifacts,
         "available_artifacts_preview": available_artifacts_preview,
         "attack_artifact_count": attack_artifact_count,
@@ -4601,14 +4613,14 @@ def battle_loadout(request, pk):
             chef_artifact_id = int(raw_id)
         except (TypeError, ValueError):
             messages.error(request, "Choose an artifact first.")
-            return redirect("chef_battle:battle_loadout", pk=pk)
+            return redirect(reverse("chef_battle:battle_loadout", args=[pk]) + "#kit")
         handler = {
             "equip": equip_artifact_for_battle,
             "unequip": unequip_artifact_for_battle,
         }.get(action)
         if handler is None:
             messages.error(request, "Unknown action.")
-            return redirect("chef_battle:battle_loadout", pk=pk)
+            return redirect(reverse("chef_battle:battle_loadout", args=[pk]) + "#kit")
         try:
             row = handler(battle=battle, chef=viewer_author,
                           chef_artifact_id=chef_artifact_id)
@@ -4619,7 +4631,7 @@ def battle_loadout(request, pk):
                 row.artifact.name,
                 "is in" if action == "equip" else "is out of",
             ))
-        return redirect("chef_battle:battle_loadout", pk=pk)
+        return redirect(reverse("chef_battle:battle_loadout", args=[pk]) + "#kit")
 
     return render(request, "chef_battle/battle_loadout.html", {
         "battle": battle,

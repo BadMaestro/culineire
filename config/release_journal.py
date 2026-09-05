@@ -1,5 +1,39 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1810",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "Every button on three Arena pages threw you back to the top, and a refresh repeated what you had just done",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "THE OWNER, selling his test gifts one by one: \"каждое нажатие на "
+            "кнопку продать подарок перегружает страницу и отправляет меня на "
+            "верх, нахуя?\". It did exactly that. The view rendered the whole "
+            "Changing Room again in place, so the browser landed at the top and "
+            "he had to scroll down to the shelf for every single gift - six "
+            "gifts, six scrolls. "
+            "IT IS THE SAME MISTAKE AS THE REFRESH BUG, which is why the fix is "
+            "one thing and not two. Rendering a POST in place leaves the "
+            "browser holding a form submission: press F5 and it is sent again. "
+            "Post/Redirect/Get fixes both - the answer to a POST is now a "
+            "redirect carrying an anchor, so the page comes back at the section "
+            "the button lives in and a refresh re-reads it instead of "
+            "repeating it. "
+            "FIXED ON ALL THREE SURFACES THAT HAD IT, not only the one he was "
+            "standing on. The chef's gift shelf (#gifts), the artifact kit "
+            "(#kit) which redirected already but landed at the hero, and the "
+            "moderation reward queue (#queue), where the repeat mattered most: "
+            "a refresh there would have re-issued a reward or re-approved one "
+            "for payout. The services refuse the repeat today; a page that "
+            "keeps offering the click will eventually meet a state where the "
+            "refusal is not there. "
+            "The outcome message survives the redirect as a number in the "
+            "query string rather than an object in the context, which is what "
+            "makes the redirect possible at all; refusals go through the "
+            "messages framework the site already renders."
+        ),
+    },
+    {
         "version": "2.5.1807",
         "date": "2026-09-05",
         "commit": "pending",
