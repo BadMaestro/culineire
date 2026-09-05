@@ -31028,3 +31028,121 @@ class TheKitAChefCarriesTests(TestCase):
         source = inspect.getsource(services.submit_combat_action)
         self.assertIn("_reserve_artifact_into_battle", source)
         self.assertNotIn("COMBAT_ARTIFACTS_PER_TYPE_LIMIT", source)
+
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class TheRewardQueueOnThePanelTests(TestCase):
+    """A queued reward could only ever be issued from Django Admin.
+
+    issue_reward() has worked since Phase 6 and the only caller was
+    chef_battle/admin.py. This project does not run operations out of Django
+    Admin, so in practice a spectator's gift to a chef could be created,
+    queued, and then sit there for good - a held payment rather than a reward.
+    The button now exists where the rest of the operator tooling lives.
+    """
+
+    def setUp(self):
+        from .models import RewardRecord
+
+        self.RewardRecord = RewardRecord
+        self.url = reverse("recipes:arena_reward_queue")
+        self.user, self.chef = _make_chef("reward-chef")
+
+    def _moderator(self):
+        return get_user_model().objects.create_user(
+            username="rewardmod", password="pw", is_staff=True, is_superuser=True,
+        )
+
+    def _record(self, status=None, recipient=None, tokens=40):
+        return self.RewardRecord.objects.create(
+            recipient=recipient or self.chef,
+            reward_type=self.RewardRecord.RewardType.LSR,
+            status=status or self.RewardRecord.Status.QUEUED,
+            tokens_granted=tokens,
+            reason="Live support during the battle",
+        )
+
+    def test_a_non_moderator_is_told_nothing(self):
+        self._record()
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    def test_the_queue_lists_what_is_waiting(self):
+        record = self._record()
+        self.client.force_login(self._moderator())
+        body = self.client.get(self.url).content.decode("utf-8")
+        self.assertIn("reward-chef", body)
+        self.assertIn(str(record.tokens_granted), body)
+
+    def test_issuing_credits_the_wallet_and_marks_the_record(self):
+        from .models import TokenTransaction, TokenWallet
+
+        record = self._record(tokens=40)
+        before = TokenWallet.objects.get(chef=self.chef).balance
+        self.client.force_login(self._moderator())
+        self.client.post(self.url, {"record": record.pk})
+        record.refresh_from_db()
+        self.assertEqual(record.status, self.RewardRecord.Status.ISSUED)
+        self.assertIsNotNone(record.issued_at)
+        self.assertEqual(TokenWallet.objects.get(chef=self.chef).balance, before + 40)
+        self.assertTrue(
+            TokenTransaction.objects.filter(wallet__chef=self.chef, amount=40).exists())
+
+    def test_the_issuer_is_recorded(self):
+        record = self._record()
+        moderator = self._moderator()
+        self.client.force_login(moderator)
+        self.client.post(self.url, {"record": record.pk})
+        record.refresh_from_db()
+        self.assertEqual(record.reviewed_by_id, moderator.pk)
+
+    def test_a_reward_already_issued_cannot_be_issued_twice(self):
+        from .models import TokenWallet
+
+        record = self._record()
+        self.client.force_login(self._moderator())
+        self.client.post(self.url, {"record": record.pk})
+        after_first = TokenWallet.objects.get(chef=self.chef).balance
+        self.client.post(self.url, {"record": record.pk})
+        self.assertEqual(TokenWallet.objects.get(chef=self.chef).balance, after_first)
+
+    @override_settings(OWNER_SLUG="greenbear")
+    def test_the_owners_account_is_not_issued_from_this_panel(self):
+        """AGENTS.md section 18: a grant is still a write to his account."""
+        from .models import TokenWallet
+
+        owner_user = get_user_model().objects.create_user(username="ownerrw", password="pw")
+        owner, _ = RecipeAuthor.objects.get_or_create(
+            slug="greenbear", defaults={"name": "GreenBear", "user": owner_user})
+        TokenWallet.objects.get_or_create(chef=owner)
+        record = self._record(recipient=owner)
+        before = TokenWallet.objects.get(chef=owner).balance
+
+        self.client.force_login(self._moderator())
+        self.client.post(self.url, {"record": record.pk})
+        record.refresh_from_db()
+        self.assertEqual(record.status, self.RewardRecord.Status.QUEUED)
+        self.assertEqual(TokenWallet.objects.get(chef=owner).balance, before)
+
+    def test_the_panel_writes_no_privilege_flag(self):
+        """AGENTS.md section 20, guarded the same way the sticker grant is."""
+        import inspect
+
+        from recipes import views
+
+        source = inspect.getsource(views)
+        body = source[source.index("def arena_reward_queue("):]
+        body = body[:body.index('return render(request, "moderation/arena_reward_queue.html"')]
+        for flag in ("is_staff", "is_superuser",
+                     "has_bearseeker_privileges", "has_arena_console_access"):
+            self.assertNotIn(flag, body)
+
+    def test_the_panel_links_to_it(self):
+        """A tool nobody can reach is not a tool."""
+        from pathlib import Path
+
+        panel = (Path(__file__).resolve().parent.parent
+                 / "templates" / "moderation" / "panel.html").read_text(encoding="utf-8")
+        self.assertIn("recipes:arena_reward_queue", panel)

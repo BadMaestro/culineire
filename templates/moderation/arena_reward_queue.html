@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reward Queue | CulinEire{% endblock %}
+{% block meta_description %}Issue a queued Chef Battle Reward or Live Support Reward.{% endblock %}
+
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+<link href="{% static 'css/moderation.css' %}" rel="stylesheet">
+<style nonce="{{ request.csp_nonce }}">
+  .arq-shell { max-width:960px; margin-inline:auto; }
+  .arq-head h1 { margin:.2rem 0; font-family:var(--font-serif); }
+  .arq-kicker { color:var(--muted); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; }
+  .arq-note { max-width:70ch; color:var(--muted); }
+  .arq-card { margin-top:1.4rem; border:1px solid var(--line); border-radius:14px; padding:1.2rem; background:var(--surface); }
+  .arq-msg { margin:0 0 1rem; padding:.6rem .8rem; border-radius:9px; }
+  .arq-msg--ok { background:color-mix(in srgb, var(--brand) 14%, transparent); color:var(--brand-dark); }
+  .arq-msg--err { background:color-mix(in srgb, var(--danger, #a8321f) 12%, transparent); color:var(--danger, #a8321f); }
+  .arq-sum { margin:.2rem 0 1rem; font-weight:700; }
+  .arq-table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  .arq-table th { text-align:left; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding:.4rem .5rem; border-bottom:1px solid var(--line); }
+  .arq-table td { padding:.55rem .5rem; border-bottom:1px solid var(--line); vertical-align:top; }
+  .arq-tokens { font-variant-numeric:tabular-nums; font-weight:700; white-space:nowrap; }
+  .arq-type { font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .arq-scroll { overflow-x:auto; }
+  .arq-empty { color:var(--muted); margin:0; }
+  .arq-recent { margin-top:1.4rem; padding-top:1rem; border-top:1px solid var(--line); }
+  .arq-recent li { margin-bottom:.3rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="arq-shell">
+  <header class="arq-head">
+    <p class="arq-kicker">Moderation</p>
+    <h1>Reward Queue</h1>
+    <p class="arq-note">
+      A Chef Battle Reward or Live Support Reward waits here until somebody issues it.
+      Issuing credits the tokens to the recipient&rsquo;s wallet, writes the transaction and
+      the ledger entry, and records who did it. Nothing here sets a rate or invents a
+      grant: it releases a record the game already created. The Owner&rsquo;s own account is
+      not issued from this panel.
+    </p>
+  </header>
+
+  <div class="arq-card">
+    {% if error %}<p class="arq-msg arq-msg--err">{{ error }}</p>{% endif %}
+    {% if issued %}
+    <p class="arq-msg arq-msg--ok">
+      Issued {{ issued.tokens_granted }} token{{ issued.tokens_granted|pluralize }}
+      to {{ issued.recipient.name }}.
+    </p>
+    {% endif %}
+
+    {% if waiting %}
+    <p class="arq-sum">
+      {{ waiting|length }} reward{{ waiting|length|pluralize }} waiting &middot;
+      {{ waiting_tokens }} token{{ waiting_tokens|pluralize }} in total
+    </p>
+    <div class="arq-scroll">
+      <table class="arq-table">
+        <thead>
+          <tr>
+            <th scope="col">Recipient</th>
+            <th scope="col">Reward</th>
+            <th scope="col">Tokens</th>
+            <th scope="col">Reason</th>
+            <th scope="col">Waiting since</th>
+            <th scope="col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in waiting %}
+          <tr>
+            <td>{{ r.recipient.name }}<br><code>{{ r.recipient.slug }}</code></td>
+            <td>
+              <span class="arq-type">{{ r.get_reward_type_display }}</span><br>
+              {{ r.get_status_display }}
+            </td>
+            <td class="arq-tokens">{{ r.tokens_granted }}</td>
+            <td>
+              {{ r.reason }}
+              {% if r.related_battle %}<br><small>Battle #{{ r.related_battle.pk }} &middot; {{ r.related_battle.theme }}</small>{% endif %}
+            </td>
+            <td>{{ r.created_at|date:"j M Y, H:i" }}</td>
+            <td>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="record" value="{{ r.pk }}">
+                <button class="btn-primary" type="submit">Issue</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="arq-empty">Nothing is waiting. Every reward the game has created has been issued, expired or reversed.</p>
+    {% endif %}
+
+    {% if recent %}
+    <div class="arq-recent">
+      <p class="arq-kicker">Last issued</p>
+      <ul>
+        {% for r in recent %}
+        <li>{{ r.issued_at|date:"j M Y, H:i" }} &mdash; {{ r.tokens_granted }}T to {{ r.recipient.name }} ({{ r.get_reward_type_display }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

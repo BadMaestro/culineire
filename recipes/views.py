@@ -5911,3 +5911,80 @@ def arena_sticker_grant(request):
         "granted": granted,
         "error": error,
     })
+
+
+def arena_reward_queue(request):
+    """Issue a queued CBR or LSR reward from the site's own moderation panel.
+
+    THE ONLY WAY TO ISSUE ONE WAS DJANGO ADMIN, and this project does not use
+    Django Admin for operations - AGENTS.md and the Owner's standing rule put
+    operator tooling under /recipes/moderation/. issue_reward() has existed and
+    worked since Phase 6; nothing but a button was missing, so a reward could
+    be created, queued, and then sit there for ever. A spectator's gift that
+    can never reach the chef it was bought for is not a reward, it is a held
+    payment.
+
+    It adds no rule and no rate. The service does the work under its own row
+    lock, credits the wallet with an F() expression, writes the
+    TokenTransaction and the ledger event, and refuses any record that is not
+    in an issuable state. This view chooses the record and records who issued
+    it, and nothing else.
+
+    TWO LIMITS, the same two the sticker grant carries. It writes no privilege
+    flag of any kind (AGENTS.md 20), and it refuses the `greenbear` account
+    outright (AGENTS.md 18) - a grant is still a write to his account.
+    """
+    from chef_battle.models import RewardRecord
+    from chef_battle.services import issue_reward
+
+    if not is_moderator(request.user):
+        raise Http404
+
+    ISSUABLE = (
+        RewardRecord.Status.PENDING,
+        RewardRecord.Status.QUEUED,
+        RewardRecord.Status.APPROVED,
+    )
+
+    error = ""
+    issued = None
+    if request.method == "POST":
+        record = (
+            RewardRecord.objects
+            .filter(pk=(request.POST.get("record") or "").strip() or 0)
+            .select_related("recipient")
+            .first()
+        )
+        if record is None:
+            error = "No such reward record."
+        elif record.recipient.slug == getattr(settings, "OWNER_SLUG", "greenbear"):
+            # AGENTS.md section 18. Not a warning and not a confirm dialog:
+            # his account is not written from this panel at all.
+            error = "That is the Owner's own account. It is not issued from this panel."
+        elif record.status not in ISSUABLE:
+            error = "That reward is '%s' and cannot be issued." % record.get_status_display()
+        else:
+            try:
+                issued = issue_reward(record.pk, reviewed_by=request.user)
+            except ValueError as exc:
+                error = str(exc)
+
+    waiting = list(
+        RewardRecord.objects
+        .filter(status__in=ISSUABLE)
+        .select_related("recipient", "related_battle")
+        .order_by("created_at")[:100]
+    )
+    recent = list(
+        RewardRecord.objects
+        .filter(status=RewardRecord.Status.ISSUED)
+        .select_related("recipient")
+        .order_by("-issued_at")[:10]
+    )
+    return render(request, "moderation/arena_reward_queue.html", {
+        "waiting": waiting,
+        "waiting_tokens": sum(r.tokens_granted for r in waiting),
+        "recent": recent,
+        "issued": issued,
+        "error": error,
+    })

@@ -1,5 +1,50 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1780",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "A reward could only ever be issued from Django Admin, which this project does not use",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "issue_reward() has worked since Phase 6. It credits the wallet "
+            "under a row lock with an F() expression, writes the "
+            "TokenTransaction and the ledger event, and refuses a record that "
+            "is not in an issuable state. Nothing was wrong with it. Its ONLY "
+            "caller was chef_battle/admin.py - a Django Admin bulk action - "
+            "and operator tooling in this project lives at "
+            "/recipes/moderation/, by the Owner's own standing rule. So a "
+            "reward could be created by the game, queued, and then sit in that "
+            "queue for ever: a spectator's gift to a chef that can never reach "
+            "him is not a reward, it is a held payment. "
+            "THE MISSING PIECE WAS A BUTTON, and that is all this adds. The "
+            "queue lists what is waiting - who it is for, whether it is a Chef "
+            "Battle Reward or a Live Support Reward, how many tokens, the "
+            "reason, the battle it came from and how long it has waited - with "
+            "a running total, and the last ten issued underneath so an "
+            "operator can see the effect of what they just did. No rate is set "
+            "here, no grant is invented, and no reward is created: it releases "
+            "a record the game already wrote. "
+            "TWO LIMITS, the same two the sticker grant carries and tested the "
+            "same way. It writes no privilege flag of any kind - is_staff, "
+            "is_superuser, has_bearseeker_privileges and has_arena_console_"
+            "access are the Owner's alone (AGENTS.md 20) and a test reads the "
+            "view's source to prove none of them appears in it. And it refuses "
+            "the `greenbear` account outright (AGENTS.md 18): a grant is still "
+            "a write to his account, so the panel will not make one. A "
+            "non-moderator gets 404 rather than a redirect, which is how the "
+            "rest of this panel answers. "
+            "STILL BLOCKED, and it is the other half of what the Owner asked "
+            "for today: selling prizes back to the shop. There is no rate for "
+            "it anywhere in this repository - searched in the public rules, "
+            "the legal pages, docs/chef_battle, the models, the services and "
+            "the git history - and ARENA_HALL_PLAN E2 records it as open on "
+            "the Owner's ruling AND a legal check (closed-loop token model, "
+            "anti-gambling) that the document says explicitly is not an "
+            "agent's to start. A rate invented here would be a number nobody "
+            "agreed. Reported rather than guessed."
+        ),
+    },
+    {
         "version": "2.5.1777",
         "date": "2026-09-05",
         "commit": "29a2e7e7",
