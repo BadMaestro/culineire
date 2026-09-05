@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1801",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "e74f4414",
         "title": "The gift shelf hid itself from every chef who had no gifts, which was all of them",
         "section": "Chef Battles / Arena",
         "summary": (
