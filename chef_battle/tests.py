@@ -31470,3 +31470,49 @@ class SellingAGiftBackFromTheChefsRoomTests(TestCase):
                 "%s is priced at %d and its sell-back does not follow the rate"
                 % (gift_type, cost),
             )
+
+
+
+class ArtifactsAreNotSoldBackTests(TestCase):
+    """The Owner, 2026-09-05, unprompted and in three words: "их не сдают".
+
+    Said after a report listed "combat artifacts and battle prizes cannot be
+    sold back" as something still missing. It is not missing. An artifact is
+    equipment: it is used, or it is kept. Only an appreciation gift may be
+    sold back, and only by the chef who received it.
+
+    This is a guard, not a feature. It exists so the absence is defended - a
+    later reading of ARENA_HALL_PLAN E2, or of the sell-back service, must not
+    turn "deliberately not built" back into "not built yet".
+    """
+
+    def test_nothing_sells_an_artifact_back(self):
+        import inspect
+
+        from . import services, views
+
+        for module in (services, views):
+            source = inspect.getsource(module)
+            for name in ("sell_artifact", "sell_chef_artifact",
+                         "sell_artifact_back", "redeem_artifact",
+                         "artifact_sell_back", "sell_back_artifact"):
+                self.assertNotIn(
+                    "def %s" % name, source,
+                    "artifacts are not sold back (Owner, 2026-09-05)")
+
+    def test_the_only_sell_back_takes_an_appreciation_gift(self):
+        """One door, and it is the gift's."""
+        import inspect
+
+        from .services import sell_appreciation_gift_back
+
+        signature = inspect.signature(sell_appreciation_gift_back)
+        self.assertEqual(list(signature.parameters), ["gift", "chef"])
+
+    def test_the_rules_page_says_so_out_loud(self):
+        """An unwritten rule is one somebody re-invents. This one is written."""
+        from pathlib import Path
+
+        rules = (Path(__file__).resolve().parent.parent
+                 / "templates" / "chef_battle" / "rules.html").read_text(encoding="utf-8")
+        self.assertIn("Combat artifacts are not sold back", rules)

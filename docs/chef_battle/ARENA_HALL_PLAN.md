@@ -112,7 +112,7 @@ here only as the record of the path not taken.
 | # | Item | Notes |
 |---|------|-------|
 | E1 | Mandatory use of spectator-gifted artifacts | **DONE** (T24, Bolt, 2026-08-16). Enforced per effect type; public rules section 13 updated. |
-| E2 | Appreciation gifts "sellable" after the battle | **STILL OPEN.** No code, no ruling found anywhere in the repo. Genuinely blocked on the legal check this row already names (closed-loop token model s14, anti-gambling s17) before any build - not an agent's to start. |
+| E2 | Appreciation gifts "sellable" after the battle | **DONE** (v2.5.1792, Bolt, 2026-09-05). The Owner ruled the rate and waived the legal check this row had been waiting on: "Проверки не нужно, стройте". A gift is the Chef's to keep; selling it back returns 25% of what the viewer paid, as a PENDING record that still passes the arena's closing checks. Flowers 80 -> 20, in his own worked example. **COMBAT ARTIFACTS AND BATTLE PRIZES ARE NOT SOLD BACK** - his words, 2026-09-05: "их не сдают". That is not a missing mechanism and no agent builds one; they are equipment, used or kept. |
 | E3 | Scheduled battle time + readiness gate | **DONE.** `Battle.challenger_ready`/`opponent_ready` plus the 30-minute pull-in (T20, superseding this row's original 15-minute sketch, Owner 2026-08-15). |
 
 ---
@@ -129,9 +129,12 @@ than by an answer to it as originally framed:
    answered it: a range, `"40–60"`.
 4. ~~D2: chef combat actions — popup or antechamber~~ — CLOSED by the
    popup's deletion (AA6): the antechamber is the only surface left.
-5. **E2: sell-back rate for appreciation gifts and the legal green light —
-   STILL OPEN.** No ruling, no code. Needs the Owner and the legal check
-   this document already names before anyone builds it.
+5. ~~E2: sell-back rate for appreciation gifts and the legal green
+   light~~ — **CLOSED 2026-09-05.** He set the rate at 25% of what the viewer
+   paid, made it the Chef's own decision rather than automatic, and waived the
+   legal check: "Проверки не нужно, стройте". Shipped in v2.5.1792. He also
+   settled what is NOT sellable, unprompted: combat artifacts and battle
+   prizes — "их не сдают".
 6. ~~E3: who sets the battle time~~ — CLOSED. Automatic: `accept_challenge`
    sets it; readiness (`challenger_ready`/`opponent_ready`) pulls the start
    in, it does not set it.

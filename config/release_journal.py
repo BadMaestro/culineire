@@ -1,5 +1,41 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1798",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "Artifacts are not sold back - three words from the Owner turned a reported gap into a written rule",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "A report listed \"combat artifacts and battle prizes cannot be sold "
+            "back, there is no mechanism\" as work still outstanding. His answer, "
+            "unprompted: \"их не сдают\". It is not outstanding and it is not "
+            "missing - it is the rule. An artifact is equipment: it is used, or "
+            "it is kept. Only an appreciation gift may be sold back, and only by "
+            "the chef who received it. "
+            "WHAT AN UNWRITTEN RULE COSTS is the whole reason this is a release "
+            "rather than a note. Nothing in the repository said artifacts were "
+            "unsellable; the absence of the code was the only evidence, and an "
+            "absence reads as a gap to the next person who looks - which is "
+            "exactly what it read as to me an hour ago. Now the public rules "
+            "say it in the combat artifacts section, in the same breath as the "
+            "one exception; ARENA_HALL_PLAN E2 closes carrying his words; and a "
+            "guard test defends the absence, refusing any sell_artifact-shaped "
+            "function in the services or the views and pinning that the only "
+            "sell-back door takes a gift and a chef. "
+            "E2 CLOSES COMPLETELY. It had stood open since 2026-08-17 as \"no "
+            "code, no ruling, blocked on a legal check, not an agent's to "
+            "start\". He set the rate at 25%, made selling the chef's own "
+            "decision rather than something that happened to him automatically, "
+            "and waived the check: \"Проверки не нужно, стройте\". Both halves "
+            "of the row - what IS sellable and what is NOT - are now written "
+            "where the next reader will find them. "
+            "RISK AND ROLLBACK: one sentence on a public page, one document row, "
+            "one test class. No code path changes, no migration, no schema, no "
+            "money. Rollback is git revert of this commit then "
+            "/srv/culineire/scripts/deploy.sh."
+        ),
+    },
+    {
         "version": "2.5.1795",
         "date": "2026-09-05",
         "commit": "910c986f",
