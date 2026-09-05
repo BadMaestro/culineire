@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1798",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "b7f2e484",
         "title": "Artifacts are not sold back - three words from the Owner turned a reported gap into a written rule",
         "section": "Chef Battles / Arena",
         "summary": (
