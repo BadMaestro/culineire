@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1804",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "4a28d7bf",
         "title": "LEDO language switch: Norwegian, English, Lithuanian and Russian",
         "section": "LEDO",
         "summary": (

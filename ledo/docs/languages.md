@@ -40,9 +40,21 @@ pre_deploy_reread:
   files_in_commit: 15
   base_verified: "f4e6977c1311d7eb15269a3bf2da285bdedf475b"
   already_exists_checked: true
-  gates: ["LEDO PostgreSQL suite and image-weight guard", "migration drift", "diff --check"]
+  gates: ["28 PostgreSQL tests PASS including image-weight guard", "migration drift PASS", "diff --check PASS"]
   version_bumped: true
-  collectstatic_run: "required by standard deployment"
-  rollback_command: "git revert <language-release-commit>; deploy via main using /srv/culineire/scripts/deploy.sh"
+  collectstatic_run: true
+  rollback_command: "git revert 4a28d7bf; deploy the resulting reviewed commit"
   screen_change_in_one_line: "NO / EN / LT / RU switches the LEDO interface language."
 ```
+
+## Verified production result
+
+Release `4a28d7bf2af9a5b523b866366f4c77db2cd3f19d` deployed on
+2026-09-05 with an exact-commit, fast-forward-only script. The script required
+the documented base and rejected any files outside LEDO, the release journal
+and footer version. It did not pull an unconstrained shared main branch.
+Two static files copied; 183 post-processed. No migrations needed.
+Production template rendering, four selector links and scoped Secure cookies
+passed for nb/en/lt/ru. LEDO health, CulinEire home and recipes checks passed.
+No real accounts were used and no production bookings were created.
+Authenticated browser appearance has not been inspected by the agent.
