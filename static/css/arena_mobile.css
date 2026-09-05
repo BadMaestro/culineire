@@ -1,0 +1,1551 @@
+/* ARENA SHEET 11/12 - arena_mobile.css
+   The mobile scene: phone safety, the phase track, and desktop speaking the phone's language.
+
+   ONE OF TWELVE. arena.css was 13,958 lines behind a single <link>; the
+   Owner asked on 2026-09-05 for sub-files, the chat in a file of its own,
+   each loaded separately and each with a guard. He lifted his own two-sheet
+   freeze of 2026-08-09 to allow it, and gave the reason: that rule was
+   written when the seven files were useless, and splitting now buys code
+   quality and load speed.
+
+   THE ORDER OF THE TWELVE LINKS IS THE CASCADE. This cut moved NOTHING -
+   every boundary was already at brace depth zero - so the twelve bodies
+   joined in order are byte-identical to the file that stood before, which
+   is what proves no rule changed its winner. arena.html and
+   arena_master_console.html both load all twelve in this numbered order,
+   and EveryArenaSheetHasItsOwnGuardTests fails if a sheet drifts.
+   SPLIT-HEADER-END */
+
+/* ============================================================================
+ * THE MOBILE SCENE - Owner's decision, 2026-07-20, re-confirmed 2026-08-19:
+ * a phone gets a DIFFERENT scene, not the desktop one reflowed into one
+ * column. The reason is measured, not aesthetic: at 390px the outer rank ring
+ * renders tiles about 34x8px after the perspective squash, and a tile is what
+ * opens a chef's card. A scene whose only control cannot be hit is a picture,
+ * not an interface.
+ *
+ * Above the phone breakpoint this whole section does not exist. Below it, the
+ * octagon stays as the stage and the ranks become rows a thumb can press.
+ * ============================================================================ */
+
+.arena-mobile-scene {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .arena-mobile-scene {
+    display: block;
+    grid-area: mobilescene;
+    padding: 0.9rem 1rem 1.1rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+  }
+  .arena-mobile-scene__title {
+    margin: 0;
+    color: var(--ink);
+    font: 700 1rem/1.15 var(--font-serif, "Playfair Display", serif);
+  }
+  /* ======================================================================
+     ONE HEADER, SEVEN PANELS. Owner, 2026-08-24: "все блоки должны быть
+     одинаковые по дизайну - если есть горизонтальная полоса в одном - значит
+     и везде она должна быть тоже - если есть выравнивание по центру - значит
+     и везде строки и иконки должны быть по центру."
+
+     MEASURED BEFORE CHANGING ANYTHING, in a harness rendering this template
+     against these stylesheets at 375px. Distance of each header's title from
+     its own panel's centre:
+
+         ARENA STATUS        -82px
+         CROWN LADDER        -87px
+         BATTLE GIFTS        -92px
+         ARENA GUIDE         +21px
+         ARENA COMMAND       +20px
+         SPECTATOR CHAT        0px
+         LIVE ARENA METRICS   (no header at all - display:none)
+
+     Three different alignments and one missing header, from rules that never
+     intended any of it: the kickers all carry text-align:center already, but
+     whether that centres anything depends on whether the kicker's flex box
+     grows, and that differed per panel because of what else shared the row.
+     Centring "worked" only where a panel happened to have nothing else in
+     its header.
+
+     So the row stops being a row. Icon above, title under it, both centred,
+     the divider under both - one rule, seven identical headers, and no panel
+     can drift by acquiring or losing a sibling in its header again. */
+  .arena-panel__title {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.3rem;
+  }
+  /* The identity block and the status pill are the two extra children ARENA
+     STATUS carries; stacked and centred they read as part of the same header
+     instead of pushing the title off-centre. */
+  .arena-panel__title > div,
+  .arena-command-deck__identity {
+    flex: 0 1 auto;
+    min-width: 0;
+    text-align: center;
+  }
+  .arena-panel__title > .arena-panel__kicker {
+    flex: 0 1 auto;
+  }
+  /* ARENA STATUS needs its own line here and it is not a special case being
+     carved out - it is the SAME rule at the specificity it takes to win.
+     `.arena-command-deck__phase-card .arena-panel__title` (0,2,0) sets
+     align-items:flex-start and justify-content:space-between further up this
+     file for the desktop three-part header, and a bare `.arena-panel__title`
+     (0,1,0) cannot reach it however late it sits. Measured: with the class
+     rule alone this header stayed 128px left of its panel's centre while the
+     other six landed on 0. */
+  .arena-command-deck__phase-card .arena-panel__title {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.3rem;
+  }
+  .arena-command-deck__phase-card .arena-panel__title > :first-child {
+    flex: 0 0 auto;
+  }
+  /* The decorative flanking arrows sit either side of a centred title on the
+     two right-column headers. In a column they would land above and below it,
+     which is not what they are for. */
+  .arena-panel__title--flanked::before,
+  .arena-panel__title--flanked::after {
+    display: none;
+  }
+
+  .arena-mobile-scene__hint {
+    margin: 0.25rem 0 0.75rem;
+    color: var(--arena-muted, var(--muted));
+    font-size: 0.75rem;
+    /* Owner, 2026-08-24: this line sits under a centred title and above a
+       centred grid, and was the one thing on the card still ranged left. */
+    text-align: center;
+  }
+  /* ==========================================================================
+   * Kitchen ranks redesign, 2026-08-21 - compact rank ladder replacing the
+   * old full-width <details> rows (.arena-mobile-scene__rings and below,
+   * still present but now unused - the chef-list classes further down this
+   * block, .arena-mobile-ring__chefs and its children, ARE still live: the
+   * new shared panel reuses that exact markup for its chef rows). 4x2 grid
+   * of real <button> tiles, one shared detail panel below, same ivory/
+   * bronze card language and --accent-bronze/--ink/--surface tokens as the
+   * rest of the Arena status card work today - no new raw colour literals.
+   * ========================================================================== */
+  .arena-rank-ladder__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .arena-rank-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.4rem 0.2rem 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    border-radius: 0.7rem;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    color: var(--ink);
+    text-align: center;
+    cursor: pointer;
+    font: inherit;
+  }
+  /* 2026-08-22: the Owner's own reference crops carry the rank number and
+     nameplate baked into the image already, so the emblem is a tall
+     portrait cutout (220x360 source) shown whole via contain - no circular
+     mask/badge background any more, since the image supplies its own
+     plate/number art. The separate #N and name spans are gone from the
+     markup (arena.html); this rule set is the emblem box only. */
+  .arena-rank-tile__emblem {
+    width: 100%;
+    max-width: 76px;
+    height: auto;
+    aspect-ratio: 11 / 18;
+    object-fit: contain;
+  }
+  .arena-rank-tile__count {
+    margin-top: 0.15rem;
+    color: var(--accent-bronze-dark);
+    font-size: 0.62rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .arena-rank-tile__count--empty {
+    opacity: 0.45;
+  }
+  /* Culinary Master - restrained gold treatment, not a bright glow. */
+  .arena-rank-tile--master {
+    border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
+    box-shadow: 0 0.2rem 0.6rem color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+  }
+  /* Owner, 2026-08-24: "размер иконки идеально одинаковый по отношению со
+     всеми остальными иконами - все они одинакового размера". Culinary Master
+     used to take max-width 84px against every other rank's 76px, so the one
+     tile that already carries a gold border and a gold ground was ALSO 10%
+     larger - two emphases doing one job, and the row read as uneven. The gold
+     treatment stays and is enough on its own; the emblem is now the same
+     76px box as the other seven. */
+  .arena-rank-tile--active {
+    border-color: var(--accent-bronze);
+    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+    box-shadow: 0 0.25rem 0.6rem color-mix(in srgb, var(--ink) 18%, transparent);
+  }
+  .arena-rank-tile--active .arena-rank-tile__emblem {
+    transform: translateY(-2px);
+  }
+  /* A FINGER, NOT A CURSOR. Owner, 2026-08-24: "это мобильный вид - там нет
+     курсора так что эффекты курсора не нужны лишь на эффекты нажатия
+     пальцем". This scene only ever renders below 640px, so a hover state here
+     could never fire for the reader it is drawn for - and on a touch screen a
+     :hover that does fire STICKS after the tap, which is worse than none.
+     What was missing is the other half: nothing acknowledged the press
+     itself, so a tap looked like nothing had happened until the panel below
+     opened. The tile now answers the finger while it is down.
+
+     The default tap highlight is removed only because this replaces it with
+     something deliberate - never to leave a control with no feedback at all. */
+  .arena-rank-tile {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .arena-rank-tile:active {
+    border-color: var(--accent-bronze);
+    background: color-mix(in srgb, var(--accent-bronze) 14%, var(--surface));
+    transform: scale(0.97);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .arena-rank-tile {
+      transition: transform 120ms ease, background-color 120ms ease,
+                  border-color 120ms ease;
+    }
+  }
+  .arena-rank-ladder__hint {
+    margin: 0.5rem 0 0;
+    color: var(--arena-muted, var(--muted));
+    font-size: 0.68rem;
+    text-align: center;
+  }
+  .arena-rank-panel {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  }
+  .arena-rank-panel__title {
+    margin: 0 0 0.3rem;
+    padding: 0 0.2rem;
+    color: var(--accent-bronze-dark);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .arena-mobile-scene__rings {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .arena-mobile-ring__details {
+    border: 1px solid color-mix(in srgb, var(--brand) 22%, transparent);
+    border-radius: 0.65rem;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    overflow: hidden;
+  }
+  /* 44px is the smallest target a finger reliably hits - the whole reason this
+     scene exists rather than the 8px-tall tiles it replaces. */
+  .arena-mobile-ring__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    padding: 0.45rem 0.7rem;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.8rem;
+    list-style: none;
+  }
+  .arena-mobile-ring__summary::-webkit-details-marker { display: none; }
+  .arena-mobile-ring__no {
+    display: grid;
+    place-items: center;
+    width: 1.55rem;
+    height: 1.55rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent-bronze) 16%, var(--surface));
+    color: var(--accent-bronze-dark);
+    font-size: 0.72rem;
+  }
+  .arena-mobile-ring__name { flex: 1 1 auto; min-width: 0; }
+  .arena-mobile-ring__count {
+    flex: 0 0 auto;
+    color: var(--accent-bronze-dark);
+    font-variant-numeric: tabular-nums;
+  }
+  .arena-mobile-ring__chefs {
+    display: grid;
+    /* 0.125rem = 2px flat. 0.15rem measures 2.4px, and a gap on a fraction of
+       a pixel is what made the rank ladder's rungs rasterise unevenly - the
+       Arena bans that number sheet-wide rather than per component. */
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0.2rem 0.45rem 0.55rem;
+    list-style: none;
+  }
+  .arena-mobile-ring__chefs a {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 44px;
+    padding: 0.25rem 0.35rem;
+    border-radius: 0.5rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .arena-mobile-ring__chefs img {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .arena-mobile-ring__chef-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.82rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arena-mobile-ring__flag {
+    flex: 0 0 auto;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-bronze) 14%, var(--surface));
+    color: var(--accent-bronze-dark);
+    font-size: 0.6rem;
+    font-style: normal;
+    font-weight: 700;
+  }
+  .arena-mobile-ring__flag--online {
+    background: color-mix(in srgb, var(--hall-green, #4f9d69) 16%, var(--surface));
+    color: color-mix(in srgb, var(--hall-green, #4f9d69) 75%, var(--ink));
+  }
+  .arena-mobile-ring__empty {
+    margin: 0;
+    padding: 0.2rem 0.7rem 0.6rem;
+    color: var(--arena-muted, var(--muted));
+    font-size: 0.75rem;
+  }
+  /* Same unconditional-position trap as the tablet range: the panels and the
+     two stack wrappers carry position:absolute from rules with no media query
+     at all, so every one has to be named here or it leaves the flow and piles
+     up. */
+  .arena-left-stack,
+  .arena-right-stack {
+    display: contents;
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__ladder,
+  .arena-command-deck__guide,
+  .arena-chat,
+  .arena-command-deck__metrics,
+  .arena-command-deck__command,
+  .arena-command-deck__gifts,
+  .arena-command-deck__floor,
+  .arena-broadcast-ribbon,
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    position: relative;
+    inset: auto;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+  /* The widget band takes the `command` row: the Owner asked for it to go
+     down on the phone too, and that area has sat empty since v2.5.1270 moved
+     the nav inside the dock. No areas string is edited to place it. */
+  .arena-command-dock { grid-area: command; }
+  /* THE OCTAGON TAKES THE ROOM IT HAS HERE (Owner, 2026-08-20: too much empty
+     space around it). The renderer sizes it as a share of its region's WIDTH -
+     the accepted desktop composition is 659 of 1268, about 52%, which on a
+     373px phone card left it 182px wide with the rest of the card empty.
+     Height alone could not fix it: width decides the size and the projection
+     supplies the height, so a taller box just added more emptiness.
+     The share is a layout decision, so the stylesheet states it here and the
+     renderer keeps its own constant everywhere else - no desktop pixel moves.
+     The caption above it also stops taking a third of the card. */
+  .arena-floor-stage {
+    /* 0.95 -> 1.045, the Owner's "make the octagon 10% bigger", 2026-08-21.
+       Above 1 is legitimate here and not a typo: the share sizes the SVG's
+       box, and the octagon drawn inside it is about 86% of that box, so it
+       still stands clear of its region. Two steps, both his: 0.95 -> 1.045
+       took the octagon 317px -> 349px, then 1.045 -> 1.097 for another 5%.
+       The shape reaches its region's edges at about 1.169, so this is still
+       inside the guard's 1.15 and inside the region it is drawn in.
+
+       ============================================================
+       LOCKED BY THE OWNER, 2026-08-21. Do not change this number, or
+       --arena-octagon-centre-y below, without his explicit permission.
+
+       These two decide the octagon's size and its seat on a phone, and he
+       arrived at them by looking at the result and asking for it step by
+       step - 0.95, 1.045, 1.097 for the size; 0.557 for the seat. They are
+       his composition now, not a default anyone may tune.
+
+       Measured at the moment of the freeze, on a 414px viewport: the
+       octagon is 366px across and 286px tall, sitting inside its frame with
+       15px clear either side, 4px of air above it and 7px below.
+       OctagonSizeAndSeatAreLockedTests holds all of it - the two values and
+       the guard they depend on - so an edit here fails the suite rather
+       than reaching him as a surprise on his phone.
+       ============================================================ */
+    --arena-octagon-width-share: 1.097;
+  }
+  .arena-floor-caption {
+    margin-block: 0.1rem 0.15rem;
+  }
+  .arena-floor-caption em {
+    display: none;
+  }
+}
+
+/* ============================================================================
+ * PHONE SAFETY: the page was CRASHING Safari on the Owner's iPhone
+ * ("the page repeatedly caused a problem" - iOS killing the tab), 2026-08-20.
+ *
+ * Not a layout bug. Measured on the rendered page at 375px, all of it alive at
+ * once: 12 elements carrying backdrop-filter, 63 carrying filter (three of
+ * them a 22px blur over a full-height element), 45 running animations, and an
+ * SVG holding 339 cells with 336 clipPaths. Every backdrop-filter forces its
+ * own compositing layer plus a snapshot of everything behind it; iOS gives a
+ * tab a hard memory ceiling and kills it rather than degrading.
+ *
+ * Desktop is untouched - it has the memory for this and the Owner has accepted
+ * how it looks. Below the tablet breakpoint the expensive decoration is turned
+ * off, not restyled: the atmosphere layer is pure ornament (aria-hidden by its
+ * own markup), and a frosted-glass panel and a flat one carry the same
+ * information. The octagon, its geometry and the renderer are untouched by
+ * every rule here.
+ * ============================================================================ */
+@media (max-width: 900px) {
+  /* The whole atmosphere layer: 3 shafts at blur(22px), 8 motes, 4 rising
+     gift glyphs - 15 elements, ~45 of the page's animations, and the three
+     largest blurs on the page. It is decoration and it is the single most
+     expensive thing here. */
+  .page--arena .arena-atmosphere-fx {
+    display: none !important;
+  }
+
+  /* Backdrop blur is the other half of the cost, and on a phone every panel
+     is stacked in flow so all of them are on screen at once. */
+  .page--arena .arena-broadcast-ribbon,
+  .page--arena .arena-command-deck__phase-rail,
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__guide,
+  .page--arena .arena-chat,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__command,
+  .page--arena .arena-command-deck__gifts,
+  .page--arena .arena-live-chef,
+  .page--arena .arena-command-deck__crowd-rail,
+  .page--arena .arena-mobile-scene {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* The glows on the floor's own furniture: drop-shadow filters repeated
+     across dozens of nodes. The elements stay, their soft haloes do not. */
+  .page--arena .arena-atmo-gift,
+  .page--arena .arena-floor-caption,
+  .page--arena .arena-rank-spine__step,
+  .page--arena .arena-live-centre {
+    filter: none !important;
+  }
+
+  /* THE MOAT LAMPS AND THE ONLINE PULSES CAME BACK, 2026-08-21. They were
+     hidden here on 2026-08-20 - eight lanterns, 24 strobe rings, and the
+     doubled SMIL+CSS pulse on every online chef - on the theory that their
+     filters and endless animations were what crashed the Owner's iPhone on
+     zoom. That theory was wrong. The crash was WebKit's own leak on the
+     pinch GESTURE (bug 172206), which is why it reproduced on a page of any
+     weight and never on Android; it is closed now by the zoom lock in
+     arena_zoom.js, and the Owner noticed the lamps were missing from the
+     phone. Ornament removed for a reason that turned out not to be the
+     reason goes back.
+
+     What is NOT restored is the pass above this one: the atmosphere layer
+     and the backdrop blurs, cut in v2.5.1147 against numbers actually
+     measured on the rendered page, are a separate and still-standing
+     decision. */
+}
+
+/* ============================================================================
+ * THREE DEFECTS FROM THE OWNER'S iPhone SCREENSHOTS, 2026-08-20.
+ * ============================================================================ */
+
+/* 1. THE RANK NAMES WERE ALL BUT INVISIBLE - measured rgb(250,246,240) on a
+      near-white card. The page itself carries a near-white text colour
+      (body.page--arena is the dark hall's own theme), and EVERY existing panel
+      sets its own colour explicitly on top of that. The new mobile scene did
+      not, so it inherited white-on-white. Named explicitly here, the way the
+      panels around it already do. */
+.arena-mobile-scene,
+.arena-mobile-scene__title,
+.arena-mobile-ring__summary,
+.arena-mobile-ring__name,
+.arena-mobile-ring__chef-name {
+  color: var(--ink);
+}
+.arena-mobile-scene__hint,
+.arena-mobile-ring__empty {
+  color: var(--muted);
+}
+
+/* 2. ISSUE A CHALLENGE was unreadable for exactly the same reason: a light
+      button carrying the page's inherited near-white text. The dark primary
+      button beside it was fine because its own rule sets a light colour on a
+      dark ground on purpose. */
+.arena-lower-actions__secondary,
+.arena-lower-actions__secondary .arena-lower-actions__title,
+.arena-lower-actions__secondary .arena-lower-actions__subtitle {
+  color: var(--ink) !important;
+}
+
+/* 3. THE RANK LADDER SAT ON TOP OF THE OCTAGON on a phone: placeRankSpine()
+      deliberately stops positioning it below 767px and hands it to the
+      stylesheet, where it falls into normal flow INSIDE the floor - which is
+      now a fixed-aspect grid cell, so it printed over the octagon.
+
+      Below the phone breakpoint it is hidden, and this does NOT remove the
+      ranks from a phone - the guarantee that made it visible here (Stage 3E:
+      all eight ranks stay reachable on a phone) is what the new mobile scene
+      exists to serve, with all eight as 44px targets that also list their
+      chefs. The ladder stays exactly as it is at every larger width, and its
+      own JS placement is untouched. A test asserts the mobile scene still
+      carries all eight, so the requirement keeps a guard rather than losing
+      one. */
+@media (max-width: 640px) {
+}
+
+/* ============================================================================
+ * THE PHASE TRACK ON EVERY NARROW SCREEN - one progress strip, one owner.
+ *
+ * Owner, 2026-08-20: the seven-pill card is decoration - one phase is ever
+ * active, six sit grey - and it cost roughly 300px above the floor, which
+ * matters more. Seven dots read past/now/upcoming at a glance, and the one
+ * label worth printing, the active phase's own name, sits at its own place in
+ * the row: its position among the dots IS its position in the battle.
+ *
+ * WHY THIS BLOCK IS AT THE END OF THE FILE and not beside the other
+ * narrow-screen rules. Three rules own pieces of this track unconditionally,
+ * two classes deep, scattered from line ~1700 to ~4800: the rail's grid, the
+ * step's width, the index pill's size. Media queries add NO specificity, so a
+ * narrow-screen rule only wins by coming later in the file. Written next to
+ * its siblings at line ~1870 this whole block lost to a rule 600 lines below
+ * it and the strip rendered as seven stacked rows - measured, not guessed.
+ * One block, at the end, is the honest answer for a 8000-line sheet whose own
+ * comments call it a house of cards.
+ *
+ * THE SIX INACTIVE LABELS ARE CLIPPED, NOT REMOVED. arena_deck.js reads the
+ * next phase's label straight out of one of these <b> nodes by DOM position -
+ * see its own comment near line 505 - so display:none would take the JS's
+ * text source and a screen reader's words with it.
+ * ========================================================================= */
+@media (max-width: 767px) {
+  .arena-broadcast-ribbon .arena-phase-step {
+    position: relative;
+    width: auto;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    gap: 0;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+    overflow: visible;
+  }
+  /* THE TRACK IS A LINE, NOT SCATTERED DOTS. Each marker draws the hairline
+     that reaches the next one, so the strip reads left to right as one
+     journey. Behind the battle the line is bronze and solid; ahead of it the
+     line is faint - the same distinction the markers themselves make, said
+     twice so it survives at a glance. */
+  .arena-broadcast-ribbon .arena-phase-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    width: 0.45rem;
+    height: 1px;
+    background: color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-complete:not(:last-child)::after,
+  .arena-broadcast-ribbon .arena-phase-step.is-active:not(:last-child)::after {
+    background: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
+  }
+  /* The active step is sized by its label - 0 1 auto - so it never eats the
+     room the trailing dots need, and can still shrink to an ellipsis if a
+     phase name ever grows. */
+  .arena-broadcast-ribbon .arena-phase-step.is-active,
+  .arena-broadcast-ribbon .arena-phase-step[aria-expanded="true"] {
+    width: auto;
+    flex: 0 1 auto;
+    min-width: 0;
+    gap: 0.4rem;
+    overflow: hidden;
+  }
+  /* THE MARKERS SPEAK THE FIGHT, NOT A COUNT (Owner, 2026-08-20: "instead of
+     dots, emoji or thumbnails showing the current stage by meaning,
+     highlighted with effects"). The circle keeps its border/background as a
+     stage for the glyph; the number is still there as text (aria-hidden,
+     unread by a screen reader - the accessible name is the sibling <b> -
+     kept as a same-DOM fallback for a phase key the map below doesn't
+     cover) but font-size:0 keeps it invisible so only the glyph shows. */
+  .arena-broadcast-ribbon .arena-phase-step__index {
+    position: relative;
+    min-width: 1.4rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    font-size: 0;
+    padding: 0;
+    border-width: 1px;
+    border-style: solid;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* PHONE SAFETY, 2026-08-20 (same incident as the block at ~7900: the page
+     was crashing Safari on the Owner's iPhone from too many `filter` and
+     `backdrop-filter` layers alive at once, and this marker set had just
+     added seven more plus a continuous animated box-shadow). No `filter`
+     here - opacity alone reads the same and does not force its own
+     compositing layer per glyph. */
+  .arena-broadcast-ribbon .arena-phase-step__index::before {
+    font-size: 0.97rem;
+    line-height: 1;
+    opacity: 0.55;
+  }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="challenge"] .arena-phase-step__index::before { content: "\1F91D"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="combat"] .arena-phase-step__index::before { content: "\2694\FE0F"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="biathlon"] .arena-phase-step__index::before { content: "\1F3AF"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="cooking"] .arena-phase-step__index::before { content: "\1F373"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="mod_review"] .arena-phase-step__index::before { content: "\1F50D"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="voting"] .arena-phase-step__index::before { content: "\1F5F3\FE0F"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="crown"] .arena-phase-step__index::before { content: "\1F451"; }
+  /* The one that is now: a shade larger, its glyph at full colour and full
+     size while the rest stay small and greyed, and wearing a soft ring plus
+     a slow glow so the eye finds it before it reads anything. */
+  /* The ring is STATIC, not animated - a continuous box-shadow animation
+     repaints every frame, and that per-frame repaint is exactly what the
+     phone-safety pass above budgets against. A fixed glow still marks the
+     active step; it just doesn't cost anything after the first paint. */
+  .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
+    width: 1.87rem;
+    height: 1.87rem;
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--accent-bronze) 30%, transparent),
+      0 0 0.6rem color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index::before {
+    font-size: 1.32rem;
+    opacity: 1;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-complete .arena-phase-step__index::before {
+    opacity: 0.8;
+  }
+  .arena-broadcast-ribbon .arena-phase-step:not(.is-active):not([aria-expanded="true"]) b {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active b,
+  .arena-broadcast-ribbon .arena-phase-step[aria-expanded="true"] b {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: hidden;
+    clip: auto;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
+    /* Small caps in the deck's own label voice - the same tracking and
+       weight the panel kickers use, one size down because this sits in a
+       36px strip rather than a card header. */
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--arena-gold);
+  }
+}
+
+/* THE FLOOR CAPTION REACHES THE FRAME ON A PHONE. Owner, 2026-08-21,
+   marking up "The floor holds the show" wrapping to a second line: widen
+   the container to the frame's own edges.
+
+   AN-R4 (~line 3008) is this caption's one owner and says so in its own
+   comment - "never wider than 26rem, never more than 42% of the floor" -
+   both true and correct for the three-column desktop composition that rule
+   was written for, where the caption sits between two side panels with
+   real competition for the row. Below 767px there are no side panels left
+   to share the row with (the deck is a single column here), so the 42%
+   share is a desktop constraint outliving the desktop layout it was sized
+   for, not a decision about this width. The frame itself sits at
+   inset:2% (~line 1458), so 92% reaches its edge with a hair of the gold
+   border still visible past the text - --arena-caption-free stays as the
+   outer clamp, since a page panel narrowing the row is still real room
+   lost, whatever screen this is on. */
+@media (max-width: 767px) {
+  .arena-floor-caption {
+    width: min(92%, var(--arena-caption-free, 100%));
+  }
+
+  /* Owner, 2026-08-21: bring the NEXT BATTLE sentence back to the colon with
+     a single space between.
+
+     The gap was .6rem - about 10px measured, roughly three spaces at this
+     size, which read as a tab stop rather than a sentence. 0.2rem is one
+     space at 0.72rem, so "Next Battle:" and what follows it read as the one
+     line they are.
+
+     He also asked for the line to move left by 10%, which is NOT here: 10%
+     of the board's own width is 39px against an 11px margin, so it cut the
+     label off the screen ("T BATTLE:"). Held back for a number rather than
+     shipped broken - the same arithmetic had already done this to the floor
+     frame minutes earlier. */
+  /* THE TIMER RIDES THIS ROW AND COSTS IT NO HEIGHT. Owner, 2026-08-24,
+     marking the spot himself: the reload countdown goes at the left of the
+     Next Battle line. Given a row of its own it grew the ribbon 79px -> 127px,
+     and the ribbon sits directly above the arena, so that was 48px taken from
+     the arena's own room. It rides an existing row instead.
+
+     Three columns, not a flex row, so the centred line stays centred on the
+     PANEL rather than on whatever the timer leaves over: the timer takes
+     column 1, the line takes the middle, and column 3 is an empty cell of the
+     same width as column 1. */
+  .arena-next-board {
+    display: grid;
+    /* 1fr | label | list | 1fr - the two 1fr rails are equal by definition,
+       so the label+list pair sits on the PANEL's centre no matter how wide
+       the timer in the left rail happens to be. A flex row with auto margins
+       cannot do this: it would centre the pair on the space LEFT OVER after
+       the timer, putting it half the timer's width off centre. */
+    /* minmax(0,1fr), not 1fr: a bare 1fr track is minmax(AUTO,1fr), so the
+       timer's own width became column 1's minimum and the two rails stopped
+       being equal - measured, that left the line 8px off centre. With a zero
+       minimum both rails are the same by definition and the pair lands on 0. */
+    grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.2rem;
+    justify-content: center;
+    text-align: center;
+    /* Owner, 2026-08-24: the whole line reads as one centred sentence. It
+       already asked to be centred here and could not be: the list beside the
+       label carries `flex: 1` from the desktop rule, so it swallowed every
+       spare pixel and justify-content had nothing left to distribute - label
+       hard left, sentence starting wherever the label ended. Sized to its
+       own content, the pair centres as one unit. The desktop rule stands:
+       there the list IS the track a pill travels along, and its width is
+       what the distance is measured out of. */
+    flex-wrap: wrap;
+  }
+  .arena-next-board__list {
+    flex: 0 1 auto;
+    justify-content: center;
+  }
+  /* Column 1: the countdown, compact enough not to raise the row. */
+  .arena-next-board > .arena-phase-refresh {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0;
+    grid-column: 1;
+    justify-self: start;
+  }
+  /* BIG ENOUGH TO READ. Owner, 2026-08-24: at 0.58rem beside a hairline bar
+     this "would be barely visible even on large phones". The bar is gone (it
+     was the quiet half) and the number carries the row with a clock beside it.
+
+     Sized against the row's own height rather than by eye: the row is 23px,
+     set by the NEXT BATTLE label, so anything up to that is free and anything
+     past it is taken from the arena. 0.78rem type on a 0.95rem icon measures
+     inside that, and the guard below proves the row and the ribbon did not
+     move. */
+  .arena-next-board > .arena-phase-refresh .arena-phase-refresh__ico {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex: 0 0 auto;
+    color: var(--accent-bronze-dark);
+  }
+  .arena-next-board > .arena-phase-refresh .arena-phase-timer {
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: var(--accent-bronze-dark);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  /* The label and the list share the middle cell so they read as one centred
+     sentence, exactly as they did before the timer joined the row. */
+  .arena-next-board > .arena-next-board__label { grid-column: 2; justify-self: end; }
+  .arena-next-board > .arena-next-board__list  { grid-column: 3; justify-self: start; }
+
+  /* THE OCTAGON SITS IN THE MIDDLE OF THE SQUARE ON A PHONE. Owner,
+     2026-08-21: centre the octagon exactly inside the square.
+
+     Its box was already centred in the frame to within a pixel (45px above,
+     48px below, measured) - but the 45px above is entirely the caption, so
+     the octagon met the text with 2px of air and floated over 48px of
+     nothing. Centred by the numbers, lopsided to the eye.
+
+     The renderer's own constant is 276/564 and is deliberately high, so the
+     crowd rail and the lower dock read beneath the octagon; that is the
+     desktop composition and it stays untouched. On a phone those panels are
+     separate cards further down the page and nothing sits under the octagon
+     inside this frame, so the reason for the high seat is not present here.
+     0.557 puts its centre midway between the caption's baseline and the
+     frame's lower edge - measured on the rendered page, not guessed.
+
+     LOCKED BY THE OWNER, 2026-08-21, together with the width share above -
+     see the note there. Not to be changed without his explicit permission;
+     OctagonSizeAndSeatAreLockedTests fails if it is. */
+  .page--arena .arena-render-container {
+    --arena-octagon-centre-y: 0.557;
+  }
+  /* 641-767 SITS HIGHER, BY HIS PERMISSION, 2026-09-01. He was asked before
+     this was written, because 0.557 is one of the two numbers he froze on
+     2026-08-21, and he said yes.
+
+     THE PHONE KEEPS 0.557: this override starts at 641px, so nothing below it
+     moves and the frozen composition is untouched. What it fixes is the sliver
+     between the phone and the tablet, where the max-width:767px composition
+     applies but the layout is already the wider one - measured on the deployed
+     page, 700px wide: 27px of air above the octagon and the shape 1px THROUGH
+     the frame below, against a clean 4 to 9px everywhere from 800 up.
+
+     14px of a 288px region is 0.0486, so 0.557 becomes 0.508 here.
+
+     AND IT HAS TO BE ON THIS ELEMENT. The same value was tried on
+     .arena-floor-stage first and changed nothing: .arena-render-container is a
+     DESCENDANT of the stage, and a custom property declared on the descendant
+     wins over any ancestor whatever the ancestor's selector looks like. */
+  @media (min-width: 641px) {
+    .page--arena .arena-render-container {
+      --arena-octagon-centre-y: 0.508;
+    }
+  }
+}
+
+/* THE STAGE DESCRIPTION THE STRIP OPENS (Owner, 2026-08-21). Unconditional,
+   because a spectator on a desktop has exactly the same question as one on a
+   phone - what does "Biathlon" mean - and the strip answers it the same way
+   on both. It costs nothing until asked: the element ships hidden and the
+   markup carries no text until a marker is tapped.
+
+   Colours and tracking are the deck's own reading voice, not a new one:
+   --ink-soft on the panel surface, the same measure the phase card's copy
+   uses. */
+.arena-phase-blurb {
+  margin: 0.35rem 0 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 26%, transparent);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.arena-phase-blurb[hidden] {
+  display: none;
+}
+
+/* The marker that opened it says so, and keeps saying so while it is open -
+   the strip is small enough that without this it is easy to lose track of
+   which of seven markers the sentence belongs to. */
+.arena-phase-step[aria-expanded="true"] .arena-phase-step__index {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent-bronze) 45%, transparent),
+    0 0 0.5rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+}
+
+/* A marker that explains itself is a control, and reads as one. */
+.arena-phase-step[role="button"] {
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  /* The common left edge. Named one card at a time rather than with a child
+     selector, because the deck's children are not interchangeable - the floor
+     carries the octagon's own region and the ribbon carries a strip that
+     measures itself, and neither should have its inset moved by a rule
+     written for the cards around them. */
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__guide,
+  .page--arena .arena-command-deck__gifts,
+  .page--arena .arena-command-deck__command,
+  .page--arena .arena-chat,
+  .page--arena .arena-mobile-scene,
+  .page--arena .arena-command-deck__crowd-rail {
+    padding-inline: var(--phi-3);
+  }
+  .page--arena .arena-metric {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* ============================================================================
+ * DESKTOP SPEAKS THE PHONE'S LANGUAGE. Owner, 2026-08-24.
+ *
+ * "Bring the DESKTOP version as close as possible to the MOBILE version's
+ * visual language ... while keeping the DESKTOP layout format."
+ *
+ * EVERY RULE HERE IS INSIDE min-width:901px, and that is the mechanism rather
+ * than a convention. The brief's first constraint is that the phone must not
+ * change, and a rule that cannot be reached below 901px cannot change it
+ * however wrong the rule turns out to be. Nothing here is declared at top
+ * level, and the block sits at the END of the file with its own explicit
+ * @media - GreenBear's v2.5.1222 pass found stretches of this stylesheet
+ * where the INDENTATION implies a media scope the block does not actually
+ * have, so scope is stated here and never inferred from how it is laid out.
+ *
+ * WHAT WAS ALREADY ONE SYSTEM, measured at 1440 and 375 before a line was
+ * written: the panels (16px radius, 1px hairline, identical shadow and
+ * padding), the pill buttons, the ARENA COMMAND tiles, the chat, the empty
+ * states and the guide link all already match. They are left alone. Matching
+ * things do not need improving, and a rule not written cannot regress.
+ *
+ * THE ARENA CHAT IS FROZEN by the Owner pending his own rebuild, and is not
+ * addressed here at all.
+ *
+ * THE OCTAGON IS NOT TOUCHED, and neither is placeRankSpine(): nothing below
+ * changes any box's size or position. Paint only.
+ * ========================================================================== */
+@media (min-width: 641px) {
+
+  /* ---- 1. THE LIFECYCLE STRIP ------------------------------------------
+     Desktop still wore the pre-2026-08-20 component: seven numbered text
+     pills. The Owner replaced that on the phone with emoji medallions -
+     "instead of dots, emoji or thumbnails showing the current stage by
+     meaning" - and desktop never received it, so the two screens told the
+     same story in two alphabets.
+
+     The glyph map is RE-STATED here rather than lifted to a shared scope on
+     purpose: hoisting it would move a rule the phone depends on OUT of the
+     media query that protects the phone, which is the one thing this brief
+     forbids. Two copies of seven glyphs is the price of that guarantee. */
+  .arena-broadcast-ribbon .arena-phase-step__index {
+    position: relative;
+    min-width: 1.55rem;
+    width: 1.55rem;
+    height: 1.55rem;
+    padding: 0;
+    font-size: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+  }
+  .arena-broadcast-ribbon .arena-phase-step__index::before {
+    font-size: 1.05rem;
+    line-height: 1;
+    opacity: 0.55;
+  }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="challenge"] .arena-phase-step__index::before { content: "\1F91D"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="combat"] .arena-phase-step__index::before { content: "\2694\FE0F"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="biathlon"] .arena-phase-step__index::before { content: "\1F3AF"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="cooking"] .arena-phase-step__index::before { content: "\1F373"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="mod_review"] .arena-phase-step__index::before { content: "\1F50D"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="voting"] .arena-phase-step__index::before { content: "\1F5F3\FE0F"; }
+  .arena-broadcast-ribbon .arena-phase-step[data-phase-key="crown"] .arena-phase-step__index::before { content: "\1F451"; }
+  /* The stage that is running reads at full colour and full size while the
+     rest stay small and greyed - the phone's own emphasis, not a new one.
+     A STATIC ring, never an animated one: the phone learned that on the
+     Owner's iPhone, and desktop has no reason to relearn it. */
+  .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index {
+    min-width: 1.8rem;
+    width: 1.8rem;
+    height: 1.8rem;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-bronze) 32%, transparent);
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active .arena-phase-step__index::before {
+    opacity: 1;
+    font-size: 1.2rem;
+  }
+
+  /* ---- 2. THE TWO LOWER PILLS ------------------------------------------
+     Measured: Enter Arena 273x79 against Issue a Challenge 242x49. The same
+     pair on the phone is 165x60 and 165x60, because the Owner asked for that
+     equality there - "only the colour of the pills stays different" - and the
+     desktop pair had never heard about it.
+
+     Same two causes as on the phone, and neither is visible in the rule that
+     was supposed to equalise them: min-width defaults to auto on a flex item,
+     so flex:1 1 0 cannot equalise a pill carrying a medallion against one
+     that is not; and the padding was never shared between the two. */
+  .arena-lower-broadcast .arena-lower-actions .arena-lower-actions__primary,
+  .arena-lower-broadcast .arena-lower-actions .arena-lower-actions__secondary {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.62rem 1.1rem;
+    min-height: 3.4rem;
+  }
+  /* Equal width was not enough: measured 257x97 against 257x54. Desktop still
+     laid the primary out as a COLUMN, so its medallion stood ABOVE the text
+     instead of beside it, and the pill was 43px taller than its twin. Row, and
+     the medallion at the size the phone gives it - 2.6rem beside two lines of
+     type is what made the column necessary in the first place. */
+  .arena-lower-broadcast .arena-lower-actions__primary .arena-lower-actions__medallion {
+    width: 1.9rem;
+    height: 1.9rem;
+    flex: 0 0 auto;
+  }
+  .arena-lower-broadcast .arena-lower-actions__primary .arena-lower-actions__medallion .arena-ico {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+  .arena-lower-broadcast .arena-lower-actions__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  /* ---- 3. THE METRIC NUMERALS ------------------------------------------
+     27.2px bronze on desktop against 20px ink on the phone. Ink is the
+     phone's choice and the better one: four bronze numerals in a row compete
+     with the gold the panel headers already spend, and the label above each
+     is what should be carrying the colour. */
+  .arena-command-deck__metrics .arena-metric strong {
+    font-size: 1.45rem;
+    color: var(--ink);
+    letter-spacing: 0;
+  }
+  .arena-command-deck__metrics .arena-metric span {
+    font-size: 0.6rem;
+    letter-spacing: 0.02em;
+  }
+  /* The count sits as a plain tabular numeral, the way the phone tile sets
+     its count under the emblem - not as a filled bronze bead, which is what
+     made this chip read as a control rather than a card. */
+  .page--arena .arena-rank-spine__step b {
+    background: none;
+    border: 0;
+    /* --ink-soft, not --muted, and the reason is measured rather than
+       aesthetic. Putting an ivory ground under this chip raised the contrast
+       question that a transparent chip never had to answer: --muted lands at
+       4.83:1 on it, which clears WCAG AA but NOT the 7:1 the product contract
+       records for the rank column. --ink-soft measures 8.24:1 on the same
+       ground and still reads quieter than the rank name beside it (14.32:1),
+       which is the hierarchy this chip wants. */
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+}
+
+@media (min-width: 641px) {
+  /* HOW THE SLOT GREW, AND IN WHICH DIRECTION - this is the whole design
+     decision and it is made of measurements, not taste.
+
+     placeRankSpine() sets only top and left; it reads the ladder's own
+     bounding box for width and height and never writes them (the function
+     says so itself: "WIDTH IS NOT SET HERE"). So the slot is sized here, in
+     CSS, and the JS re-places it accordingly. Two consequences decide the
+     shape:
+
+     WIDTH MUST NOT GROW. The ladder stands to the RIGHT of the octagon, and
+     when the room there runs out the JS pulls it back with
+     `x = frame.width - ladderW` - straight over the octagon. At 1440 the room
+     right of the octagon is 63px against a 159px ladder, so it is ALREADY
+     pulled back. Every pixel of extra width is another pixel of octagon
+     covered. So the ladder goes to TWO COLUMNS instead of one, which buys the
+     emblems their size out of the height, where there is room, rather than out
+     of the octagon, where there is not.
+
+     HEIGHT HAS ROOM, WITH A CEILING. The frame is 644 tall and the JS shrinks
+     anything taller (floor 0.85). Four rows of tile stay under that with
+     margin to spare, so nothing is scaled and no type is shrunk - the function
+     is explicit that shrinking type is the Owner's call, not an agent's. */
+  .arena-rank-spine__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.3rem;
+    width: 9.4rem;
+  }
+  .page--arena .arena-rank-spine__step b {
+    display: block;
+    font-size: 0.52rem;
+    line-height: 1;
+  }
+}
+
+/* ============================================================================
+ * THE RANK LADDER LEAVES THE OCTAGON AND BECOMES A STRIP UNDER IT.
+ * Owner, 2026-08-24: "сделай красивой полосой под ареной - как обьяснение
+ * что за кольца и что значят".
+ *
+ * WHY A NEW GRID ROW IS SAFE FOR THE OCTAGON, measured before writing this
+ * rather than reasoned from the stylesheet - which would have got it wrong.
+ * The rule that decides the floor cell's height is NOT the desktop one at
+ * :7678 (min-height: min(70vh,760px); align-self: stretch). It is an
+ * unconditional rule further down, at :7864:
+ *
+ *     .arena-command-deck__floor {
+ *       align-self: start !important;
+ *       aspect-ratio: 1 / 0.82;
+ *       min-height: 0 !important;
+ *       max-height: min(78vh, 820px);
+ *     }
+ *
+ * It beats the desktop rule twice over - once by !important, once by source
+ * order. So the floor's height is its own WIDTH times 0.82, and align-self:
+ * start means the cell deliberately does not stretch to its grid row. A new
+ * full-width row below therefore cannot compress it: the only thing that
+ * could is a change to the middle COLUMN's width, and a row does not touch
+ * that. Verified by measurement either side of this change, not assumed.
+ * ========================================================================== */
+
+/* Off by default, for the phone alone. The phone is GreenBear's and already
+   carries the ranks in .arena-mobile-scene, so it keeps the strip off.
+   EVERYTHING ABOVE 640px NOW TURNS IT ON - amended 2026-08-31 on the Owner's
+   order. This said "only the desktop turns this on", and the sentence was the
+   defect: it left 641-900px with no rank strip and therefore still wearing the
+   overlay ladder the strip had replaced, which is the "old CSS" he photographed
+   at 800px. Every rule in this block names .arena-rank-strip and nothing else,
+   so widening the gate reaches no other component. */
+.arena-rank-strip { display: none; }
+
+@media (min-width: 641px) {
+  .arena-rank-strip {
+    display: block;
+    grid-area: ranks;
+    width: 100%;
+    padding: 0.85rem 1.1rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 0.5rem 1.4rem color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+
+  /* ---- 3. THE HEADING --------------------------------------------------
+     One line saying what the strip IS, one saying how to read it. The lead
+     is the whole point of the card: without it the numbers are decoration,
+     with it they are a map of the floor. */
+  .arena-rank-strip__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    text-align: center;
+  }
+  .arena-rank-strip__head .arena-panel__kicker { margin: 0; }
+  .arena-rank-strip__lead {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  /* ---- 4. THE STRIP ITSELF ---------------------------------------------
+     Nine items - eight ranks and the spectators - laid as equal columns so
+     the row reads as one ramp rather than nine pills of different widths.
+     The legend's own base rule makes each item a rounded pill in a nowrap
+     flex row; here it becomes a grid of tiles instead, which is what lets
+     the emblem sit above its label. */
+  .arena-rank-strip .arena-legend {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: visible;
+  }
+  .arena-rank-strip .arena-legend__item {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.22rem;
+    min-width: 0;
+    padding: 0.45rem 0.3rem 0.5rem;
+    border-radius: 0.7rem;
+    text-align: center;
+  }
+  .arena-rank-strip .arena-legend__emblem {
+    display: block;
+    width: 100%;
+    max-width: 3.1rem;
+    height: auto;
+    aspect-ratio: 11 / 18;
+    object-fit: contain;
+  }
+  /* The swatch is the load-bearing part of the explanation: it is the ring's
+     OWN colour, the same --arena-rank-N the floor paints that ring with, so
+     the eye can carry a colour from this strip to a ring on the octagon.
+     Bigger than the legend's original 10px dot, because here it is doing
+     that job rather than decorating a pill. */
+  .arena-rank-strip .arena-legend__swatch {
+    width: 100%;
+    height: 0.3rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+  .arena-rank-strip .arena-legend__label {
+    font-size: 0.55rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .arena-rank-strip .arena-legend__count {
+    font-size: 0.62rem;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Culinary Master keeps the warmer ground it has everywhere else on this
+     page - and not a larger tile, for the reason the phone learned in
+     v2.5.1210: the gold is already the emphasis, and a second one reads as
+     an uneven row rather than an important rank. */
+  .arena-rank-strip .arena-legend__item--culinary_master {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
+  }
+}
+
+/* The tablet band keeps the overlay ladder and therefore has no strip, but the
+   grid template must still name the row or the section would be auto-placed
+   into a cell that belongs to something else. Simplest correct answer: the
+   strip stays display:none there, so it is never placed at all. */
+
+/* ============================================================================
+ * THE WIDGET BAND TAKES THE SPACE UNDER THE OCTAGON. Owner, 2026-08-25:
+ * "цель была их перенести вниз вот в то место которое обведено синим кругом".
+ *
+ * WHY FILLING IT COSTS THE ARENA NOTHING, measured before this was written
+ * rather than argued from the stylesheet. At 1440 the floor cell is
+ * 712.81x584.5 while the row it sits in is 888.4 tall, because the LEFT rail
+ * is taller than the floor and the floor does not stretch to its row - the
+ * unconditional rule further up this file pins it with align-self:start
+ * !important and aspect-ratio 1/0.82. So 303.9px of the floor's own cell were
+ * simply empty, which is exactly the band he circled.
+ *
+ * The band therefore takes a ROW of its own under the floor rather than a
+ * place inside the floor cell. A row cannot change the middle COLUMN's width,
+ * and that width is the only input to the floor's height, so the octagon can
+ * neither move nor resize.
+ *
+ * OWNER, 2026-08-26 - THE CHAT NO LONGER SPANS THAT SECOND ROW. It used to:
+ * `right` sat in both rows and, being align-self:stretch, simply became
+ * taller. What that produced on his tablet was a painted chat panel running
+ * some 500px below its own composer, an empty white box beside the widgets -
+ * he photographed it, drew the boundary and crossed the remainder out:
+ * "окно чата должно заканчиваться там где заканчивается окно арены".
+ *
+ * So `right` is now in the floor row only and the dock row's third cell is
+ * `.` - deliberately empty rather than handed to the dock. The LEFT column
+ * has always ended at the Arena Guide and left plain background beneath it,
+ * and he has never objected to that; what he objected to was a PANEL with
+ * nothing in it. Widening the dock into the freed cell would have been a
+ * layout change he did not ask for, so the space is simply background now,
+ * exactly as it already is on the left.
+ * ========================================================================== */
+@media (min-width: 641px) {
+  .arena-command-dock {
+    grid-area: dock;
+    /* THREE, OR ONE - NEVER TWO AND A STRAY. Owner, 2026-08-31: the third
+       block has slid down. auto-fit did exactly what it promises and it
+       looked wrong doing it - at 650px it laid two tracks, so two cards sat
+       in a row and the third dropped onto a line of its own with half that
+       line empty. Wrapping three items always makes that shape, at every
+       width where two fit and three do not.
+
+       So the count is three again, and the DOCK'S OWN WIDTH decides when
+       three stop fitting: a container query, not a viewport one, so it
+       answers to the room the cards actually have rather than to the size of
+       the screen. The query is below, beside the cards it moves. */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    container-type: inline-size;
+    gap: 0.9rem;
+    /* Three cards of one height, because he asked for them to sit evenly and
+       three different heights in one row is what "not evenly" looks like.
+       Measured with align-items:start, the row read 313 / 158 / 164. */
+    align-items: stretch;
+    width: 100%;
+  }
+  .arena-command-dock .arena-dock-card--gifts .arena-dock-card__panel,
+  .arena-command-dock .arena-dock-card--pulse .arena-dock-card__panel {
+    flex: 1 1 auto;
+  }
+
+  /* AND HERE IS WHERE THREE BECOMES ONE. 470px is three cards of 150 plus
+     their gaps - the width below which a third column has nothing left to
+     hold. Every card then spans the whole row and they stack, each as wide as
+     the dock, instead of two sitting together and one hanging under them.
+     Measured at 1440 after: 235/235/235 in one row, unchanged. */
+  @container (max-width: 470px) {
+    .arena-command-dock .arena-dock-card { grid-column: 1 / -1; }
+  }
+
+  /* ARENA COMMAND, in a third of the width instead of a whole column: two
+     tiles per row rather than the four the full-width footer drawer used. */
+  .arena-command-dock .arena-command-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  /* ARENA PULSE. Its desktop rules were written for a 280px rail, where four
+     stacked rows and a clamp(1.35rem,2vw,1.7rem) numeral fit; a third of the
+     band is narrower and twice as short, so the four metrics pair up 2x2 and
+     the numeral comes down with them. The panel's own title is un-hidden here
+     - the left rail suppressed it (it had the rail's heading above), and this
+     card needs it because the heading carries the collapse control. */
+  .arena-command-dock .arena-dock-card--pulse .arena-dock-card__panel {
+    display: grid;
+    /* Same reasoning one level down: two metrics side by side need room for
+       their labels. Below 110px of card the pair becomes a single column
+       instead of two 38px slivers. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 110px), 1fr));
+    gap: 0;
+  }
+  .arena-command-dock .arena-command-deck__metrics .arena-metric {
+    min-height: 2.6rem;
+  }
+  .arena-command-dock .arena-command-deck__metrics .arena-metric strong {
+    font-size: clamp(1.05rem, 1.4vw, 1.35rem);
+  }
+
+  /* BATTLE GIFTS keeps its list and its button; only the illustration goes,
+     because at a third of the width it was taking the room the rows need and
+     the card already says what it is twice - in its heading and in every row
+     it prints. */
+  .arena-command-dock .arena-gift-illustration { display: none; }
+}
+
+/* ============================================================================
+ * THE LIFECYCLE PILLS CENTRE THEIR CONTENTS. Owner, 2026-08-25: "всё внутри
+ * пилюль должно быть по центру".
+ *
+ * WHY THEY WERE NOT ALREADY, which took a measurement rather than a read.
+ * Three separate rules already ask for it - :524, :3094 and :5470 declare
+ * justify-content: center and a 0.34rem gap on this element - and not one of
+ * them could ever have applied, because the pill's computed display is BLOCK.
+ * No rule sets that: the rail is a grid, the pill is a <span>, and a grid item
+ * is blockified. justify-content and gap mean nothing on a block box, so the
+ * icon and the label were laid out as inline flow and sat where inline flow
+ * puts them - measured at 1440: 7.1px of space on the left of every pill and
+ * between 99.8 and 121.2px on the right.
+ *
+ * So the fix is the one declaration all three of those rules assumed and none
+ * of them wrote. Desktop only, per the split with GreenBear: the phone has its
+ * own composition for this rail below 768px (emoji medallions, the label
+ * hidden unless the step is current) and nothing here can reach it.
+ * ========================================================================== */
+@media (min-width: 641px) {
+  .arena-broadcast-ribbon .arena-phase-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+/* ============================================================================
+ * THE EMPTY BOARD READS AS ONE CENTRED SENTENCE. Owner, 2026-08-25: "строка с
+ * таймером тоже должна быть по центру".
+ *
+ * ONLY WHEN IT IS EMPTY, and that is his ruling rather than a shortcut. When
+ * there ARE battles the list is not a list, it is a TRACK: arena_deck.js
+ * spends `container.clientWidth` out as distance, so a pill's distance from
+ * the label IS the time until it starts (T21, Owner 2026-08-15). Centring
+ * that row means sizing the list to its content, which takes the available
+ * width to zero and stacks every pill against the label - the mechanic dies
+ * to make the row look tidy. Told this, he chose to centre the empty line
+ * alone.
+ *
+ * :has() picks the empty state out with no JavaScript and no class to keep in
+ * sync - the empty <li> is written by the template AND by refreshUpcoming(),
+ * and a class would have had to be added in both places and removed in two
+ * more. The sheet already uses :has() in eight other files.
+ * ========================================================================== */
+@media (min-width: 641px) {
+  /* AND THE ROW KEEPS THE CLOCK'S PLACE WHILE THE CLOCK IS AWAY. The ribbon
+     sits DIRECTLY above the arena, so anything that changes its height moves
+     the arena - and a clock that appears the moment a battle is scheduled
+     would have done exactly that, live, under whoever was watching. Measured:
+     the row is 30.06px with the chip and 22.89px without, so the floor jumped
+     7.17px every time the board went from empty to occupied.
+
+     The chip keeps its box and loses its ink. `visibility: hidden` also takes
+     it out of the accessibility tree, so a screen reader is not read a clock
+     that is not there, and the `hidden` attribute stays exactly what it was -
+     the state the script writes. No reserved magic number: the space is the
+     element's own. */
+  /* THE EMPTY LINE CENTRES ON THE PANEL, NOT ON WHAT THE CLOCK LEAVES OVER.
+     The four-column shape is the phone's, proven there since v2.5.1231 and
+     for the same reason: the two minmax(0,1fr) rails are equal by definition,
+     so the label+list pair lands on the panel's own centre whether the clock
+     is present, absent or invisible. A flex row with justify-content:center
+     cannot do that - it centres the whole group INCLUDING the clock, which
+     measured 602.1px of space on one side against 533.8 on the other. */
+  .arena-next-board:has(.arena-next-board__empty) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .arena-next-board:has(.arena-next-board__empty) > .arena-phase-refresh {
+    grid-column: 1;
+    justify-self: start;
+  }
+  .arena-next-board:has(.arena-next-board__empty) > .arena-next-board__label {
+    grid-column: 2;
+    justify-self: end;
+  }
+  .arena-next-board:has(.arena-next-board__empty) > .arena-next-board__list {
+    grid-column: 3;
+    justify-self: start;
+    flex: 0 1 auto;
+    justify-content: center;
+  }
+}
+
+/* Everywhere else the clock is simply not there when it is off. The desktop
+   rule above keeps its seat instead, for the ribbon-height reason stated with
+   it; below 901px the rail is a different composition and nothing above the
+   arena depends on this row's height. */
+.arena-phase-refresh[data-clock="off"] { display: none; }
+
+/* THE CLOCK KEEPS ITS SEAT WHILE IT IS AWAY, from the tablet up. Both of
+   these ranges put the ribbon DIRECTLY above the arena, so the row's height
+   is the arena's position, and a clock that appears the moment a battle is
+   scheduled would move the arena live under whoever was reading. Measured
+   without the seat: the desktop floor rose 7.17px and the tablet floor rose
+   the same 7.17px the instant the clock went away.
+
+   `display: block` is what the chip computes to when it is ON, so the seat it
+   keeps is exactly the seat it will take rather than an approximation of one,
+   and `visibility: hidden` takes it out of the accessibility tree so nobody
+   is read a clock that is not there. Below 641px the rail is the phone's own
+   composition, its row height is set by the label rather than by this chip,
+   and the chip simply goes - measured there too: zero difference. */
+@media (min-width: 641px) {
+  .arena-next-board > .arena-phase-refresh[data-clock="off"] {
+    display: block;
+    visibility: hidden;
+  }
+}
+.arena-chat .arena-chat__card-shot b {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Desktop text bump for the six card sub-elements whose specificity ties
+   with the block above - see the note at the container-query site
+   (:2301) for why this can't live there. */
+@media (min-width: 641px) {
+  .arena-chat .arena-chat__card-chef,
+  .arena-chat .arena-chat__card-shot b { font-size: .8rem; }
+}
+.arena-chat__gif-tile {
+  display: block;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+  border-radius: 0.3rem;
+  background: transparent;
+  overflow: hidden;
+  cursor: pointer;
+}
+.arena-chat__gif-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.arena-chat .arena-chat__gif-upload {
+  width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+  border-radius: 0.35rem;
+  background: transparent;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-bronze-dark);
+  cursor: pointer;
+}
+.arena-chat__viewer-report {
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.arena-chat__viewer-nav,
+.arena-chat__viewer-close {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, #f4ece0 14%, transparent);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #f4ece0;
+  cursor: pointer;
+}
+/* Disabled rather than hidden, so the frame does not jump sideways as the
+   reader walks to either end of the conversation. */
+.arena-chat__viewer-nav[disabled] { opacity: 0.25; cursor: default; }
+.arena-chat__viewer-nav--prev { left: 0.5rem; top: 50%; transform: translateY(-50%); }
+.arena-chat__viewer-nav--next { right: 0.5rem; top: 50%; transform: translateY(-50%); }
+.arena-chat__viewer-close { right: 0.5rem; top: 0.5rem; font-size: 1.8rem; }
+button.arena-chat__poll-option:hover {
+  border-color: color-mix(in srgb, var(--accent-bronze) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+}

@@ -1,0 +1,938 @@
+/* ARENA SHEET 08/12 - arena_command_bar.css
+   The command bar: the two plates, the light on them, the stack and its type.
+
+   ONE OF TWELVE. arena.css was 13,958 lines behind a single <link>; the
+   Owner asked on 2026-09-05 for sub-files, the chat in a file of its own,
+   each loaded separately and each with a guard. He lifted his own two-sheet
+   freeze of 2026-08-09 to allow it, and gave the reason: that rule was
+   written when the seven files were useless, and splitting now buys code
+   quality and load speed.
+
+   THE ORDER OF THE TWELVE LINKS IS THE CASCADE. This cut moved NOTHING -
+   every boundary was already at brace depth zero - so the twelve bodies
+   joined in order are byte-identical to the file that stood before, which
+   is what proves no rule changed its winner. arena.html and
+   arena_master_console.html both load all twelve in this numbered order,
+   and EveryArenaSheetHasItsOwnGuardTests fails if a sheet drifts.
+   SPLIT-HEADER-END */
+/* ============================================================================
+ * THE ARENA COMMAND BAR. Owner, 2026-08-31: the two actions were to stop
+ * being random floating pills and become one deliberate control bar above
+ * the octagon - [ENTER ARENA] - [THE KITCHEN FLOOR] - [ISSUE A CHALLENGE].
+ *
+ * REBUILT AS ARTWORK, 2026-09-02, against static/images/overlay_mockup.png,
+ * which the Owner set as the sole authority for this component. What was here
+ * before was a generic CSS component wearing the mockup's words: a rounded
+ * rectangle, one 1px border, a plain connector, no bracket and no gem. The
+ * mockup is a cast plate - a lit moulding, a seat, an engraved line, a corner
+ * catchlight, a glass medallion, spear emblems, riveted thread nodes, a
+ * faceted gem - and it is reconstructed here rather than approximated.
+ *
+ * WHERE THE DECORATION LIVES NOW:
+ *   the plate's frame  static/images/arena/command-plate-{graphite,ivory}.svg,
+ *                      applied as a 9-slice - the caps carry the chamfer and
+ *                      the bevel, only the straight runs stretch
+ *   everything else    <symbol>s in _arena_deck_svg.html: the medallion and its
+ *                      emblem, the thread's stud and eyelet, the bracket's
+ *                      mitre and its gem
+ * CSS is left with layout, type and state. Two things stay CSS deliberately:
+ * the thread's and the bracket's 1px horizontal rules, because a straight line
+ * is not artwork and an SVG for it only adds a second scaling mechanism.
+ *
+ * EVERY LENGTH IS rem AT 1rem = 15px, which is what :root:has(.page--arena)
+ * resolves to at the mockup's own 1273px width. At that width the bar renders
+ * the mockup pixel for pixel; everywhere else it scales with the rest of the
+ * deck instead of standing still while the page around it grows.
+ * ========================================================================== */
+.arena-command-bar-shell {
+  /* THE COMPONENT'S OWN TOKENS, scoped here so nothing leaks into the deck.
+     The geometry is in PIXELS and the type in rem, and that split is the whole
+     of the reasoning: the frame is an artwork of one- and two-pixel bands and
+     blurs the moment its height lands on a fraction, while the writing has to
+     go on scaling with the rest of the deck. 1rem resolves to 15px at the
+     mockup's own 1273px width, which is what every rem below is set against.
+
+     Every type value is measured: each string was matched against
+     overlay_mockup.png across a sweep of size and tracking, scoring the ink
+     pixel for pixel, and the winner is the project's own pair of families -
+     Playfair Display for the serif, Inter for the sans. Cap height alone could
+     not decide it: on a seven-pixel line antialiasing is worth a whole pixel,
+     which is fourteen per cent of the size. */
+  --cmd-plate-h: 51px;      /* never a rem - see above */
+  --cmd-frame-y: 6px;       /* the frame's real thickness, top and foot */
+  --cmd-frame-x: 6px;       /* and at the ends */
+  --cmd-cap: 18px;          /* the 9-slice's corner; the border matches it */
+
+  /* 9.7px. It was 10.4, and that is the error width-matching hides: the label
+     came out the mockup's 72px wide while its CAPITALS were 8px tall against
+     the mockup's 7 - a bigger face crammed together, which reads as one solid
+     block with no word gap. Cap height pins the size, tracking then pins the
+     width; in that order and never the other way. */
+  --cmd-label-size: 10.4px;
+  --cmd-sub-size: 7px;
+  --cmd-eyebrow-size: 6.25px;
+  --cmd-title-size: 13px;
+  --cmd-note-size: 6.25px;
+
+  --cmd-ink-on-dark: #f4ead8;
+  --cmd-ink-on-dark-soft: #d9cdb9;
+  --cmd-ink-on-light: #3a2d22;
+  --cmd-ink-on-light-soft: #7d7264;
+  --cmd-eyebrow-ink: #6c4f37;
+  --cmd-title-ink: #101011;
+  --cmd-note-ink: #6f6a63;
+  --cmd-thread-line: #cdb291;
+  /* The bracket's rule is NOT the thread's: (209,187,160) against the
+     thread's (205,178,145). Gold at four tenths gave (213,183,144) -
+     right value, wrong hue, sixteen units too warm in the blue. */
+  --cmd-brk-line: #d1bba0;
+
+  /* The light layer's four numbers, swept against the reference rather than
+     chosen: see .arena-command-bar__action::after. */
+  /* Swept against the reference, not chosen: ops/scratch/command_bar/build_sweep.py
+     renders every candidate as its own copy of the band and scores the frame
+     rows separately from the plate, because the frame is where the light lives
+     and is outvoted by the face when the whole plate is scored at once. Against
+     a no-light control the frame goes 95.03% -> 95.46%. The plate as a whole
+     gives up 0.3 of a point, all of it the face darkening by four units under
+     the outer 28% - inside the variation the reference's own face already has,
+     and the trade that buys a cast plate instead of a flat one. */
+  /* TECHNICAL_STANDARDS section 7: colours derived from the approved mockup are
+     named tokens, not literals in a gradient. These three are the light itself -
+     the glint's white, and the two ends of the falloff, which are multipliers
+     rather than pigments: (0.91,0.86,0.76) is what the reference does to the
+     moulding between its middle and its left end. */     /* measured (205,178,145) */
+
+  grid-area: cmdbar;
+  /* THE BAR HAS TO OUTRANK THE FLOOR, or its two links cannot be clicked. The
+     floor's .arena-floor-stage is z-index 2, and its .arena-render-container is
+     absolutely positioned inside it with a 1.46 scale that lifts the top of
+     that box to y401 - five pixels above the bar's own top - so it lies over
+     both plates. It paints nothing there, so the bar still LOOKED right while
+     every click landed on the render container instead of the anchor.
+     elementFromPoint at either plate's centre returned .arena-render-container
+     until this line existed. */
+  position: relative;
+  z-index: var(--arena-z-command-bar);
+  container-type: inline-size;
+  container-name: arena-command-area;
+  /* Against intrinsic-width overflow inside the deck's grid: a grid item's
+     automatic minimum size is its CONTENT's, and three panels of text would
+     otherwise be allowed to push the column wider than its track. */
+  width: 100%;
+  min-width: 0;
+}
+
+/* Three columns, so the caption holds the centre of the bar whatever the two
+   plates measure - which is what the mockup does: it pins the plates by their
+   OUTER edges, 220 and 1017 about a centre of 618, and centres the writing
+   between them at 617. The plates are different widths there (209 and 208)
+   because each sizes to its own text, and they must go on being allowed to. */
+.arena-command-bar {
+  min-width: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  /* A FIXED COMPOSITION, IN THE MOCKUP'S OWN PIXELS. It was 53.5rem, so the bar
+     grew with the root font while the plate's artwork stayed pinned at 51px:
+     the writing, the plates' widths and the connector all moved against a frame
+     that could not move with them, and the ornament had to be stretched
+     non-uniformly to keep up - which turned its junction rings into ellipses.
+     798 is the span the mockup gives between the plates' outer edges. Below it
+     the container query stacks, so nothing overflows. */
+  inline-size: 798px;
+  max-inline-size: 100%;
+  margin-inline: auto;
+  padding-inline: 0;
+}
+.arena-command-bar__side { display: flex; align-items: center; min-width: 0;
+                           position: relative; z-index: var(--arena-z-command-bar-face); }
+.arena-command-bar__side--l { justify-content: flex-start; }
+.arena-command-bar__side--r { justify-content: flex-end; }
+
+/* THE ORNAMENT IS ONE SVG BEHIND THE ROW. It spans the bar's own box, so every
+   junction in it is a shared coordinate rather than two DOM elements meeting by
+   arithmetic. It sits at z-index 0 and everything written sits above it. The
+   bar is already positioned where it is declared, above. */
+.arena-command-bar__ornament {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 60px;
+  width: 798px;
+  overflow: visible;
+  pointer-events: none;
+  z-index: var(--arena-z-command-bar-art);
+}
+
+/* THE THREE ARE PLACED BY HAND, and this is not belt-and-braces. The caption
+   has carried `grid-area: 3 / 1` since it was written, from the years it was a
+   child of the floor, and it brings that placement with it: leave it implicit
+   and it drops into row two under the plates, which is exactly what it did the
+   first time this bar was built and again the first time it was rebuilt.
+   Naming all three costs nothing and stops any inherited placement doing it. */
+.arena-command-bar__side--l { grid-column: 1; grid-row: 1; }
+.arena-command-bar .arena-floor-caption { grid-column: 2; grid-row: 1; }
+.arena-command-bar__side--r { grid-column: 3; grid-row: 1; }
+
+/* ---------------------------------------------------------------- the plate */
+/* The border is the frame's real thickness, so the content box lands where the
+   artwork's face begins. border-image-width is deliberately larger than it:
+   the 18px cap draws on into the padding box, which is where the chamfer is. */
+.arena-command-bar__action {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  /* THE PLATE'S OWN GEOMETRY IS IN PIXELS, and only its geometry. The frame is
+     an artwork of one- and two-pixel bands; put its height on a rem that
+     resolves to 50.9 at one width and 51.2 at another and one edge of the
+     moulding lands on a half pixel and blurs. Fifty-one is the mockup's, it
+     holds the medallion at every root size the arena uses (22px at 641,
+     32px at 1440), and the type inside it goes on scaling. */
+  height: var(--cmd-plate-h);
+  /* The Owner's touch floor, and it is the floor on every screen rather than
+     a phone-only rule - a 44px target is not worse on a desktop. */
+  min-height: 44px;
+  border-style: solid;
+  border-color: transparent;
+  /* THE BORDER MUST EQUAL THE SLICE. border-image-slice's `fill` paints the
+     middle over the PADDING box, which begins at border-width - so a 6px
+     border with a 16px cap let the face cover ten of the sixteen pixels of
+     frame at every end, and the plate lost its moulding there entirely. */
+  border-width: var(--cmd-cap);
+  border-image-slice: 18 fill;
+  border-image-width: var(--cmd-cap);
+  border-image-repeat: stretch;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+  /* NO CAST SHADOW, because the reference has none. Walk down from either
+     plate's foot on the mockup and the floor goes -4, 0, +3, +5, +6, +8, +9:
+     it gets LIGHTER, which is the deck's own vignette and not a shadow at all.
+     A drop-shadow was putting -25, -12, -3 there - a shadow invented to make a
+     flat rectangle look raised, and this plate is not raised, it is set into
+     the floor. The isolation replaces what the filter was also doing for free,
+     which is giving ::after's multiply a stacking context of its own so it
+     blends with the plate and not with the deck behind it. */
+  isolation: isolate;
+  transition: filter 160ms ease;
+}
+.arena-command-bar__action--enter {
+  border-image-source: url("../images/arena/plate-graphite.svg");
+  /* c3 of command-plate-graphite.svg: 5,6 to 55,45, cut 10.2 */
+  /* the right-hand room is what sets this plate's width: 17 + medallion +
+     gap + its widest line + this = the reference's 209. It read 207.6, and the
+     shortfall showed at the end of the plate rather than in the middle - the
+     five bands of the end frame all sat two pixels inboard of the reference's. */
+  /* the mockup's plate is 212px wide, measured by edge detection in
+     ops/scratch/cb2/p1_silhouette.py; this padding is what makes it so */
+  /* the mockup: plate 212 wide, medallion inset 24, writing at 70 */
+  inline-size: 212px;
+  padding-inline: 6px 0;
+  gap: 11px;
+}
+.arena-command-bar__action--challenge {
+  border-image-source: url("../images/arena/plate-ivory.svg");
+  /* c3 of command-plate-ivory.svg: 5,5 to 55,45, cut 9.8 */
+  /* the mockup's is 214 */
+  /* the mockup: plate 214 wide, medallion inset 19, writing at 67 */
+  inline-size: 214px;
+  padding-inline: 1px 0;
+  gap: 13px;
+}
+
+/* Registered so the glint can be interpolated: an unregistered custom property
+   is a token to the animation engine, so the hover would snap rather than rise. */
+
+/* ============================================================================
+ * THE LIGHT ON THE PLATE - the one thing the 9-slice cannot hold.
+ *
+ * A 9-slice stretches its middle column, so every band the artwork carries is
+ * ONE value from the left cap to the right one. The reference is not lit that
+ * way. Read the foot line across the graphite plate and it answers (145,124,94)
+ * near the end, (194,179,157) in the middle, (169,150,127) near the other end;
+ * the top moulding's highlight runs 210 - 248 - 232; the engraved line runs
+ * (170,159,149) under the corner glint, (82,74,60) in the middle. Painting each
+ * of those flat is exactly what made the plate read as a CSS rectangle with a
+ * gold border rather than as a cast plate under a light.
+ *
+ * So the artwork now carries the MIDDLE value of every band - the material -
+ * and this layer carries the LIGHT, which is the only part that has to know how
+ * wide the plate is. Two gradients, no blend mode:
+ *   - a corner glint at the top left, elliptical because the reference's is:
+ *     it lifts the moulding and the engraved line for some 70px and is spent
+ *     by the time it reaches the face;
+ *   - a falloff at both ends, stronger at the left, which is the reference's
+ *     own bias on both plates.
+ *
+ * It has to cover the BORDER, because the moulding and the engraved line live
+ * there - hence the negative inset, which is what makes it the border box
+ * rather than the padding box an absolutely positioned child would get. The
+ * chamfer is clipped back to the silhouette's own 13, so nothing squares off
+ * the corners.
+ * ========================================================================== */
+/* NO LIGHT LAYER, AND NO RING CLIP. Both existed to put lighting on a frame
+   that was drawn; the frame is now a slice of the mockup and already carries
+   its own light. Left on, they painted a multiply wedge across each chamfer -
+   which is why the corners read as big diagonal slabs instead of the mockup's
+   small clean cuts - and their clip contours, written for the old artwork's
+   own inner octagon, no longer matched anything. */
+/* The light belongs to the plate, not to what is written on it. Both of these
+   are positioned, so without a layer of their own the ::after would paint over
+   them and shade the medallion along with the moulding it sits next to. */
+.arena-command-bar__medallion,
+.arena-command-bar__text { z-index: var(--arena-z-command-bar-face); }
+.arena-command-bar__text { position: relative; }
+/* HOVER MOVES THE LIGHT, NOT THE PLATE. A two-pixel lift with a deeper shadow
+   is the web's default gesture and it is the wrong one twice over: nothing else
+   in the arena uses it - .arena-live-centre and .arena-rank-spine__step both
+   answer with a change of material, never of position - and a plate seated in a
+   floor has nowhere to rise to. So the plate turns toward the light instead:
+   the corner glint comes up, and that is the whole of it. It uses the artwork's
+   own lighting variables rather than adding a second effect on top of them.
+
+   Both of them, not just the glint: with the glint alone the hover moved
+   ninety-five pixels in one corner - measurably true to the lighting model and
+   far too quiet to read as an answer on a control this size. Pulling the
+   falloff back as well lifts the whole frame, both ends, which is what a plate
+   turning toward a light actually does. */
+.arena-command-bar__action:hover,
+.arena-command-bar__action:focus-visible {
+  /* The plate is a slice of the mockup, so hover cannot move its light any
+     more; it brightens the whole plate instead, which is still a change of
+     material rather than of position - the Arena's own idiom. */
+  filter: brightness(1.06);
+}
+.arena-command-bar__action:focus-visible {
+  outline: 2px solid var(--arena-gold);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-command-bar__action { transition: none; }
+}
+
+.arena-command-bar__medallion {
+  /* CONSTRUCTED, not a slice of the mockup: #ad-plate-medal-dark / -light in
+     templates/chef_battle/_arena_deck_svg.html. Thirty-nine pixels, which is
+     what the reference measures.
+
+     THIRTY-NINE IS THE SIZE, AND THE OWNER CHOSE IT KNOWING THE HISTORY.
+     A stale second copy of this rule survived the reconstruction thirty lines
+     further down and, being later, won, so the medallion had been rendering at
+     39px / 0.0667rem while this block claimed 32px / 4px - the size the
+     reconstruction had derived. v2.5.1765 deleted the duplicate and kept what
+     was really on the screen. Asked on 2026-09-05 which of the two to keep, he
+     kept 39px: it is the bar he accepted. The 32px figure is history now and
+     is not a target. */
+  position: relative;
+  z-index: var(--arena-z-command-bar-face);
+  /* the reference's disc is centred a little below the plate's own middle */
+  top: 0.0667rem;
+  flex: 0 0 auto;
+  width: 39px;
+  height: 39px;
+}
+.arena-command-bar__text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 1px;
+  text-align: center;
+  min-width: 0;
+}
+.arena-command-bar__label {
+  font-family: var(--font-serif);
+  /* 600 AND 10.75px, identified by ink rather than by width: every candidate
+     family and weight was rendered over a sweep of size and tracking and scored
+     against the mockup's own pixels, with the constraint that ONE setting must
+     reproduce BOTH labels - which is what a single string can never test. 700 at
+     10.4 was second-best and 700 at 9.7, reached by reading cap height alone,
+     was worse than either. ops/scratch/cb4/font_id.html. */
+  /* PLAYFAIR 400 AT 10.4px, WITH 0.05em OF TRACKING AND 0.06em OF WORD SPACE.
+     Chosen by counting the INK GAPS, not by matching the width: the reference's
+     ENTER ARENA has seven gaps between letters and a four-pixel word space, and
+     every earlier setting reproduced its 72px width with two gaps - the letters
+     touching, which is what reads as ENTERARENA. This setting gives seven gaps,
+     73px and a four-pixel word space. ops/scratch/cb5/label_sweep.py. */
+  font-weight: 400;
+  font-size: var(--cmd-label-size);
+  line-height: 1;
+  letter-spacing: 0.035em;
+  word-spacing: 0.06em;
+  /* the markup says "Enter Arena"; the mockup shows ENTER ARENA, and the case
+     has lived in the stylesheet since this bar was first built */
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* ONE SIZE FOR BOTH LABELS. An earlier pass read them as differently sized -
+   71px of ENTER ARENA against 105px of the longer ISSUE A CHALLENGE - by
+   measuring widths without solving for tracking at the same time. Matched
+   properly they are the same 10.4px at zero tracking, and land at 71.6 and
+   104.6 against the mockup's 71 and 105. */
+.arena-command-bar__action--enter .arena-command-bar__label {
+  color: var(--cmd-ink-on-dark);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+}
+.arena-command-bar__action--challenge .arena-command-bar__label {
+  color: var(--cmd-ink-on-light);
+}
+/* The plate's second line is NOT small caps - that is what separates it from
+   the caption's bottom line, which is. */
+.arena-command-bar__sub {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: var(--cmd-sub-size);
+  line-height: 1.2;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+.arena-command-bar__action--enter .arena-command-bar__sub {
+  color: var(--cmd-ink-on-dark-soft);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+.arena-command-bar__action--challenge .arena-command-bar__sub {
+  color: var(--cmd-ink-on-light-soft);
+}
+
+/* ------------------------------------------------------- the centre node */
+/* THE CAPTION IS THE CENTRE NODE. These rules undo the absolute placement it
+   carried as a child of the floor - see the note at its own block further
+   down, which is left standing for the record - and let it sit in the bar as
+   an ordinary grid item. It is the same element; there is no second copy. */
+.arena-command-bar .arena-floor-caption {
+  /* relative, not static, because the bracket anchors to it - and therefore
+     `left` has to be neutralised by hand. The caption still carries the
+     `left: 50%` of the years it was absolutely centred on the floor, and under
+     `position: static` that was inert; under `relative` it shifts the whole
+     caption half a track to the right, which is exactly what it did. */
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  top: -1.5px;
+  translate: none;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding-inline: 26px;
+  text-align: center;
+  align-self: center;
+  pointer-events: auto;
+  z-index: var(--arena-z-command-bar-face);
+}
+/* The FIRST span, not every span: the bracket is a decorative last child of
+   the caption and must not inherit the eyebrow's case and tracking. */
+.arena-command-bar .arena-floor-caption > span:first-child {
+  display: block;
+  /* Inter 600, not 800: the project loads Inter at 400/500/600, so an 800 was
+     being synthesised into a faux bold that is not the reference's weight. */
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--cmd-eyebrow-size);
+  line-height: 1;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  color: var(--cmd-eyebrow-ink);
+}
+.arena-command-bar .arena-floor-caption strong {
+  display: block;
+  margin-top: 6px;
+  /* Playfair 600, not 500: the project loads Playfair at 400/600/700, and a
+     500 resolved to 400 - a lighter title than the reference's. */
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: var(--cmd-title-size);
+  line-height: 1;
+  /* 149px in the mockup against 145 set solid */
+  letter-spacing: 0.0197em;
+  color: var(--cmd-title-ink);
+  white-space: nowrap;
+}
+.arena-command-bar .arena-floor-caption em {
+  display: block;
+  /* Seven pixels of air under the title, not four: the reference sets the
+     title on y39..48 and the note on y56..60, and the tighter gap was pulling
+     the note up into the title's descenders. */
+  margin-top: 6px;
+  /* Wider than the title above it - 172px against 148 - which is the
+     reference's own hierarchy and not a mistake to be tidied. */
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 600;
+  font-size: var(--cmd-note-size);
+  line-height: 1;
+  letter-spacing: 0.019em;
+  text-transform: uppercase;
+  color: var(--cmd-note-ink);
+  white-space: nowrap;
+}
+
+/* ============================================================================
+ * THE STACK. One transition, and it is taken on the BAR's own width.
+ *
+ * The number is measured against THIS layout, not the one before it. The old
+ * 760 belonged to a bar whose plates were minmax() tracks; these size to their
+ * own writing, so the three columns survive much further down: at a root of
+ * 11.8px they need 165 + 164 of plate, 260 of caption and two threads at their
+ * 34px floor - 657 in all. Stacking at 680 keeps the thread, the bracket and
+ * the gem alive on a tablet, where the old number threw them away with room to
+ * spare.
+ * ========================================================================== */
+@container arena-command-area (max-width: 680px) {
+  .arena-command-bar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "caption"
+      "enter"
+      "challenge";
+    gap: clamp(0.4rem, 1.8cqi, 0.7rem);
+  }
+  /* Named areas place by NAME, never by source order - stated for all three
+     rather than left to the auto-placement that put the old action row in
+     the bottom-right corner of the deck for months. */
+  .arena-command-bar__side--l { grid-column: 1; grid-area: enter; }
+  .arena-command-bar .arena-floor-caption { grid-column: 1; grid-area: caption; }
+  .arena-command-bar__side--r { grid-column: 1; grid-area: challenge; }
+
+  /* Full width, and the writing leads: the caption is the title of the
+     section once the three are above one another. A plate at 100% is what a
+     9-slice frame is for - the caps hold and only the straight runs stretch. */
+  .arena-command-bar__side { justify-content: center; }
+  .arena-command-bar__action { flex: 1 1 auto; justify-content: center; }
+
+  /* THE TYPE STOPS SHRINKING HERE, and is held in px on purpose. Below the
+     stack this is no longer a dense band 1273px wide; it is a pair of
+     full-width controls on a phone. The reference's 10.4px label exists only
+     because the reference is dense, and the arena's root scale takes it to
+     7.6px at 390 - a plate 51px tall with 7.6px of writing in it reads as
+     empty. These sizes are the control's, not the band's. */
+  .arena-command-bar__label { font-size: 12px; }
+  .arena-command-bar__sub { font-size: 8.5px; }
+  .arena-command-bar__medallion { width: 26px; height: 26px; }
+  .arena-command-bar .arena-floor-caption > span:first-child { font-size: 8px; }
+  .arena-command-bar .arena-floor-caption strong {
+    font-size: 16px;
+    /* it may wrap now rather than run out of the shell - nowrap is what the
+       band needed, not what a phone needs */
+    white-space: normal;
+  }
+  .arena-command-bar .arena-floor-caption em { font-size: 8px; white-space: normal; }
+
+  /* THE THREAD AND THE BRACKET GO. They joined a row that no longer exists,
+     and a rule leaving the side of a stacked plate is a stray mark. The gem
+     stays - it reads as an ornament in either arrangement - but it comes back
+     into flow under the writing, because the bracket it was hanging from is
+     what positioned it. */
+  /* The ornament joins three columns to one another. Stacked, there is no
+     span for it to cross and a rule leaving the side of a full-width plate is
+     a stray mark, so the whole of it goes - as one element, which is the point
+     of it being one element. */
+  .arena-command-bar__ornament { display: none; }
+}
+
+/* ============================================================
+   THE TYPE SHRINKS WITH THE LAYOUT, which is the half that makes the rest
+   look deliberate instead of broken.
+
+   The columns above are a ratio, so at 800px the side panels are 183px - the
+   same 23% of the page they occupy at 1440. But 16px text inside a 183px panel
+   is not a smaller copy of the 1440 design, it is a damaged one: the phase name
+   wraps, the status card's badge collides with its own heading.
+
+   Every size in this stylesheet is in rem, so ONE declaration scales all of
+   them together. The slope is set to land on exactly 16px at 1440, so nothing
+   at or above the design width changes by a hundredth of a pixel; below it the
+   page shrinks as a whole rather than keeping 1440's type inside 800's boxes.
+
+   Scoped with :has() to the arena page alone - the rest of the site keeps its
+   own root size, because this is the arena's brief and not a sitewide change.
+   ============================================================ */
+@media (min-width: 641px) and (max-width: 1439px) {
+  :root:has(.page--arena) {
+    font-size: clamp(11px, calc(0.625vw + 7px), 16px);
+  }
+}
+
+@media (min-width: 641px) {
+}
+@media (max-width: 640px) {
+}
+/* The hall's authorised name, restored to the status card after the
+   introductory card that used to carry it was removed. Quiet by design - it
+   identifies the room, it is not a heading competing with ARENA STATUS. */
+.arena-command-deck__hall-name {
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+  font: 600 0.68rem/1.2 var(--font-serif, "Playfair Display", serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+@media (max-width: 767px) {
+}
+@media (max-width: 767px) {
+}
+/* 641, NOT 901, since 2026-08-31: the columns and the AREAS have to arrive
+   together. They did not - the columns moved to the single composition and
+   this block, which carries the area map, stayed at 901, so at 900px the deck
+   took the new three-column track list and the OLD base area map, and came out
+   as five tracks in one column. Measured that way before this line changed. */
+@media (min-width: 641px) {
+}
+/* Band block removed 2026-08-31: it described the old second
+   composition for 641-900px, which no longer exists - one grid now
+   runs from 641px up. The chat's own ceiling for this range is kept
+   where it is, because it bounds a scroller rather than placing a
+   layout, and a test reads it by name. */
+@media (min-width: 641px) {
+}
+@media (min-width: 768px) {
+}
+
+
+  .arena-floor-caption {
+    z-index: var(--arena-z-caption);
+  }
+  .arena-broadcast-ribbon {
+    z-index: var(--arena-z-ribbon);
+  }
+  .arena-compact-facts dt {
+    color: var(--accent-bronze-dark);
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .arena-compact-facts dd {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  @keyframes arena-live-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.85); }
+  }
+  .arena-panel__title .arena-ico,
+  .arena-panel__heading .arena-ico {
+    color: var(--accent-bronze);
+    filter: drop-shadow(0 0 0.35rem color-mix(in srgb, var(--accent-bronze) 45%, transparent));
+  }
+  .arena-command-deck__ladder .arena-ladder-row {
+    border-color: color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+
+@media (prefers-reduced-motion: reduce) {
+}
+
+/* 3G — floor stage inset frame (keeps SVG readable over atmosphere). */
+
+  .arena-floor-stage .arena-render-container {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 40%, transparent);
+    border-radius: 1.1rem;
+    background: color-mix(in srgb, var(--surface) 22%, transparent);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent),
+      0 0.8rem 1.8rem color-mix(in srgb, var(--ink) 24%, transparent);
+  }
+  .arena-floor-stage #arena-render {
+    filter: none;
+  }
+  .arena-confrontation-band .arena-live-centre span {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-lower-broadcast .arena-crowd-rail__actions {
+    gap: 0.45rem;
+  }
+  .arena-confrontation-band .arena-live-chef--challenger,
+  .arena-confrontation-band .arena-live-chef--opponent {
+    min-height: 5.35rem;
+  }
+
+/* 3G — gift/ladder list density (show panels, not admin lists). */
+
+  .arena-command-deck__ladder ul,
+  .arena-command-deck__gifts ul {
+    gap: 0.28rem;
+  }
+  .arena-command-deck__ladder li,
+  .arena-command-deck__gifts li {
+    padding: 0.28rem 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    border-radius: 0.45rem;
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+
+/* 3G — lower dock CTA weight + ticker bronze rule. */
+
+  .arena-lower-broadcast .arena-activity-ticker {
+    border-inline: 1px solid color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+    padding-inline: 0.55rem;
+  }
+  .arena-lower-broadcast .ce-nav__link--battle .chef-battle-cta__label {
+    letter-spacing: 0.04em;
+  }
+  .arena-lower-broadcast .btn-secondary {
+    min-height: 2.2rem;
+    border-color: color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+  }
+  .arena-floor-caption strong {
+    text-shadow:
+      0 1px 0 color-mix(in srgb, var(--surface) 75%, transparent),
+      0 0 1.1rem color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+  }
+
+/* 3G — spine step active sheen + quiet centre focus ring. */
+
+  .arena-confrontation-band .arena-live-centre--quiet,
+  .arena-confrontation-band .arena-live-centre--crown {
+    outline: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    outline-offset: 0.2rem;
+  }
+
+@media (prefers-reduced-motion: reduce) {
+}
+
+/* 3G — challenger/opponent rail edge glow (hex cards). */
+
+/* G2/G4 camera — docs/chef_battle/arena_mockup_spec.json
+   G1 proportions + only (no perspective — G4).
+   overflow:visible — overflow:hidden on a plan-sized box clipped the stands. */
+
+  .arena-floor-stage {
+    overflow: visible;
+    transform-style: preserve-3d;
+  }
+  .arena-floor-stage .arena-render-container,
+  .page--arena .arena-floor-stage .arena-render-container {
+    /* AN-R2/2, 2026-08-09: SIZE AND TRANSFORM REMOVED FROM HERE.
+       `height: auto; width: auto; transform: none; transform-style:
+       preserve-3d` sat at the same specificity as the camera viewport's
+       own block and LATER in the file, so the viewport's intrinsic side
+       resolved to zero and its placement transform never ran - measured,
+       before this was written: a 0x0 camera and an invisible octagon.
+       The viewport is sized and transformed in exactly one place. */
+    overflow: visible;
+    max-width: none;
+    filter: none;
+  }
+  .arena-floor-stage #arena-render,
+  .page--arena .arena-floor-stage #arena-render {
+    /* AN-R2: camera removed - see the single declaration for
+       `.page--arena #arena-render`. This copy had no rotateX and never
+       applied. */
+    filter: none;
+  }
+  /* Decorative parchment plate tracks the floor and shares the camera tilt. */
+  .arena-floor-stage::before {
+    transform-origin: 50% 50%;
+    transform: translate(-50%, -50%);
+  }
+  /* The outer stands are the DARK crowd bowl wrapping the lit floor (reference:
+     "the dark IS the crowd"). This is the winning rule for empty spectator seats
+     (.page--arena raised its specificity above the renderer sheet back when that
+     was a separate file; both live here since AN12), so the bowl's
+     darkness is set here: ink-dominant, with the bronze seam keeping the rings
+     distinct so it reads as a packed crowd, not mud. */
+  .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="spectator"] {
+    stroke-width: 1;
+  }
+  .page--arena #arena-render .arena-cell {
+    stroke-width: 1.2;
+  }
+  .page--arena #arena-render [data-ring="1"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="2"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="3"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="4"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="5"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="6"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="7"][data-occupancy="empty"],
+  .page--arena #arena-render [data-ring="8"][data-occupancy="empty"] {
+    stroke: var(--arena-seam);
+    stroke-width: 1.2;
+  }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Camera stays — mockup composition is the acceptance target (AGENTS s11). */
+  .arena-floor-stage #arena-render,
+  .page--arena .arena-floor-stage #arena-render {
+    /* AN-R2: camera removed - see the single declaration for
+       `.page--arena #arena-render`. This copy had no rotateX and never
+       applied. */
+  }
+  .arena-floor-stage::before {
+    transform-origin: 50% 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* 3G — mockup centre gold core + bright parchment plate + ring hierarchy.
+   Camera tilt is G2 (rotateX 56deg); this block is palette only. */
+
+  /* Bright parchment underlay — light floor rule; flat (no squash tilt). */
+  .arena-floor-stage::before {
+    width: min(90%, 56rem);
+    opacity: 0.78;
+    background:
+      radial-gradient(
+        circle at 50% 48%,
+        color-mix(in srgb, var(--accent-bronze) 42%, var(--surface)) 0 9%,
+        color-mix(in srgb, var(--surface) 94%, var(--accent-bronze)) 9.2% 22%,
+        color-mix(in srgb, var(--surface) 86%, var(--accent-bronze)) 38%,
+        color-mix(in srgb, var(--surface) 72%, var(--ink)) 72%
+      ),
+      repeating-radial-gradient(
+        circle at 50% 50%,
+        transparent 0 6.8%,
+        color-mix(in srgb, var(--accent-bronze) 38%, transparent) 6.9% 7.15%,
+        transparent 7.35% 11.5%
+      );
+    box-shadow:
+      inset 0 0 0 0.28rem color-mix(in srgb, var(--accent-bronze) 55%, transparent),
+      inset 0 0 2.8rem color-mix(in srgb, var(--surface) 80%, transparent),
+      0 0 2.4rem color-mix(in srgb, var(--accent-bronze) 22%, transparent),
+      0 1.4rem 2.6rem color-mix(in srgb, var(--ink) 32%, transparent);
+  }
+
+  /* Centre VS / crown reads as mockup gold hex badge. */
+  .arena-confrontation-band .arena-live-centre {
+    clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+    border: 0;
+    min-height: 6.1rem;
+    background:
+      radial-gradient(
+        circle at 50% 42%,
+        color-mix(in srgb, var(--accent-bronze) 55%, var(--surface)) 0 28%,
+        color-mix(in srgb, var(--ink) 45%, var(--surface)) 72%
+      );
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent-bronze) 70%, transparent),
+      0 0 2.2rem color-mix(in srgb, var(--accent-bronze) 45%, transparent),
+      0 0.45rem 1.1rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+  .arena-confrontation-band .arena-live-centre::after {
+    inset: -0.55rem;
+    border-radius: 0;
+    clip-path: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+    border-color: color-mix(in srgb, var(--accent-bronze) 70%, transparent);
+    box-shadow: 0 0 1.8rem color-mix(in srgb, var(--accent-bronze) 40%, transparent);
+  }
+  .arena-confrontation-band .arena-live-centre b {
+    color: var(--accent-bronze);
+  }
+  .arena-confrontation-band .arena-live-centre span,
+  .arena-confrontation-band .arena-live-centre em {
+    color: color-mix(in srgb, var(--surface) 88%, var(--accent-bronze));
+  }
+
+  /* Sponsors octagon ramp (exact RING_COLOURS.available). */
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="6"][data-occupancy="empty"] { fill: var(--arena-seat); }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="5"][data-occupancy="empty"] { fill: #ede8df; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="4"][data-occupancy="empty"] { fill: #e4ddd1; }
+
+  /* Amplify existing floor-stage glow (do not redefine ::after geometry). */
+  .arena-floor-stage::after {
+    opacity: 0.9;
+    filter: blur(1.45rem);
+  }
+  .arena-rank-spine__step b {
+    color: var(--accent-bronze);
+    border-color: color-mix(in srgb, var(--accent-bronze) 65%, transparent);
+    background: color-mix(in srgb, var(--ink) 35%, var(--surface));
+    box-shadow: 0 0 0.35rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+
+  .arena-confrontation-band .arena-live-chef img {
+    object-fit: cover;
+    border: 2px solid color-mix(in srgb, var(--accent-bronze) 70%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--challenger img {
+    border-color: color-mix(in srgb, var(--hall-green) 75%, var(--accent-bronze));
+  }
+  .arena-confrontation-band .arena-live-chef--opponent img {
+    border-color: color-mix(in srgb, var(--hall-red) 75%, var(--accent-bronze));
+  }
+
+  .arena-lower-broadcast .ce-nav__link--battle {
+    min-height: 2.45rem;
+    padding-inline: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent-bronze) 55%, var(--surface)),
+        color-mix(in srgb, var(--accent-bronze) 32%, var(--surface))
+      );
+    border-color: var(--accent-bronze);
+    color: var(--ink);
+    box-shadow: 0 0.35rem 0.9rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+  .arena-confrontation-band[data-centre-key^="crown-"],
+  .arena-confrontation-band[data-centre-key="empty"] {
+    width: min(36rem, 58%);
+  }
+  .arena-confrontation-band .arena-live-chef,
+  .arena-confrontation-band .arena-live-chef--crown {
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+    backdrop-filter: blur(8px) saturate(1.08);
+    -webkit-backdrop-filter: blur(8px) saturate(1.08);
+  }
+  .arena-confrontation-band .arena-live-awaiting {
+    color: color-mix(in srgb, var(--surface) 88%, var(--accent-bronze));
+    text-shadow: 0 1px 0.4rem color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+
+  /* Live SVG must read ABOVE atmosphere art — stronger seams + fills. */
+  .page--arena .arena-command-deck__floor > .arena-floor-stage {
+    z-index: var(--arena-z-stage);
+  }
+  .page--arena .arena-floor-stage .arena-render-container {
+    z-index: var(--arena-z-stage);
+    opacity: 1;
+  }
+  .page--arena .arena-floor-stage #arena-render {
+    z-index: var(--arena-z-cells);
+    opacity: 1;
+  }
+  .page--arena #arena-render .arena-cell--sponsors-tpl {
+    stroke: var(--arena-seam);
+    stroke-width: 1.5;
+  }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring-kind="rank"][data-occupancy="empty"] {
+    /* Base only — per-ring sponsors colours win below. */
+    fill: #e4ddd1;
+  }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="1"][data-occupancy="empty"] { fill: #bfb49a; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="2"][data-occupancy="empty"] { fill: #ccc1aa; }
+  .page--arena #arena-render .arena-cell--sponsors-tpl[data-ring="3"][data-occupancy="empty"] { fill: #d8d0c0; }
+  .page--arena #arena-render [data-ring-kind="spectator"][data-occupancy="empty"] {
+    stroke-width: 1;
+  }
+  .page--arena #arena-render .arena-rim,
+  .page--arena #arena-render .arena-rim--outer {
+    stroke: color-mix(in srgb, var(--muted) 55%, var(--surface));
+    stroke-width: 1.2;
+  }
+  .page--arena #arena-render .arena-rim--inner {
+    stroke: color-mix(in srgb, var(--accent-bronze) 30%, var(--muted));
+    stroke-width: 1.4;
+  }
+
+  /* Spine: translucent so floor rings remain visible behind labels. */
+
+  .arena-command-deck__phase-card .arena-command-deck__phase-name,
+  .arena-command-deck__phase-card .arena-panel__heading {
+    text-shadow: 0 0 0.7rem color-mix(in srgb, var(--hall-green) 35%, transparent);
+  }
+  .arena-command-deck__phase-deadline:not(.is-empty) > strong {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--accent-bronze);
+    font-size: clamp(1.15rem, 1.7vw, 1.55rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+  }

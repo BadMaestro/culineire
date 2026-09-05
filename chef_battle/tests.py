@@ -14,6 +14,49 @@ from django.utils import timezone
 
 from recipes.models import RecipeAuthor
 
+# THE ARENA'S TWELVE STYLESHEETS.
+# arena.css was one file of 13,958 lines until 2026-09-05, when the Owner had
+# it split - the chat into a sheet of its own - and every guard in this module
+# that used to read that one path now reads the SET, concatenated in the order
+# the page links them. That order IS the cascade: the split moved nothing, and
+# the twelve bodies joined like this are byte-identical to the file that stood
+# before, so a rule that used to win still wins.
+#
+# Adding a sheet means adding it HERE and to both templates; ArenaSheetSetTests
+# fails if the three lists ever disagree.
+ARENA_SHEETS = (
+    "arena_tokens.css",
+    "arena_shell.css",
+    "arena_deck.css",
+    "arena_furniture.css",
+    "arena_rank_ladder.css",
+    "arena_chat.css",
+    "arena_deck_layout.css",
+    "arena_command_bar.css",
+    "arena_floor.css",
+    "arena_grid.css",
+    "arena_mobile.css",
+    "arena_hall_answers.css",
+)
+
+SPLIT_HEADER_END = "   SPLIT-HEADER-END */"
+
+
+def arena_sheet_path(name):
+    return Path(settings.BASE_DIR) / "static" / "css" / name
+
+
+def arena_sheet_text(name):
+    """One sheet, without the split header every sheet carries."""
+    text = arena_sheet_path(name).read_text(encoding="utf-8")
+    return text.split(SPLIT_HEADER_END, 1)[1] if SPLIT_HEADER_END in text else text
+
+
+def arena_css():
+    """All twelve, in link order - what the browser actually resolves."""
+    return "".join(arena_sheet_text(name) for name in ARENA_SHEETS)
+
+
 from .models import (
     AppreciationGiftType,
     APPRECIATION_GIFT_COST,
@@ -3328,9 +3371,7 @@ class ArenaMasterConsoleAccessTests(TestCase):
         js = (
             Path(django_settings.BASE_DIR) / "static" / "js" / "arena_render.js"
         ).read_text(encoding="utf-8")
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
 
         positioner = js.split("function position(tip, anchor)", 1)[1].split(
             "function setHidden", 1
@@ -9093,9 +9134,7 @@ class ArenaPhasePanelTests(TestCase):
         clock position in the first place."""
         from django.conf import settings as django_settings
         from pathlib import Path
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
         # EVERY 901px block, not "everything after the first one". There are
         # several, and which one comes first is a fact about where rules sit in
         # the file - it changed the moment components started being gathered
@@ -9263,8 +9302,6 @@ class ArenaRankColumnTests(TestCase):
     off; and its contrast must be provable from the deployed tokens rather than
     asserted in a CSS comment."""
 
-    CSS_DECK = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
-    CSS_POLISH = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
     CSS_BASE = Path(settings.BASE_DIR) / "static" / "css" / "base.css"
     TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
     JS_DECK = Path(settings.BASE_DIR) / "static" / "js" / "arena_deck.js"
@@ -9320,7 +9357,7 @@ class ArenaRankColumnTests(TestCase):
         fixed badge column and an auto right column is what puts every count on
         the same axis whether it reads 1 or 12.
         """
-        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        css = arena_css()
         row = css.split(".page--arena .arena-ladder-list li {", 1)[1].split("}", 1)[0].replace(" ", "")
         self.assertIn("display:grid", row)
         self.assertIn("grid-template-columns:1.35remminmax(0,1fr)auto", row)
@@ -9358,7 +9395,7 @@ class ArenaRankColumnTests(TestCase):
             Path(dj_settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
         ).read_text(encoding="utf-8")
         self.assertIn('<a class="btn-secondary" href="{% url \'chef_battle:rankings\' %}">View Full Ladder</a>', source)
-        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        css = arena_css()
         cta = css.split(".page--arena .arena-command-deck__ladder > .btn-secondary {", 1)[1].split("}", 1)[0]
         self.assertIn("width:100%", cta.replace(" ", ""))
 
@@ -9380,7 +9417,7 @@ class ArenaRankColumnTests(TestCase):
         The composition is still his; what changed is who writes it down. This
         test used to assert the CSS coordinates and would now be asserting an
         architecture the Owner asked us to remove."""
-        css = self.CSS_DECK.read_text(encoding="utf-8")
+        css = arena_css()
         base = css.split(".arena-rank-spine {", 1)[1].split("}", 1)[0]
         for placed in ("left:", "top:", "transform:"):
             self.assertNotIn(placed, base, f"the stylesheet still sets {placed}")
@@ -9391,7 +9428,7 @@ class ArenaRankColumnTests(TestCase):
 
     def test_desktop_rank_stack_runs_outer_to_centre(self):
         """Reference: Kitchen Porter at the far edge, Culinary Master at centre."""
-        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        css = arena_css()
         # Desktop, because that is what the test is about: the stack runs top
         # to bottom at 901px and up. Below that the ranks wrap into a row.
         desktop = _unconditional_rules(
@@ -9407,7 +9444,7 @@ class ArenaRankColumnTests(TestCase):
         )
 
     def test_desktop_rank_steps_use_reference_plinth_silhouette(self):
-        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        css = arena_css()
         bodies = _unconditional_rules(css, ".arena-rank-spine__step")
         self.assertTrue(bodies, "the rank step has no unconditional rule")
         joined = " ".join(bodies)
@@ -9452,7 +9489,7 @@ class ArenaRankColumnTests(TestCase):
         original assertion - the panel must not carry a width that its column
         cannot honour.
         """
-        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        css = arena_css()
         # Located by SELECTOR, not by "the first block after the MOCKUP M12
         # comment". The comment travels with the rule it introduces, so the
         # moment the deck's rules were gathered into one block (v2.5.1412) the
@@ -9486,7 +9523,7 @@ class ArenaRankColumnTests(TestCase):
         its colour from a token. That is what this checks now, against the two
         elements that actually carry it.
         """
-        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        css = arena_css()
 
         hall_name = css.split(".arena-command-deck__hall-name {", 1)[1].split(
             "}", 1
@@ -9516,7 +9553,7 @@ class ArenaRankColumnTests(TestCase):
         desktop audit removed those rules, and this keeps the half of the
         contract that is still real: the ladder's own chrome.
         """
-        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        css = arena_css()
         ladder_contract = css.split("MOCKUP M13", 1)[1].split(
             ".arena-command-deck__ladder .arena-ladder-list", 1
         )[0]
@@ -9557,7 +9594,7 @@ class ArenaRankColumnTests(TestCase):
 
         This guards the removal so the rules cannot drift back in.
         """
-        css = self.CSS_POLISH.read_text(encoding="utf-8")
+        css = arena_css()
         template = self.TEMPLATE.read_text(encoding="utf-8")
 
         for dead in ("arena-cooking-widget", "arena-command-deck__header"):
@@ -9635,7 +9672,7 @@ class ArenaRankColumnTests(TestCase):
     def test_mobile_breakpoint_does_not_hide_the_rank_column(self):
         """It used to be `display: none` below 768px, which removed the whole
         progression on a phone. Stage 3E requires all eight ranks to stay."""
-        css = self.CSS_DECK.read_text(encoding="utf-8")
+        css = arena_css()
         # Read across ALL the 767px blocks. The old form took the first one and
         # cut it at the first "\n}", which is a statement about the file's
         # layout rather than about the rule, and it stopped being true when the
@@ -9672,7 +9709,7 @@ class ArenaRankColumnTests(TestCase):
         arena-mobile-ring__summary no longer exists; arena-rank-tile is its
         replacement, one per rank, same rank_groups loop underneath.
         """
-        css = self.CSS_DECK.read_text(encoding="utf-8")
+        css = arena_css()
         template = (
             Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
         ).read_text(encoding="utf-8")
@@ -9733,7 +9770,7 @@ class ArenaRankColumnTests(TestCase):
     def test_rank_column_uses_tokens_not_raw_colour_literals(self):
         """The Arena palette is tokenised; a raw literal here would both break
         the token system and make the contrast evidence above meaningless."""
-        css = self.CSS_DECK.read_text(encoding="utf-8")
+        css = arena_css()
         rules = [line for line in css.splitlines() if ".arena-rank-spine" in line and "{" in line]
         self.assertTrue(rules)
         for line in rules:
@@ -9744,9 +9781,7 @@ class ArenaRankColumnTests(TestCase):
     def test_challenger_opponent_use_official_hall_side_tokens(self):
         """Stage 3G R1 — challenger/opponent must be green/red hall tokens,
         not brand bronze (which made both sides the same brown family)."""
-        polish = (
-            Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        polish = arena_css()
         effects = (
             Path(settings.BASE_DIR) / "static" / "css" / "arena_atmosphere.css"
         ).read_text(encoding="utf-8")
@@ -12166,9 +12201,7 @@ class FighterPadsAppearWithTheFightTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
         self.assertNotIn("arena-floor-fighter--empty", css)
 
 
@@ -12291,9 +12324,7 @@ class EmptyFighterPadIsMutedTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        return (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        return arena_css()
 
     def test_the_muted_pad_is_gone_because_the_pad_is_gone(self):
         """These two tests asserted the muted styling of the empty fighter pad
@@ -13109,9 +13140,7 @@ class OctagonSizeAndSeatAreLockedTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        return (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        return arena_css()
 
     def _renderer(self):
         from pathlib import Path
@@ -13233,9 +13262,7 @@ class ArenaRingNumberingTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
         self.assertIn('.arena-rank-spine__step[data-on-dark="true"]', css)
         self.assertIn('.arena-rank-spine__step[data-on-dark="false"]', css)
 
@@ -13251,12 +13278,11 @@ class ArenaRingNumberingTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
         edge = css.split('/* THE EDGE', 1)[1].split("\n  .arena-confrontation-band", 1)[0]
         self.assertIn("drop-shadow(", edge)
-        # And the reset must carry the attribute: arena_hall.css sets that
+        # And the reset must carry the attribute: the sheet that became
+        # arena_furniture.css sets that
         # border under `.page--arena .arena-rank-spine__step`, so a bare class
         # loses to it and the rule never reaches the screen.
         self.assertIn('.arena-rank-spine__step[data-on-dark="true"],', edge)
@@ -13277,9 +13303,7 @@ class ArenaRingNumberingTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
         block = css.split("выравнивание цифр", 1)[1].split("\n  .arena-confrontation-band", 1)[0]
         ring = block.split(".arena-rank-spine__ring {", 1)[1].split("}", 1)[0]
         self.assertIn("position: absolute", ring)
@@ -13295,9 +13319,7 @@ class ArenaRingNumberingTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
         rule = css.split(".arena-rank-spine__step::before {", 1)[1].split("}", 1)[0]
         self.assertIn("width: 1px", rule)
         self.assertIn("position: absolute", rule)
@@ -13322,9 +13344,7 @@ class ArenaRingNumberingTests(TestCase):
         self.assertNotIn("numberTheRings", js)
         self.assertNotIn("data-ring-numeral", js)
 
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
         self.assertNotIn("arena-ring-numeral", css)
 
     def test_the_ladder_lands_on_whole_pixels(self):
@@ -13347,9 +13367,7 @@ class ArenaRingNumberingTests(TestCase):
         self.assertIn("Math.round(y)", place)
         self.assertIn("Math.round(x)", place)
 
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
 
         # SCOPED TO THE LADDER, not to the whole stylesheet. This used to
         # assert `gap: 0.15rem;` appeared NOWHERE in arena.css, which is a
@@ -13392,9 +13410,7 @@ class PhaseTrackNamesItsStepsOnAPhoneTests(TestCase):
     def _css(self):
         from pathlib import Path
         from django.conf import settings as django_settings
-        return (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        return arena_css()
 
     def test_the_desktop_column_count_still_has_exactly_one_owner(self):
         css = self._css()
@@ -13502,9 +13518,7 @@ class FloorCaptionGetsARegionTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        return (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        return arena_css()
 
     def test_the_compensation_mechanism_is_gone_not_disabled(self):
         js = self._js()
@@ -13624,9 +13638,12 @@ class ArenaOwnershipGuardTests(TestCase):
     have caught a defect that actually happened.
     """
 
-    LAYOUT_SHEET = "arena.css"
+    # THE LAYOUT IS TWELVE SHEETS NOW, not one file (the Owner's split,
+    # 2026-09-05). Ownership did not move with it: the split is a cut, the
+    # order is the same, and this guard asks the same questions of the whole
+    # set that it used to ask of arena.css.
     EFFECTS_SHEET = "arena_atmosphere.css"
-    ARENA_SHEETS = ("arena.css", "arena_atmosphere.css")
+    SHEETS_ON_THE_PAGE = ARENA_SHEETS + ("arena_atmosphere.css",)
     # merged away by AN12; a file that comes back is a fifth opinion
     SUPERSEDED_SHEETS = ("arena_render.css", "arena_effects.css",
                          "arena_deck_polish.css", "arena_hall.css",
@@ -13648,7 +13665,7 @@ class ArenaOwnershipGuardTests(TestCase):
         return django_settings.BASE_DIR / "static" / "css"
 
     def _sheet(self, name):
-        return (self._css_dir() / name).read_text(encoding="utf-8")
+        return arena_sheet_text(name)
 
     @staticmethod
     def _rules(text):
@@ -13674,13 +13691,13 @@ class ArenaOwnershipGuardTests(TestCase):
 
     # ---- how many sheets, and which -------------------------------------
 
-    def test_the_arena_page_loads_exactly_two_arena_stylesheets(self):
+    def test_the_arena_page_loads_exactly_its_own_stylesheets(self):
         from django.conf import settings as django_settings
 
         html = (django_settings.BASE_DIR / "templates" / "chef_battle"
                 / "arena.html").read_text(encoding="utf-8")
         linked = re.findall(r"static\s+'css/(arena[\w.]*\.css)'", html)
-        self.assertEqual(sorted(linked), sorted(self.ARENA_SHEETS))
+        self.assertEqual(sorted(linked), sorted(self.SHEETS_ON_THE_PAGE))
 
     def test_no_superseded_arena_stylesheet_exists_or_is_loaded(self):
         from django.conf import settings as django_settings
@@ -13735,7 +13752,7 @@ class ArenaOwnershipGuardTests(TestCase):
     # ---- the camera is declared once -------------------------------------
 
     def test_each_camera_quantity_is_declared_exactly_once(self):
-        css = re.sub(r"/\*.*?\*/", " ", self._sheet(self.LAYOUT_SHEET), flags=re.S)
+        css = re.sub(r"/\*.*?\*/", " ", arena_css(), flags=re.S)
         counts = {}
         for _sel, prop, decl in self._declarations(css):
             if prop in ("perspective", "perspective-origin", "transform-style"):
@@ -13747,7 +13764,7 @@ class ArenaOwnershipGuardTests(TestCase):
         self.assertEqual(len(re.findall(r"rotateX\(", css)), 1)
 
     def test_the_camera_viewport_is_sized_and_transformed_in_one_place(self):
-        css = self._sheet(self.LAYOUT_SHEET)
+        css = arena_css()
         sized = [sel for sel, prop, decl in self._declarations(css)
                  if "arena-render-container" in sel and "::" not in sel
                  and prop in ("width", "height", "transform")]
@@ -13762,7 +13779,7 @@ class ArenaOwnershipGuardTests(TestCase):
         force instead of by ownership. The camera path is the viewport, the
         scene, the region and the floor layer."""
         offenders = []
-        for name in self.ARENA_SHEETS:
+        for name in self.SHEETS_ON_THE_PAGE:
             for sel, prop, decl in self._declarations(self._sheet(name)):
                 if "::" in sel:
                     continue
@@ -13776,7 +13793,7 @@ class ArenaOwnershipGuardTests(TestCase):
         """The Master Console mirror was one. It is two VALUES now — a tilt and
         a perspective the single camera reads — and not a second camera."""
         for path in sorted(self._css_dir().glob("*.css")):
-            if path.name in self.ARENA_SHEETS:
+            if path.name in self.SHEETS_ON_THE_PAGE:
                 continue
             text = re.sub(r"/\*.*?\*/", " ", path.read_text(encoding="utf-8"), flags=re.S)
             for probe in ("rotateX(", "perspective-origin:", "--arena-camera-side"):
@@ -13968,14 +13985,14 @@ class ArenaCameraIsOwnedByTheOctagonTests(TestCase):
         return js.split("function placeOctagon(", 1)[1].split(chr(10) + "  }", 1)[0]
 
     def test_the_camera_viewport_has_an_intrinsic_side(self):
-        css = self._read("css", "arena.css")
+        css = arena_css()
         self.assertIn("--arena-camera-side: 440px;", css)
         self.assertEqual(css.count("--arena-camera-side:"), 1,
                          "the camera's own size is declared in one place")
 
     def test_the_viewport_is_not_stretched_over_the_page_region(self):
         """`inset: 0` on the region is the coupling itself."""
-        css = self._read("css", "arena.css")
+        css = arena_css()
         chunk = next(part.split("}", 1)[0]
                     for part in css.split(".page--arena .arena-render-container {")[1:]
                     if "--arena-camera-side" in part.split("}", 1)[0])
@@ -13989,7 +14006,7 @@ class ArenaCameraIsOwnedByTheOctagonTests(TestCase):
         """These four declarations sat at the same specificity and LATER in the
         file, so the intrinsic side resolved to zero and the placement never
         ran — a 0x0 camera, measured."""
-        css = self._code(self._read("css", "arena.css"))
+        css = self._code(arena_css())
         for chunk in css.split(".arena-render-container {")[1:]:
             body = chunk.split("}", 1)[0]
             if "--arena-camera-side" in body:
@@ -14037,7 +14054,7 @@ class ArenaCameraIsOwnedByTheOctagonTests(TestCase):
         same amount off its height, the octagon re-fitted into the shorter box,
         and +40 arrived on the screen as +21. Measured after: +40 is +40, -40
         is -40, the region stays 564 tall and the octagon stays 659 x 454."""
-        css = self._read("css", "arena.css")
+        css = arena_css()
         self.assertIn("translate: 0 var(--arena-octagon-offset-y, 0px);", css)
         self.assertNotIn("margin-top: var(--arena-octagon-offset-y", css)
         self.assertEqual(css.count("var(--arena-octagon-offset-y"), 1)
@@ -14067,9 +14084,7 @@ class ArenaReadinessLifecycleTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        return (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        return arena_css()
 
     def test_the_states_exist_and_are_ordered(self):
         js = self._js()
@@ -14151,22 +14166,29 @@ class ArenaReadinessLifecycleTests(TestCase):
         self.assertNotIn('rel="stylesheet"', partial,
                          "a stylesheet is still linked from the body")
 
-        # AN12 folded the octagon sheet into arena.css; it is still declared in
-        # the head, on both pages, and it is still the only place it comes from
+        # AN12 folded the octagon sheet into arena.css and the Owner split that
+        # file into twelve on 2026-09-05; the sheets are still declared in the
+        # head, on both pages, and that is still the only place they come from
         for page in ("arena.html", "arena_master_console.html"):
             html = (base / page).read_text(encoding="utf-8")
             head = html.split("{% block extra_head %}", 1)[1].split("{% endblock %}", 1)[0]
-            self.assertIn("css/arena.css", head, page)
+            for sheet in ARENA_SHEETS:
+                self.assertIn("css/" + sheet, head, page)
 
-    def test_the_arena_loads_exactly_two_stylesheets_of_its_own(self):
-        """Master task section 8 asked for two, and this is the two: arena.css
-        carries the shell and the renderer, arena_atmosphere.css carries the
-        effects and the hall, and the order the elements see is the order they
-        had as four separate files.
+    def test_the_arena_loads_exactly_its_twelve_sheets_in_order(self):
+        """THE ORDER OF THE LINKS IS THE CASCADE, so this asserts the order and
+        not merely the set.
 
-        The Master Console is the reason it is a split and not a single file:
-        the Owner ruled on 2026-08-08 that its mirror stays flat, so it loads
-        arena.css alone, with neither the effects nor the atmosphere."""
+        arena.css was one file until the Owner had it split on 2026-09-05. He
+        lifted his own two-sheet freeze of 2026-08-09 to do it and gave the
+        reason: that rule was made when the seven files were useless, and
+        splitting now buys code quality and load speed. The cut moved nothing -
+        the twelve bodies joined in this order are byte-identical to the file
+        that stood before - so a rule that used to win still wins, and this
+        test is what keeps that true.
+
+        The Master Console still loads the layout sheets and NOT the
+        atmosphere: the Owner ruled on 2026-08-08 that its mirror stays flat."""
         from pathlib import Path
         from django.conf import settings as django_settings
         import re
@@ -14174,22 +14196,29 @@ class ArenaReadinessLifecycleTests(TestCase):
         base = Path(django_settings.BASE_DIR) / "templates" / "chef_battle"
         css_dir = Path(django_settings.BASE_DIR) / "static" / "css"
 
-        for gone in ("arena_render.css", "arena_effects.css",
+        # arena.css itself is now one of the names that must NOT be back: it is
+        # the file that was split, and a copy of it loading beside its own parts
+        # would double every declaration in the arena.
+        for gone in ("arena.css", "arena_render.css", "arena_effects.css",
                      "arena_command_deck.css", "arena_hall.css",
                      "arena_deck_polish.css"):
             self.assertFalse((css_dir / gone).exists(),
-                             f"{gone} is back; the arena has two sheets, not more")
+                             f"{gone} is back beside the sheets that replaced it")
+
+        for sheet in ARENA_SHEETS:
+            self.assertTrue((css_dir / sheet).exists(), f"{sheet} is missing")
 
         arena = (base / "arena.html").read_text(encoding="utf-8")
         head = arena.split("{% block extra_head %}", 1)[1].split("{% endblock %}", 1)[0]
         sheets = re.findall(r"css/([\w.]+\.css)", head)
-        self.assertEqual(sheets, ["arena.css", "arena_atmosphere.css"],
+        self.assertEqual(sheets, list(ARENA_SHEETS) + ["arena_atmosphere.css"],
                          "the arena's own sheets, in cascade order")
 
         console = (base / "arena_master_console.html").read_text(encoding="utf-8")
         chead = console.split("{% block extra_head %}", 1)[1].split("{% endblock %}", 1)[0]
         console_sheets = re.findall(r"css/([\w.]+\.css)", chead)
-        self.assertIn("arena.css", console_sheets)
+        self.assertEqual(console_sheets[:len(ARENA_SHEETS)], list(ARENA_SHEETS),
+                         "the console mirror takes the same sheets in the same order")
         self.assertNotIn("arena_atmosphere.css", console_sheets)
 
     def test_z_index_comes_from_one_documented_ladder(self):
@@ -14201,14 +14230,15 @@ class ArenaReadinessLifecycleTests(TestCase):
         import re
 
         css_dir = Path(django_settings.BASE_DIR) / "static" / "css"
-        shell = (css_dir / "arena.css").read_text(encoding="utf-8")
+        shell = arena_css()
         self.assertIn("THE ARENA'S LAYER LADDER", shell)
         self.assertIn("--arena-z-modal:", shell)
         self.assertIn("--arena-z-under:", shell)
 
         raw = re.compile(r"z-index\s*:\s*-?\d")
-        for name in ("arena.css", "arena_atmosphere.css"):
-            text = (css_dir / name).read_text(encoding="utf-8")
+        for name in ARENA_SHEETS + ("arena_atmosphere.css",):
+            text = ((css_dir / name).read_text(encoding="utf-8")
+                    if name == "arena_atmosphere.css" else arena_sheet_text(name))
             # COMMENTS ARE STRIPPED FIRST. A guard that reads prose finds every
             # ghost it was written to bury: this one went red on a comment
             # EXPLAINING a fixed stacking bug - "the picker's own z-index: 1000
@@ -14216,8 +14246,9 @@ class ArenaReadinessLifecycleTests(TestCase):
             # reader needs and exactly what a text search cannot tell from a
             # declaration.
             text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
-            # the ladder itself declares the numbers; nothing else may
-            body = text.split("}", 1)[1] if name == "arena.css" else text
+            # the ladder itself declares the numbers; nothing else may. It is
+            # the first block of the first sheet, arena_tokens.css.
+            body = text.split("}", 1)[1] if name == "arena_tokens.css" else text
             self.assertFalse(
                 raw.search(body),
                 f"{name} still sets a bare z-index number instead of a layer token",
@@ -14354,6 +14385,106 @@ class ArenaAmbientAtmosphereTests(TestCase):
         self.assertIn("z-index: var(", block)
 
 
+class EveryArenaSheetHasItsOwnGuardTests(TestCase):
+    """ONE GUARD PER SHEET, on the Owner's instruction of 2026-09-05: "каждому
+    файлу поставь сторожа".
+
+    arena.css was one file of 13,958 lines and one <link>. He had it split into
+    twelve, the chat into a sheet of its own, and lifted his own two-sheet
+    freeze of 2026-08-09 to do it - the rule was made when the seven files were
+    useless, and splitting now buys code quality and load speed.
+
+    THE SPLIT MOVED NOTHING. It cut at twelve boundaries that were already at
+    brace depth zero, so the twelve bodies joined in link order are
+    byte-identical to the file that stood before. That is what makes it safe,
+    and the assertions below are what keep it safe: a sheet that stops parsing
+    on its own, or starts writing a layer number by hand, or starts declaring a
+    property a later sheet already owns, is a sheet that has begun to drift.
+
+    What is NOT asserted here: that each sheet holds one component. It does not
+    yet - the cut was sequential, and gathering each component into its own
+    sheet is the Owner's second step, with every move proved by
+    an15_gather.transpositions the way .arena-chat's was in v2.5.1774."""
+
+    def test_every_sheet_exists_carries_its_header_and_balances_its_braces(self):
+        for index, name in enumerate(ARENA_SHEETS, start=1):
+            with self.subTest(sheet=name):
+                path = arena_sheet_path(name)
+                self.assertTrue(path.exists(), f"{name} is missing")
+                raw = path.read_text(encoding="utf-8")
+                self.assertIn(SPLIT_HEADER_END, raw,
+                              f"{name} lost the header that records the split")
+                self.assertIn(f"ARENA SHEET {index:02d}/12 - {name}", raw,
+                              f"{name} is numbered wrong for its place in the cascade")
+                body = arena_sheet_text(name)
+                stripped = re.sub(r"/\*.*?\*/", "", body, flags=re.S)
+                self.assertEqual(
+                    stripped.count("{"), stripped.count("}"),
+                    f"{name} does not balance its braces on its own",
+                )
+
+    def test_no_sheet_writes_a_layer_number_by_hand(self):
+        """The ladder is in arena_tokens.css and nowhere else. A number written
+        in one of the other eleven cannot be read against the ladder, which is
+        the whole reason the ladder exists."""
+        raw = re.compile(r"z-index\s*:\s*-?\d")
+        for name in ARENA_SHEETS:
+            with self.subTest(sheet=name):
+                text = re.sub(r"/\*.*?\*/", "", arena_sheet_text(name), flags=re.S)
+                if name == "arena_tokens.css":
+                    text = text.split("}", 1)[1]      # the ladder declares them
+                self.assertFalse(
+                    raw.search(text),
+                    f"{name} sets a bare z-index instead of a layer token",
+                )
+
+    # THE CROSS-SHEET DEBT, MEASURED AND RECORDED RATHER THAN WISHED AWAY.
+    # AN12's invariant was that no selector sets the same property in two
+    # sheets - with that true, no reordering of the <link> tags can change a
+    # winner. It held for two files. It does NOT hold for twelve, and it could
+    # not: the Owner's first step is a SEQUENTIAL cut, and a component whose
+    # rules were already scattered over the file lands in two sheets by
+    # definition. Measured at the split: 147 of them - 140 distinct
+    # (selector, property) pairs across 167 occurrences - and the worst file
+    # pair is arena_deck.css <-> arena_deck_layout.css at 23.
+    #
+    # So this is a RATCHET, not a clean assertion. The number may fall - the
+    # second step, gathering each component into its own sheet, is what will
+    # take it down - and it may never rise, because every one of these is a
+    # place where the order of a list in a template decides the page.
+    CROSS_SHEET_PAIRS_AT_THE_SPLIT = 147
+
+    def test_the_cross_sheet_debt_does_not_grow(self):
+        """See CROSS_SHEET_PAIRS_AT_THE_SPLIT above for what this counts and
+        why it is a ceiling instead of a zero."""
+        seen, clashes = {}, []
+        for name in ARENA_SHEETS:
+            text = re.sub(r"/\*.*?\*/", "", arena_sheet_text(name), flags=re.S)
+            for match in re.finditer(r"([^{}@][^{}]*?)\{([^{}]*)\}", text):
+                selector = " ".join(match.group(1).split())
+                if not selector or selector.startswith(("@", "%")) or ":root" in selector:
+                    continue
+                for declaration in match.group(2).split(";"):
+                    if ":" not in declaration:
+                        continue
+                    prop = declaration.split(":", 1)[0].strip()
+                    if not prop or prop.startswith("--"):
+                        continue
+                    key = (selector, prop)
+                    if key in seen and seen[key] != name:
+                        clashes.append(f"{selector} {{{prop}}}: {seen[key]} and {name}")
+                    seen.setdefault(key, name)
+        distinct = sorted(set(clashes))
+        self.assertLessEqual(
+            len(distinct), self.CROSS_SHEET_PAIRS_AT_THE_SPLIT,
+            "more selectors now write one property in two sheets than the split "
+            "left behind - every one of them is a place where the order of the "
+            "<link> list decides the page. New rules go in the sheet that "
+            "already owns the selector. Newest offenders: %r"
+            % (distinct[:5],),
+        )
+
+
 class ArenaStylesheetHasNoSupersededDeclarationTests(TestCase):
     """AN13, master task 8A — a declaration that can never win is not code.
 
@@ -14373,9 +14504,11 @@ class ArenaStylesheetHasNoSupersededDeclarationTests(TestCase):
 
     # BOTH of the arena's sheets. The first version of this test watched only
     # arena.css, and arena_atmosphere.css was carrying 44 of the same thing.
+    # Every sheet the arena page loads. It was two paths; the twelve came from
+    # the Owner's split of 2026-09-05 and arena_atmosphere.css is unchanged.
     SHEETS = [
-        Path(settings.BASE_DIR) / "static" / "css" / "arena.css",
-        Path(settings.BASE_DIR) / "static" / "css" / "arena_atmosphere.css",
+        Path(settings.BASE_DIR) / "static" / "css" / name
+        for name in ARENA_SHEETS + ("arena_atmosphere.css",)
     ]
 
     @staticmethod
@@ -14504,9 +14637,7 @@ class ArenaStylesheetMoveGuardTests(TestCase):
 
     @staticmethod
     def _css():
-        return (
-            Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        return arena_css()
 
     def test_the_stylesheet_agrees_with_itself(self):
         """The floor. If a file does not match itself, no verdict it gives on a
@@ -14614,9 +14745,7 @@ class ArenaTemplateHygieneTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
         rule = css.split(".arena-phase-gauge span {", 1)[1].split("}", 1)[0]
         self.assertIn("width: 100%", rule)
 
@@ -14624,9 +14753,7 @@ class ArenaTemplateHygieneTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        css = (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        css = arena_css()
         self.assertIn(".arena-icon-sprite", css)
         self.assertIn('class="arena-icon-sprite"', self._read("_arena_deck_svg.html"))
 
@@ -15545,10 +15672,9 @@ class ArenaSeamTokenNotRawLiteralTests(TestCase):
     have no matching named token to point at, and inventing one is a design
     decision, not this cleanup's to make."""
 
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
 
     def test_the_five_known_literals_now_reference_the_token(self):
-        text = self.CSS.read_text(encoding="utf-8")
+        text = arena_css()
         must_not_appear = [
             ".arena-cell {\n    stroke: #ffffff;",
             '[data-occupancy="chef"] {\n    stroke: #ffffff;',
@@ -21525,9 +21651,7 @@ class ChefsTravelBetweenCellsInsteadOfJumpingTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        return (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        return arena_css()
 
     def test_the_renderer_remembers_where_each_chef_stood(self):
         js = self._js()
@@ -21755,9 +21879,7 @@ class YouAreHereMarksTheViewersOwnSeatTests(TestCase):
         from pathlib import Path
         from django.conf import settings as django_settings
 
-        return (
-            Path(django_settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        return arena_css()
 
     def test_it_is_its_own_element_not_a_mode_on_sit_here(self):
         js = self._js()
@@ -23362,9 +23484,7 @@ class ArenaChatThemeTests(TestCase):
 
         from django.conf import settings
 
-        return (
-            Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
-        ).read_text(encoding="utf-8")
+        return arena_css()
 
     def test_every_offered_theme_has_a_palette_behind_it(self):
         """A radio with no stylesheet behind it is a control that does
@@ -23635,7 +23755,6 @@ class ArenaWidgetBandTests(TestCase):
     """
 
     TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
 
     def setUp(self):
         User = get_user_model()
@@ -23709,7 +23828,7 @@ class ArenaWidgetBandTests(TestCase):
         top-level rules. Every container that has held them has had to switch
         them back into flow; this one must too, and at a specificity that does
         not depend on source order."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         block = css[css.index(".arena-command-dock > .arena-dock-card {"):]
         block = block[:block.index("}")]
         for declaration in ("position: relative", "grid-area: auto",
@@ -23737,7 +23856,6 @@ class ArenaNextBoardClockTests(TestCase):
     that list wholesale on every poll."""
 
     TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
 
     def setUp(self):
         User = get_user_model()
@@ -23766,7 +23884,7 @@ class ArenaNextBoardClockTests(TestCase):
     def test_the_chip_keeps_its_seat_from_the_tablet_up(self):
         """Measured without it: the floor rose 7.17px the moment the clock went
         away, at 768 and at 1440 alike. The seat is the element's own box."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         block = css[css.index("@media (min-width: 641px) {\n  .arena-next-board > .arena-phase-refresh[data-clock=\"off\"]"):]
         block = block[:block.index("}")]
         self.assertIn("display: block", block)
@@ -23776,7 +23894,7 @@ class ArenaNextBoardClockTests(TestCase):
         """Centring a populated board means sizing the list to its content,
         which takes arena_deck.js's available width to zero and stacks every
         pill against the label - distance stops meaning time (T21)."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         self.assertIn(
             ".arena-next-board:has(.arena-next-board__empty)", css,
             "the centring must be conditional on the empty state",
@@ -24682,7 +24800,7 @@ class ArenaChatEventFilterTests(TestCase):
 
         from chef_battle.models import ArenaChatMessage
 
-        css = self._read("static", "css", "arena.css")
+        css = arena_css()
         # ONLY the hiding block, not the whole stylesheet. Every kind also has
         # a border-left-color rule, so scanning the file would let a new kind
         # pass this test on the strength of its colour while being
@@ -24736,7 +24854,7 @@ class ArenaChatEventFilterTests(TestCase):
         display:none keeps the history; removing rows on arrival would leave a
         permanent hole the reader could not undo.
         """
-        css = self._read("static", "css", "arena.css")
+        css = arena_css()
         script = self._read("static", "js", "arena_chat.js")
         self.assertIn(".arena-chat.is-hiding-fight", css)
         self.assertIn("is-hiding-news", script)
@@ -24764,7 +24882,7 @@ class ArenaChatEventFilterTests(TestCase):
         """Silencing a person is mute and block, which already exist."""
         markup = self._read("templates", "chef_battle", "arena.html")
         self.assertNotIn('name="showMessages"', markup)
-        css = self._read("static", "css", "arena.css")
+        css = arena_css()
         self.assertNotIn(".arena-chat__card--message", css)
 
 
@@ -25168,7 +25286,6 @@ class ArenaChatIsAFixedHeightPanelTests(TestCase):
     overflow would clip all five of them.
     """
 
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
     TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
     SCRIPT = Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
 
@@ -25184,7 +25301,7 @@ class ArenaChatIsAFixedHeightPanelTests(TestCase):
         are routinely top-level, and a test that reads the file by eye pins the
         wrong thing. Braces are counted; comments and strings are skipped.
         """
-        text = cls.CSS.read_text(encoding="utf-8")
+        text = arena_css()
         out, stack, buf = [], [], []
         i, n = 0, len(text)
         in_comment, in_string = False, None
@@ -25409,7 +25526,6 @@ class ArenaChatSheetIsAPhoneShapeOnlyOnAPhoneTests(TestCase):
     390px touch screen is identical in every number.
     """
 
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
 
     # v2.5.1348 added the phone layout to this gate: a bottom sheet needs the
     # panel to BE the screen, which a 240px rail on a touch tablet is not.
@@ -25440,7 +25556,7 @@ class ArenaChatSheetIsAPhoneShapeOnlyOnAPhoneTests(TestCase):
         It is absolute inside .arena-chat now, at every width. The phone branch
         gives it the bottom-sheet SHAPE against the panel's own foot rather
         than the screen's."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         for context, sel, body in ArenaChatIsAFixedHeightPanelTests._blocks():
             if sel.startswith(".arena-chat__sheet") and "position: fixed" in body:
                 self.fail(
@@ -25459,7 +25575,7 @@ class ArenaChatSheetIsAPhoneShapeOnlyOnAPhoneTests(TestCase):
         \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0435\u0451 \u0432\u0435\u0437\u0434\u0435". Removing it from one branch is what let it
         survive, so the guard is now the absence of the pseudo-element
         anywhere, not its presence behind a particular gate."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         self.assertNotIn(
             ".arena-chat__sheet::before", css,
             "the dimming layer is back; he has asked for it removed twice",
@@ -25478,7 +25594,7 @@ class ArenaChatSheetIsAPhoneShapeOnlyOnAPhoneTests(TestCase):
         """A box that lives inside a 240px rail cannot be sized in vw. At the
         Owner's <=1280px ruling the chat is 240px and 19rem is 304, so the
         picker hung 100px out and the deck's overflow: hidden cut it off."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         for selector, width in ((".arena-chat__sheet--emoji", "min(19rem, 100%)"),
                                 (".arena-chat__sheet--chef", "min(14rem, 100%)"),
                                 (".arena-chat__sheet--mentions", "min(15rem, 100%)"),
@@ -25519,7 +25635,6 @@ class ArenaChatIsNotASealedLayerTests(TestCase):
     scroll positions.
     """
 
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
     SCRIPT = Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
 
     def _rules(self, selector):
@@ -25541,7 +25656,7 @@ class ArenaChatIsNotASealedLayerTests(TestCase):
         """The four panels are lifted to --arena-z-panel by a rule that must
         keep NOT naming the chat. Adding it there looks like a fix and is not:
         a sealed layer at 10 seals just as well as one at 3."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         block = css[css.index("z-index: var(--arena-z-panel)") - 400:
                     css.index("z-index: var(--arena-z-panel)")]
         self.assertNotIn(".arena-chat,", block)
@@ -25554,7 +25669,7 @@ class ArenaChatIsNotASealedLayerTests(TestCase):
         panel. Measured on production at 1280x800 with touch: the sheet's foot
         landed at 968.9px on an 800px viewport, 169px below the fold, with an
         800px dimming layer painted inside the panel."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         self.assertIn("@media (hover: none) and (max-width: 640px)", css)
         self.assertNotIn(" @media (hover: none) {", css,
                          "the phone's bottom sheet is reachable on a tablet again")
@@ -25612,7 +25727,6 @@ class ArenaChatComposerIsNailedToTheFootTests(TestCase):
     turning round, so the foot stays above the row that opened it.
     """
 
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
     SCRIPT = Path(settings.BASE_DIR) / "static" / "js" / "arena_chat.js"
 
     def _rule(self, context, selector):
@@ -25689,7 +25803,6 @@ class ArenaRingsSitAboveTheArenaTests(TestCase):
     before-page that varies by 9px across the same four loads on its own.
     """
 
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
     LAYOUT = Path(settings.BASE_DIR) / "static" / "js" / "arena_page_layout.js"
     DESKTOP = "@media (min-width: 641px)"
 
@@ -25835,7 +25948,6 @@ class ArenaStatusCardReadsOnOneAxisTests(TestCase):
     card reads 0.0 at 1920, 1600, 1440, 1280, 1024 and 800.
     """
 
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
     GATE = "@media (min-width: 768px)"
 
     def _rule(self, selector):
@@ -25874,7 +25986,7 @@ class ArenaStatusCardReadsOnOneAxisTests(TestCase):
     def test_the_phone_is_left_to_its_own_rules(self):
         """Below 768px this card already centres itself in two earlier blocks;
         a second opinion arriving from here would fight them."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         self.assertIn("@media (max-width: 767px)", css)
         self.assertGreater(css.index(self.GATE + " {\n  .arena-command-deck__phase-card"),
                            css.index("@media (max-width: 767px)"),
@@ -25905,7 +26017,6 @@ class ArenaHourglassRunsThreeMinutesTests(TestCase):
 
     PARTIAL = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "_arena_hourglass.html"
     TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
 
     def test_there_are_two_of_them_and_they_flank_the_caption(self):
         html = self.TEMPLATE.read_text(encoding="utf-8")
@@ -25944,7 +26055,7 @@ class ArenaHourglassRunsThreeMinutesTests(TestCase):
         self.assertIn(path, partial, "the inline glass is not the sprite's drawing")
 
     def test_three_minutes_of_sand_and_a_turn_at_the_end_of_it(self):
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         self.assertIn("animation: arena-hourglass-drain 180s linear infinite", css)
         self.assertIn("animation: arena-hourglass-heap 180s linear infinite", css)
         self.assertIn("animation: arena-hourglass-turn 360s linear infinite", css)
@@ -25958,12 +26069,12 @@ class ArenaHourglassRunsThreeMinutesTests(TestCase):
     def test_the_sand_is_empty_before_the_glass_starts_to_move(self):
         """98.5% of 180s is 177.3s; the turn begins at 49.6% of 360s, which is
         178.56s. The glass is empty for a second and a bit before it moves."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         self.assertIn("98.5%, 100% { transform: scaleY(0); }", css)
         self.assertIn("98.5%, 100% { transform: scaleY(1); }", css)
 
     def test_a_reader_who_asked_for_no_motion_gets_none(self):
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         # The animations are DECLARED behind no-preference rather than
         # switched off behind reduce, so a reader who asked for stillness
         # never has one attached in the first place. The file holds more
@@ -26001,7 +26112,6 @@ class ArenaHouseStreamTests(TestCase):
     one level into the slot rather than being given up.
     """
 
-    CSS = Path(settings.BASE_DIR) / "static" / "css" / "arena.css"
     TEMPLATE = Path(settings.BASE_DIR) / "templates" / "chef_battle" / "arena.html"
     PARTIAL = (Path(settings.BASE_DIR) / "templates" / "chef_battle"
                / "_arena_house_stream.html")
@@ -26127,7 +26237,7 @@ class ArenaHouseStreamTests(TestCase):
         second tenant, so that containment moved into the slot - measured
         after: 300 messages leave page, deck and floor identical at 1920,
         1440 and 1280."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         self.assertIn(".arena-chat-slot > .arena-chat {", css)
         slot = css[css.index(".arena-right-stack > .arena-chat-slot {"):]
         slot = slot[:slot.index("}")]
@@ -26161,14 +26271,14 @@ class ArenaHouseStreamTests(TestCase):
         absolutely positioned 138px column overflowing its rail by 142px.
         display:contents did NOT fix it - it removes the box, not the DOM
         level - so the slot's children are named as well."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         self.assertIn(".arena-chat-slot > * {", css)
 
     def test_the_phone_gives_the_stream_a_row_of_its_own(self):
         """Below 641px the rail is display:contents and the deck places by
         NAME, so a stream with no area would be auto-placed into whatever cell
         happened to be free."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         # read_text normalises newlines, so the separator here is a bare
         # newline even though the file on disk is CRLF.
         self.assertIn('"stream"' + chr(10) + '      "chat"', css)
@@ -26187,7 +26297,7 @@ class ArenaHouseStreamTests(TestCase):
         the live page - so the row that moves is the compact `ladder`, and
         naming a `ranks` area here would place a hidden box above the
         arena."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         block = css[css.index('"stream"' + chr(10) + '      "chat"'):]
         head = css[:css.index('"stream"' + chr(10) + '      "chat"')]
         areas = head[head.rindex("grid-template-areas:"):] + block[:block.index(";")]
@@ -26203,7 +26313,7 @@ class ArenaHouseStreamTests(TestCase):
     def test_the_stage_holds_its_shape_in_both_states(self):
         """The off-air card is the same box as the picture, so the column does
         not reshuffle when the Owner throws the switch."""
-        css = self.CSS.read_text(encoding="utf-8")
+        css = arena_css()
         stage = css[css.index(".arena-house-stream__stage {"):]
         stage = stage[:stage.index("}")]
         self.assertIn("aspect-ratio: 16 / 9", stage)
@@ -27449,7 +27559,6 @@ class OnlyOwnedStickersAreInThePickerTests(TestCase):
     """
 
     JS = Path(__file__).resolve().parent.parent / "static" / "js" / "arena_chat.js"
-    CSS = Path(__file__).resolve().parent.parent / "static" / "css" / "arena.css"
 
     def _sticker_branch(self):
         js = self.JS.read_text(encoding="utf-8")
@@ -27464,10 +27573,13 @@ class OnlyOwnedStickersAreInThePickerTests(TestCase):
     def test_nothing_locked_survives_anywhere(self):
         """The class, its styling and its click handler all go together. A
         leftover in any one of the three is the idea coming back."""
-        for path in (self.JS, self.CSS):
+        for name, text in (
+            (self.JS.name, self.JS.read_text(encoding="utf-8")),
+            ("the arena sheets", arena_css()),
+        ):
             self.assertNotIn(
-                "emoji-btn--locked", path.read_text(encoding="utf-8"),
-                f"{path.name} still carries the locked-tile idea",
+                "emoji-btn--locked", text,
+                f"{name} still carries the locked-tile idea",
             )
 
     def test_owning_nothing_gives_one_link_and_no_tiles(self):
@@ -28040,7 +28152,7 @@ class TheCameraIsTheBearCaveFoodTrailerTests(TestCase):
         """The stage is 16/9 and the picture covers it, so the rail does not
         change shape when the camera comes on - which is the entire reason the
         off-air card exists rather than the widget disappearing."""
-        css = (self.ROOT / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        css = arena_css()
         block = css[css.index(".arena-house-stream__placeholder {"):]
         block = block[:block.index("}")]
         self.assertIn("object-fit: cover", block)
@@ -28050,7 +28162,7 @@ class TheCameraIsTheBearCaveFoodTrailerTests(TestCase):
     def test_no_orphan_rule_is_left_behind_for_the_old_card(self):
         """A selector nothing matches is a rule the next reader has to prove
         dead before touching anything near it."""
-        css = (self.ROOT / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        css = arena_css()
         self.assertNotIn("arena-house-stream__off", css)
         self.assertNotIn("arena-house-stream__off", self.WIDGET.read_text(encoding="utf-8"))
 
@@ -28252,8 +28364,7 @@ class ArenaChatIsGatheredTests(TestCase):
 
     def test_the_chat_lives_in_one_block(self):
         gather = self._tool("an15_gather")
-        css = (Path(settings.BASE_DIR) / "static" / "css" / "arena.css")
-        text = css.read_text(encoding="utf-8")
+        text = arena_css()
         chosen, _mixed = gather.component_rules(text, ".arena-chat")
         runs = gather.islands(chosen, text)
         biggest = max(len(run) for run in runs)
@@ -28356,8 +28467,7 @@ class EveryArenaComponentIsGatheredTests(TestCase):
         gather = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(gather)
 
-        css = (Path(settings.BASE_DIR) / "static" / "css"
-               / "arena.css").read_text(encoding="utf-8")
+        css = arena_css()
         for component, ceiling in self.CEILINGS.items():
             chosen, _mixed = gather.component_rules(css, component)
             runs = gather.islands(chosen, css)
@@ -28419,11 +28529,9 @@ class AnIdleArenaDoesNotAnimateTests(TestCase):
 
     def test_every_stopping_rule_can_beat_the_rule_it_stops(self):
         tool = self._tool()
-        css = "\n".join(
-            (Path(settings.BASE_DIR) / "static" / "css" / name)
-            .read_text(encoding="utf-8")
-            for name in ("arena.css", "arena_atmosphere.css")
-        )
+        css = arena_css() + "\n" + (
+            Path(settings.BASE_DIR) / "static" / "css" / "arena_atmosphere.css"
+        ).read_text(encoding="utf-8")
 
         starts, stops = [], []
         for rule in tool.rules(css):
@@ -28558,7 +28666,7 @@ class TheLampControlLivesInTheMasterConsoleTests(TestCase):
 
     def test_it_is_a_static_block_with_no_toggle(self):
         source = self._read("static", "js", "arena_lamp_console.js")
-        css = self._read("static", "css", "arena.css")
+        css = arena_css()
         self.assertNotIn("data-lamp-toggle", source, "the toggle is back")
         self.assertNotIn("arena-lampc__toggle", css)
         block = css.split(".arena-lampc {", 1)[1].split("}", 1)[0]
@@ -28723,8 +28831,7 @@ class AnIdleArenaDoesNotPayForTheStrobeBlendTests(TestCase):
 
     def test_every_blend_is_turned_off_by_a_rule_that_can_beat_it(self):
         tool = self._tool()
-        css = (Path(settings.BASE_DIR) / "static" / "css"
-               / "arena.css").read_text(encoding="utf-8")
+        css = arena_css()
 
         starts, stops = [], []
         for rule in tool.rules(css):
@@ -28759,8 +28866,7 @@ class AnIdleArenaDoesNotPayForTheStrobeBlendTests(TestCase):
         """The gate is keyed to `data-arena-live="0"`. If it ever loses the
         attribute selector it becomes an unconditional switch-off, and his
         lamps stop being light during the one time they matter."""
-        css = (Path(settings.BASE_DIR) / "static" / "css"
-               / "arena.css").read_text(encoding="utf-8")
+        css = arena_css()
         block = css.split("mix-blend-mode: normal", 1)[0]
         tail = block[block.rindex("}") + 1:]
         self.assertIn('data-arena-live="0"', tail)
@@ -28784,11 +28890,9 @@ class StoppedDecorationRestsInvisibleTests(TestCase):
     """
 
     def _css(self):
-        return "\n".join(
-            (Path(settings.BASE_DIR) / "static" / "css" / name)
-            .read_text(encoding="utf-8")
-            for name in ("arena.css", "arena_atmosphere.css")
-        )
+        return arena_css() + "\n" + (
+            Path(settings.BASE_DIR) / "static" / "css" / "arena_atmosphere.css"
+        ).read_text(encoding="utf-8")
 
     @staticmethod
     def _keyframes(css, name):
@@ -28898,7 +29002,7 @@ class ACellGlowsOnlyWhileAChefStandsInItTests(TestCase):
 
     def test_the_rank_colours_are_still_there(self):
         """The part he did NOT ask to change. Eight ranks, eight lit rules."""
-        css = (self.ROOT / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        css = arena_css()
         for ring in range(1, 9):
             self.assertIn(
                 f'.arena-cell-spark[data-lit="true"][data-ring="{ring}"]',
@@ -30817,8 +30921,7 @@ class TheColourOfANameTests(TestCase):
         The admin rule is two selectors deep, so the gold has to be as well -
         source order alone would not carry it.
         """
-        css = (Path(__file__).resolve().parent.parent
-               / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        css = arena_css()
         admin_at = css.index(".arena-chat__line--admin .arena-chat__name")
         owner_at = css.index(".arena-chat .arena-chat__name--owner")
         self.assertGreater(owner_at, admin_at, "gold must be written after red")
@@ -30841,8 +30944,7 @@ class TheColourOfANameTests(TestCase):
     def test_every_tier_the_server_can_send_has_a_rule_in_the_stylesheet(self):
         from .nick_colour import ADMIN, ALL_TIERS
 
-        css = (Path(__file__).resolve().parent.parent
-               / "static" / "css" / "arena.css").read_text(encoding="utf-8")
+        css = arena_css()
         for tier in ALL_TIERS:
             if tier == ADMIN:
                 continue   # carried by the line class, not by a name class

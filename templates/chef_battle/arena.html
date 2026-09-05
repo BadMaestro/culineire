@@ -32,7 +32,7 @@
    So the lock is in three parts, each covering what the others cannot:
    this tag for the engines that honour it; arena_zoom.js cancelling
    WebKit's own `gesturestart`/`gesturechange`/`gestureend` for the engine
-   that ignores the tag; and `touch-action: pan-y` in arena.css for
+   that ignores the tag; and `touch-action: pan-y` in arena_floor.css for
    double-tap, which is neither a scale limit nor a gesture event.
 
    One server-side flag drives the tag and the script together (see
@@ -48,25 +48,49 @@
 {% block extra_head %}
 <!-- duplicate chef_battle.css removed 2026-07-25 load purge -->
 {% comment %}
-  TWO ARENA STYLESHEETS, and this is the whole set (AN12, master task 8).
+  THIRTEEN ARENA STYLESHEETS, and this is the whole set. THE ORDER BELOW IS
+  THE CASCADE - moving one line changes the page.
 
-  arena.css   the shell and the octagon renderer, in that order.
-  arena_atmosphere.css   the effects layer and the hall atmosphere, in that
-  order, loading after the shell exactly as they always did.
+  Twelve of them are arena.css, which the Owner had split on 2026-09-05: it had
+  grown to 13,958 lines behind a single <link>, and he asked for sub-files, the
+  chat in a file of its own, each loaded separately and each with a guard. He
+  lifted his own two-sheet freeze of 2026-08-09 to allow it, and gave the
+  reason - the freeze was written when the seven files were useless, and
+  splitting now buys code quality and load speed.
 
-  Seven sheets became these two across AN4 and AN12. The Master Console loads
-  arena.css ALONE - the Owner ruled on 2026-08-08 that its mirror stays flat,
-  with neither the effects nor the atmosphere - which is why the split falls
-  here and not somewhere tidier.
+  THE CUT MOVED NOTHING. Every boundary was already at brace depth zero, so the
+  twelve bodies joined in this order are byte-identical to the file that stood
+  before; a rule that used to win still wins. That is why the order matters and
+  why EveryArenaSheetHasItsOwnGuardTests and ArenaTemplateHygieneTests both
+  fail if this list drifts from chef_battle/tests.py's ARENA_SHEETS or from the
+  Master Console's copy.
 
-  The order every element sees is unchanged. Before this merge the page loaded
-  effects, shell, atmosphere, renderer; four sheets in which sixteen
-  declarations were written twice over, and every one of those duplicates lost
-  where it stood. They were removed first, so no single selector now sets the
-  same property in any two of these files and no repackaging can change a
-  winner. Verified declaration by declaration, not by eye.
+  arena_atmosphere.css   the effects layer and the hall atmosphere, loading
+  after all twelve exactly as it always did.
+
+  The Master Console loads the twelve and NOT the atmosphere - the Owner ruled
+  on 2026-08-08 that its mirror stays flat, with neither the effects nor the
+  atmosphere.
+
+  History, because deleting it is how a merge gets undone by somebody who never
+  learns it happened: seven sheets became two across AN4 and AN12, and sixteen
+  declarations that were written twice over were removed first, so no single
+  selector set the same property in any two files. The sequential cut brings
+  that debt back at 147 places, counted and ratcheted in the guard; the second
+  step, gathering each component into its own sheet, is what takes it down.
 {% endcomment %}
-<link href="{% static 'css/arena.css' %}?v=20260904-nick-colour2" rel="stylesheet">
+<link href="{% static 'css/arena_tokens.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_shell.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_deck.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_furniture.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_rank_ladder.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_chat.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_deck_layout.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_command_bar.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_floor.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_grid.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_mobile.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_hall_answers.css' %}?v=20260905-split12" rel="stylesheet">
 <link href="{% static 'css/arena_atmosphere.css' %}?v=20260816-t28-ambient" rel="stylesheet">
 {% endblock %}
 
@@ -177,7 +201,7 @@
     doing: the steps say what is happening now, this line says what is next.
 
     It sits INSIDE the ribbon rather than in a panel of its own. Every deck
-    panel in arena.css (where arena_command_deck.css was merged in AN12) is
+    panel in arena_deck_layout.css (where arena_command_deck.css was merged in AN12) is
     positioned by naming its class in three
     separate lists — chrome, coordinates, colour — and .arena-interface-rail is
     display:contents, so a new class in none of those lists gets no box and no
@@ -406,7 +430,7 @@
       it and where it reads as a mark on the phase rather than furniture
       beside it. The sand runs three minutes and the glass turns; see
       _arena_hourglass.html and the animation beside .arena-hourglass in
-      arena.css.
+      arena_floor.css.
     {% endcomment %}
     <div class="arena-phase-current">
       <div>
@@ -659,7 +683,7 @@
       button with nothing to do.
 
       It sits in the flow between the log and the strips under it rather than
-      floating over the log; the reasoning is in arena.css beside
+      floating over the log; the reasoning is in arena_chat.css beside
       .arena-chat__jump. Server-rendered hidden so the composer never has to
       be rebuilt to gain or lose it, the same way the reply line and the
       attachment strip above already work.
@@ -796,7 +820,7 @@
     {% comment %}
       The --settings modifier is a LAYOUT hook, not a second skin: this panel
       is the one that carries more rows than the chat's own height, so it is
-      the one that scrolls. See arena.css's .arena-chat__panel--settings.
+      the one that scrolls. See arena_chat.css's .arena-chat__panel--settings.
     {% endcomment %}
     <div class="arena-chat__panel arena-chat__panel--settings" id="arena-chat-panel-settings" role="tabpanel" aria-labelledby="arena-chat-tab-settings" hidden>
       <form class="arena-chat__settings" id="arena-chat-settings-form">
@@ -935,7 +959,7 @@
       {% comment %}
         THE ARTWORK IS VECTOR, 2026-09-02. The plate's frame is a 9-slice -
         static/images/arena/command-plate-{graphite,ivory}.svg, named from
-        arena.css - and the medallion, the emblem, the thread's stud and
+        arena_command_bar.css - and the medallion, the emblem, the thread's stud and
         eyelet, the bracket's mitres and its gem are symbols in
         _arena_deck_svg.html. The three branches below, their URLs, the crowd
         hook and its data-seat-url are exactly what they were.
@@ -1041,7 +1065,7 @@
         cannot recur. Its markup, its two ids and its branches are untouched,
         so arena_deck.js still finds #arena-floor-caption-strong and
         #arena-floor-caption-em exactly as it did before. The bracket is a
-        decorative LAST child, which is why the eyebrow's rule in arena.css
+        decorative LAST child, which is why the eyebrow's rule in arena_hall_answers.css
         selects the caption's FIRST span rather than every span inside it.
       {% endcomment %}
       <p class="arena-floor-caption">
@@ -1393,12 +1417,12 @@
     ladder, and already mapped every rank to its own --arena-rank-N ring
     colour - the ring explanation was wired all along. What it was not was
     VISIBLE: it lived inside .arena-command-deck__floor-head, which
-    arena.css:1582 sets to display:none with no media query at all, so it has
+    the arena sheets set to display:none with no media query at all, so it has
     rendered into the HTML and painted nothing at every width since. Moving
     it here is what turns it on.
 
     WHY NOT RE-HOME THE LADDER ITSELF. .arena-rank-spine is held at
-    visibility:hidden by arena.css:6014 until fitScene() stamps
+    visibility:hidden by the arena sheets until fitScene() stamps
     data-arena-state on the deck - an anti-flash gate keyed to the renderer.
     A re-homed spine would simply never appear, because nothing outside the
     octagon's own fit routine ever lifts that gate. The legend has no such

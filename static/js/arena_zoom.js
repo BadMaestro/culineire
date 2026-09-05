@@ -19,7 +19,7 @@
  *   1. the viewport meta tag - honoured by WKWebView apps (Chrome iOS and
  *      every in-app browser), IGNORED by Safari, which has refused
  *      `user-scalable=no` since iOS 10 on accessibility grounds;
- *   2. `touch-action: pan-y` on the arena body (arena.css) - the CSS-level
+ *   2. `touch-action: pan-y` on the arena body (arena_floor.css) - the CSS-level
  *      statement that this page pans vertically and does nothing else. This
  *      replaced `touch-action: manipulation`, which was WRONG for the job:
  *      manipulation is "auto minus double-tap-zoom" and still permits pinch,
@@ -85,7 +85,7 @@
     document.addEventListener('gesturechange', block, { passive: false });
     document.addEventListener('gestureend', block, { passive: false });
 
-    /* Double-tap zoom is closed by touch-action in arena.css rather than
+    /* Double-tap zoom is closed by touch-action in arena_floor.css rather than
        here: it is a CSS-level statement about the page and a handler that
        had to guess at tap timing would be a worse version of it. */
   }

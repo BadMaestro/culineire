@@ -1,0 +1,299 @@
+/* ARENA SHEET 10/12 - arena_grid.css
+   The Owner's grid rebuild of 2026-08-19 and its follow-up.
+
+   ONE OF TWELVE. arena.css was 13,958 lines behind a single <link>; the
+   Owner asked on 2026-09-05 for sub-files, the chat in a file of its own,
+   each loaded separately and each with a guard. He lifted his own two-sheet
+   freeze of 2026-08-09 to allow it, and gave the reason: that rule was
+   written when the seven files were useless, and splitting now buys code
+   quality and load speed.
+
+   THE ORDER OF THE TWELVE LINKS IS THE CASCADE. This cut moved NOTHING -
+   every boundary was already at brace depth zero - so the twelve bodies
+   joined in order are byte-identical to the file that stood before, which
+   is what proves no rule changed its winner. arena.html and
+   arena_master_console.html both load all twelve in this numbered order,
+   and EveryArenaSheetHasItsOwnGuardTests fails if a sheet drifts.
+   SPLIT-HEADER-END */
+
+/* ============================================================================
+ * OWNER'S FULL REBUILD, 2026-08-19 - A REAL GRID, NOT MEASURED FLOATERS.
+ *
+ * Everything above this block (the "3G prototype" system, Stage 16's
+ * position:absolute panels at coordinates measured off a screenshot) is
+ * superseded here, not deleted. Deleting hundreds of interleaved
+ * declarations across a 7000-line file line by line was judged riskier than
+ * one later block that wins the cascade outright for the properties that
+ * actually matter (position, inset, grid-area, width, height) and leaves
+ * everything cosmetic (colour, radius, shadow, icon sizing) exactly as it
+ * was, since none of that conflicts with a container's layout mode.
+ *
+ * The three protected elements move ONLY through their outer container:
+ *   - the octagon: .arena-command-deck__floor becomes a grid cell instead
+ *     of position:absolute;inset:0 on the whole viewport. Its OWN internal
+ *     4-row micro-grid (--arena-deck-top-h, --arena-caption-lead, auto, 1fr)
+ *     is untouched, and so is everything inside it.
+ *   - the rank ladder: .arena-rank-spine and placeRankSpine() in
+ *     arena_render.js are not touched by anything below.
+ *   - the sitewide widget: .site-battle-widget is hidden on this page only
+ *     (one rule, far below) - _widget.html and its own CSS are not edited.
+ * ============================================================================ */
+
+@media (min-width: 641px) {
+
+  /* Left column: ARENA STATUS, CROWN LADDER, ARENA GUIDE, SPECTATOR CHAT, one
+     real flex column, no JS-measured top offset (see arena.html's own comment
+     at the stack's opening tag - --arena-left-stack-top is retired with it). */
+  .arena-left-stack {
+    grid-area: left;
+    position: static;
+    inset: auto;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    z-index: auto;
+  }
+  .arena-left-stack > * {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+  }
+  /* Right column: THE CHAT, alone now — Arena Command and Battle Gifts moved
+     to the footer dock, and Live Arena Metrics moved into the left rail as
+     Arena Pulse (see arena.html's comments at each). align-self: stretch
+     makes this column fill the row's own height (set by its tallest
+     sibling, the floor), and the flex column below spreads that height to
+     the single .arena-chat child so the panel is tall, not just wide.
+
+     THE COLUMN TAKES ITS HEIGHT FROM THE ROW AND NEVER GIVES THE ROW ONE.
+     Owner, 2026-08-26: the chat grew taller with every message and took the
+     whole arena down the page with it. This is where that happened, and it
+     is worth naming precisely because the panel's own internals were already
+     correct.
+
+     The deck's rows are all `auto` (this block and :10714 declare columns and
+     areas, never `grid-template-rows`), and an auto track is sized by its
+     items' max-content. The chat sat in this column IN FLOW, so its full
+     conversation height was that max-content: log -> .arena-chat ->
+     .arena-right-stack -> the row -> `height: auto` on the deck -> the page.
+     Neither `min-height: 0` nor `overflow` on an item removes that
+     contribution; only taking the box out of flow does.
+
+     So the single .arena-chat child is absolutely positioned against this
+     column (below), and this column keeps `height: 100%` / `align-self:
+     stretch` against the row. The row's height is then decided by the FLOOR,
+     whose own unconditional rule at :9302 is `aspect-ratio: 1/0.82` on its
+     own WIDTH with `align-self: start !important` - a number that has nothing
+     to do with how much anybody has typed. That is the "derive the height
+     from the arena's geometry" the brief asks for, expressed as containment
+     rather than as a pixel ceiling.
+
+     WHY THERE IS NO `overflow: hidden` HERE. Every popup the chat opens - the
+     message action menu, the emoji picker, the poll composer, the report
+     sheet, the chef card - is appended INTO #arena-chat (arena_chat.js:26,
+     `root.appendChild(sheet)`), and hidden overflow on this column or on the
+     panel would clip all five. They are already clamped inside the panel by
+     .arena-chat__sheet's own rules (:2169). The containing is done by the
+     flex chain and the log's own overflow-y, which is where it belongs. */
+  .arena-right-stack {
+    grid-area: right;
+    /* relative, not static: it is the containing block for the chat below. */
+    position: relative;
+    inset: auto;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    z-index: auto;
+  }
+  /* THE SLOT IS NAMED AS WELL, and it has to be. The chat carries
+     position:absolute and a 15.5rem width unconditionally; this rule is what
+     cancels it. `.arena-chat-slot` is a wrapper that adds a DOM level between
+     the stack and the chat, so `.arena-right-stack > *` reaches the WRAPPER
+     and stops - measured when the wrapper shipped, the chat came back as an
+     absolutely positioned 138px column overflowing its rail by 142px, and
+     display:contents did not help because it removes the box, not the level.
+     The pair used to live in the 641-900px block; that block described a
+     second composition and is gone, so the rule moves here, where the one
+     composition is. */
+  .arena-right-stack > *,
+  .arena-chat-slot > * {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+  }
+  .arena-right-stack > .arena-house-stream {
+    flex: 0 0 auto;
+  }
+  .arena-floor-stage {
+    /* 1.12 FROM 641px UP, not 0.918 here and something else on the desktop.
+       0.918 was derived on 2026-08-25 against the SVG's box; the box carries
+       the floor glow and the ring labels, which reach well past the shape, so
+       the octagon it produced filled 80% of its frame - measured across this
+       range on the deployed page: 354 of a 442 frame at 880, 284 of 371 at
+       760, 260 of 340 at 700, about 44px of air at each side every time.
+       Above 901 the same numbers now give 5 to 8px. One share for both, so
+       the composition shrinks smoothly down to the phone instead of snapping
+       at 901. The phone's own locked 1.097 is a later rule and is untouched. */
+    --arena-octagon-width-share: 1.12;
+    --arena-octagon-height-share: 0.99;
+    /* AND IT SITS DOWN A LITTLE, because growing it uncovered a collision
+       the small octagon never reached. The stage's region deliberately spans
+       the caption's own grid row (rows 3..-1, see the floor's micro-grid) -
+       the composition has always allowed the octagon's transparent corners
+       to overlap it - but at this size the PAINTED top edge arrived at y=309
+       inside the caption text's own column, whose baseline box ends at 314.
+       Five pixels of shape across the words, measured, not guessed.
+
+       The renderer's constant seats the octagon high on purpose so the crowd
+       rail reads beneath it; that reasoning predates the widget band, which
+       now occupies that space instead. 0.4894 -> 0.503 moves the centre down
+       ~11px of the region's 814 and buys the caption clear air, while the
+       lower edge still keeps clear air. This is the same hook the phone uses,
+       and the renderer states plainly that the seat is the stylesheet's to
+       make. The phone's own locked 0.557 is a different declaration under
+       max-width:767px.
+
+       0.503 -> 0.5008 on 2026-08-31: with the frame cut to the shape, 0.503
+       showed as 21px above and 18 below where both should be 19, and the
+       caption clearance it was bought for is held by the head row now. */
+    --arena-octagon-centre-y: 0.5008;
+  }
+  /* THE REGION IS THE FRAME, from 641px up. Region Model A gave the octagon
+     rows 3..-1 of the floor's micro-grid, which leaves the two rows above it -
+     the published deck-top height and the caption's lead - OUTSIDE the region
+     while the decorative frame still wraps the WHOLE floor. The two boxes are
+     therefore not concentric, and the difference is not constant: measured on
+     the deployed page, 6px at 880 and 14px at 760. At 700 that showed as 30px
+     of air above the octagon and the shape hanging 4px BELOW the frame, while
+     the sides were a clean 12 and 12.
+
+     The rows it gives up are empty. Row 3 was the writing's, and the writing
+     has been absolutely positioned above the floor since v2.5.1311; rows 1 and
+     2 exist to hold air above it. Spanning all of them makes the region the
+     same box as the frame at every width, which is what lets one seat value be
+     right at 1920 and at 700 at the same time. */
+  .arena-command-deck__floor > .arena-floor-stage {
+    grid-row: 1 / -1;
+  }
+
+  /* The floor's decorative frame now wraps the CENTRE CELL only - it inherited
+     inset:2% of the whole viewport when the floor itself filled the whole
+     viewport (Stage16). The floor is a normal-sized grid cell now, so the
+     same inset already wraps just the octagon's own box; no viewport-wide
+     coordinate is left to correct. */
+  .arena-floor-frame {
+    inset: 1%;
+  }
+
+  /* Smaller desktop: keep three columns, narrow the rails rather than the
+     centre - the octagon stays the dominant element down to the 901px
+     threshold instead of the rails competing with it for space.
+
+     THE CHAT STAYS 240px HERE AND THAT IS A DECISION, NOT AN OVERSIGHT.
+     The rule above widened the chat rail to clamp(400px, 25vw, 480px), and
+     this narrower branch was deliberately left alone - so anyone reading
+     the two together will see an inconsistency and be tempted to "finish
+     the job". Do not, without asking him.
+
+     Measured at 1254px on 2026-08-25 while the Owner watched: the columns
+     resolve to 240 / 736 / 240, and the octagon inside that floor is
+     676x466 in a 722x506 frame. Giving the chat a working ~380px here
+     would have to come out of the centre, taking the octagon down to
+     roughly 545 wide. He had asked for the octagon at its maximum three
+     tasks earlier, was shown that exact trade in those numbers, and chose
+     the octagon: "чат остаётся 240px на экранах ≤1280 — октагон не
+     трогаем". Below 1281px the octagon wins and the chat is a narrow rail;
+     it gets its full width from 1281px up, which is where his own screen
+     sits. */
+  @media (max-width: 1280px) {
+  }
+}
+
+/* Tablet: the arena becomes the first, dominant section; the rails fall in
+   below it rather than staying beside a now-too-narrow centre column. A
+   deliberate single-column order, not the desktop grid scaled down. */
+/* Band block removed 2026-08-31: it described the old second
+   composition for 641-900px, which no longer exists - one grid now
+   runs from 641px up. The chat's own ceiling for this range is kept
+   where it is, because it bounds a scroller rather than placing a
+   layout, and a test reads it by name. */
+
+/* The sitewide "Chef Battles Arena" widget (_widget.html) is untouched -
+   this hides it on the arena page only, where its own content (Top Chefs,
+   Arena Menu, Master Console / Knife Roll / Changing Room, Enter Arena) now
+   duplicates the rebuilt deck and was floating at z-index 130 directly over
+   the new right column and bottom bar. Every other page keeps it exactly as
+   it was. */
+.page--arena .site-battle-widget {
+  display: none;
+}
+
+/* The container query at ~4574 balloons the ARENA STATUS icon into a
+   full-width oval on any card narrower than 320px - every left-column card
+   at every desktop width measured. It was written for the OLD header, where
+   the first child was a <div> carrying the phase name AND had to share its
+   row with the deadline clock; the deadline moved out into its own block
+   long before this rebuild, so the header is just an icon and one line of
+   text now and never needs the rule it inherited. */
+.arena-command-deck__phase-card .arena-panel__title {
+  flex-wrap: nowrap;
+}
+.arena-command-deck__phase-card .arena-panel__title > :first-child {
+  flex: 0 0 auto;
+}
+
+/* The light shafts (arena_atmosphere.css section F) were dominating the
+   background instead of sitting behind it - dimmed rather than removed
+   outright, since the brief asks to "remove/reduce", and a warm hall is not
+   the same thing as a flat one. */
+.page--arena .arena-atmosphere-fx {
+  opacity: 0.45;
+}
+
+/* ============================================================================
+ * FOLLOW-UP, same day: the Owner's own screen still showed three real
+ * defects the desktop widths tested here (1920x1080, 1440x900, 1280, 768,
+ * 375) never hit. Every one traces to an UNCONDITIONAL rule - no @media
+ * around it at all - written for an earlier composition where these
+ * elements sat in a wide horizontal ribbon, not a narrow sidebar column.
+ * Fixed unconditionally here too, rather than inside one more width-gated
+ * block that only moves the gap somewhere else.
+ * ============================================================================ */
+
+/* LIVE ARENA METRICS: the fix lives in the M12 rule itself now (see the note
+   there) rather than as a second rule setting the same properties again. */
+.arena-command-deck__metrics .arena-panel__title {
+  width: 100%;
+}
+
+/* THE BOTTOM BAR: the fix lives in the M15 rule itself now (see the note
+   there). These two only size its children, which nothing else sets. */
+.arena-crowd-rail__status,
+.arena-activity-ticker {
+  min-width: 0;
+  flex: 1 1 auto;
+}

@@ -15,17 +15,32 @@
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
 {% comment %}
-  The mirror loads the arena's OWN stylesheets, in the arena's own order. The
-  console used to load arena.css alone and nothing else, which is why the two
-  arenas looked like different products: same markup, different rules.
+  The mirror loads the arena's OWN stylesheets, in the arena's own order - all
+  twelve of them, and the order is the cascade. Keep this list identical to
+  arena.html's; ArenaTemplateHygieneTests fails if the two ever disagree.
+
+  It used to be one <link> to arena.css. The Owner had that file split into
+  twelve on 2026-09-05, and the mirror takes the same twelve rather than a
+  subset, because a subset would be a second arena with different rules - which
+  is exactly the fault the console had before it loaded the arena's own sheets
+  at all.
 
   arena_atmosphere.css is deliberately NOT loaded - the Owner asked for the
   mirror without the tilt and without the effects, to save the operator's
-  machine, and since AN12 that one file carries both. arena.css carries the
-  shell and the octagon renderer, which is everything the mirror needs.
-  arena_console_mirror.css flattens the camera last.
+  machine. arena_console_mirror.css flattens the camera last.
 {% endcomment %}
-<link href="{% static 'css/arena.css' %}?v=20260808-an12-two-sheets" rel="stylesheet">
+<link href="{% static 'css/arena_tokens.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_shell.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_deck.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_furniture.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_rank_ladder.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_chat.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_deck_layout.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_command_bar.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_floor.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_grid.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_mobile.css' %}?v=20260905-split12" rel="stylesheet">
+<link href="{% static 'css/arena_hall_answers.css' %}?v=20260905-split12" rel="stylesheet">
 <link href="{% static 'css/arena_master_console.css' %}?v=20260904-stage6" rel="stylesheet">
 <link href="{% static 'css/arena_console_mirror.css' %}?v=20260806-hint-fit" rel="stylesheet">
 {% endblock %}

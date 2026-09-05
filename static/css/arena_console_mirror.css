@@ -39,7 +39,7 @@
  *
  * Everything else - the viewport's intrinsic side, its fit, its placement in
  * whatever box the console gives it - is the authoritative architecture in
- * arena.css, unchanged and unduplicated. The ring cell (.amc-ring) is the
+ * arena_floor.css, unchanged and unduplicated. The ring cell (.amc-ring) is the
  * component's page region here exactly as .arena-floor-stage is on the Arena.
  */
 .page--arena-mirror .arena-render-container {

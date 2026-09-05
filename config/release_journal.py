@@ -1,5 +1,62 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1795",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "arena.css becomes twelve sheets, the chat gets its own, and every sheet gets a guard",
+        "section": "Arena",
+        "summary": (
+            "THE OWNER: split arena.css into sub-files, the chat into a file of "
+            "its own, load them separately, put a guard on each. He lifted his "
+            "own freeze to allow it - the board carried 'Exactly two Arena "
+            "stylesheets... nothing adds a third stylesheet', frozen by him on "
+            "2026-08-09 at v2.5.960 after AN12 merged seven files into two - "
+            "and gave the reason: that rule was written when the seven files "
+            "were useless, and splitting now buys code quality and load speed. "
+            "The file had reached 13,958 lines behind one <link>. The freeze "
+            "paragraph is rewritten here rather than left to contradict the "
+            "code. "
+            "THE CUT MOVED NOTHING, AND IT IS PROVED: twelve boundaries, every "
+            "one already at brace depth zero, taken at the file's own section "
+            "banners, and the twelve bodies concatenated in link order are "
+            "byte-identical to the file that stood before - 589,410 bytes "
+            "against 589,410. No rule changed its winner. "
+            "arena_tokens, arena_shell, arena_deck, arena_furniture, "
+            "arena_rank_ladder, arena_chat, arena_deck_layout, "
+            "arena_command_bar, arena_floor, arena_grid, arena_mobile, "
+            "arena_hall_answers - then arena_atmosphere, as before. Both "
+            "arena.html and the Master Console link all twelve in that order; "
+            "the console takes the same twelve rather than a subset, because a "
+            "subset would be a second arena with different rules, and it still "
+            "does not take the atmosphere (his 2026-08-08 ruling that the "
+            "mirror stays flat). "
+            "A GUARD ON EACH: EveryArenaSheetHasItsOwnGuardTests checks per "
+            "sheet that it exists, carries its numbered header, balances its "
+            "own braces, and writes no layer number by hand - the ladder lives "
+            "in arena_tokens.css and nowhere else. "
+            "AND THE GUARD MEASURED WHAT THE CUT COSTS. AN12's invariant - no "
+            "selector sets the same property in two sheets, so the packaging "
+            "order cannot change a winner - cannot hold for a sequential cut: "
+            "a component whose rules were already scattered lands in two sheets "
+            "by definition. 147 such places, 140 distinct pairs, worst pair "
+            "arena_deck.css <-> arena_deck_layout.css at 23. Recorded as a "
+            "RATCHET, not wished away. Bringing it down is the second step: "
+            "gathering each component into its own sheet, every move proved by "
+            "an15_gather.transpositions. "
+            "The 81 sites in chef_battle/tests.py that read the one path now "
+            "read the set through arena_css(). That rewrite carried the only "
+            "real defect of this work: twelve classes held the path in a CSS "
+            "attribute and read it in three different shapes, and the first "
+            "pass converted only the shape it had seen - 38 errors, every one "
+            "'function object has no attribute read_text'. Fixed; chef_battle "
+            "is 1713 green. "
+            "61 comments in JS, CSS and templates named arena.css in the "
+            "present tense as a live file - the exact defect v2.5.1133 fixed "
+            "once for the AN12 merge - and each now names the sheet that really "
+            "holds the code. PWA_CACHE_VERSION v8 to v9."
+        ),
+    },
+    {
         "version": "2.5.1792",
         "date": "2026-09-05",
         "commit": "36de4f92",

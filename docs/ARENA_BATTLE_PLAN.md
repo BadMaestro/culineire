@@ -617,17 +617,45 @@ SCENE              #arena-render
                    transform-origin 50% 62%
 ```
 
-Exactly **two** Arena stylesheets (`arena.css`, `arena_atmosphere.css`) and
-exactly **one** camera. The Master Console mirror is the SAME component and
-differs only by configuration values it sets on it. The camera knows nothing of
-the caption, the furniture, the grid rows or the page offsets, and page layout
-redefines none of the camera's optics.
+**THIRTEEN** Arena stylesheets and exactly **one** camera. The Master Console
+mirror is the SAME component and differs only by configuration values it sets on
+it. The camera knows nothing of the caption, the furniture, the grid rows or the
+page offsets, and page layout redefines none of the camera's optics.
+
+**THE TWO-SHEET RULE IS LIFTED — the Owner, 2026-09-05, v2.5.1792.** This
+paragraph read "exactly **two** Arena stylesheets (`arena.css`,
+`arena_atmosphere.css`)… nothing adds a third stylesheet", frozen by him on
+2026-08-09 at v2.5.960. He lifted it himself and gave the reason: *«замораживали
+потому что их было дохрена бесполезных — а теперь в этом есть большая
+необходимость чтоб улучшить качество кода, скорости и качества загрузки
+страницы»*. `arena.css` had reached 13,958 lines behind a single `<link>`.
+
+It is now **twelve** sheets plus `arena_atmosphere.css`, listed in cascade order
+in `chef_battle/tests.py::ARENA_SHEETS` and linked in that order by both
+`arena.html` and `arena_master_console.html`:
+
+```
+arena_tokens · arena_shell · arena_deck · arena_furniture · arena_rank_ladder
+arena_chat · arena_deck_layout · arena_command_bar · arena_floor · arena_grid
+arena_mobile · arena_hall_answers            → then arena_atmosphere
+```
+
+**What the freeze protected still holds, and is now protected differently.** The
+cut was sequential and at brace depth zero, so the twelve bodies joined in link
+order are byte-identical to the file that stood before — no rule changed its
+winner. What the two-sheet rule bought for free, the order of a two-item list,
+is now bought by guards: `EveryArenaSheetHasItsOwnGuardTests` (per sheet: header,
+brace balance, no hand-written layer number, and a ratchet on the 147 places
+where two sheets write one property for one selector) and
+`ArenaTemplateHygieneTests` (the two templates and `ARENA_SHEETS` must agree, in
+order). Adding a sheet means adding it to all three lists, deliberately.
 
 **What this means for every card below.** A card adapts to these facts; the facts
 do not adapt to a card. Page composition is changed through PAGE LAYOUT. Moving
 the octagon means moving its REGION, never editing the camera. Nothing writes
 `--arena-fit` or `--arena-shift-*`; nothing positions the ladder or the caption
-from CSS; nothing adds a third stylesheet.
+from CSS; a new rule goes into the sheet that already owns its selector, never
+into a thirteenth file of its own.
 
 ## 1. Current team and ownership
 

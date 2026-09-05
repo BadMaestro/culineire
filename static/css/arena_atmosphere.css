@@ -1,8 +1,8 @@
 /* ────────────────────────────────────────────────────────────────────────
    Arena EFFECTS LAYER — GreenBear (Senior FE).
-   Pure CSS/SVG-filter atmosphere over the deck classes in arena.css.
+   Pure CSS/SVG-filter atmosphere over the deck classes in the arena sheets.
    ZERO image files, ZERO structural changes, does NOT touch the renderer's JS.
-   Loads AFTER arena.css - which is where arena_command_deck.css and
+   Loads AFTER all twelve of them - which is where arena_command_deck.css and
    arena_deck_polish.css both went in AN12 - so it only adds glow and depth
    on top of the established palette. All motion is gated behind prefers-reduced-motion.
    Reuses the --ad-* palette vars declared on .arena-command-deck.
@@ -13,7 +13,7 @@
    bottom — reads as an overhead arena lamp. Non-interactive, sits under
    all content. */
 .arena-command-deck {
-  /* position: relative is arena.css's, and identical there (AN12) */
+  /* position: relative is the layout sheets', and identical there (AN12) */
   isolation: isolate; /* keep the atmosphere z-index local to the deck */
 }
 .arena-command-deck::before {
@@ -29,7 +29,7 @@
 
 /* ── B. Phase rail: active step breathes with a gold aura ── */
 .arena-phase-step.is-active {
-  /* the resting box-shadow is arena.css's and always was: this copy loaded
+  /* the resting box-shadow is the layout sheets' and always was: this copy loaded
      earlier and never won a pixel (AN12). The animation below is the effect. */
   animation: ad-phase-breathe 2.6s ease-in-out infinite;
 }
@@ -67,7 +67,7 @@
 .arena-live-chef--crown      { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent-bronze) 40%, transparent)); }
 
 /* the centre link gets a subtle inviting lift on hover (no layout shift) */
-/* .arena-live-centre's transition is arena.css's - this copy loaded earlier
+/* .arena-live-centre's transition is arena_floor.css's - this copy loaded earlier
    and lost every time (AN12). The hover filter below is what this file adds. */
 .arena-live-centre:hover,
 .arena-live-centre:focus-visible { filter: drop-shadow(0 3px 12px color-mix(in srgb, var(--accent-bronze) 45%, transparent)); }
@@ -546,7 +546,7 @@
    two of them with !important, in the EFFECTS sheet. That is the exact shape
    of the fault this phase already paid for once: the same file zeroed
    .arena-floor-stage's margin from two rules away and the octagon's only
-   vertical input silently did nothing for a day. arena.css owns the floor
+   vertical input silently did nothing for a day. arena_floor.css owns the floor
    layer's box and already sets margin, padding, border and radius to the same
    values; only the appearance stays here. */
 .page--arena .arena-command-deck__floor {
@@ -556,7 +556,7 @@
 /* AN-R1/B: THE STAGE'S GEOMETRY IS NOT THIS FILE'S TO OWN.
 
    `width: 100%` and `margin: 0` stood here and quietly beat the page
-   layout: this sheet loads after arena.css and both selectors carry the
+   layout: this sheet loads after all twelve and both selectors carry the
    same specificity, so the atmosphere - which owns the hall's LOOK - was
    deciding the floor's box. It is why the one authoritative vertical
    input did nothing at all: the margin carrying it was zeroed from here,
@@ -657,7 +657,7 @@
    owns those - `[data-state="active_battle"]`, `crown`, `facing_pair`. Those
    rules carry the same specificity as this one, so for the whole of this
    file's life the answer was decided by which sheet loaded last. Now that the
-   renderer travels inside arena.css this rule would have started winning and
+   renderer travels inside the layout sheets this rule would have started winning and
    painted a live battle stage grey. `:not([data-state])` says what was always
    meant: this is the fill of a stage that has no state of its own. */
 .page--arena #arena-render .arena-stage:not([data-state]) {

@@ -1294,7 +1294,7 @@
   var FACE_DESATURATE = 0.38;
 
   // The seats fall into the dark on the same curve as the faces sitting in
-  // them. arena.css reads --row-light (the renderer's own section, merged in
+  // them. arena_floor.css reads --row-light (the renderer's own section, merged in
   // AN12); it used to hold a hand-written
   // ladder of ring numbers, which stopped covering the stands the moment they
   // grew from four rows to eight. One source of depth, written from here.
@@ -1544,7 +1544,7 @@
     // already correct for the destination; only the whole group slides.
     //
     // No per-frame JavaScript and no timers: the transition lives in
-    // arena.css, so `prefers-reduced-motion` can switch it off there with
+    // the arena sheets, so `prefers-reduced-motion` can switch it off there with
     // everything else, and a backgrounded tab costs nothing.
     var slug = entity.slug || '';
     var here = cellCentre(seat);
@@ -1580,7 +1580,7 @@
    * его рангу".
    *
    * The COLOUR was already right and is untouched: the spark carries its
-   * ring, the ring is the rank, and arena.css turns that into white, blue,
+   * ring, the ring is the rank, and arena_floor.css turns that into white, blue,
    * rose or prism with five intensities. What was wrong is that the outline
    * existed on all 184 rank cells from the moment the floor was drawn, and
    * a chef arriving only switched one on. 183 invisible outlines were laid
@@ -3519,7 +3519,7 @@
     // for having crossed a boundary it should not have crossed.
     //
     // The camera now has its own viewport with its own intrinsic side (see
-    // --arena-camera-side in arena.css), so the projection no longer depends
+    // --arena-camera-side in arena_floor.css), so the projection no longer depends
     // on the height of whatever box the page happened to give it. Placement
     // is a plain 2D scale and translate on that viewport, which is affine,
     // which is why the solve below is exact: two writes and one measurement,

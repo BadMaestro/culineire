@@ -1,0 +1,1020 @@
+/* ARENA SHEET 02/12 - arena_shell.css
+   The page shell: the deck's frame, the legend, the tooltip, the seams.
+
+   ONE OF TWELVE. arena.css was 13,958 lines behind a single <link>; the
+   Owner asked on 2026-09-05 for sub-files, the chat in a file of its own,
+   each loaded separately and each with a guard. He lifted his own two-sheet
+   freeze of 2026-08-09 to allow it, and gave the reason: that rule was
+   written when the seven files were useless, and splitting now buys code
+   quality and load speed.
+
+   THE ORDER OF THE TWELVE LINKS IS THE CASCADE. This cut moved NOTHING -
+   every boundary was already at brace depth zero - so the twelve bodies
+   joined in order are byte-identical to the file that stood before, which
+   is what proves no rule changed its winner. arena.html and
+   arena_master_console.html both load all twelve in this numbered order,
+   and EveryArenaSheetHasItsOwnGuardTests fails if a sheet drifts.
+   SPLIT-HEADER-END */
+
+/* =====================================================================
+   ARENA PAGE SHELL - one authoritative stylesheet.
+
+   AN phase, 2026-08-08. This file is the merge of four sheets that every page
+   showing the Arena already loaded together, in this order:
+
+       arena.css              780 lines
+       arena_command_deck.css 747
+       arena_hall.css         257
+       arena_deck_polish.css  4345
+
+   THE ORDER IS PRESERVED EXACTLY. Merging is only safe because it is the same
+   order the browser already applied: a rule that won before still wins, and a
+   rule that lost still loses. Nothing about the page's appearance may change in
+   this phase, and the proof is a pixel comparison against the baseline, not an
+   assurance.
+
+   The Master Console mirror loads the same four and no others, so it is
+   unaffected. arena_effects.css and arena_atmosphere.css are NOT merged here:
+   the console deliberately omits both - the Owner asked for the mirror without
+   the tilt and without the effects - and folding them in would hand the console
+   a look nobody asked for. That merge waits for his word.
+
+   Sections below are the former files, in load order, unedited. Deduplication
+   is the next stage and is deliberately not mixed into the move: one change at
+   a time, each provable on its own.
+   ===================================================================== */
+
+/* ==================================================================
+   was: static/css/arena.css
+   ================================================================== */
+
+/* Chef Battles Arena — concentric octagonal ring of chefs */
+
+/* Rank-ladder swatches derived from the site's own warm-card tokens, not
+   invented colours: eight steps from --ce-card-accent (darkest) to
+   --surface-muted (lightest) via color-mix, matching the lightness
+   progression the hand-picked hex values used to have (culinary_master
+   darkest -> kitchen_porter lightest). This is the same derivation technique
+   already used elsewhere in the codebase (see base.css --about-* tokens).
+   Declared at :root, not scoped to .arena-legend, because the tooltip's
+   [data-rank] rules read the same ladder from a different part of the DOM. */
+:root {
+  --arena-rank-1: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 10%);
+  --arena-rank-2: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 28%);
+  --arena-rank-3: var(--brand);
+  --arena-rank-4: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 58%);
+  --arena-rank-5: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 70%);
+  --arena-rank-6: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 80%);
+  --arena-rank-7: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 88%);
+  --arena-rank-8: color-mix(in srgb, var(--ce-card-accent), var(--surface-muted) 94%);
+}
+
+.arena-page {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.arena-legend {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+}
+
+.arena-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1px solid var(--ce-card-border);
+  font-size: 0.72rem;
+  color: var(--ce-card-accent);
+  white-space: nowrap;
+}
+
+.arena-legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--arena-rank-3);
+}
+
+.arena-legend__item--culinary_master .arena-legend__swatch { background: var(--arena-rank-1); }
+.arena-legend__item--executive_chef .arena-legend__swatch { background: var(--arena-rank-2); }
+.arena-legend__item--head_chef .arena-legend__swatch { background: var(--arena-rank-3); }
+.arena-legend__item--sous_chef .arena-legend__swatch { background: var(--arena-rank-4); }
+.arena-legend__item--chef_de_partie .arena-legend__swatch { background: var(--arena-rank-5); }
+.arena-legend__item--commis_chef .arena-legend__swatch { background: var(--arena-rank-6); }
+.arena-legend__item--prep_cook .arena-legend__swatch { background: var(--arena-rank-7); }
+.arena-legend__item--kitchen_porter .arena-legend__swatch { background: var(--arena-rank-8); }
+
+.arena-legend__count {
+  font-weight: 700;
+  color: var(--accent-bronze);
+}
+
+.arena-puzzle-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+#arena-puzzle {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  display: block;
+}
+
+.arena-cell {
+  transition: opacity 0.15s ease;
+}
+
+.arena-cell--empty {
+  cursor: default;
+}
+
+.arena-cell--in-battle {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent-bronze) 85%, transparent));
+}
+
+.arena-cell--has-spectator:hover {
+  opacity: 0.82;
+}
+
+.arena-cell--centre {
+  transition: opacity 0.15s ease;
+}
+
+.arena-center--active:hover {
+  opacity: 0.88;
+}
+
+.arena-online-dot {
+  animation: arena-pulse 2s ease-in-out infinite;
+}
+
+@keyframes arena-pulse {
+  0%, 100% { opacity: 1; r: 4; }
+  50%       { opacity: 0.7; r: 3.5; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Chef tooltip                                                        */
+/* ------------------------------------------------------------------ */
+.arena-tooltip {
+  position: fixed;
+  z-index: var(--arena-z-tooltip-top);
+  background: var(--surface);
+  border: 1px solid var(--ce-card-border);
+  border-radius: 14px;
+  box-shadow: 0 6px 28px color-mix(in srgb, var(--ink) 14%, transparent);
+  padding: 1.1rem 1rem 1rem;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  overflow: hidden;
+}
+
+.arena-tooltip::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent-bronze);
+  border-radius: 14px 14px 0 0;
+}
+
+[data-rank="culinary_master"] .arena-tooltip__rank { color: var(--accent-bronze-dark); font-weight: 700; }
+[data-rank="executive_chef"]  .arena-tooltip__rank { color: var(--arena-rank-2); font-weight: 600; }
+[data-rank="head_chef"]       .arena-tooltip__rank { color: var(--brand); }
+
+.arena-tooltip__close {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ce-card-muted-soft);
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0.15rem 0.3rem;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.arena-tooltip__close:hover {
+  color: var(--ce-card-accent);
+  background: var(--surface-soft);
+}
+
+.arena-tooltip__avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid var(--ce-card-border);
+  align-self: center;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.arena-tooltip__body {
+  text-align: center;
+}
+
+.arena-tooltip__name {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ce-card-ink);
+  letter-spacing: 0.01em;
+}
+
+.arena-tooltip__rank {
+  font-size: 0.78rem;
+  color: var(--brand);
+  margin-top: 0.2rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.arena-tooltip__meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-top: 0.3rem;
+}
+
+.arena-tooltip__rating {
+  font-size: 0.73rem;
+  color: var(--ce-card-muted-soft);
+}
+
+.arena-tooltip__badge {
+  font-size: 0.67rem;
+  font-weight: 600;
+  padding: 0.13rem 0.5rem;
+  border-radius: 999px;
+}
+
+.arena-tooltip__badge--battle {
+  background: color-mix(in srgb, var(--accent-bronze) 14%, transparent);
+  color: var(--accent-bronze-dark);
+}
+
+/* "Online" green, one of six semantic exceptions in this file: no green/red/
+   blue token exists at :root, and color-mix cannot synthesize a hue outside
+   the two colours it's given, so mixing warm bronze tokens can't produce
+   green. Rewriting these to a bronze token would erase the green=online /
+   red=live / blue=DEF convention users already read at a glance. Left as raw
+   hex on purpose pending a real semantic token set from the owner. */
+.arena-tooltip__badge--online {
+  background: color-mix(in srgb, var(--accent-bronze) 12%, transparent);
+  color: var(--accent-bronze);
+}
+
+.arena-tooltip__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: var(--accent-bronze);
+  color: var(--surface);
+  text-decoration: none;
+  line-height: 1;
+  transition: background 0.18s;
+}
+
+.arena-tooltip__link:hover,
+.arena-tooltip__link:focus-visible {
+  background: var(--accent-bronze-dark);
+  color: var(--surface);
+}
+
+/* --- Stats row (W / L / Streak) --- */
+.arena-tooltip__stats {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.1rem;
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--ce-card-muted-soft);
+}
+.arena-tooltip__stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.17rem;
+}
+.arena-tooltip__stat b {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ce-card-accent);
+}
+.arena-tooltip__stat-lbl {
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ce-card-muted-soft);
+}
+.arena-tooltip__stat-sep {
+  color: var(--ce-card-border);
+}
+
+/* --- Artifact potential row --- */
+.arena-tooltip__potential {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+  font-size: 0.68rem;
+}
+.arena-tooltip__potential-item { font-weight: 500; }
+.arena-tooltip__potential-item--atk { color: var(--brand-dark); }
+.arena-tooltip__potential-item--def { color: var(--brand); }
+.arena-tooltip__potential b { font-weight: 700; }
+.arena-tooltip__potential-sep { color: var(--ce-card-border); }
+
+/* --- Action buttons row --- */
+.arena-tooltip__actions {
+  display: flex;
+  gap: 0.4rem;
+}
+.arena-tooltip__actions .arena-tooltip__link {
+  flex: 1;
+  text-align: center;
+}
+.arena-tooltip__challenge {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent-bronze);
+  border: 1.5px solid var(--accent-bronze);
+  text-decoration: none;
+  line-height: 1;
+  transition: background 0.18s, color 0.18s;
+}
+.arena-tooltip__challenge:hover,
+.arena-tooltip__challenge:focus-visible {
+  background: var(--accent-bronze);
+  color: var(--surface);
+}
+
+.arena-owner-controls {
+  display: grid;
+  gap: .55rem;
+  margin-top: .75rem;
+  padding-top: .7rem;
+  border-top: 1px solid var(--line);
+}
+
+.arena-owner-controls[hidden] { display: none; }
+
+.arena-owner-controls__time,
+.arena-owner-controls__confirm {
+  display: grid;
+  gap: .3rem;
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.arena-owner-controls__time input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: .4rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.arena-owner-controls__buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .4rem;
+}
+
+.arena-owner-controls button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: .42rem .55rem;
+  background: var(--surface-soft);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.arena-owner-controls__confirm {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+}
+
+.arena-owner-controls .arena-owner-controls__delete {
+  border-color: var(--danger, var(--accent-bronze-dark));
+  color: var(--danger, var(--accent-bronze-dark));
+  font-weight: 700;
+}
+
+
+.arena-command-deck__phase-card,
+.arena-command-deck__metrics,
+.arena-command-deck__floor,
+.arena-command-deck__ladder,
+.arena-command-deck__guide,
+.arena-command-deck__gifts,
+.arena-command-deck__crowd-rail,
+.arena-chat,
+.arena-command-deck__command,
+.arena-command-deck__phase-rail {
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  box-shadow: 0 .55rem 1.6rem color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.arena-command-deck__eyebrow, .arena-panel__kicker { margin: 0; color: var(--arena-gold); font-size: .69rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+
+/* .arena-broadcast-ribbon - every rule for this component that could be proved
+   safe to move, in one place. Gathered by an15_gather.py:
+   the applying declarations are byte-identical and no
+   conflicting pair changed places. */
+.arena-broadcast-ribbon { --arena-phase-gap: 0.382rem; --arena-phase-pad: 0.618rem; }
+  /* R6: full-width broadcast ribbon (identity + phase track). */
+  .arena-broadcast-ribbon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    display: grid;
+    border: 0;
+    border-radius: 0;
+    backdrop-filter: blur(10px) saturate(1.08);
+    -webkit-backdrop-filter: blur(10px) saturate(1.08);
+  }
+  /* Ribbon must be the first readable show strip. */
+  .arena-broadcast-ribbon {
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface) 96%, transparent),
+        color-mix(in srgb, var(--surface-soft) 92%, transparent)
+      ) !important;
+    box-shadow: 0 0.75rem 1.8rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+/* 3G — denser broadcast ribbon phase track (prototype masthead). */
+
+  .arena-broadcast-ribbon {
+    grid-template-columns: minmax(14rem, 1fr) minmax(0, 2.6fr) auto;
+    align-items: center;
+    gap: 0.7rem 1rem;
+    min-height: 3.55rem;
+    padding: 0.38rem 1.2rem 0.45rem;
+  }
+  .arena-broadcast-ribbon {
+  }
+  .arena-broadcast-ribbon {
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  }
+  .page--arena .arena-broadcast-ribbon {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+    background: color-mix(in srgb, var(--surface-soft) 84%, var(--ink) 5%);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+
+@media (min-width: 641px) {
+/* A11: the deadline is NO LONGER hidden here. It was the one authoritative,
+     server-driven number in the panel, and hiding it on desktop is what left
+     the 30 s page-refresh countdown standing alone in the reference's clock
+     position, looking like a battle clock. Copy and compact facts stay hidden:
+     the reference panel carries neither, and the viewer count they duplicated
+     already lives in the pulse strip. */
+
+
+/* The clock sits on the phase name's baseline, right-aligned, as in the
+     reference: gold, Playfair, no card chrome of its own — the panel is the
+     card, and the clock must not read as a second one inside it. */
+
+
+/* No deadline is a real state and it must not shout. The arena spends most of
+     its life with no battle running, and "No active deadline" set in a clock
+     face would read as a fault instead of as calm. */
+
+
+/* The refresh countdown, demoted onto the gauge it actually measures — ONE
+     row, because two would cost more height than the card is trying to save. */
+
+
+  .page--arena .arena-broadcast-ribbon {
+    left: clamp(18.5rem, 23vw, 26rem);
+    right: clamp(16rem, 22vw, 24rem);
+    width: auto;
+    display: block;
+  }
+  /* Ribbon: was position:absolute;left:0;right:0;top:0 (Stage16). Now a
+     normal grid item spanning the top row, full width by the grid itself. */
+  .arena-command-deck > .arena-broadcast-ribbon,
+  .arena-broadcast-ribbon {
+    grid-area: ribbon;
+    position: static;
+    inset: auto;
+  }
+}
+/* Band block removed 2026-08-31: it described the old second
+   composition for 641-900px, which no longer exists - one grid now
+   runs from 641px up. The chat's own ceiling for this range is kept
+   where it is, because it bounds a scroller rather than placing a
+   layout, and a test reads it by name. */
+@media (max-width: 640px) {
+  /* THE RIBBON IS ONE COLUMN HERE. Its three-column desktop track -
+     minmax(14rem,1fr) minmax(0,2.6fr) auto - is stated with no @media around
+     it, so on a 375px phone the rail was being parked in a 14rem first column
+     and the other two thirds of the card stood empty. */
+  .arena-broadcast-ribbon {
+    grid-area: ribbon;
+    grid-template-columns: 1fr;
+    gap: var(--arena-phase-gap);
+    padding: var(--arena-phase-gap) var(--arena-phase-pad);
+    min-height: 0;
+  }
+}
+@media (max-width: 767px) {
+  /* The ribbon's desktop track - minmax(14rem,1fr) minmax(0,2.6fr) auto - is
+     also unconditional, and it was parking the strip in a 224px first column
+     with the rest of the card empty. One column here. */
+  .arena-broadcast-ribbon {
+    grid-template-columns: 1fr;
+  }
+}
+.arena-command-deck__phase-rail.is-open .arena-phase-step { opacity: .82; }
+.arena-phase-step { justify-content: center; min-height: 2.3rem; }
+.arena-phase-step__index {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  color: var(--arena-muted);
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+}
+.arena-phase-step.is-complete {
+  color: var(--arena-ink);
+  border-color: color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+  background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
+}
+.arena-phase-step.is-complete .arena-phase-step__index {
+  color: var(--arena-cappuccino);
+  border-color: color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  background: color-mix(in srgb, var(--accent-bronze) 16%, var(--surface));
+}
+.arena-phase-step.is-active .arena-phase-step__index {
+  color: var(--arena-cappuccino);
+  border-color: var(--arena-gold);
+  background: color-mix(in srgb, var(--accent-bronze) 22%, var(--surface));
+}
+/* Owner mockup, 2026-08: the "current phase" block sits below the ARENA
+   STATUS title now, its own icon+label+value row - reuses the same round
+   icon-badge look the panel titles use rather than a second style. */
+.arena-phase-current {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.5rem 0 0.7rem;
+}
+.arena-phase-current__ico {
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: 0 0 auto;
+  padding: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+  border-radius: 50%;
+  color: var(--accent-bronze-dark);
+  background: color-mix(in srgb, var(--accent-bronze) 10%, var(--surface));
+  box-sizing: content-box;
+}
+.arena-phase-current__label {
+  margin: 0;
+  color: var(--arena-gold);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+/* Mockup-style phase timer (Owner auto-refresh countdown). */
+.arena-command-deck__phase-card .arena-panel__title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.arena-phase-timer {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+  color: var(--accent-bronze);
+  font: 700 0.95rem/1 var(--font-serif);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 0.55rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+}
+.arena-phase-gauge {
+  position: relative;
+  height: 0.28rem;
+  margin: 0.65rem 0 0.15rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+}
+.arena-phase-gauge span {
+  display: block;
+  /* AN21: the full bar is the resting state, and it used to be an inline
+     style attribute on the element. arena_render.js narrows it as the
+     refresh counts down; where it STARTS belongs here. */
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--accent-bronze),
+    color-mix(in srgb, var(--accent-bronze) 55%, var(--surface))
+  );
+  transition: width 0.9s linear;
+}
+.arena-command-deck__phase-deadline span { color: var(--arena-gold); font-size: .62rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.arena-command-deck__phase-deadline strong { color: var(--arena-cappuccino); font: 700 .92rem/1.15 var(--font-serif); font-variant-numeric: tabular-nums; }
+.arena-command-deck__phase-deadline.is-empty strong { color: var(--arena-muted); font-family: inherit; font-size: .72rem; font-weight: 600; }
+.arena-metric { min-width: 0; padding: .45rem .1rem; align-items: baseline; justify-content: space-between; gap: .5rem; border-top: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
+.arena-metric:first-child { border-top: 0; }
+
+/* ARENA COMMAND — 4x2 icon-tile grid, Owner mockup 2026-08. Fixed 4 columns
+   rather than auto-fill: eight destinations is a closed set, not a list that
+   grows, so the grid should never reflow into 3 or 5 columns as the panel
+   resizes. */
+.arena-command-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+}
+.arena-command-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  padding: .5rem .25rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 22%, transparent);
+  border-radius: .6rem;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  color: var(--arena-ink);
+  text-align: center;
+  text-decoration: none;
+}
+.arena-command-tile:hover,
+.arena-command-tile:focus-visible {
+  border-color: var(--arena-gold);
+  background: color-mix(in srgb, var(--accent-bronze) 8%, var(--surface));
+}
+.arena-command-tile .arena-ico {
+  width: 1.3rem;
+  height: 1.3rem;
+  color: var(--accent-bronze-dark);
+}
+.arena-command-tile span {
+  font-size: .6rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: .01em;
+}
+.arena-metric span { font-weight: 700; white-space: nowrap; }
+.arena-ico { margin-right: .28rem; color: var(--arena-gold); fill: currentColor; }
+.arena-metric strong { flex: 0 0 auto; font: 700 1.1rem/1 var(--font-serif); }
+.arena-live-chef { display: flex; align-items: center; gap: .6rem; }
+.arena-live-chef--opponent { justify-content: flex-end; text-align: right; }
+.arena-live-chef--crown { justify-content: flex-end; }
+.arena-live-chef__profile {
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.arena-live-chef--opponent .arena-live-chef__profile { justify-content: flex-end; text-align: right; }
+.arena-live-chef img { width: 3.35rem; height: 3.35rem; border-radius: 50%; object-fit: cover; border: 2px solid var(--arena-gold); background: var(--arena-cream); }
+.arena-live-chef span, .arena-live-centre span { display: block; color: var(--arena-muted); font-size: .62rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.arena-live-chef strong { display: block; margin-top: .16rem; color: var(--arena-ink); font: 700 1rem/1.1 var(--font-serif); overflow-wrap: anywhere; }
+.arena-live-centre { min-height: 4.35rem; place-items: center; align-content: center; gap: .05rem; border: 1px solid var(--arena-gold); border-radius: .85rem; text-align: center; background: var(--arena-paper); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--surface) 82%, transparent); transition: border-color .18s ease, background .18s ease; }
+.arena-live-centre:hover, .arena-live-centre:focus-visible { background: var(--arena-cream); border-color: var(--arena-cappuccino); }
+.arena-live-centre b { color: var(--arena-cappuccino); font: 800 1.35rem/1 var(--font-serif); }
+.arena-live-centre em { max-width: 12ch; color: var(--arena-forest); font-size: .65rem; font-style: normal; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.arena-live-centre--crown { border-color: var(--arena-cappuccino); background: linear-gradient(135deg, color-mix(in srgb, var(--surface-soft) 96%, transparent), var(--arena-paper)); }
+.arena-live-centre--quiet { border-style: dashed; }
+.arena-live-awaiting { margin: 0; align-self: center; color: var(--arena-muted); font-size: .72rem; line-height: 1.35; text-align: center; }
+.arena-command-deck__floor .arena-legend { justify-content: flex-end; flex-wrap: wrap; overflow: visible; margin: 0; max-width: 60%; }
+.arena-command-deck__floor .arena-puzzle-label { order: 2; margin: 0; font-size: .72rem; }
+.arena-floor-stage { position: relative; border-radius: 1.1rem; background: var(--surface-soft); }
+/* The ::before kill-rule for the 2.6MB floor-plate PNG (OWNER CRITICAL,
+   2026-07-25) lives ONCE, further down at "kill decorative floor plate (G12)".
+   A shorter duplicate of it used to sit here as well - same selector, same
+   specificity, same !important, three of the same properties - so it was
+   overridden in full by the later one and painted nothing. Removed by the
+   desktop audit, 2026-08-23. */
+.arena-floor-stage #arena-puzzle { position: relative; z-index: var(--arena-z-floor); }
+
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-rank-spine - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* 3G R4 (Owner D1 Option B): centred rank stack over the floor — composition
+   from Ember's rank-progression prototype, official tokens only. Desktop
+   placement is CSS-owned (left 50% + translateX); tablet may still measure via
+   placeRankSpine(); mobile stays a wrapped flow row (Stage 3E). */
+/* AN6: the renderer owns WHERE, this rule owns WHAT IT IS. top/left/transform
+   left with v2.5.922; the width stays, because a component knows its own
+   intrinsic size - taking it away in v2.5.920 shrank the octagon by 126px. */
+.arena-rank-spine { position: absolute; pointer-events: none; }
+.arena-rank-spine__step:hover, .arena-rank-spine__step:focus-visible { color: var(--brand-dark); }
+@media (max-width: 767px) {
+  .arena-rank-spine__label { text-align: left; margin-bottom: .2rem; }
+  .arena-rank-spine__item { flex: 1 1 auto; }
+}
+
+
+@media (max-width: 767px) {
+}
+
+
+@media (max-width: 767px) {
+}
+
+
+@media (max-width: 767px) {
+}
+
+
+@media (max-width: 767px) {
+}
+
+
+@media (max-width: 767px) {
+}
+
+
+/* The count uses the official ink token for reliable contrast; bronze measured
+   below the 7:1 the column is held to. Measured against the shipped tokens:
+   --ink #1f2c25 on --surface #fffdf9 = 14.30:1 (label), and on --surface-soft
+   #f5eee4 = 12.62:1 (the count's own pill). The earlier comment here said
+   15.2:1, which no computation reproduced; the numbers above are recomputed
+   from base.css by ArenaRankColumnTests, so this comment can no longer drift
+   away from the deployed values without a test failing. Evidence is recorded
+   in ops/audits/stage_3e_rank_column.json. */
+.arena-rank-spine__step b { place-items: center; border-radius: 999px; font-size: .9em; }
+
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* .arena-chat - rules for this component, kept together.
+   Gathered by an15_gather.py: the applying declarations are
+   byte-identical and no conflicting pair changed places. */
+/* ── Spectator chat ───────────────────────────────────────────────────────
+ * The Owner's rules, 2026-08-17. One room for spectators and chefs; a
+ * spectator hears three cells either side and three rows by the compass, a
+ * chef hears and is heard everywhere; the log keeps everything from the start
+ * of a battle to its end. Whether a line arrives WITH its words is decided on
+ * the server, so "Talking Something" here is a line that never carried any
+ * text, not text hidden with CSS.
+ *
+ * Placed by naming .arena-chat in all three lists this file requires - chrome,
+ * coordinates, colour. .arena-interface-rail is display:contents, and a panel
+ * missing from any of them has no box and nowhere to stand (X01, v2.5.822).
+ * The floor's area is unchanged: it spans the left column's rows as it always
+ * did, so A07 - the arena fits the screen whole - is not disturbed. */
+/* SEMANTIC CHAT TOKENS (Owner's chat spec, 2026-08-24). Colour carries
+   meaning here, so the meaning gets a name and the name is declared once.
+   Precedence is ADMIN > PRIVATE > PUBLIC and it is decided on the SERVER -
+   these are only how each answer looks.
+
+   The gold is the spec's #A87424 expressed against this page's own ink so it
+   stays legible on the cream panel; it is deliberately NOT the bright
+   #FFD700 the spec rules out. */
+.arena-chat {
+  --chat-public-text: #a87424;
+  --chat-private-text: #7652c8;
+  --chat-admin-text: #c43d35;
+  /* A mention is a fourth semantic colour, kept clearly apart from the three
+     above: it is neither the site speaking (admin red) nor a private channel
+     (DM purple), it is somebody being called by name. */
+  --chat-mention-text: #4d6fa8;
+
+  /* THE COLOUR OF A NAME - Owner, 2026-09-04. Grey with nothing, then three
+     steps of blue into purple as tokens are bought, green for a chef's fan
+     club, red for an admin. Cosmetic and free: it costs the viewer nothing
+     and it is still something to have.
+
+     Chosen against THIS panel's cream, not picked off a wheel: the three
+     purchase steps walk one hue family from a soft slate-blue to the private
+     channel's own violet, so they read as one ladder rather than three
+     unrelated colours. Green is deliberately outside that family - it is not
+     a rung on the ladder, it is a different thing entirely - and it is a deep
+     bottle green rather than a signal green, which on cream would shout over
+     the admin red it must never outrank. */
+  --chat-nick-grey: #8d8477;
+  --chat-nick-sky: #5b86b8;
+  --chat-nick-blue: #3a5fa8;
+  --chat-nick-purple: #7652c8;
+  --chat-nick-fan: #2f7d4f;
+  /* GOLD IS ONE NAME'S ONLY - Owner, 2026-09-04: "цвет ника GreenBear - всегда
+     золотой и переливается". Three stops rather than one colour, because the
+     shimmer is a gradient travelling across the letters: a deep bronze, the
+     spec's own #A87424 gold the rest of this panel already uses, and a pale
+     highlight for the glint to pass through. */
+  --chat-nick-owner-deep: #8a5a12;
+  --chat-nick-owner-gold: #a87424;
+  --chat-nick-owner-lit: #f0d08a;
+
+  grid-area: chat;
+  display: flex;
+  min-height: 0;                 /* or the log cannot scroll inside the panel */
+  flex-direction: column;
+  gap: .45rem;
+  padding: .7rem .8rem .75rem;
+  border-radius: 1rem;
+  /* THE COMPONENT MEASURES ITSELF, NOT THE WINDOW. The same chat sits in a
+     narrow phone column and a wide desktop rail, and it is its own width that
+     decides which it should look like - not the viewport, which says nothing
+     about the box this panel was actually given. That is what lets one
+     component serve both without a second implementation. */
+  container-type: inline-size;
+  container-name: arena-chat;
+  /* The action menu positions against THIS panel, so the panel has to be the
+     containing block. Stated here rather than left to whichever ancestor
+     happens to be positioned - that is how a menu ends up in another card. */
+  position: relative;
+}
+/* A hidden line, as its moderator sees it. Nobody else is sent one. Struck and
+   faded so it reads as withdrawn rather than as part of the conversation. */
+.arena-chat__line--hidden {
+  opacity: .55;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.arena-chat__quote b { color: var(--arena-cappuccino); font-weight: 700; }
+.arena-chat__replying b { color: var(--arena-cappuccino); }
+@media (hover: hover) {
+}
+
+/* The burst. Defined ONLY inside prefers-reduced-motion: no-preference, so
+   for a reader who asked their system for less motion the class the script
+   adds names an animation that does not exist - the correct way round, since
+   it needs no JS branch to stay honest. The preference toggle in Settings is
+   the second, independent switch (.is-still). */
+@media (prefers-reduced-motion: no-preference) {
+  .arena-chat:not(.is-still) .is-bursting {
+    animation: arena-chat-burst .6s ease-out;
+  }
+  @keyframes arena-chat-burst {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.55); }
+    100% { transform: scale(1); }
+  }
+}
+.arena-chat__chef-stats dt { margin: 0; }
+.arena-chat .arena-chat__chef-stats dt { color: var(--arena-muted); }
+.arena-chat__chef-stats dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.arena-chat__composer-action .arena-ico { width: .95rem; margin: 0; }
+.arena-chat__pref legend {
+  padding: 0;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.arena-chat .arena-chat__pref legend { color: var(--arena-muted); }
+.arena-chat__pref label {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .68rem;
+}
+.arena-chat__tab--icon .arena-ico { width: .78rem; margin: 0; }
+.arena-chat .arena-chat__rules-toggle .arena-ico { }
+.arena-chat__rules-toggle span { flex: 1 1 auto; text-align: left; }
+.arena-chat__rules-toggle em {
+  flex: 0 0 auto;
+  font-style: normal;
+  transition: transform .15s ease;
+}
+.arena-chat__rules-toggle[aria-expanded="true"] em { transform: rotate(90deg); }
+.arena-chat__rules-body li + li { margin-top: .1rem; }
+.arena-chat__settings label {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .68rem;
+}
+.arena-chat__settings button { align-self: flex-start; }
+.arena-chat__composer input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: .38rem .55rem;
+  border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--arena-ink);
+  font: inherit;
+  font-size: .72rem;
+}
+.arena-chat__composer input:focus-visible {
+  border-color: var(--arena-gold);
+  outline: none;
+}
+/* SEND CARRIES THE ACCENT AT REST, on every width. It is the one primary
+   action in the panel, and in the site scheme a primary control is still an
+   edge over a wash rather than a block of colour - so it takes the family
+   accent pair while every other button rests neutral. Stated here, in the
+   base rule, because the desktop had its own copy of this and the phone did
+   not, which is exactly the split the Owner objected to on 2026-08-28. */
+.arena-chat__composer button:not(.arena-chat__composer-action) {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--chat-btn-edge-on);
+  border-radius: 50%;
+  background: var(--chat-btn-fill-on);
+  color: var(--chat-btn-ink-on);
+  cursor: pointer;
+}
+/* DISABLED IS DIMMER, NEVER A DIFFERENT COLOUR. The composer is disabled for
+   anyone not seated, which is most readers most of the time, so this is the
+   state the button is usually in - and a desktop-only rule used to paint it
+   a solid 35% bronze block over the surface. That opaque brown square is
+   what the Owner was looking at when he said the buttons do not belong to
+   the scheme; it was measured on the live page on 2026-08-28 and it is the
+   reason the desktop and the phone still disagreed after two releases. */
+.arena-chat__composer button:disabled { opacity: .5; cursor: default; }
+.arena-chat__composer .arena-ico { width: .85rem; margin: 0; }

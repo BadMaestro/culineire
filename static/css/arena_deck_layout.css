@@ -1,0 +1,1068 @@
+/* ARENA SHEET 07/12 - arena_deck_layout.css
+   Deck layout and polish, and mockups M10 to A14.
+
+   ONE OF TWELVE. arena.css was 13,958 lines behind a single <link>; the
+   Owner asked on 2026-09-05 for sub-files, the chat in a file of its own,
+   each loaded separately and each with a guard. He lifted his own two-sheet
+   freeze of 2026-08-09 to allow it, and gave the reason: that rule was
+   written when the seven files were useless, and splitting now buys code
+   quality and load speed.
+
+   THE ORDER OF THE TWELVE LINKS IS THE CASCADE. This cut moved NOTHING -
+   every boundary was already at brace depth zero - so the twelve bodies
+   joined in order are byte-identical to the file that stood before, which
+   is what proves no rule changed its winner. arena.html and
+   arena_master_console.html both load all twelve in this numbered order,
+   and EveryArenaSheetHasItsOwnGuardTests fails if a sheet drifts.
+   SPLIT-HEADER-END */
+/* ==================================================================
+   was: static/css/arena_command_deck.css
+   ================================================================== */
+
+/* Arena command deck — route-scoped composition around the existing SVG arena. */
+
+.arena-command-deck__guide-link:hover,
+.arena-command-deck__guide-link:focus-visible {
+  text-decoration: underline;
+}
+/* One phi series for the phase track: 0.382 / 0.618 / 1 / 1.618 of a rem.
+   The narrow-screen rules read these; the desktop track does not use them
+   and keeps the measures it was accepted with. */
+.arena-command-deck__phase-rail { --arena-phase-gap: 0.382rem; --arena-phase-pad: 0.618rem; }
+.arena-command-deck__phase-name { font: 700 1.15rem/1.1 var(--font-serif); }
+.arena-command-deck__phase-deadline { margin: .8rem 0 0; padding-top: .65rem; border-top: 1px solid color-mix(in srgb, var(--brand) 23%, transparent); }
+.arena-command-deck__metrics { grid-area: metrics; }
+.arena-command-deck__floor { grid-area: floor; min-width: 0; overflow: hidden; }
+.arena-command-deck__live-stage { grid-template-columns: 1fr minmax(8rem, .8fr) 1fr; margin-bottom: 1rem; padding: .75rem; border: 1px solid color-mix(in srgb, var(--brand) 32%, transparent); border-radius: 1rem; background: linear-gradient(135deg, color-mix(in srgb, var(--ink-soft) 10%, transparent), color-mix(in srgb, var(--surface) 70%, transparent), color-mix(in srgb, var(--brand-dark) 10%, transparent)); }
+.arena-command-deck__floor-head { align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .65rem; }
+.arena-command-deck__ladder { grid-area: ladder; }
+.arena-command-deck__gifts { grid-area: gifts; }
+.arena-command-deck__crowd-rail { grid-area: crowd; min-height: 3.25rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; font: 700 .78rem/1.2 var(--font-serif); }
+/* The command grid and the two panels came here whole, so the nav keeps its
+   own class and every rule that dresses it. What it must not keep is the
+   panel chrome it wore as a standalone card, now that the card around it
+   supplies it. */
+.arena-command-dock .arena-command-deck__command {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .arena-command-deck__floor { animation: arena-command-deck-breathe 8s ease-in-out infinite; }
+}
+@media (max-width: 900px) {
+  .arena-command-deck__floor {
+    animation: none !important;
+  }
+}
+/* ----------------------------------------------------------------------------
+ * Stage 16 — the HUD frames the arena instead of standing beside it.
+ *
+ * The deck was a grid: the floor in the middle column, the panels in columns
+ * either side, all of it inside a 1520px page with a light parchment
+ * background. That is a page ABOUT an arena. In the mockup the hall IS the
+ * screen and the panels float on top of it, which is what makes it read as a
+ * broadcast rather than a dashboard.
+ *
+ * So above the mobile breakpoint the grid is dropped: the floor becomes the
+ * whole viewport and every panel is placed over it at the position measured
+ * off the mockup (docs/chef_battle/arena_mockup_spec.md, section 7). Below
+ * that breakpoint the grid stays exactly as it was — on a phone there is no
+ * room beside the floor, and stacking is the right answer there.
+ * -------------------------------------------------------------------------- */
+/* Stage 1 — the arena reaches every edge of the screen, not just the desktop
+   one. It used to be gated at min-width:901px, so a 390px phone kept the old
+   boxed floor with a border and radius while 1920 was already full-bleed.
+   Floor sizing and the hall's own background now apply at ALL widths; only
+   the panel-overlay placement below stays desktop-only, because below 900px
+   the panels stack in their own grid rows and there is no room beside the
+   floor to float them over it. */
+
+.arena-command-deck {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+.arena-command-deck__floor {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+  .arena-command-deck__floor {
+    /* ============================================================
+       THE FLOOR LAYER ALLOCATES REGIONS. IT DOES NOT COMPENSATE.
+
+       AN-R1/B, 2026-08-09, the Owner's choice. The chain he specified:
+
+           page / deck layout   decides the regions
+                   |
+           caption gets a region · the octagon gets a region
+                   |
+           the octagon's layout owner   scales and places INSIDE its region
+                   |
+           the camera   renders that, and nothing else
+
+       Three rows, top to bottom:
+
+         1  --arena-deck-top-h   what the furniture above the floor occupies
+                                 in the caption's own column. A page-level
+                                 fact, measured and published by
+                                 arena_page_layout.js, which already owns
+                                 --arena-header-h. The caption does not
+                                 measure its neighbours; the page tells it.
+         2  --arena-caption-lead THE CLEAR AIR ABOVE THE WRITING. This was
+                                 CAPTION_GAP = 6 in arena_render.js, and when
+                                 placeFloorCaption() was deleted the number
+                                 lost its owner and the caption came to rest
+                                 6px high - accepted top 235 measured 229.
+                                 Spacing between two page-layout regions is
+                                 page layout's decision, so it lives here
+                                 rather than being compensated for anywhere.
+         3  auto                 THE WRITING. Exactly the height it needs.
+         4  1fr                  what is left under the writing.
+
+       The octagon's REGION is rows 3 to the end - the writing's row and the
+       one below it (Region Model A, Owner 2026-08-08). The accepted
+       composition overlaps by design: the octagon's box is a tilted square
+       with transparent corners, and a row that cannot overlap anything is
+       what made it small.
+
+       The band above the floor used to be made by MOVING the floor: the
+       caption measured what was left, decided it was not enough, and scaled
+       and shifted the octagon through the camera to make room - three times
+       over, accumulating onto a fit another function was also accumulating.
+       Two owners of one position. Now the caption cannot move the octagon
+       because it is a grid item in a different row and has no way to.
+       ============================================================ */
+    inset: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    --arena-caption-lead: 6px;
+    grid-template-rows:
+      var(--arena-deck-top-h, 0px)
+      var(--arena-caption-lead)
+      auto
+      1fr;
+    z-index: var(--arena-z-floor);
+  }
+  .arena-command-deck__floor-head { display: none; }
+.arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    grid-area: auto;
+    grid-column: auto;
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: auto;
+    transform: none;
+    margin: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  /* THE TRACK'S COLUMN COUNT HAS ONE OWNER, and this is it (2026-08-20).
+     This rule carries two classes and no @media, so it beat every
+     single-class narrow-screen rule in the sheet no matter where they sat:
+     seven columns survived onto a 375px phone, each about 45px wide, and
+     after the number's own 17px pill and the padding there was nothing left
+     for the label - the ellipsis in arena_atmosphere.css truncated all seven
+     phase names to zero and the Owner saw a bar of bare numbered circles.
+     The count is now a variable so a narrow screen can restate the COUNT
+     without restating the rule; no desktop pixel moves, the default is 7. */
+  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    display: grid;
+    grid-template-columns: repeat(var(--arena-phase-cols, 7), minmax(0, 1fr));
+    justify-content: stretch;
+  }
+  .arena-command-deck__metrics { right: 1.5%; }
+  .arena-command-deck__gifts   { right: 1.5%; bottom: 8%; width: 20%; }
+  /* confrontation band sits under the ribbon */
+
+  /* R2: lower bar closes the frame full-width (visible, safe change).
+     border-radius/border-left/border-right/border-bottom here are from the
+     old absolute-overlay dock this card used to be. Every later rule that
+     still matters (position: static/grid-area: foot, the full 1px border
+     restored by the 2026-08-20 rewrite above) has already moved past that
+     layout, but nothing had corrected the radius, so this was the one place
+     still telling the card to be square-topped and three-sided-bordered on
+     a phone - confirmed live: radiusTL/TR 0px, radiusBL/BR 13.6px, while
+     the Owner's target mockup shows this card fully rounded like its
+     siblings (2026-08-21). border-left/right/bottom: 0 is left as dead
+     weight rather than removed here - the live border already reads 1px on
+     all four sides from the later rule, so touching it is not needed to
+     fix the radius and is out of this card's scope. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    transform: none;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+/* 3G R3 — confrontation band (composition from prototype, live data only).
+   Positions the existing live-stage as one connected challenger | focus | opponent
+   band over the floor. No new DOM targets; no flag (D3). */
+
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    position: absolute;
+    margin: 0;
+    display: grid;
+    align-items: center;
+  }
+/* 3G R2 v2 — architectural rail ticks only (panels stay where they are). */
+
+/* 3G atmosphere — hall depth without a second palette. */
+
+  .arena-command-deck__floor::before {
+    content: "";
+    position: absolute;
+    z-index: var(--arena-z-base);
+    inset: 0;
+    pointer-events: none;
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    border-color: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    padding-block: 0.55rem;
+  }
+@media (max-width: 767px) {
+  /* THE GRID CAME OUT OF THIS LINE 2026-08-31, and it had to. It declared a
+     WHOLE deck layout - eleven single-name rows - inside `max-width: 767px`,
+     which reaches the phone as well as the band above it. That was survivable
+     only while it sat ABOVE the phone's own map; v2.5.1549 gathered the
+     component and inverted them, so this eleven-row map started winning on the
+     PHONE too. Measured at 630px: computed areas `header phase phase-rail
+     metrics command floor crowd chat guide ladder gifts` and columns
+     `147.5px 0px 428.7px` - three implicit tracks, because the phone assigns
+     its children to names (ladder, stream, chat, mobilescene) this map does not
+     contain, so the browser invented lines for them. The caption came out one
+     letter per line down the left edge.
+
+     Deleting the two grid declarations - not re-gating them - is what fixes
+     BOTH ranges at once and adds no duplicate: below 641 the phone's own map
+     governs, and between 641 and 767 nothing here contradicts the single
+     composition any more. The width, margin and gap are phone styling and
+     stay. */
+  .arena-command-deck { width: min(100% - 1rem, 640px); margin-top: .5rem; gap: .65rem; }
+  .arena-command-deck__guide { grid-area: guide; }
+  .arena-command-deck__command { grid-area: command; }
+.arena-command-deck__floor-head,
+.arena-command-deck__crowd-rail { align-items: flex-start; flex-direction: column; }
+  .arena-command-deck__phase-card .arena-command-deck__phase-copy {
+    text-align: center;
+    max-width: 26rem;
+    margin-inline: auto;
+  }
+  /* Owner's target mockup (2026-08-21): four columns, not three - this card
+     always held four stats (viewers/votes/gifts/streak) and the count here
+     was simply wrong, which also meant the last stat wrapped to a lonely
+     second row. Each column stacks icon above label above value, matching
+     .arena-command-deck__metrics .arena-metric's own desktop-sidebar
+     structure (M12, now scoped to 901px+) rather than inventing a new one -
+     just laid out as a row of 4 instead of a column of 4. */
+  .arena-command-deck__metrics { display: grid; width: 100%; grid-template-columns: repeat(4, 1fr); padding: .65rem .3rem; }
+  .arena-command-deck__floor { padding: .7rem; border-radius: .9rem; }
+  .arena-command-deck__live-stage { grid-template-columns: 1fr; gap: .55rem; text-align: center; }
+  .arena-command-deck__floor-head { gap: .55rem; }
+}
+.page--arena .arena-command-deck {
+  color: var(--hall-text);
+}
+.page--arena .arena-command-deck__floor {
+  border: 1px solid var(--hall-border);
+  background: color-mix(in srgb, var(--hall-dark-0) 72%, transparent);
+  box-shadow: var(--shadow-md);
+}
+.page--arena .arena-command-deck__live-stage {
+  border-color: var(--hall-border);
+  background: linear-gradient(135deg, var(--hall-dark-1), var(--hall-dark-0));
+}
+/* 3G â€” glass panels on desktop over the dark hall. */
+
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__gifts,
+  .page--arena .arena-command-deck__crowd-rail {
+    background: color-mix(in srgb, var(--hall-dark-1) 78%, transparent);
+    border-color: color-mix(in srgb, var(--hall-gold) 55%, transparent);
+    box-shadow: 0 0.8rem 2rem color-mix(in srgb, var(--hall-dark-0) 55%, transparent);
+  }
+/* ==================================================================
+   was: static/css/arena_deck_polish.css
+   ================================================================== */
+
+/* Arena command-deck POLISH LAYER — refines the deck classes toward the owner
+   reference. Both this layer and the classes it refines live in THIS file:
+   arena_command_deck.css and arena_deck_polish.css were merged here in AN12
+   and neither exists. Refines, does not restructure - so a change here must
+   be checked against the deck-layout block above rather than against a file.
+   Palette per arena_rebuild_plan.md sec 6 (warm CulinEire, gold accents). */
+
+.arena-command-deck {
+  /* s1/s2/s3/ink/ink2/mut used to restate --surface/--surface-soft/
+     --surface-muted/--ink/--ink-soft/--muted byte-for-byte — a second copy of
+     a brand colour, which is how palettes drift once one of the two is edited
+     and the other is forgotten. gold now resolves to the official bronze token for the same
+     reason. Challenger/opponent accents use the official Arena hall tokens
+     (--hall-green / --hall-red), not brand bronze — sides must read green vs
+     red, not two shades of brown. */
+  --ad-s0: var(--ce-card-bg);
+  --ad-s1: var(--surface);
+  --ad-s2: var(--surface-soft);
+  --ad-s3: var(--surface-muted);
+  --ad-ink: var(--ink);
+  --ad-ink2: var(--ink-soft);
+  --ad-mut: var(--muted);
+  --ad-green: var(--hall-green);
+  --ad-red: var(--hall-red);
+  --ad-gold: var(--accent-bronze);
+  --ad-gold-d: var(--accent-bronze-dark);
+  --ad-line: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+/* shared panel look */
+.arena-command-deck__phase-card,
+.arena-command-deck__metrics,
+.arena-command-deck__ladder,
+.arena-command-deck__gifts {
+  background:linear-gradient(180deg,var(--ad-s1),var(--ad-s2));
+  border:1px solid var(--ad-line); border-radius:14px;
+  box-shadow:0 1px 0 color-mix(in srgb, var(--surface) 60%, transparent) inset, 0 6px 18px color-mix(in srgb, var(--ink) 6%, transparent);
+  padding:14px 16px;
+}
+/* Phase rail (A2) - this whole block was DEAD, removed 2026-08-20, not
+   commented out. Every declaration here was beaten by a more-specific rule
+   elsewhere in this file, mathematically, not by guess:
+   .arena-command-deck__phase-rail / .arena-phase-step (one class) always lose
+   to .arena-broadcast-ribbon .arena-phase-step (two classes) - the phase
+   rail is ALWAYS inside .arena-broadcast-ribbon in arena.html, so the
+   ribbon-scoped rule at "MOCKUP M10" (~4780) wins on every shared property
+   regardless of source order. The one property that was NOT shadowed by
+   specificity - :not(.is-active){opacity:.9} at equal specificity - was a
+   live bug: it silently dimmed every inactive step under BOTH the M10 pill
+   design and the mobile progress strip built earlier today, because neither
+   of those ever won the specificity fight to overturn it. Deleting it is a
+   correction, not a decoration. */
+/* ── Deadline card clarity (deadline card): value scannable, empty state calm ── */
+.arena-command-deck__phase-deadline {
+  display:flex; flex-direction:column; gap:.05rem;
+  padding:.45rem .6rem; border-radius:10px;
+  background:color-mix(in srgb, var(--accent-bronze) 10%, transparent); border:1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+}
+.arena-command-deck__phase-deadline.is-empty {
+  background:var(--ad-s2); border-color:var(--ad-line);
+}
+/* ── Metrics band (A3) ── */
+.arena-command-deck__metrics { align-items:center; flex-wrap:wrap; }
+/* ── Phase card (A4) ── */
+.arena-command-deck__phase-name { font-family:var(--font-serif,'Playfair Display',serif);
+  font-weight:800; }
+.arena-command-deck__phase-copy { color:var(--ad-ink2); font-size:.82rem; margin:0; }
+/* ── Focus cards + crown medallion (A8/A9/A10) ── */
+.arena-command-deck__live-stage {
+  display:flex; align-items:center; justify-content:center; gap:1rem; flex-wrap:wrap;
+}
+/* ── Gifts (A12) ── */
+.arena-command-deck__gift-copy { margin:.2rem 0 0; }
+/* ── Crowd rail (A13) ── */
+.arena-command-deck__crowd-rail {
+  background:var(--ad-s3); border:1px solid var(--ad-line); border-radius:12px;
+  padding:.5rem .9rem; color:var(--ad-ink2); font-size:.82rem;
+}
+  .arena-command-deck__phase-name {
+    margin: 0.1rem 0 0.35rem;
+  }
+/* 3G — metric-grid rhythm (prototype Live signals module). */
+
+  .arena-command-deck__metrics {
+    align-content: start;
+  }
+/* 3G — phase-card show stack (prototype status panel). */
+
+  .arena-command-deck__phase-card .arena-command-deck__phase-copy {
+    line-height: 1.35;
+  }
+  .arena-command-deck__phase-deadline {
+    margin-top: 0.7rem;
+  }
+/* 3G — ribbon identity + live marker (prototype masthead). */
+
+  .arena-broadcast-ribbon .arena-command-deck__eyebrow {
+    margin: 0;
+    color: var(--accent-bronze-dark);
+  }
+  .arena-command-deck__phase-card .arena-command-deck__live-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.28rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+  }
+  .arena-command-deck__phase-card .arena-command-deck__live-note::before {
+    content: "";
+    width: 0.38rem;
+    height: 0.38rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--hall-green) 55%, var(--muted));
+    box-shadow: 0 0 0.55rem color-mix(in srgb, var(--hall-green) 25%, transparent);
+  }
+/* 3G — lower broadcast bar as show dock (prototype lower ribbon). */
+
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    padding-inline: 1.25rem;
+  }
+  .arena-command-deck__phase-deadline:not(.is-empty)::after {
+    content: "";
+    display: block;
+    height: 0.22rem;
+    margin-top: 0.55rem;
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--hall-green) 70%, var(--accent-bronze)),
+        var(--accent-bronze)
+      );
+    box-shadow: 0 0 0.65rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  }
+  .arena-command-deck__gift-copy {
+    line-height: 1.35;
+  }
+/* 3G — hall depth vignette + soft arch (prototype stage atmosphere). */
+
+  .arena-command-deck__floor::after {
+    inset: 3% 11% auto;
+  }
+/* 3G — phase title, empty states, lower primary CTA. */
+
+  .arena-command-deck__phase-name {
+    color: var(--ink);
+    font-size: clamp(1.2rem, 1.7vw, 1.5rem);
+    letter-spacing: -0.01em;
+  }
+/* 3G — stronger rail ticks + chef portrait rings. */
+
+  .arena-command-deck__phase-card::after,
+  .arena-command-deck__ladder::after,
+  .arena-command-deck__metrics::after,
+  .arena-command-deck__gifts::after {
+    border-color: color-mix(in srgb, var(--accent-bronze) 72%, transparent);
+    box-shadow: 0 0 0.85rem color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+  }
+/* 3G — soft hall sparkles (prototype stage atmosphere dots). */
+
+  .arena-command-deck__floor::before {
+    opacity: 0.95;
+  }
+/* 3G — denser panel rhythm after title stacks + ticker. */
+
+  .arena-command-deck__phase-card,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts,
+  .arena-command-deck__metrics {
+    padding: 0.72rem 0.82rem;
+  }
+  /* The phase card's own `top: 15%` used to sit here and was already dead
+     before this rebuild - a later rule in the same context set 14%, so this
+     copy could never win. AN13 asks for the losing copy to be deleted rather
+     than left to read as if it did something. */
+  .arena-command-deck__metrics {
+    top: 15%;
+  }
+  .arena-command-deck__phase-card .arena-command-deck__phase-copy {
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+  }
+@media (min-width: 641px) {
+  .arena-command-deck {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+    border-radius: 0.85rem;
+    box-shadow:
+      0 1.2rem 2.8rem color-mix(in srgb, var(--ink) 22%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    border-bottom-left-radius: 0.85rem;
+    border-bottom-right-radius: 0.85rem;
+  }
+}
+/* 3G — outer show glow on the framed Arena. */
+
+/* 3G — framed Arena breathing room on desktop. */
+
+  .page--arena .arena-command-deck {
+    width: min(100% - 1.5rem, 1720px);
+    margin-top: 0.85rem;
+    margin-bottom: 2.25rem;
+    margin-inline: auto;
+  }
+/* 3G — CENTER the stage: Stage-1 set margin:0; constrained width must auto-center. */
+
+  .arena-command-deck {
+    margin-left: auto;
+    margin-right: auto;
+  }
+/* 3G — COMPOSITION RESET: hall stage, not parchment dashboard. */
+
+  /* Floor is the stage plane — kill the cream card chrome. */
+  .page--arena .arena-command-deck__floor,
+  .arena-command-deck__floor {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+/* 3G — prototype hall depth + rank strip (site tokens). */
+
+  /* Hall fill is owned by arena_atmosphere.css (loads after polish).
+     Do NOT paint a light page background here — it washes the dark bowl. */
+  .page--arena .arena-command-deck {
+    background:
+      radial-gradient(70% 50% at 50% 42%, color-mix(in srgb, var(--accent-bronze) 10%, transparent), transparent 58%),
+      color-mix(in srgb, var(--ink) 8%, var(--surface-soft));
+    overflow: hidden;
+  }
+/* 3G — confrontation at floor centre (prototype confrontation-zone). */
+
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .arena-command-deck__phase-card .arena-command-deck__live-note {
+    font-size: 0.52rem;
+  }
+  .arena-command-deck__phase-card {
+    top: 14%;
+  }
+  .arena-right-stack > .arena-command-deck__metrics,
+  .arena-right-stack > .arena-command-deck__command {
+    flex: 0 0 auto;
+  }
+  .arena-right-stack > .arena-command-deck__gifts {
+    flex: 1 1 auto;
+    min-height: 5.5rem;
+  }
+  .arena-right-stack > .arena-command-deck__metrics,
+  .arena-right-stack > .arena-command-deck__command,
+  .arena-right-stack > .arena-command-deck__gifts {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+  }
+  .arena-left-stack > .arena-command-deck__ladder,
+  .arena-left-stack > .arena-command-deck__guide {
+    flex: 0 0 auto;
+  }
+@media (max-height: 900px) {
+    .arena-left-stack > .arena-command-deck__ladder {
+      /* It yields here. Everywhere else it is flex:0 0 auto and keeps its
+         natural height; on a short screen it is the panel that gives way,
+         because it is the one whose content is a scrollable list. */
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+}
+/* 3G — hall side walls + lower dock frame (prototype stage edges). */
+
+  .arena-command-deck__floor::before {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--ink) 38%, transparent),
+        transparent 18% 82%,
+        color-mix(in srgb, var(--ink) 38%, transparent)
+      ),
+      radial-gradient(circle at 10% 28%, color-mix(in srgb, var(--accent-bronze) 40%, transparent) 0 0.08rem, transparent 0.16rem),
+      radial-gradient(circle at 90% 28%, color-mix(in srgb, var(--accent-bronze) 40%, transparent) 0 0.08rem, transparent 0.16rem),
+      radial-gradient(90% 55% at 50% 0%, color-mix(in srgb, var(--accent-bronze) 14%, transparent), transparent 58%),
+      radial-gradient(70% 50% at 50% 100%, color-mix(in srgb, var(--ink) 26%, transparent), transparent 65%);
+  }
+/* 3G — rail wing brackets + stage arch (prototype interface-rail). */
+
+  .arena-command-deck__phase-card::after,
+  .arena-command-deck__ladder::after,
+  .arena-command-deck__metrics::after,
+  .arena-command-deck__gifts::after {
+    content: "";
+    position: absolute;
+    z-index: var(--arena-z-under);
+    top: 18%;
+    bottom: 18%;
+    width: 2.35rem;
+    pointer-events: none;
+    opacity: 0.72;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  }
+  .arena-command-deck__phase-card::after,
+  .arena-command-deck__ladder::after {
+    right: -2.2rem;
+    border-right: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-radius: 0 0.85rem 0.85rem 0;
+  }
+  .arena-command-deck__metrics::after,
+  .arena-command-deck__gifts::after {
+    left: -2.2rem;
+    border-left: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    border-radius: 0.85rem 0 0 0.85rem;
+  }
+  .arena-command-deck__floor::after {
+    content: "";
+    position: absolute;
+    z-index: var(--arena-z-base);
+    left: 12%;
+    right: 12%;
+    top: 3.5%;
+    height: 42%;
+    pointer-events: none;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 34%, transparent);
+    border-bottom: 0;
+    border-radius: 50% 50% 0 0;
+    opacity: 0.55;
+    box-shadow:
+      inset 0 0 3.2rem color-mix(in srgb, var(--ink) 18%, transparent),
+      0 0 1.6rem color-mix(in srgb, var(--accent-bronze) 16%, transparent);
+  }
+/* 3G — atmospheric crowd wash + panel night glass (no fake seats). */
+
+  .arena-command-deck__floor {
+    background:
+      radial-gradient(60% 28% at 50% 8%, color-mix(in srgb, var(--ink) 35%, transparent), transparent 70%),
+      radial-gradient(80% 40% at 50% 100%, color-mix(in srgb, var(--ink) 28%, transparent), transparent 65%);
+  }
+.page--arena .arena-command-deck__phase-card,
+.page--arena .arena-command-deck__metrics,
+.page--arena .arena-command-deck__ladder,
+.page--arena .arena-command-deck__gifts {
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    min-height: 3.6rem;
+    box-shadow: 0 -0.6rem 1.4rem color-mix(in srgb, var(--ink) 22%, transparent);
+  }
+/* 3G — stage gold frame + VS medallion weight (prototype show core). */
+
+  .page--arena .arena-command-deck {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--ink) 35%, transparent),
+      0 1.2rem 2.8rem color-mix(in srgb, var(--ink) 30%, transparent),
+      inset 0 0 4rem color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+/* 3G — atmospheric stand wash (decorative crowd, not fake users). */
+
+  .arena-command-deck__floor {
+    isolation: isolate;
+  }
+/* 3G — load-order note + confrontation above atmosphere layers. */
+
+  /* Atmosphere CSS (arenafront) may paint under the floor; keep show core above it. */
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    z-index: var(--arena-z-centre);
+  }
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    z-index: var(--arena-z-panel);
+  }
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    z-index: var(--arena-z-widget);
+  }
+  /* Phase deadline chip — broadcast urgency without fighting atmosphere art. */
+  .arena-command-deck__phase-deadline:not(.is-empty) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.45rem;
+    color: var(--accent-bronze-dark);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+/* 3G — live marker pulse + panel kicker rail (composition only). */
+
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live {
+    border: 1px solid color-mix(in srgb, var(--hall-red) 45%, transparent);
+    background: color-mix(in srgb, var(--hall-red) 12%, var(--surface));
+  }
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live::before {
+    background: var(--hall-red);
+    box-shadow: 0 0 0.55rem color-mix(in srgb, var(--hall-red) 70%, transparent);
+  }
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live::before {
+    animation: arena-live-pulse 1.6s ease-in-out infinite;
+  }
+@media (prefers-reduced-motion: reduce) {
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live::before {
+    animation: none;
+  }
+}
+/* 3G — ribbon identity density + centre energy ring (composition). */
+
+  .arena-broadcast-ribbon .arena-command-deck__eyebrow {
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
+  }
+  .arena-command-deck__phase-card {
+    border-color: color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+  }
+  .arena-command-deck__gift-copy {
+    color: color-mix(in srgb, var(--ink-soft) 80%, transparent);
+    font-size: 0.58rem;
+  }
+  .page--arena .arena-command-deck__floor {
+    overflow: visible;
+  }
+  /* Side show panels: night glass lift toward mockup HUD. */
+  .page--arena .arena-command-deck__phase-card,
+  .page--arena .arena-command-deck__metrics,
+  .page--arena .arena-command-deck__ladder,
+  .page--arena .arena-command-deck__gifts {
+    border-color: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    backdrop-filter: blur(10px) saturate(1.12);
+    -webkit-backdrop-filter: blur(10px) saturate(1.12);
+  }
+  .arena-command-deck__phase-card .arena-command-deck__live-note.is-live {
+    color: var(--accent-bronze);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+/* 3G — r10c: SCREENSHOT FIX — kill white crown card; make live SVG floor readable.
+   Owner capture 2026-07-24: cream confrontation panel covered the hall; atmosphere
+   art read as the floor while seat rings disappeared. */
+
+  /* No cream dashboard plate behind confrontation — only floating pieces. */
+  .arena-command-deck__live-stage.arena-confrontation-band {
+    top: 50%;
+    width: min(44rem, 72%);
+    gap: 0.85rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    grid-template-columns: minmax(0, 1fr) 7.4rem minmax(0, 1fr);
+  }
+  .arena-command-deck__phase-deadline:not(.is-empty) {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    border-radius: 0.55rem;
+    padding: 0.45rem 0.55rem;
+    background: color-mix(in srgb, var(--ink) 22%, var(--surface));
+  }
+  /* The phase name is a DISPLAY word in a 218px card. Sizing it from the
+     VIEWPORT (2.4vw) ignored the card entirely: at 1280px it resolved to
+     30.72px, where CHALLENGE needs 195px of a 101px box, and the inherited
+     overflow-wrap: break-word then split the word mid-letter — the live
+     Arena read "OPEN FLOO / R". Measured in the browser, all eight phase
+     names, not just the one that happened to be showing.
+
+     Two causes, both fixed here rather than compensated for:
+     1. The timer shares the title row and takes ~88px of 189px. Below 320px
+        of card the row now wraps so the heading gets the full width.
+     2. Size follows the CARD (cqi), not the window. 13.4cqi fits the longest
+        word, CHALLENGE, and still grows to the 2.05rem cap on a wider card.
+     Word breaking is off: a heading may wrap between words, never inside one. */
+  .arena-command-deck__phase-card { container-type: inline-size; }
+/* ============================================================================
+ * MOCKUP M10 — broadcast ribbon stepper: Challenge…Crown, active COOKING weight.
+ * Mechanisms unchanged (phase_rail / data-phase-step). Visual parity only.
+ * ============================================================================ */
+
+/* AUDIT NOTE 2026-08-22 (GreenBear): this whole M10 section (down to the next
+   @media at line 4721) is indented as if nested inside the
+   prefers-reduced-motion block above, but that block closed 6 lines up - it
+   is UNCONDITIONAL, applies at every viewport width. Its properties are
+   overridden at mobile by the winning block further down the file
+   (.arena-broadcast-ribbon .arena-phase-step__index, ~line 8162), so nothing
+   here is a live mobile bug - flagging only, so the indentation doesn't
+   mislead the next editor into thinking this is desktop-scoped. Left in
+   place rather than moved/deleted: this section is not exclusively mobile
+   dead weight, it's still the live rule for real widths where nothing else
+   overrides it (between 768px and whatever the next breakpoint is). */
+
+  .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    gap: 0.22rem;
+    padding: 0.22rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--ink) 22%, var(--surface-soft)),
+        color-mix(in srgb, var(--ink) 12%, var(--surface-soft))
+      );
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 35%, transparent);
+  }
+@media (min-width: 641px) {
+  .arena-command-deck__metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    border-radius: 0.85rem;
+    background:
+      linear-gradient(
+        165deg,
+        color-mix(in srgb, var(--surface) 94%, transparent),
+        color-mix(in srgb, var(--surface-soft) 82%, transparent)
+      );
+    box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+}
+/* ============================================================================
+ * MOCKUP M13 — Today's Crown Ladder panel: ranked rows + gold indices.
+ * Keep ladder ids / profile links; visual parity only.
+ * ============================================================================ */
+.arena-command-deck__ladder {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.85rem 0.95rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    border-radius: 0.85rem;
+    background:
+      linear-gradient(
+        165deg,
+        color-mix(in srgb, var(--surface) 94%, transparent),
+        color-mix(in srgb, var(--surface-soft) 82%, transparent)
+      );
+    box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+/* ============================================================================
+ * MOCKUP M14 — Recent Battle Gifts panel + Send a Gift CTA.
+ * Reuses battle_detail / appreciation_gallery gift flows; no new shop path.
+ * ============================================================================ */
+
+  .arena-command-deck__gifts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.85rem 0.95rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    border-radius: 0.85rem;
+    background:
+      linear-gradient(
+        165deg,
+        color-mix(in srgb, var(--surface) 94%, transparent),
+        color-mix(in srgb, var(--surface-soft) 82%, transparent)
+      );
+    box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+  .arena-command-deck__gifts .arena-command-deck__gift-copy {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.62rem;
+    line-height: 1.35;
+  }
+/* ============================================================================
+ * MOCKUP M15 — lower broadcast: Top Supporter ticker + Join the Crowd CTA.
+ * ============================================================================ */
+
+  /* REWRITTEN IN PLACE 2026-08-20 for the same reason as M12 above: this was
+     a three-track grid whose last track ("auto") does not shrink, so on a
+     container narrower than the three groups' natural widths the actions
+     column printed on top of the status text instead of wrapping under it.
+     Flex-wrap reads as one row on a wide screen and stacks the three groups
+     on a narrow one. Corrected here rather than in a later duplicate rule -
+     see the AN13 note on the metrics panel. */
+  .arena-command-deck__crowd-rail.arena-lower-broadcast {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    padding: 0.55rem 1.05rem;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--ink) 42%, transparent),
+        color-mix(in srgb, var(--ink) 28%, transparent)
+      );
+  }
+.page--arena .arena-command-deck__phase-rail,
+.page--arena .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+  min-width: 0;
+}
+/* GRAPHICS WP (Owner 2026-07-25) - deck chrome WOW toward mockup show-panels:
+   bronze rails + parchment depth. Official tokens only. AF owns atmosphere;
+   Cursor owns polish. */
+.page--arena .arena-command-deck__phase-card,
+.page--arena .arena-command-deck__metrics,
+.page--arena .arena-command-deck__ladder,
+.page--arena .arena-command-deck__gifts {
+    background: linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--surface) 92%, var(--accent-bronze) 8%),
+      color-mix(in srgb, var(--surface-soft) 90%, transparent)
+    );
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--surface) 72%, transparent) inset,
+      0 0 0 1px color-mix(in srgb, var(--ink) 5%, transparent) inset,
+      0 10px 28px color-mix(in srgb, var(--ink) 14%, transparent),
+      0 0 22px color-mix(in srgb, var(--accent-bronze) 9%, transparent);
+  }
+  .page--arena .arena-broadcast-ribbon .arena-command-deck__eyebrow {
+    color: var(--accent-bronze);
+  }
+@media (min-width: 641px) {
+  .page--arena .arena-broadcast-ribbon .arena-command-deck__phase-rail {
+    width: 100%;
+  }
+}
+/* ============================================================================
+ * A13 + A14 — the right-hand gifts panel and the bottom-centre strip, measured
+ * against the approved Design Template rather than adjusted by eye.
+ *
+ * Reference, as shares of its 1920 x 1080 canvas:
+ *   Recent gifts   330 x 223 at (1562, 761)    ->  x 0.814  y 0.705  w 0.172  h 0.207
+ *   Bottom band   1076.5 x 52 at (421.7, 1004) ->  x 0.220  y 0.930  w 0.561  h 0.048
+ *
+ * Production before this block, as shares of the deck:
+ *   Recent gifts   x 0.821  y 0.640  w 0.166  h 0.269   <- 30 per cent too tall
+ *   Bottom rail    x 0.001  y 0.926  w 0.999  h 0.073   <- edge to edge, not a band
+ *
+ * Two deltas and only two. The gifts panel's position and width were already
+ * inside one per cent of the reference and are not touched; the bottom rail's
+ * vertical position was already right (0.926 against 0.930) and is not touched
+ * either.
+ * ========================================================================== */
+
+/* A13. The panel's extra height is one paragraph the reference does not have:
+ * an explanatory note about the shop and the token checks, written for us
+ * rather than for a spectator. Hidden, not deleted - it is true, and it belongs
+ * in the docs and not on the floor. That takes the panel from 216px to about
+ * 176 on a 804-tall deck: 0.219 against the reference's 0.207. */
+.page--arena .arena-command-deck__gift-copy {
+  display: none;
+}
+/* A14. The bottom strip becomes the reference's centred band. The rail keeps
+ * its full-width backdrop - that is the floor's own edge, and the reference has
+ * one too - and the CONTENT is bounded to the middle 56.07 per cent, which is
+ * the reference band's own share. Padding rather than a wrapper, because the
+ * three children are the markup's own and adding a div to hold them would be a
+ * change to the template for a purely visual bound.
+ *   (100% - 56.07%) / 2 = 21.965% each side. */
+.page--arena .arena-command-deck__crowd-rail.arena-lower-broadcast {
+  padding-inline: 21.965%;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* THE CAPTION HANGS ABOVE THE FLOOR, SO THE FLOOR MUST LEAVE ROOM FOR IT.
+
+   The Owner circled it on his own screen: `THE KITCHEN FLOOR / The floor
+   holds the show` sitting on top of the rank strip.
+
+   MEASURED ON PRODUCTION, in his browser, at two widths. The caption is
+   `position: absolute; top: 0` inside the floor and translated up by its
+   own full height plus the lift - which is how it comes to sit ABOVE the
+   frame, deliberately, since v2.5.1311. Being out of flow, it occupies a
+   band that nothing reserves: the floor's own third grid row was built for
+   exactly this writing and computes to 0px, because an absolutely
+   positioned child contributes no height to it.
+
+   While there was slack above the floor nobody saw it. After the rows were
+   rearranged there is none, and the band lands on `.arena-legend`:
+   measured overlap 17px at 961 wide and 21px at 1900.
+
+   Reserved on the floor rather than on the row, because the row does not
+   move the caption - the caption is anchored to the FLOOR box, not to the
+   stage, so growing row three moves the stage and leaves the writing
+   exactly where it was. Tried, measured, discarded.
+
+   3rem clears it at both widths - 27px of air at 1900, 22px at 961 - and
+   THE OCTAGON DOES NOT SHRINK: its rendered height is 616px before and
+   after at 1900, 308px at 961. The floor keeps its height and moves down;
+   only the deck grows, by 48px.
+
+   Gated at 901px because that is where the collision was measured. On a
+   phone the legend is nowhere near the floor - clearance measured in
+   thousands of pixels - and the same margin would be a gap for nothing. */
+@media (min-width: 901px) {
+  .arena-command-deck__floor { margin-top: 0; }
+  /* HALF A CENTIMETRE ON EVERY SIDE, Owner 2026-08-31: too much air is left
+     to the edges, stretch the octagon so no side keeps more than 0.5cm. The
+     2026-08-25 pass was the same instruction at 1cm, and it ended with the
+     honest admission that one axis had to be the limit - measured now on
+     production at 1920, in his own browser: a 983x774 frame around an 896x618
+     painted shape, so 1.14cm at the sides and 2.12/2.01cm above and below.
+     ON ANY SIDE is what changed.
+
+     THE FRAME IS CUT FIRST, because no size of octagon fits 0.5cm on four
+     sides of a box that is the wrong shape: the shape is 1.450 wide to tall,
+     the frame was 1.270. A frame that hugs it is half a centimetre larger on
+     each axis - 945+38 by 652+38 - which is 695.7/983 = 0.708.
+
+     THEN THE SHARE. The shape has to reach 983 - 2*18.89 = 945.2px, which is
+     896 -> 945.2, a factor of 1.0549. The share sizes the SVG BOX and the
+     shape fills 99.2% of it here (903 box, 896 painted), so the box wants
+     952.6 of the 983 column: 0.969.
+
+     AND THE CEILING HAD TO BECOME STATEABLE. At this aspect the octagon binds
+     on HEIGHT, and the renderer's 0.95 - chosen when the frame was far taller
+     than the shape - would clamp the box and then keep 2.5% of the region at
+     each end for itself. 0.99 lets the shape take the frame that was cut for
+     it, so the half centimetre comes from the frame rather than from a
+     constant that never knew about it.
+
+     641-900px NOW SHARES THIS, 2026-08-31: the whole block moved down to the
+     641px composition so one set of numbers governs every width above the
+     phone and nothing snaps at 901. See the note beside the share there. */
+}
+
+/* ----------------------------------------------------------------------------
+ * THE FLOOR HEAD - the two actions, flanking THE KITCHEN FLOOR.
+ *
+ * Owner, 2026-08-31, pointing at his own screenshot: the buttons go up where a
+ * guest sees them at once, the black pill on the left (his number 1), the white
+ * one on the right (his number 2), both about 30% smaller.
+ *
+ * SPACE-BETWEEN, NOT A THREE-COLUMN GRID, and the reason is that the caption is
+ * not in this row at all. It is absolutely positioned against the floor, 57%
+ * wide and centred, and lifted above the floor by its own height. So the row
+ * only has to keep its two children off that centre strip: 57% centred leaves
+ * 21.5% at each edge, which is 310px at 1440 and 207px at 961 - both wider than
+ * a pill at 70%, measured below.
+ *
+ * AND IT REPLACES THE MARGIN. v2.5.1567 held the caption off the rank strip
+ * with margin-top: 3rem on the floor - air made of nothing, because the thing
+ * that needed the room contributes no height. This row stands in the same band
+ * as real content, so the band is now reserved by something that is there. The
+ * margin is set to 0 rather than deleted, so the guard that reads it still has
+ * its rule and the history stays legible.
+ *
+ * THE PHONE PUTS THEM ABOVE THE CAPTION, NOT BESIDE IT. At 390px the caption is
+ * still 57% - 222px - leaving 84px an edge, which fits no pill. So below 901px
+ * the row keeps a padding-bottom the size of the caption's band and the pills
+ * sit at the top of it, clear of the writing.
+ * ------------------------------------------------------------------------- */

@@ -1,0 +1,840 @@
+/* ARENA SHEET 04/12 - arena_furniture.css
+   The hall's furniture - plinths, name plates, the ladder's old footing.
+
+   ONE OF TWELVE. arena.css was 13,958 lines behind a single <link>; the
+   Owner asked on 2026-09-05 for sub-files, the chat in a file of its own,
+   each loaded separately and each with a guard. He lifted his own two-sheet
+   freeze of 2026-08-09 to allow it, and gave the reason: that rule was
+   written when the seven files were useless, and splitting now buys code
+   quality and load speed.
+
+   THE ORDER OF THE TWELVE LINKS IS THE CASCADE. This cut moved NOTHING -
+   every boundary was already at brace depth zero - so the twelve bodies
+   joined in order are byte-identical to the file that stood before, which
+   is what proves no rule changed its winner. arena.html and
+   arena_master_console.html both load all twelve in this numbered order,
+   and EveryArenaSheetHasItsOwnGuardTests fails if a sheet drifts.
+   SPLIT-HEADER-END */
+
+/* ==================================================================
+   was: static/css/arena_hall.css
+   ================================================================== */
+
+/* Arena Hall presentation boundary.
+ *
+ * Layout belongs to the deck-layout rules further down THIS file (the old
+ * arena_command_deck.css was merged here in AN12 and no longer exists).
+ * Colour comes only through --hall-*
+ * (aliases of CulinEire_colour_font_scheme.pdf / site tokens in base.css).
+ * Stage = ink-derived dark hall; floor plate stays parchment via --hall-floor-*.
+ */
+
+.page--arena {
+  color: var(--hall-text);
+  background:
+    radial-gradient(
+      ellipse at 50% 40%,
+      color-mix(in srgb, var(--hall-dark-1) 55%, var(--ink)) 0%,
+      var(--hall-dark-0) 38%,
+      color-mix(in srgb, var(--ink) 92%, var(--hall-dark-0)) 100%
+    );
+}
+
+.page--arena #main-content {
+  padding: 0;
+}
+
+/* 3G R2: rail brackets + lower broadcast share official bronze line language. */
+.page--arena .arena-interface-rail::after {
+  border-color: color-mix(in srgb, var(--hall-gold) 55%, transparent);
+}
+
+.page--arena .arena-lower-broadcast {
+  border-color: color-mix(in srgb, var(--hall-gold) 55%, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--hall-dark-1) 92%, transparent),
+      color-mix(in srgb, var(--hall-dark-0) 88%, transparent),
+      color-mix(in srgb, var(--hall-dark-1) 92%, transparent)
+    );
+  color: var(--hall-text);
+}
+
+.page--arena .arena-floor-stage,
+.page--arena .arena-render-container {
+  border-color: var(--hall-border);
+}
+
+.page--arena .arena-floor-stage::before {
+  content: none;
+}
+
+.page--arena .arena-live-centre,
+.page--arena .arena-live-centre--crown {
+  border-color: var(--hall-gold);
+  color: var(--hall-text);
+  background: color-mix(in srgb, var(--hall-dark-1) 90%, var(--hall-gold));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hall-gold) 22%, transparent);
+}
+
+.page--arena .arena-live-centre:hover,
+.page--arena .arena-live-centre:focus-visible {
+  border-color: var(--hall-gold-light);
+  background: color-mix(in srgb, var(--hall-dark-2) 85%, var(--hall-gold));
+}
+
+.page--arena .arena-live-chef {
+  border-color: var(--hall-border);
+  background: color-mix(in srgb, var(--hall-dark-1) 92%, transparent);
+  box-shadow: var(--shadow-sm);
+  color: var(--hall-text);
+}
+
+.page--arena .arena-phase-step.is-active,
+.page--arena .arena-rank-spine__step:hover,
+.page--arena .arena-rank-spine__step:focus-visible {
+  border-color: var(--hall-gold);
+  color: var(--hall-gold-light);
+  background: color-mix(in srgb, var(--hall-dark-2) 70%, var(--hall-gold));
+}
+
+.page--arena .arena-rank-spine__step,
+.page--arena .arena-rank-spine__step b {
+  border-color: var(--hall-border);
+  color: var(--hall-gold-light);
+  background: color-mix(in srgb, var(--hall-dark-0) 80%, transparent);
+  box-shadow: none;
+}
+
+.page--arena .arena-render-container {
+  --arena-bowl: var(--hall-dark-1);
+  --arena-bowl-edge: var(--hall-dark-0);
+  --arena-spot: var(--hall-gold);
+}
+
+.page--arena .arena-command-deck :focus-visible {
+  outline: 3px solid var(--hall-gold);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page--arena *,
+  .page--arena *::before,
+  .page--arena *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =============================================================================
+   ARENA-03 CSS plate OFF — fought the live SVG camera (G2 rotateX on
+   #arena-render) and read as a second tilted diagram. Markup stays in
+   _arena_render_ring.html for a later single-camera pass. SVG is the floor.
+   ============================================================================= */
+
+.page--arena .arena-floor-wrapper,
+.page--arena .arena-floor-plane,
+.page--arena .arena-floor-ring {
+  display: none;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* =============================================================================
+   Furniture — combatant plinths, name plates that size to content, ladder
+   contrast. Site tokens only (--hall-green/--hall-red already aliased).
+   ============================================================================= */
+
+  .page--arena .arena-confrontation-band {
+    width: min(56rem, 86%);
+    gap: 0.85rem;
+    align-items: center;
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-chef--challenger,
+  .page--arena .arena-confrontation-band .arena-live-chef--opponent {
+    width: max-content;
+    max-width: min(16rem, 34%);
+    min-width: 11rem;
+    padding: 0.55rem 0.85rem;
+    overflow: visible;
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-chef strong,
+  .page--arena .arena-confrontation-band .arena-live-centre em {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+    max-width: none;
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-chef--challenger {
+    border-color: color-mix(in srgb, var(--hall-green) 70%, var(--hall-border));
+    box-shadow:
+      inset 3px 0 0 var(--hall-green),
+      0 0 1.4rem color-mix(in srgb, var(--hall-green) 24%, transparent);
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-chef--opponent {
+    border-color: color-mix(in srgb, var(--hall-red) 70%, var(--hall-border));
+    box-shadow:
+      inset -3px 0 0 var(--hall-red),
+      0 0 1.4rem color-mix(in srgb, var(--hall-red) 24%, transparent);
+  }
+
+  .page--arena .arena-confrontation-band .arena-live-centre:not(.arena-live-centre--crown):not(.arena-live-centre--quiet) {
+    min-width: 7.5rem;
+    padding: 0.7rem 1rem;
+  }
+.arena-panel__kicker {
+  font-size:.66rem; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ad-gold-d); font-weight:700; margin:0 0 .4rem;
+}
+/* icons injected from _arena_deck_svg.html */
+.arena-ico { width:1.1rem; height:1.1rem; display:inline-block; vertical-align:middle; }
+.arena-command-deck__phase-deadline > span {
+  font-size:.6rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ad-gold-d); font-weight:700;
+}
+.arena-command-deck__phase-deadline > strong { font-weight:800; line-height:1.15;
+}
+.arena-command-deck__phase-deadline.is-empty > strong { color:var(--ad-mut); font-weight:600; font-size:.92rem; }
+.arena-metric { display:flex; flex-direction:column; line-height:1.15; }
+.arena-metric span { font-size:.62rem; letter-spacing:.05em; text-transform:uppercase; color:var(--ad-mut); }
+.arena-metric strong { font-size:1.25rem; color:var(--ad-ink); font-variant-numeric:tabular-nums; }
+.arena-metric .arena-ico { color:var(--ad-gold-d); }
+.arena-live-chef {
+  background:var(--ad-s1); border:1px solid var(--ad-line); border-radius:14px;
+  padding:12px 14px; min-width:150px; text-align:center;
+}
+.arena-live-chef--challenger { box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--ad-green) 50%, transparent), 0 0 20px color-mix(in srgb, var(--ad-green) 8%, transparent); }
+.arena-live-chef--opponent   { box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--ad-red) 50%, transparent), 0 0 20px color-mix(in srgb, var(--ad-red) 8%, transparent); }
+.arena-live-centre {
+  display:inline-flex; flex-direction:column; align-items:center; justify-content:center;
+  text-decoration:none; color:var(--ad-gold-d); font-weight:800; letter-spacing:.04em;
+}
+.arena-live-centre .arena-ico { width:2.6rem; height:2.6rem; filter:drop-shadow(0 2px 6px color-mix(in srgb, var(--accent-bronze) 50%, transparent)); }
+/* ── Crown ladder (A11) ── */
+.arena-ladder-list { list-style:none; margin:0; padding:0; display:grid; gap:.35rem; }
+.arena-ladder-list li {
+  display:flex; align-items:center; gap:.5rem; font-size:.82rem; color:var(--ad-ink2);
+  padding:.35rem .1rem; border-bottom:1px solid var(--ad-line);
+}
+.arena-ladder-list li:last-child { border-bottom:0; }
+
+/* ── A12: the ladder rows read as rows, not as a divided list ──────────────
+ * The reference panel builds each place as its own three-column plate —
+ * rank badge, name, crown count — sitting on a faint ground with a rounded
+ * corner, and separates them with space instead of a rule. Ours divided them
+ * with a border and let the name column decide the widths, so the numbers on
+ * the right never lined up with each other.
+ *
+ * The grid is what fixes the alignment: a fixed badge column, a flexible name,
+ * and a right column that sizes to its content, so every crown count lands on
+ * the same axis whether it reads 1 or 12. Scoped .page--arena to sit above the
+ * plain rules on the same class, which is the trap the file's own header
+ * describes — matching the prefix rather than reaching for !important.
+ */
+.page--arena .arena-ladder-list { gap:.5rem; }
+.page--arena .arena-ladder-list li {
+  display:grid;
+  grid-template-columns:1.35rem minmax(0, 1fr) auto;
+  align-items:center;
+  gap:.6rem;
+  padding:.4rem .55rem;
+  border-bottom:0;
+  border-radius:9px;
+  background:color-mix(in srgb, var(--accent-bronze) 7%, transparent);
+}
+/* The leader's row carries a little more of the same accent — the reference
+ * marks first place by weight, not by a second colour. */
+.page--arena .arena-ladder-list li:first-child {
+  background:color-mix(in srgb, var(--accent-bronze) 14%, transparent);
+}
+.page--arena .arena-ladder-list li a { font-weight:700; }
+.page--arena .arena-ladder-list li:first-child a { color:var(--ink); }
+/* The count, not a caption: the crown mark and the number on one baseline, in
+ * the accent, tabular so a column of them does not shuffle. */
+.page--arena .arena-ladder-list li em {
+  display:inline-flex; align-items:center; gap:.28rem;
+  color:var(--accent-bronze-dark);
+  font-size:.78rem; font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+.page--arena .arena-ladder-list li em .arena-ico {
+  width:.72rem; height:.72rem;
+}
+/* The empty state is a row too, so the panel does not change shape the moment
+ * the first crown of the day is awarded. */
+.page--arena .arena-ladder-list li.arena-panel__empty {
+  display:block; background:none; padding:.4rem .1rem;
+  /* Owner, 2026-08-24: centred. The empty state is the whole panel's content
+     when nothing has been won yet, and a lone sentence ranged left under a
+     centred title and above a full-width centred button read as a stray. The
+     populated rows are unaffected - they are a different selector, and their
+     name/crown columns still range left where they belong. */
+  text-align:center;
+}
+/* One full-width action, centred, as the reference has it — using the site's
+ * own secondary button rather than a pill invented for this panel. */
+.page--arena .arena-command-deck__ladder > .btn-secondary {
+  display:block; width:100%; text-align:center;
+}
+/* ── X01: the departures board ─────────────────────────────────────────────
+ * Owner, 2026-08-05: a sub-line under the battle phases, "like an airport board
+ * showing the next departure". One horizontal strip, scanned rather than read:
+ * the time leads, the pairing follows.
+ *
+ * It rides inside the ribbon, which is already positioned full width at the top
+ * of the stage. v2.5.822 gave it its own <aside> and it rendered unstyled on top
+ * of the arena — every deck panel in this file's deck-layout block is placed by naming
+ * its class in three separate lists (chrome, coordinates, colour), and
+ * .arena-interface-rail is display:contents, so a class in none of those lists
+ * has no box and nowhere to stand.
+ */
+.arena-next-board {
+  display:flex; align-items:center; gap:.6rem;
+  min-width:0;
+  padding:.28rem .1rem 0;
+}
+.arena-next-board__label {
+  flex:none;
+  font-size:.6rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--arena-gold, var(--accent-bronze-dark));
+}
+/* THE SOONEST BATTLE SITS BESIDE THE LABEL. Owner, 2026-08-06: the pill goes
+ * opposite "Next Battle:", holding both names with no spare air around them.
+ * This replaces the right-to-left three-column grid of v2.5.825: a grid of
+ * thirds gives every pill a third of the ribbon whether it needs it or not, so
+ * with one battle scheduled — the normal case — the pill was three times the
+ * width of its own contents and sat at the far end of the strip, a screen away
+ * from the label naming it. A content-sized flex row puts the first pill
+ * against the label and lets the rest follow and wrap. The selector still
+ * orders by start_time and still stops at six.
+ */
+/* T21, Owner 2026-08-15: THE STRIP IS THE STARTING POSITION AND DISTANCE IS
+ * TIME. The list is a track: the pair with 48 hours left stands at the far
+ * end, and its row travels back towards the label as the clock runs down. The
+ * offset is one custom property, written by arena_deck.js and transitioned
+ * here, so the movement costs no animation loop. Without the property - no
+ * JS, or a row with no start time - every row falls at 0 and the board is the
+ * flush row it was before, which is the right thing to degrade to.
+ */
+.arena-next-board__list {
+  list-style:none; margin:0; padding:0; min-width:0; flex:1;
+  position:relative;
+  /* Wrapping stays, and it is the reason the distance is measured rather than
+   * assumed. The offsets are spent out of the room the pills leave over, so
+   * while there is room they fit on one line and travel along it; when the
+   * board fills up the room is nil, every offset is 0px, and this falls back
+   * to exactly the queue it was before - two rows, nothing hidden. Measured on
+   * a 790px track: six pills need 1142px of their own, so a nowrap strip would
+   * have clipped the last two departures off the board entirely. */
+  display:flex; flex-wrap:wrap; align-items:center;
+  gap:.3rem .35rem;
+}
+.arena-next-board__list li {
+  min-width:0; flex:none;
+  margin-inline-start:var(--arena-next-offset, 0px);
+  transition:margin-inline-start 900ms cubic-bezier(.22,.61,.36,1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-next-board__list li { transition:none; }
+}
+/* The empty row is a sentence, not a departure: it never travels. */
+.arena-next-board__list li.arena-next-board__empty { margin-inline-start:0; }
+/* The pills are placed by measurement, so they must not be squeezed by the
+ * flex line itself - a shrunk pill would report a width the placement did not
+ * budget for. */
+.arena-next-board__list .arena-next-pill { flex:none; }
+
+/* The pill: two halves with the clock on the seam. The seam is a real divider,
+ * not a gap — it is what makes it read as one object holding two chefs rather
+ * than as two chips that happen to touch. */
+.arena-next-pill {
+  display:inline-grid;
+  /* auto, not 1fr: the halves are as wide as the names in them. 1fr made both
+   * halves share whatever width the pill had been given, which is where the
+   * air came from. */
+  grid-template-columns:auto auto auto;
+  align-items:center;
+  gap:.3rem;
+  padding:.2rem .4rem;
+  border-radius:999px;
+  border:1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  background:color-mix(in srgb, var(--accent-bronze) 8%, transparent);
+  text-decoration:none; color:inherit;
+}
+.arena-next-pill__side {
+  display:flex; align-items:center; gap:.28rem; min-width:0;
+}
+/* The opponent's half mirrors the challenger's, so the two avatars sit at the
+ * outer ends and the clock keeps the middle. */
+.arena-next-pill__side--opponent { flex-direction:row-reverse; }
+.arena-next-pill__side img {
+  flex:none; width:1.15rem; height:1.15rem;
+  border-radius:50%; object-fit:cover;
+  border:1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+}
+/* A long name is trimmed rather than allowed to push the board across the
+ * ribbon; 14ch fits the names on the floor today with room to spare. */
+.arena-next-pill__side b {
+  min-width:0; max-width:14ch;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:.68rem; font-weight:700;
+}
+/* Approximate, and it says so by being a time and nothing else — tabular so a
+ * column of pills lines its clocks up. */
+.arena-next-pill__when {
+  flex:none;
+  font-style:normal; font-size:.64rem; font-weight:800;
+  font-variant-numeric:tabular-nums;
+  color:var(--arena-gold, var(--accent-bronze-dark));
+  padding:0 .3rem;
+  border-left:1px solid color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  border-right:1px solid color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+}
+/* The nearest battle is the one worth noticing, so the first pill carries a
+ * little more weight. It is the same accent, not a second colour. */
+.arena-next-board__list li:first-child .arena-next-pill {
+  background:color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+  border-color:color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+}
+.arena-next-board__empty {
+  grid-column:1 / -1; direction:ltr;
+  font-size:.72rem; opacity:.72;
+}
+/* The ribbon is a three-column grid — identity, phase rail, actions. The board
+ * belongs under the RAIL, so it is placed in that column's second row rather
+ * than allowed to fall into the first column where the grid would put a fourth
+ * child by default. */
+/* The ribbon is a three-column grid — identity, phase rail, actions. The board
+ * takes a full row of its own directly under the steps, so its right edge
+ * reaches the ribbon's right edge: that is the corner the soonest pill climbs
+ * towards, under the header's own Issue a Challenge control. Left to itself the
+ * grid would drop this fourth child into the first column, under the identity
+ * block, which is the wrong end of the strip entirely. */
+.page--arena .arena-broadcast-ribbon .arena-next-board { grid-column:1 / -1; }
+/* Owner mockup: a large decorative gift box sits in the card. Reuses the same
+   #ad-gift symbol already in the header rather than commissioning new art -
+   see the plan's note on this. Positioned so it sits behind the copy text,
+   not over it. */
+.arena-command-deck__gifts {
+  position: relative;
+  overflow: hidden;
+}
+.arena-gift-illustration {
+  position: absolute;
+  right: -.6rem;
+  bottom: -.6rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  color: var(--arena-gold);
+  opacity: .28;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-phase-step { transition:none; }
+}
+
+/* 3G R6 polish — phase cells read as one track inside the ribbon.
+
+   NOW GATED TO THE DESKTOP, and that gate is the fix rather than a
+   preference (2026-08-20). Unconditional and two classes deep, this rule
+   out-ranked every narrow-screen rule written before it in the file and
+   out-ordered every one written after it up to line ~2479, which is how
+   seven full-width steps in a wrapping flex row became seven stacked rows
+   on the Owner's phone. width:100% is a statement about a GRID COLUMN - it
+   only means anything where the track is a seven-column grid, which is the
+   desktop. Below 768px the track is a progress strip and sizes itself. */
+@media (min-width: 768px) {
+  .arena-broadcast-ribbon .arena-phase-step {
+    width: 100%;
+    justify-content: center;
+  }
+}
+/* AUDIT NOTE 2026-08-22 (GreenBear): everything below this line, down to the
+   next @media at line 2605, is indented as if still inside the block above
+   but that block closed 5 lines up - this stretch (~350 lines) is actually
+   UNCONDITIONAL and applies at every viewport width, including phones. Left
+   as-is (moving it would risk silently changing which rule wins the cascade
+   on mobile - a correctness risk, not a formatting one); flagging only, so
+   the next editor doesn't assume it's desktop-only from the indentation. */
+  .arena-broadcast-ribbon .arena-phase-step.is-active {
+    scale: 1;
+  }
+  .arena-broadcast-ribbon .btn-secondary {
+    min-height: 2rem;
+    padding-inline: 0.7rem;
+    font-size: 0.68rem;
+  }
+
+/* 3G — show-panel header rhythm (prototype composition, official tokens). */
+
+  .arena-command-deck__phase-card .arena-panel__kicker,
+  .arena-command-deck__ladder .arena-panel__kicker,
+  .arena-command-deck__gifts .arena-panel__kicker,
+  .arena-command-deck__metrics .arena-panel__kicker {
+    margin-bottom: 0.55rem;
+    letter-spacing: 0.12em;
+  }
+  .arena-command-deck__metrics .arena-panel__kicker {
+    grid-column: 1 / -1;
+  }
+
+/* 3G — neutral-ladder denser rows (prototype broadcast modules). */
+
+  .arena-ladder-list li,
+  .arena-gift-list li {
+    padding: 0.42rem 0.1rem;
+    gap: 0.45rem;
+  }
+  .arena-ladder-list li span {
+    font-variant-numeric: tabular-nums;
+    min-width: 1.2rem;
+  }
+  .arena-command-deck__ladder .btn-secondary,
+  .arena-command-deck__gifts .btn-primary,
+  .arena-command-deck__gifts .btn-secondary {
+    margin-top: 0.35rem;
+  }
+  .arena-command-deck__phase-deadline > strong {
+    font-size: 1.12rem;
+  }
+
+/* 3G — ribbon active gold fill (broadcast phase track). */
+
+/* 3G — phase-track pills + quiet inactive (prototype track). */
+
+  .arena-broadcast-ribbon .arena-phase-step:not(.is-active) b {
+    color: inherit;
+    font-weight: 650;
+  }
+  .arena-broadcast-ribbon .arena-phase-step.is-active {
+    border-radius: 999px;
+  }
+  .arena-lower-broadcast .arena-crowd-rail__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 650;
+    color: var(--ink-soft);
+  }
+  .arena-lower-broadcast .arena-crowd-rail__status b {
+    color: var(--ink);
+    font-weight: 800;
+  }
+  .arena-lower-broadcast .arena-crowd-rail__status .arena-ico {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-lower-broadcast .arena-crowd-rail__actions .btn-secondary {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-bronze) 14%, var(--surface));
+    border-color: color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+  }
+
+/* 3G — show-panel inner gold frame (prototype inset border). */
+
+  .arena-command-deck__phase-card,
+  .arena-command-deck__metrics,
+  .arena-command-deck__ladder,
+  .arena-command-deck__gifts {
+    position: absolute;
+    overflow: hidden;
+  }
+  .arena-command-deck__phase-card > *,
+  .arena-command-deck__metrics > *,
+  .arena-command-deck__ladder > *,
+  .arena-command-deck__gifts > * {
+    position: relative;
+    z-index: var(--arena-z-floor);
+  }
+
+/* 3G — confrontation chef cards + VS focus energy. */
+
+  .arena-confrontation-band .arena-live-chef--challenger {
+    border: 1px solid color-mix(in srgb, var(--hall-green) 55%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--opponent {
+    border: 1px solid color-mix(in srgb, var(--hall-red) 55%, transparent);
+  }
+
+/* 3G — empty/crown centre as circular focus (prototype crown-focus). */
+
+  .arena-confrontation-band .arena-live-centre--crown,
+  .arena-confrontation-band .arena-live-centre--quiet {
+    min-height: 0;
+    margin-inline: auto;
+    border-radius: 50%;
+    border-color: var(--accent-bronze);
+    box-shadow:
+      inset 0 0 1.1rem color-mix(in srgb, var(--accent-bronze) 22%, transparent),
+      0 0 1.6rem color-mix(in srgb, var(--accent-bronze) 28%, transparent);
+  }
+  .arena-confrontation-band .arena-live-centre--crown b,
+  .arena-confrontation-band .arena-live-centre--quiet b {
+    font-size: clamp(1.45rem, 2.2vw, 1.9rem);
+    color: var(--accent-bronze-dark);
+  }
+  .arena-confrontation-band .arena-live-centre--crown span,
+  .arena-confrontation-band .arena-live-centre--quiet span,
+  .arena-confrontation-band .arena-live-centre--crown em,
+  .arena-confrontation-band .arena-live-centre--quiet em {
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+  }
+  .arena-confrontation-band .arena-live-centre--crown::before,
+  .arena-confrontation-band .arena-live-centre--quiet::before {
+    inset: -0.42rem;
+    border-radius: 50%;
+    border-color: color-mix(in srgb, var(--accent-bronze) 48%, transparent);
+  }
+
+/* 3G — ladder gold ranks + deadline timer (prototype modules). */
+
+  .arena-ladder-list li span {
+    display: grid;
+    place-items: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    color: var(--accent-bronze-dark);
+    font-size: 0.62rem;
+    font-weight: 800;
+    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+  }
+  .arena-ladder-list li a {
+    color: var(--ink);
+    font-weight: 650;
+    text-decoration: none;
+  }
+  .arena-ladder-list li a:hover,
+  .arena-ladder-list li a:focus-visible {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-ladder-list li em {
+    color: var(--muted);
+    font-style: normal;
+    font-size: 0.62rem;
+  }
+  .arena-command-deck__phase-deadline > strong {
+    color: var(--accent-bronze-dark);
+    font-family: var(--font-serif, "Playfair Display", serif);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+
+/* 3G — gifts + signals broadcast modules (prototype activity/metrics). */
+
+  .arena-gift-list li .arena-ico {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-gift-list a {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .arena-gift-list a:hover,
+  .arena-gift-list a:focus-visible {
+    color: var(--accent-bronze-dark);
+  }
+  .arena-gift-list b {
+    color: var(--muted);
+    font-size: 0.58rem;
+  }
+  .arena-gift-list em {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.4rem;
+    padding: 0.18rem 0.4rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 42%, transparent);
+    color: var(--accent-bronze-dark);
+    font-size: 0.58rem;
+    font-weight: 800;
+    font-style: normal;
+    background: color-mix(in srgb, var(--accent-bronze) 12%, var(--surface));
+  }
+  .arena-command-deck__floor > .arena-confrontation-band,
+  .arena-command-deck__floor > .arena-floor-stage {
+    z-index: var(--arena-z-floor);
+  }
+
+/* 3G — ribbon exit chip + panel action pills. */
+
+  .arena-command-deck__ladder .btn-secondary,
+  .arena-command-deck__gifts .btn-primary,
+  .arena-command-deck__gifts .btn-secondary {
+    width: 100%;
+    justify-content: center;
+    min-height: 2rem;
+    border-radius: 999px;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+  .arena-command-deck__ladder .btn-secondary,
+  .arena-command-deck__gifts .btn-secondary {
+    border-color: color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+    color: var(--ink-soft);
+    background: color-mix(in srgb, var(--accent-bronze) 14%, var(--surface));
+  }
+  /* THE EARLIER COPY OF THIS BUTTON'S SKIN IS GONE, and it had already been
+     dead before it was deleted. A rule further down this file sets
+     border-color, color and background for the same button at the same
+     specificity, so it won every time both matched - which was every time,
+     because the button was a direct child until the collapsible wrapper went
+     in between. Relaxing that rule's `>` to a descendant combinator made the
+     two selectors identical and the superseded-declaration check said so. */
+
+/* 3G — floor centre glow + rank count pills. */
+
+  .arena-floor-stage {
+    isolation: isolate;
+  }
+  .arena-floor-stage #arena-puzzle,
+  .arena-floor-stage .arena-render-container {
+    position: relative;
+    z-index: var(--arena-z-floor);
+  }
+
+/* .arena-rank-spine - every rule for this component that could be proved
+   safe to move, in one place. Gathered by an15_gather.py:
+   the applying declarations are byte-identical and no
+   conflicting pair changed places. */
+.arena-rank-spine__label { margin: 0 0 .28rem; font-size: .43rem; font-weight: 800; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
+/* The steps became <li> under an <ol> so the ladder is an ordered progression
+   in the markup too; the stacking that used to live on the <nav> moves to the
+   list, and the list's own marker/indent is removed. */
+.arena-rank-spine__list { margin: 0; padding: 0; list-style: none; }
+.arena-rank-spine__item { display: block; }
+/* Prototype hex chips, parchment tokens (contrast pinned by ArenaRankColumnTests). */
+.arena-rank-spine__step { display: flex; align-items: center; line-height: 1; text-decoration: none; }
+/* 3G — rank spine broadcast chips (stay readable on the floor photo). */
+
+  .arena-rank-spine__step {
+    border-width: 1.5px;
+  }
+@media (max-width: 767px) {
+  /* Stage 3E: the complete rank ladder stays available on a phone. It was
+     display:none here, which removed all eight ranks below 768px. Instead of
+     hiding it, the column stops being an overlay on the floor and becomes a
+     compact wrapped row in normal flow: every rank is still present and
+     readable, nothing covers the crown, and the chips wrap rather than pushing
+     the page sideways. placeRankSpine() clears its measured inline top/left/
+     width at this width so the stylesheet, not the renderer, owns the layout. */
+  .arena-rank-spine { position: static; width: 100%; margin: .15rem 0 .4rem; transform: none; }
+  .arena-rank-spine__list { display: flex; flex-wrap: wrap; gap: .25rem; }
+  .arena-rank-spine__step { min-height: 1.5rem; padding: .2rem .5rem; font-size: .58rem; clip-path: none; }
+}
+  .page--arena .arena-rank-spine__step {
+    border-color: color-mix(in srgb, var(--hall-gold) 42%, var(--hall-border));
+    color: var(--hall-gold-light);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--hall-dark-1) 70%, var(--hall-gold)),
+        color-mix(in srgb, var(--hall-dark-0) 88%, transparent)
+      );
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hall-gold) 18%, transparent);
+  }
+  .page--arena .arena-rank-spine__name {
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .arena-floor-stage .arena-rank-spine {
+    z-index: var(--arena-z-stage);
+  }
+/* 3G — rank spine under confrontation with spine rail. */
+
+  .arena-rank-spine::before {
+    content: "";
+    position: absolute;
+    z-index: var(--arena-z-under);
+    left: 50%;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 2px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--accent-bronze) 55%, transparent),
+      transparent
+    );
+    opacity: 0.85;
+    pointer-events: none;
+  }
+  .arena-rank-spine {
+  /* position is the renderer's (AN6); size stays with the component */
+}
+  /* Rank ladder as a bottom strip (prototype rank-progression), not a sticker on the crown. */
+  .arena-rank-spine__list {
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+  .arena-rank-spine__step {
+    gap: 0.2rem;
+  }
+  .arena-rank-spine__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+/* 3G — rank spine as prototype vertical progression above crown. */
+
+  .arena-rank-spine__list {
+    display: grid;
+  }
+  .arena-rank-spine__item {
+    min-width: 0;
+  }
+  .arena-rank-spine__step {
+    width: 100%;
+  }
+  .arena-rank-spine::before {
+    display: none;
+  }
+  .arena-floor-stage .arena-rank-spine {
+    /* keep spine upright above the tilted floor */
+  }
+  .arena-rank-spine__step:hover,
+  .arena-rank-spine__step:focus-visible {
+    border-color: var(--accent-bronze);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent-bronze) 22%, var(--surface)),
+        color-mix(in srgb, var(--ink) 28%, var(--surface))
+      );
+  }
+@media (prefers-reduced-motion: reduce) {
+  .arena-rank-spine__step {
+    transition: none;
+  }
+}
+/* 3G — r10b: spine ladder over centre + ribbon LIVE weight (mockup #1). */
+
+  .arena-rank-spine {
+    gap: 0.22rem;
+  }
+  .arena-rank-spine::before {
+    margin-bottom: 0.35rem;
+    color: var(--accent-bronze);
+    font-size: 0.48rem;
+    letter-spacing: 0.14em;
+    text-shadow: 0 0 0.6rem color-mix(in srgb, var(--accent-bronze) 35%, transparent);
+  }
+  .arena-rank-spine__step {
+    text-transform: uppercase;
+    border-color: color-mix(in srgb, var(--accent-bronze) 62%, transparent);
+  }
+  .arena-rank-spine__step:nth-child(1),
+  .arena-rank-spine__step:nth-child(2) {
+    border-color: var(--accent-bronze);
+    box-shadow: 0 0 0.55rem color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  }

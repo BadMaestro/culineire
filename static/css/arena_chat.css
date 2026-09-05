@@ -1,0 +1,2513 @@
+/* ARENA SHEET 06/12 - arena_chat.css
+   THE ARENA CHAT, the Owner's own file: the gathered block, the four themes, the event cards, the polls, the media viewer, the stickers and the button family.
+
+   ONE OF TWELVE. arena.css was 13,958 lines behind a single <link>; the
+   Owner asked on 2026-09-05 for sub-files, the chat in a file of its own,
+   each loaded separately and each with a guard. He lifted his own two-sheet
+   freeze of 2026-08-09 to allow it, and gave the reason: that rule was
+   written when the seven files were useless, and splitting now buys code
+   quality and load speed.
+
+   THE ORDER OF THE TWELVE LINKS IS THE CASCADE. This cut moved NOTHING -
+   every boundary was already at brace depth zero - so the twelve bodies
+   joined in order are byte-identical to the file that stood before, which
+   is what proves no rule changed its winner. arena.html and
+   arena_master_console.html both load all twelve in this numbered order,
+   and EveryArenaSheetHasItsOwnGuardTests fails if a sheet drifts.
+   SPLIT-HEADER-END */
+
+/* .arena-chat - every rule for this component that could be proved
+   safe to move, in one place. Gathered by an15_gather.py:
+   the applying declarations are byte-identical and no
+   conflicting pair changed places. */
+.arena-chat__log {
+  flex: 1 1 auto;
+  /* NOT a minimum. The composer is the one thing in this panel that must always
+     be reachable - a chat you can read but not write to is not a chat - and a
+     floor under the log pushed it out of the panel on a short screen. The log
+     shrinks to nothing before the composer gives up a pixel. */
+  min-height: 0;
+  /* THE MESSAGES SCROLL, THE PAGE DOES NOT GROW. Without a ceiling this list
+     is as tall as the conversation, so six messages pushed the whole arena
+     page down a screen - the Owner asked how much further it was going to go.
+     A cap in viewport units keeps the panel a window onto the talk rather than
+     a transcript of it, and the header and composer stay put while only this
+     scrolls. */
+  max-height: min(42vh, 22rem);
+  overflow-y: auto;
+  /* SIDEWAYS IS NEVER A DIRECTION THIS LIST SCROLLS. Setting only overflow-y
+     computes the other axis to auto, so anything overhanging by a pixel -
+     an invisible pseudo-element, a long unbroken word - buys a horizontal
+     scrollbar across the foot of the panel. Words already wrap
+     (overflow-wrap: anywhere on .arena-chat__said), so there is nothing here
+     a reader could ever need to scroll to; stating the axis is what keeps a
+     stray overhang from inventing one. */
+  overflow-x: hidden;
+  /* The stripe stays out of the words on a phone, where there is no room to
+     spare and the gesture is a finger anyway. */
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  align-content: start;
+  gap: .55rem;
+}
+/* JUMP TO THE LATEST - shown only while somebody is reading back through the
+   conversation and a new line has arrived below them. Owner, 2026-08-26.
+
+   IN FLOW, NOT FLOATING OVER THE LOG, and that is the whole design decision
+   here. An overlaid pill needs a positioning context whose bottom edge is the
+   LOG's bottom edge, and the log's own parent ends below the composer, the
+   reply line, the attachment strip and the reaction bar - every one of which
+   appears and disappears on its own. Pinning to that box means measuring it
+   in script on every show. A row costs one reflow of about 30px at the moment
+   the pill appears, cannot be clipped by anything, cannot be destroyed by
+   clearLog()'s innerHTML wipe, and never covers the message being read.
+
+   Colour, radius and press come from the chat's own button family further
+   down (:11683 and the two lists after it) - this rule only places it. */
+.arena-chat__jump {
+  /* OFF EVERYWHERE BY DEFAULT, ON ONLY ON THE DESKTOP (see the 901px block).
+     The phone's chat is GreenBear's and this task's brief says not to change
+     it; the phone's log does scroll and would carry this perfectly well, so
+     the day the Owner asks for it there it is one declaration, not a
+     rebuild. The script raises and lowers the [hidden] attribute at every
+     width regardless - a control the stylesheet is not showing costs nothing
+     and keeps the two halves from drifting apart. */
+  display: none;
+  flex: 0 0 auto;
+  align-self: center;
+  align-items: center;
+  gap: .3rem;
+  min-height: 1.6rem;
+  margin: .2rem 0 0;
+  padding: 0 .6rem;
+  border-radius: 999px;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+}
+.arena-chat__jump[hidden] { display: none; }
+.arena-chat__jump::before {
+  content: "↓";
+  font-weight: 400;
+}
+/* A FEED, NOT A TABLE. Every line used to end in a full-width rule, which the
+   Owner read as an admin log or a database dump - six of them and the panel
+   was a spreadsheet. Rhythm does the separating now: the header is quiet and
+   small, the words sit under it, and the space between messages is what tells
+   them apart. */
+/* ONE LINE PER MESSAGE (Owner's visual brief, 2026-08-25), not a header row
+   over a body row - the "generic comment feed" shape this replaces. The LI
+   still stacks its own children top to bottom (display:grid does that, same
+   as before): an optional reply quote, the row, an optional reaction strip.
+   The ROW is what changed - see .arena-chat__row below - and it is where
+   every piece of a message actually lives now. */
+.arena-chat__line {
+  /* 64 rows, 958 nodes, and every one of them re-laid on every forced
+     layout the octagon's fit asks for - measured at 17ms of the page's
+     70ms, 2026-08-29. A message that has scrolled out of the log does not
+     need laying out to know the log's height; `auto` here lets the browser
+     skip it and `contain-intrinsic-size: auto` makes it remember the height
+     it last had, so the scrollbar does not jump when it comes back. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 2.2rem;
+  display: grid;
+  gap: .04rem;
+  /* The fallback is the narrow default this rule has always carried; the
+     custom property only exists once the reader has chosen a text size, and
+     the density query below re-states its own fallback for the same reason. */
+  font-size: var(--chat-line-size, .7rem);
+  line-height: 1.35;
+}
+/* THE ROW: time, identity, the words, the action trigger, as flex children
+   of one wrapping line. Which of them stay inline and which fall onto their
+   own line is a WIDTH decision, answered in the container queries below -
+   never a viewport one, same as everything else in this component. */
+.arena-chat__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: .35rem;
+  row-gap: .05rem;
+}
+/* THE NARROW SHAPE IS THE DEFAULT - header on one row, words beneath it:
+
+     [IRL] [GOD] GreenBear   ADMIN        22:18  :
+     Hi
+
+   IDENTITY AND TIME NEVER STACK. The header must not fall into [IRL] / [GOD]
+   / name / ADMIN / 22:18 down five lines, so the name is the only part
+   allowed to give ground: the tags and the trigger hold their size and the
+   name truncates instead. A shortened tag is a different team, and a missing
+   timestamp is a missing fact; a shortened name is still that person.
+
+   The row's SOURCE order leads with time (the desktop reading); `order`
+   restores this arrangement without a second copy of the markup. Both
+   presentations are the same DOM, which is the rule this component is built
+   on - see the density query far below for the other one. */
+.arena-chat__who  { order: 1; flex-wrap: nowrap; }
+.arena-chat__time { order: 2; }
+.arena-chat__more { order: 3; }
+/* The identity reads [IRL][GOD]GreenBear. The brackets are DRAWN, not typed:
+   the element's text is the bare tag, so a screen reader says "IRL" and a copy
+   yields "IRL", while the eye still gets the bracket form the Owner specified. */
+.arena-chat__tag {
+  flex: 0 0 auto;
+  max-width: 5.5em;
+  overflow: hidden;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.arena-chat__tag::before { content: "["; opacity: .55; }
+.arena-chat__tag::after  { content: "]"; opacity: .55; }
+.arena-chat .arena-chat__tag--alliance { color: var(--arena-cappuccino); }
+.arena-chat .arena-chat__tag--clan     { color: var(--arena-gold); }
+/* The name may be squeezed by a long tag pair; the tags may not be squeezed by
+   a long name. A truncated tag is a different team. */
+.arena-chat__name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* One rule per tier, and nothing else changes: a name is coloured, not made
+   bigger or bolder, because thirty of them stacked in a log have to stay a
+   conversation rather than a leaderboard. */
+.arena-chat__name--grey   { color: var(--chat-nick-grey); }
+.arena-chat__name--sky    { color: var(--chat-nick-sky); }
+.arena-chat__name--blue   { color: var(--chat-nick-blue); }
+.arena-chat__name--purple { color: var(--chat-nick-purple); }
+.arena-chat__name--fan    { color: var(--chat-nick-fan); }
+
+/* RED OUTRANKS THE FIVE. The site speaking officially is not a tier a person
+   can reach by buying tokens or joining a club, so an admin's name is red
+   whatever else it would have been. Written as one rule after the five so it
+   wins on order rather than on !important. */
+.arena-chat__line--admin .arena-chat__name { color: var(--chat-admin-text); }
+
+/* AND GOLD OUTRANKS THE RED. There is exactly one of these on the site.
+   Two selectors deep so it beats the admin rule above on specificity rather
+   than by luck of ordering - he is an admin too, and without this his name
+   would simply be red like any other.
+
+   The shimmer is a gradient clipped to the letters and slid across them, not
+   a glow or a shadow: it has to read as gold LEAF catching the light, and a
+   name in a chat log is small enough that anything blurred just turns muddy.
+   The fallback colour is set first, so a browser without background-clip:text
+   gets a solid gold name rather than an invisible one. */
+.arena-chat .arena-chat__name--owner {
+  color: var(--chat-nick-owner-gold);
+  font-weight: 800;
+  background-image: linear-gradient(
+    100deg,
+    var(--chat-nick-owner-deep) 0%,
+    var(--chat-nick-owner-gold) 38%,
+    var(--chat-nick-owner-lit) 50%,
+    var(--chat-nick-owner-gold) 62%,
+    var(--chat-nick-owner-deep) 100%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .arena-chat .arena-chat__name--owner {
+    -webkit-text-fill-color: transparent;
+    animation: arena-nick-shimmer 4.5s linear infinite;
+  }
+}
+
+@keyframes arena-nick-shimmer {
+  to { background-position: -200% 0; }
+}
+
+/* Contract section 12: the arena is reduced-motion aware. The gold stays; only
+   the travelling glint stops, parked at the position where the name reads
+   brightest rather than at a dark end of the gradient. */
+@media (prefers-reduced-motion: reduce) {
+  .arena-chat .arena-chat__name--owner {
+    animation: none;
+    background-position: 50% 0;
+  }
+}
+/* The time sits at the FRONT of the row now (Owner's visual brief,
+   2026-08-25: "TIME [TAGS] NAME ROLE MESSAGE"), not tucked into a meta
+   column at the end - that column is gone; the action trigger is simply the
+   row's own last flex child now (see .arena-chat__more below). */
+.arena-chat .arena-chat__time {
+  flex: 0 0 auto;
+  color: var(--arena-muted);
+  font-size: .56rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* Never colour alone (spec section 7): every coloured state also carries a
+   word. DENSE filled chips (Owner's visual brief, 2026-08-25), not the
+   larger outlined pill this used to be - a role badge, not a debug label. */
+.arena-chat__marker {
+  flex: 0 0 auto;
+  padding: 0 .22rem;
+  border-radius: .2rem;
+  font-size: .46rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.arena-chat .arena-chat__marker--admin {
+  color: #fff;
+  background: var(--chat-admin-text);
+}
+.arena-chat .arena-chat__marker--private {
+  color: #fff;
+  background: var(--chat-private-text);
+}
+/* MOD is authority without officialdom: a badge, and the ordinary colour of
+   whatever room the line was spoken in. Red stays reserved for Admin. */
+.arena-chat .arena-chat__marker--mod {
+  color: #fff;
+  background: var(--accent-bronze);
+}
+/* PUBLIC is the site's ordinary body ink, not --chat-public-text - that
+   amber/gold token was applied to EVERY normal message and read as a wall
+   of warnings, the exact defect the Owner's visual brief named ("normal
+   message text looks red/orange"). --chat-public-text is retired from
+   message-body colour entirely; ADMIN and PRIVATE still override the
+   ordinary colour below, in that order of strength, matching the server's
+   own precedence, and neither one used --chat-public-text to begin with.
+
+   EVERY COLOUR IN THIS COMPONENT CARRIES THE `.arena-chat ` PREFIX, and it is
+   not decoration. Further down this file a blanket panel reset says
+
+       .arena-command-deck__phase-card *, ... .arena-chat *, ... { color: inherit }
+
+   which is one class plus a universal - the same specificity as a bare
+   `.arena-chat__said`, and later in the file, so it won. The result was
+   silent and total: public bodies, timestamps, tag badges and role markers
+   all fell back to inherited ink while ADMIN (two classes) kept working, so
+   the one state that proved the system was the only one that survived. The
+   prefix buys a second class and the rules win on their own merit. That is
+   this file's own house style - "match the prefix rather than reach for
+   !important" - and the alternative, editing the shared reset, would change
+   five other panels to fix one. */
+.arena-chat .arena-chat__said {
+  /* Longhand, not `flex: 1 1 auto`: the shorthand would rewrite flex-basis
+     and undo the narrow default set here, which is the whole point of the
+     row - the words take their own line until the density query, gated on
+     room AND a pointer, says otherwise. order:4 puts them last on that
+     line, after identity, time and the trigger. */
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 100%;
+  order: 4;
+  min-width: 8em;
+  color: var(--arena-ink);
+  overflow-wrap: anywhere;
+}
+.arena-chat__line--private .arena-chat__said { color: var(--chat-private-text); }
+.arena-chat__line--admin   .arena-chat__said { color: var(--chat-admin-text); }
+/* THE PRIVATE ROOM SAYS SO IN WORDS, A LOCK AND A COLOUR - three signals, so
+   nobody can mistake a direct message for the public hall by glancing. The
+   accent is restrained on purpose: the spec asks for an unmistakable mode, not
+   a purple interface. */
+.arena-chat .arena-chat__room {
+  /* Fixed furniture: the panel's height is now bounded (see the right rail's
+     own block at :8961), so anything left at the flex default of `0 1 auto`
+     is a section that quietly gives up pixels when the room is tight. Only
+     the log may do that. */
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin: 0;
+  padding: .28rem .45rem;
+  border-radius: .5rem;
+  border: 1px solid color-mix(in srgb, var(--chat-private-text) 40%, transparent);
+  background: color-mix(in srgb, var(--chat-private-text) 8%, transparent);
+  color: var(--chat-private-text);
+  font-size: .64rem;
+}
+.arena-chat__room[hidden] { display: none; }
+.arena-chat__room-kind {
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+/* The whole panel wears a thin private edge while a DM is open. */
+.arena-chat.is-private {
+  border-color: color-mix(in srgb, var(--chat-private-text) 40%, transparent);
+}
+.arena-chat__line--hidden .arena-chat__said {
+  text-decoration: line-through;
+}
+/* The quoted line a reply answers. One level, never a tree. */
+.arena-chat .arena-chat__quote {
+  display: block;
+  margin-bottom: .1rem;
+  padding-left: .4rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent-bronze) 40%, transparent);
+  color: var(--arena-muted);
+  font-size: .64rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Reveal a muted line. A preference, so it offers a way back. */
+.arena-chat .arena-chat__show {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent-bronze);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+/* The per-line action trigger and the reaction strip. Both are small, so both
+   are given a real tap target rather than the size of their glyph. */
+/* THE TRIGGER STOPPED SETTING THE HEADER'S HEIGHT. At 1.6rem it was taller
+   than the words beside it: every message header measured 26px while the
+   sentence under it needed 15, so the control cost more vertical space than
+   the conversation did. It is small in LAYOUT now and still large to a
+   finger - the ::after below is an invisible 44px pad that overflows the
+   button without pushing anything, which is how a compact row keeps an
+   accessible tap target instead of trading one for the other. */
+.arena-chat .arena-chat__more {
+  position: relative;
+  flex: 0 0 auto;
+  appearance: none;
+  width: .9rem;
+  height: .9rem;
+  min-width: 0;
+  min-height: 0;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--arena-muted);
+  font: inherit;
+  font-size: .8rem;
+  line-height: .9;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__more::after {
+  content: "";
+  position: absolute;
+  /* A reachable button around a 14px glyph, costing zero layout.
+
+     IT DOES NOT REACH RIGHTWARD, and that is not a detail. The trigger is
+     pushed flush to the row's trailing edge by margin-left:auto, so any
+     rightward expansion lands OUTSIDE the panel's content box - and an
+     absolutely-positioned pseudo still counts as scrollable overflow, which
+     gave the message log a horizontal scrollbar the Owner photographed
+     (measured: log scrollWidth 404 against clientWidth 390, exactly this
+     13.6px). It used to be hidden by accident: the trigger sat inside
+     .arena-chat__who, which clips with overflow:hidden. The one-line row
+     removed that accident rather than the overflow, so the overflow is
+     removed here instead. Up, down and left still expand, which is where
+     there is room to expand into. */
+  inset: -.85rem 0 -.85rem -.85rem;
+}
+.arena-chat__more:hover,
+.arena-chat__more:focus-visible { color: var(--accent-bronze); }
+.arena-chat__reactions {
+  display: flex;
+  gap: .2rem;
+  margin-top: .18rem;
+}
+.arena-chat__react.is-mine {
+  border-color: var(--accent-bronze);
+  background: color-mix(in srgb, var(--accent-bronze) 16%, transparent);
+}
+/* Reacting, offered inside the one action menu instead of as three permanent
+   buttons under every line. One row of glyphs, not an emoji panel. */
+.arena-chat__sheet-reacts {
+  display: flex;
+  gap: .25rem;
+  padding: .15rem .35rem .3rem;
+}
+.arena-chat__sheet-react {
+  appearance: none;
+  flex: 1 1 auto;
+  min-height: 2.2rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+  border-radius: .45rem;
+  background: none;
+  font-size: .95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__sheet-react:hover,
+.arena-chat__sheet-react:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 12%, transparent);
+}
+.arena-chat__replying[hidden],
+.arena-chat__notice[hidden] { display: none; }
+.arena-chat .arena-chat__notice {
+  flex: 0 0 auto;
+  margin: .25rem 0 0;
+  color: var(--arena-muted);
+  font-size: .64rem;
+}
+.arena-chat__action:hover,
+.arena-chat__action:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 12%, transparent);
+}
+/* ============================================================================
+ * THE 2026 LAYER, 2026-08-25: custom emoji, mentions, the emoji picker, the
+ * quick-react strip and the appearance preferences.
+ *
+ * Every one of these reuses something already here rather than inventing a
+ * parallel system - the picker and the mention list ARE .arena-chat__sheet,
+ * so they become a bottom sheet on a phone and a popover on a desktop from
+ * the container query further down without a line of new positioning code.
+ * ========================================================================= */
+
+/* A custom emoji sits ON the text line, so it is sized in em and aligned to
+   the text's own baseline rather than to the box. */
+.arena-chat__emoji {
+  width: 1.15em;
+  height: 1.15em;
+  margin: 0 .05em;
+  vertical-align: -.2em;
+}
+.arena-chat .arena-chat__mention {
+  color: var(--chat-mention-text);
+  font-weight: 700;
+}
+/* The hover strip. It is the pointer's shortcut to a reaction; the action
+   sheet remains the route for everyone else, which is why the whole thing
+   only exists inside @media (hover: hover). */
+.arena-chat__quick-react { display: none; }
+@media (hover: hover) {
+.arena-chat__quick-react {
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: .05rem;
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity .12s ease;
+  }
+/* margin-left:auto is now on the strip, so the trigger beside it must stop
+     claiming the same job or the two fight over the row's slack. */
+  .arena-chat__quick-react + .arena-chat__more { margin-left: .1rem; }
+.arena-chat__line:hover .arena-chat__quick-react,
+  .arena-chat__quick-react:focus-within { opacity: 1; }
+}
+/* SIZED NOT TO SET THE ROW'S HEIGHT, the same discipline .arena-chat__more
+   already lives under. At 1.15rem these buttons were 18.4px in a 16px row
+   and every message grew by two pixels to carry a control that is invisible
+   until hovered - measured, and exactly the kind of quiet cost the density
+   work was for. 0.9rem square with a small glyph fits inside the line. */
+.arena-chat__quick-react-btn {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: .9rem;
+  height: .9rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-size: .58rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__quick-react-btn:hover,
+.arena-chat__quick-react-btn:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+}
+/* THE EMOJI PICKER, wearing .arena-chat__sheet's clothes. Only the inside is
+   new: a row of category tabs over a scrolling grid. */
+/* 100%, NOT 92vw. The viewport is the wrong yardstick for a box that lives
+   inside a 240px rail: at the Owner's own <=1280px ruling the chat is 240px
+   wide and 19rem is 304, so the picker hung 100px out of the panel and the
+   deck's `overflow: hidden` cut it off. On a phone the two agree - 92vw of a
+   390px screen is 359 and the panel's own box is 355 - so nothing there
+   moves. */
+.arena-chat__sheet--emoji { width: min(19rem, 100%); }
+.arena-chat__emoji-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .1rem;
+  padding: .1rem .15rem .25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+}
+.arena-chat__emoji-tab {
+  appearance: none;
+  padding: .15rem .35rem;
+  border: 0;
+  border-radius: .35rem;
+  background: none;
+  font: inherit;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__emoji-tab { }
+.arena-chat .arena-chat__emoji-tab[aria-pressed="true"] {
+  color: var(--arena-ink);
+  background: color-mix(in srgb, var(--accent-bronze) 16%, transparent);
+}
+.arena-chat__emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(1.9rem, 1fr));
+  gap: .1rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: .25rem .15rem;
+}
+.arena-chat__emoji-btn {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  min-height: 1.9rem;
+  padding: 0;
+  border: 0;
+  border-radius: .35rem;
+  background: none;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat__emoji-btn:hover,
+.arena-chat__emoji-btn:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 15%, transparent);
+}
+.arena-chat .arena-chat__emoji-btn--custom { color: var(--accent-bronze-dark); }
+.arena-chat__emoji-btn--custom .arena-chat__emoji { width: 1.15rem; height: 1.15rem; }
+/* THE CHEF CARD - the same sheet again, as a dialog. */
+.arena-chat__sheet--chef { width: min(14rem, 100%); padding: .5rem .6rem .6rem; }
+.arena-chat__chef-name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .25rem;
+  margin: 0 0 .15rem;
+  font-size: .78rem;
+  font-weight: 800;
+}
+.arena-chat .arena-chat__chef-name { color: var(--arena-ink); }
+.arena-chat__chef-rank {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin: 0 0 .45rem;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.arena-chat .arena-chat__chef-rank { color: var(--accent-bronze); }
+.arena-chat__chef-none {
+  margin: 0;
+  font-size: .66rem;
+}
+.arena-chat .arena-chat__chef-none { color: var(--arena-muted); }
+/* A two-column ledger: label, then the number, four times down. */
+.arena-chat__chef-stats {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .1rem .6rem;
+  margin: 0 0 .5rem;
+  font-size: .68rem;
+}
+.arena-chat__chef-link {
+  display: inline-block;
+  font-size: .66rem;
+  font-weight: 700;
+}
+.arena-chat .arena-chat__chef-link { color: var(--accent-bronze); }
+/* The mention dropdown - the same sheet again, as a listbox. */
+.arena-chat__sheet--mentions { width: min(15rem, 100%); }
+/* The composer, inside the sheet family - so it is an anchored popover on a
+   wide rail and a bottom sheet on a phone with no rule of its own. */
+.arena-chat__sheet--poll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  /* NO PADDING HERE. .arena-chat__sheet is one class and so is this, so a
+     padding declared here would beat the narrow branch's
+     max(.4rem, env(safe-area-inset-bottom)) purely on source order and put the
+     Ask button under a phone's home indicator. Gap does the spacing instead. */
+  /* A minimum beats a maximum in CSS, so a flat 13rem would have overflowed
+     the 240px rail no matter what bounded it. Capped by the panel instead. */
+  min-width: min(13rem, 100%);
+}
+.arena-chat__poll-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.arena-chat .arena-chat__poll-field {
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 35%, transparent);
+  border-radius: 0.35rem;
+  background: var(--surface);
+  font-size: 0.7rem;
+  color: var(--ink);
+}
+.arena-chat .arena-chat__poll-warn {
+  margin: 0.1rem 0 0;
+  font-size: 0.58rem;
+  line-height: 1.3;
+  color: var(--muted);
+}
+.arena-chat .arena-chat__poll-ask {
+  align-self: stretch;
+  margin-top: 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: var(--arena-gold, var(--accent-bronze));
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-on-gold, #1a1408);
+  cursor: pointer;
+}
+.arena-chat .arena-chat__poll-ask[disabled] { opacity: 0.55; cursor: default; }
+.arena-chat__mention-option {
+  appearance: none;
+  display: flex;
+  align-items: baseline;
+  gap: .25rem;
+  width: 100%;
+  min-height: 2rem;
+  padding: 0 .5rem;
+  border: 0;
+  border-radius: .4rem;
+  background: none;
+  font: inherit;
+  font-size: .72rem;
+  text-align: left;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__mention-option { color: var(--arena-ink); }
+.arena-chat__mention-option.is-active,
+.arena-chat__mention-option:hover,
+.arena-chat__mention-option:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 14%, transparent);
+}
+/* The composer's action area - one button today; see arena.html's own note
+   on why this is a plain row and not a "+" menu yet. */
+.arena-chat__composer-actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .15rem;
+}
+.arena-chat__composer-action {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  border: 1px solid var(--chat-btn-edge);
+  border-radius: 999px;
+  background: var(--chat-btn-fill);
+  cursor: pointer;
+  transition: border-color .1s ease, background .1s ease, color .1s ease, transform .1s ease;
+}
+.arena-chat .arena-chat__composer-action { color: var(--chat-btn-ink); }
+.arena-chat__composer-action:hover,
+.arena-chat__composer-action:focus-visible {
+  border-color: var(--chat-btn-edge-on);
+  background: var(--chat-btn-fill-on);
+}
+.arena-chat .arena-chat__composer-action:hover,
+.arena-chat .arena-chat__composer-action:focus-visible { color: var(--chat-btn-ink-on); }
+/* ATTACHMENTS.
+   A picture is the one part of a message with real height, so it is capped
+   hard: the brief asks for roughly 220-280px on a desktop, and the cap is in
+   ch-independent units so a text-size preference cannot inflate it. The
+   aspect-ratio comes from the STORED file's own dimensions, written as a
+   custom property by mediaNode(), so the box is the right shape before a
+   single byte of the image has arrived and the log never jumps. */
+.arena-chat__media {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: min(100%, 17rem);
+  margin: .25rem 0 0;
+  border-radius: .5rem;
+  overflow: hidden;
+  line-height: 0;
+}
+.arena-chat .arena-chat__media {
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 25%, transparent);
+}
+.arena-chat__media-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--media-ratio, auto);
+  /* A very tall picture must not turn one message into a screenful. */
+  max-height: 15rem;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--accent-bronze) 8%, transparent);
+}
+.arena-chat__media-img.is-openable { cursor: zoom-in; }
+.arena-chat__media-play:hover,
+.arena-chat__media-play:focus-visible {
+  background: color-mix(in srgb, var(--ink) 42%, transparent);
+}
+/* The attachment waiting to go, above the composer. */
+.arena-chat__attachment {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin: 0;
+  padding: .2rem .35rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 25%, transparent);
+  border-radius: .5rem;
+  background: color-mix(in srgb, var(--accent-bronze) 7%, transparent);
+  font-size: .64rem;
+}
+.arena-chat__attachment[hidden] { display: none; }
+.arena-chat__attachment-preview {
+  flex: 0 0 auto;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: .3rem;
+  object-fit: cover;
+}
+.arena-chat__attachment-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.arena-chat .arena-chat__attachment-name { color: var(--arena-muted); }
+.arena-chat__attachment-remove {
+  appearance: none;
+  flex: 0 0 auto;
+  min-width: 1.4rem;
+  min-height: 1.4rem;
+  border: 0;
+  background: none;
+  font-size: .9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__attachment-remove { color: var(--arena-muted); }
+/* APPEARANCE PREFERENCES. The script only writes classes and one attribute;
+   every actual value is here, which is why a preference can be retuned
+   without touching JavaScript. */
+.arena-chat__appearance { margin-top: .5rem; }
+.arena-chat__pref {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .1rem .6rem;
+  margin: 0 0 .35rem;
+  padding: 0;
+  border: 0;
+}
+/* ============================================================================
+ * CHAT THEMES - four, curated, and NOT a colour picker.
+ *
+ * The Owner's brief is explicit that a reader must not be handed arbitrary
+ * colours that destroy the Arena's identity, so these are four finished
+ * palettes rather than controls.
+ *
+ * HOW THEY WORK, AND WHY NOTHING ELSE IN THIS FILE CHANGES FOR THEM. Every
+ * rule in this component already resolves its colours through tokens -
+ * --surface for the panel, --ink for the words, --accent-bronze for the gold.
+ * A theme redefines those tokens ON .arena-chat and stops there. Custom
+ * properties inherit, so the shared panel rule, the tabs, the composer, the
+ * sheets and every future addition follow without being told, and not one
+ * existing selector is edited or duplicated to support this.
+ *
+ * SCOPED TO THE PANEL, deliberately. The brief lists what a theme must be
+ * checked against - composer, message text, badges, bottom sheets - all of
+ * which are the chat. The floor, the octagon and the rails keep the Arena's
+ * one identity, so a reader who wants a dark chat does not get a dark arena
+ * they never asked for.
+ *
+ * Classic Ivory is the absence of a theme rather than a fifth palette: it
+ * declares nothing, so it IS the Arena's own colours, and it cannot drift
+ * from them.
+ * ========================================================================= */
+/* THE --arena-* TOKENS ARE REDEFINED, NOT JUST THE GLOBAL ONES, and finding
+   out why cost a contrast measurement rather than a look.
+   .arena-command-deck declares `--arena-ink: var(--ink)`, and a custom
+   property is SUBSTITUTED WHERE IT IS DECLARED - so --arena-ink resolves to
+   near-black on the deck and inherits into the chat already resolved.
+   Redefining --ink down here never reaches it. Measured before the fix: body
+   text against a dark panel came out at contrast 1.15, which is invisible,
+   while the timestamp read 3.41 only because --arena-muted happens to be a
+   mid grey. Both lists are set now, and the test below asserts it stays so. */
+
+.arena-chat[data-theme="dark"] {
+  --surface: #221d18;
+  --surface-soft: #2b2621;
+  --ink: #ede4d8;
+  --ink-soft: #d6cabb;
+  --muted: #b3a89a;
+  --brand: #6b5a45;
+  --brand-dark: #d8c8b0;
+  --accent-bronze: #d4a259;
+  --accent-bronze-dark: #b8873f;
+  --arena-ink: #ede4d8;
+  --arena-forest: #d6cabb;
+  --arena-muted: #b3a89a;
+  --arena-gold: #d4a259;
+  --arena-cappuccino: #e2d4be;
+  --arena-paper: #221d18;
+  --arena-cream: #2b2621;
+  /* The semantic three, lifted for a dark ground - the same meanings, at a
+     contrast that survives the background change. */
+  --chat-private-text: #b49bf0;
+  --chat-admin-text: #f0766c;
+  --chat-mention-text: #86aae4;
+}
+.arena-chat[data-theme="copper"] {
+  --surface: #2a1f18;
+  --surface-soft: #362920;
+  --ink: #f4e5d4;
+  --ink-soft: #e0cdb6;
+  --muted: #bda88f;
+  --brand: #7d5a3c;
+  --brand-dark: #e8d3b8;
+  --accent-bronze: #e08a4a;
+  --accent-bronze-dark: #bf6a2e;
+  --arena-ink: #f4e5d4;
+  --arena-forest: #e0cdb6;
+  --arena-muted: #bda88f;
+  --arena-gold: #e08a4a;
+  --arena-cappuccino: #edd9bf;
+  --arena-paper: #2a1f18;
+  --arena-cream: #362920;
+  --chat-private-text: #c3a4f2;
+  --chat-admin-text: #f5847a;
+  --chat-mention-text: #8fb6e8;
+}
+.arena-chat[data-theme="midnight"] {
+  --surface: #16181d;
+  --surface-soft: #1e2128;
+  --ink: #e6e8ee;
+  --ink-soft: #ccd0da;
+  --muted: #a2a7b7;
+  --brand: #454b5c;
+  --brand-dark: #d3d7e2;
+  --accent-bronze: #d9b45f;
+  --accent-bronze-dark: #b8933f;
+  --arena-ink: #e6e8ee;
+  --arena-forest: #ccd0da;
+  --arena-muted: #a2a7b7;
+  --arena-gold: #d9b45f;
+  --arena-cappuccino: #dde1ea;
+  --arena-paper: #16181d;
+  --arena-cream: #1e2128;
+  --chat-private-text: #b0a3f5;
+  --chat-admin-text: #f37b76;
+  --chat-mention-text: #7fb0f0;
+}
+/* A themed panel needs its own ground rather than the translucent one the
+   shared rule gives it, or the arena's parchment shows through a dark chat. */
+.arena-chat[data-theme="dark"],
+.arena-chat[data-theme="copper"],
+.arena-chat[data-theme="midnight"] {
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+}
+/* What the preferences actually do. Density and text size are custom
+   properties so the existing rules keep owning the layout and only the
+   number changes; the two "show" toggles simply take an element out. */
+/* NORMAL DELIBERATELY SETS NOTHING. Each presentation already chose its own
+   size - .7rem narrow, .72rem dense desktop - and "Normal" means "the one
+   this layout picked", not a third number that overrides both. Declaring
+   .72rem here was a real regression for one measurement: it reached the
+   phone through the attribute applyPersonalisation() writes on every load
+   and pushed every mobile row from 31.5px to 32.3px. Small and Large are
+   genuine departures from the default, so those do declare. */
+.arena-chat[data-font-size="small"] { --chat-line-size: .64rem; }
+.arena-chat[data-font-size="large"] { --chat-line-size: .84rem; }
+.arena-chat.is-hiding-tags .arena-chat__tag,
+.arena-chat.is-hiding-tags .arena-chat__marker { display: none; }
+.arena-chat.is-hiding-times .arena-chat__time { display: none; }
+/* CHAT / PM / USERS / SETTINGS — Owner's desktop rebuild, 2026-08-25.
+   Replaces the old plain "Spectator chat" title. Each button is an ARIA tab;
+   arena_chat.js's activateTab() toggles aria-selected and the matching
+   .arena-chat__panel's [hidden]. LIVE moves here from the old header, still
+   its own element so the word "Live" stays readable without the number. */
+/* CHAT / PM / USERS / SETTINGS - compact bar, ~38-42px tall (Owner's visual
+   brief, 2026-08-25). SETTINGS is icon-only (.arena-chat__tab--icon) rather
+   than spending ~80px on the word; USERS carries its own live count
+   (.arena-chat__tab-count, written by setUsersCount() in arena_chat.js) -
+   the standalone LIVE badge this bar used to also carry is gone, folded
+   into that one number. */
+.arena-chat__tabs {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: .1rem;
+  min-height: 2.2rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+  padding-bottom: .25rem;
+}
+.arena-chat__tab {
+  appearance: none;
+  flex: 0 0 auto;
+  min-height: 1.7rem;
+  padding: 0 .45rem;
+  border: 0;
+  border-radius: .4rem .4rem 0 0;
+  background: none;
+  font: inherit;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__tab {
+}
+.arena-chat .arena-chat__tab[aria-selected="true"] {
+  border-radius: .4rem;
+}
+.arena-chat__tab:focus-visible {
+  outline: 2px solid var(--accent-bronze);
+  outline-offset: -2px;
+}
+.arena-chat__tab-count {
+  font-variant-numeric: tabular-nums;
+  opacity: .8;
+}
+/* The gear: same compact tab, square instead of padded for a word, icon
+   only, the word carried by aria-label for anyone not reading it visually. */
+.arena-chat__tab--icon {
+  flex: 0 0 auto;
+  min-width: 1.7rem;
+  padding: 0;
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+}
+/* Pinned Rules - a real embedded panel (Owner's visual brief, 2026-08-25),
+   not the plain nav-link row this used to read as: a bordered, tinted card
+   with the toggle as its header row and the rules as its body, rather than
+   a floating line of text above an unrelated tinted box. Expanded by
+   default; see arena_chat.js for the session-remembers-closed exception. */
+.arena-chat__rules {
+  flex: 0 0 auto;
+  border-radius: .6rem;
+  overflow: hidden;
+}
+.arena-chat .arena-chat__rules {
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-bronze) 7%, transparent);
+}
+.arena-chat__rules-toggle {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  width: 100%;
+  min-height: 1.7rem;
+  padding: .3rem .55rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: .64rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__rules-toggle { color: var(--arena-ink); }
+.arena-chat__rules-body {
+  margin: 0;
+  padding: 0 .6rem .5rem 2.05rem;
+  font-size: .62rem;
+  line-height: 1.5;
+  list-style: disc;
+}
+.arena-chat .arena-chat__rules-body { color: var(--arena-muted); }
+.arena-chat__rules-body[hidden] { display: none; }
+/* Each tab's content area. Only one is ever un-hidden at a time, so all four
+   share the same flex treatment - the [hidden] attribute removes the other
+   three from layout, no per-tab sizing needed. Reproduces exactly the flex
+   chain the log relied on when it was a direct child of .arena-chat: the
+   panel now sits between them, so it carries flex:1/min-height:0 too. */
+.arena-chat__panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+.arena-chat__panel[hidden] { display: none; }
+/* PM and USERS lists — same scrolling-window treatment as the message log
+   (a cap, not a full transcript), same list reset. */
+.arena-chat__dm-list,
+.arena-chat__users-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: min(42vh, 22rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  align-content: start;
+  gap: .3rem;
+}
+.arena-chat__dm-row,
+.arena-chat__user-row {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  min-height: 2rem;
+  padding: .2rem .4rem;
+  border-radius: .5rem;
+  font-size: .68rem;
+  cursor: pointer;
+}
+.arena-chat .arena-chat__dm-row,
+.arena-chat .arena-chat__user-row {
+  color: var(--arena-ink);
+}
+.arena-chat__dm-row:hover,
+.arena-chat__dm-row:focus-visible {
+  background: color-mix(in srgb, var(--accent-bronze) 10%, transparent);
+}
+.arena-chat__user-row { cursor: default; }
+/* A row the USERS tab draws for itself, not a message - its own compact
+   version of the same tag/role vocabulary the log already uses, so a chef
+   named [ALLY][CLAN]Name ADMIN reads identically in both places. */
+.arena-chat__user-row .arena-chat__tag,
+.arena-chat__user-row .arena-chat__marker {
+  font-size: .52rem;
+}
+/* SETTINGS — the one preference the chat has: who may open a DM. Posts to
+   the existing arena_chat_dm_policy endpoint, which re-validates regardless
+   of what this form sends. */
+.arena-chat__settings {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  padding: .2rem .1rem;
+}
+.arena-chat__settings-label {
+  margin: 0;
+  font-size: .64rem;
+  font-weight: 700;
+}
+.arena-chat .arena-chat__settings-label { color: var(--arena-muted); }
+/* ONE COMPONENT, TWO PRESENTATIONS, NO SECOND IMPLEMENTATION.
+   These ask the panel how wide IT is, not how wide the window is - the same
+   markup and the same script serve a phone column and a desktop rail, and only
+   the spacing changes. A viewport query could not answer this: the desktop rail
+   is narrower than the phone's full-bleed column, so width-of-window is the
+   wrong question in both directions. */
+/* THE COMPOSER'S BASE STATE, and it has to sit ABOVE the container queries
+   that refine it: a container query adds NO specificity, so these and the
+   desktop rules below carry identical weight and source order alone decides.
+   This block used to live after them, which is exactly why the desktop send
+   button kept its small outlined circle no matter what the query asked for. */
+.arena-chat__composer {
+  flex: 0 0 auto;
+  /* NAILED TO THE FOOT OF THE PANEL. Owner, 2026-08-27: the input must sit on
+     the chat's bottom edge and never move.
+
+     `flex: 0 0 auto` alone does not promise that - it promises the composer
+     will not GROW, not that it will be last against the floor. Whatever slack
+     the column has left over lands after the final item, which is under the
+     composer. Measured on a touch tablet at 2000px before this: 162px of dead
+     panel below the input, because the log's own ceiling stopped it absorbing
+     the slack (see the ceiling's note below). `margin-top: auto` moves every
+     leftover pixel ABOVE the composer instead, so the input is on the floor
+     whatever anything else in the column decides to do. */
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  /* On a phone the composer is the last thing above the home indicator; give
+     it that strip so the send button is never half under it. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+/* Reaction summary strip - desktop only. Off by default here, switched on by
+   the wide container query below; same reason as the composer block above,
+   this must precede the query that overrides it. */
+.arena-chat__reaction-summary,
+.arena-chat__reaction-summary[hidden] { display: none; }
+@container arena-chat (max-width: 30rem) {
+@media (hover: none) and (max-width: 640px) {
+/* NARROW AND NO POINTER: a bottom sheet, which is the phone's shape.
+     Absolute-inside-the-panel was the bug the Owner photographed: anchored
+     near the foot of the log it hung out of the chat and lay across the card
+     below. Same element and same buttons as the popover.
+
+     THE `hover: none` GATE IS v2.5.1333 AND IT IS THE WHOLE FIX. Width alone
+     put this on the desktop as soon as the chat rail dropped under 30rem of
+     container - which it now is on the Owner's 1920 screen at about 460px -
+     and it brought the dimming layer below with it.
+
+     AND THE COMMENT THAT USED TO STAND HERE WAS WRONG, which is worth
+     recording because it is what made the fault invisible. It said "fixed to
+     the screen, not to the panel... it cannot escape anything, because it is
+     not inside anything". It is inside something: .arena-chat carries
+     `container-type: inline-size`, which brings layout containment with it,
+     and a contained box IS the containing block for its `position: fixed`
+     descendants. Measured: the sheet's offsetParent is .arena-chat and its
+     left edge was 1188.6 against the panel's 1187.6. So the sheet is pinned
+     to the panel and the dim never covered the page at all. On a phone that
+     makes no visible difference, because there the panel is the width of the
+     screen - which is why this stood for so long. */
+  /* THE SHEET BELONGS TO THE PANEL, NOT TO THE SCREEN. Owner, 2026-08-28,
+     with three screenshots taken while scrolling one page: the picker sat
+     over everything, stayed exactly where it was all the way down the site,
+     and then slipped UNDER the footer at the bottom. All three are one
+     cause - it was position: fixed, so it was pinned to the viewport and
+     had to fight every stacking context on the page to stay on top.
+
+     It is absolute inside .arena-chat again, which is what the base rule
+     above already says; this branch only gives it the phone's SHAPE - full
+     width of the panel, sitting on the panel's own foot. It scrolls away
+     with the chat, it cannot cover the rest of the site, and there is
+     nothing for the footer to win against.
+
+     WHY IT WAS FIXED, so nobody restores it: v2.5.1333 made it a bottom
+     sheet because an absolute menu anchored near the foot of the LOG hung
+     out of the chat and lay across the card below. Anchoring to the
+     panel bottom instead of to a trigger is what makes absolute safe here -
+     bottom: 0 with a ceiling of the panel keeps it inside by construction.
+
+     AND THE GREY MASK IS GONE, EVERYWHERE. He asked for it removed on
+     2026-08-27 - "убирайте нахуй" - and it was taken off the desktop path
+     while this touch-only copy survived, which is why he was still looking
+     at it on his phone today. */
+  .arena-chat__sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    /* The base rule sets a `top`; this branch is later in the file at
+       equal specificity, so `auto` wins on order and `bottom` takes
+       over. */
+    top: auto;
+    bottom: 0;
+    max-height: min(70vh, 100%);
+    border-radius: .9rem .9rem 0 0;
+    padding: .4rem;
+    box-shadow: 0 -.5rem 1.6rem color-mix(in srgb, var(--ink) 32%, transparent);
+  }
+}
+}
+@media (hover: hover) {
+.arena-chat__more { opacity: 0; }
+.arena-chat__line:hover .arena-chat__more,
+  .arena-chat__more:focus-visible,
+  .arena-chat__more[aria-expanded="true"] { opacity: 1; }
+}
+@container arena-chat (min-width: 21.51rem) {
+@media (hover: hover) {
+/* DENSE, ONE LINE PER MESSAGE - Owner's visual brief, 2026-08-25: "TIME
+     [TAGS] NAME ROLE MESSAGE" reading as a single row for anything short,
+     the way a live spectator feed reads rather than a comments page.
+
+     GATED ON BOTH ROOM AND A POINTER, and it needs both. Width alone cannot
+     tell a phone from a desktop here - the ranges overlap (a 430px phone's
+     panel is ~24.7rem, a 1440px desktop's is 23.4rem), so a width-only
+     threshold necessarily mis-sorts one of them. Hover is what actually
+     separates them, and the width floor stays as well so a genuinely tiny
+     pointer-driven window still gets the shape that fits it. Everything
+     here overrides the narrow defaults set near .arena-chat__row; nothing
+     here is reachable on a touch screen, which is what keeps the mobile
+     chat exactly as it shipped. */
+  .arena-chat__line {
+    gap: .16rem;
+    font-size: var(--chat-line-size, .8rem);
+  }
+/* COMFORTABLE loosens the rhythm without leaving the one-line shape - the
+     Owner's density work stands, this is the reader's own second setting on
+     top of it. Compact is the default and needs no rule. */
+  .arena-chat.is-comfortable .arena-chat__log { gap: .55rem; }
+.arena-chat.is-comfortable .arena-chat__line { gap: .16rem; }
+/* Back to source order: time, identity, words, trigger - all inline. */
+  .arena-chat__who  { order: 0; }
+.arena-chat__time { order: 0; }
+.arena-chat__more { order: 0; margin-left: auto; }
+.arena-chat .arena-chat__said { order: 0; flex-basis: auto; }
+/* AND THE TRIGGER'S ENLARGED HIT PAD GOES AWAY HERE. It expands 13.6px up
+     and down, which was right when a message was 41px tall and rows sat
+     .55rem apart. At this density a row is 16px with a .3rem gap, so the
+     pads of NEIGHBOURING rows overlap and the topmost one wins the hit test:
+     elementFromPoint at one trigger's own centre returned the trigger of the
+     message below it, meaning a click could open the wrong message's menu.
+     A pad exists to forgive an imprecise finger; this branch only ever runs
+     where there is a pointer (hover: hover, above), so there is nothing to
+     forgive and the glyph is its own target. Touch keeps the pad from the
+     base rule, where the rows are still tall enough to carry it. */
+  .arena-chat .arena-chat__more::after { content: none; }
+/* THE LOG ABSORBS THE PANEL'S SLACK HEIGHT, so the composer sits at the
+     FOOT of the chat rather than floating directly under the last message
+     with a dead region beneath it (Owner's visual brief, 2026-08-25,
+     section 19 - measured at 261px of void before this).
+
+     The cap being lifted here is `max-height: min(42vh, 22rem)`, and it was
+     right when it was written: the chat was then a short card in the LEFT
+     rail, in normal flow, where an uncapped list grew the whole page - six
+     messages pushed the arena down a screen and the Owner asked how much
+     further it would go.
+
+     CORRECTED 2026-08-26 (v2.5.1324). This comment used to say the cap was
+     safe to lift because "the panel is now a full-height grid-row child with
+     a bounded height of its own". It had no bounded height: the deck's rows
+     were all `auto` and the deck itself `height: auto`, so the panel's own
+     content WAS the bound, and the arena went back to growing with every
+     message - the exact fault the cap had been written against, one level up
+     and therefore invisible from here. The bound is real now and it is not
+     in this rule: .arena-right-stack takes the chat out of flow (:8961), so
+     the row is sized by the floor and the chat fills whatever that row is.
+     With that in place `flex: 1 1 auto` + `min-height: 0` (both already on
+     the log) do the containing and this line is finally what it always
+     claimed to be.
+
+     THE GATE IS THE PANEL'S WIDTH PLUS A POINTER, NOT THE WINDOW'S WIDTH,
+     which is why a second declaration is needed further down: a hovering
+     window between 641 and 900px reaches this rule while laying the deck out
+     as one stacked column, where nothing bounds the chat at all. That branch
+     puts the cap back by name - see the tablet block. Touch keeps the cap
+     from the base rule; the phone is untouched by construction. */
+  .arena-chat__log { gap: .3rem; max-height: none; }
+.arena-chat__row { column-gap: .4rem; }
+/* ==========================================================================
+     VISUAL RESCUE PASS - Owner's 44-part brief, 2026-08-26, with an approved
+     reference mock-up. "The problem is not missing functionality... the
+     chat must no longer look like a narrow chat widget next to the Arena."
+     Desktop only, inside this same gate the density work already uses -
+     nothing here is reachable on a touch screen, so mobile is untouched by
+     construction, not by a second set of overrides. Every rule that sets
+     `color` or relies on unset `border-color` carries the two-class
+     `.arena-chat .arena-chat__foo` prefix, because `.arena-chat *
+     { color: inherit; border-color: ...; }` is a real reset one media query
+     down (:2869) and a narrow-but-hovering window can still reach it.
+     ========================================================================== */
+
+  /* Panel surface: less cramped now the rail is wider. Border/background/
+     shadow stay inherited from the shared nine-panel rule (:486) - only
+     breathing room grows here, so that rule is never touched. */
+  .arena-chat {
+    padding: 1.05rem 1.1rem 1.1rem;
+    border-radius: 1.15rem;
+    gap: .65rem;
+  }
+/* Header/tabs: comfortable click targets, not tiny pill tabs. The active
+     state itself (underline vs fill) is corrected separately, right after
+     the AC-BTN block below - this only grows the row. */
+  .arena-chat__tabs {
+    min-height: 2.7rem;
+    gap: 1.1rem;
+    padding-bottom: .4rem;
+  }
+.arena-chat__tab {
+    min-height: 2rem;
+    padding: 0 .1rem;
+    font-size: .74rem;
+    letter-spacing: .03em;
+  }
+.arena-chat__tab--icon { min-width: 2rem; }
+/* Pinned Rules: quieter, per the brief - "secondary information, the
+     conversation remains the visual priority". The toggle's own fill is
+     corrected separately below (AC-BTN made it a bronze pill); this softens
+     the card it sits in. */
+  .arena-chat .arena-chat__rules {
+    border-color: color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+    background: color-mix(in srgb, var(--accent-bronze) 4%, transparent);
+  }
+.arena-chat__rules-toggle { min-height: 2rem; padding: .4rem .65rem; font-size: .7rem; }
+.arena-chat__rules-body { padding: 0 .7rem .6rem 2.2rem; font-size: .68rem; line-height: 1.55; }
+/* Event cards: ONE visual language for all nine kinds, per the Owner's
+     ruling on the mock-up's "TIPPED 105 TOKENS" row - a flat full-width
+     pale-gold highlight, not a bordered box floating in the log. The base
+     rule (:10867) and its eight per-kind border-left-color declarations are
+     left exactly as they are for the narrow/mobile presentation; this
+     two-class override beats them on specificity alone regardless of
+     source order, so nothing there needs to move or be deleted. Poll's
+     internal bar/option/vote markup is untouched - only this outer shell. */
+  .arena-chat .arena-chat__card {
+    width: 100%;
+    margin: .35rem 0;
+    padding: .55rem .15rem;
+    border: 0;
+    border-radius: .3rem;
+    background: color-mix(in srgb, var(--arena-gold, var(--accent-bronze)) 12%, transparent);
+  }
+.arena-chat .arena-chat__card-mark { font-size: .95rem; }
+/* card-title/chef/vs/said/go/shot/count: NOT here. Their selectors tie in
+     specificity with the later, unconditional base rules at :10987-11051,
+     so a copy placed inside this container query loses to source order
+     regardless of the query - verified by rendering, not assumed. The
+     working desktop override for all six lives after the base card block,
+     at :11066, where it can actually win. */
+
+  /* Per-message reaction chips: proportional to the larger message text. */
+  .arena-chat .arena-chat__react { font-size: .66rem; min-height: 1.25rem; padding: 0 .4rem; }
+/* Reaction summary strip - real totals summed from the loaded log (see
+     sumReactions() in arena_chat.js), shown above the composer only when at
+     least one reaction exists anywhere in view. Passive chips, not buttons:
+     nothing here is a control, so there is no hover/press state to design.
+     Desktop only, per this task's scope - see the narrow query's base
+     suppression above. */
+  /* CROWD REACTION BAR - the brief's "bridge chat to Arena crowd" strip.
+     A top divider and a real height, so it reads as a horizontal control
+     surface rather than six tiny buttons stacked with nothing to say they
+     belong together. */
+  .arena-chat .arena-chat__reaction-summary {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+    min-height: 2.85rem;
+    padding-top: .4rem;
+    border-top: 1px solid color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+  }
+.arena-chat__reaction-summary[hidden] { display: none; }
+.arena-chat__reaction-total {
+    display: inline-flex;
+    align-items: center;
+    gap: .2rem;
+    min-height: 1.2rem;
+    padding: 0 .4rem;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 22%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    font-size: .64rem;
+    font-variant-numeric: tabular-nums;
+  }
+.arena-chat .arena-chat__reaction-total { color: var(--arena-ink); }
+.arena-chat .arena-chat__reaction-total { font-size: .7rem; min-height: 1.4rem; padding: 0 .55rem; }
+/* THE SEND BUTTON IS STILL THE ANCHOR, and it is now weight rather than
+     fill that says so - 2.3rem against the 1.8rem of its neighbours, the
+     accent edge and wash of the family, and no gradient. Owner, 2026-08-28:
+     the buttons are to belong to the site's scheme, and in the scheme's own
+     example even the primary control is an edge over a wash rather than a
+     block of colour. The narrow presentation already drew this as an
+     outlined circle; the two are one control again. */
+  .arena-chat__composer button:not(.arena-chat__composer-action) {
+    width: 2.3rem;
+    height: 2.3rem;
+    border: 1px solid var(--chat-btn-edge-on);
+    background: var(--chat-btn-fill-on);
+    color: var(--chat-btn-ink-on);
+    box-shadow: none;
+    transition: border-color .1s ease, background .1s ease, color .1s ease, transform .1s ease;
+  }
+.arena-chat__composer button:not(.arena-chat__composer-action):hover {
+    border-color: var(--accent-bronze-dark);
+    background: color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+  }
+.arena-chat__composer button:not(.arena-chat__composer-action):active { transform: scale(.94); }
+.arena-chat__composer button:not(.arena-chat__composer-action):focus-visible {
+    border-color: transparent;
+    outline: 2px solid var(--accent-bronze-dark);
+    outline-offset: 2px;
+  }
+.arena-chat__composer button:not(.arena-chat__composer-action):disabled {
+    /* Keeps the resting colours and only dims, per the base rule - see the
+       note there. The 35% bronze fill that used to live here was the last
+       solid block of colour in the chat. */
+    box-shadow: none;
+  }
+/* Composer ACTION icons (emoji/attachment/poll/gif): neutral and
+     secondary, not the Send button's own visual weight - Owner, same day
+     as AC-BTN, newer brief: "REMOVE the current visual language of tiny
+     dark-brown circular buttons. Replace with sophisticated neutral
+     action controls... Gold should be an accent." Grown to a comfortable
+     hit area alongside it. */
+  .arena-chat__composer .arena-chat__composer-action {
+    width: 2.1rem;
+    height: 2.1rem;
+    /* Size only. The EDGE is the family token, set once and unconditionally,
+       so this rule cannot reintroduce the desktop/phone split that
+       v2.5.1420 existed to close - measured on 2026-08-28, this line was
+       still drawing 30% bronze on a desktop against the family edge on a
+       phone. */
+    border-color: var(--chat-btn-edge);
+  }
+}
+}
+/* Too far away to hear. The speaker is visibly talking and that is all this
+   reader is entitled to know. */
+.arena-chat .arena-chat__said--muffled {
+  color: var(--arena-muted);
+  font-style: italic;
+}
+.arena-left-stack > .arena-chat {
+    flex: 1 1 auto;
+    min-height: 5.5rem;          /* below this the log is not worth showing */
+  }
+/* THE CHAT IS NOT IN THE LIST ABOVE, AND MUST NOT BE. Owner, 2026-08-27,
+     on a phone and on a tablet: the sticker picker comes up underneath
+     ARENA STATUS.
+
+     Measured on production before this: .arena-chat sat at
+     var(--arena-z-cells), which is 3, from the six-panel rule at :2986 -
+     while the four panels above were lifted to 10, the lower bar to 11 and
+     the ribbon to 12. The chat was the lowest panel on the deck. Worse, it
+     had BOTH a position and a z-index, which makes it a stacking context, so
+     the picker's own z-index: 1000 was sealed inside layer 3 and could not
+     rise past a sibling at 10. A hit test at every overlap on production
+     returned the sibling, never the picker.
+
+     RAISING THE CHAT TO 10 WOULD NOT FIX IT - the popups would still be
+     sealed, ten floors higher. The seal is the problem, so the seal goes:
+     with z-index auto the chat is no longer a stacking context, and the
+     sheet's 1000 competes on the deck where it was always meant to.
+
+     The panel itself loses nothing by painting in source order: the deck
+     places it in its own grid column on a desktop and its own row on a
+     phone, so it overlaps no sibling in its resting state. Only what it
+     OPENS is supposed to leave its box. */
+  .arena-chat {
+    z-index: auto;
+  }
+@media (min-width: 641px) {
+/* THE SLOT IS WHAT THE CHAT NOW FILLS, v2.5.1363. Until the house stream
+     arrived the rail had one child and the chat could take the whole of it;
+     now the stream is a second tenant with a height of its own, so the slot
+     takes what is left and the chat fills the slot. The slot's own content is
+     out of flow, so it contributes NOTHING to the grid row - which is the
+     guarantee the whole block above exists to make, moved down one level
+     rather than given up. */
+  .arena-right-stack > .arena-chat-slot {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+.arena-chat-slot > .arena-chat {
+    /* OUT OF FLOW ON PURPOSE - see the block comment above. It fills the slot
+       exactly and reports nothing back to the grid, so the arena row is the
+       same height at 0 messages and at 5000. */
+    position: absolute;
+    inset: 0;
+    /* auto beats the `width: 100%` the `> *` rule above sets: with inset:0
+       the box is already the column's width, and 100% of a padding box the
+       column does not have would be the same number by luck rather than by
+       statement. */
+    width: auto;
+    height: auto;
+    /* 22rem was a floor for a panel that could grow. This one cannot, so a
+       floor could only push it back out of the column it is meant to fit. */
+    min-height: 0;
+  }
+/* ALL FOUR TABS ARE INSIDE THE BOUND NOW, NOT JUST THE CHAT LOG. Bounding
+     the panel without saying what the other three do would have traded a
+     growing page for unreachable controls, which is a worse bug and a
+     silent one - so each of them is given the same treatment the log has.
+
+     PM and USERS already scroll (:1973 carries flex:1/min-height:0/
+     overflow-y:auto); what they also carry is `max-height: min(42vh, 22rem)`,
+     written when the panel could grow underneath them. Inside a bounded panel
+     that cap is either irrelevant or actively wrong - on a short window 42vh
+     is larger than the room the panel has, and the list would run past the
+     composer. Flex already knows the right number, so the cap goes and flex
+     decides. */
+  .arena-chat__dm-list,
+  .arena-chat__users-list {
+    max-height: none;
+  }
+/* SETTINGS had no scroller at all: two forms and six fieldsets, roughly
+     twenty-five rows, which simply grew the chat before this pass and would
+     simply spill out of it after. The PANEL scrolls rather than each form,
+     because the two forms are one continuous list of preferences to a reader
+     and a scrollbar per form would say they were not. */
+  .arena-chat__panel--settings {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    overscroll-behavior: contain;
+  }
+/* THE JUMP PILL IS A DESKTOP CONTROL. See its own rule near the log for
+     why it is off everywhere else. */
+  .arena-chat__jump { display: inline-flex; }
+/* THE LOG'S CEILING COMES OFF WHEREVER THE PANEL IS BOUNDED, and that is a
+     question about LAYOUT, not about pointers.
+
+     The rule that lifts it at :2232 is gated on the container's width AND
+     `hover: hover`, which was right for what it was written for - density is
+     a pointer question. The ceiling is not. A touch tablet kept
+     `max-height: min(42vh, 22rem)` = 352px, so the log could not absorb the
+     column's slack and 162px of dead panel appeared under the composer:
+     measured at 2000px, 352px of log with touch against 491px with a mouse
+     on the very same width.
+
+     From 901px up the panel has a bounded height of its own (v2.5.1324), so
+     the ceiling has nothing left to protect and the log can have the room.
+     Below 901px it stays exactly as it was - there the chat is a normal-flow
+     card and the ceiling is the only thing standing between six messages and
+     a page a screen taller. */
+  .arena-chat__log { max-height: none; }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+/* THE LOG KEEPS ITS CEILING HERE, and this rule exists because the rule
+     that lifts it is gated on the wrong axis for this band. That gate
+     (:2177) is `@container arena-chat (min-width: 21.51rem)` plus
+     `@media (hover: hover)` - the PANEL's width and a pointer - and in this
+     band the deck is a single stacked column, so the chat panel is nearly
+     full-width and clears 21.51rem easily. A desktop browser narrowed to
+     ~800px therefore lifted the cap while laying the page out as a stack,
+     where the chat is a normal-flow card with nothing above it to bound its
+     height. The result was the same page growth the desktop had, reachable
+     on the Owner's own monitor by dragging a window narrower.
+
+     Restored to the base value from :788 rather than a new number, so the
+     stacked layout behaves exactly as it did before the density pass. Equal
+     specificity to :2232; this block is later in the file, which is what
+     decides it. The phone (<=640px) never matched the lifting rule's
+     `hover: hover` and is not touched by this one either. */
+  .arena-chat__log { max-height: min(42vh, 22rem); }
+}
+@media (max-width: 640px) {
+.arena-chat { grid-area: chat; }
+}
+/* ============================================================================
+ * P3: EVENT CARDS IN THE ARENA CHAT. Owner 2026-08-26, splitting the chat
+ * brief: "Делай p2 отдай болту p3".
+ *
+ * A card is a line in the same log with the same id, so it must read as part
+ * of the conversation and still be unmistakably not a person talking. It gets
+ * a ground and a rule of its own rather than a colour: colour alone is not a
+ * signal this stylesheet is allowed to lean on, and the card also carries a
+ * mark and a title that say what it is in words.
+ *
+ * EVERY COLOUR RULE HERE CARRIES THE `.arena-chat ` PREFIX, and that is not
+ * style. `.arena-chat * { color: inherit }` sits unconditionally further up
+ * this file at one-class specificity; a bare `.arena-chat__card { color: ... }`
+ * ties with it and loses on source order. Two classes beat it without an
+ * !important, which is what GreenBear's handover asked for by name.
+ * ========================================================================== */
+.arena-chat__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.35rem 0;
+  padding: 0.5rem 0.6rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 38%, transparent);
+  border-left-width: 0.18rem;
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--accent-bronze) 7%, var(--surface));
+}
+.arena-chat__card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.arena-chat__card-mark {
+  flex: 0 0 auto;
+  font-size: 0.86rem;
+  line-height: 1;
+}
+.arena-chat .arena-chat__card-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent-bronze-dark);
+}
+.arena-chat__card-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+.arena-chat .arena-chat__card-chef {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.arena-chat .arena-chat__card-vs {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.arena-chat .arena-chat__card-said {
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+.arena-chat .arena-chat__card-go {
+  align-self: flex-start;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--accent-bronze-dark);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+/* THE THREE KINDS ARE TOLD APART BY THEIR EDGE, not by a wash of colour over
+   the whole card: the log is read at a glance down its left side, which is
+   where the eye already is. */
+.arena-chat .arena-chat__card--challenge_issued { border-left-color: var(--accent-bronze); }
+.arena-chat .arena-chat__card--voting_open { border-left-color: var(--brand); }
+.arena-chat .arena-chat__card--battle_result { border-left-color: var(--arena-gold, var(--accent-bronze-dark)); }
+/* The biathlon's two cards, and the line they carry that the other three do
+   not: which ingredient, off whose menu, and which of the three shots this
+   was. Same two-class prefix as the block above, for the same blanket-reset
+   reason. */
+.arena-chat__card-shot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+.arena-chat .arena-chat__card-count {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-bronze-dark);
+}
+@media (min-width: 641px) {
+.arena-chat .arena-chat__card-title { font-size: .66rem; }
+.arena-chat .arena-chat__card-vs { font-size: .64rem; }
+.arena-chat .arena-chat__card-said { font-size: .76rem; }
+.arena-chat .arena-chat__card-go { font-size: .66rem; }
+.arena-chat .arena-chat__card-count { font-size: .6rem; }
+}
+.arena-chat .arena-chat__card--ingredient_attack { border-left-color: var(--arena-rank-1, var(--accent-bronze-dark)); }
+.arena-chat .arena-chat__card--defence { border-left-color: var(--arena-rank-6, var(--accent-bronze)); }
+/* Round one's two cards. The edge colours say which half of the duel won it -
+   the attacker's side for a landed hit, the defender's for a held block - and
+   they are the same two tokens the biathlon's cards use, because it is the same
+   two roles one phase later. */
+.arena-chat .arena-chat__card--artifact_attack { border-left-color: var(--arena-rank-1, var(--accent-bronze-dark)); }
+.arena-chat .arena-chat__card--artifact_defence { border-left-color: var(--arena-rank-6, var(--accent-bronze)); }
+/* ==========================================================================
+   CHAT POLLS - P2 item 16.
+   Two-class prefix throughout, for the same reason the card block above uses
+   one: `.arena-chat * { color: inherit }` is a shared six-panel reset that
+   ties with any bare single-class colour rule here and wins on source order.
+   Never !important - match the prefix instead.
+   ========================================================================== */
+/* P2 item 11 - the strip of GIFs this reader has sent before. Posters only,
+   because a grid of twelve playing animations is a download and a headache. */
+/* Bounded by the panel, like its three siblings - it lives a long way
+   down this file and was the one v2.5.1333 missed, found by reading the
+   LIVE stylesheet back rather than by trusting the edit. */
+.arena-chat__sheet--gifs { width: min(17rem, 100%); }
+.arena-chat__gif-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem;
+  max-height: 11rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.15rem;
+}
+.arena-chat__gif-tile:hover { border-color: var(--accent-bronze); }
+/* ==========================================================================
+   P2 ITEM 12 - THE CHAT'S OWN MEDIA VIEWER.
+   Fixed to the viewport and parented on the body, because the chat is a
+   240px rail with its own overflow and an overlay inside it would be clipped
+   by the log. #hero-lightbox keeps its own rules and its own job.
+   ========================================================================== */
+.arena-chat__viewer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--arena-z-chat-viewer);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.75rem, 4vw, 2.5rem);
+  background: color-mix(in srgb, #0b0906 88%, transparent);
+}
+.arena-chat__viewer.is-open { display: flex; }
+.arena-chat__viewer-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+}
+.arena-chat__viewer-img {
+  max-width: 100%;
+  /* Room reserved for the caption bar so a tall picture never sits under it. */
+  max-height: calc(100vh - 7rem);
+  object-fit: contain;
+  border-radius: 0.4rem;
+}
+.arena-chat__viewer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.7rem clamp(0.75rem, 4vw, 2.5rem) max(0.7rem, env(safe-area-inset-bottom));
+  background: color-mix(in srgb, #0b0906 82%, transparent);
+  color: #f4ece0;
+}
+.arena-chat__viewer-who { font-size: 0.85rem; font-weight: 700; }
+.arena-chat__viewer-when,
+.arena-chat__viewer-count {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, #f4ece0 68%, transparent);
+}
+.arena-chat__viewer-count { margin-left: auto; }
+.arena-chat__viewer-report:hover { border-color: #f4ece0; }
+.arena-chat__viewer-nav:hover,
+.arena-chat__viewer-close:hover { background: color-mix(in srgb, #f4ece0 26%, transparent); }
+.arena-chat__viewer-nav:focus-visible,
+.arena-chat__viewer-close:focus-visible,
+.arena-chat__viewer-report:focus-visible {
+  outline: 2px solid var(--arena-gold, #d6a64b);
+  outline-offset: 2px;
+}
+/* ==========================================================================
+   CulinEire stickers - the Owner's own pack, v2.5.1342.
+   A sticker is the whole message, so it is sized against the panel rather
+   than against the text: clamp keeps it inside the 240px rail at its lower
+   bound and reaches 180px on a wide one, without a media query for either.
+
+   These are finished paintings rather than the line art they replace, so the
+   two hooks that dressed that line art - `color` for currentColor and
+   --sticker-accent for its one warm fill - are gone. Nothing here inherits a
+   theme any more, and a rule that pretends otherwise is a rule the next
+   reader has to disprove.
+   ========================================================================== */
+.arena-chat .arena-chat__said--sticker {
+  display: block;
+  /* The row keeps its own line-height for the name above it; the drawing
+     brings its own box and needs no leading. */
+  line-height: 0;
+  padding-top: 0.15rem;
+}
+.arena-chat__sticker {
+  width: clamp(120px, 46%, 180px);
+  height: auto;
+  /* The pack is drawn wider than it is tall and each file is trimmed to its
+     own ink, so heights differ by a few percent. Left to itself that is
+     fine; what it must not do is stretch. */
+  object-fit: contain;
+}
+/* Among words: emoji-sized, on the text baseline. A sticker token beside a
+   sentence is a mark, not a picture. */
+.arena-chat__sticker--inline {
+  width: 1.5em;
+  height: 1.5em;
+  vertical-align: -0.35em;
+}
+/* In the picker the drawing is a tile. Wider columns than the emoji grid
+   because a sticker carries a caption, and at 1.9rem the words are a smear. */
+.arena-chat__emoji-grid--stickers {
+  grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr));
+  gap: 0.3rem;
+}
+.arena-chat__emoji-btn--sticker {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  padding: 0.15rem;
+}
+.arena-chat__emoji-btn--sticker .arena-chat__sticker {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* ==========================================================================
+   P2 ITEM 18 - THE READER DECIDES WHAT THE LOG CARRIES BESIDES SPEECH.
+   display:none rather than removal, so the rows stay in the log and turning a
+   group back on shows the history that ran while it was off instead of a gap.
+   Grouped by what a reader would call them, not by the enum: the blow-by-blow
+   is four kinds because a fight is fought in two rounds, and nobody who wants
+   the shots turned down means "only the biathlon ones".
+   ========================================================================== */
+.arena-chat.is-hiding-fight .arena-chat__card--ingredient_attack,
+.arena-chat.is-hiding-fight .arena-chat__card--defence,
+.arena-chat.is-hiding-fight .arena-chat__card--artifact_attack,
+.arena-chat.is-hiding-fight .arena-chat__card--artifact_defence,
+.arena-chat.is-hiding-news .arena-chat__card--challenge_issued,
+.arena-chat.is-hiding-news .arena-chat__card--voting_open,
+.arena-chat.is-hiding-news .arena-chat__card--battle_result,
+.arena-chat.is-hiding-arrivals .arena-chat__card--chef_entered,
+.arena-chat.is-hiding-polls .arena-chat__card--poll {
+  display: none;
+}
+.arena-chat .arena-chat__card--poll { border-left-color: var(--muted); }
+/* THE POLL CARD IS THE ONLY CARD THAT NAMES ITS AUTHOR IN THE HEAD, and that
+   is what makes these two rules necessary. The game's cards carry no name
+   there, so their head has only a title that may shrink; a chef's name may
+   not, and at the 240px rail the head's min-content pushed the card 21px
+   wider than the log - measured, and it put a horizontal overflow into a
+   column that had none. min-width:0 lets the card shrink at all (it is a flex
+   item and defaults to min-content); wrap lets the head relayout rather than
+   be clipped. Scoped to --poll: the other cards do not have the problem and
+   must not have their heads rewrapped to fix one that does. */
+.arena-chat .arena-chat__card--poll { min-width: 0; }
+.arena-chat .arena-chat__card--poll .arena-chat__card-head { flex-wrap: wrap; }
+.arena-chat .arena-chat__poll-question {
+  /* A question is a stranger's typing and may contain one very long word. */
+  overflow-wrap: anywhere;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.arena-chat__poll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.1rem;
+}
+/* The row is the positioning context for its own bar. */
+.arena-chat__poll-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.24rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+  border-radius: 0.35rem;
+  background: transparent;
+  text-align: left;
+  overflow: hidden;
+}
+button.arena-chat__poll-option { cursor: pointer; }
+/* THE ANSWER THIS READER GAVE, marked on the row rather than by a tick in the
+   label - the label is the asker's words and nothing should be appended to
+   them. */
+.arena-chat .arena-chat__poll-option[data-mine="1"] {
+  border-color: var(--accent-bronze);
+}
+/* The bar sits BEHIND the text as a sibling, not as a background on the row:
+   a label never has to stay readable against a moving fill. */
+.arena-chat__poll-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--accent-bronze) 20%, transparent);
+  transition: width 0.25s ease;
+  pointer-events: none;
+}
+.arena-chat .arena-chat__poll-label {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.arena-chat .arena-chat__poll-count {
+  position: relative;
+  flex: 0 0 auto;
+  font-size: 0.58rem;
+  font-weight: 800;
+  /* Tabular, so the numbers do not jump sideways as a tally changes under a
+     reader who is watching it. */
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.arena-chat__poll-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin-top: 0.1rem;
+}
+.arena-chat .arena-chat__poll-total,
+.arena-chat .arena-chat__poll-state {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* THE DISCLAIMER IS NOT DECORATION and is not allowed to fade into the
+   footer: it is the one line that keeps a chat poll from being mistaken for
+   the battle's own vote. Same size as its neighbours, stronger colour. */
+.arena-chat .arena-chat__poll-not {
+  margin-left: auto;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-bronze-dark);
+}
+@media (prefers-reduced-motion: reduce) {
+.arena-chat__poll-fill { transition: none; }
+}
+/* ==========================================================================
+   AC-BTN - ONE BUTTON FAMILY IN THE CHAT. Owner, 2026-08-26, four screenshots:
+   "вот это пример кнопок в нашем чате - такими должны быть все остальные".
+   Scope chosen by him: EVERYTHING CLICKABLE.
+
+   THE MODEL is .arena-chat__composer button (:2272, inside the desktop
+   container query) - a bronze->bronze-dark gradient, white ink, no border,
+   scale(.94) on press. That rule is left exactly as it is; this block brings
+   everything else to it.
+
+   SHAPE FOLLOWS THE CONTROL, IDENTITY DOES NOT. Every control here gets the
+   same bronze, the same press and the same focus ring. What differs is how
+   much of it is filled, and that is not a softening of his instruction - it
+   is what keeps each control able to do its job:
+     - icons and round controls  -> filled, exactly like the model
+     - tabs                      -> filled when SELECTED, bronze outline when
+                                    not, because a row of identical filled
+                                    tabs no longer says which one you are on
+     - list rows                 -> bronze ink, filling on hover and focus; a
+                                    wall of solid rows is unreadable and the
+                                    text is the content
+     - content tiles             -> bronze frame and press only. An emoji, a
+                                    sticker, a GIF thumbnail and a poll's
+                                    percentage bar ARE the button's face; a
+                                    gradient over them covers the very thing
+                                    being clicked.
+
+   THE PANEL OUTLINE IS NOT TOUCHED - he answered "пока не меняй" on that half
+   the same day. It remains the shared six-panel border.
+
+   Two-class prefix throughout, because `.arena-chat * { color: inherit }` is a
+   shared reset that ties with any bare single-class colour rule and wins on
+   source order. Never !important.
+   ========================================================================== */
+
+/* ==========================================================================
+   THE FAMILY IS OUTLINED AT REST - Owner, 2026-08-28. His complaint was that
+   the chat's buttons are brown and do not belong to the site's colour scheme,
+   on the desktop AND on the phone, and that the scheme's own best example is
+   the Arena widget.
+
+   WHY THAT WIDGET IS THE MODEL AND ITS HEX VALUES ARE NOT COPIED. The widget
+   (chef_battle.css:3585) is a DARK glass card and this chat is light
+   parchment; lifting its #f8d28a in here would be a third palette, not one
+   scheme. What transfers is its BEHAVIOUR, and it is visible on the widget's
+   own primary control: .site-battle-widget .btn-primary is a 1px translucent
+   edge over a 10% wash - even the main button there is not filled. Gold
+   appears under the pointer and nowhere else.
+
+   So: no solid fill at rest anywhere in this family. A thin --brand edge, ink
+   that belongs to the page, and the bronze arriving on hover and focus. The
+   ratio is the one the Arena already uses for .arena-command-tile (:640) -
+   22% of --brand - which is this project's own translation of that language
+   into the light palette, so nothing here is invented.
+
+   TWO PAIRS OF TOKENS, REST AND ACCENT, so no control has to restate the
+   palette to describe its own hover. --chat-btn-fill keeps the name the whole
+   block below already uses; only what it holds has changed.
+
+   WHAT THIS REPLACES. v2.5.1308 filled the whole family with a bronze
+   gradient; v2.5.1317, the same day, undid part of it for the DESKTOP ONLY -
+   tabs to an underline, composer icons to a neutral outline - because that
+   brief said not to touch mobile. The two have been live together ever since,
+   which is why a phone and a desktop showed two different chats. The
+   corrections are promoted to base here and the gate is gone.
+   ========================================================================== */
+.arena-chat {
+  --chat-btn-fill: transparent;
+  --chat-btn-ink: var(--ink-soft);
+  --chat-btn-edge: color-mix(in srgb, var(--brand) 22%, transparent);
+  --chat-btn-shadow: none;
+  --chat-btn-fill-on: color-mix(in srgb, var(--accent-bronze) 10%, transparent);
+  --chat-btn-ink-on: var(--accent-bronze-dark);
+  --chat-btn-edge-on: var(--accent-bronze);
+}
+/* ---- 1. FILLED: the round icon controls, the model's own shape ---------- */
+.arena-chat .arena-chat__more,
+.arena-chat .arena-chat__attachment-remove,
+.arena-chat .arena-chat__replying-cancel,
+.arena-chat .arena-chat__room-leave,
+.arena-chat .arena-chat__media-play,
+.arena-chat .arena-chat__quick-react-btn,
+.arena-chat .arena-chat__sheet-react,
+.arena-chat .arena-chat__react {
+  border: 1px solid var(--chat-btn-edge);
+  background: var(--chat-btn-fill);
+  color: var(--chat-btn-ink);
+  box-shadow: var(--chat-btn-shadow);
+  transition: border-color .1s ease, background .1s ease, color .1s ease, transform .1s ease;
+}
+.arena-chat .arena-chat__more:hover,
+.arena-chat .arena-chat__attachment-remove:hover,
+.arena-chat .arena-chat__replying-cancel:hover,
+.arena-chat .arena-chat__room-leave:hover,
+.arena-chat .arena-chat__media-play:hover,
+.arena-chat .arena-chat__quick-react-btn:hover,
+.arena-chat .arena-chat__sheet-react:hover,
+.arena-chat .arena-chat__react:hover,
+.arena-chat .arena-chat__more:focus-visible,
+.arena-chat .arena-chat__attachment-remove:focus-visible,
+.arena-chat .arena-chat__replying-cancel:focus-visible,
+.arena-chat .arena-chat__room-leave:focus-visible,
+.arena-chat .arena-chat__media-play:focus-visible,
+.arena-chat .arena-chat__quick-react-btn:focus-visible,
+.arena-chat .arena-chat__sheet-react:focus-visible,
+.arena-chat .arena-chat__react:focus-visible {
+  border-color: var(--chat-btn-edge-on);
+  background: var(--chat-btn-fill-on);
+  color: var(--chat-btn-ink-on);
+}
+/* The reaction glyphs are emoji: their own colour is the drawing, and forcing
+   white ink onto them would flatten them to nothing. */
+.arena-chat .arena-chat__quick-react-btn,
+.arena-chat .arena-chat__sheet-react,
+.arena-chat .arena-chat__react { color: inherit; }
+/* ---- 2. TABS: filled when selected, outlined when not - AC-BTN's
+   original, global ruling. A DESKTOP-ONLY correction to
+   .arena-chat__tab (not .arena-chat__emoji-tab) lives later in this
+   file behind @media (min-width: 641px) - see the note there for why
+   mobile keeps this exact fill and desktop does not. --------------------- */
+/* CHAT / PM / USERS IS AN UNDERLINE, in the Owner's own words of 2026-08-26 -
+   a bronze underline, and not the whole tab filled. That ruling shipped
+   desktop-only and the phone kept the fill; it is base now, so both read the
+   same. A row of identical filled tabs never said which one you were on. */
+.arena-chat .arena-chat__tab {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--arena-muted);
+  transition: border-color .15s ease, color .15s ease;
+}
+.arena-chat .arena-chat__tab[aria-selected="true"] {
+  border-bottom-color: var(--accent-bronze-dark);
+  background: none;
+  color: var(--arena-ink);
+  box-shadow: none;
+}
+/* The picker's tabs are pills inside a sheet rather than a heading row, so
+   they keep a shape: an outline at rest, the accent when chosen, never a
+   fill. */
+.arena-chat .arena-chat__emoji-tab {
+  border: 1px solid var(--chat-btn-edge);
+  color: var(--chat-btn-ink);
+  transition: border-color .1s ease, background .1s ease, color .1s ease, transform .1s ease;
+}
+.arena-chat .arena-chat__emoji-tab[aria-selected="true"],
+.arena-chat .arena-chat__emoji-tab.is-on {
+  border-color: var(--chat-btn-edge-on);
+  background: var(--chat-btn-fill-on);
+  color: var(--chat-btn-ink-on);
+  box-shadow: none;
+}
+/* A DESKTOP-ONLY correction to .arena-chat__rules-toggle also lives
+   later in this file, behind the same @media gate - see the note
+   there. */
+
+/* ---- 4. LIST ROWS: bronze ink, filling under the pointer ---------------- */
+.arena-chat .arena-chat__action,
+.arena-chat .arena-chat__dm-row,
+.arena-chat .arena-chat__user-row,
+.arena-chat .arena-chat__mention-option {
+  border: 1px solid transparent;
+  color: var(--chat-btn-ink);
+  transition: background .1s ease, color .1s ease, transform .1s ease;
+}
+.arena-chat .arena-chat__action:hover,
+.arena-chat .arena-chat__dm-row:hover,
+.arena-chat .arena-chat__user-row:hover,
+.arena-chat .arena-chat__mention-option:hover,
+.arena-chat .arena-chat__mention-option[aria-selected="true"],
+.arena-chat .arena-chat__action:focus-visible,
+.arena-chat .arena-chat__dm-row:focus-visible,
+.arena-chat .arena-chat__user-row:focus-visible,
+.arena-chat .arena-chat__mention-option:focus-visible {
+  background: var(--chat-btn-fill-on);
+  color: var(--chat-btn-ink-on);
+}
+/* Leaving the room and reporting are the two destructive rows in that menu;
+   they keep their warning colour rather than joining the bronze. */
+.arena-chat .arena-chat__action--danger { color: var(--danger, #a8321f); }
+.arena-chat .arena-chat__action--danger:hover,
+.arena-chat .arena-chat__action--danger:focus-visible {
+  background: var(--danger, #a8321f);
+  color: #fff;
+}
+/* ---- 5. CONTENT TILES: frame and press only ---------------------------- */
+.arena-chat .arena-chat__emoji-btn,
+.arena-chat .arena-chat__gif-tile,
+.arena-chat .arena-chat__poll-option {
+  border: 1px solid var(--chat-btn-edge);
+  transition: border-color .1s ease, transform .1s ease;
+}
+.arena-chat .arena-chat__emoji-btn:hover,
+.arena-chat .arena-chat__gif-tile:hover,
+.arena-chat button.arena-chat__poll-option:hover {
+  border-color: var(--accent-bronze-dark);
+}
+/* ---- 6. ONE PRESS AND ONE FOCUS RING FOR ALL OF THEM ------------------- */
+.arena-chat .arena-chat__more:active,
+.arena-chat .arena-chat__attachment-remove:active,
+.arena-chat .arena-chat__replying-cancel:active,
+.arena-chat .arena-chat__room-leave:active,
+.arena-chat .arena-chat__media-play:active,
+.arena-chat .arena-chat__quick-react-btn:active,
+.arena-chat .arena-chat__sheet-react:active,
+.arena-chat .arena-chat__react:active,
+.arena-chat .arena-chat__tab:active,
+.arena-chat .arena-chat__emoji-tab:active,
+.arena-chat .arena-chat__poll-ask:active,
+.arena-chat .arena-chat__gif-upload:active,
+.arena-chat .arena-chat__show:active,
+.arena-chat .arena-chat__jump:active,
+.arena-chat .arena-chat__rules-toggle:active,
+.arena-chat .arena-chat__action:active,
+.arena-chat .arena-chat__dm-row:active,
+.arena-chat .arena-chat__user-row:active,
+.arena-chat .arena-chat__emoji-btn:active,
+.arena-chat .arena-chat__gif-tile:active,
+.arena-chat button.arena-chat__poll-option:active {
+  transform: scale(.94);
+}
+.arena-chat .arena-chat__more:focus-visible,
+.arena-chat .arena-chat__attachment-remove:focus-visible,
+.arena-chat .arena-chat__replying-cancel:focus-visible,
+.arena-chat .arena-chat__room-leave:focus-visible,
+.arena-chat .arena-chat__media-play:focus-visible,
+.arena-chat .arena-chat__quick-react-btn:focus-visible,
+.arena-chat .arena-chat__sheet-react:focus-visible,
+.arena-chat .arena-chat__react:focus-visible,
+.arena-chat .arena-chat__tab:focus-visible,
+.arena-chat .arena-chat__emoji-tab:focus-visible,
+.arena-chat .arena-chat__poll-ask:focus-visible,
+.arena-chat .arena-chat__gif-upload:focus-visible,
+.arena-chat .arena-chat__show:focus-visible,
+.arena-chat .arena-chat__jump:focus-visible,
+.arena-chat .arena-chat__rules-toggle:focus-visible,
+.arena-chat .arena-chat__emoji-btn:focus-visible,
+.arena-chat .arena-chat__gif-tile:focus-visible,
+.arena-chat button.arena-chat__poll-option:focus-visible {
+  outline: 2px solid var(--accent-bronze-dark);
+  outline-offset: 2px;
+}
+/* ---- 7. THE MEDIA VIEWER lives on the BODY, outside .arena-chat --------- */
+.arena-chat__viewer-report {
+  border: 1px solid color-mix(in srgb, var(--accent-bronze) 45%, transparent);
+  background: transparent;
+  color: var(--accent-bronze);
+}
+.arena-chat__viewer-nav:active,
+.arena-chat__viewer-close:active,
+.arena-chat__viewer-report:active { transform: scale(.94); }
+/* The composer's own action buttons were ALREADY filled - .arena-chat__composer
+   button is a descendant selector, so it reaches them despite their own
+   `background: none` - but their icon stayed --arena-muted, a grey read against
+   bronze. They are part of the family and now carry the family's ink. A
+   DESKTOP-ONLY correction lives later in this file, behind the same
+   @media gate as the tabs/rules-toggle corrections above - see the note
+   there. */
+/* The composer's action buttons carry the family's own resting state, set
+   once in the block above. Two things used to live here and both are gone:
+   a duplicate ink declaration, and the last surviving copy of the
+   DESKTOP-ONLY rescue gate.
+
+   THAT GATE IS WHY THE OWNER SAW TWO DIFFERENT CHATS. Its three amendments -
+   underline tabs, a quieter Pinned Rules, neutral composer icons - were
+   right, and they were locked behind min-width:901px because the brief that
+   asked for them forbade touching mobile the same day. They are base rules
+   now, so a phone and a desktop draw one control.
+
+   Deleted on 2026-08-28 after the live measurement caught it: the tabs and
+   the Pinned Rules already matched across widths because the base said the
+   same thing, but the composer icon did not - it was still being repainted
+   here at 30% bronze on the desktop alone. Measuring the rendered page is
+   what found that; the file read as though it had already been removed,
+   because the gathering pass had left a SECOND, emptied copy elsewhere and I
+   deleted that one. */
+/* 640, NOT 900, since 2026-08-31. The slot unwraps itself on the PHONE,
+   where the deck places by NAME and a wrapper in the middle would swallow
+   the area. It must NOT unwrap anywhere the single composition runs: the
+   chat carries position:absolute with inset:0 against this slot, so with no
+   box here the chat resolves against .arena-right-stack instead and covers
+   the house stream completely - measured at 702px, both at x=544 y=365, a
+   chat 157x336 sitting over a stream 157x112. That is the overlap in the
+   Owner's screenshot. */
+@media (max-width: 640px) {
+.arena-chat-slot { display: contents; }
+}
+/* AC-STK - AN EMPTY STICKER TAB IS ONE LINK.
+
+   Owner's ruling, 2026-08-28, which cancelled the locked-tile idea entirely
+   and everything this block used to hold: an unbought sticker is not dimmed,
+   not locked, not shown in full colour - it is NOT IN THE PICKER. A tile you
+   cannot use is not a shop window, it is rubbish in the chat window, because
+   people think they own it, click, and nothing happens.
+
+   So there is no "locked" state left to style. What is left is the one line
+   shown to somebody who owns none of them, which is a LINK and deliberately
+   not a grid of things they cannot have. */
+/* The padding and the centring moved to the gathered chat block with the
+   rest of this component's empty state - it is one rule now rather than a
+   pair setting the same two properties, which the superseded-declaration
+   guard reads as debt whichever one wins. */
+.arena-chat .arena-chat__emoji-empty {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--arena-muted);
+}
+
+/* MOVED HERE, AND THE MOVE IS PROVEN. These three rules landed in the middle
+   of the gathered chat block on 2026-09-04 (v2.5.1759), between its 107th and
+   108th rule, and split one 266-rule island into 107 and 159 - which is what
+   ArenaChatIsGatheredTests measures when it asks for a run of at least 250.
+   Their SUBJECT is .btn-secondary, so they belong to the button rather than to
+   the chat, and an15_gather --tidy will never move them on the chat's behalf.
+
+   They sit here, after the chat block, rather than back where they were:
+   an15_gather.transpositions reports ZERO conflicting pairs transposed by this
+   move, which is the same proof every gathered rule in this file carries. The
+   reasoning above is theirs and travels with them. */
+/* THE SAVE BUTTON WAS ONLY VISIBLE IN IVORY - Owner, 2026-09-04: "в чате вот
+   эта кнопка видна только в режиме Ivory, если я меняю цветовую гамму она по
+   факту почти пропадает."
+
+   The cause is not in this file. base.css paints .btn-secondary with a
+   HARDCODED brown - rgb(58 44 30 / .18) behind rgb(58 44 30 / .9) text - which
+   is a dark tint on the site's cream and reads perfectly there. The three chat
+   themes below then replace the ground underneath it with #221d18, #2a1f18 or
+   #16181d, and dark brown on dark brown is nothing at all. The button never
+   changed; the floor under it did.
+
+   Fixed by giving it the chat's OWN tokens instead of a fixed colour, so it
+   follows every theme that exists and every theme added later - the same
+   reason the semantic three above are redefined per theme rather than tinted.
+   Written against .arena-chat so it reaches Ivory too: there the tokens
+   resolve to the arena's own ink and bronze, which is what the button was
+   approximating with that brown in the first place. */
+/* --arena-ink AND --arena-gold, NOT --ink AND --accent-bronze, and the
+   difference is measured rather than stylistic. The themes below set both
+   lists, but --ink reaches this button already resolved to the site's #292929
+   - the substitution trap this file documents at the top of the theme block -
+   so a rule written against it paints the same dark grey in all four themes.
+   Measured before the fix: contrast 1.43 in Ivory and 1.10 in Copper, which is
+   the button he could not see. --arena-ink is what the rest of the chat's own
+   text uses and it flips correctly. */
+.page--arena .arena-chat .btn-secondary {
+  background: color-mix(in srgb, var(--arena-ink) 12%, transparent);
+  color: var(--arena-ink);
+  border: 1px solid color-mix(in srgb, var(--arena-gold) 45%, transparent);
+}
+
+.page--arena .arena-chat .btn-secondary:hover {
+  background: color-mix(in srgb, var(--arena-ink) 20%, transparent);
+  color: var(--arena-ink);
+  border-color: var(--arena-gold);
+}
+
+.page--arena .arena-chat .btn-secondary:focus-visible {
+  background: color-mix(in srgb, var(--arena-ink) 20%, transparent);
+  color: var(--arena-ink);
+  outline: 2px solid var(--arena-gold);
+  outline-offset: 2px;
+}
+
+
+  /* On a short screen the two panels want more than the column has: at
+     1280x720 the cap is 195px and the ladder alone asks 168. The room comes
+     from the only thing here that is a LIST - the ladder's own rows get a
+     scrollbar and stop being as tall as however many crowns were won today.
+     Its heading and its button stay put, and the chat keeps a readable log.
+     On a tall screen - the Owner's tablet, any desktop over 900px - none of
+     this applies and the ladder is its natural height. */
+  @media (max-height: 900px) {
+    .arena-left-stack > .arena-command-deck__ladder .arena-ladder-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      margin-block: .3rem;
+      overflow-y: auto;
+    }
+    /* The heading and the button are not part of what shrinks. Without this the
+       button was the first thing the squeeze ate, and it shipped sliced in half
+       across the bottom edge of the panel. */
+    .arena-left-stack > .arena-command-deck__ladder > .arena-panel__title,
+    .arena-left-stack > .arena-command-deck__ladder > .btn-secondary {
+      flex: 0 0 auto;
+    }
+  }
+  /* Inside the stack the two are laid out by it, not by coordinates of their
+     own - one owner for one position. */
+  .arena-left-stack > .arena-command-deck__ladder,
+  .arena-left-stack > .arena-command-deck__guide,
+  .arena-left-stack > .arena-chat {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+  }
+
+/* 3G — parchment floor plate under live SVG (prototype floor, official tokens).
+   G4: no perspective on the stage — scene camera is rotateX-only. */
+
+  .arena-floor-stage::before {
+    content: "";
+    position: absolute;
+    z-index: var(--arena-z-base);
+    left: 50%;
+    aspect-ratio: 1;
+    pointer-events: none;
+    clip-path: polygon(29.3% 0, 70.7% 0, 100% 29.3%, 100% 70.7%, 70.7% 100%, 29.3% 100%, 0 70.7%, 0 29.3%);
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  }
+
+@media (prefers-reduced-motion: reduce) {
+}
+
+/* 3G — confrontation inner glow + crown halo + denser spine (prototype). */
+
+  .arena-confrontation-band .arena-live-chef--challenger,
+  .arena-confrontation-band .arena-live-chef--opponent {
+    position: relative;
+    box-shadow: 0 0 1.6rem color-mix(in srgb, var(--ink) 18%, transparent);
+  }
+  .arena-confrontation-band .arena-live-chef--challenger::after,
+  .arena-confrontation-band .arena-live-chef--opponent::after {
+    content: "";
+    position: absolute;
+    z-index: var(--arena-z-under);
+    inset: 0.22rem;
+    clip-path: inherit;
+    pointer-events: none;
+    opacity: 0.55;
+  }
+  .arena-confrontation-band .arena-live-centre {
+    position: relative;
+  }
+  .arena-confrontation-band .arena-live-centre::after {
+    content: "";
+    position: absolute;
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+    pointer-events: none;
+  }
+  .arena-confrontation-band .arena-live-centre--crown,
+  .arena-confrontation-band .arena-live-centre--quiet {
+    background:
+      radial-gradient(
+        circle,
+        color-mix(in srgb, var(--surface) 70%, var(--ink)),
+        color-mix(in srgb, var(--ink) 35%, var(--surface)) 72%
+      );
+  }
+  .arena-floor-stage::before {
+    top: 50%;
+  }
+  .arena-panel__kicker,
+  .arena-command-deck__eyebrow {
+    color: var(--accent-bronze);
+    letter-spacing: 0.1em;
+  }
+  .arena-activity-ticker {
+    color: color-mix(in srgb, var(--ink) 80%, var(--surface));
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 0.52rem;
+  }
+  .arena-floor-caption em {
+    display: block;
+    margin-top: 0.15rem;
+    color: color-mix(in srgb, var(--ink-soft) 85%, transparent);
+    font-size: 0.58rem;
+    font-style: normal;
+    letter-spacing: 0.04em;
+  }
+  .arena-confrontation-band .arena-live-centre span,
+  .arena-confrontation-band .arena-live-centre em {
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .arena-floor-stage {
+    inset: 0;
+  }
+  /* G2 camera: one over the scene — see arena_mockup_spec.json.
+     Earlier "do not apply rotateX" notes contradicted AGENTS.md s11. */
+  /* AN-R2/2: `transform: none` on the camera viewport removed - the
+     viewport's transform is its placement in the page, not motion. */
+  .arena-command-deck__phase-card .arena-panel__heading,
+  .arena-command-deck__metrics .arena-panel__heading,
+  .arena-command-deck__ladder .arena-panel__heading,
+  .arena-command-deck__gifts .arena-panel__heading {
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+  }
+
+@media (prefers-reduced-motion: reduce) {
+  /* AN-R2/2: `transform: none` on the camera viewport removed - the
+     viewport's transform is its placement in the page, not motion. */
+  /* AN-R2: the camera used to be restated here without rotateX, and it
+     never once applied - the production rule carries !important and beat
+     it at every width. Reduced motion is about MOTION; the camera is a
+     fixed composition and does not move. One camera, declared once. */
+}
+
+/* 3G — parchment seat rings (live SVG cells, official tokens). */
+
+  .page--arena .arena-render-container {
+    --arena-seat: #f4f1ec;
+    --arena-seam: #ffffff;
+  }
+  .page--arena #arena-render .arena-cell {
+    stroke: var(--arena-seam);
+  }
+  /* Keep sponsors ramp — do not recolour with bronze washes. */
+  .page--arena #arena-render .arena-cell[data-occupancy="chef"] {
+    stroke: var(--arena-seam);
+    stroke-width: 1.3;
+  }
+  .page--arena #arena-render .arena-walkway {
+    stroke: color-mix(in srgb, #d8d0c0 70%, #ffffff);
+    opacity: 1;
+  }
+  .arena-command-deck__floor > .arena-floor-stage {
+    z-index: var(--arena-z-floor);
+  }
+  .arena-command-deck__floor > .arena-confrontation-band {
+    z-index: var(--arena-z-crowd);
+  }
+  /* Soft stand silhouettes behind the floor — abstract wash only. */
+  .arena-floor-stage::after {
+    width: min(92%, 58rem);
+    top: 46%;
+    aspect-ratio: 2.1;
+    background:
+      radial-gradient(ellipse at 18% 40%, color-mix(in srgb, var(--ink) 42%, transparent), transparent 42%),
+      radial-gradient(ellipse at 82% 40%, color-mix(in srgb, var(--ink) 42%, transparent), transparent 42%),
+      radial-gradient(ellipse at 50% 18%, color-mix(in srgb, var(--accent-bronze) 22%, transparent), transparent 48%),
+      color-mix(in srgb, var(--accent-bronze) 18%, transparent);
+  }
+  .arena-lower-broadcast .ce-nav__link--battle {
+    border: 1px solid color-mix(in srgb, var(--accent-bronze) 55%, transparent);
+  }
+
+/* .arena-command-deck - every rule for this component that could be proved
+   safe to move, in one place. Gathered by an15_gather.py:
+   the applying declarations are byte-identical and no
+   conflicting pair changed places. */

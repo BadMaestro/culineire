@@ -2273,7 +2273,7 @@
    * 2026-08-27: all popups open from the bottom up.
    *
    * The composer lives on the chat's floor (see .arena-chat__composer in
-   * arena.css) and so does every trigger worth opening a sheet from, so
+   * arena_chat.css) and so does every trigger worth opening a sheet from, so
    * downward is into the page and upward is into the conversation. The
    * message menu used to open DOWNWARD - `trigger.bottom + 4` - and the emoji
    * and poll sheets opened upward by subtracting a hard-coded 232, which is a
