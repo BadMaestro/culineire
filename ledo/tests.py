@@ -280,6 +280,9 @@ class LedoLanguageTests(TestCase):
                 self.assertContains(response, heading)
                 self.assertContains(response, f'<html lang="{code}">')
                 self.assertEqual(response['Content-Language'], code)
+                self.assertContains(response, 'class="language-flag"', count=4)
+                for flag in ('nb', 'en', 'lt', 'ru'):
+                    self.assertContains(response, f'ledo/images/flags/{flag}.svg')
                 for label in ('NO', 'EN', 'LT', 'RU'):
                     self.assertContains(response, f'>{label}</a>')
 

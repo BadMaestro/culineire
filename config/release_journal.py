@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1807",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "LEDO language flags",
+        "section": "LEDO",
+        "summary": "Adds local SVG flags next to NO / EN / LT / RU, retaining accessible language names and the existing language selection behaviour.",
+    },
+    {
         "version": "2.5.1804",
         "date": "2026-09-05",
         "commit": "4a28d7bf",

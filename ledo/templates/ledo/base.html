@@ -26,7 +26,7 @@
         </nav>
         <nav class="language-switch" aria-label="{% t 'Språk' %}">
             {% for language in ledo_languages %}
-            <a href="{{ language.url }}" lang="{{ language.code }}" hreflang="{{ language.code }}" aria-label="{{ language.name }}"{% if language.code == ledo_language %} aria-current="true"{% endif %}>{{ language.label }}</a>
+            <a href="{{ language.url }}" lang="{{ language.code }}" hreflang="{{ language.code }}" aria-label="{{ language.name }}"{% if language.code == ledo_language %} aria-current="true"{% endif %}><img class="language-flag" src="{% static language.flag %}" width="24" height="16" alt="" aria-hidden="true">{{ language.label }}</a>
             {% endfor %}
         </nav>
     </header>

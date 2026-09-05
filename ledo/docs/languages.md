@@ -58,3 +58,27 @@ Production template rendering, four selector links and scoped Secure cookies
 passed for nb/en/lt/ru. LEDO health, CulinEire home and recipes checks passed.
 No real accounts were used and no production bookings were created.
 Authenticated browser appearance has not been inspected by the agent.
+
+## Flag selector - 2.5.1807
+
+Local SVG flags now accompany NO/EN/LT/RU, avoiding platform-dependent emoji
+rendering. Images are decorative; accessible language names, active selection,
+URLs and cookies remain unchanged. Four SVG files total less than 2 KB.
+
+```yaml
+pre_deploy_reread:
+  constitution_version: "2.12.0"
+  sections_reread: ["8", "17"]
+  rules_that_apply_here: ["single deploy lock", "read index", "current main", "PostgreSQL tests", "collectstatic", "no real-user login"]
+  signed_as: "Bolt"
+  index_read: true
+  files_in_commit: 11
+  base_verified: "41dd0d96be71f407ffe28c521454a35bbc26280b"
+  server_base: "4a28d7bf2af9a5b523b866366f4c77db2cd3f19d"
+  already_exists_checked: true
+  gates: ["LEDO PostgreSQL tests and image weight", "diff --check"]
+  version_bumped: true
+  collectstatic_run: "required by pinned deployment"
+  rollback_command: "git revert the flag-selector release commit and deploy that reviewed commit"
+  screen_change_in_one_line: "Four flag icons next to the language codes in LEDO."
+```

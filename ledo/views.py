@@ -48,7 +48,7 @@ def _render(request, template, context, **kwargs):
     path = request.path if request.method == 'GET' else reverse('ledo:home')
     context.update({
         'ledo_language': language,
-        'ledo_languages': [dict(code=code, label=label, name=name,
+        'ledo_languages': [dict(code=code, label=label, name=name, flag=f'ledo/images/flags/{code}.svg',
                                 url=f'{path}?lang={code}') for code, label, name in LANGUAGES],
         'ledo_js_messages': {key: translate(key) for key in (
             'Velg en rute', 'Pris ikke tilgjengelig', 'Mva. inkludert')},

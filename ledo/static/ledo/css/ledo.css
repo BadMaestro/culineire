@@ -204,5 +204,7 @@ details p { margin: -.3rem 0 1.6rem; max-width: 42rem; }
 .site-header .language-switch a { display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; border: 1px solid #42536a; border-radius: .5rem; font-size: .8rem; }
 .language-switch a[aria-current="true"] { background: #84c4ff; color: #07101c; border-color: #84c4ff; }
 .language-switch a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.site-header .language-switch a { gap: .4rem; padding-inline: .55rem; }
+.language-flag { width: 24px; height: 16px; object-fit: fill; border-radius: 2px; box-shadow: 0 0 0 1px rgb(255 255 255 / 20%); }
 .hero h1, .section h2, .closing h2 { overflow-wrap: anywhere; }
 @media (max-width: 700px) { .site-header .language-switch { display: flex; width: 100%; justify-content: flex-end; } }
