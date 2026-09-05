@@ -68,7 +68,7 @@ def create_booking_request(cleaned_data):
         "currency": quote.currency,
     }
     try:
-        booking = Booking.objects.create(
+        booking = _insert_booking(
             route=cleaned_data["route"],
             pickup_at=cleaned_data["pickup_at"],
             return_at=cleaned_data.get("return_at") if quote.return_trip else None,
@@ -99,6 +99,12 @@ def create_booking_request(cleaned_data):
         metadata={"status": booking.status},
     )
     return booking, True
+
+
+@transaction.atomic
+def _insert_booking(**values):
+    # A savepoint keeps the outer transaction usable after a unique-key race.
+    return Booking.objects.create(**values)
 
 
 ALLOWED_TRANSITIONS = {

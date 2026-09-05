@@ -27,19 +27,28 @@ def _parse_oslo_datetime(raw_value):
     return first
 
 
+class OsloDateTimeField(forms.DateTimeField):
+    def to_python(self, value):
+        if value in self.empty_values:
+            return None
+        if isinstance(value, datetime):
+            return value
+        return _parse_oslo_datetime(value)
+
+
 class BookingRequestForm(forms.Form):
     route = forms.ModelChoiceField(
         queryset=Route.objects.none(),
         label="Rute",
         empty_label="Velg retning",
     )
-    pickup_at = forms.DateTimeField(
+    pickup_at = OsloDateTimeField(
         label="Hentedato og tid",
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
         input_formats=("%Y-%m-%dT%H:%M",),
     )
     return_trip = forms.BooleanField(label="Tur-retur", required=False)
-    return_at = forms.DateTimeField(
+    return_at = OsloDateTimeField(
         label="Returdato og tid",
         required=False,
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),

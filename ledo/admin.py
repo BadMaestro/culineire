@@ -74,6 +74,8 @@ class BookingAdmin(admin.ModelAdmin):
         "idempotency_key",
         "created_at",
         "updated_at",
+        "route", "pickup_at", "return_at", "adults", "children", "luggage",
+        "flight_number", "notes", "quoted_price", "currency",
     )
     inlines = (CustomerContactInline, AuditEventInline)
     actions = (
@@ -85,6 +87,9 @@ class BookingAdmin(admin.ModelAdmin):
     )
 
     def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False
 
     def _transition(self, request, queryset, status):

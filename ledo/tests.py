@@ -9,7 +9,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .forms import BookingRequestForm
+from .forms import BookingRequestForm, OsloDateTimeField
 from .models import AuditEvent, Booking, CustomerContact, Fare, Route
 from .services import QuoteUnavailable, quote_for_route, transition_booking
 
@@ -202,6 +202,12 @@ class BookingStatusTests(TestCase):
 
 
 class BookingFormTests(TestCase):
+    @override_settings(TIME_ZONE="Europe/Dublin")
+    def test_oslo_time_is_not_rejected_by_dublin_dst_gap(self):
+        value = OsloDateTimeField().clean("2027-03-28T01:30")
+        self.assertEqual(value.hour, 1)
+        self.assertEqual(value.utcoffset(), timedelta(hours=1))
+
     def test_route_queryset_excludes_routes_without_active_fares(self):
         route = Route.objects.create(
             name="No fare",

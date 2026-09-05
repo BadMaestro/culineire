@@ -1,4 +1,5 @@
 {% extends "ledo/base.html" %}
+{% load static %}
 
 {% block content %}
 <section class="hero">
@@ -18,7 +19,7 @@
             <div class="route-cities"><strong>Kongsberg</strong><strong>Gardermoen</strong></div>
             <p>Direkte. Privat. Forutsigbart.</p>
         </div>
-        <div class="monogram">LD</div>
+        <img class="hero-logo" src="{% static 'ledo/images/logo.jpg' %}" width="1024" height="1024" alt="" fetchpriority="high">
     </div>
 </section>
 
@@ -44,7 +45,7 @@
     <div>
         <p class="eyebrow"><span></span> Forutsigbar pris</p>
         <h2>Avklart før du bestiller.</h2>
-        <p>Aktive priser styres på serveren og lagres sammen med forespørselen. En endring i prislisten endrer aldri tilbudet som allerede ble vist deg.</p>
+        <p>Prisen lagres når forespørselen sendes. LEDO Drive bekrefter tilgjengelighet og vilkår før turen blir endelig bestilt.</p>
     </div>
     <div class="fare-list">
         {% for fare in fares %}

@@ -1,4 +1,5 @@
 {% extends "ledo/base.html" %}
+{% load tz %}
 
 {% block title %}Forespørsel mottatt · LEDO Drive{% endblock %}
 
@@ -10,7 +11,7 @@
     <dl>
         <div><dt>Referanse</dt><dd>{{ booking.public_id }}</dd></div>
         <div><dt>Rute</dt><dd>{{ booking.route.name }}</dd></div>
-        <div><dt>Henting</dt><dd>{{ pickup_at_oslo|date:"d.m.Y H:i" }} (Europe/Oslo)</dd></div>
+        <div><dt>Henting</dt><dd>{{ booking.pickup_at|timezone:"Europe/Oslo"|date:"d.m.Y H:i" }} (Europe/Oslo)</dd></div>
         <div><dt>Pris</dt><dd>{{ booking.quoted_price|floatformat:0 }} {{ booking.currency }}</dd></div>
         <div><dt>Status</dt><dd>{{ booking.get_status_display }}</dd></div>
     </dl>
