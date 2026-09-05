@@ -2429,6 +2429,26 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 
 /* Battle chest */
 .chest-section { margin-bottom: 2.5rem; }
+/* ── The payout statement's four blocks ────────────────────────────────────
+   Blocked, under review, approved, paid - and on every row the reason it is
+   where it is. The page used to show approved records alone, so a chef with
+   ninety tokens of pending rewards read an empty table and "you have 0". */
+.payout-block-note { max-width: 68ch; color: var(--ink-soft, #42514a); margin: 0 0 1rem; }
+.payout-why { color: var(--ink-soft, #42514a); }
+
+.payout-checks { display: flex; flex-direction: column; gap: .7rem; }
+.payout-check {
+  border: 1px solid rgb(58 44 30 / 0.14); border-left-width: 3px;
+  border-left-color: var(--danger, #a8321f);
+  border-radius: 8px; padding: .7rem .9rem;
+  background: var(--surface-alt, #f5f5f5); color: var(--ink, #292929);
+}
+.payout-check--ok { border-left-color: var(--brand, #184c3a); }
+.payout-check__title { margin: 0 0 .45rem; font-weight: 700; }
+.payout-check__list { list-style: none; margin: 0; padding: 0; }
+.payout-check__item { padding: .12rem 0; color: var(--ink-soft, #42514a); }
+.payout-check__item--missing { color: var(--danger, #a8321f); font-weight: 600; }
+
 /* ── Gifts from the stands, in the chef's own room ─────────────────────────
    Light in both colour schemes on purpose, like the kit screen: the one dark
    override in this file has no palette behind it and takes .btn-secondary

@@ -4052,13 +4052,21 @@ def payout_statement(request):
             messages.error(request, str(exc))
         return redirect("chef_battle:payout_statement")
 
+    from .services import chef_reward_ledger, chef_token_position, eligible_battle_report
+
     return render(request, "chef_battle/payout_statement.html", {
         "profile": profile,
         "eligibility": eligibility,
         "approved_records": approved_records,
         "payout_history": payout_history,
         "payout_rate": "€0.025",
-        "min_tokens": 2000,
+        # ALL FOUR STATES, not just the approved one. A chef holding ninety
+        # tokens of pending rewards used to see an empty table and "you have
+        # 0" - the page was telling him the truth about one status and
+        # nothing at all about the other three.
+        "ledger": chef_reward_ledger(author),
+        "position": chef_token_position(author),
+        "battle_report": eligible_battle_report(author),
     })
 
 

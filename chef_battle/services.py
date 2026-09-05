@@ -3661,6 +3661,195 @@ def appreciation_gifts_for_chef(chef):
     return rows
 
 
+
+
+#: Why an eligible battle is eligible, in the words a chef would use. Kept
+#: beside _is_eligible_battle so the two cannot drift into describing
+#: different rules - the test pins that every check below has a line here.
+ELIGIBLE_BATTLE_CHECKS = (
+    ("completed", "The battle finished."),
+    ("both_entries", "Both chefs submitted a dish."),
+    ("photo_approved", "Your dish photo was approved by a moderator."),
+    ("not_flagged", "Your account is not suspended or under a fraud review."),
+)
+
+
+def eligible_battle_report(chef) -> dict:
+    """Which of the chef's finished battles counted, and what the last one missed.
+
+    A chef who sells a gift is told the tokens wait for an "eligible battle".
+    Nothing anywhere told him what that means or which of his battles failed
+    it - so he could fight three times and never learn that the reason was an
+    unapproved dish photo.
+    """
+    from .models import Battle, BattleEntry, ChefBattleProfile
+
+    battles = list(
+        Battle.objects.filter(status=Battle.Status.COMPLETED)
+        .filter(Q(challenger=chef) | Q(opponent=chef))
+        .order_by("-end_time")[:5]
+    )
+    profile = ChefBattleProfile.objects.filter(author=chef).first()
+    flagged = bool(profile and (profile.is_suspended or profile.fraud_flag))
+
+    rows = []
+    for battle in battles:
+        entries = list(battle.entries.all())
+        mine = next((e for e in entries if e.author_id == chef.pk), None)
+        checks = {
+            "completed": battle.status == Battle.Status.COMPLETED,
+            "both_entries": len(entries) >= 2,
+            "photo_approved": bool(
+                mine and mine.moderation_status == BattleEntry.ModerationStatus.APPROVED),
+            "not_flagged": not flagged,
+        }
+        rows.append({
+            "battle": battle,
+            "checks": [
+                {"key": key, "label": label, "ok": checks[key]}
+                for key, label in ELIGIBLE_BATTLE_CHECKS
+            ],
+            "eligible": all(checks.values()),
+            "missing": [label for key, label in ELIGIBLE_BATTLE_CHECKS if not checks[key]],
+        })
+    return {
+        "battles": rows,
+        "has_any": bool(rows),
+        "has_eligible": any(r["eligible"] for r in rows),
+    }
+
+
+def chef_reward_ledger(chef) -> dict:
+    """Every reward a chef holds, in the four states he actually cares about.
+
+    The payout page used to show APPROVED records and nothing else, so a chef
+    holding ninety tokens of pending rewards saw an empty table and the line
+    "you have 0". Blocked, under review, approved and paid - all four, with a
+    reason on every row.
+    """
+    from .models import PayoutRequest, RewardRecord
+
+    def _rows(status, reason):
+        out = []
+        for r in (RewardRecord.objects.filter(recipient=chef, status=status)
+                  .select_related("related_battle").order_by("-created_at")[:100]):
+            out.append({"record": r, "reason": reason(r)})
+        return out
+
+    blocked = _rows(
+        RewardRecord.Status.PENDING,
+        lambda r: "Waiting for you to finish an eligible battle after %s."
+                  % timezone.localtime(r.created_at).strftime("%d %b %Y"),
+    )
+    review = _rows(
+        RewardRecord.Status.QUEUED,
+        lambda r: "Unlocked by a battle and waiting for our team to release it.",
+    )
+    approved = _rows(
+        RewardRecord.Status.APPROVED,
+        lambda r: "Approved. Counting towards a payout you can request.",
+    )
+    payouts = list(
+        PayoutRequest.objects.filter(chef=chef).order_by("-requested_at")[:25]
+    )
+
+    def _total(rows):
+        return sum(row["record"].tokens_granted for row in rows)
+
+    return {
+        "blocked": blocked,
+        "review": review,
+        "approved": approved,
+        "payouts": payouts,
+        "blocked_tokens": _total(blocked),
+        "review_tokens": _total(review),
+        "approved_tokens": _total(approved),
+        "paid_tokens": sum(
+            p.amount_reward_tokens for p in payouts
+            if p.status == PayoutRequest.Status.PAID),
+    }
+
+
+def chef_token_position(chef) -> dict:
+    """What a chef actually holds: in the wallet, and still waiting.
+
+    Both halves, always, because either one alone is a lie. The wallet number
+    is what a chef can spend today; the pending number is money he has earned
+    and cannot see anywhere on the site until it is released. Telling him only
+    the first is how "I sold six gifts and got nothing" happens.
+    """
+    from django.db.models import Sum
+
+    from .models import RewardRecord, TokenWallet
+
+    wallet = TokenWallet.objects.filter(chef=chef).first()
+    balance = wallet.balance if wallet else 0
+
+    def _sum(*statuses):
+        return RewardRecord.objects.filter(
+            recipient=chef, status__in=statuses
+        ).aggregate(total=Sum("tokens_granted"))["total"] or 0
+
+    pending = _sum(RewardRecord.Status.PENDING)
+    queued = _sum(RewardRecord.Status.QUEUED)
+    approved = _sum(RewardRecord.Status.APPROVED)
+    return {
+        "wallet": balance,
+        "pending": pending,
+        "queued": queued,
+        "approved": approved,
+        "waiting": pending + queued + approved,
+        "total": balance + pending + queued + approved,
+    }
+
+
+def _email_gift_sold_back(chef, gift, record) -> None:
+    """Tell the chef what he just sold, for how much, and where it now sits.
+
+    The Owner asked for this on 2026-09-05: every sale gets an email with the
+    gift, the price, what he received, and the total on his account. The
+    total is given as three numbers rather than one, because the tokens from a
+    sale are NOT in the wallet - a single figure would either hide them or
+    pretend they are spendable.
+    """
+    from django.conf import settings as _settings
+
+    from .models import APPRECIATION_GIFT_SELL_BACK_PCT
+
+    user = getattr(chef, "user", None)
+    email = getattr(user, "email", "")
+    if not email:
+        return
+    try:
+        from config.email_utils import build_absolute_url, sanitize_email_subject, send_template_mail
+
+        position = chef_token_position(chef)
+        send_template_mail(
+            subject=sanitize_email_subject(
+                "You sold %s back for %d tokens"
+                % (gift.get_gift_type_display(), record.tokens_granted)),
+            template="gift_sold_back",
+            context={
+                "chef_name": chef.name,
+                "gift_label": gift.get_gift_type_display(),
+                "tokens_paid": gift.tokens_spent,
+                "tokens_received": record.tokens_granted,
+                "sell_back_pct": APPRECIATION_GIFT_SELL_BACK_PCT,
+                "sold_at": timezone.localtime(record.created_at).strftime("%d %b %Y, %H:%M"),
+                "wallet_balance": position["wallet"],
+                "pending_tokens": position["pending"],
+                "total_tokens": position["total"],
+                "payout_url": build_absolute_url(reverse("chef_battle:payout_statement")),
+            },
+            recipient_list=[email],
+            fail_silently=True,
+        )
+    except Exception:
+        # A receipt that fails must never undo the sale it describes.
+        logger.exception("Could not email the sale of gift %s to %s",
+                         getattr(gift, "pk", "?"), getattr(chef, "slug", "?"))
+
+
 @transaction.atomic
 def sell_appreciation_gift_back(*, gift, chef):
     """The chef sells one appreciation gift back to the shop.
@@ -3712,6 +3901,7 @@ def sell_appreciation_gift_back(*, gift, chef):
             "reward_record_id": record.pk,
         },
     )
+    transaction.on_commit(lambda: _email_gift_sold_back(chef, gift, record))
     return record
 
 
@@ -4222,6 +4412,9 @@ def check_next_battle_unlock(chef, reward_record) -> bool:
                     rr.status = RewardRecord.Status.QUEUED
                     rr.status_note = f"Unlocked by battle #{battle.pk}"
                     rr.save(update_fields=["status", "status_note", "updated_at"])
+            # The caller emails once for the whole batch rather than once per
+            # record, so it needs to know which battle did it.
+            check_next_battle_unlock.last_battle = battle
             return True
 
     return False
@@ -4238,10 +4431,55 @@ def run_next_battle_unlock_for_chef(chef) -> int:
         recipient=chef, status=RewardRecord.Status.PENDING
     ).order_by("created_at")
     count = 0
+    tokens = 0
+    check_next_battle_unlock.last_battle = None
     for record in pending:
         if check_next_battle_unlock(chef, record):
             count += 1
+            tokens += record.tokens_granted
+    if count:
+        # ONE email for the batch. A chef who sold six gifts and then fought
+        # would otherwise get six identical letters for a single event.
+        _email_rewards_unlocked(
+            chef, getattr(check_next_battle_unlock, "last_battle", None),
+            count, tokens)
     return count
+
+
+def _email_rewards_unlocked(chef, battle, record_count, tokens_released) -> None:
+    """Tell the chef the battle he just finished released what was waiting.
+
+    Nothing told him before. He sold a gift, saw "pending", and had no way of
+    learning either that a battle unlocks it or that one finally had.
+    """
+    user = getattr(chef, "user", None)
+    email = getattr(user, "email", "")
+    if not email:
+        return
+    try:
+        from config.email_utils import build_absolute_url, sanitize_email_subject, send_template_mail
+
+        position = chef_token_position(chef)
+        send_template_mail(
+            subject=sanitize_email_subject(
+                "%d tokens released by your last battle" % tokens_released),
+            template="rewards_unlocked",
+            context={
+                "chef_name": chef.name,
+                "battle_theme": getattr(battle, "theme", "your last battle"),
+                "record_count": record_count,
+                "tokens_released": tokens_released,
+                "wallet_balance": position["wallet"],
+                "waiting_tokens": position["waiting"],
+                "total_tokens": position["total"],
+                "payout_url": build_absolute_url(reverse("chef_battle:payout_statement")),
+            },
+            recipient_list=[email],
+            fail_silently=True,
+        )
+    except Exception:
+        logger.exception("Could not email the reward unlock to %s",
+                         getattr(chef, "slug", "?"))
 
 
 def handle_token_order_chargeback(
@@ -4511,7 +4749,8 @@ def check_payout_eligibility(chef) -> dict:
     2. reward_agreement_accepted=True
     3. stripe_connect_onboarded=True
     4. not is_suspended and not fraud_flag and not payout_blocked
-    5. Minimum 2000 APPROVED reward tokens (across all RewardRecord)
+    5. At least one APPROVED reward token (the 2000 minimum was removed by
+       the Owner on 2026-09-05)
     6. No open PayoutRequest (PENDING or UNDER_REVIEW)
     """
     from .models import ChefBattleProfile, PayoutRequest, RewardRecord
@@ -4538,10 +4777,16 @@ def check_payout_eligibility(chef) -> dict:
     approved_tokens = RewardRecord.objects.filter(
         recipient=chef, status=RewardRecord.Status.APPROVED
     ).aggregate(total=Sum("tokens_granted"))["total"] or 0
-    MIN_TOKENS = 2000
-    if approved_tokens < MIN_TOKENS:
+    # THE 2000-TOKEN MINIMUM IS GONE - the Owner, 2026-09-05: "нужно убрать
+    # ограничение на 2000 токенов - это выглядит как насильственное удержание
+    # токенов на сайте и нежелание платить шефам за них - их право продавать
+    # когда хотят в любое время". A chef may cash out any amount he holds; the
+    # only floor left is the one arithmetic imposes, that there has to be
+    # something to pay.
+    if approved_tokens < 1:
         reasons.append(
-            f"Minimum {MIN_TOKENS} approved reward tokens required. You have {approved_tokens}."
+            "You have no approved reward tokens yet. Sell a gift back and "
+            "finish an eligible battle to release one."
         )
 
     open_request = PayoutRequest.objects.filter(
@@ -4578,8 +4823,8 @@ def create_payout_request(chef, request_http=None) -> "PayoutRequest":
             recipient=chef, status=RewardRecord.Status.APPROVED
         )
         total_tokens = sum(r.tokens_granted for r in approved_records)
-        if total_tokens < 2000:
-            raise ValueError("Not enough approved tokens.")
+        if total_tokens < 1:
+            raise ValueError("You have no approved reward tokens to pay out.")
 
         gross_eur = (Decimal(total_tokens) * rate).quantize(Decimal("0.01"))
 

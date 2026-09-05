@@ -1,5 +1,60 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1813",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "A chef sold six gifts, saw the word pending, and had no way on earth to find out what that meant",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "THE OWNER SOLD HIS OWN TEST GIFTS AND ASKED THE RIGHT QUESTION: "
+            "\"любой Шеф который после первого боя продал свои подарки и ждет "
+            "денег - врятли дочитал правила до конца или вообще их не читал - "
+            "как он узнает о том, что ему нужно провести еще один зачётный бой "
+            "чтоб разблокировать награждения с первого?\" He would not have. "
+            "The payout page - the page a chef opens to ask where his money is "
+            "- listed APPROVED records and nothing else, so a chef holding "
+            "ninety tokens of pending rewards read an empty table under the "
+            "line \"you have 0\". Nowhere did the site name what an eligible "
+            "battle is, which of his battles had failed it, or say anything at "
+            "all when one finally counted. "
+            "THE PAGE NOW SHOWS ALL FOUR STATES: blocked, under review, "
+            "approved, paid out - with the wallet beside them - and every row "
+            "says in plain words what it is waiting for. Under the blocked "
+            "block sits the check itself: each of his last five finished "
+            "battles with a tick or a cross against the four things an "
+            "eligible battle needs, so a chef whose dish photo was never "
+            "approved can see that, by name, instead of guessing. A test pins "
+            "the checklist against _is_eligible_battle so the explanation "
+            "cannot drift away from the rule it describes. "
+            "EVERY SALE NOW SENDS A RECEIPT, as he asked: the gift, what the "
+            "viewer paid, what the chef receives, and the total on his account "
+            "- given as three numbers, wallet and pending and total, because a "
+            "single figure would either hide the pending tokens or pretend "
+            "they were spendable. It goes out on COMMIT, so a sale that rolls "
+            "back cannot post a letter describing it, and a chef with no email "
+            "address still sells: a receipt that fails may never undo the sale "
+            "it describes. "
+            "AND WHEN A BATTLE RELEASES THEM, he is told - one letter for the "
+            "whole batch, naming the battle and the tokens, not six identical "
+            "letters for one event. "
+            "THE 2000-TOKEN MINIMUM IS GONE, on his order: \"это выглядит как "
+            "насильственное удержание токенов на сайте и нежелание платить "
+            "шефам за них - их право продавать когда хотят в любое время\". A "
+            "chef may cash out any amount he holds. The only floor left is "
+            "arithmetic - there has to be something to pay. Both public pages "
+            "that promised a EUR 50 threshold now say there is none, and both "
+            "state that the payment provider's fee comes out of the payout: "
+            "whatever Stripe actually charges, with no CulinEire commission on "
+            "top, and the exact figure on the receipt. "
+            "NOT DONE YET, and named rather than implied: the fee is described "
+            "on those pages but not yet CAPTURED - PayoutRequest carries only "
+            "a gross amount, so recording what Stripe really charged needs a "
+            "migration and a read of the transfer's balance transaction. That "
+            "is the next release, with the payment receipt to the chef and to "
+            "him. Nothing here changes what any payout pays."
+        ),
+    },
+    {
         "version": "2.5.1810",
         "date": "2026-09-05",
         "commit": "7309d911",

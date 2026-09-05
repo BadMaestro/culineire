@@ -1,0 +1,54 @@
+{% extends "emails/base.html" %}
+
+{% block subject %}{{ tokens_released }} tokens released by your last battle{% endblock %}
+
+{% block content %}
+<h1 style="margin:0 0 16px;font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:700;color:#1f2c25;line-height:1.3;text-align:center;">Rewards Released</h1>
+
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  Dear {{ chef_name }},
+</p>
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  Your battle <strong>{{ battle_theme }}</strong> counted, and it released the rewards that
+  were waiting on it.
+</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 24px;border-collapse:collapse;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;">
+  <tr>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;">Rewards released</td>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;text-align:right;">{{ record_count }}</td>
+  </tr>
+  <tr>
+    <td style="padding:8px 0;">Tokens released</td>
+    <td style="padding:8px 0;text-align:right;"><strong>{{ tokens_released }}</strong></td>
+  </tr>
+</table>
+
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  They are now with our team for release. Once released they either land in your wallet as
+  tokens, or are approved towards a real-money payout &mdash; your rewards page shows which.
+</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 24px;border-collapse:collapse;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;">
+  <tr>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;">In your wallet now</td>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;text-align:right;">{{ wallet_balance }} tokens</td>
+  </tr>
+  <tr>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;">Still waiting</td>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;text-align:right;">{{ waiting_tokens }} tokens</td>
+  </tr>
+  <tr>
+    <td style="padding:8px 0;"><strong>Total on your account</strong></td>
+    <td style="padding:8px 0;text-align:right;"><strong>{{ total_tokens }} tokens</strong></td>
+  </tr>
+</table>
+
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 24px;">
+  <tr>
+    <td style="text-align:center;">
+      <a href="{{ payout_url }}" style="display:inline-block;background-color:#184c3a;color:#faf6f0;font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;text-decoration:none;padding:13px 28px;border-radius:4px;">See all my rewards</a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

@@ -1,0 +1,23 @@
+Dear {{ chef_name }},
+
+Your battle "{{ battle_theme }}" counted, and it released the rewards that
+were waiting on it.
+
+  Rewards released:   {{ record_count }}
+  Tokens released:    {{ tokens_released }}
+
+WHAT HAPPENS NOW
+
+They are with our team for release. Once released you choose nothing - they
+either land in your wallet as tokens, or are approved towards a real-money
+payout, and you will see which on your rewards page.
+
+  In your wallet now:        {{ wallet_balance }} tokens
+  Still waiting:             {{ waiting_tokens }} tokens
+  Total on your account:     {{ total_tokens }} tokens
+
+See every reward and its state here:
+{{ payout_url }}
+
+-- CulinEire
+{{ site_url }}

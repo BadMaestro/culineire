@@ -26,8 +26,24 @@
 
     <div class="battle-moves-summary">
       <div class="battle-moves-summary__card">
-        <p class="battle-moves-summary__label">Approved reward tokens</p>
-        <p class="battle-moves-summary__value">{{ eligibility.approved_tokens }}T</p>
+        <p class="battle-moves-summary__label">Blocked</p>
+        <p class="battle-moves-summary__value">{{ ledger.blocked_tokens }}T</p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Under review</p>
+        <p class="battle-moves-summary__value">{{ ledger.review_tokens }}T</p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Approved</p>
+        <p class="battle-moves-summary__value">{{ ledger.approved_tokens }}T</p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">Paid out</p>
+        <p class="battle-moves-summary__value">{{ ledger.paid_tokens }}T</p>
+      </div>
+      <div class="battle-moves-summary__card">
+        <p class="battle-moves-summary__label">In your wallet</p>
+        <p class="battle-moves-summary__value">{{ position.wallet }}T</p>
       </div>
       <div class="battle-moves-summary__card">
         <p class="battle-moves-summary__label">Payout rate</p>
@@ -36,17 +52,13 @@
       <div class="battle-moves-summary__card">
         <p class="battle-moves-summary__label">Estimated gross payout</p>
         <p class="battle-moves-summary__value">
-          {% if eligibility.approved_tokens >= min_tokens %}
-            €{{ eligibility.approved_tokens|floatformat:0 }}<!-- calc below -->
-            <span class="payout-calc" data-tokens="{{ eligibility.approved_tokens }}"></span>
+          {% if ledger.approved_tokens %}
+            €{{ ledger.approved_tokens|floatformat:0 }}<!-- calc below -->
+            <span class="payout-calc" data-tokens="{{ ledger.approved_tokens }}"></span>
           {% else %}
             &mdash;
           {% endif %}
         </p>
-      </div>
-      <div class="battle-moves-summary__card">
-        <p class="battle-moves-summary__label">Minimum to request</p>
-        <p class="battle-moves-summary__value">{{ min_tokens }}T</p>
       </div>
     </div>
 
@@ -72,6 +84,72 @@
       <p class="payout-stripe-note">Stripe Connect onboarding is required before payouts can be initiated. This will be available once the payout programme opens publicly.</p>
       {% endif %}
     </div>
+    {% endif %}
+
+    {% if ledger.blocked %}
+    <div class="battle-section-header battle-section-header--spaced">
+      <h2>Blocked &mdash; {{ ledger.blocked_tokens }}T</h2>
+    </div>
+    <p class="payout-block-note">
+      These are yours. They are released by your next <strong>eligible battle</strong>, and
+      the check below shows exactly what an eligible battle needs.
+    </p>
+    <div class="battle-table">
+      {% for row in ledger.blocked %}
+      <div class="battle-table__row battle-table__row--3col">
+        <span>{{ row.record.created_at|date:"j M Y" }}</span>
+        <span>{{ row.record.reason }}<br><small class="payout-why">{{ row.reason }}</small></span>
+        <strong>{{ row.record.tokens_granted }}T</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if ledger.review %}
+    <div class="battle-section-header battle-section-header--spaced">
+      <h2>Under review &mdash; {{ ledger.review_tokens }}T</h2>
+    </div>
+    <div class="battle-table">
+      {% for row in ledger.review %}
+      <div class="battle-table__row battle-table__row--3col">
+        <span>{{ row.record.created_at|date:"j M Y" }}</span>
+        <span>{{ row.record.reason }}<br><small class="payout-why">{{ row.reason }}</small></span>
+        <strong>{{ row.record.tokens_granted }}T</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if battle_report.has_any and ledger.blocked %}
+    <div class="battle-section-header battle-section-header--spaced">
+      <h2>What an eligible battle needs</h2>
+    </div>
+    <div class="payout-checks">
+      {% for row in battle_report.battles %}
+      <div class="payout-check{% if row.eligible %} payout-check--ok{% endif %}">
+        <p class="payout-check__title">
+          {{ row.battle.theme }} &middot; {{ row.battle.end_time|date:"j M Y" }}
+          {% if row.eligible %}&mdash; counted{% else %}&mdash; did not count{% endif %}
+        </p>
+        <ul class="payout-check__list">
+          {% for c in row.checks %}
+          <li class="payout-check__item{% if not c.ok %} payout-check__item--missing{% endif %}">
+            {% if c.ok %}&#x2713;{% else %}&#x2717;{% endif %} {{ c.label }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+    {% elif ledger.blocked %}
+    <div class="battle-section-header battle-section-header--spaced">
+      <h2>What an eligible battle needs</h2>
+    </div>
+    <p class="payout-block-note">
+      You have not finished a battle yet. When you do, it releases everything blocked above,
+      as long as it finished, both chefs submitted a dish, your dish photo was approved by a
+      moderator, and your account is not under review.
+    </p>
     {% endif %}
 
     <div class="battle-section-header battle-section-header--spaced">

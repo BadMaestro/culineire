@@ -2996,12 +2996,23 @@ class PayoutEligibilityTests(TestCase):
         result = check_payout_eligibility(a)
         self.assertFalse(result["eligible"])
 
-    def test_not_eligible_below_minimum_tokens(self):
+    def test_a_small_balance_is_now_eligible(self):
+        """The 2000-token wall came down on the Owner's order, 2026-09-05:
+        "это выглядит как насильственное удержание токенов на сайте и
+        нежелание платить шефам за них - их право продавать когда хотят в
+        любое время". 500 approved tokens is a payout of EUR 12.50 and it is
+        his to take."""
         from .services import check_payout_eligibility
         self._add_approved_tokens(500)
         result = check_payout_eligibility(self.author)
+        self.assertTrue(result["eligible"], result["reasons"])
+
+    def test_nothing_approved_is_still_refused(self):
+        """The only floor left is arithmetic: there has to be something to pay."""
+        from .services import check_payout_eligibility
+        result = check_payout_eligibility(self.author)
         self.assertFalse(result["eligible"])
-        self.assertTrue(any("2000" in r for r in result["reasons"]))
+        self.assertTrue(any("no approved reward tokens" in r for r in result["reasons"]))
 
     def test_eligible_with_enough_tokens(self):
         from .services import check_payout_eligibility
@@ -31602,3 +31613,206 @@ class NoTemplateCommentIsLeftUnclosedOnItsLineTests(TestCase):
             offenders, [],
             "{# #} does not span lines - use {% comment %} instead: "
             + ", ".join(offenders))
+
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class TheChefIsToldWhereHisMoneyIsTests(TestCase):
+    """The Owner, 2026-09-05, after selling six gifts and seeing "pending":
+
+    "любой Шеф который после первого боя продал свои подарки и ожидает денег -
+    врятли дочитал правила до конца или вообще их не читал - как он узнает о
+    том, что ему нужно провести еще один зачётный бой чтоб разблокировать
+    награждения с первого?"
+
+    He did not. The payout page showed APPROVED records only, so a chef
+    holding ninety tokens of pending rewards read an empty table and the line
+    "you have 0". Nothing named what an eligible battle is, and nothing said
+    when one had finally happened.
+    """
+
+    def setUp(self):
+        from .models import AppreciationGift, AppreciationGiftType
+
+        self.AppreciationGift = AppreciationGift
+        self.GiftType = AppreciationGiftType
+        self.user, self.chef = _make_chef("told-chef")
+        self.user.email = "chef@example.test"
+        self.user.save(update_fields=["email"])
+        self.profile = ChefBattleProfile.objects.create(
+            author=self.chef, enrolled_at=timezone.now(),
+            reward_agreement_accepted=True)
+        self.url = reverse("chef_battle:payout_statement")
+
+    def _gift(self, kind=None, paid=80):
+        return self.AppreciationGift.objects.create(
+            recipient=self.chef, gift_type=kind or self.GiftType.FLOWERS,
+            tokens_spent=paid)
+
+    # -- the receipt --
+
+    def test_every_sale_sends_a_receipt(self):
+        from django.core import mail
+
+        from .services import sell_appreciation_gift_back
+
+        mail.outbox = []
+        # The receipt goes out on COMMIT, so that a sale which rolls back
+        # cannot post a letter describing it.
+        with self.captureOnCommitCallbacks(execute=True):
+            sell_appreciation_gift_back(gift=self._gift(), chef=self.chef)
+        self.assertEqual(len(mail.outbox), 1)
+        body = mail.outbox[0].body
+        self.assertIn("Flowers", body)
+        self.assertIn("80", body)          # what the viewer paid
+        self.assertIn("20", body)          # what the chef receives
+
+    def test_the_receipt_shows_the_wallet_and_the_pending_apart(self):
+        """A single "total" would either hide the pending tokens or pretend
+        they are spendable. Both numbers, always."""
+        from django.core import mail
+
+        from .models import TokenWallet
+        from .services import sell_appreciation_gift_back
+
+        TokenWallet.objects.filter(chef=self.chef).update(balance=140)
+        mail.outbox = []
+        with self.captureOnCommitCallbacks(execute=True):
+            sell_appreciation_gift_back(gift=self._gift(), chef=self.chef)
+        body = mail.outbox[0].body
+        self.assertIn("140", body)   # wallet
+        self.assertIn("160", body)   # 140 + 20 pending
+
+    def test_a_chef_with_no_email_still_sells(self):
+        """A receipt that fails must never undo the sale it describes."""
+        from .models import RewardRecord
+        from .services import sell_appreciation_gift_back
+
+        self.user.email = ""
+        self.user.save(update_fields=["email"])
+        gift = self._gift()
+        sell_appreciation_gift_back(gift=gift, chef=self.chef)
+        self.assertTrue(RewardRecord.objects.filter(related_gift=gift).exists())
+
+    # -- the four blocks --
+
+    def test_the_page_shows_blocked_tokens_instead_of_an_empty_table(self):
+        from .services import sell_appreciation_gift_back
+
+        sell_appreciation_gift_back(gift=self._gift(), chef=self.chef)
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["ledger"]["blocked_tokens"], 20)
+        body = response.content.decode("utf-8")
+        self.assertIn("Blocked", body)
+        self.assertIn("Under review", body)
+        self.assertIn("Paid out", body)
+
+    def test_a_blocked_row_says_what_it_is_waiting_for(self):
+        from .services import chef_reward_ledger, sell_appreciation_gift_back
+
+        sell_appreciation_gift_back(gift=self._gift(), chef=self.chef)
+        row = chef_reward_ledger(self.chef)["blocked"][0]
+        self.assertIn("eligible battle", row["reason"])
+
+    def test_the_position_counts_every_state(self):
+        from .models import TokenWallet
+        from .services import chef_token_position, sell_appreciation_gift_back
+
+        TokenWallet.objects.filter(chef=self.chef).update(balance=100)
+        sell_appreciation_gift_back(gift=self._gift(), chef=self.chef)
+        position = chef_token_position(self.chef)
+        self.assertEqual(position["wallet"], 100)
+        self.assertEqual(position["pending"], 20)
+        self.assertEqual(position["total"], 120)
+
+    # -- the checklist --
+
+    def test_the_checklist_names_every_rule_the_service_enforces(self):
+        """If _is_eligible_battle grows a check that the page does not
+        explain, the chef is back to guessing."""
+        import inspect
+
+        from . import services
+
+        source = inspect.getsource(services._is_eligible_battle)
+        labels = " ".join(label for _, label in services.ELIGIBLE_BATTLE_CHECKS).lower()
+        for word in ("completed", "entries", "moderation_status", "fraud"):
+            self.assertIn(word, source)
+        for word in ("finished", "submitted", "approved", "fraud"):
+            self.assertIn(word, labels)
+
+    def test_a_finished_battle_reports_what_it_missed(self):
+        from .models import BattleEntry
+        from .services import eligible_battle_report
+
+        _, other = _make_chef("told-opponent")
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=self.chef, opponent=other, theme="Told",
+            status=Battle.Status.COMPLETED, start_time=now,
+            submission_deadline=now, voting_deadline=now, end_time=now)
+        BattleEntry.objects.create(battle=battle, author=self.chef)
+        BattleEntry.objects.create(battle=battle, author=other)
+
+        report = eligible_battle_report(self.chef)
+        self.assertTrue(report["has_any"])
+        self.assertFalse(report["has_eligible"])
+        self.assertIn(
+            "Your dish photo was approved by a moderator.",
+            report["battles"][0]["missing"],
+        )
+
+    # -- the unlock letter --
+
+    def test_the_chef_is_emailed_when_a_battle_releases_his_rewards(self):
+        from django.core import mail
+
+        from .models import BattleEntry
+        from .services import run_next_battle_unlock_for_chef, sell_appreciation_gift_back
+
+        sell_appreciation_gift_back(gift=self._gift(), chef=self.chef)
+        _, other = _make_chef("told-opponent-2")
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=self.chef, opponent=other, theme="The Unlocking",
+            status=Battle.Status.COMPLETED, start_time=now,
+            submission_deadline=now, voting_deadline=now,
+            end_time=now + datetime.timedelta(minutes=1))
+        BattleEntry.objects.create(
+            battle=battle, author=self.chef,
+            moderation_status=BattleEntry.ModerationStatus.APPROVED)
+        BattleEntry.objects.create(battle=battle, author=other)
+
+        mail.outbox = []
+        moved = run_next_battle_unlock_for_chef(self.chef)
+        self.assertEqual(moved, 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("The Unlocking", mail.outbox[0].body)
+        self.assertIn("20", mail.outbox[0].body)
+
+    def test_six_unlocked_rewards_send_one_letter_not_six(self):
+        from django.core import mail
+
+        from .models import AppreciationGiftType, BattleEntry
+        from .services import run_next_battle_unlock_for_chef, sell_appreciation_gift_back
+
+        for kind in (self.GiftType.COFFEE, self.GiftType.FLOWERS,
+                     self.GiftType.VIRTUAL_BEER_TOAST):
+            sell_appreciation_gift_back(
+                gift=self._gift(kind=kind, paid=80), chef=self.chef)
+        _, other = _make_chef("told-opponent-3")
+        now = timezone.now()
+        battle = Battle.objects.create(
+            challenger=self.chef, opponent=other, theme="One Letter",
+            status=Battle.Status.COMPLETED, start_time=now,
+            submission_deadline=now, voting_deadline=now,
+            end_time=now + datetime.timedelta(minutes=1))
+        BattleEntry.objects.create(
+            battle=battle, author=self.chef,
+            moderation_status=BattleEntry.ModerationStatus.APPROVED)
+        BattleEntry.objects.create(battle=battle, author=other)
+
+        mail.outbox = []
+        self.assertEqual(run_next_battle_unlock_for_chef(self.chef), 3)
+        self.assertEqual(len(mail.outbox), 1)

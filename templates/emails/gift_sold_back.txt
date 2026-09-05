@@ -1,0 +1,25 @@
+Dear {{ chef_name }},
+
+You sold a gift back to the shop.
+
+  Gift:            {{ gift_label }}
+  Viewer paid:     {{ tokens_paid }} tokens
+  You receive:     {{ tokens_received }} tokens ({{ sell_back_pct }}% of what was paid)
+  Sold on:         {{ sold_at }}
+
+WHERE THOSE TOKENS ARE NOW
+
+They are held as a pending reward, not yet in your wallet. A reward is
+released after you complete an eligible battle - one that finished, where
+both chefs submitted their dish, your dish photo was approved by a
+moderator, and the voting closed.
+
+  In your wallet now:        {{ wallet_balance }} tokens
+  Pending release:           {{ pending_tokens }} tokens
+  Total on your account:     {{ total_tokens }} tokens
+
+You can see every reward and what each one is waiting for here:
+{{ payout_url }}
+
+-- CulinEire
+{{ site_url }}
