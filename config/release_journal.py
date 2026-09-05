@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1813",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "f0b71945",
         "title": "A chef sold six gifts, saw the word pending, and had no way on earth to find out what that meant",
         "section": "Chef Battles / Arena",
         "summary": (
