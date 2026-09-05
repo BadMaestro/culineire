@@ -26,6 +26,8 @@
   .arq-empty { color:var(--muted); margin:0; }
   .arq-recent { margin-top:1.4rem; padding-top:1rem; border-top:1px solid var(--line); }
   .arq-recent li { margin-bottom:.3rem; }
+  .arq-actions form { display:flex; flex-direction:column; gap:.35rem; }
+  .arq-actions button { white-space:nowrap; }
 </style>
 {% endblock %}
 
@@ -35,11 +37,16 @@
     <p class="arq-kicker">Moderation</p>
     <h1>Reward Queue</h1>
     <p class="arq-note">
-      A Chef Battle Reward or Live Support Reward waits here until somebody issues it.
-      Issuing credits the tokens to the recipient&rsquo;s wallet, writes the transaction and
-      the ledger entry, and records who did it. Nothing here sets a rate or invents a
-      grant: it releases a record the game already created. The Owner&rsquo;s own account is
-      not issued from this panel.
+      A Chef Battle Reward or Live Support Reward waits here until somebody releases it,
+      and it has two possible ends that exclude each other.
+      <strong>Issue to wallet</strong> credits the tokens to the recipient, writes the
+      transaction and the ledger entry, and ends the record there.
+      <strong>Approve for payout</strong> puts it on the money path instead: it pays
+      nobody, it makes the record countable towards the {{ payout_minimum }}-token minimum
+      for a payout the chef must still request, and that request still has to pass DAC7,
+      the reward agreement, Stripe Connect onboarding and the compliance checks.
+      Nothing here sets a rate or invents a grant: it releases a record the game already
+      created. The Owner&rsquo;s own account is not touched from this panel.
     </p>
   </header>
 
@@ -49,6 +56,12 @@
     <p class="arq-msg arq-msg--ok">
       Issued {{ issued.tokens_granted }} token{{ issued.tokens_granted|pluralize }}
       to {{ issued.recipient.name }}.
+    </p>
+    {% endif %}
+    {% if approved %}
+    <p class="arq-msg arq-msg--ok">
+      {{ approved.tokens_granted }} token{{ approved.tokens_granted|pluralize }}
+      for {{ approved.recipient.name }} approved for payout. No money has moved.
     </p>
     {% endif %}
 
@@ -83,11 +96,12 @@
               {% if r.related_battle %}<br><small>Battle #{{ r.related_battle.pk }} &middot; {{ r.related_battle.theme }}</small>{% endif %}
             </td>
             <td>{{ r.created_at|date:"j M Y, H:i" }}</td>
-            <td>
+            <td class="arq-actions">
               <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="record" value="{{ r.pk }}">
-                <button class="btn-primary" type="submit">Issue</button>
+                <button class="btn-primary" name="action" type="submit" value="issue">Issue to wallet</button>
+                <button class="btn-secondary" name="action" type="submit" value="approve">Approve for payout</button>
               </form>
             </td>
           </tr>
@@ -97,6 +111,20 @@
     </div>
     {% else %}
     <p class="arq-empty">Nothing is waiting. Every reward the game has created has been issued, expired or reversed.</p>
+    {% endif %}
+
+    {% if awaiting_payout %}
+    <div class="arq-recent">
+      <p class="arq-kicker">Approved for payout &mdash; {{ awaiting_payout_tokens }} token{{ awaiting_payout_tokens|pluralize }} held</p>
+      <p class="arq-empty">
+        A chef needs {{ payout_minimum }} approved tokens before a payout can be requested.
+      </p>
+      <ul>
+        {% for r in awaiting_payout %}
+        <li>{{ r.recipient.name }} &mdash; {{ r.tokens_granted }}T ({{ r.get_reward_type_display }}) &middot; {{ r.reason }}</li>
+        {% endfor %}
+      </ul>
+    </div>
     {% endif %}
 
     {% if recent %}

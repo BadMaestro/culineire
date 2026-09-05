@@ -31139,6 +31139,87 @@ class TheRewardQueueOnThePanelTests(TestCase):
                      "has_bearseeker_privileges", "has_arena_console_access"):
             self.assertNotIn(flag, body)
 
+    # ── the money path, which had no entrance at all ──
+
+    def test_the_payout_chain_had_no_entrance(self):
+        """check_payout_eligibility counts records at APPROVED and wants 2000.
+        create_payout_request locks records at APPROVED. Nothing ever wrote
+        that status except the path that RETURNS a record after a payout is
+        rejected - so approved_tokens was structurally 0 for every chef and no
+        payout could ever be requested. This proves the joint is joined."""
+        from .services import approve_reward_for_payout, check_payout_eligibility
+
+        ChefBattleProfile.objects.create(author=self.chef, enrolled_at=timezone.now())
+        record = self._record(tokens=2500)
+        self.assertEqual(check_payout_eligibility(self.chef)["approved_tokens"], 0)
+        approve_reward_for_payout(record.pk)
+        self.assertEqual(check_payout_eligibility(self.chef)["approved_tokens"], 2500)
+
+    def test_approving_moves_no_money_and_credits_no_wallet(self):
+        from .models import TokenTransaction, TokenWallet
+
+        record = self._record(tokens=2500)
+        before = TokenWallet.objects.get(chef=self.chef).balance
+        self.client.force_login(self._moderator())
+        self.client.post(self.url, {"record": record.pk, "action": "approve"})
+        record.refresh_from_db()
+        self.assertEqual(record.status, self.RewardRecord.Status.APPROVED)
+        self.assertEqual(TokenWallet.objects.get(chef=self.chef).balance, before)
+        self.assertFalse(
+            TokenTransaction.objects.filter(wallet__chef=self.chef).exists())
+
+    def test_a_reward_cannot_take_both_ends(self):
+        """Issued to a wallet means the tokens are spent. Approving it after
+        that would pay for the same gift twice."""
+        from .services import approve_reward_for_payout
+
+        record = self._record()
+        self.client.force_login(self._moderator())
+        self.client.post(self.url, {"record": record.pk, "action": "issue"})
+        with self.assertRaises(ValueError):
+            approve_reward_for_payout(record.pk)
+
+    def test_an_approved_reward_is_no_longer_offered_for_issuing(self):
+        record = self._record()
+        self.client.force_login(self._moderator())
+        self.client.post(self.url, {"record": record.pk, "action": "approve"})
+        body = self.client.get(self.url).content.decode("utf-8")
+        self.assertIn("Approved for payout", body)
+
+    @override_settings(OWNER_SLUG="greenbear")
+    def test_the_owners_account_is_not_approved_from_this_panel_either(self):
+        owner_user = get_user_model().objects.create_user(username="ownerap", password="pw")
+        owner, _ = RecipeAuthor.objects.get_or_create(
+            slug="greenbear", defaults={"name": "GreenBear", "user": owner_user})
+        record = self._record(recipient=owner)
+        self.client.force_login(self._moderator())
+        self.client.post(self.url, {"record": record.pk, "action": "approve"})
+        record.refresh_from_db()
+        self.assertEqual(record.status, self.RewardRecord.Status.QUEUED)
+
+    def test_an_approved_reward_is_not_spendable_into_a_wallet_from_here(self):
+        """It is already counted towards a payout the chef is working towards.
+        issue_reward() itself accepts an APPROVED record and Django Admin may;
+        from this panel it must not, or one click quietly takes a reward off
+        the money path with no warning."""
+        from .models import TokenWallet
+
+        record = self._record()
+        self.client.force_login(self._moderator())
+        self.client.post(self.url, {"record": record.pk, "action": "approve"})
+        before = TokenWallet.objects.get(chef=self.chef).balance
+        self.client.post(self.url, {"record": record.pk, "action": "issue"})
+        record.refresh_from_db()
+        self.assertEqual(record.status, self.RewardRecord.Status.APPROVED)
+        self.assertEqual(TokenWallet.objects.get(chef=self.chef).balance, before)
+
+    def test_the_undecided_list_holds_only_undecided_rewards(self):
+        approved = self._record()
+        self.client.force_login(self._moderator())
+        self.client.post(self.url, {"record": approved.pk, "action": "approve"})
+        waiting = self.client.get(self.url).context["waiting"]
+        self.assertNotIn(approved.pk, [r.pk for r in waiting])
+
     def test_the_panel_links_to_it(self):
         """A tool nobody can reach is not a tool."""
         from pathlib import Path

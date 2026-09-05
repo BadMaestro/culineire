@@ -5935,20 +5935,28 @@ def arena_reward_queue(request):
     outright (AGENTS.md 18) - a grant is still a write to his account.
     """
     from chef_battle.models import RewardRecord
-    from chef_battle.services import issue_reward
+    from chef_battle.services import approve_reward_for_payout, issue_reward
 
     if not is_moderator(request.user):
         raise Http404
 
-    ISSUABLE = (
+    # UNDECIDED, not "issuable". issue_reward() will accept an APPROVED record
+    # too, and Django Admin may - but from this panel it must not: APPROVED
+    # means the record is already counted towards a payout the chef is working
+    # towards, and quietly spending it into a wallet from here would take it
+    # off the money path with one click and no warning. Seen while looking at
+    # the rendered page, where an already-approved row was offering both
+    # buttons as if nothing had been decided about it.
+    UNDECIDED = (
         RewardRecord.Status.PENDING,
         RewardRecord.Status.QUEUED,
-        RewardRecord.Status.APPROVED,
     )
 
     error = ""
     issued = None
+    approved = None
     if request.method == "POST":
+        action = (request.POST.get("action") or "issue").strip()
         record = (
             RewardRecord.objects
             .filter(pk=(request.POST.get("record") or "").strip() or 0)
@@ -5961,17 +5969,28 @@ def arena_reward_queue(request):
             # AGENTS.md section 18. Not a warning and not a confirm dialog:
             # his account is not written from this panel at all.
             error = "That is the Owner's own account. It is not issued from this panel."
-        elif record.status not in ISSUABLE:
+        elif record.status not in UNDECIDED:
             error = "That reward is '%s' and cannot be issued." % record.get_status_display()
-        else:
+        elif action == "approve":
+            # THE MONEY PATH. Approving does not pay anybody; it makes the
+            # record countable by a payout the chef must still request and
+            # which still has to pass DAC7, the reward agreement, Stripe
+            # Connect onboarding and the suspension/fraud/block checks.
+            try:
+                approved = approve_reward_for_payout(record.pk, reviewed_by=request.user)
+            except ValueError as exc:
+                error = str(exc)
+        elif action == "issue":
             try:
                 issued = issue_reward(record.pk, reviewed_by=request.user)
             except ValueError as exc:
                 error = str(exc)
+        else:
+            error = "Unknown action."
 
     waiting = list(
         RewardRecord.objects
-        .filter(status__in=ISSUABLE)
+        .filter(status__in=UNDECIDED)
         .select_related("recipient", "related_battle")
         .order_by("created_at")[:100]
     )
@@ -5981,10 +6000,21 @@ def arena_reward_queue(request):
         .select_related("recipient")
         .order_by("-issued_at")[:10]
     )
+    awaiting_payout = list(
+        RewardRecord.objects
+        .filter(status=RewardRecord.Status.APPROVED)
+        .select_related("recipient")
+        .order_by("recipient__slug")[:50]
+    )
+    awaiting_payout_tokens = sum(r.tokens_granted for r in awaiting_payout)
     return render(request, "moderation/arena_reward_queue.html", {
         "waiting": waiting,
         "waiting_tokens": sum(r.tokens_granted for r in waiting),
         "recent": recent,
         "issued": issued,
+        "approved": approved,
+        "awaiting_payout": awaiting_payout,
+        "awaiting_payout_tokens": awaiting_payout_tokens,
+        "payout_minimum": 2000,
         "error": error,
     })

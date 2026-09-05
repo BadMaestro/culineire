@@ -3953,6 +3953,47 @@ def issue_reward(reward_id: int, reviewed_by=None) -> "RewardRecord":
     return record
 
 
+def approve_reward_for_payout(reward_id: int, reviewed_by=None) -> "RewardRecord":
+    """Put a reward on the MONEY path instead of the wallet path.
+
+    THE PAYOUT CHAIN HAD NO ENTRANCE - found 2026-09-05 by following it end to
+    end rather than by reading either half alone. check_payout_eligibility()
+    counts RewardRecords at status APPROVED and requires 2000 of them;
+    create_payout_request() locks records at APPROVED and turns them into euro.
+    Nothing in this repository ever wrote that status except the path that
+    RETURNS a record after a payout is rejected. Django Admin has no action for
+    it either - only a manual field edit on the change form. So approved_tokens
+    was structurally 0 for every chef who ever lived, the 2000 minimum could
+    never be reached, and no payout could ever be requested.
+
+    A reward has exactly two possible ends and they exclude each other:
+    issue_reward() credits the wallet with tokens and marks it ISSUED, or this
+    approves it for a euro payout at PayoutRequest.PAYOUT_RATE_EUR_PER_TOKEN.
+    An ISSUED record is refused here on purpose - its tokens are already spent
+    into a wallet, or already locked to an open payout, and either way paying
+    for them again would be paying twice for one gift.
+
+    It moves no money. It makes a record eligible to be counted by a payout the
+    chef must still request, which still has to pass DAC7, the reward
+    agreement, Stripe Connect onboarding, suspension, fraud and block checks.
+    """
+    from .models import RewardRecord
+
+    with transaction.atomic():
+        record = RewardRecord.objects.select_for_update().get(pk=reward_id)
+        if record.status not in (RewardRecord.Status.PENDING, RewardRecord.Status.QUEUED):
+            raise ValueError(
+                f"RewardRecord {reward_id} is in status '{record.status}' and cannot "
+                "be approved for payout."
+            )
+        record.status = RewardRecord.Status.APPROVED
+        record.status_note = "Approved for payout"
+        if reviewed_by is not None:
+            record.reviewed_by = reviewed_by
+        record.save(update_fields=["status", "status_note", "reviewed_by", "updated_at"])
+    return record
+
+
 def expire_rewards() -> int:
     """Mark all ISSUED RewardRecords past their expires_at as EXPIRED. Returns count."""
     from .models import RewardRecord

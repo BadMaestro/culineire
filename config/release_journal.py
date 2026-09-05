@@ -1,5 +1,56 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1783",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "No chef could ever have been paid: the payout chain had no entrance, and nothing had ever written the status it needs",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "FOUND BY FOLLOWING THE CHAIN END TO END rather than reading either "
+            "half of it alone, while checking whether the Owner's sell-back "
+            "ruling could be built on top of what exists. "
+            "check_payout_eligibility() counts RewardRecords at status APPROVED "
+            "and requires 2000 of them. create_payout_request() locks records "
+            "at APPROVED and turns them into euro at "
+            "PAYOUT_RATE_EUR_PER_TOKEN. NOTHING IN THIS REPOSITORY HAS EVER "
+            "WRITTEN THAT STATUS except the path that RETURNS a record after a "
+            "payout is rejected - not a service, not a view, not a management "
+            "command, and not even a Django Admin action; the admin has no "
+            "action for it, only a manual field edit on the change form. So "
+            "approved_tokens was structurally zero for every chef who has ever "
+            "existed, the 2000 minimum was unreachable, and no payout request "
+            "could ever be created. The whole Stripe payout half of the "
+            "economy was reachable only by hand-editing a database field. "
+            "A REWARD HAS TWO POSSIBLE ENDS AND THEY EXCLUDE EACH OTHER, which "
+            "is what the models were saying all along: issue_reward() credits "
+            "the wallet with tokens and marks it ISSUED, or approval puts it on "
+            "the money path. Both now have a button on the moderation panel, "
+            "next to each other, each saying which end it is. Approving pays "
+            "nobody: it makes a record countable towards a payout the chef must "
+            "still request, and that request still passes DAC7, the reward "
+            "agreement, Stripe Connect onboarding, and the suspension, fraud "
+            "and block checks, none of which this touches. "
+            "AND A HAZARD FOUND BY LOOKING AT THE RENDERED PAGE, not by a test "
+            "- every test passed. An ALREADY APPROVED record was listed among "
+            "the undecided with both buttons live, and issue_reward() accepts "
+            "an APPROVED record, so one click would have quietly spent a "
+            "reward already counted towards a chef's payout into his wallet "
+            "instead, taking it off the money path with no warning. The panel "
+            "now offers only genuinely undecided rewards and shows the "
+            "approved ones in their own section with the total held. "
+            "SAME TWO LIMITS AS THE REST OF THE PANEL: no privilege flag is "
+            "written anywhere (AGENTS.md 20, proven by a test that reads the "
+            "view's source), and the `greenbear` account is refused outright "
+            "on both actions (AGENTS.md 18). "
+            "RISK AND ROLLBACK, because this is payout-adjacent: no migration, "
+            "no schema change, no money movement, and no change to any rate - "
+            "the only new write is one status transition an operator asks for "
+            "explicitly. Rollback is `git revert` of this commit followed by "
+            "/srv/culineire/scripts/deploy.sh; any record already approved can "
+            "be moved back by the same operator path that returns one today."
+        ),
+    },
+    {
         "version": "2.5.1780",
         "date": "2026-09-05",
         "commit": "5ce15ef2",
