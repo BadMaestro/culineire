@@ -31816,3 +31816,159 @@ class TheChefIsToldWhereHisMoneyIsTests(TestCase):
         mail.outbox = []
         self.assertEqual(run_next_battle_unlock_for_chef(self.chef), 3)
         self.assertEqual(len(mail.outbox), 1)
+
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True, OWNER_SLUG="greenbear")
+class ThePayoutRecordsTheRealFeeTests(TestCase):
+    """The Owner, 2026-09-05, choosing how the commission is calculated:
+    "Фактическая комиссия Stripe, сколько бы она ни была."
+
+    So it is READ BACK from the transfer's own balance transaction after the
+    money moves, because nobody - Stripe included - knows it before then. And
+    a fee that Stripe did not report is stored as NULL, never as zero: a
+    receipt printing "EUR 0.00" for "we do not know" would be a receipt that
+    lies.
+    """
+
+    def setUp(self):
+        self.user, self.chef = _make_chef("fee-chef")
+        self.user.email = "feechef@example.test"
+        self.user.save(update_fields=["email"])
+
+    def _fake_transfer(self, fee_minor=None, expanded=True, txn_id="txn_1"):
+        if fee_minor is None and not expanded:
+            return {"id": "tr_1", "balance_transaction": txn_id}
+        if fee_minor is None:
+            return {"id": "tr_1", "balance_transaction": None}
+        return {
+            "id": "tr_1",
+            "balance_transaction": {"id": txn_id, "fee": fee_minor},
+        }
+
+    def test_the_fee_comes_off_the_balance_transaction(self):
+        from decimal import Decimal
+
+        from .services import _read_transfer_fee
+
+        fee, txn = _read_transfer_fee(self._fake_transfer(fee_minor=37))
+        self.assertEqual(fee, Decimal("0.37"))
+        self.assertEqual(txn, "txn_1")
+
+    def test_a_fee_stripe_did_not_report_is_none_and_not_zero(self):
+        from .services import _read_transfer_fee
+
+        fee, txn = _read_transfer_fee(self._fake_transfer(fee_minor=None))
+        self.assertIsNone(fee)
+        self.assertEqual(txn, "")
+
+    def test_an_unexpanded_balance_transaction_keeps_its_id(self):
+        """Older API version or a stubbed client: we still know WHICH
+        transaction to reconcile against, we just do not know the number."""
+        from .services import _read_transfer_fee
+
+        fee, txn = _read_transfer_fee(
+            self._fake_transfer(fee_minor=None, expanded=False, txn_id="txn_9"))
+        self.assertIsNone(fee)
+        self.assertEqual(txn, "txn_9")
+
+    def test_reading_the_fee_never_raises_after_money_has_moved(self):
+        from .services import _read_transfer_fee
+
+        class Hostile:
+            def get(self, *a, **kw):
+                raise RuntimeError("Stripe object exploded")
+
+        fee, txn = _read_transfer_fee(Hostile())
+        self.assertIsNone(fee)
+        self.assertEqual(txn, "")
+
+    # -- the receipt --
+
+    def _paid_payout(self, fee=None, net=None):
+        from decimal import Decimal
+
+        from .models import PayoutRequest
+
+        return PayoutRequest.objects.create(
+            chef=self.chef, amount_reward_tokens=800,
+            gross_payout_eur=Decimal("20.00"),
+            fee_eur=fee, net_payout_eur=net,
+            status=PayoutRequest.Status.PAID, paid_at=timezone.now(),
+            stripe_transfer_id="tr_1", stripe_balance_transaction_id="txn_1",
+        )
+
+    def test_the_receipt_goes_to_the_chef_and_to_the_owner(self):
+        """His instruction: "чек об проведённой оплате на емеил клиенту и мне"."""
+        from decimal import Decimal
+
+        from django.core import mail
+
+        from .services import _email_payout_paid
+
+        owner_user = get_user_model().objects.create_user(
+            username="owner-receipt", password="pw", email="owner@example.test")
+        # The seed data may already carry a greenbear author; the receipt goes
+        # to whoever that account's user is, so give THAT user the address
+        # rather than assuming a fresh row was created.
+        owner, created = RecipeAuthor.objects.get_or_create(
+            slug="greenbear", defaults={"name": "GreenBear", "user": owner_user})
+        if not created:
+            if owner.user_id is None:
+                owner.user = owner_user
+                owner.save(update_fields=["user"])
+            else:
+                owner.user.email = "owner@example.test"
+                owner.user.save(update_fields=["email"])
+
+        mail.outbox = []
+        _email_payout_paid(self._paid_payout(Decimal("0.37"), Decimal("19.63")))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertCountEqual(
+            mail.outbox[0].to, ["feechef@example.test", "owner@example.test"])
+
+    def test_the_receipt_states_gross_fee_and_net(self):
+        from decimal import Decimal
+
+        from django.core import mail
+
+        from .services import _email_payout_paid
+
+        mail.outbox = []
+        _email_payout_paid(self._paid_payout(Decimal("0.37"), Decimal("19.63")))
+        body = mail.outbox[0].body
+        self.assertIn("20.00", body)
+        self.assertIn("0.37", body)
+        self.assertIn("19.63", body)
+
+    def test_an_unknown_fee_is_said_out_loud_not_printed_as_zero(self):
+        from django.core import mail
+
+        from .services import _email_payout_paid
+
+        mail.outbox = []
+        _email_payout_paid(self._paid_payout(None, None))
+        body = mail.outbox[0].body
+        self.assertIn("not reported", body)
+        self.assertNotIn("EUR 0.00", body)
+
+    def test_a_failing_receipt_never_looks_like_a_failed_payout(self):
+        """Money has already moved by the time this runs."""
+        from .services import _email_payout_paid
+
+        class Broken:
+            pk = 1
+            chef = None
+        _email_payout_paid(Broken())   # must not raise
+
+    def test_the_transfer_asks_stripe_to_expand_the_balance_transaction(self):
+        """Without the expand there is no fee to read, and the receipt would
+        have nothing true to say."""
+        import inspect
+
+        from . import services
+
+        source = inspect.getsource(services._execute_stripe_connect_transfer)
+        self.assertIn('expand=["balance_transaction"]', source)
+        self.assertIn("_read_transfer_fee", source)
+        self.assertIn("_email_payout_paid", source)

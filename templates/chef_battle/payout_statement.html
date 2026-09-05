@@ -193,7 +193,14 @@
       <div class="battle-table__row battle-table__row--4col">
         <span>{{ p.requested_at|date:"j M Y" }}</span>
         <span>{{ p.amount_reward_tokens }}T</span>
-        <span>€{{ p.gross_payout_eur }}</span>
+        <span>
+          €{{ p.gross_payout_eur }}
+          {% if p.fee_eur is not None %}
+          <br><small class="payout-why">less €{{ p.fee_eur }} provider fee = <strong>€{{ p.net_payout_eur }}</strong></small>
+          {% elif p.status == "paid" %}
+          <br><small class="payout-why">provider fee not reported</small>
+          {% endif %}
+        </span>
         <span class="payout-status payout-status--{{ p.status }}">{{ p.get_status_display }}</span>
       </div>
       {% endfor %}

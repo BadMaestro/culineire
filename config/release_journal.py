@@ -1,5 +1,52 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1816",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "The payout now records what Stripe actually charged, and sends the receipt to the chef and to the Owner",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "HIS CHOICE, 2026-09-05, between a quoted price and the real one: "
+            "\"Фактическая комиссия Stripe, сколько бы она ни была\". So it is "
+            "read back rather than assumed. The transfer now asks Stripe to "
+            "expand the balance transaction in the same call, because that is "
+            "the only place the fee for that particular transfer exists - "
+            "nobody, Stripe included, knows it beforehand. PayoutRequest gains "
+            "three fields (migration 0126): what the provider charged, what is "
+            "left, and the balance-transaction id to reconcile against. "
+            "A FEE STRIPE DID NOT REPORT IS STORED AS NULL, NEVER AS ZERO. The "
+            "difference is the whole honesty of the document: a receipt "
+            "printing EUR 0.00 for \"we do not know\" is a receipt that lies. "
+            "When the figure is missing the receipt says so in words, and the "
+            "balance-transaction id is still kept when only the number was "
+            "unavailable, so the payment can be reconciled by hand. "
+            "THE RECEIPT GOES TO BOTH, as he asked - \"чек об проведённой "
+            "оплате на емеил клиенту и мне\" - and it is ONE document with both "
+            "addresses on it, so neither side can be told a different number "
+            "about the same payment. Tokens, rate, gross, fee, net, transfer "
+            "id, balance transaction id. The payout page shows the same "
+            "breakdown under each paid row. "
+            "NOTHING IS ALLOWED TO UNDO A PAYMENT THAT ALREADY HAPPENED. Both "
+            "the fee read and the receipt run after the money has moved, so "
+            "both swallow their own failures: a hostile Stripe object returns "
+            "no fee instead of raising, and a broken receipt logs instead of "
+            "turning a successful payout into an exception. Tests cover both "
+            "with deliberately broken inputs. "
+            "ONE THING I DID NOT DECIDE, and it is the last step rather than "
+            "an oversight: the transfer still sends the FULL gross. Deducting "
+            "the fee from the transfer itself requires knowing which side "
+            "Stripe charges in this account's configuration, and guessing that "
+            "means underpaying a chef. The first real payout puts the true "
+            "number on a receipt; after that, subtracting it is one line. "
+            "EVIDENCE: full suite on PostgreSQL, 2837 tests across 8 workers, "
+            "21 minutes, 0 failures, 3 skipped. makemigrations --check reports "
+            "no further changes. ROLLBACK: git revert this commit, then "
+            "migrate chef_battle 0125, then /srv/culineire/scripts/deploy.sh - "
+            "the three new fields are nullable and additive, so nothing "
+            "existing depends on them."
+        ),
+    },
+    {
         "version": "2.5.1813",
         "date": "2026-09-05",
         "commit": "f0b71945",

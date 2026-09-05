@@ -1,0 +1,27 @@
+PAYOUT RECEIPT — CulinEire Chef Battles
+
+Payout request:   #{{ payout.pk }}
+Chef:             {{ chef_name }}
+Paid on:          {{ paid_at }}
+
+  Reward tokens:        {{ tokens }}
+  Rate:                 EUR {{ rate }} per token
+  Gross:                EUR {{ gross }}
+{% if fee_known %}  Payment provider fee: EUR {{ fee }}
+  Net:                  EUR {{ net }}
+{% else %}  Payment provider fee: not reported by the provider for this transfer
+  Net:                  EUR {{ gross }} less any fee the provider applies
+{% endif %}
+The fee above is what the payment provider actually charged for this
+transfer. CulinEire adds no commission of its own.
+
+Stripe transfer:      {{ transfer_id|default:"—" }}
+Balance transaction:  {{ balance_txn_id|default:"—" }}
+
+Your rewards page: {{ payout_url }}
+
+This is a receipt for a discretionary platform reward payout. Reward tokens
+are not money, not user funds and not electronic money.
+
+-- CulinEire
+{{ site_url }}

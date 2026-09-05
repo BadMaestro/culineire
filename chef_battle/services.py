@@ -4980,6 +4980,93 @@ def reject_payout_request(payout_request_id: int, reviewed_by_user, reason: str)
     return payout
 
 
+
+def _read_transfer_fee(transfer):
+    """(fee as Decimal EUR, balance transaction id) from a Stripe transfer.
+
+    Returns (None, "") when Stripe reported no balance transaction - which is
+    a real outcome and not the same as a fee of zero. A receipt that printed
+    "EUR 0.00" for "we do not know" would be a receipt that lies.
+
+    Written defensively on purpose: this runs immediately after money has
+    moved, and nothing about reading a number afterwards is allowed to turn a
+    successful payout into an exception.
+    """
+    from decimal import Decimal
+
+    try:
+        txn = transfer.get("balance_transaction")
+        if txn is None:
+            return None, ""
+        if isinstance(txn, str):
+            # Not expanded (an older API version, or a stubbed client).
+            return None, txn
+        fee_minor = txn.get("fee")
+        if fee_minor is None:
+            return None, txn.get("id", "") or ""
+        return (Decimal(int(fee_minor)) / Decimal(100)), (txn.get("id", "") or "")
+    except Exception:
+        logger.exception("Could not read the fee off a Stripe transfer")
+        return None, ""
+
+
+def _email_payout_paid(payout) -> None:
+    """The receipt: to the chef, and to the Owner.
+
+    His instruction, 2026-09-05: "чек об проведённой оплате на емеил клиенту и
+    мне". Both copies are the same document, so neither side can be told a
+    different number about the same payment.
+    """
+    from django.conf import settings as _settings
+
+    try:
+        from config.email_utils import build_absolute_url, sanitize_email_subject, send_template_mail
+        from recipes.models import RecipeAuthor
+
+        chef_user = getattr(payout.chef, "user", None)
+        recipients = []
+        chef_email = getattr(chef_user, "email", "")
+        if chef_email:
+            recipients.append(chef_email)
+
+        owner = RecipeAuthor.objects.filter(
+            slug=getattr(_settings, "OWNER_SLUG", "greenbear")).first()
+        owner_email = getattr(getattr(owner, "user", None), "email", "")
+        if owner_email and owner_email not in recipients:
+            recipients.append(owner_email)
+        if not recipients:
+            return
+
+        send_template_mail(
+            subject=sanitize_email_subject(
+                "Payout #%s paid: EUR %s to %s"
+                % (payout.pk, payout.gross_payout_eur, payout.chef.name)),
+            template="payout_paid",
+            context={
+                "payout": payout,
+                "chef_name": payout.chef.name,
+                "tokens": payout.amount_reward_tokens,
+                "rate": payout.payout_rate_snapshot,
+                "gross": payout.gross_payout_eur,
+                "fee": payout.fee_eur,
+                "net": payout.net_payout_eur,
+                "fee_known": payout.fee_eur is not None,
+                "transfer_id": payout.stripe_transfer_id,
+                "balance_txn_id": payout.stripe_balance_transaction_id,
+                "paid_at": timezone.localtime(payout.paid_at).strftime("%d %b %Y, %H:%M")
+                if payout.paid_at else "",
+                "payout_url": build_absolute_url(reverse("chef_battle:payout_statement")),
+            },
+            recipient_list=recipients,
+            fail_silently=True,
+        )
+    except Exception:
+        # Money has already moved. A receipt is never allowed to look like a
+        # failed payout.
+        logger.exception("Could not email the receipt for PayoutRequest #%s",
+                         getattr(payout, "pk", "?"))
+
+
 def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
     """Attempt a Stripe Connect transfer for an approved payout. Updates status to PAID on success.
 
@@ -5024,8 +5111,13 @@ def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
             destination=payout.stripe_connect_account_id,
             metadata={"payout_request_id": str(payout.pk), "chef": str(payout.chef_id)},
             idempotency_key=f"payout-transfer-{payout.pk}",
+            # Ask for the balance transaction in the same call: it is the only
+            # place the REAL fee for this transfer exists, and the Owner chose
+            # the real one over a quoted price on 2026-09-05.
+            expand=["balance_transaction"],
         )
         transfer_id = transfer.get("id", "")
+        fee_eur, balance_txn_id = _read_transfer_fee(transfer)
         with transaction.atomic():
             pr = PayoutRequest.objects.select_for_update().get(pk=payout.pk)
             if pr.status != PayoutRequest.Status.PROCESSING:
@@ -5044,7 +5136,16 @@ def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
             )
             pr.stripe_transfer_id = transfer_id
             pr.paid_at = timezone.now()
-            pr.save(update_fields=["status", "stripe_transfer_id", "paid_at", "updated_at"])
+            pr.stripe_balance_transaction_id = balance_txn_id
+            pr.fee_eur = fee_eur
+            # NULL fee is not a zero fee. If Stripe reported nothing we say so
+            # on the receipt rather than printing a confident "EUR 0.00".
+            pr.net_payout_eur = (
+                (pr.gross_payout_eur - fee_eur) if fee_eur is not None else None
+            )
+            pr.save(update_fields=[
+                "status", "stripe_transfer_id", "paid_at", "fee_eur",
+                "net_payout_eur", "stripe_balance_transaction_id", "updated_at"])
             LedgerEvent.objects.create(
                 event_type=LedgerEvent.EventType.ADMIN_NOTE,
                 actor=payout.chef,
@@ -5056,10 +5157,15 @@ def _execute_stripe_connect_transfer(payout: "PayoutRequest") -> None:
                     "payout_request_id": payout.pk,
                     "stripe_transfer_id": transfer_id,
                     "gross_eur": str(payout.gross_payout_eur),
+                    "fee_eur": None if fee_eur is None else str(fee_eur),
+                    "net_eur": None if fee_eur is None else str(pr.net_payout_eur),
+                    "stripe_balance_transaction_id": balance_txn_id,
                     "compliance_flags": compliance_flags,
                 },
             )
-        logger.info("PayoutRequest #%s paid: transfer %s", payout.pk, transfer_id)
+        _email_payout_paid(pr)
+        logger.info("PayoutRequest #%s paid: transfer %s (fee %s)",
+                    payout.pk, transfer_id, fee_eur)
     except ImportError:
         logger.error("stripe package not installed — cannot execute transfer for PayoutRequest #%s", payout.pk)
         PayoutRequest.objects.filter(

@@ -1,0 +1,74 @@
+{% extends "emails/base.html" %}
+
+{% block subject %}Payout #{{ payout.pk }} paid — €{{ gross }}{% endblock %}
+
+{% block content %}
+<h1 style="margin:0 0 4px;font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:700;color:#1f2c25;line-height:1.3;text-align:center;">Payout Receipt</h1>
+<p style="margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;font-size:13px;color:#7a6a58;text-align:center;">
+  Request #{{ payout.pk }} &middot; {{ paid_at }}
+</p>
+
+<p style="margin:0 0 16px;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;line-height:1.7;">
+  Chef: <strong>{{ chef_name }}</strong>
+</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 20px;border-collapse:collapse;font-family:'Inter',system-ui,sans-serif;font-size:15px;color:#42514a;">
+  <tr>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;">Reward tokens</td>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;text-align:right;">{{ tokens }}</td>
+  </tr>
+  <tr>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;">Rate</td>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;text-align:right;">&euro;{{ rate }} per token</td>
+  </tr>
+  <tr>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;">Gross</td>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;text-align:right;">&euro;{{ gross }}</td>
+  </tr>
+  {% if fee_known %}
+  <tr>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;">Payment provider fee</td>
+    <td style="padding:8px 0;border-bottom:1px solid #e6ded3;text-align:right;">&minus; &euro;{{ fee }}</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 0;"><strong>Net</strong></td>
+    <td style="padding:10px 0;text-align:right;"><strong>&euro;{{ net }}</strong></td>
+  </tr>
+  {% else %}
+  <tr>
+    <td style="padding:8px 0;" colspan="2">
+      <span style="color:#7a6a58;">The payment provider reported no fee figure for this transfer.</span>
+    </td>
+  </tr>
+  {% endif %}
+</table>
+
+<p style="margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#7a6a58;line-height:1.6;">
+  The fee above is what the payment provider actually charged for this transfer.
+  CulinEire adds no commission of its own.
+</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 20px;border-collapse:collapse;font-family:'Inter',system-ui,sans-serif;font-size:13px;color:#7a6a58;">
+  <tr>
+    <td style="padding:4px 0;">Stripe transfer</td>
+    <td style="padding:4px 0;text-align:right;">{{ transfer_id|default:"&mdash;" }}</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 0;">Balance transaction</td>
+    <td style="padding:4px 0;text-align:right;">{{ balance_txn_id|default:"&mdash;" }}</td>
+  </tr>
+</table>
+
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 24px;">
+  <tr>
+    <td style="text-align:center;">
+      <a href="{{ payout_url }}" style="display:inline-block;background-color:#184c3a;color:#faf6f0;font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:500;text-decoration:none;padding:13px 28px;border-radius:4px;">My rewards</a>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0;font-family:'Inter',system-ui,sans-serif;font-size:12px;color:#9c8e7c;line-height:1.6;">
+  This is a receipt for a discretionary platform reward payout. Reward tokens are not money,
+  not user funds and not electronic money.
+</p>
+{% endblock %}

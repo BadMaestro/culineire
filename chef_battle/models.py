@@ -2492,6 +2492,24 @@ class PayoutRequest(models.Model):
         max_digits=10, decimal_places=2,
         help_text="Gross payout before any deductions (tokens × rate)",
     )
+    # WHAT THE PAYMENT PROVIDER ACTUALLY CHARGED, recorded rather than
+    # assumed. The Owner, 2026-09-05, choosing between a quoted price and the
+    # real one: "Фактическая комиссия Stripe, сколько бы она ни была". It is
+    # read back from the transfer's own balance transaction after the money
+    # moves, because nobody - including Stripe - knows it before then.
+    #
+    # NULL is not zero here and the difference matters on a receipt: null
+    # means Stripe reported no figure for this transfer, zero means it
+    # reported a fee of nothing.
+    fee_eur = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Fee the payment provider actually charged, read back after the transfer",
+    )
+    net_payout_eur = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Gross minus the provider's fee, once the fee is known",
+    )
+    stripe_balance_transaction_id = models.CharField(max_length=100, blank=True, db_index=True)
     currency = models.CharField(max_length=3, default="eur")
     stripe_connect_account_id = models.CharField(max_length=100, blank=True, db_index=True)
     stripe_transfer_id = models.CharField(max_length=100, blank=True, db_index=True)
