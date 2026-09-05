@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1774",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "80852604",
         "title": "The six tails: the chat is one block again, the Arena gets a voice, and the knife cursor's last markup goes",
         "section": "Chef Battles / Site",
         "summary": (
