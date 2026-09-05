@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1792",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "36de4f92",
         "title": "A gift is a gift until the chef sells it, and selling it returns a quarter - his rule, and the code was doing neither half",
         "section": "Chef Battles / Arena",
         "summary": (
