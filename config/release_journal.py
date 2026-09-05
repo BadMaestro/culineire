@@ -1,5 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1777",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "LEDO Drive isolated staff preview",
+        "section": "Site",
+        "summary": (
+            "Adds LEDO at /ledo/ on the existing server: staff-only preview, "
+            "supplied logo, booking request models, operator administration, "
+            "and Oslo-time handling. No public ordering, production fares or "
+            "payments enabled. Four-language content and document integration "
+            "remain in progress. Sources copied unchanged into local staged folders."
+        ),
+    },
+    {
         "version": "2.5.1774",
         "date": "2026-09-05",
         "commit": "80852604",
