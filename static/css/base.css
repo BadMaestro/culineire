@@ -2012,10 +2012,27 @@
     object-position: center 60%;
   }
 
+  /* THE PORTRAIT STANDS IN THE SAME COLUMN AS EVERYTHING ELSE.
+     .hero-author-avatar carries `margin-inline: auto` in content_cards.css,
+     which was right while this hero was centred and became wrong the moment
+     v2.5.1774 gave it the golden two-column layout: the pill, the H1, the bio
+     and the button row all sit at the copy's left edge, and the portrait alone
+     stayed in the middle of the 700px column - 310px in from the rest, which
+     is exactly half of (700 - 80). Nothing else moves; measured before and
+     after, the title stays at 395 and the row at 617.
+
+     justify-content is flex-start now, like every other hero. It was `center`
+     from the days when this copy was a centred block; under the golden layout
+     the inner is already top-anchored, so it decided nothing and only
+     disagreed with the group in writing. */
   .hero--author-profile .hero-copy {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
+  }
+
+  .hero--author-profile .hero-author-avatar {
+    margin-inline: 0;
   }
 
   /* THE AUTHOR PROFILE HERO IS BACK ON THE GOLDEN VALUES.
@@ -5171,7 +5188,18 @@
 .hero--home.hero--recipe-form:not(.hero--recipe-detail):not(.hero--about),
 .hero--home.hero--article-form:not(.hero--recipe-detail):not(.hero--about),
 .hero--home.hero--pinch-form:not(.hero--recipe-detail):not(.hero--about),
-.hero--home.hero--inbox:not(.hero--recipe-detail):not(.hero--about) {
+.hero--home.hero--inbox:not(.hero--recipe-detail):not(.hero--about),
+/* THE AUTHOR PROFILE JOINS THE PINNED SET. Owner, 2026-09-05: the hero on the
+   author page was SHORTER than the homepage's and that breaks the golden rule.
+   It was, by 30.39px, and only for an account with no bio: without a subtitle
+   its content falls under the site-wide 503px floor while every page in this
+   list stands on 533.39px. An author who had written a bio was already over
+   both, which is why it read as intermittent rather than broken.
+   The scoping comment above says this list exists for the pages that carry a
+   pinned BUTTON ROW - the author hero carries one, so it belongs here. Nothing
+   else about it changes: measured before and after, a page with a bio stays at
+   538px, and one without goes 503 -> 533.39, level with the homepage. */
+.hero--home.hero--author-profile:not(.hero--recipe-detail):not(.hero--about) {
   /* Specificity intentionally matched to the Group 1.1 rule above (3
      classes: .hero--home + 2x :not()) via the redundant, always-true
      :not() clauses, so this later rule wins the cascade instead of

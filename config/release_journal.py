@@ -1,5 +1,37 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1786",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "The author hero stands on the homepage's floor, and the portrait joins the column",
+        "section": "Site",
+        "summary": (
+            "THE OWNER: the author page's hero is SHORTER than the homepage's, "
+            "apply the golden rule and never break it again. He is right and "
+            "the gap is 30.39px. base.css carries two floors in its LOCKED "
+            "layout block: 503px site-wide, and clamp(320px, 44vw, 533.39px) "
+            "for every page carrying a pinned BUTTON ROW. The author hero "
+            "carries one and was not in that list. It is now, at the same "
+            "specificity as the rest. "
+            "IT ONLY SHOWED FOR AN ACCOUNT WITH NO BIO - his own. With a "
+            "subtitle the content clears both floors and the two pages match, "
+            "which is why comparing against /recipes/ and "
+            "/legal/company-information/ never caught it. Measured: no bio "
+            "503 -> 533.39, level with the homepage; with a bio 538, "
+            "unchanged. "
+            "The portrait also stood in the middle of the 700px column while "
+            "the pill, the H1, the bio and the buttons sat at its left edge - "
+            "310px in, exactly half of (700 - 80). content_cards.css gives it "
+            "margin-inline: auto, which was right while this hero was centred "
+            "and wrong from the moment v2.5.1774 gave it the golden two-column "
+            "layout. Zeroed for this hero only, and justify-content on the "
+            "copy goes to flex-start with it. "
+            "Two CSS rules, focused tests, NO full suite: the Owner stopped "
+            "that one himself and AGENTS.md says the same - do not run 1,500 "
+            "tests after a small edit."
+        ),
+    },
+    {
         "version": "2.5.1783",
         "date": "2026-09-05",
         "commit": "b16e9f03",
