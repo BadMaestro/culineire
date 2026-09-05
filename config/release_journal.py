@@ -1,5 +1,62 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1792",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "A gift is a gift until the chef sells it, and selling it returns a quarter - his rule, and the code was doing neither half",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "HIS RULING, 2026-09-05, in his own words: \"если цветы стоили 80 "
+            "токенов, значит зритель заплатил за них 80 токенов, если шеф после "
+            "боя решил сдать цветы назад в магазин то это он получает 25% от 80 "
+            "токенов в не я\". Flowers cost 80; selling them back returns 20. "
+            "THE CODE WAS DOING NEITHER HALF. send_appreciation_gift created a "
+            "pending LSR record for the gift's FULL price the instant it "
+            "arrived - APPRECIATION_GIFT_REWARD_BASIS, a second table of "
+            "numbers whose comment read '1 token spent = 1 pending LSR'. So "
+            "'the chef may sell his gifts back to the shop' described "
+            "something that had already happened to him automatically, at four "
+            "times the rate he had set. A gift is now a gift: it lands on the "
+            "chef, it persists, and it is worth nothing until he decides to "
+            "part with it. "
+            "ONE RATE, ONE PLACE. APPRECIATION_GIFT_SELL_BACK_PCT = 25 and the "
+            "table is derived from the shelf prices rather than typed a second "
+            "time - a second table of numbers is a second rate waiting to "
+            "drift, which is exactly what the old one had done. Coffee 20 to 5, "
+            "beer 30 to 8, whiskey 50 to 13, flowers 80 to 20, cocktail 80 to "
+            "20, champagne 100 to 25. Rounded half up, not Python's banker's "
+            "rounding, so a 50-token whiskey returns 13 and not 12. It is the "
+            "same quarter the rest of the economy runs on: a token is bought "
+            "at EUR 0.10 and paid out at EUR 0.025. "
+            "THE CHEF DECIDES, from his own room, next to his wallet - not a "
+            "new page. Selling twice is impossible because RewardRecord."
+            "related_gift points at the gift and a second sale has nowhere to "
+            "go, which also means no new field and no migration. Selling "
+            "somebody else's gift is refused. The record is created PENDING and "
+            "nothing reaches a wallet: the arena's own closing checks still "
+            "apply - a completed eligible battle, then an operator releasing "
+            "it - which is the other half of his rule and was already built. "
+            "BOTH PUBLIC PAGES CORRECTED. The rules page and the legal "
+            "purchases page both said a chef receives a grant reflecting the "
+            "gift's cost simply because it was sent. They now say he keeps the "
+            "gift and gets 25% if he chooses to sell it. audience_gifts.md's "
+            "table gains the sell-back column and loses its 'creates a pending "
+            "LSR' one. "
+            "THE FULL SUITE WAS RUN, on his instruction, because this moves "
+            "money: 2799 tests on PostgreSQL across 8 workers, 21 minutes. It "
+            "earned its keep on the first pass - ChargebackHoldsExisting"
+            "PayoutsTests failed, a test no targeted run of mine had touched, "
+            "because it assumed a reward exists the moment a gift arrives. It "
+            "now sells the gift first. Second full run: 2799 passed, 3 skipped, "
+            "0 failures. "
+            "RISK AND ROLLBACK: no migration and no schema change. Existing "
+            "reward records are untouched - the change is what happens to NEW "
+            "gifts, and the only new write is one PENDING record a chef asks "
+            "for. Rollback is git revert of this commit then "
+            "/srv/culineire/scripts/deploy.sh."
+        ),
+    },
+    {
         "version": "2.5.1789",
         "date": "2026-09-05",
         "commit": "pending",

@@ -138,6 +138,47 @@
     </div>
     {% endif %}
 
+    {# ── Gifts from the stands ── #}
+    {% if my_gifts %}
+    <div class="cr-gifts">
+      <h2 class="chest-section__title">Gifts From The Stands</h2>
+      <p class="cr-gifts__note">
+        A gift is yours to keep. If you would rather have tokens for one, sell it back
+        to the shop &mdash; you get a quarter of what the viewer paid, and the tokens
+        stay pending until you finish an eligible battle and the reward is released.
+      </p>
+
+      {% if gift_error %}<p class="cr-gifts__msg cr-gifts__msg--err">{{ gift_error }}</p>{% endif %}
+      {% if gift_sold %}
+      <p class="cr-gifts__msg cr-gifts__msg--ok">
+        Sold back for {{ gift_sold.tokens_granted }} token{{ gift_sold.tokens_granted|pluralize }}, pending release.
+      </p>
+      {% endif %}
+
+      <ul class="cr-gift-list">
+        {% for row in my_gifts %}
+        <li class="cr-gift">
+          <span class="cr-gift__emoji" aria-hidden="true">{{ row.emoji }}</span>
+          <span class="cr-gift__name">{{ row.label }}</span>
+          <span class="cr-gift__paid">{{ row.paid }}T paid</span>
+          {% if row.sold_status %}
+          <span class="cr-gift__state">Sold back &middot; {{ row.sold_status }}</span>
+          {% elif row.sellable %}
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="sell_gift">
+            <input type="hidden" name="gift" value="{{ row.gift.pk }}">
+            <button class="btn-secondary" type="submit">Sell back for {{ row.sell_back }}T</button>
+          </form>
+          {% else %}
+          <span class="cr-gift__state">Keepsake</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
   </div>
 </section>
 {% endblock %}

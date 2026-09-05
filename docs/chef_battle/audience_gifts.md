@@ -72,14 +72,31 @@ collection (trophies from the audience).
 
 Canonical source: `chef_battle/models.py` → `APPRECIATION_GIFT_COST`.
 
-| Gift | Emoji | Token cost | Creates a pending LSR |
-|------|-------|------------|------------------------|
-| Coffee | ☕ | 20 tokens | yes |
-| Virtual Beer Toast | 🍺 | 30 tokens | yes |
-| Virtual Whiskey Toast | 🥃 | 50 tokens | yes |
-| Flowers | 🌷 | 80 tokens | yes |
-| Celebration Cocktail | 🍸 | 80 tokens | yes |
-| Virtual Champagne Bottle | 🍾 | 100 tokens | yes |
+| Gift | Emoji | Token cost | Sells back for |
+|------|-------|------------|----------------|
+| Coffee | ☕ | 20 tokens | 5 tokens |
+| Virtual Beer Toast | 🍺 | 30 tokens | 8 tokens |
+| Virtual Whiskey Toast | 🥃 | 50 tokens | 13 tokens |
+| Flowers | 🌷 | 80 tokens | 20 tokens |
+| Celebration Cocktail | 🍸 | 80 tokens | 20 tokens |
+| Virtual Champagne Bottle | 🍾 | 100 tokens | 25 tokens |
+
+**A gift does NOT create a reward by arriving.** The Owner, 2026-09-05, asked
+directly and answering a table that granted the chef the gift's full price the
+instant it was sent:
+
+> "если цветы стоили 80 токенов, значит зритель заплатил за них 80 токенов, если шеф
+> после боя решил сдать цветы назад в магазин то это он получает 25% от 80 токенов в не я"
+
+The gift is the chef's to keep. If he sells it back, `sell_appreciation_gift_
+back()` creates a PENDING LSR record for `APPRECIATION_GIFT_SELL_BACK_PCT` of
+what the viewer paid - 25%, the same quarter a token is bought at EUR 0.10 and
+paid out at EUR 0.025. Rounded half up, so a 50-token whiskey returns 13.
+The record then waits for the arena's own closing checks (a completed eligible
+battle) and an operator releasing it, exactly as before.
+
+Canonical source for the rate: `APPRECIATION_GIFT_SELL_BACK_PCT` in
+`chef_battle/models.py`. The table above is derived from it, not typed twice.
 
 Unlike a combat artifact, an appreciation gift carries **no delivery fee** —
 it is not an intervention in a running battle, so there is no right to buy.

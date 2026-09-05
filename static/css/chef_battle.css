@@ -2429,6 +2429,31 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
 
 /* Battle chest */
 .chest-section { margin-bottom: 2.5rem; }
+/* ── Gifts from the stands, in the chef's own room ─────────────────────────
+   Light in both colour schemes on purpose, like the kit screen: the one dark
+   override in this file has no palette behind it and takes .btn-secondary
+   down with it. */
+.cr-gifts { margin-top: 2.5rem; }
+.cr-gifts__note { max-width: 62ch; color: var(--ink-soft, #42514a); margin: 0 0 1rem; }
+.cr-gifts__msg { margin: 0 0 1rem; padding: .55rem .8rem; border-radius: 9px; }
+.cr-gifts__msg--ok { background: color-mix(in srgb, var(--accent, #b8860b) 14%, transparent); }
+.cr-gifts__msg--err { background: color-mix(in srgb, var(--danger, #a8321f) 12%, transparent); color: var(--danger, #a8321f); }
+.cr-gift-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .4rem; }
+.cr-gift {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .45rem .6rem .45rem .75rem;
+  border: 1px solid rgb(58 44 30 / 0.12); border-radius: 8px;
+  background: var(--surface-alt, #f5f5f5); color: var(--ink, #292929);
+  min-height: 2.6rem;
+}
+.cr-gift__emoji { font-size: 1.15rem; }
+.cr-gift__name { font-weight: 600; }
+.cr-gift__paid { color: var(--ink-soft, #42514a); font-size: .85rem; }
+.cr-gift__state { margin-left: auto; font-size: .8rem; color: var(--ink-soft, #42514a); }
+.cr-gift form { margin-left: auto; }
+.cr-gift .btn-secondary { padding: .3rem .8rem; font-size: .82rem; min-height: 0; white-space: nowrap; }
+@media (max-width: 480px) { .cr-gift { flex-wrap: wrap; } .cr-gift form, .cr-gift__state { margin-left: 0; } }
+
 .chest-section__title { font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
 .chest-status-dot { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; flex-shrink: 0; }
 .chest-status-dot--available { background: #22c55e; }

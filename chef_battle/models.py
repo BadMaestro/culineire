@@ -1423,15 +1423,36 @@ APPRECIATION_GIFT_REWARD_ELIGIBLE = {
     AppreciationGiftType.VIRTUAL_CHAMPAGNE_BOTTLE: True,
 }
 
-# Pending LSR tokens awarded to the chef (recipient) per gift.
-# 1 token spent = 1 pending LSR (internal reward record, not immediate credit).
+#: What a chef gets back when he sells an appreciation gift to the shop, as a
+#: percentage of what the viewer paid for it.
+#:
+#: The Owner, 2026-09-05, asked directly and answering a table that said 100:
+#: "если цветы стоили 80 токенов, значит зритель заплатил за них 80 токенов,
+#: если шеф после боя решил сдать цветы назад в магазин то это он получает 25%
+#: от 80 токенов". Flowers cost 80, so selling them back is 20.
+#:
+#: It matches the rate the rest of the economy already runs on: a token is
+#: bought at EUR 0.10 and paid out at EUR 0.025, which is the same quarter.
+APPRECIATION_GIFT_SELL_BACK_PCT = 25
+
+
+def appreciation_gift_sell_back_value(gift_type) -> int:
+    """Tokens a chef receives for selling one gift back, rounded half up."""
+    from decimal import ROUND_HALF_UP, Decimal
+
+    cost = APPRECIATION_GIFT_COST.get(gift_type, 0)
+    return int((Decimal(cost) * Decimal(APPRECIATION_GIFT_SELL_BACK_PCT)
+                / Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+# WHAT A SOLD-BACK GIFT IS WORTH, derived from the shelf price above rather
+# than typed out a second time. This table used to say "1 token spent = 1
+# pending LSR" - the chef received the gift's FULL price, automatically, the
+# moment it arrived. Both halves of that were wrong against the Owner's rule:
+# the rate is a quarter, and the chef decides whether to sell at all.
 APPRECIATION_GIFT_REWARD_BASIS = {
-    AppreciationGiftType.COFFEE: 20,
-    AppreciationGiftType.VIRTUAL_BEER_TOAST: 30,
-    AppreciationGiftType.VIRTUAL_WHISKEY_TOAST: 50,
-    AppreciationGiftType.FLOWERS: 80,
-    AppreciationGiftType.CELEBRATION_COCKTAIL: 80,
-    AppreciationGiftType.VIRTUAL_CHAMPAGNE_BOTTLE: 100,
+    gift_type: appreciation_gift_sell_back_value(gift_type)
+    for gift_type in APPRECIATION_GIFT_COST
 }
 
 

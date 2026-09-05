@@ -3601,29 +3601,118 @@ def send_appreciation_gift(*, sender_user, recipient, gift_type: str, message: s
         # PENDING - nothing reaches a wallet until it is approved, which is
         # what the contract's section 9.4 requires.
         #
-        # LSR for recipient chef: pending reward record (not credited until approved + Next Battle Unlock)
-        if APPRECIATION_GIFT_REWARD_ELIGIBLE.get(gift_type, False):
-            chef_lsr_amount = APPRECIATION_GIFT_REWARD_BASIS.get(gift_type, cost)
-            chef_reward = RewardRecord.objects.create(
-                recipient=recipient,
-                reward_type=RewardRecord.RewardType.LSR,
-                tokens_granted=chef_lsr_amount,
-                reason=f"LSR: {sender_author.name} sent {gift_type}",
-                related_gift=gift,
-            )
-            LedgerEvent.objects.create(
-                event_type=LedgerEvent.EventType.LSR_GRANTED,
-                actor=recipient,
-                payload={
-                    "source": "appreciation_gift",
-                    "gift_type": gift_type,
-                    "tokens_pending": chef_lsr_amount,
-                    "reward_record_id": chef_reward.pk,
-                    "from": sender_author.slug,
-                },
-            )
+        # NO REWARD RECORD IS CREATED HERE ANY MORE - Owner, 2026-09-05. The
+        # gift arrives as a GIFT: it lands on the chef, it persists after the
+        # battle, and it is worth nothing until he decides to part with it.
+        # Until today this block granted him a pending LSR for the gift's FULL
+        # price the instant it was sent, which made "the chef may sell his
+        # gifts back to the shop" a sentence about something that had already
+        # happened to him automatically, at four times the rate he set. What
+        # replaces it is sell_appreciation_gift_back() below, which he calls.
+        LedgerEvent.objects.create(
+            event_type=LedgerEvent.EventType.LSR_GRANTED,
+            actor=recipient,
+            payload={
+                "source": "appreciation_gift_received",
+                "gift_type": gift_type,
+                "gift_id": gift.pk,
+                "tokens_paid_by_viewer": cost,
+                "sellable": bool(APPRECIATION_GIFT_REWARD_ELIGIBLE.get(gift_type, False)),
+                "from": sender_author.slug,
+            },
+        )
 
     return gift
+
+
+def appreciation_gifts_for_chef(chef):
+    """Every appreciation gift this chef holds, with what selling it would give.
+
+    A gift is "sold" when a RewardRecord points at it - `related_gift` has
+    always been on the model and is the only marker needed, so nothing here
+    wants a new field or a migration.
+    """
+    from .models import (
+        APPRECIATION_GIFT_EMOJI, APPRECIATION_GIFT_REWARD_ELIGIBLE,
+        AppreciationGift, RewardRecord, appreciation_gift_sell_back_value,
+    )
+
+    gifts = list(
+        AppreciationGift.objects.filter(recipient=chef)
+        .select_related("sender")
+        .order_by("-sent_at")[:200]
+    )
+    sold = dict(
+        RewardRecord.objects
+        .filter(related_gift__in=gifts)
+        .values_list("related_gift_id", "status")
+    )
+    rows = []
+    for gift in gifts:
+        rows.append({
+            "gift": gift,
+            "emoji": APPRECIATION_GIFT_EMOJI.get(gift.gift_type, "\U0001F381"),
+            "label": gift.get_gift_type_display(),
+            "paid": gift.tokens_spent,
+            "sell_back": appreciation_gift_sell_back_value(gift.gift_type),
+            "sellable": bool(APPRECIATION_GIFT_REWARD_ELIGIBLE.get(gift.gift_type, False)),
+            "sold_status": sold.get(gift.pk),
+        })
+    return rows
+
+
+@transaction.atomic
+def sell_appreciation_gift_back(*, gift, chef):
+    """The chef sells one appreciation gift back to the shop.
+
+    The Owner's rule, 2026-09-05: the viewer paid the shelf price, and a chef
+    who decides to part with the gift afterwards receives
+    APPRECIATION_GIFT_SELL_BACK_PCT of it - a quarter, the same quarter a
+    token is paid out at.
+
+    It creates a PENDING LSR record and nothing else. Nothing reaches a wallet
+    here: the record still waits for the arena's own closing checks - a
+    completed, eligible battle after it was created, which check_next_battle_
+    unlock() enforces - and then for an operator to release it. That is the
+    "after the battle, when the closing and checking rules are satisfied" half
+    of his rule, and it was already built; this is what feeds it.
+
+    Selling twice is refused by the record itself: RewardRecord.related_gift
+    points at the gift, so a second sale has nowhere to go.
+    """
+    from .models import (
+        APPRECIATION_GIFT_REWARD_ELIGIBLE, LedgerEvent, RewardRecord,
+        appreciation_gift_sell_back_value,
+    )
+
+    if gift.recipient_id != chef.pk:
+        raise ValueError("That gift was not sent to you.")
+    if not APPRECIATION_GIFT_REWARD_ELIGIBLE.get(gift.gift_type, False):
+        raise ValueError("That gift cannot be sold back.")
+    if RewardRecord.objects.select_for_update().filter(related_gift=gift).exists():
+        raise ValueError("You have already sold that gift back.")
+
+    tokens = appreciation_gift_sell_back_value(gift.gift_type)
+    record = RewardRecord.objects.create(
+        recipient=chef,
+        reward_type=RewardRecord.RewardType.LSR,
+        tokens_granted=tokens,
+        reason=f"Sold back: {gift.get_gift_type_display()} ({gift.tokens_spent}T paid)",
+        related_gift=gift,
+    )
+    LedgerEvent.objects.create(
+        event_type=LedgerEvent.EventType.LSR_GRANTED,
+        actor=chef,
+        payload={
+            "source": "appreciation_gift_sold_back",
+            "gift_type": gift.gift_type,
+            "gift_id": gift.pk,
+            "tokens_paid_by_viewer": gift.tokens_spent,
+            "tokens_pending": tokens,
+            "reward_record_id": record.pk,
+        },
+    )
+    return record
 
 
 # ---------------------------------------------------------------------------

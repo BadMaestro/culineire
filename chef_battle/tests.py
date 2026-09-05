@@ -1925,21 +1925,64 @@ class LSRRewardTests(TestCase):
         wallet = TokenWallet.objects.get(chef=self.sender)
         self.assertEqual(wallet.balance, 480, "20 out, nothing back")
 
-    def test_the_chef_gets_a_pending_lsr_for_the_full_gift(self):
-        """The chef's, not the sender's - and pending, not paid.
+    def test_a_gift_grants_the_chef_nothing_by_arriving(self):
+        """It used to grant him the gift's FULL price the instant it was sent.
 
-        Section 9.4 of the product contract: a reward becomes payout-eligible
-        only after unlock, fraud checks, compliance review, verification and
-        admin approval. Nothing may reach a wallet on its own.
+        The Owner, 2026-09-05: "если цветы стоили 80 токенов, значит зритель
+        заплатил за них 80 токенов, если шеф после боя решил сдать цветы назад
+        в магазин то это он получает 25% от 80 токенов". Both halves of the old
+        behaviour were wrong against that - the rate was four times too high,
+        and the chef never decided anything. A gift is a gift until he sells
+        it.
         """
         self._send_coffee()
-        reward = RewardRecord.objects.get(
-            recipient=self.recipient, reward_type=RewardRecord.RewardType.LSR)
-        self.assertEqual(reward.tokens_granted, 20)
-        self.assertEqual(reward.status, RewardRecord.Status.PENDING)
+        self.assertFalse(
+            RewardRecord.objects.filter(
+                recipient=self.recipient,
+                reward_type=RewardRecord.RewardType.LSR).exists())
+        self.assertEqual(TokenWallet.objects.get(chef=self.recipient).balance, 0)
+
+    def test_selling_a_gift_back_pays_a_quarter_and_stays_pending(self):
+        """Section 9.4 still holds: nothing reaches a wallet on its own."""
+        from .models import AppreciationGift
+        from .services import sell_appreciation_gift_back
+
+        self._send_coffee()
+        gift = AppreciationGift.objects.get(recipient=self.recipient)
+        self.assertEqual(gift.tokens_spent, 20)
+        record = sell_appreciation_gift_back(gift=gift, chef=self.recipient)
+        self.assertEqual(record.tokens_granted, 5)
+        self.assertEqual(record.status, RewardRecord.Status.PENDING)
         self.assertEqual(
             TokenWallet.objects.get(chef=self.recipient).balance, 0,
             "a pending reward is not money and must not touch the wallet")
+
+    def test_flowers_are_his_worked_example(self):
+        """80 paid by the viewer, 20 back to the chef. His own numbers."""
+        from .models import AppreciationGiftType, appreciation_gift_sell_back_value
+
+        self.assertEqual(
+            appreciation_gift_sell_back_value(AppreciationGiftType.FLOWERS), 20)
+
+    def test_a_gift_cannot_be_sold_twice(self):
+        from .models import AppreciationGift
+        from .services import sell_appreciation_gift_back
+
+        self._send_coffee()
+        gift = AppreciationGift.objects.get(recipient=self.recipient)
+        sell_appreciation_gift_back(gift=gift, chef=self.recipient)
+        with self.assertRaises(ValueError):
+            sell_appreciation_gift_back(gift=gift, chef=self.recipient)
+
+    def test_only_the_recipient_can_sell_a_gift(self):
+        from .models import AppreciationGift
+        from .services import sell_appreciation_gift_back
+
+        self._send_coffee()
+        gift = AppreciationGift.objects.get(recipient=self.recipient)
+        stranger = RecipeAuthor.objects.create(slug="gift-stranger", name="Stranger")
+        with self.assertRaises(ValueError):
+            sell_appreciation_gift_back(gift=gift, chef=stranger)
 
     def test_ledger_event_gift_sent_created(self):
         self._send_coffee()
@@ -6450,6 +6493,11 @@ class TokenChargebackServiceTests(TestCase):
         gift = send_appreciation_gift(
             sender_user=self.user, recipient=recipient, gift_type="coffee",
         )
+        # A gift no longer grants a reward by arriving (Owner, 2026-09-05) - the
+        # chef sells it back, at a quarter. This test is about a REFUND not
+        # reaching across orders, so it needs a reward to exist: he sells.
+        from .services import sell_appreciation_gift_back
+        sell_appreciation_gift_back(gift=gift, chef=recipient)
         reward = RewardRecord.objects.get(related_gift=gift, recipient=recipient)
 
         handle_token_order_chargeback(self.order.pk, chargeback=False)
@@ -18502,6 +18550,12 @@ class ChargebackHoldsExistingPayoutsTests(TestCase):
             gross_payout_eur=Decimal("0.50"), status=PayoutRequest.Status.APPROVED,
             stripe_connect_account_id="acct_t07_recipient",
         )
+        # A gift grants nothing by arriving since 2026-09-05 (Owner: the chef
+        # sells it back, at a quarter). This test is about a chargeback
+        # reaching a payout FUNDED by the gift, so the reward has to exist:
+        # the chef sells.
+        from .services import sell_appreciation_gift_back
+        sell_appreciation_gift_back(gift=gift, chef=recipient)
         reward = RewardRecord.objects.get(related_gift=gift, recipient=recipient)
         reward.status = RewardRecord.Status.ISSUED
         reward.status_note = f"Locked for PayoutRequest #{recipient_payout.pk}"
@@ -31227,3 +31281,90 @@ class TheRewardQueueOnThePanelTests(TestCase):
         panel = (Path(__file__).resolve().parent.parent
                  / "templates" / "moderation" / "panel.html").read_text(encoding="utf-8")
         self.assertIn("recipes:arena_reward_queue", panel)
+
+
+
+@override_settings(CHEF_BATTLE_ENABLED=True)
+class SellingAGiftBackFromTheChefsRoomTests(TestCase):
+    """The Owner's rule, 2026-09-05, made reachable by the chef himself.
+
+    "если цветы стоили 80 токенов, значит зритель заплатил за них 80 токенов,
+    если шеф после боя решил сдать цветы назад в магазин то это он получает
+    25% от 80 токенов."
+
+    Two things had to be true and neither was: the rate is a quarter, and the
+    chef decides. Until today a gift granted him its full price automatically
+    the moment it arrived.
+    """
+
+    def setUp(self):
+        from .models import AppreciationGift, AppreciationGiftType
+
+        self.AppreciationGift = AppreciationGift
+        self.GiftType = AppreciationGiftType
+        self.url = reverse("chef_battle:changing_room")
+        self.user, self.chef = _make_chef("gift-holder")
+
+    def _gift(self, gift_type=None, paid=80):
+        return self.AppreciationGift.objects.create(
+            recipient=self.chef,
+            gift_type=gift_type or self.GiftType.FLOWERS,
+            tokens_spent=paid,
+        )
+
+    def test_the_room_offers_the_quarter(self):
+        self._gift()
+        self.client.force_login(self.user)
+        body = self.client.get(self.url).content.decode("utf-8")
+        self.assertIn("Sell back for 20T", body)
+
+    def test_selling_from_the_room_creates_a_pending_record(self):
+        from .models import RewardRecord, TokenWallet
+
+        gift = self._gift()
+        self.client.force_login(self.user)
+        self.client.post(self.url, {"action": "sell_gift", "gift": gift.pk})
+        record = RewardRecord.objects.get(related_gift=gift)
+        self.assertEqual(record.tokens_granted, 20)
+        self.assertEqual(record.status, RewardRecord.Status.PENDING)
+        self.assertEqual(TokenWallet.objects.get(chef=self.chef).balance, 0)
+
+    def test_a_sold_gift_stops_offering_the_button(self):
+        gift = self._gift()
+        self.client.force_login(self.user)
+        self.client.post(self.url, {"action": "sell_gift", "gift": gift.pk})
+        body = self.client.get(self.url).content.decode("utf-8")
+        self.assertIn("Sold back", body)
+        self.assertNotIn("Sell back for 20T", body)
+
+    def test_a_chef_cannot_sell_somebody_elses_gift(self):
+        from .models import RewardRecord
+
+        _, other = _make_chef("gift-other")
+        gift = self.AppreciationGift.objects.create(
+            recipient=other, gift_type=self.GiftType.FLOWERS, tokens_spent=80)
+        self.client.force_login(self.user)
+        self.client.post(self.url, {"action": "sell_gift", "gift": gift.pk})
+        self.assertFalse(RewardRecord.objects.filter(related_gift=gift).exists())
+
+    def test_the_rate_is_one_number_and_the_table_is_derived_from_it(self):
+        """A second table of numbers is a second rate waiting to drift."""
+        from .models import (
+            APPRECIATION_GIFT_COST, APPRECIATION_GIFT_REWARD_BASIS,
+            APPRECIATION_GIFT_SELL_BACK_PCT,
+        )
+
+        from decimal import ROUND_HALF_UP, Decimal
+
+        self.assertEqual(APPRECIATION_GIFT_SELL_BACK_PCT, 25)
+        for gift_type, cost in APPRECIATION_GIFT_COST.items():
+            # Half UP, not Python's banker's rounding: a 50-token whiskey is
+            # 12.5 back and the chef gets 13, not 12.
+            expected = int((Decimal(cost) * 25 / 100).quantize(
+                Decimal("1"), rounding=ROUND_HALF_UP))
+            self.assertEqual(
+                APPRECIATION_GIFT_REWARD_BASIS[gift_type],
+                expected,
+                "%s is priced at %d and its sell-back does not follow the rate"
+                % (gift_type, cost),
+            )

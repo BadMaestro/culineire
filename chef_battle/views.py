@@ -4372,6 +4372,30 @@ def changing_room(request):
 
     profile, _ = ChefBattleProfile.objects.get_or_create(author=author)
 
+    # SELLING A GIFT BACK TO THE SHOP - the Owner's rule, 2026-09-05: "если
+    # цветы стоили 80 токенов... если шеф после боя решил сдать цветы назад в
+    # магазин то это он получает 25% от 80 токенов". It lives here rather than
+    # on a page of its own because this is already the chef's own room, with
+    # his wallet and his kit in it.
+    from .services import appreciation_gifts_for_chef, sell_appreciation_gift_back
+
+    gift_error = ""
+    gift_sold = None
+    if request.method == "POST" and request.POST.get("action") == "sell_gift":
+        from .models import AppreciationGift
+
+        gift = AppreciationGift.objects.filter(
+            pk=(request.POST.get("gift") or "").strip() or 0).first()
+        if gift is None:
+            gift_error = "No such gift."
+        else:
+            try:
+                gift_sold = sell_appreciation_gift_back(gift=gift, chef=author)
+            except ValueError as exc:
+                gift_error = str(exc)
+
+    my_gifts = appreciation_gifts_for_chef(author)
+
     available_artifacts = list(
         ChefArtifact.objects.filter(chef=author, status="available")
         .select_related("artifact")
@@ -4401,6 +4425,9 @@ def changing_room(request):
 
     return render(request, "chef_battle/changing_room.html", {
         "profile": profile,
+        "my_gifts": my_gifts,
+        "gift_error": gift_error,
+        "gift_sold": gift_sold,
         "available_artifacts": available_artifacts,
         "available_artifacts_preview": available_artifacts_preview,
         "attack_artifact_count": attack_artifact_count,
