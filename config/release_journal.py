@@ -1,5 +1,13 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1819",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "LEDO fleet, sourced contact details and mobile header",
+        "section": "LEDO",
+        "summary": "Adds NIO EL6, NIO ES8 and XPENG X9 fleet cards from the supplied fleet sheet, company contact details and three FAQs from the completed questionnaire in all four languages. Places the header in normal flow to prevent flag/navigation overlap on narrow screens. Conflicting waiting tariffs remain inactive; no payment or access settings changed.",
+    },
+    {
         "version": "2.5.1816",
         "date": "2026-09-05",
         "commit": "4f929919",

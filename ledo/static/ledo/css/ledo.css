@@ -26,7 +26,7 @@ a { color: inherit; }
 .skip-link:focus { transform: translateY(0); }
 
 .site-header {
-    position: absolute;
+    position: relative;
     inset: 0 0 auto;
     z-index: 10;
     display: flex;
@@ -57,7 +57,7 @@ nav a:hover { color: white; }
     gap: 4rem;
     max-width: 92rem;
     margin: auto;
-    padding: 8rem clamp(1.25rem, 7vw, 7rem) 5rem;
+    padding: 3rem clamp(1.25rem, 7vw, 7rem) 5rem;
 }
 .hero::before { position: absolute; z-index: -1; width: 48rem; height: 48rem; right: -14rem; top: -12rem; border-radius: 50%; background: radial-gradient(circle, rgb(29 111 199 / 28%), transparent 66%); content: ""; }
 .hero-copy { min-width: 0; }
@@ -167,7 +167,7 @@ details p { margin: -.3rem 0 1.6rem; max-width: 42rem; }
 
 @media (max-width: 900px) {
     nav a:not(.nav-cta) { display: none; }
-    .hero { min-height: auto; grid-template-columns: 1fr; padding-top: 8rem; }
+    .hero { min-height: auto; grid-template-columns: 1fr; padding-top: 2rem; }
     .hero-visual { min-height: 22rem; }
     .trust-strip { grid-template-columns: 1fr; margin-inline: 1.25rem; }
     .trust-strip article + article { border-top: 1px solid var(--line); border-left: 0; }
@@ -206,5 +206,12 @@ details p { margin: -.3rem 0 1.6rem; max-width: 42rem; }
 .language-switch a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .site-header .language-switch a { gap: .4rem; padding-inline: .55rem; }
 .language-flag { width: 24px; height: 16px; object-fit: fill; border-radius: 2px; box-shadow: 0 0 0 1px rgb(255 255 255 / 20%); }
+.fleet-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 2rem; }
+.fleet-card { padding: 1.5rem; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.fleet-card h3 { margin: .75rem 0; font-size: 1.6rem; }
+.fleet-card p, .fleet-intro { color: var(--muted); line-height: 1.6; }
+.fleet-card .fleet-category { color: var(--blue-bright); font-size: .85rem; letter-spacing: .04em; }
+.fleet-card .fleet-alternative { padding-top: 1rem; border-top: 1px solid var(--line); font-size: .9rem; }
+@media (max-width: 900px) { .fleet-grid { grid-template-columns: 1fr; } }
 .hero h1, .section h2, .closing h2 { overflow-wrap: anywhere; }
 @media (max-width: 700px) { .site-header .language-switch { display: flex; width: 100%; justify-content: flex-end; } }

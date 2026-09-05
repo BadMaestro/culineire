@@ -19,6 +19,7 @@
             <span>LEDO <b>DRIVE</b></span>
         </a>
         <nav aria-label="{% t 'Hovedmeny' %}">
+            <a href="{% url 'ledo:home' %}#bilpark">{% t 'Bilpark' %}</a>
             <a href="{% url 'ledo:home' %}#slik">{% t 'Slik fungerer det' %}</a>
             <a href="{% url 'ledo:home' %}#pris">{% t 'Pris' %}</a>
             <a href="{% url 'ledo:home' %}#faq">{% t 'FAQ' %}</a>
@@ -37,7 +38,10 @@
             <p>{% t 'Flyplasstransfer mellom Kongsberg og Gardermoen.' %}</p>
         </div>
         <div class="footer-links">
-            <span>{% t 'Kontaktinformasjon og organisasjonsnummer publiseres etter verifisering.' %}</span>
+            <span>Ledo Drive AS · Org.nr. 935596920 MVA</span>
+            <span>Bromyr 40, 3614 Kongsberg</span>
+            <a href="tel:+4741340780">+47 413 40 780</a>
+            <a href="mailto:ledodrive77@gmail.com">ledodrive77@gmail.com</a>
             <a href="{% url 'ledo:home' %}#bestill">{% t 'Send forespørsel' %}</a>
         </div>
     </footer>

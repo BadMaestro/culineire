@@ -278,6 +278,8 @@ class LedoLanguageTests(TestCase):
             with self.subTest(language=code):
                 response = self.client.get('/ledo/', {'lang': code})
                 self.assertContains(response, heading)
+                for model in ('NIO EL6', 'NIO ES8', 'XPENG X9'):
+                    self.assertContains(response, model)
                 self.assertContains(response, f'<html lang="{code}">')
                 self.assertEqual(response['Content-Language'], code)
                 self.assertContains(response, 'class="language-flag"', count=4)

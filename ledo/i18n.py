@@ -106,7 +106,27 @@ Kansellert av kunden|Cancelled by customer|Atšaukta kliento|Отменена к
 Kansellert av operatøren|Cancelled by operator|Atšaukta operatoriaus|Отменена оператором
 Ikke møtt|No-show|Neatvyko|Неявка
 Standard|Standard|Standartinė|Стандарт
-Språk|Language|Kalba|Язык"""
+Språk|Language|Kalba|Язык
+Bilpark|Our fleet|Automobilių parkas|Автопарк
+Velg plass og komfort.|Space and comfort for your journey.|Erdvė ir komfortas jūsų kelionei.|Простор и комфорт в пути.
+Tre bilklasser. Oppgi passasjerer og bagasje, så bekrefter vi hvilken bil som passer turen.|Three vehicle classes. Tell us your passenger and luggage needs so we can confirm a suitable vehicle.|Trys automobilių klasės. Nurodykite keleivių ir bagažo kiekį, kad galėtume patvirtinti tinkamą automobilį.|Три класса автомобилей. Укажите количество пассажиров и багажа — мы подтвердим подходящую машину.
+Standard SUV|Standard SUV|Standartinis SUV|Стандартный SUV
+Premium SUV|Premium SUV|Premium SUV|Премиальный SUV
+Luxury MPV|Luxury MPV|Prabangus MPV|Люксовый минивэн
+Inntil 4 passasjerer|Up to 4 passengers|Iki 4 keleivių|До 4 пассажиров
+Inntil 6 passasjerer|Up to 6 passengers|Iki 6 keleivių|До 6 пассажиров
+Inntil 4 store kofferter|Up to 4 large suitcases|Iki 4 didelių lagaminų|До 4 больших чемоданов
+Inntil 6 kolli håndbagasje|Up to 6 pieces of hand luggage|Iki 6 rankinio bagažo vienetų|До 6 мест ручной клади
+Alternativ: inntil 4 passasjerer, 4 store kofferter og 2 kolli håndbagasje.|Alternative: up to 4 passengers, 4 large suitcases and 2 pieces of hand luggage.|Alternatyva: iki 4 keleivių, 4 didelių lagaminų ir 2 rankinio bagažo vienetų.|Другой вариант: до 4 пассажиров, 4 больших чемоданов и 2 мест ручной клади.
+Alternativ: inntil 4 passasjerer, 4 store kofferter og 4 kolli håndbagasje.|Alternative: up to 4 passengers, 4 large suitcases and 4 pieces of hand luggage.|Alternatyva: iki 4 keleivių, 4 didelių lagaminų ir 4 rankinio bagažo vienetų.|Другой вариант: до 4 пассажиров, 4 больших чемоданов и 4 мест ручной клади.
+Bil og bagasjeplass bekreftes før bestilling.|Vehicle and luggage space are confirmed before booking.|Automobilis ir vieta bagažui patvirtinami prieš užsakymą.|Автомобиль и место для багажа подтверждаются перед заказом.
+Kan jeg bestille barnesete?|Can I request a child seat?|Ar galima užsakyti vaikišką kėdutę?|Можно заказать детское кресло?
+Barneseter tilbys på forespørsel. Oppgi barnets alder og vekt i merknadene, slik at riktig sete kan bekreftes.|Child seats are available on request. Include the child's age and weight in the notes so a suitable seat can be confirmed.|Vaikiškos kėdutės suteikiamos paprašius. Pastabose nurodykite vaiko amžių ir svorį, kad būtų patvirtinta tinkama kėdutė.|Детские кресла предоставляются по запросу. Укажите возраст и вес ребёнка в комментарии, чтобы мы подтвердили подходящее кресло.
+Kan kjæledyr bli med?|Can I travel with a pet?|Ar galima keliauti su augintiniu?|Можно ехать с животным?
+Ta kontakt før bestilling. Transport av dyr må avtales på forhånd ut fra størrelse og sikker transport.|Contact us before booking. Pet transport must be agreed in advance based on size and safe travel arrangements.|Susisiekite prieš užsakydami. Gyvūno vežimas turi būti suderintas iš anksto, atsižvelgiant į jo dydį ir saugumą.|Свяжитесь с нами до заказа. Перевозку животного нужно согласовать заранее с учётом его размера и безопасности.
+Hvor tidlig bør jeg bestille?|How early should I book?|Prieš kiek laiko užsakyti?|За сколько времени заказывать?
+Vi anbefaler minst 12 timer før avreise. Hasteforespørsler vurderes dersom en bil er tilgjengelig.|We recommend booking at least 12 hours before departure. Urgent requests are considered if a vehicle is available.|Rekomenduojame užsakyti bent prieš 12 valandų. Skubios užklausos svarstomos, jei yra laisvas automobilis.|Рекомендуем заказывать минимум за 12 часов. Срочные заявки рассматриваем при наличии свободного автомобиля.
+Kontakt oss før du bestiller spesielle behov.|Contact us about special requirements before booking.|Dėl specialių poreikių susisiekite prieš užsakydami.|Особые требования согласуйте с нами до заказа."""
 
 CATALOG = {}
 for row in ROWS.splitlines():
