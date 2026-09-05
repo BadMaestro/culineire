@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1780",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "5ce15ef2",
         "title": "A reward could only ever be issued from Django Admin, which this project does not use",
         "section": "Chef Battles / Arena",
         "summary": (
