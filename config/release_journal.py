@@ -1,5 +1,193 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1774",
+        "date": "2026-09-05",
+        "commit": "80852604",
+        "title": "The six tails: the chat is one block again, the Arena gets a voice, and the knife cursor's last markup goes",
+        "section": "Chef Battles / Site",
+        "summary": (
+            "The Owner asked what was still open and then said take all of it. "
+            "Six items, two of them his decisions, and he made both. "
+            "ONE - THE TWO RED GUARDS. .arena-chat was in 8 islands against a "
+            "ceiling of 7, and its largest run was 159 where the test asks for "
+            "250. Two separate breakages, both from v2.5.1759: three "
+            "`.page--arena .arena-chat .btn-secondary` rules had been written "
+            "into the MIDDLE of the gathered block, splitting one 266-rule "
+            "island into 107 and 159. Their subject is .btn-secondary, so they "
+            "belong to the button and an15_gather --tidy will never move them "
+            "for the chat. They are moved below the block, with their own "
+            "reasoning travelling with them, and the move is PROVEN: "
+            "an15_gather.transpositions reports zero conflicting pairs "
+            "transposed. The island is 266 again and the count is 7. The "
+            "ceiling was NOT raised, and --tidy was not needed. "
+            "TWO - THE MEDALLION COMMENT. Asked whether to keep the 39px the "
+            "bar actually renders or the 32px the reconstruction derived, the "
+            "Owner kept 39px: it is the bar he accepted. No value changes; the "
+            "comment stops presenting 32px as a target. "
+            "THREE - THE ARENA GETS A VOICE. ArenaChatMessage.speaker is "
+            "nullable now (migration 0125). The hall's own moments - a battle "
+            "finishing, a crown moving - are events with no actor, and while "
+            "the column was NOT NULL not one of them ever became a card. They "
+            "do now, spoken by 'The Arena', which is the fallback display_name "
+            "has carried since the cards were written. Every reader was "
+            "already None-safe except two serialisers, which now send an empty "
+            "slug, and arena_chat.js leaves out profile, reply, private "
+            "message, mute, block and timeout for a line nobody said - "
+            "reacting, reporting and moderating stay, because those key off "
+            "the message. "
+            "FOUR - the knife cursor's last markup. battle-cursor-target and "
+            "js-battle-cursor-target are gone from six templates and from "
+            "arena_deck.js. The overlay went in v2.5.1729, the script and "
+            "stylesheet in v2.5.1741, the artwork in v2.5.1744; this is the "
+            "end of it. "
+            "FIVE - the deploy record of AGENTS.md 17.15 is written and given "
+            "to the Owner with this release. It was not written once in the "
+            "session before it, which is the omission that hid three of "
+            "yesterday's defects. No board card is invented: this work came "
+            "from his direct requests, not from ARENA_BATTLE_PLAN.md. "
+            "SIX - the local dev account used to reproduce his dashboard has "
+            "had its password made unusable again. Local database only."
+        ),
+    },
+    {
+        "version": "2.5.1771",
+        "date": "2026-09-05",
+        "commit": "1973f3f5",
+        "title": "Looking at the kit screen found black text on a black row, and it was never the kit screen's fault",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner asked to SEE the kit screen shipped an hour earlier. "
+            "Rendering it is what found this, and a test could not have: every "
+            "assertion about that page passed, because a page can return 200 "
+            "with perfectly correct markup and still be unreadable. "
+            "THE BUG WAS NOT MINE AND IT IS NOT NEW. chef_battle.css carries a "
+            "prefers-color-scheme: dark block, and inside it "
+            ".cr-ingredient-item is given background #2a2a2a and NO colour - "
+            "so its text stays --ink, #292929. Measured in the browser: 41,41,41 "
+            "on 42,42,42, a contrast ratio of 1.0. The sibling rule four lines "
+            "above sets a colour for exactly this reason; this one forgot. "
+            "Anyone whose system is in dark mode has been reading the Changing "
+            "Room's declared ingredients as black on black, and the kit screen "
+            "only inherited it by reusing the class. Fixed where it lives, so "
+            "both pages recover. "
+            "AND THE KIT NOW HAS ITS OWN CLASSES rather than borrowing that "
+            "list, because the same dark row took the .btn-secondary inside it "
+            "down as well - the hardcoded dark brown from base.css, 58/44/30, "
+            "sitting on near-black. The kit's rows stay on the site's own cream "
+            "in either scheme. Measured after: the artifact name 13.3 against "
+            "its row, the Take out button 12.4, the gift flag 5.8 - that last "
+            "one was 2.98 with the raw accent, too light for 12px bold, so it "
+            "is mixed toward the ink and keeps its gold. "
+            "WHAT HE WILL SEE: attack 2 of 3 with two artifacts and a slot "
+            "left, boost holding a spectator's gift marked as one and not "
+            "removable, defence 1 of 3 with two waiting in the chest. Nothing "
+            "about the rule changed - only whether a chef can read it."
+        ),
+    },
+    {
+        "version": "2.5.1768",
+        "date": "2026-09-05",
+        "commit": "70670a90",
+        "title": "A chef can pack his kit before the fight, and the purge now clears his two rehearsal chefs",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "THE EQUIPPING SCREEN, built rather than deleted. An audit found "
+            "ChefArtifact.equipped on the model since 0001_initial, in the "
+            "admin's list_display and list_filter, and written by NOTHING - a "
+            "field the site had carried for its whole life without a single "
+            "line setting it True. Asked whether to build the screen behind it "
+            "or take the field out, the Owner chose to build it. "
+            "IT INVENTS NO RULE, and that is the point. The loadout is the one "
+            "the rulebook already describes - three artifacts of each type per "
+            "battle, held on ChefArtifact.reserved_in_battle - and until now "
+            "the only way to fill it was to play an artifact mid-round and "
+            "learn the cap by being refused. A chef opens his kit from the "
+            "battle room or the changing room, sees each type as used-of-three, "
+            "takes one in, takes one back out. A spectator's gift is already in "
+            "the kit, is marked as a gift, and cannot be taken out: it was "
+            "somebody else's tokens spent on THIS fight and the rule has always "
+            "been that it must be used here. "
+            "ONE CAP, ONE PLACE. submit_combat_action carried its own copy of "
+            "the limit, the battle-row mutex and the two spellings of "
+            "'defence'; a second writer with a second copy is a limit that "
+            "drifts, so all three moved into _reserve_artifact_into_battle and "
+            "both writers call it. A test pins that the service no longer "
+            "mentions the constant at all. And the flag is cleared wherever the "
+            "reservation is cleared - when a battle ends, an artifact that was "
+            "never played goes back to the chest and stops claiming it is being "
+            "carried. "
+            "AND THE PURGE REACHES HIS TWO REHEARSAL CHEFS. It already put the "
+            "emulation bots back to the model's defaults and already REPORTED "
+            "what a run had left on Jam O'Liver and CrestedTen - the rating, "
+            "the wins, the streak, the 24-hour crown - while deliberately not "
+            "touching them, because those are the Owner's own accounts and "
+            "undoing a real account's numbers is his call. He was asked and he "
+            "answered: wipe them. So the same reset now covers both sets, and "
+            "the report still shows the marks before they go, because a number "
+            "that vanishes without being seen first is not a report. Identity "
+            "is untouched either way: the accounts, the enrolment and their "
+            "place in the console all stay. The test that had frozen the old "
+            "behaviour is rewritten to hold the new one instead of being "
+            "deleted. "
+            "NOT CHANGED ON PURPOSE: ChefArtifact.Status.RESERVED still has no "
+            "writer. Every path in the game requires an artifact to be "
+            "AVAILABLE before it can be played, so setting that status would "
+            "make an equipped artifact unplayable - the state is unfinished, "
+            "not wrong, and the loadout it looks like it describes is the "
+            "foreign key, which does have a writer and now has a screen."
+        ),
+    },
+    {
+        "version": "2.5.1765",
+        "date": "2026-09-04",
+        "commit": "f7ab0fb8",
+        "title": "The other seven: a guard reading a comment, a console switch left off, and a card that broke the transaction it rode in",
+        "section": "Chef Battles / Site",
+        "summary": (
+            "v2.5.1762 fixed the four failures that were mine and reported the "
+            "seven that were not. The Owner said take them too. Three causes, "
+            "all found by reading rather than guessing. "
+            "FOUR - ArenaOperatorSwitchesTests. The class never turned on "
+            "ARENA_MASTER_CONSOLE_ENABLED, so has_arena_console_access refused "
+            "every non-Owner outright and arena_console_guard answered 404 "
+            "before master_action could reach its own owner-only 403. The four "
+            "tests that act as a FLAGGED OPERATOR were therefore asserting "
+            "'the console is switched off' while their names promised 'this "
+            "operator is refused this switch'. The Owner-path tests passed "
+            "throughout because the Owner bypasses the kill switch by "
+            "definition, which is why the omission survived since v2.5.1645. "
+            "The class now carries the same override every other console class "
+            "in the file carries. THE GATE ITSELF IS UNTOUCHED - this is the "
+            "rig, not the rule (AGENTS.md 8 and 20). "
+            "FIVE - FloorCaptionGetsARegionTests read a COMMENT. It forbids "
+            "--arena-deck-top-h anywhere in arena_render.js, and v2.5.1504 "
+            "added a comment explaining the very bug the variable was moved to "
+            "fix. Its own sibling, the z-index guard, strips comments first and "
+            "writes down why: a guard that reads prose finds every ghost it was "
+            "written to bury. This one now strips them too. What it enforces is "
+            "unchanged - arena_render.js may not READ OR WRITE that variable. "
+            "SIX AND SEVEN - the two newsfeed errors were a real defect in the "
+            "code, not in the tests, and a second one behind it. "
+            "post_card_for_event passed speaker=event.actor into a NOT NULL "
+            "column, and the hall's own events - a battle finishing, a crown "
+            "moving - have no actor, so every one of them raised "
+            "IntegrityError. The function catches and logs, which was supposed "
+            "to keep a cosmetic fault from losing a battle transition. It could "
+            "not: it runs inside the caller's atomic block, where catching a "
+            "database error does not undo it - the connection stays poisoned "
+            "and the NEXT query raises TransactionManagementError. That is how "
+            "the newsfeed tests failed, on the query after the card. Both are "
+            "fixed: an actor-less event returns before the write, and the write "
+            "now sits in its own atomic() savepoint, so the docstring's promise "
+            "is true instead of aspirational. "
+            "Showing hall events as spoken by the Arena itself is a real "
+            "feature - display_name already falls back to 'The Arena' for it - "
+            "but it needs speaker to become nullable, a schema change on a "
+            "chat the Owner has accepted. Left for his word, not taken as a "
+            "side effect."
+        ),
+    },
+    {
         "version": "2.5.1762",
         "date": "2026-09-04",
         "commit": "pending",

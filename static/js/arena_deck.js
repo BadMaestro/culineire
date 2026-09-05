@@ -683,7 +683,6 @@
       appendStageChef(stage, 'Challenger', center.challenger || {}, 'arena-live-chef--challenger');
       appendStageCentre(stage, {
         href: center.battle_url,
-        className: 'battle-cursor-target js-battle-cursor-target',
         ariaLabel: 'Open the live battle room',
         label: center.status_display || center.battle_phase || 'Live battle',
         title: 'VS',

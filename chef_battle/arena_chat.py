@@ -453,7 +453,10 @@ def private_lines(messages, viewer=None) -> list[dict]:
         row = {
             "id": message.id,
             "name": message.display_name,
-            "slug": message.speaker.slug,
+            # EMPTY WHEN THE ARENA SPOKE. A card with no speaker has no
+            # profile to open, nobody to reply to and nobody to mute, and the
+            # renderer keys all three off this slug.
+            "slug": message.speaker.slug if message.speaker_id else "",
             "clan_tag": tags.get("clan_tag", ""),
             "alliance_tag": tags.get("alliance_tag", ""),
             "tier": tier_by_author.get(message.speaker_id, "grey"),
@@ -545,7 +548,10 @@ def audible_lines(listener_seat, messages, tags_by_author=None, viewer=None) -> 
         row = {
             "id": message.id,
             "name": message.display_name,
-            "slug": message.speaker.slug,
+            # EMPTY WHEN THE ARENA SPOKE. A card with no speaker has no
+            # profile to open, nobody to reply to and nobody to mute, and the
+            # renderer keys all three off this slug.
+            "slug": message.speaker.slug if message.speaker_id else "",
             # Three separate values, never one pre-joined string: the badge is
             # the renderer's job, and an empty tag must vanish rather than
             # print as "[]".

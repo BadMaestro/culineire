@@ -4375,6 +4375,69 @@ a.battle-home__pulse-msg:hover {
   cursor: not-allowed;
 }
 
+/* ── The kit a chef carries into one battle ───────────────────────────────
+   Its own classes rather than the Changing Room's .cr-ingredient-* list,
+   and deliberately: that list opts into a dark-mode override which the rest
+   of the site has no palette for, and a row that flips to #2a2a2a takes the
+   .btn-secondary inside it - hardcoded dark brown - down with it. The kit
+   stays on the site's own cream in either scheme, so the name, the badge and
+   the button all read the way they were designed to. */
+.kit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.kit-item {
+  padding: 0.4rem 0.5rem 0.4rem 0.75rem;
+  border-radius: 6px;
+  background: var(--surface-alt, #f5f5f5);
+  border: 1px solid rgb(58 44 30 / 0.12);
+  color: var(--ink, #292929);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.6rem;
+}
+
+.kit-item__name { font-weight: 600; }
+.kit-item__effect { color: var(--ink-soft, #42514a); }
+
+.kit-item form { margin: 0 0 0 auto; }
+.kit-item .btn-secondary {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.82rem;
+  min-height: 0;
+}
+
+/* A spectator's gift, and a spent one: stated, not merely styled. */
+.kit-flag {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+/* The accent alone is 2.98 against the row - too light for 12px bold text.
+   Mixed towards the ink it keeps the gold reading while clearing 4.5. */
+.kit-flag--gift { color: color-mix(in srgb, var(--accent, #b8860b) 55%, var(--ink, #292929)); }
+.kit-flag--spent { color: var(--ink-soft, #42514a); }
+
+.kit-empty { color: var(--ink-soft, #42514a); margin: 0 0 0.85rem; }
+
+.kit-add { display: flex; flex-wrap: wrap; align-items: end; gap: 0.6rem; }
+.kit-add label { display: block; margin-block-end: 0.25rem; }
+.kit-add__field { flex: 1 1 16rem; min-width: 0; }
+
+@media (max-width: 480px) {
+  .kit-item { flex-wrap: wrap; }
+  .kit-item form, .kit-flag { margin-left: 0; }
+}
+
 /* Readonly declared list */
 .cr-list-title {
   font-size: 1rem;
@@ -4418,8 +4481,15 @@ a.battle-home__pulse-msg:hover {
     border-color: #444;
     color: #eee;
   }
+  /* A DARK ROW WITH NO TEXT COLOUR - found 2026-09-05 while looking at the
+     new kit screen, and it was never about that screen: this rule puts
+     #2a2a2a behind an item whose text is still --ink (#292929), so anyone
+     whose system is set to dark mode has been reading the Changing Room's
+     declared ingredients as black on black, contrast 1.0. The sibling rule
+     four lines up sets a colour for exactly this reason; this one forgot. */
   .cr-ingredient-item {
     background: #2a2a2a;
+    color: #eee;
   }
   .cr-key-hint--ok { color: #5c5; }
 }

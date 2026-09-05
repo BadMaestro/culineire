@@ -106,7 +106,7 @@ battle_profile, arena_battles, arena_gift_display.
       <a class="btn-secondary" href="{% url 'chef_battle:my_moves' %}">My Moves</a>
       <a class="btn-secondary" href="{% url 'chef_battle:faction_choose' %}">Choose Faction</a>
       {% else %}
-      <a class="btn-secondary battle-cursor-target js-battle-cursor-target" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.slug }}">Challenge This Chef</a>
+      <a class="btn-secondary" href="{% url 'chef_battle:challenge_create' %}?opponent={{ author.slug }}">Challenge This Chef</a>
       {% endif %}
       {% include '_enter_arena_btn.html' %}
       <a class="btn-secondary" href="{% url 'chef_battle:rankings' %}">Rankings</a>

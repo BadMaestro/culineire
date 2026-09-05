@@ -1363,7 +1363,7 @@ def _release_battle_artifacts_on_finish(battle: Battle) -> None:
     ChefArtifact.objects.filter(
         reserved_in_battle=battle,
         status=ChefArtifact.Status.AVAILABLE,
-    ).update(reserved_in_battle=None)
+    ).update(reserved_in_battle=None, equipped=False)
 
 
 #: Statuses reachable via the real combat path with no sweeper covering them
@@ -1935,6 +1935,185 @@ def get_current_round(battle: Battle) -> int:
     return (last.round_number + 1) if last else 1
 
 
+#: The battle phases in which a chef may still change what he is carrying.
+#: SCHEDULED and MENU_LOCKED are preparation; ACTIVE is included because the
+#: combat form has always been able to reserve an artifact by playing it, and
+#: a loadout screen that closed earlier than the mechanism it describes would
+#: be describing a different rule.
+LOADOUT_OPEN_STATUSES = (
+    Battle.Status.SCHEDULED,
+    Battle.Status.MENU_LOCKED,
+    Battle.Status.ACTIVE,
+)
+
+
+def normalise_effect_type(effect_type: str) -> str:
+    """`"Defence"` and `"defense"` are one type. Older catalogue rows carry the
+    British spelling and every count in this module used to say so inline."""
+    return (effect_type or "").lower().replace("defence", "defense")
+
+
+def _effect_type_variants(effect_type: str) -> tuple:
+    effect_type = normalise_effect_type(effect_type)
+    return ("defense", "defence") if effect_type == "defense" else (effect_type,)
+
+
+def battle_loadout_count(chef, battle, effect_type: str) -> int:
+    """How many artifacts of this type the chef is already carrying into it."""
+    return ChefArtifact.objects.filter(
+        chef=chef,
+        reserved_in_battle=battle,
+        artifact__effect_type__in=_effect_type_variants(effect_type),
+    ).count()
+
+
+def _reserve_artifact_into_battle(chef, battle, chef_artifact) -> bool:
+    """Put one artifact into this battle's loadout. Returns True if it moved.
+
+    The cap and the mutex live HERE and nowhere else. They used to live inside
+    submit_combat_action, and the loadout screen is a second writer: a copied
+    limit is a limit that drifts.
+
+    Assumes the caller already holds a row lock on chef_artifact - both callers
+    take one with select_for_update.
+    """
+    if chef_artifact.reserved_in_battle_id == battle.pk:
+        return False
+    if chef_artifact.reserved_in_battle_id is not None:
+        raise ValueError("This artifact is already assigned to another battle.")
+
+    effect_type = normalise_effect_type(chef_artifact.artifact.effect_type)
+    # The chef_artifact row lock the caller holds covers ONE artifact; two
+    # DIFFERENT artifacts of the same type reserved at once would take
+    # different row locks and never collide, so the loadout count they both
+    # read could each be one under the cap yet together bring the loadout one
+    # over it. Lock the always-existing battle row as a mutex so any two
+    # reservations sharing a battle serialize here.
+    Battle.objects.select_for_update().get(pk=battle.pk)
+    if battle_loadout_count(chef, battle, effect_type) >= COMBAT_ARTIFACTS_PER_TYPE_LIMIT:
+        label = effect_type or "artifact"
+        raise ValueError(
+            f"You can bring at most {COMBAT_ARTIFACTS_PER_TYPE_LIMIT} "
+            f"{label} artifacts into one battle."
+        )
+    chef_artifact.reserved_in_battle = battle
+    # `equipped` HAS A WRITER AT LAST - 2026-09-04, on the Owner's decision to
+    # build the screen rather than delete the field. It has been on the model
+    # since 0001_initial, sits in list_display and list_filter in the admin,
+    # and nothing had ever set it True. It means exactly what the rulebook
+    # says and no more: this artifact is being carried into a fight right now.
+    # Cleared wherever the reservation is cleared.
+    chef_artifact.equipped = True
+    chef_artifact.save(update_fields=["reserved_in_battle", "equipped"])
+    return True
+
+
+def get_battle_loadout(battle, chef) -> dict:
+    """What the chef is carrying into this battle, and what he could add.
+
+    Read-only, and assembled from rows the game already keeps: no new model and
+    no second source of truth for a loadout ChefArtifact.reserved_in_battle has
+    tracked all along.
+    """
+    carried = list(
+        ChefArtifact.objects
+        .filter(chef=chef, reserved_in_battle=battle)
+        .select_related("artifact")
+        .order_by("artifact__effect_type", "artifact__name")
+    )
+    available = list(
+        ChefArtifact.objects
+        .filter(chef=chef, status=ChefArtifact.Status.AVAILABLE,
+                reserved_in_battle__isnull=True)
+        .filter(Q(locked_to_battle__isnull=True) | Q(locked_to_battle=battle))
+        .select_related("artifact")
+        .order_by("artifact__effect_type", "artifact__name")
+    )
+    order = []
+    for row in carried + available:
+        key = normalise_effect_type(row.artifact.effect_type)
+        if key not in order:
+            order.append(key)
+    groups = []
+    for key in order:
+        in_kit = [r for r in carried
+                  if normalise_effect_type(r.artifact.effect_type) == key]
+        groups.append({
+            "effect_type": key,
+            "label": (key or "artifact").replace("_", " ").title(),
+            "carried": in_kit,
+            "available": [r for r in available
+                          if normalise_effect_type(r.artifact.effect_type) == key],
+            "used": len(in_kit),
+            "limit": COMBAT_ARTIFACTS_PER_TYPE_LIMIT,
+            "slots_left": max(0, COMBAT_ARTIFACTS_PER_TYPE_LIMIT - len(in_kit)),
+        })
+    return {
+        "groups": groups,
+        "carried": carried,
+        "limit": COMBAT_ARTIFACTS_PER_TYPE_LIMIT,
+        "is_open": battle.status in LOADOUT_OPEN_STATUSES,
+    }
+
+
+@transaction.atomic
+def equip_artifact_for_battle(*, battle, chef, chef_artifact_id):
+    """Carry one of the chef's own artifacts into this battle.
+
+    The screen the Owner asked for on 2026-09-04. It writes nothing the combat
+    form could not already write - it lets a chef decide beforehand, and see
+    the three-per-type limit before he runs into it mid-round.
+    """
+    if not battle.author_is_participant(chef):
+        raise ValueError("You are not a participant in this battle.")
+    locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+    if locked_battle.status not in LOADOUT_OPEN_STATUSES:
+        raise ValueError("This battle is past the point where the kit can change.")
+    try:
+        chef_artifact = ChefArtifact.objects.select_for_update().select_related("artifact").get(
+            pk=chef_artifact_id, chef=chef, status=ChefArtifact.Status.AVAILABLE,
+        )
+    except ChefArtifact.DoesNotExist:
+        raise ValueError("Artifact not available or does not belong to you.")
+    if chef_artifact.locked_to_battle_id not in (None, locked_battle.pk):
+        raise ValueError("This artifact was sent into another battle and belongs to it.")
+    _reserve_artifact_into_battle(chef, locked_battle, chef_artifact)
+    return chef_artifact
+
+
+@transaction.atomic
+def unequip_artifact_for_battle(*, battle, chef, chef_artifact_id):
+    """Take one back out of the kit, before it is spent.
+
+    A spectator's gift cannot come out: it was somebody else's tokens spent on
+    THIS fight, it is locked to it, and the chef must use it (E1). Refusing
+    here keeps the screen honest with a rule submit_combat_action already
+    enforces, instead of offering a way around it.
+    """
+    if not battle.author_is_participant(chef):
+        raise ValueError("You are not a participant in this battle.")
+    locked_battle = Battle.objects.select_for_update().get(pk=battle.pk)
+    if locked_battle.status not in LOADOUT_OPEN_STATUSES:
+        raise ValueError("This battle is past the point where the kit can change.")
+    try:
+        chef_artifact = ChefArtifact.objects.select_for_update().select_related("artifact").get(
+            pk=chef_artifact_id, chef=chef, reserved_in_battle=locked_battle,
+        )
+    except ChefArtifact.DoesNotExist:
+        raise ValueError("That artifact is not in this battle's kit.")
+    if chef_artifact.status != ChefArtifact.Status.AVAILABLE:
+        raise ValueError("That artifact has already been spent in this battle.")
+    if chef_artifact.locked_to_battle_id == locked_battle.pk:
+        raise ValueError(
+            "A spectator sent you this for this battle. It has to be used here."
+        )
+    chef_artifact.reserved_in_battle = None
+    chef_artifact.equipped = False
+    chef_artifact.save(update_fields=["reserved_in_battle", "equipped"])
+    return chef_artifact
+
+
+
 @transaction.atomic
 def submit_combat_action(
     battle: Battle,
@@ -2017,37 +2196,10 @@ def submit_combat_action(
         if effect_type not in ("boost", action_effect_type):
             raise ValueError("Choose an attack artifact for an attack or a defence artifact for a defence.")
 
-        if chef_artifact.reserved_in_battle_id not in (None, battle.pk):
-            raise ValueError("This artifact is already assigned to another battle.")
-
-        if chef_artifact.reserved_in_battle_id is None:
-            # The chef_artifact row lock above only covers ONE artifact; two
-            # DIFFERENT artifacts of the same type reserved at once would take
-            # different row locks and never collide, so the loadout count they
-            # both read could each be one under the cap yet together bring the
-            # loadout one over it. Lock the always-existing battle row as a
-            # mutex so any two reservations sharing a battle serialize here.
-            Battle.objects.select_for_update().get(pk=battle.pk)
-            loadout_count = ChefArtifact.objects.filter(
-                chef=chef,
-                reserved_in_battle=battle,
-                artifact__effect_type__iexact=effect_type,
-            ).count()
-            # Older catalog rows use the British spelling.  Count both forms
-            # when assembling a defence loadout.
-            if effect_type == "defense":
-                loadout_count = ChefArtifact.objects.filter(
-                    chef=chef,
-                    reserved_in_battle=battle,
-                    artifact__effect_type__in=("defense", "defence"),
-                ).count()
-            if loadout_count >= COMBAT_ARTIFACTS_PER_TYPE_LIMIT:
-                raise ValueError(
-                    f"You can bring at most {COMBAT_ARTIFACTS_PER_TYPE_LIMIT} "
-                    f"{action_effect_type} artifacts into one battle."
-                )
-            chef_artifact.reserved_in_battle = battle
-            chef_artifact.save(update_fields=["reserved_in_battle"])
+        # The cap, the mutex and the two spellings of "defence" now live in
+        # _reserve_artifact_into_battle: the loadout screen added on 2026-09-04
+        # is a second writer, and a copied limit is a limit that drifts.
+        _reserve_artifact_into_battle(chef, battle, chef_artifact)
 
     # E1 (T24), Owner's rule: a chef MAY use their own artifacts, but MUST use
     # the ones spectators gifted them during this battle. A gift is somebody
@@ -5267,12 +5419,12 @@ def emulation_data_report():
         ]
 
     report["bot_marks"] = _marks(_emulation_bot_slug_set())
-    # AND WHAT IT LEFT ON HIS OWN TEST CHEFS, reported and NOT reset. The EMU
-    # bots above are the console's own creatures and their numbers are residue,
-    # so the purge puts them back to the model's defaults. Jam O'Liver and
-    # CrestedTen are the OWNER'S accounts: a rehearsal really does move their
-    # rating, their wins and their streak, and whether that is wiped is his
-    # call and not an agent's. So it is shown, plainly, every time he counts.
+    # AND WHAT IT LEFT ON HIS OWN TEST CHEFS. Reported here, and since
+    # 2026-09-04 reset by the purge as well - the Owner was asked whether a
+    # rehearsal's marks on Jam O'Liver and CrestedTen should be wiped and
+    # answered that they should. It is shown either way, plainly, every time
+    # he counts, because a number that vanishes without being seen first is
+    # not a report.
     report["rehearsal_chef_marks"] = _marks(REHEARSAL_CHEFS)
     return report
 
@@ -5297,6 +5449,8 @@ def operator_purge_emulation_data(*, operator_author, correlation_id=""):
     not who they are - the same distinction the Owner drew on 2026-08-07 when
     he switched them off the floor instead of deleting them.
     """
+    from .rehearsal import REHEARSAL_CHEFS
+
     _require_owner(operator_author)
 
     before = emulation_data_report()
@@ -5357,8 +5511,16 @@ def operator_purge_emulation_data(*, operator_author, correlation_id=""):
         # so this is "as they were before the run" and not a number of mine.
         # Their identity is untouched: enrolment, infinite_moves, the accounts
         # themselves and their place in the console all stay.
+        #
+        # AND THE OWNER'S TWO REHEARSAL CHEFS GO WITH THEM - his decision,
+        # 2026-09-04, asked and answered: the purge wipes what a rehearsal
+        # left on Jam O'Liver and CrestedTen. Until now their marks were
+        # reported and kept, because a rehearsal really does move a real
+        # account's rating and that was not an agent's call to undo. It is
+        # his call, he made it, and it is the same reset: profile numbers to
+        # the model's defaults, identity untouched.
         ChefBattleProfile.objects.filter(
-            author__slug__in=_emulation_bot_slug_set()
+            author__slug__in=set(_emulation_bot_slug_set()) | set(REHEARSAL_CHEFS)
         ).update(
             rating=0, reputation=0, wins=0, losses=0,
             win_streak=0, best_win_streak=0,

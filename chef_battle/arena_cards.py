@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import logging
 
+from django.db import transaction
 from django.utils import timezone
 
 from .models import ArenaChatMessage, ArenaSeat, BattleEvent
@@ -112,18 +113,32 @@ def post_card_for_event(event: BattleEvent) -> ArenaChatMessage | None:
         return None
 
     actor = event.actor
+    # AN ACTOR-LESS EVENT IS THE ARENA SPEAKING, and since 2026-09-05 it gets a
+    # card like any other. The hall's own moments - a battle finishing, a crown
+    # moving - carry no actor, and while speaker was NOT NULL this write raised
+    # IntegrityError on every one of them, so none of them ever reached the
+    # hall. The Owner asked for them. speaker is nullable now and display_name
+    # falls back to "The Arena", which is what the fallback was written for.
     ring, cell = _seat_of(actor)
+    # THE SAVEPOINT IS WHAT MAKES THE PROMISE IN THE DOCSTRING TRUE. This runs
+    # inside the caller's atomic block, and catching a database error there
+    # does not undo it: the connection stays poisoned and the very next query
+    # raises TransactionManagementError, so the "cosmetic fault" took the whole
+    # battle transition down with it. That is how the two newsfeed tests failed
+    # - not on the card, but on the query after it. An inner atomic() gives
+    # this write its own savepoint, which rolls back alone.
     try:
-        return ArenaChatMessage.objects.create(
-            battle=event.battle,
-            speaker=actor,
-            display_name=(getattr(actor, "name", "") or "The Arena")[:60],
-            body=event.message[:300],
-            ring_index=ring,
-            seat_index=cell,
-            kind=kind,
-            event=event,
-        )
+        with transaction.atomic():
+            return ArenaChatMessage.objects.create(
+                battle=event.battle,
+                speaker=actor,
+                display_name=(getattr(actor, "name", "") or "The Arena")[:60],
+                body=event.message[:300],
+                ring_index=ring,
+                seat_index=cell,
+                kind=kind,
+                event=event,
+            )
     except Exception:
         logger.exception("arena card failed for BattleEvent %s", event.pk)
         return None
