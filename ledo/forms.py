@@ -1,3 +1,4 @@
+from .i18n import translate_lazy as _
 import uuid
 from datetime import datetime, timezone as datetime_timezone
 from zoneinfo import ZoneInfo
@@ -16,13 +17,13 @@ def _parse_oslo_datetime(raw_value):
     try:
         naive = datetime.strptime(raw_value, "%Y-%m-%dT%H:%M")
     except (TypeError, ValueError):
-        raise forms.ValidationError("Oppgi gyldig dato og tid.")
+        raise forms.ValidationError(_("Oppgi gyldig dato og tid."))
     first = naive.replace(tzinfo=OSLO, fold=0)
     second = naive.replace(tzinfo=OSLO, fold=1)
     round_trip = first.astimezone(datetime_timezone.utc).astimezone(OSLO).replace(tzinfo=None)
     if round_trip != naive or first.utcoffset() != second.utcoffset():
         raise forms.ValidationError(
-            "Tidspunktet finnes ikke entydig på grunn av overgang til eller fra sommertid.",
+            _("Tidspunktet finnes ikke entydig på grunn av overgang til eller fra sommertid."),
         )
     return first
 
@@ -39,36 +40,36 @@ class OsloDateTimeField(forms.DateTimeField):
 class BookingRequestForm(forms.Form):
     route = forms.ModelChoiceField(
         queryset=Route.objects.none(),
-        label="Rute",
-        empty_label="Velg retning",
+        label=_("Rute"),
+        empty_label=_("Velg retning"),
     )
     pickup_at = OsloDateTimeField(
-        label="Hentedato og tid",
+        label=_("Hentedato og tid"),
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
         input_formats=("%Y-%m-%dT%H:%M",),
     )
-    return_trip = forms.BooleanField(label="Tur-retur", required=False)
+    return_trip = forms.BooleanField(label=_("Tur-retur"), required=False)
     return_at = OsloDateTimeField(
-        label="Returdato og tid",
+        label=_("Returdato og tid"),
         required=False,
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
         input_formats=("%Y-%m-%dT%H:%M",),
     )
-    adults = forms.IntegerField(label="Voksne", min_value=1, max_value=6, initial=1)
-    children = forms.IntegerField(label="Barn", min_value=0, max_value=6, initial=0)
-    luggage = forms.IntegerField(label="Bagasje", min_value=0, max_value=12, initial=1)
-    flight_number = forms.CharField(label="Flynummer", max_length=24, required=False)
+    adults = forms.IntegerField(label=_("Voksne"), min_value=1, max_value=6, initial=1)
+    children = forms.IntegerField(label=_("Barn"), min_value=0, max_value=6, initial=0)
+    luggage = forms.IntegerField(label=_("Bagasje"), min_value=0, max_value=12, initial=1)
+    flight_number = forms.CharField(label=_("Flynummer"), max_length=24, required=False)
     notes = forms.CharField(
-        label="Spesielle behov",
+        label=_("Spesielle behov"),
         max_length=1000,
         required=False,
         widget=forms.Textarea(attrs={"rows": 3}),
     )
-    name = forms.CharField(label="Navn", max_length=120)
-    email = forms.EmailField(label="E-post")
-    phone = forms.CharField(label="Telefon", max_length=32)
+    name = forms.CharField(label=_("Navn"), max_length=120)
+    email = forms.EmailField(label=_("E-post"))
+    phone = forms.CharField(label=_("Telefon"), max_length=32)
     accept_terms = forms.BooleanField(
-        label="Jeg godtar at dette er en forespørsel som må bekreftes av LEDO Drive.",
+        label=_("Jeg godtar at dette er en forespørsel som må bekreftes av LEDO Drive."),
     )
     idempotency_key = forms.UUIDField(widget=forms.HiddenInput)
     website = forms.CharField(required=False, widget=forms.HiddenInput)
@@ -83,19 +84,19 @@ class BookingRequestForm(forms.Form):
     def clean_pickup_at(self):
         pickup_at = _parse_oslo_datetime(self.data.get("pickup_at"))
         if pickup_at <= timezone.now():
-            raise forms.ValidationError("Velg et tidspunkt i fremtiden.")
+            raise forms.ValidationError(_("Velg et tidspunkt i fremtiden."))
         return pickup_at
 
     def clean(self):
         cleaned = super().clean()
         if cleaned.get("website"):
-            raise forms.ValidationError("Forespørselen kunne ikke sendes.")
+            raise forms.ValidationError(_("Forespørselen kunne ikke sendes."))
 
         return_trip = cleaned.get("return_trip")
         return_at = cleaned.get("return_at")
         pickup_at = cleaned.get("pickup_at")
         if return_trip and not return_at:
-            self.add_error("return_at", "Oppgi tidspunkt for returen.")
+            self.add_error("return_at", _("Oppgi tidspunkt for returen."))
         elif return_at:
             try:
                 return_at = _parse_oslo_datetime(self.data.get("return_at"))
@@ -105,7 +106,7 @@ class BookingRequestForm(forms.Form):
             else:
                 cleaned["return_at"] = return_at
             if pickup_at and return_at <= pickup_at:
-                self.add_error("return_at", "Returen må være etter hentetidspunktet.")
+                self.add_error("return_at", _("Returen må være etter hentetidspunktet."))
 
         route = cleaned.get("route")
         if route:

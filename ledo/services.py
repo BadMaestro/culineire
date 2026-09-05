@@ -1,3 +1,4 @@
+from .i18n import translate_lazy as _
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -41,10 +42,10 @@ def current_fares():
 def quote_for_route(route: Route, *, return_trip: bool) -> Quote:
     fare = current_fares().filter(route=route).first()
     if fare is None:
-        raise QuoteUnavailable("Pris for denne ruten er ikke tilgjengelig ennå.")
+        raise QuoteUnavailable(_("Pris for denne ruten er ikke tilgjengelig ennå."))
     amount = fare.return_price if return_trip else fare.one_way_price
     if amount is None:
-        raise QuoteUnavailable("Tur-retur-pris for denne ruten er ikke tilgjengelig ennå.")
+        raise QuoteUnavailable(_("Tur-retur-pris for denne ruten er ikke tilgjengelig ennå."))
     return Quote(fare=fare, amount=amount, currency=fare.currency, return_trip=return_trip)
 
 

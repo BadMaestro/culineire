@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from django.utils import timezone
+from django.utils import timezone, translation
 
 from .forms import BookingRequestForm, OsloDateTimeField
 from .models import AuditEvent, Booking, CustomerContact, Fare, Route
@@ -117,6 +117,25 @@ class BookingRequestTests(TestCase):
         self.assertEqual(second.status_code, 302)
         self.assertEqual(Booking.objects.count(), 1)
         self.assertEqual(CustomerContact.objects.count(), 1)
+
+    def test_translated_booking_flow_all_languages(self):
+        for code, heading, label, error in [
+            ('nb', 'Forespørsel mottatt', 'Navn', 'Velg et tidspunkt i fremtiden.'),
+            ('en', 'Request received', 'Name', 'Choose a future date and time.'),
+            ('lt', 'Užklausa gauta', 'Vardas', 'Pasirinkite laiką ateityje.'),
+            ('ru', 'Заявка получена', 'Имя', 'Выберите дату и время в будущем.'),
+        ]:
+            with self.subTest(language=code):
+                cache.clear()
+                page = self.client.get(f'/ledo/?lang={code}')
+                self.assertContains(page, label)
+                invalid = self.client.post(f'/ledo/bestill/?lang={code}',
+                    self.booking_payload(pickup_at='2020-01-01T12:00'))
+                self.assertContains(invalid, error, status_code=400)
+                result = self.client.post(f'/ledo/bestill/?lang={code}',
+                    self.booking_payload(), follow=True)
+                self.assertContains(result, heading)
+                self.assertEqual(result['Content-Language'], code)
 
     def test_return_trip_uses_return_price(self):
         pickup = timezone.localtime(timezone.now() + timedelta(days=2))
@@ -245,5 +264,61 @@ class BookingFormTests(TestCase):
                 "idempotency_key": uuid.uuid4(),
             },
         )
-        self.assertFalse(form.is_valid())
-        self.assertIn("sommertid", form.errors["pickup_at"][0])
+        with translation.override('nb'):
+            self.assertFalse(form.is_valid())
+            self.assertIn("sommertid", form.errors["pickup_at"][0])
+
+
+@override_settings(LEDO_ENABLED=True, LEDO_PREVIEW_STAFF_ONLY=False)
+class LedoLanguageTests(TestCase):
+    def test_all_languages_and_switcher(self):
+        headings = {'nb': 'uten stress.', 'en': 'without the stress.',
+                    'lt': 'be rūpesčių.', 'ru': 'без лишних забот.'}
+        for code, heading in headings.items():
+            with self.subTest(language=code):
+                response = self.client.get('/ledo/', {'lang': code})
+                self.assertContains(response, heading)
+                self.assertContains(response, f'<html lang="{code}">')
+                self.assertEqual(response['Content-Language'], code)
+                for label in ('NO', 'EN', 'LT', 'RU'):
+                    self.assertContains(response, f'>{label}</a>')
+
+    def test_language_cookie_is_scoped_and_does_not_change_host_language(self):
+        with translation.override('en'):
+            response = self.client.get('/ledo/?lang=ru')
+            self.assertEqual(translation.get_language(), 'en')
+        self.assertEqual(response.cookies['ledo_language']['path'], '/ledo/')
+        self.assertNotIn('django_language', response.cookies)
+        self.assertContains(self.client.get('/ledo/'), 'без лишних забот.')
+
+    def test_unknown_language_falls_back_and_is_not_reflected(self):
+        response = self.client.get('/ledo/', {'lang': '<script>alert(1)</script>'})
+        self.assertEqual(response['Content-Language'], 'nb')
+        self.assertNotContains(response, '<script>alert(1)</script>')
+
+    def test_invalid_form_and_rate_limit_are_translated(self):
+        cache.clear()
+        for code, expected in [('en', 'This field is required.'),
+                               ('ru', 'Обязательное поле.')]:
+            response = self.client.post(f'/ledo/bestill/?lang={code}', {})
+            self.assertEqual(response.status_code, 400)
+            # No active fare: inspect form errors even though the form is closed.
+            with translation.override(code):
+                self.assertEqual(str(response.context['form'].errors['name'][0]), expected)
+        session = self.client.session
+        cache.set(f'ledo:booking-rate:{session.session_key}', 5, 60)
+        response = self.client.post('/ledo/bestill/?lang=ru', {})
+        self.assertEqual(response.status_code, 429)
+        with translation.override('ru'):
+            self.assertIn('Слишком много попыток', str(response.context['form'].non_field_errors()))
+
+    def test_catalog_complete_and_template_keys_known(self):
+        import re
+        from pathlib import Path
+        from .i18n import CATALOG
+        for source, translations in CATALOG.items():
+            self.assertEqual(set(translations), {'nb', 'en', 'lt', 'ru'})
+            self.assertTrue(all(translations.values()), source)
+        for path in (Path(__file__).parent / 'templates/ledo').glob('*.html'):
+            for key in re.findall(r"\{% t '([^']+)' %\}", path.read_text(encoding='utf-8')):
+                self.assertIn(key, CATALOG, str(path))

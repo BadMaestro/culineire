@@ -1,5 +1,19 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1804",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "LEDO language switch: Norwegian, English, Lithuanian and Russian",
+        "section": "LEDO",
+        "summary": (
+            "Adds NO / EN / LT / RU in the LEDO header, including mobile. "
+            "Translates the landing page, form labels and errors, quote messages, "
+            "FAQ, booking confirmation and statuses. Language preference is "
+            "scoped to /ledo/ and does not change CulinEire's language. "
+            "Staff-only access and the absence of production fares remain unchanged."
+        ),
+    },
+    {
         "version": "2.5.1801",
         "date": "2026-09-05",
         "commit": "e74f4414",

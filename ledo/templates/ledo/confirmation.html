@@ -1,20 +1,20 @@
 {% extends "ledo/base.html" %}
-{% load tz %}
+{% load tz ledo_i18n %}
 
-{% block title %}Forespørsel mottatt · LEDO Drive{% endblock %}
+{% block title %}{% t 'Forespørsel mottatt' %} · LEDO Drive{% endblock %}
 
 {% block content %}
 <section class="confirmation">
-    <p class="eyebrow"><span></span> Forespørsel mottatt</p>
-    <h1>Takk. Vi har registrert turen.</h1>
-    <p>Dette er ikke en endelig bestillingsbekreftelse. Operatøren kontrollerer tilgjengeligheten før turen bekreftes.</p>
+    <p class="eyebrow"><span></span> {% t 'Forespørsel mottatt' %}</p>
+    <h1>{% t 'Takk. Vi har registrert turen.' %}</h1>
+    <p>{% t 'Dette er ikke en endelig bestillingsbekreftelse. Operatøren kontrollerer tilgjengeligheten før turen bekreftes.' %}</p>
     <dl>
-        <div><dt>Referanse</dt><dd>{{ booking.public_id }}</dd></div>
-        <div><dt>Rute</dt><dd>{{ booking.route.name }}</dd></div>
-        <div><dt>Henting</dt><dd>{{ booking.pickup_at|timezone:"Europe/Oslo"|date:"d.m.Y H:i" }} (Europe/Oslo)</dd></div>
-        <div><dt>Pris</dt><dd>{{ booking.quoted_price|floatformat:0 }} {{ booking.currency }}</dd></div>
-        <div><dt>Status</dt><dd>{{ booking.get_status_display }}</dd></div>
+        <div><dt>{% t 'Referanse' %}</dt><dd>{{ booking.public_id }}</dd></div>
+        <div><dt>{% t 'Rute' %}</dt><dd>{{ booking.route.name }}</dd></div>
+        <div><dt>{% t 'Henting' %}</dt><dd>{{ booking.pickup_at|timezone:"Europe/Oslo"|date:"d.m.Y H:i" }} (Europe/Oslo)</dd></div>
+        <div><dt>{% t 'Pris' %}</dt><dd>{{ booking.quoted_price|floatformat:0 }} {{ booking.currency }}</dd></div>
+        <div><dt>{% t 'Status' %}</dt><dd>{{ booking.get_status_display|ledo_translate }}</dd></div>
     </dl>
-    <a class="button button-primary" href="{% url 'ledo:home' %}">Til forsiden</a>
+    <a class="button button-primary" href="{% url 'ledo:home' %}">{% t 'Til forsiden' %}</a>
 </section>
 {% endblock %}

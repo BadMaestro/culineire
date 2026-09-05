@@ -1,40 +1,46 @@
-{% load static %}
+{% load static ledo_i18n %}
 <!doctype html>
-<html lang="nb">
+<html lang="{{ ledo_language|default:'nb' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow, noarchive">
-    <meta name="description" content="LEDO Drive – forespør flyplasstransfer mellom Kongsberg og Gardermoen.">
+    <meta name="description" content="{% t 'LEDO Drive – forespør flyplasstransfer mellom Kongsberg og Gardermoen.' %}">
     <meta name="theme-color" content="#070b12">
     <title>{% block title %}LEDO Drive{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'ledo/css/ledo.css' %}">
     <script src="{% static 'ledo/js/ledo.js' %}" defer></script>
 </head>
 <body>
-    <a class="skip-link" href="#main">Hopp til innhold</a>
+    <a class="skip-link" href="#main">{% t 'Hopp til innhold' %}</a>
     <header class="site-header">
-        <a class="brand" href="{% url 'ledo:home' %}" aria-label="LEDO Drive forside">
+        <a class="brand" href="{% url 'ledo:home' %}" aria-label="{% t 'LEDO Drive forside' %}">
             <img class="brand-logo" src="{% static 'ledo/images/logo.jpg' %}" width="56" height="56" alt="">
             <span>LEDO <b>DRIVE</b></span>
         </a>
-        <nav aria-label="Hovedmeny">
-            <a href="{% url 'ledo:home' %}#slik">Slik fungerer det</a>
-            <a href="{% url 'ledo:home' %}#pris">Pris</a>
-            <a href="{% url 'ledo:home' %}#faq">FAQ</a>
-            <a class="nav-cta" href="{% url 'ledo:home' %}#bestill">Bestill tur</a>
+        <nav aria-label="{% t 'Hovedmeny' %}">
+            <a href="{% url 'ledo:home' %}#slik">{% t 'Slik fungerer det' %}</a>
+            <a href="{% url 'ledo:home' %}#pris">{% t 'Pris' %}</a>
+            <a href="{% url 'ledo:home' %}#faq">{% t 'FAQ' %}</a>
+            <a class="nav-cta" href="{% url 'ledo:home' %}#bestill">{% t 'Bestill tur' %}</a>
+        </nav>
+        <nav class="language-switch" aria-label="{% t 'Språk' %}">
+            {% for language in ledo_languages %}
+            <a href="{{ language.url }}" lang="{{ language.code }}" hreflang="{{ language.code }}" aria-label="{{ language.name }}"{% if language.code == ledo_language %} aria-current="true"{% endif %}>{{ language.label }}</a>
+            {% endfor %}
         </nav>
     </header>
     <main id="main">{% block content %}{% endblock %}</main>
     <footer class="site-footer">
         <div>
             <span class="footer-brand">LEDO DRIVE</span>
-            <p>Flyplasstransfer mellom Kongsberg og Gardermoen.</p>
+            <p>{% t 'Flyplasstransfer mellom Kongsberg og Gardermoen.' %}</p>
         </div>
         <div class="footer-links">
-            <span>Kontaktinformasjon og organisasjonsnummer publiseres etter verifisering.</span>
-            <a href="#bestill">Send forespørsel</a>
+            <span>{% t 'Kontaktinformasjon og organisasjonsnummer publiseres etter verifisering.' %}</span>
+            <a href="{% url 'ledo:home' %}#bestill">{% t 'Send forespørsel' %}</a>
         </div>
     </footer>
+    {{ ledo_js_messages|json_script:"ledo-messages" }}
 </body>
 </html>

@@ -199,3 +199,10 @@ details p { margin: -.3rem 0 1.6rem; max-width: 42rem; }
     :root { scroll-behavior: auto; }
     *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+.site-header { flex-wrap: wrap; gap: 1rem; }
+.language-switch { display: flex; gap: .25rem; flex-shrink: 0; }
+.site-header .language-switch a { display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; border: 1px solid #42536a; border-radius: .5rem; font-size: .8rem; }
+.language-switch a[aria-current="true"] { background: #84c4ff; color: #07101c; border-color: #84c4ff; }
+.language-switch a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.hero h1, .section h2, .closing h2 { overflow-wrap: anywhere; }
+@media (max-width: 700px) { .site-header .language-switch { display: flex; width: 100%; justify-content: flex-end; } }
