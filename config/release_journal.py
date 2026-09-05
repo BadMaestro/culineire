@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1783",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "b16e9f03",
         "title": "No chef could ever have been paid: the payout chain had no entrance, and nothing had ever written the status it needs",
         "section": "Chef Battles / Arena",
         "summary": (
