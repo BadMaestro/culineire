@@ -1592,6 +1592,23 @@
   margin-block-end: 0;
 }
 
+/* THE PORTRAIT STANDS IN THE COLUMN IT BELONGS TO. `margin-inline: auto`
+   below centres the avatar in whatever box holds it, which was right while the
+   author hero was a centred block and became wrong the moment v2.5.1774 gave
+   that hero the golden two-column layout: the kicker, the H1, the bio and the
+   button row all sit at the copy's left edge and the portrait alone stayed in
+   the middle - 310px in, exactly half of (700 - 80).
+
+   The override is HERE rather than in base.css beside the hero's other rules,
+   and that is not a preference. base.css imports this file into layer
+   `components`; its own hero rules live in layer `base`, and a later layer wins
+   over an earlier one no matter how specific the earlier selector is. The
+   version of this fix written in base.css computed to margin-inline: 0 and the
+   avatar still rendered 310px in. */
+.hero--author-profile .hero-author-avatar {
+  margin-inline: 0;
+}
+
 .hero-author-avatar {
   display: block;
   margin-inline: auto;

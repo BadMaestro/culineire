@@ -1,5 +1,33 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1789",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "The portrait actually moves this time - the override was in the losing layer",
+        "section": "Site",
+        "summary": (
+            "v2.5.1786 put `.hero--author-profile .hero-author-avatar "
+            "{ margin-inline: 0 }` in base.css and verified the height on the "
+            "live page but not the avatar, which was still 310px in. The rule "
+            "was not overridden by a more specific one - the browser reported "
+            "it as the ONLY matching rule and still resolved the margin to "
+            "310px. "
+            "CASCADE LAYERS, NOT SPECIFICITY. base.css declares "
+            "`@layer base, components, special, footer, ...` and imports "
+            "content_cards.css INTO layer components. Its own hero rules live "
+            "in layer base. A later layer beats an earlier one no matter how "
+            "specific the earlier selector is, so `.hero-author-avatar` "
+            "(one class, components) beat `.hero--author-profile "
+            ".hero-author-avatar` (two classes, base) - and document."
+            "styleSheets never showed the winner because an @import is a "
+            "CSSImportRule whose rules hang off .styleSheet, not .cssRules. "
+            "The override now sits in content_cards.css beside the rule it "
+            "corrects, where the same layer makes specificity decide again. "
+            "The height fix of v2.5.1786 is unaffected and stays: no bio "
+            "533.39, level with the homepage."
+        ),
+    },
+    {
         "version": "2.5.1786",
         "date": "2026-09-05",
         "commit": "pending",

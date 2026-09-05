@@ -2021,6 +2021,10 @@
      is exactly half of (700 - 80). Nothing else moves; measured before and
      after, the title stays at 395 and the row at 617.
 
+     The rule that does it lives in content_cards.css, NOT here: that file is
+     imported into layer `components`, which outranks this `base` layer whatever
+     the specificity - an override written here loses silently.
+
      justify-content is flex-start now, like every other hero. It was `center`
      from the days when this copy was a centred block; under the golden layout
      the inner is already top-anchored, so it decided nothing and only
@@ -2031,9 +2035,6 @@
     justify-content: flex-start;
   }
 
-  .hero--author-profile .hero-author-avatar {
-    margin-inline: 0;
-  }
 
   /* THE AUTHOR PROFILE HERO IS BACK ON THE GOLDEN VALUES.
      Three overrides used to sit here and all three came from one commit of
