@@ -138,8 +138,14 @@
     </div>
     {% endif %}
 
-    {# ── Gifts from the stands ── #}
-    {% if my_gifts %}
+    {% comment %}
+    Gifts from the stands. ALWAYS SHOWN, even with nothing in it. It used to
+    be wrapped in a check for gifts, and the Owner - holding none - opened his
+    own Changing Room on production and found the feature simply absent. A
+    section that disappears when empty cannot tell a chef it exists, and
+    "viewers can send you this, and here is what it is worth" is exactly what
+    an empty one should be saying.
+    {% endcomment %}
     <div class="cr-gifts">
       <h2 class="chest-section__title">Gifts From The Stands</h2>
       <p class="cr-gifts__note">
@@ -152,6 +158,14 @@
       {% if gift_sold %}
       <p class="cr-gifts__msg cr-gifts__msg--ok">
         Sold back for {{ gift_sold.tokens_granted }} token{{ gift_sold.tokens_granted|pluralize }}, pending release.
+      </p>
+      {% endif %}
+
+      {% if not my_gifts %}
+      <p class="cr-gifts__empty">
+        Nobody has sent you one yet. Viewers buy them during a battle &mdash; a coffee
+        is 20 tokens, flowers 80, a bottle of champagne 100 &mdash; and they never touch
+        the fight. They are applause.
       </p>
       {% endif %}
 
@@ -177,7 +191,6 @@
         {% endfor %}
       </ul>
     </div>
-    {% endif %}
 
   </div>
 </section>

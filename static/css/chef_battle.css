@@ -2435,6 +2435,11 @@ a.hero-battle-panel__crown:hover { text-decoration: underline; }
    down with it. */
 .cr-gifts { margin-top: 2.5rem; }
 .cr-gifts__note { max-width: 62ch; color: var(--ink-soft, #42514a); margin: 0 0 1rem; }
+.cr-gifts__empty {
+  max-width: 62ch; margin: 0 0 .5rem; padding: .75rem .9rem;
+  border: 1px dashed rgb(58 44 30 / 0.22); border-radius: 8px;
+  background: var(--surface-alt, #f5f5f5); color: var(--ink-soft, #42514a);
+}
 .cr-gifts__msg { margin: 0 0 1rem; padding: .55rem .8rem; border-radius: 9px; }
 .cr-gifts__msg--ok { background: color-mix(in srgb, var(--accent, #b8860b) 14%, transparent); }
 .cr-gifts__msg--err { background: color-mix(in srgb, var(--danger, #a8321f) 12%, transparent); color: var(--danger, #a8321f); }

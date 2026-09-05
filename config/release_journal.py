@@ -1,5 +1,45 @@
 RELEASE_JOURNAL = [
     {
+        "version": "2.5.1801",
+        "date": "2026-09-05",
+        "commit": "pending",
+        "title": "The gift shelf hid itself from every chef who had no gifts, which was all of them",
+        "section": "Chef Battles / Arena",
+        "summary": (
+            "The Owner opened his own Changing Room on production, where the "
+            "sell-back shipped an hour earlier, and reported it was not there. "
+            "It was there. It was wrapped in a check for gifts, he holds none, "
+            "so the whole section rendered as nothing. Counted on production "
+            "before answering: 4 appreciation gifts exist in total and none "
+            "belong to him, jam-oliver or crestedten - so for every account he "
+            "would open it with, the feature was invisible. "
+            "A SECTION THAT DISAPPEARS WHEN EMPTY CANNOT TELL A CHEF IT "
+            "EXISTS, and an empty one has something worth saying: nobody has "
+            "sent you one yet, viewers buy them during a battle, a coffee is "
+            "20 tokens and a bottle of champagne 100, and they never touch the "
+            "fight. It is always drawn now. "
+            "AND A GUARD FOR A MISTAKE THIS PROJECT KEEPS REPEATING. The fix "
+            "above was first written with a multi-line {# #} comment, which "
+            "Django does not support - the opener is not matched across a "
+            "newline - and because the wrapped text contained an {% if %}, the "
+            "template lost its {% endif %} and the page stopped rendering "
+            "at all. It never shipped; the tests caught it in the same minute. "
+            "But this is the fourth occurrence on record: v2.5.1137 leaked a "
+            "note into the live registration form, three more were found in "
+            "arena.html on 2026-09-04, and now this. accounts/tests.py guarded "
+            "exactly ONE rendered page against it. A new test scans EVERY "
+            "template in the repository for a {# with no #} on the same line, "
+            "because the fault is in the syntax and not in any one page - and "
+            "what it costs is either a leaked note or a 500, depending purely "
+            "on what the comment happens to contain. It passes clean today, "
+            "which is the point: it is a wall, not a repair. "
+            "RISK AND ROLLBACK: one template, one stylesheet rule, two tests "
+            "and the scanner. No migration, no schema, no service change, no "
+            "money. Rollback is git revert of this commit then "
+            "/srv/culineire/scripts/deploy.sh."
+        ),
+    },
+    {
         "version": "2.5.1798",
         "date": "2026-09-05",
         "commit": "b7f2e484",

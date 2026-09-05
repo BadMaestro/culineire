@@ -31414,6 +31414,22 @@ class SellingAGiftBackFromTheChefsRoomTests(TestCase):
             tokens_spent=paid,
         )
 
+    def test_the_section_is_there_for_a_chef_with_no_gifts(self):
+        """It was hidden behind {% if my_gifts %} and the Owner, holding none,
+        opened his own Changing Room on production and found the feature
+        simply absent. A section that disappears when empty cannot tell a chef
+        it exists."""
+        self.client.force_login(self.user)
+        body = self.client.get(self.url).content.decode("utf-8")
+        self.assertIn("Gifts From The Stands", body)
+        self.assertIn("Nobody has sent you one yet", body)
+
+    def test_the_empty_state_goes_away_once_a_gift_arrives(self):
+        self._gift()
+        self.client.force_login(self.user)
+        body = self.client.get(self.url).content.decode("utf-8")
+        self.assertNotIn("Nobody has sent you one yet", body)
+
     def test_the_room_offers_the_quarter(self):
         self._gift()
         self.client.force_login(self.user)
@@ -31516,3 +31532,42 @@ class ArtifactsAreNotSoldBackTests(TestCase):
         rules = (Path(__file__).resolve().parent.parent
                  / "templates" / "chef_battle" / "rules.html").read_text(encoding="utf-8")
         self.assertIn("Combat artifacts are not sold back", rules)
+
+
+
+class NoTemplateCommentIsLeftUnclosedOnItsLineTests(TestCase):
+    """Django's {# #} is SINGLE-LINE and this project keeps re-learning it.
+
+    The opener is not matched across a newline, so a wrapped comment renders as
+    TEXT on the page. v2.5.1137 shipped a two-line one into the registration
+    form and the Owner read a note to himself sitting in the middle of it;
+    three more were found in arena.html on 2026-09-04; and one more was written
+    into changing_room.html today, which broke the template outright because
+    the wrapped text contained a {% if %} that then had no {% endif %}.
+
+    accounts/tests.py guards ONE rendered page against it. This guards every
+    template in the repository, because the mistake is not about a page - it is
+    about the syntax, and it costs either a leaked note or a 500 depending
+    purely on what the comment happens to contain.
+
+    Multi-line notes use {% comment %}...{% endcomment %}.
+    """
+
+    def test_every_template_closes_its_hash_comment_on_the_same_line(self):
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parent.parent
+        offenders = []
+        for path in sorted(root.glob("templates/**/*.html")):
+            for number, line in enumerate(
+                    path.read_text(encoding="utf-8").splitlines(), start=1):
+                head = line.find("{#")
+                if head == -1:
+                    continue
+                if "#}" not in line[head + 2:]:
+                    offenders.append(
+                        "%s:%d" % (path.relative_to(root).as_posix(), number))
+        self.assertEqual(
+            offenders, [],
+            "{# #} does not span lines - use {% comment %} instead: "
+            + ", ".join(offenders))
