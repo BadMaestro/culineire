@@ -2,7 +2,7 @@ RELEASE_JOURNAL = [
     {
         "version": "2.5.1795",
         "date": "2026-09-05",
-        "commit": "pending",
+        "commit": "910c986f",
         "title": "arena.css becomes twelve sheets, the chat gets its own, and every sheet gets a guard",
         "section": "Arena",
         "summary": (
